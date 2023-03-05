@@ -1,0 +1,17 @@
+-----------------
+INPUT
+----------------- 
+@ObjectType
+export default class Query {
+  @Field
+  hello(): Array<string> {
+    return ["Hello world!"];
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+type Query {
+  hello: [String]
+}

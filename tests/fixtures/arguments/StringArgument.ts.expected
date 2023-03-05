@@ -1,0 +1,17 @@
+-----------------
+INPUT
+----------------- 
+@ObjectType
+export default class Query {
+  @Field
+  hello({ greeting }: { greeting: string }): string {
+    return "Hello world!";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+type Query {
+  hello(greeting: String!): String
+}
