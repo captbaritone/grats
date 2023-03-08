@@ -1,7 +1,11 @@
 import * as path from "path";
 import { extract } from "../extract";
 import TestRunner from "./TestRunner";
-import { printSchema, buildASTSchema } from "graphql";
+import { printSchema, buildASTSchema, validateSchema } from "graphql";
+import { validateSDL } from "graphql/validation/validate";
+import { parseForESLint } from "@typescript-eslint/parser";
+import { traverse } from "../Traverse";
+import DiagnosticError from "../DiagnosticError";
 
 async function main() {
   const write = process.argv.some((arg) => arg === "--write");
@@ -22,8 +26,24 @@ const testDirs = [
   {
     fixturesDir: path.join(__dirname, "fixtures"),
     transformer: async (code: string, fileName: string) => {
-      const ast = extract(code);
-      return printSchema(buildASTSchema(ast));
+      const { ast, scopeManager } = parseForESLint(code, {
+        comment: true,
+        loc: true,
+        // Omitting this breaks the scope manager
+        range: true,
+      });
+
+      const schemaResult = traverse(ast, code, scopeManager);
+      switch (schemaResult.type) {
+        case "ERROR":
+          return schemaResult.error
+            .map((error) =>
+              DiagnosticError.prototype.asCodeFrame.call(error, code, fileName),
+            )
+            .join("\n");
+        case "OK":
+          return printSchema(buildASTSchema(schemaResult.value));
+      }
     },
   },
 ];

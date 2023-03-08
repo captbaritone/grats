@@ -57,53 +57,68 @@ export default class DiagnosticError extends Error {
   // Formats the diagnostic message with code frame.
   asCodeFrame(source: string, filePath: string): string {
     const lines = source.split("\n");
-    const location = this.loc.loc;
-    const startLine = Math.max(location.start.line - 2, 0);
-    const endLine = Math.min(location.end.line, lines.length - 1);
 
-    if (location.start.line !== location.end.line) {
-      console.log(location.start, location.end);
-      location.end = location.start;
-      // throw new Error("TODO: Multi-line error reporting");
+    let frame = _asCodeFrame(lines, this.loc, this.message, filePath);
+    for (const related of this.related) {
+      frame +=
+        "\n\n" + _asCodeFrame(lines, related, related.annotation, filePath);
     }
+    return frame;
+  }
+}
 
-    const gutter = String(endLine).length;
-    const defaultGutter = " ".repeat(gutter) + " | ";
+function _asCodeFrame(
+  lines: string[],
+  annotated: AnnotatedLocation,
+  message: string,
+  filePath: string,
+): string {
+  const location = annotated.loc;
+  const startLine = Math.max(location.start.line - 2, 0);
+  const endLine = Math.min(location.end.line, lines.length - 1);
 
-    const fileLocation = `${filePath}:${location.start.line}:${location.start.column}`;
+  if (location.start.line !== location.end.line) {
+    location.end = location.start;
+    // throw new Error("TODO: Multi-line error reporting");
+  }
 
-    const codeFrameLines: string[] = [
-      `Error: ${this.message}:`,
-      ` --> ${fileLocation}`,
-      "",
-    ];
+  const gutter = String(endLine).length;
+  const defaultGutter = " ".repeat(gutter) + " | ";
 
-    for (const [i, line] of lines.entries()) {
-      if (i >= startLine && i <= endLine) {
-        let linePrefix = defaultGutter;
-        if (i >= location.start.line - 1 && i <= location.end.line - 1) {
-          const lineNumber = String(i + 1);
-          const lineNumberPadding = " ".repeat(gutter - lineNumber.length);
-          linePrefix = `${lineNumberPadding}${lineNumber} | `;
-        }
-        codeFrameLines.push(`${linePrefix}${line}`);
-        // Underline the error
-        if (i === location.start.line - 1) {
-          const start = location.start.column - 1;
-          const end = location.end.column - 1;
-          const underline =
-            defaultGutter +
-            " ".repeat(start) +
-            "^".repeat(end - start) +
-            " " +
-            this.loc.annotation;
-          codeFrameLines.push(underline);
-        }
+  const fileLocation = `${filePath}:${location.start.line}:${location.start.column}`;
+
+  const codeFrameLines: string[] = [
+    `Error: ${message}:`,
+    ` --> ${fileLocation}`,
+    "",
+  ];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (i >= startLine && i <= endLine) {
+      let linePrefix = defaultGutter;
+      if (i >= location.start.line - 1 && i <= location.end.line - 1) {
+        const lineNumber = String(i + 1);
+        const lineNumberPadding = " ".repeat(gutter - lineNumber.length);
+        linePrefix = `${lineNumberPadding}${lineNumber} | `;
+      }
+      codeFrameLines.push(`${linePrefix}${line}`);
+      // Underline the error
+      if (i === location.start.line - 1) {
+        const start = location.start.column - 1;
+        const end = location.end.column - 1;
+        const underline =
+          defaultGutter +
+          " ".repeat(start) +
+          "^".repeat(end - start) +
+          " " +
+          annotated.annotation;
+        codeFrameLines.push(underline);
       }
     }
-
-    codeFrameLines.push("");
-
-    return codeFrameLines.join("\n");
   }
+
+  codeFrameLines.push("");
+
+  return codeFrameLines.join("\n");
 }

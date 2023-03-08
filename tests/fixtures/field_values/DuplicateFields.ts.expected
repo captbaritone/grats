@@ -1,0 +1,34 @@
+-----------------
+INPUT
+----------------- 
+@ObjectType
+export default class Query {
+  @Field
+  hello(): string {
+    return "Hello world!";
+  }
+  @Field
+  hello(): Array<string> {
+    return "Hello world!";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+Error: Field "Query.hello" can only be defined once.:
+ --> field_values/DuplicateFields.ts:4:3
+
+  |   @Field
+4 |   hello(): string {
+  |   ^ 
+  |     return "Hello world!";
+
+
+Error: :
+ --> field_values/DuplicateFields.ts:8:3
+
+  |   @Field
+8 |   hello(): Array<string> {
+  |   ^ 
+  |     return "Hello world!";

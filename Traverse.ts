@@ -1,4 +1,5 @@
 import type { TSESTree } from "@typescript-eslint/types";
+import type { ScopeManager } from "@typescript-eslint/scope-manager";
 import {
   FieldDefinitionNode,
   ObjectTypeDefinitionNode,
@@ -6,7 +7,12 @@ import {
   TypeNode,
   Kind,
   DocumentNode,
+  GraphQLError,
+  Location,
 } from "graphql";
+import { validateSDL } from "graphql/validation/validate";
+import DiagnosticError, { AnnotatedLocation } from "./DiagnosticError";
+import { tsLocToGraphQLLoc } from "./Location";
 
 const LIBRARY_NAME = "tsql";
 const TYPE_DECORATOR_NAME = "ObjectType";
@@ -18,11 +24,6 @@ type GraphqlDecorator = {
 
 export type GraphqlSchema = {
   typeDefinitions: ObjectTypeDefinitionNode[];
-};
-
-export type Diagnostic = {
-  message: string;
-  location: TSESTree.SourceLocation;
 };
 
 export type Result<V, E> =
@@ -37,8 +38,10 @@ export type Result<V, E> =
 
 export function traverse(
   program: TSESTree.Program,
-): Result<DocumentNode, Array<Diagnostic>> {
-  const traverse = new Traverse();
+  source: string,
+  scopeManager: ScopeManager,
+): Result<DocumentNode, Array<DiagnosticError>> {
+  const traverse = new Traverse(source, scopeManager);
   traverse.program(program);
   if (traverse._diagnostics.length > 0) {
     return { type: "ERROR", error: traverse._diagnostics };
@@ -48,16 +51,89 @@ export function traverse(
     kind: Kind.DOCUMENT,
     definitions: typeDefinitions,
   } as const;
+
+  const validationErrors = validateSDL(doc);
+  if (validationErrors.length > 0) {
+    return {
+      type: "ERROR",
+      error: validationErrors.map((error) => {
+        return graphQlErrorToDiagnostic(error);
+      }),
+    };
+  }
   return { type: "OK", value: doc };
 }
 
+function graphQlErrorToDiagnostic(error: GraphQLError): DiagnosticError {
+  const loc = error.locations[0];
+  const position = error.positions[0];
+  if (loc == null) {
+    throw new Error("Expected error to have a location");
+  }
+  if (position == null) {
+    throw new Error("Expected error to have a position");
+  }
+  const start = {
+    offset: position,
+    line: loc.line,
+    column: loc.column,
+  };
+  let end = {
+    offset: position + 1,
+    line: loc.line,
+    column: loc.column + 1,
+  };
+
+  const related = [];
+  for (let i = 1; i < error.locations.length; i++) {
+    const loc = error.locations[i];
+    const position = error.positions[i];
+    if (loc && position) {
+      related.push(
+        new AnnotatedLocation(
+          {
+            start: {
+              offset: position,
+              line: loc.line,
+              column: loc.column,
+            },
+            end: {
+              offset: position + 1,
+              line: loc.line,
+              column: loc.column + 1,
+            },
+          },
+          "",
+        ),
+      );
+    }
+  }
+  return new DiagnosticError(
+    error.message,
+    new AnnotatedLocation({ start, end }, ""),
+    related,
+  );
+}
+
+// TS AST Location => GraphQL Location
+// TS AST Location => Diagnostic Location
+// GraphQL Location => Diagnostic Location
+
 class Traverse {
   _graphqlDefinitions: ObjectTypeDefinitionNode[] = [];
-  _diagnostics: Diagnostic[] = [];
+  _diagnostics: DiagnosticError[] = [];
+  _source: string;
   _scopeManager: ScopeManager;
 
+  constructor(source: string, scopeManager: ScopeManager) {
+    this._source = source;
+    this._scopeManager = scopeManager;
+  }
+
   report(message: string, loc: TSESTree.SourceLocation): null {
-    this._diagnostics.push({ message, location: loc });
+    this._diagnostics.push(
+      new DiagnosticError(message, new AnnotatedLocation(loc, "")),
+    );
     return null;
   }
 
@@ -69,7 +145,9 @@ class Traverse {
       "(this represents a bug in " +
       LIBRARY_NAME +
       ")";
-    this._diagnostics.push({ message: fullMessage, location: loc });
+    this._diagnostics.push(
+      new DiagnosticError(fullMessage, new AnnotatedLocation(loc, "")),
+    );
     return null;
   }
 
@@ -217,11 +295,11 @@ class Traverse {
       case "Identifier": {
         return {
           kind: Kind.FIELD_DEFINITION,
-          loc: null,
+          loc: this.graphQLLoc(methodDefinition.loc),
           description: null,
           name: {
             kind: Kind.NAME,
-            loc: null,
+            loc: this.graphQLLoc(methodDefinition.key.loc),
             value: methodDefinition.key.name,
           },
           arguments: args,
@@ -235,6 +313,10 @@ class Traverse {
           methodDefinition.key.loc,
         );
     }
+  }
+
+  graphQLLoc(loc: TSESTree.SourceLocation): Location {
+    return tsLocToGraphQLLoc(loc, this._source);
   }
 
   methodParams(
@@ -290,11 +372,11 @@ class Traverse {
 
             return {
               kind: Kind.INPUT_VALUE_DEFINITION,
-              loc: null,
+              loc: this.graphQLLoc(member.loc),
               description: null,
               name: {
                 kind: Kind.NAME,
-                loc: null,
+                loc: this.graphQLLoc(member.key.loc),
                 value: member.key.name,
               },
               type: argType,
@@ -316,10 +398,10 @@ class Traverse {
           kind: Kind.NON_NULL_TYPE,
           type: {
             kind: Kind.NAMED_TYPE,
-            loc: null,
+            loc: this.graphQLLoc(typeNode.loc),
             name: {
               kind: Kind.NAME,
-              loc: null,
+              loc: this.graphQLLoc(typeNode.loc),
               value: "String",
             },
           },
@@ -367,7 +449,7 @@ class Traverse {
       case "TSStringKeyword":
         return {
           kind: Kind.NAMED_TYPE,
-          loc: null,
+          loc: this.graphQLLoc(typeNode.loc),
           name: {
             kind: Kind.NAME,
             value: "String",
@@ -393,7 +475,7 @@ class Traverse {
       case "TSArrayType":
         return {
           kind: Kind.LIST_TYPE,
-          loc: null,
+          loc: this.graphQLLoc(typeNode.loc),
           type: this.graphqlReturnTypeFromTypeNode(typeNode.elementType),
         };
       default:
@@ -424,14 +506,15 @@ class Traverse {
               typeReference.typeParameters.params[0],
             );
           default:
+            const graphqlType = this.lookupGraphqlType(typeReference);
             // TODO: Assert there are no type parameters.
             // TODO: Assert this is a GraphQL type.
             return {
               kind: Kind.NAMED_TYPE,
-              loc: null,
+              loc: this.graphQLLoc(typeReference.loc),
               name: {
                 kind: Kind.NAME,
-                value: typeReference.typeName.name,
+                value: graphqlType,
               },
             };
         }
@@ -490,4 +573,57 @@ class Traverse {
     }
     return null;
   }
+
+  lookupGraphqlType(typeReference: TSESTree.TSTypeReference): string | null {
+    const scope = getScope(this._scopeManager, typeReference);
+    if (scope == null) {
+      throw new Error("Could not locate scope for type reference");
+    }
+    if (typeReference.typeName.type !== "Identifier") {
+      throw new Error("Expected type reference to be an identifier");
+    }
+    const variable = scope.set.get(typeReference.typeName.name);
+    if (variable == null) {
+      this.report(
+        "Expected type reference to be defined.",
+        typeReference.typeName.loc,
+      );
+      return null;
+    }
+    const definitions = variable.defs;
+    if (definitions.length !== 1) {
+      this.report(
+        "Expected type defined exactly once.",
+        typeReference.typeName.loc,
+      );
+    }
+    const def = definitions[0];
+    //
+    return typeReference.typeName.name;
+  }
+}
+
+/**
+ * Gets the scope for the current node
+ * @param {ScopeManager} scopeManager The scope manager for this AST
+ * @param {ASTNode} currentNode The node to get the scope of
+ * @returns {eslint-scope.Scope} The scope information for this node
+ */
+// Stolen from eslint: https://github.com/eslint/eslint/blob/75acdd21c5ce7024252e9d41ed77d2f30587caac/lib/linter/linter.js#L860-L883
+function getScope(scopeManager: ScopeManager, currentNode: TSESTree.Node) {
+  // On Program node, get the outermost scope to avoid return Node.js special function scope or ES modules scope.
+  const inner = currentNode.type !== "Program";
+
+  for (let node = currentNode; node; node = node.parent) {
+    const scope = scopeManager.acquire(node, inner);
+
+    if (scope) {
+      if (scope.type === "function-expression-name") {
+        return scope.childScopes[0];
+      }
+      return scope;
+    }
+  }
+
+  return scopeManager.scopes[0];
 }

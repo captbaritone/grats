@@ -1,34 +1,29 @@
-import { parse } from "@typescript-eslint/parser";
-import { traverse, Diagnostic } from "./Traverse";
+import { parseForESLint } from "@typescript-eslint/parser";
+import { traverse } from "./Traverse";
 import { DocumentNode } from "graphql";
+import DiagnosticError from "./DiagnosticError";
 
 export function extract(code: string): DocumentNode {
-  const ast = parse(code, {
+  const { ast, scopeManager } = parseForESLint(code, {
     comment: true,
     loc: true,
     // Omitting this breaks the scope manager
     range: true,
   });
 
-  const schemaResult = traverse(ast);
+  const schemaResult = traverse(ast, code, scopeManager);
 
   switch (schemaResult.type) {
     case "OK":
       return schemaResult.value;
     case "ERROR":
-      reportDiagnostics(code, schemaResult.error);
-      throw new Error("There were errors extracting the schema");
-  }
-}
+      for (const error of schemaResult.error) {
+        // TODO: What happened to our prototype?
+        console.log(
+          DiagnosticError.prototype.asCodeFrame.call(error, code, "dummy.ts"),
+        );
+      }
 
-// Output a code snippet with the error message and location
-function reportDiagnostics(text: string, diagnostics: Array<Diagnostic>) {
-  const lines = text.split("\n");
-  for (const diagnostic of diagnostics) {
-    const { line, column } = diagnostic.location.start;
-    const lineText = lines[line - 1];
-    const lineTextWithPointer = lineText + "\n" + " ".repeat(column) + "^";
-    console.log(lineTextWithPointer);
-    console.log(diagnostic.message);
+      throw new Error("There were errors extracting the schema");
   }
 }
