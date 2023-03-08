@@ -4,14 +4,14 @@ import { DocumentNode } from "graphql";
 import DiagnosticError from "./DiagnosticError";
 
 export function extract(code: string): DocumentNode {
-  const { ast, scopeManager } = parseForESLint(code, {
+  const { ast, scopeManager, services } = parseForESLint(code, {
     comment: true,
     loc: true,
     // Omitting this breaks the scope manager
     range: true,
   });
 
-  const schemaResult = traverse(ast, code, scopeManager);
+  const schemaResult = traverse(ast, code, scopeManager, services);
 
   switch (schemaResult.type) {
     case "OK":

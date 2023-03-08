@@ -1,58 +1,58 @@
 -----------------
 INPUT
 ----------------- 
-@ObjectType
+/** @GQLType */
 export default class Query {
-  @Field
+  /** @GQLField */
   hello(args: { greeting: string }): string {
     return `${args.greeting ?? "Hello"} world!`;
   }
 
-  @Field
+  /** @GQLField */
   greetings(args: { greeting: string }): string[] {
     return [`${args.greeting ?? "Hello"} world!`];
   }
-  @Field
+  /** @GQLField */
   greetings1(args: { greeting: string }): Array<string> {
     return [`${args.greeting ?? "Hello"} world!`];
   }
-  @Field
+  /** @GQLField */
   greetings2(args: { greeting: string }): ReadonlyArray<string> {
     return [`${args.greeting ?? "Hello"} world!`];
   }
 
-  @Field
+  /** @GQLField */
   me(): User {
     return new User();
   }
 }
 
-@ObjectType
+/** @GQLType */
 class User {
-  @Field
+  /** @GQLField */
   name(): string {
     return "Alice";
   }
-  @Field
+  /** @GQLField */
   groups(): Group[] {
     return [new Group()];
   }
 }
 
-@ObjectType
+/** @GQLType */
 class Group {
-  @Field
+  /** @GQLField */
   description: string;
 
   constructor() {
     this.description = "A group of people";
   }
 
-  @Field
+  /** @GQLField */
   name(): string {
     return "Pal's Club";
   }
-  @Field
+  /** @GQLField */
   async members(): Promise<User[]> {
     return [new User()];
   }

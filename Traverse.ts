@@ -1,5 +1,6 @@
 import type { TSESTree } from "@typescript-eslint/types";
 import type { ScopeManager } from "@typescript-eslint/scope-manager";
+import { getJSDocTags, getTextOfJSDocComment } from "typescript";
 import {
   FieldDefinitionNode,
   ObjectTypeDefinitionNode,
@@ -13,14 +14,12 @@ import {
 import { validateSDL } from "graphql/validation/validate";
 import DiagnosticError, { AnnotatedLocation } from "./DiagnosticError";
 import { tsLocToGraphQLLoc } from "./Location";
+import { ParserServices } from "@typescript-eslint/parser";
+import { FILE } from "dns";
 
 const LIBRARY_NAME = "tsql";
-const TYPE_DECORATOR_NAME = "ObjectType";
-const FIELD_DECORATOR_NAME = "Field";
-
-type GraphqlDecorator = {
-  type: "GraphqlDecorator";
-};
+const FIELD_TAG = "GQLField";
+const TYPE_TAG = "GQLType";
 
 export type GraphqlSchema = {
   typeDefinitions: ObjectTypeDefinitionNode[];
@@ -40,8 +39,9 @@ export function traverse(
   program: TSESTree.Program,
   source: string,
   scopeManager: ScopeManager,
+  parserServices: ParserServices,
 ): Result<DocumentNode, Array<DiagnosticError>> {
-  const traverse = new Traverse(source, scopeManager);
+  const traverse = new Traverse(source, scopeManager, parserServices);
   traverse.program(program);
   if (traverse._diagnostics.length > 0) {
     return { type: "ERROR", error: traverse._diagnostics };
@@ -123,11 +123,17 @@ class Traverse {
   _graphqlDefinitions: ObjectTypeDefinitionNode[] = [];
   _diagnostics: DiagnosticError[] = [];
   _source: string;
+  _parserServices: ParserServices;
   _scopeManager: ScopeManager;
 
-  constructor(source: string, scopeManager: ScopeManager) {
+  constructor(
+    source: string,
+    scopeManager: ScopeManager,
+    parserServices: ParserServices,
+  ) {
     this._source = source;
     this._scopeManager = scopeManager;
+    this._parserServices = parserServices;
   }
 
   report(message: string, loc: TSESTree.SourceLocation): null {
@@ -216,8 +222,7 @@ class Traverse {
   classDeclaration(
     classDeclaration: TSESTree.ClassDeclaration,
   ): ObjectTypeDefinitionNode | null {
-    const graphqlDecorator = this.graphqlTypeDecorator(classDeclaration);
-    if (graphqlDecorator == null) {
+    if (!this.hasJSDocTag(classDeclaration, TYPE_TAG)) {
       return;
     }
 
@@ -265,11 +270,17 @@ class Traverse {
     };
   }
 
+  hasJSDocTag(node: TSESTree.Node, tagName: string): boolean {
+    const tsNode = this._parserServices.esTreeNodeToTSNodeMap.get(node);
+    return getJSDocTags(tsNode).some(
+      (tag) => tag.tagName.escapedText === tagName,
+    );
+  }
+
   methodDefinition(
     methodDefinition: TSESTree.MethodDefinition,
   ): FieldDefinitionNode | null {
-    const graphqlDecorator = this.graphqlFieldDecorator(methodDefinition);
-    if (graphqlDecorator == null) {
+    if (!this.hasJSDocTag(methodDefinition, FIELD_TAG)) {
       return null;
     }
 
@@ -414,8 +425,7 @@ class Traverse {
   propertyDefinition(
     propertyDefinition: TSESTree.PropertyDefinition,
   ): FieldDefinitionNode | null {
-    const graphqlDecorator = this.graphqlFieldDecorator(propertyDefinition);
-    if (graphqlDecorator == null) {
+    if (!this.hasJSDocTag(propertyDefinition, "GQLField")) {
       return null;
     }
     if (propertyDefinition.typeAnnotation == null) {
@@ -524,54 +534,6 @@ class Traverse {
           typeReference.typeName.loc,
         );
     }
-  }
-
-  graphqlTypeDecorator(
-    classDeclaration: TSESTree.ClassDeclaration,
-  ): GraphqlDecorator | null {
-    if (classDeclaration.decorators == null) {
-      return null;
-    }
-    // TODO: Validate that there is only one decorator.
-    for (const decorator of classDeclaration.decorators) {
-      switch (decorator.expression.type) {
-        case "Identifier":
-          if (decorator.expression.name === TYPE_DECORATOR_NAME) {
-            return { type: "GraphqlDecorator" };
-          }
-          break;
-        default:
-          return this.reportUnimplemented(
-            `Unexpected decorator type: ${decorator.expression.type}`,
-            decorator.expression.loc,
-          );
-      }
-    }
-    return null;
-  }
-
-  graphqlFieldDecorator(
-    methodDefinition: TSESTree.MethodDefinition | TSESTree.PropertyDefinition,
-  ): GraphqlDecorator | null {
-    if (methodDefinition.decorators == null) {
-      return null;
-    }
-    // TODO: Validate that there is only one decorator.
-    for (const decorator of methodDefinition.decorators) {
-      switch (decorator.expression.type) {
-        case "Identifier":
-          if (decorator.expression.name === FIELD_DECORATOR_NAME) {
-            return { type: "GraphqlDecorator" };
-          }
-          break;
-        default:
-          return this.reportUnimplemented(
-            `Unexpected decorator type: ${decorator.expression.type}`,
-            decorator.expression.loc,
-          );
-      }
-    }
-    return null;
   }
 
   lookupGraphqlType(typeReference: TSESTree.TSTypeReference): string | null {

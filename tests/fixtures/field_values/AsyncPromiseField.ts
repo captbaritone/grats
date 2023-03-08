@@ -1,6 +1,6 @@
-@ObjectType
+/** @GQLType */
 export default class Query {
-  @Field
+  /** @GQLField */
   async hello(): Promise<string> {
     return "Hello world!";
   }

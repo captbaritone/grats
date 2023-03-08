@@ -1,10 +1,10 @@
-@ObjectType
+/** @GQLType */
 export default class Query {
-  @Field
+  /** @GQLField */
   hello(): string {
     return "Hello world!";
   }
-  @Field
+  /** @GQLField */
   hello(): Array<string> {
     return "Hello world!";
   }

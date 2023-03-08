@@ -26,14 +26,14 @@ const testDirs = [
   {
     fixturesDir: path.join(__dirname, "fixtures"),
     transformer: async (code: string, fileName: string) => {
-      const { ast, scopeManager } = parseForESLint(code, {
+      const { ast, scopeManager, services } = parseForESLint(code, {
         comment: true,
         loc: true,
         // Omitting this breaks the scope manager
         range: true,
       });
 
-      const schemaResult = traverse(ast, code, scopeManager);
+      const schemaResult = traverse(ast, code, scopeManager, services);
       switch (schemaResult.type) {
         case "ERROR":
           return schemaResult.error

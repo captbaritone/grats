@@ -1,6 +1,6 @@
-@ObjectType
+/** @GQLType */
 export default class Query {
-  @Field
+  /** @GQLField */
   hello(): string {
     return "Hello world!";
   }
