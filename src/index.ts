@@ -1,10 +1,9 @@
 import { buildASTSchema, DefinitionNode, GraphQLSchema, Kind } from "graphql";
-import * as fs from "fs/promises";
 import { glob } from "glob";
 import { validateSDL } from "graphql/validation/validate";
 import { graphQlErrorToDiagnostic } from "./utils/DiagnosticError";
-import { parseForESLint } from "@typescript-eslint/parser";
-import { traverse } from "./Traverse";
+import * as ts from "typescript";
+import { Extractor } from "./Extractor";
 
 // Construct a schema, using GraphQL schema language
 export async function buildSchema(pattern: string): Promise<GraphQLSchema> {
@@ -28,16 +27,16 @@ export async function buildSchema(pattern: string): Promise<GraphQLSchema> {
 async function definitionsFromFile(
   filePath: string,
 ): Promise<ReadonlyArray<DefinitionNode>> {
-  const code = await fs.readFile(filePath, "utf8");
-  // TODO: Handle parse errors.
-  // We use parseForESLint because it provides a scope manager
-  // which we hope will be useful for resolving types.
-  const { ast, scopeManager, services } = parseForESLint(code, {
-    comment: true,
-    loc: true,
-    // Omitting this breaks the scope manager
-    range: true,
-  });
+  // https://stackoverflow.com/a/66604532/1263117
+  const options: ts.CompilerOptions = { allowJs: true };
+  const compilerHost = ts.createCompilerHost(
+    options,
+    /* setParentNodes this is needed for finding jsDocs */
+    true,
+  );
+  let program = ts.createProgram([filePath], options, compilerHost);
+  const sourceFile = program.getSourceFile(filePath);
 
-  return traverse(ast, code, scopeManager, services);
+  const extractor = new Extractor(sourceFile);
+  return extractor.extract();
 }

@@ -54,6 +54,8 @@ type User {
 
 Still very rough, but you can try it out with:
 
+*Note:* Globs will be evaluated relative to the current working directory.
+
 ```bash
 git clone ...
 yarn

@@ -1,6 +1,8 @@
 -----------------
 INPUT
 ----------------- 
+// @ts-nocheck
+
 /** @GQLType */
 export default class Query {
   /** @GQLField */
@@ -9,7 +11,7 @@ export default class Query {
   }
   /** @GQLField */
   hello(): Array<string> {
-    return "Hello world!";
+    return ["Hello world!"];
   }
 }
 
@@ -17,18 +19,18 @@ export default class Query {
 OUTPUT
 -----------------
 Error: Field "Query.hello" can only be defined once.:
- --> field_values/DuplicateFields.ts:4:3
+ --> field_values/DuplicateFields.ts:6:3
 
   |   /** @GQLField */
-4 |   hello(): string {
+6 |   hello(): string {
   |   ^ 
   |     return "Hello world!";
 
 
 Error: :
- --> field_values/DuplicateFields.ts:8:3
+ --> field_values/DuplicateFields.ts:10:3
 
-  |   /** @GQLField */
-8 |   hello(): Array<string> {
-  |   ^ 
-  |     return "Hello world!";
+   |   /** @GQLField */
+10 |   hello(): Array<string> {
+   |   ^ 
+   |     return ["Hello world!"];

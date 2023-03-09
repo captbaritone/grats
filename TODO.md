@@ -1,7 +1,6 @@
 # TODO
 
 ## Alpha
-- [ ] Just throw errors
 - [ ] Escape hatches
     - [ ] `@graphql` directive
 - [ ] Enable exhaustive switch statements

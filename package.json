@@ -11,8 +11,6 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@typescript-eslint/parser": "^5.54.0",
-    "estree-util-visit": "^1.2.1",
     "glob": "^9.2.1",
     "typescript": "^4.9.5"
   },

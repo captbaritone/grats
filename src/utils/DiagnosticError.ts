@@ -112,41 +112,23 @@ export function graphQlErrorToDiagnostic(error: GraphQLError): DiagnosticError {
   if (position == null) {
     throw new Error("Expected error to have a position");
   }
-  const start = {
-    offset: position,
-    line: loc.line,
-    column: loc.column,
-  };
-  let end = {
-    offset: position + 1,
-    line: loc.line,
-    column: loc.column + 1,
-  };
 
   const related = [];
   for (let i = 1; i < error.locations.length; i++) {
     const loc = error.locations[i];
     const position = error.positions[i];
     if (loc && position) {
-      related.push(
-        new AnnotatedLocation(
-          {
-            start: {
-              offset: position,
-              line: loc.line,
-              column: loc.column,
-            },
-            end: {
-              offset: position + 1,
-              line: loc.line,
-              column: loc.column + 1,
-            },
-          },
-          "",
-        ),
-      );
+      const start = { offset: position, line: loc.line, column: loc.column };
+      const end = {
+        offset: position + 1,
+        line: loc.line,
+        column: loc.column + 1,
+      };
+      related.push(new AnnotatedLocation({ start, end }, ""));
     }
   }
+  const start = { offset: position, line: loc.line, column: loc.column };
+  const end = { offset: position + 1, line: loc.line, column: loc.column + 1 };
   return new DiagnosticError(
     error.message,
     new AnnotatedLocation({ start, end }, ""),
