@@ -1,16 +1,19 @@
 {
   "name": "tsql",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "0.0.0",
+  "main": "dist/src/index.js",
+  "bin": "dist/src/cli.js",
   "license": "MIT",
   "scripts": {
-    "go": "ts-node --esm index.ts",
-    "server": "ts-node --esm example-server/server.ts",
-    "test": "ts-node --esm tests/test.ts"
+    "cli": "ts-node --esm src/cli.ts",
+    "example-server": "ts-node --esm example-server/server.ts",
+    "test": "ts-node --esm src/tests/test.ts",
+    "build": "tsc"
   },
   "dependencies": {
     "@typescript-eslint/parser": "^5.54.0",
     "estree-util-visit": "^1.2.1",
+    "glob": "^9.2.1",
     "typescript": "^4.9.5"
   },
   "devDependencies": {

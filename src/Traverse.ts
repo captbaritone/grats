@@ -1,127 +1,38 @@
 import type { TSESTree } from "@typescript-eslint/types";
 import type { ScopeManager } from "@typescript-eslint/scope-manager";
-import { getJSDocTags, getTextOfJSDocComment } from "typescript";
+import { getJSDocTags } from "typescript";
 import {
   FieldDefinitionNode,
   ObjectTypeDefinitionNode,
   InputValueDefinitionNode,
   TypeNode,
   Kind,
-  DocumentNode,
-  GraphQLError,
   Location,
+  DefinitionNode,
 } from "graphql";
-import { validateSDL } from "graphql/validation/validate";
-import DiagnosticError, { AnnotatedLocation } from "./DiagnosticError";
-import { tsLocToGraphQLLoc } from "./Location";
-import { ParserServices } from "@typescript-eslint/parser";
-import { FILE } from "dns";
 
-const LIBRARY_NAME = "tsql";
+import DiagnosticError, { AnnotatedLocation } from "./utils/DiagnosticError";
+import { tsLocToGraphQLLoc } from "./utils/Location";
+import { ParserServices } from "@typescript-eslint/parser";
+
+// TODO: Decide on an actual name
+const LIBRARY_NAME = "<DUMMY-LIBRARY-NAME>";
 const FIELD_TAG = "GQLField";
 const TYPE_TAG = "GQLType";
-
-export type GraphqlSchema = {
-  typeDefinitions: ObjectTypeDefinitionNode[];
-};
-
-export type Result<V, E> =
-  | {
-      type: "OK";
-      value: V;
-    }
-  | {
-      type: "ERROR";
-      error: E;
-    };
 
 export function traverse(
   program: TSESTree.Program,
   source: string,
   scopeManager: ScopeManager,
   parserServices: ParserServices,
-): Result<DocumentNode, Array<DiagnosticError>> {
+): ReadonlyArray<DefinitionNode> {
   const traverse = new Traverse(source, scopeManager, parserServices);
   traverse.program(program);
-  if (traverse._diagnostics.length > 0) {
-    return { type: "ERROR", error: traverse._diagnostics };
-  }
-  const typeDefinitions = traverse._graphqlDefinitions;
-  const doc = {
-    kind: Kind.DOCUMENT,
-    definitions: typeDefinitions,
-  } as const;
-
-  const validationErrors = validateSDL(doc);
-  if (validationErrors.length > 0) {
-    return {
-      type: "ERROR",
-      error: validationErrors.map((error) => {
-        return graphQlErrorToDiagnostic(error);
-      }),
-    };
-  }
-  return { type: "OK", value: doc };
+  return traverse._graphqlDefinitions;
 }
-
-function graphQlErrorToDiagnostic(error: GraphQLError): DiagnosticError {
-  const loc = error.locations[0];
-  const position = error.positions[0];
-  if (loc == null) {
-    throw new Error("Expected error to have a location");
-  }
-  if (position == null) {
-    throw new Error("Expected error to have a position");
-  }
-  const start = {
-    offset: position,
-    line: loc.line,
-    column: loc.column,
-  };
-  let end = {
-    offset: position + 1,
-    line: loc.line,
-    column: loc.column + 1,
-  };
-
-  const related = [];
-  for (let i = 1; i < error.locations.length; i++) {
-    const loc = error.locations[i];
-    const position = error.positions[i];
-    if (loc && position) {
-      related.push(
-        new AnnotatedLocation(
-          {
-            start: {
-              offset: position,
-              line: loc.line,
-              column: loc.column,
-            },
-            end: {
-              offset: position + 1,
-              line: loc.line,
-              column: loc.column + 1,
-            },
-          },
-          "",
-        ),
-      );
-    }
-  }
-  return new DiagnosticError(
-    error.message,
-    new AnnotatedLocation({ start, end }, ""),
-    related,
-  );
-}
-
-// TS AST Location => GraphQL Location
-// TS AST Location => Diagnostic Location
-// GraphQL Location => Diagnostic Location
 
 class Traverse {
   _graphqlDefinitions: ObjectTypeDefinitionNode[] = [];
-  _diagnostics: DiagnosticError[] = [];
   _source: string;
   _parserServices: ParserServices;
   _scopeManager: ScopeManager;
@@ -137,10 +48,9 @@ class Traverse {
   }
 
   report(message: string, loc: TSESTree.SourceLocation): null {
-    this._diagnostics.push(
-      new DiagnosticError(message, new AnnotatedLocation(loc, "")),
-    );
-    return null;
+    // TODO: In the future we can accumulate errors and report them all at once
+    // @ts-ignore
+    throw new DiagnosticError(message, new AnnotatedLocation(loc, ""));
   }
 
   reportUnimplemented(message: string, loc: TSESTree.SourceLocation): null {
@@ -151,10 +61,9 @@ class Traverse {
       "(this represents a bug in " +
       LIBRARY_NAME +
       ")";
-    this._diagnostics.push(
-      new DiagnosticError(fullMessage, new AnnotatedLocation(loc, "")),
-    );
-    return null;
+    // TODO: In the future we can accumulate errors and report them all at once
+    // @ts-ignore
+    throw new DiagnosticError(fullMessage, new AnnotatedLocation(loc, ""));
   }
 
   program(program: TSESTree.Program) {
@@ -183,6 +92,7 @@ class Traverse {
         case "FunctionDeclaration":
         case "ImportDeclaration":
         case "VariableDeclaration":
+        case "ExpressionStatement":
           break;
         default:
           return this.reportUnimplemented(
@@ -270,13 +180,6 @@ class Traverse {
     };
   }
 
-  hasJSDocTag(node: TSESTree.Node, tagName: string): boolean {
-    const tsNode = this._parserServices.esTreeNodeToTSNodeMap.get(node);
-    return getJSDocTags(tsNode).some(
-      (tag) => tag.tagName.escapedText === tagName,
-    );
-  }
-
   methodDefinition(
     methodDefinition: TSESTree.MethodDefinition,
   ): FieldDefinitionNode | null {
@@ -326,6 +229,7 @@ class Traverse {
     }
   }
 
+  /* WARNING!! This is stupid expensive. We need to avoid calling this eventually. */
   graphQLLoc(loc: TSESTree.SourceLocation): Location {
     return tsLocToGraphQLLoc(loc, this._source);
   }
@@ -488,6 +392,21 @@ class Traverse {
           loc: this.graphQLLoc(typeNode.loc),
           type: this.graphqlReturnTypeFromTypeNode(typeNode.elementType),
         };
+      case "TSUnionType":
+        const types = typeNode.types.filter((t) => {
+          return (
+            t.type !== "TSNullKeyword" &&
+            t.type !== "TSUndefinedKeyword" &&
+            t.type !== "TSVoidKeyword"
+          );
+        });
+        if (types.length === 1) {
+          return this.graphqlReturnTypeFromTypeNode(types[0]);
+        }
+        this.report(
+          "Unexpected union type. GraphQL unions must be declared using @GQLUnion above a named TypeScript union.",
+          typeNode.loc,
+        );
       default:
         return this.reportUnimplemented(
           `Unexpected returnType type: ${typeNode.type}`,
@@ -503,8 +422,8 @@ class Traverse {
       case "Identifier":
         switch (typeReference.typeName.name) {
           case "Array":
+          // case "Iterable":
           case "ReadonlyArray":
-            // case "Iterable":
             return {
               kind: Kind.LIST_TYPE,
               type: this.graphqlReturnTypeFromTypeNode(
@@ -515,6 +434,7 @@ class Traverse {
             return this.graphqlReturnTypeFromTypeNode(
               typeReference.typeParameters.params[0],
             );
+
           default:
             const graphqlType = this.lookupGraphqlType(typeReference);
             // TODO: Assert there are no type parameters.
@@ -562,6 +482,13 @@ class Traverse {
     const def = definitions[0];
     //
     return typeReference.typeName.name;
+  }
+
+  hasJSDocTag(node: TSESTree.Node, tagName: string): boolean {
+    const tsNode = this._parserServices.esTreeNodeToTSNodeMap.get(node);
+    return getJSDocTags(tsNode).some(
+      (tag) => tag.tagName.escapedText === tagName,
+    );
   }
 }
 

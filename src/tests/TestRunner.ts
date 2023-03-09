@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { diff } from "jest-diff";
-import DiagnosticError, { Result, catchToResult } from "../DiagnosticError";
+import DiagnosticError from "../utils/DiagnosticError";
 
 type Transformer = (code: string, filename: string) => Promise<string>;
 

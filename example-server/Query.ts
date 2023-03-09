@@ -1,16 +1,3 @@
-function identity<T>(v: T): T {
-  return v;
-}
-
-const ObjectType = identity;
-
-// A class field decorator that adds a field to the GraphQL schema.
-function Field(
-  target: Object,
-  propertyKey: string | symbol,
-  descriptor?: TypedPropertyDescriptor<any>,
-): void {}
-
 /** @GQLType */
 export default class Query {
   /** @GQLField */

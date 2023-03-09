@@ -1,26 +1,5 @@
+import { GraphQLError } from "graphql";
 import { Location } from "./Location";
-
-export type Result<T> =
-  | {
-      type: "ok";
-      value: T;
-    }
-  | {
-      type: "error";
-      value: DiagnosticError;
-    };
-
-export function catchToResult<T>(fn: () => T): Result<T> {
-  try {
-    const value = fn();
-    return { type: "ok", value };
-  } catch (e) {
-    if (e instanceof DiagnosticError) {
-      return { type: "error", value: e };
-    }
-    throw e;
-  }
-}
 
 export class AnnotatedLocation {
   loc: Location;
@@ -121,4 +100,56 @@ function _asCodeFrame(
   codeFrameLines.push("");
 
   return codeFrameLines.join("\n");
+}
+
+// TODO: This is just a hack. Improve handling of multiple locations.
+export function graphQlErrorToDiagnostic(error: GraphQLError): DiagnosticError {
+  const loc = error.locations[0];
+  const position = error.positions[0];
+  if (loc == null) {
+    throw new Error("Expected error to have a location");
+  }
+  if (position == null) {
+    throw new Error("Expected error to have a position");
+  }
+  const start = {
+    offset: position,
+    line: loc.line,
+    column: loc.column,
+  };
+  let end = {
+    offset: position + 1,
+    line: loc.line,
+    column: loc.column + 1,
+  };
+
+  const related = [];
+  for (let i = 1; i < error.locations.length; i++) {
+    const loc = error.locations[i];
+    const position = error.positions[i];
+    if (loc && position) {
+      related.push(
+        new AnnotatedLocation(
+          {
+            start: {
+              offset: position,
+              line: loc.line,
+              column: loc.column,
+            },
+            end: {
+              offset: position + 1,
+              line: loc.line,
+              column: loc.column + 1,
+            },
+          },
+          "",
+        ),
+      );
+    }
+  }
+  return new DiagnosticError(
+    error.message,
+    new AnnotatedLocation({ start, end }, ""),
+    related,
+  );
 }

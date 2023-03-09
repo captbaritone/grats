@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 /** @GQLType */
 export default class Query {
   /** @GQLField */
@@ -6,6 +8,6 @@ export default class Query {
   }
   /** @GQLField */
   hello(): Array<string> {
-    return "Hello world!";
+    return ["Hello world!"];
   }
 }
