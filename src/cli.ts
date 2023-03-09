@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { printSchema } from "graphql";
 import { buildSchema } from ".";
 

@@ -1,0 +1,20 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * @GQLType
+ * @name Query
+ */
+class MyClass {
+  /** @GQLField */
+  hello(): string {
+    return "Hello world!";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+type Query {
+  hello: String
+}

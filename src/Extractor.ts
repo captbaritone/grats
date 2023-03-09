@@ -161,9 +161,7 @@ export class Extractor {
       return null;
     }
     const type = this.collectInputType(node.type);
-    if (type == null) {
-      return null;
-    }
+    if (type == null) return null;
     return {
       kind: Kind.INPUT_VALUE_DEFINITION,
       loc: this.loc(node),
@@ -182,29 +180,48 @@ export class Extractor {
     if (!this.hasTag(node, "GQLType")) {
       return;
     }
+
+    const name = this.entityName(node);
+    if (name == null) return null;
+
     const fields = this.collectFields(node);
     this.definitions.push({
       kind: Kind.OBJECT_TYPE_DEFINITION,
       loc: null,
       // FIXME: Support descriptions
       description: null,
-      name: this.gqlName(node.name, node.name.text),
+      name,
       fields,
     });
   }
 
-  methodDeclaration(node: ts.MethodDeclaration): FieldDefinitionNode | null {
-    if (!this.hasTag(node, "GQLField")) {
-      return null;
+  entityName(
+    node: ts.ClassDeclaration | ts.MethodDeclaration | ts.PropertyDeclaration,
+  ) {
+    const name = this.findTag(node, "name");
+    if (name != null) {
+      if (typeof name.comment !== "string") {
+        this.report(name, "Expected `@name` to be followed by a name.");
+        return null;
+      } else {
+        return this.gqlName(name, name.comment);
+      }
     }
+    const id = this.expectIdentifier(node.name);
+    if (id == null) return null;
+    return this.gqlName(id, id.text);
+  }
 
-    const name = this.expectIdentifier(node.name);
+  methodDeclaration(node: ts.MethodDeclaration): FieldDefinitionNode | null {
+    if (!this.hasTag(node, "GQLField")) return null;
+
+    const name = this.entityName(node);
+    if (name == null) return null;
 
     const type = this.collectType(node.type);
-    if (type == null) {
-      // We already reported an error
-      return null;
-    }
+
+    // We already reported an error
+    if (type == null) return null;
 
     const args = this.collectArgs(node);
 
@@ -212,7 +229,7 @@ export class Extractor {
       kind: Kind.FIELD_DEFINITION,
       loc: this.loc(node),
       description: null,
-      name: this.gqlName(node.name, name.text),
+      name,
       arguments: args,
       type,
     };
@@ -221,24 +238,22 @@ export class Extractor {
   propertyDeclaration(
     node: ts.PropertyDeclaration,
   ): FieldDefinitionNode | null {
-    if (!this.hasTag(node, "GQLField")) {
-      return null;
-    }
+    if (!this.hasTag(node, "GQLField")) return null;
 
-    const name = this.expectIdentifier(node.name);
+    const name = this.entityName(node);
+    if (name == null) return null;
 
     const type = this.collectType(node.type);
-    if (type == null) {
-      // We already reported an error
-      return null;
-    }
+
+    // We already reported an error
+    if (type == null) return null;
 
     return {
       kind: Kind.FIELD_DEFINITION,
       loc: this.loc(node),
       // FIXME: Support descriptions
       description: null,
-      name: this.gqlName(node.name, name.text),
+      name,
       arguments: null,
       type,
     };
@@ -286,9 +301,8 @@ export class Extractor {
 
   typeReference(node: ts.TypeReferenceNode): TypeNode | null {
     const identifier = this.expectIdentifier(node.typeName);
-    if (identifier == null) {
-      return null;
-    }
+    if (identifier == null) return null;
+
     const typeName = identifier.text;
     switch (typeName) {
       case "Promise":
@@ -330,6 +344,14 @@ export class Extractor {
     return ts
       .getJSDocTags(node)
       .some((tag) => tag.tagName.escapedText === tagName);
+  }
+
+  findTag(node: ts.Node, tagName: string): ts.JSDocTag | null {
+    return (
+      ts
+        .getJSDocTags(node)
+        .find((tag) => tag.tagName.escapedText === tagName) ?? null
+    );
   }
 
   /** GraphQL AST node helper methods */
