@@ -9,9 +9,7 @@ import { Extractor } from "./Extractor";
 export async function buildSchema(pattern: string): Promise<GraphQLSchema> {
   const files = await glob(pattern);
 
-  const typeDefinitions = (
-    await Promise.all(files.map(definitionsFromFile))
-  ).flat();
+  const typeDefinitions = definitionsFromFile(files);
 
   const doc = { kind: Kind.DOCUMENT, definitions: typeDefinitions } as const;
   const validationErrors = validateSDL(doc);
@@ -24,9 +22,9 @@ export async function buildSchema(pattern: string): Promise<GraphQLSchema> {
   return buildASTSchema(doc, { assumeValidSDL: true });
 }
 
-async function definitionsFromFile(
-  filePath: string,
-): Promise<ReadonlyArray<DefinitionNode>> {
+function definitionsFromFile(
+  filePaths: string[],
+): ReadonlyArray<DefinitionNode> {
   // https://stackoverflow.com/a/66604532/1263117
   const options: ts.CompilerOptions = { allowJs: true };
   const compilerHost = ts.createCompilerHost(
@@ -34,10 +32,17 @@ async function definitionsFromFile(
     /* setParentNodes this is needed for finding jsDocs */
     true,
   );
-  let program = ts.createProgram([filePath], options, compilerHost);
-  const sourceFile = program.getSourceFile(filePath);
+  let program = ts.createProgram(filePaths, options, compilerHost);
   const checker = program.getTypeChecker();
 
-  const extractor = new Extractor(sourceFile, checker);
-  return extractor.extract();
+  const allDefinitions: DefinitionNode[] = [];
+  for (const filePath of filePaths) {
+    const sourceFile = program.getSourceFile(filePath);
+
+    const extractor = new Extractor(sourceFile, checker);
+    for (const definition of extractor.extract()) {
+      allDefinitions.push(definition);
+    }
+  }
+  return allDefinitions;
 }

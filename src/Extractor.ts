@@ -13,6 +13,7 @@ import {
   TypeNode,
   NonNullTypeNode,
   StringValueNode,
+  visit,
 } from "graphql";
 import { Position } from "./utils/Location";
 import DiagnosticError, { AnnotatedLocation } from "./utils/DiagnosticError";
@@ -21,6 +22,11 @@ import * as ts from "typescript";
 const LIBRARY_IMPORT_NAME = "<library import name>";
 const LIBRARY_NAME = "<library name>";
 const ISSUE_URL = "<issue URL>";
+
+let i = 0;
+function uniqueId(): number {
+  return i++;
+}
 
 /**
  * Extracts GraphQL definitions from TypeScript source code.
@@ -31,8 +37,11 @@ const ISSUE_URL = "<issue URL>";
  */
 export class Extractor {
   definitions: DefinitionNode[] = [];
+  symbolToId: Map<ts.Symbol, number> = new Map();
+  idToName: Map<number, string> = new Map();
   sourceFile: ts.SourceFile;
   checker: ts.TypeChecker;
+  unresolvedTypes: Map<NamedTypeNode, number> = new Map();
 
   constructor(sourceFile: ts.SourceFile, checker: ts.TypeChecker) {
     this.sourceFile = sourceFile;
@@ -45,7 +54,24 @@ export class Extractor {
         this.classDeclaration(node);
       }
     });
-    return this.definitions;
+    return this.definitions.map((def) => {
+      return visit(def, {
+        NamedType: (t) => {
+          const id = this.unresolvedTypes.get(t);
+          if (id == null) {
+            // FIXME: Assert that this doesn't have a dummy name that we are
+            // expecting to get resolved.
+            return t;
+          }
+          const name = this.idToName.get(id);
+          if (name == null) {
+            // FIXME: This should be a diagnostic error
+            throw new Error("Expected to find a name for id " + id);
+          }
+          return { ...t, name: { ...t.name, value: name } };
+        },
+      });
+    });
   }
 
   /** Error handling and location juggling */
@@ -85,9 +111,7 @@ export class Extractor {
     const source = new Source(this.sourceFile.text, this.sourceFile.fileName);
     const startToken = this.gqlDummyToken(node.getStart());
     const endToken = this.gqlDummyToken(node.getEnd());
-    const location = new GraphQLLocation(startToken, endToken, source);
-
-    return location;
+    return new GraphQLLocation(startToken, endToken, source);
   }
 
   gqlDummyToken(pos: number): Token {
@@ -97,6 +121,27 @@ export class Extractor {
   }
 
   /** TypeScript traversals */
+
+  classDeclaration(node: ts.ClassDeclaration) {
+    const tag = this.findTag(node, "GQLType");
+    if (tag == null) return;
+
+    const name = this.entityName(node, tag);
+    if (name == null) return null;
+    const description = this.collectDescription(node.name);
+
+    const fields = this.collectFields(node);
+
+    this.idToName.set(this.getSymbolId(node.name), name.value);
+
+    this.definitions.push({
+      kind: Kind.OBJECT_TYPE_DEFINITION,
+      loc: null,
+      description,
+      name,
+      fields,
+    });
+  }
 
   collectFields(node: ts.ClassDeclaration): Array<FieldDefinitionNode> {
     const fields: FieldDefinitionNode[] = [];
@@ -179,30 +224,11 @@ export class Extractor {
     };
   }
 
-  classDeclaration(node: ts.ClassDeclaration) {
-    const tag = this.findTag(node, "GQLType");
-    if (tag == null) return;
-
-    const name = this.entityName(node, tag);
-    if (name == null) return null;
-    const description = this.collectDescription(node.name);
-
-    const fields = this.collectFields(node);
-    this.definitions.push({
-      kind: Kind.OBJECT_TYPE_DEFINITION,
-      loc: null,
-      description,
-      name,
-      fields,
-    });
-  }
-
   entityName(
     node: ts.ClassDeclaration | ts.MethodDeclaration | ts.PropertyDeclaration,
     tag: ts.JSDocTag,
   ) {
     if (tag.comment != null) {
-      console.log("tag.comment", tag.comment);
       return this.gqlName(tag, ts.getTextOfJSDocComment(tag.comment));
     }
     const id = this.expectIdentifier(node.name);
@@ -328,8 +354,17 @@ export class Extractor {
         if (node.typeArguments && node.typeArguments.length > 0) {
           this.report(node.typeArguments[0], `Unexpected type argument.`);
         }
-        // FIXME: Validate type reference
-        return this.gqlNamedType(node, identifier.text);
+
+        const symbolId = this.getSymbolId(node.typeName);
+        if (symbolId == null) {
+          this.report(
+            node.typeName,
+            "Could not resolve type reference. You probably have a TypeScript error.",
+          );
+        }
+        const namedType = this.gqlNamedType(node, `UNRESOLVED_${symbolId}`);
+        this.unresolvedTypes.set(namedType, symbolId);
+        return namedType;
     }
   }
 
@@ -380,5 +415,14 @@ export class Extractor {
   }
   gqlListType(node: ts.Node, type: TypeNode): ListTypeNode {
     return { kind: Kind.LIST_TYPE, loc: this.loc(node), type };
+  }
+
+  /** Internal Helpers */
+  getSymbolId(node: ts.Node): number {
+    const symbol = this.checker.getSymbolAtLocation(node);
+    if (!this.symbolToId.has(symbol)) {
+      this.symbolToId.set(symbol, uniqueId());
+    }
+    return this.symbolToId.get(symbol);
   }
 }

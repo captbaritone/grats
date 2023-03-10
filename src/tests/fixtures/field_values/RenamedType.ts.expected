@@ -1,0 +1,25 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType User */
+class UserResolver {
+  /** @GQLField */
+  name: string;
+}
+
+/** @GQLType */
+class Query {
+  /** @GQLField */
+  me: UserResolver;
+}
+
+-----------------
+OUTPUT
+-----------------
+type User {
+  name: String
+}
+
+type Query {
+  me: User
+}
