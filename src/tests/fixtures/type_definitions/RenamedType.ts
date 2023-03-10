@@ -1,6 +1,5 @@
 /**
- * @GQLType
- * @name Query
+ * @GQLType Query
  */
 class MyClass {
   /** @GQLField */

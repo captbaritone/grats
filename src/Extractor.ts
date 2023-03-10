@@ -12,6 +12,7 @@ import {
   TokenKind,
   TypeNode,
   NonNullTypeNode,
+  StringValueNode,
 } from "graphql";
 import { Position } from "./utils/Location";
 import DiagnosticError, { AnnotatedLocation } from "./utils/DiagnosticError";
@@ -31,9 +32,11 @@ const ISSUE_URL = "<issue URL>";
 export class Extractor {
   definitions: DefinitionNode[] = [];
   sourceFile: ts.SourceFile;
+  checker: ts.TypeChecker;
 
-  constructor(sourceFile: ts.SourceFile) {
+  constructor(sourceFile: ts.SourceFile, checker: ts.TypeChecker) {
     this.sourceFile = sourceFile;
+    this.checker = checker;
   }
 
   extract(): DefinitionNode[] {
@@ -162,11 +165,11 @@ export class Extractor {
     }
     const type = this.collectInputType(node.type);
     if (type == null) return null;
+    const description = this.collectDescription(node.name);
     return {
       kind: Kind.INPUT_VALUE_DEFINITION,
       loc: this.loc(node),
-      // FIXME: Support descriptions
-      description: null,
+      description,
       name: this.gqlName(node.name, node.name.text),
       // FIXME: Correctly detect nullable types
       type: this.gqlNonNullType(node.type, type),
@@ -177,19 +180,18 @@ export class Extractor {
   }
 
   classDeclaration(node: ts.ClassDeclaration) {
-    if (!this.hasTag(node, "GQLType")) {
-      return;
-    }
+    const tag = this.findTag(node, "GQLType");
+    if (tag == null) return;
 
-    const name = this.entityName(node);
+    const name = this.entityName(node, tag);
     if (name == null) return null;
+    const description = this.collectDescription(node.name);
 
     const fields = this.collectFields(node);
     this.definitions.push({
       kind: Kind.OBJECT_TYPE_DEFINITION,
       loc: null,
-      // FIXME: Support descriptions
-      description: null,
+      description,
       name,
       fields,
     });
@@ -197,15 +199,11 @@ export class Extractor {
 
   entityName(
     node: ts.ClassDeclaration | ts.MethodDeclaration | ts.PropertyDeclaration,
+    tag: ts.JSDocTag,
   ) {
-    const name = this.findTag(node, "name");
-    if (name != null) {
-      if (typeof name.comment !== "string") {
-        this.report(name, "Expected `@name` to be followed by a name.");
-        return null;
-      } else {
-        return this.gqlName(name, name.comment);
-      }
+    if (tag.comment != null) {
+      console.log("tag.comment", tag.comment);
+      return this.gqlName(tag, ts.getTextOfJSDocComment(tag.comment));
     }
     const id = this.expectIdentifier(node.name);
     if (id == null) return null;
@@ -213,9 +211,10 @@ export class Extractor {
   }
 
   methodDeclaration(node: ts.MethodDeclaration): FieldDefinitionNode | null {
-    if (!this.hasTag(node, "GQLField")) return null;
+    const tag = this.findTag(node, "GQLField");
+    if (tag == null) return;
 
-    const name = this.entityName(node);
+    const name = this.entityName(node, tag);
     if (name == null) return null;
 
     const type = this.collectType(node.type);
@@ -225,34 +224,47 @@ export class Extractor {
 
     const args = this.collectArgs(node);
 
+    const description = this.collectDescription(node.name);
+
     return {
       kind: Kind.FIELD_DEFINITION,
       loc: this.loc(node),
-      description: null,
+      description,
       name,
       arguments: args,
       type,
     };
   }
 
+  collectDescription(node: ts.Node): StringValueNode | null {
+    const symbol = this.checker.getSymbolAtLocation(node);
+    const doc = symbol.getDocumentationComment(this.checker);
+    const description = ts.displayPartsToString(doc);
+    if (description) {
+      return { kind: Kind.STRING, loc: this.loc(node), value: description };
+    }
+    return null;
+  }
+
   propertyDeclaration(
     node: ts.PropertyDeclaration,
   ): FieldDefinitionNode | null {
-    if (!this.hasTag(node, "GQLField")) return null;
+    const tag = this.findTag(node, "GQLField");
+    if (tag == null) return null;
 
-    const name = this.entityName(node);
+    const name = this.entityName(node, tag);
     if (name == null) return null;
 
     const type = this.collectType(node.type);
 
     // We already reported an error
     if (type == null) return null;
+    const description = this.collectDescription(node.name);
 
     return {
       kind: Kind.FIELD_DEFINITION,
       loc: this.loc(node),
-      // FIXME: Support descriptions
-      description: null,
+      description,
       name,
       arguments: null,
       type,
@@ -338,12 +350,6 @@ export class Extractor {
     }
     this.report(node, "Expected an identifier.");
     return null;
-  }
-
-  hasTag(node: ts.Node, tagName: string) {
-    return ts
-      .getJSDocTags(node)
-      .some((tag) => tag.tagName.escapedText === tagName);
   }
 
   findTag(node: ts.Node, tagName: string): ts.JSDocTag | null {

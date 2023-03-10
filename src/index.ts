@@ -36,7 +36,8 @@ async function definitionsFromFile(
   );
   let program = ts.createProgram([filePath], options, compilerHost);
   const sourceFile = program.getSourceFile(filePath);
+  const checker = program.getTypeChecker();
 
-  const extractor = new Extractor(sourceFile);
+  const extractor = new Extractor(sourceFile, checker);
   return extractor.extract();
 }

@@ -76,10 +76,9 @@ GraphQL types can be defined by placing a `@GQLType` docblock directly before a:
 
 * Class declaration
 
-```
+```ts
 /**
- * @GQLType
- * @name <name of the type, if different from class name> (optional)
+ * @GQLType <optional name of the type, if different from class name>
  */
  class MyClass {}
  ```
@@ -91,16 +90,14 @@ Within a `@GQLType` class, you can define GraphQL fields by placing a `@GQLField
 * Method declaration
 * Property declaration
 
-```
+```ts
 /**
- * @GQLField
- * @name <name of the field, if different from property name> (optional)
+ * @GQLField <optional name of the field, if different from property name>
  */
 someField: string;
 
 /**
- * @GQLField
- * @name <name of the field, if different from method name> (optional)
+ * @GQLField <optional name of the field, if different from method name>
  */
  myField(): string {
    return "Hello World";
@@ -110,8 +107,11 @@ someField: string;
 ## Example
 
 See `example-server/` in the repo root for a working example. Here we run the static
-analysis at startup time. Nice for development, but not ideal for production where you would want to cache the schema and write it to disk for other tools to see.
+analysis at startup time. Nice for development, but not ideal for production
+where you would want to cache the schema and write it to disk for other tools to
+see.
 
+# FAQ
 
 ## Why not to use TypeScript First GraphQL?
 
@@ -120,3 +120,26 @@ requires that your GraphQL fields explicitly, using types that can be statically
 analyzed. This means that you can't use complex derived types in positions where
 TypeScript First GraphQL needs to be able to infer the type. For example, field
 arguments and return values. 
+
+## Why use comments and not decorators?
+
+Using decorators to signal that a class/method/etc should be included in the 
+schema would have some advantages:
+
+* The syntax is well defined, so it:
+  * Can be checked/documented by TypeScript types
+  * Formatted with tools like Prettier
+* Would not require custom parsing/validaiton rules
+
+However, it also has some disadvantages:
+
+* The feature is technically "experimental" in TypeScript and may change in the future.
+* Decorators cannot be applied to types, so it would precude the ability to
+  define GraphQL constructs using types (e.g. interfaces, unions, etc).
+* Decorators cannot be applied to parameters, so it would preclude the ability
+  to define GraphQL constructs using parameters (e.g. field arguments).
+* Decorators are a runtime construct, which means they must be imported and give
+  the impression that they might have some runtime behavior. This is not the
+  case for TypeScript First GraphQL, which is purely a static analysis tool.
+
+Given these tradeoffs, I decided to use comments instead of decorators.
