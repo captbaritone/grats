@@ -80,8 +80,8 @@ GraphQL types can be defined by placing a `@GQLType` docblock directly before a:
 /**
  * @GQLType <optional name of the type, if different from class name>
  */
- class MyClass {}
- ```
+class MyClass {}
+```
 
 ### @GQLField
 
@@ -99,10 +99,10 @@ someField: string;
 /**
  * @GQLField <optional name of the field, if different from method name>
  */
- myField(): string {
-   return "Hello World";
- }
- ```
+myField(): string {
+  return "Hello World";
+}
+```
 
 ## Example
 
