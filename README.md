@@ -105,6 +105,7 @@ Within a `@GQLType` class, you can define GraphQL fields by placing a `@GQLField
 
 * Method declaration
 * Property declaration
+* Property signature
 
 ```ts
 /**
