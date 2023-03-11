@@ -27,6 +27,12 @@ export class TypeContext {
 
   recordTypeName(node: ts.Node, name: string) {
     const symbol = this.checker.getSymbolAtLocation(node);
+    if (symbol == null) {
+      // FIXME: Make this a diagnostic
+      throw new Error(
+        "Could not resolve type reference. You probably have a TypeScript error.",
+      );
+    }
     if (this._symbolToName.has(symbol)) {
       // Ensure we never try to record the same name twice.
       throw new Error("Unexpected double recording of typename.");
@@ -35,12 +41,18 @@ export class TypeContext {
   }
 
   markUnresolvedType(node: ts.Node, namedType: NamedTypeNode) {
-    const symbol = this.checker.getSymbolAtLocation(node);
+    let symbol = this.checker.getSymbolAtLocation(node);
+    // Follow any aliases to get the real type declaration.
+    if (symbol && symbol.flags & ts.SymbolFlags.Alias) {
+      symbol = this.checker.getAliasedSymbol(symbol);
+    }
+    // TODO: TS Says this can never be null, but I worry it can.
     if (symbol == null) {
       throw new Error(
         "Could not resolve type reference. You probably have a TypeScript error.",
       );
     }
+
     this._unresolvedTypes.set(namedType, symbol);
   }
 

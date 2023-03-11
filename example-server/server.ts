@@ -6,7 +6,9 @@ import { buildSchema } from "../src";
 async function main() {
   const app = express();
 
-  const schema = await buildSchema("./**/Query.ts");
+  // FIXME: This is relative to the current working directory, not the file, or
+  // something more sensible.
+  const schema = await buildSchema("./example-server/**/*.ts");
 
   app.use(
     "/graphql",
