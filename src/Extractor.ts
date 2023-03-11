@@ -45,6 +45,8 @@ export class Extractor {
     ts.forEachChild(this.sourceFile, (node) => {
       if (ts.isClassDeclaration(node)) {
         this.classDeclaration(node);
+      } else if (ts.isInterfaceDeclaration(node)) {
+        this.interfaceDeclaration(node);
       }
     });
     return this.definitions;
@@ -108,6 +110,8 @@ export class Extractor {
 
     const fields = this.collectFields(node);
 
+    const interfaces = this.collectInterfaces(node);
+
     this.ctx.recordTypeName(node.name, name.value);
 
     this.definitions.push({
@@ -116,10 +120,60 @@ export class Extractor {
       description,
       name,
       fields,
+      interfaces,
     });
   }
 
-  collectFields(node: ts.ClassDeclaration): Array<FieldDefinitionNode> {
+  collectInterfaces(node: ts.ClassDeclaration): Array<NamedTypeNode> | null {
+    if (node.heritageClauses == null) return null;
+
+    const interfaces = node.heritageClauses.flatMap((clause) => {
+      if (clause.token !== ts.SyntaxKind.ImplementsKeyword) return [];
+      return clause.types.map((type) => {
+        if (!ts.isIdentifier(type.expression)) {
+          // TODO: Are there valid cases we want to cover here?
+          return null;
+        }
+        const namedType = this.gqlNamedType(
+          type.expression,
+          UNRESOLVED_REFERENCE_NAME,
+        );
+        this.ctx.markUnresolvedType(type.expression, namedType);
+        return namedType;
+      });
+    });
+    if (interfaces.length === 0) {
+      return null;
+    }
+    return interfaces;
+  }
+
+  interfaceDeclaration(node: ts.InterfaceDeclaration) {
+    const tag = this.findTag(node, "GQLInterface");
+    if (tag == null) return;
+
+    const name = this.entityName(node, tag);
+    const description = this.collectDescription(node.name);
+
+    const fields = this.collectFields(node);
+
+    this.ctx.recordTypeName(node.name, name.value);
+
+    // While GraphQL supports interfaces taht extend other interfaces,
+    // TypeScript does not. So we can't support that here either.
+
+    this.definitions.push({
+      kind: Kind.INTERFACE_TYPE_DEFINITION,
+      loc: null,
+      description,
+      name,
+      fields,
+    });
+  }
+
+  collectFields(
+    node: ts.ClassDeclaration | ts.InterfaceDeclaration,
+  ): Array<FieldDefinitionNode> {
     const fields: FieldDefinitionNode[] = [];
     ts.forEachChild(node, (node) => {
       if (ts.isMethodDeclaration(node)) {
@@ -127,8 +181,11 @@ export class Extractor {
         if (field) {
           fields.push(field);
         }
-      } else if (ts.isPropertyDeclaration(node)) {
-        const field = this.propertyDeclaration(node);
+      } else if (
+        ts.isPropertyDeclaration(node) ||
+        ts.isPropertySignature(node)
+      ) {
+        const field = this.property(node);
         if (field) {
           fields.push(field);
         }
@@ -201,7 +258,12 @@ export class Extractor {
   }
 
   entityName(
-    node: ts.ClassDeclaration | ts.MethodDeclaration | ts.PropertyDeclaration,
+    node:
+      | ts.ClassDeclaration
+      | ts.MethodDeclaration
+      | ts.PropertyDeclaration
+      | ts.InterfaceDeclaration
+      | ts.PropertySignature,
     tag: ts.JSDocTag,
   ) {
     if (tag.comment != null) {
@@ -248,8 +310,8 @@ export class Extractor {
     return null;
   }
 
-  propertyDeclaration(
-    node: ts.PropertyDeclaration,
+  property(
+    node: ts.PropertyDeclaration | ts.PropertySignature,
   ): FieldDefinitionNode | null {
     const tag = this.findTag(node, "GQLField");
     if (tag == null) return null;
@@ -327,10 +389,6 @@ export class Extractor {
         const element = this.collectType(node.typeArguments[0]);
         return this.gqlListType(node, element);
       default:
-        if (node.typeArguments && node.typeArguments.length > 0) {
-          this.report(node.typeArguments[0], `Unexpected type argument.`);
-        }
-
         // We may not have encountered the definition of this type yet. So, we
         // mark it as unresolved and return a placeholder type.
         //

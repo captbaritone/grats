@@ -83,6 +83,22 @@ GraphQL types can be defined by placing a `@GQLType` docblock directly before a:
 class MyClass {}
 ```
 
+### @GQLInterface
+
+GraphQL interfaces can be defined by placing a `@GQLInterface` docblock directly before an:
+
+* Interface declaration
+
+```ts
+/**
+ * @GQLInterface <optional name of the type, if different from class name>
+ */
+interface MyClass {}
+```
+
+All `@GQLType` types which implement the interface in TypeScript will
+automatically implement it in GraphQL as well.
+
 ### @GQLField
 
 Within a `@GQLType` class, you can define GraphQL fields by placing a `@GQLField` directly before a:
