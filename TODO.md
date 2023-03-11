@@ -15,6 +15,19 @@
 - [ ] Support directives (@deprecated etc)
 - [ ] Extract descriptions
 - [ ] Ensure `__typename`?
+- [ ] Correctly handle `null` and `undefined` in arguments
+- [ ] Correctly handle optional ? arguments
+- [ ] Correctly handle ? return types
+- [ ] More literals
+    - [ ] Int
+    - [ ] Float
+    - [ ] Boolean
+    - [ ] String
+    - [ ] Enum
+    - [ ] List
+    - [ ] Object
+    - [ ] Null
+- [ ] Support for enums (TS enums), maybe some other kinds?
 - [ ] Classes as interfaces. Classes which extend this interface will implement it in GraphQL.
 
 ## Beta

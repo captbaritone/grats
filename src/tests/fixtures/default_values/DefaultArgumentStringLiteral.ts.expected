@@ -1,0 +1,17 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+export default class Query {
+  /** @GQLField */
+  hello({ greeting = "hello" }: { greeting: string }): string {
+    return `${greeting} world!`;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+type Query {
+  hello(greeting: String! = "hello"): String
+}

@@ -121,6 +121,29 @@ myField(): string {
 }
 ```
 
+If you wish to define arguments for a field, define your argument types inline:
+
+```ts
+/**
+ * @GQLField <optional name of the field, if different from method name>
+ */
+myField(args: { greeting: string }): string {
+  return `${args.greeting} World`;
+}
+```
+
+Default values for arguments can be defined by using the `=` operator with destructuring:
+
+```ts
+/**
+ * @GQLField <optional name of the field, if different from method name>
+ */
+myField({ greeting = "Hello" }: { greeting: string }): string {
+  return `${args.greeting} World`;
+}
+```
+
+
 ## Example
 
 See `example-server/` in the repo root for a working example. Here we run the static

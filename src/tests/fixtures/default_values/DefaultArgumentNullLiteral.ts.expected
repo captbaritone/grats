@@ -1,0 +1,24 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+export default class Query {
+  /** @GQLField */
+  someField1({ hello = null }: { hello: String | null }): string {
+    if (hello === null) return "hello";
+    return "hello";
+  }
+  /** @GQLField */
+  someField2({ hello = undefined }: { hello: String | undefined }): string {
+    if (hello === null) return "hello";
+    return "hello";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+type Query {
+  someField1(hello: String!): String
+  someField2(hello: String!): String
+}

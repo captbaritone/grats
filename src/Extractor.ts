@@ -13,7 +13,7 @@ import {
   TypeNode,
   NonNullTypeNode,
   StringValueNode,
-  visit,
+  ConstValueNode,
 } from "graphql";
 import { Position } from "./utils/Location";
 import DiagnosticError, { AnnotatedLocation } from "./utils/DiagnosticError";
@@ -217,8 +217,14 @@ export class Extractor {
       );
       return null;
     }
+
+    let defaults = null;
+    if (ts.isObjectBindingPattern(argsParam.name)) {
+      defaults = this.collectArgDefaults(argsParam.name);
+    }
+
     for (const member of argsType.members) {
-      const arg = this.collectArg(member);
+      const arg = this.collectArg(member, defaults);
       if (arg != null) {
         args.push(arg);
       }
@@ -226,7 +232,43 @@ export class Extractor {
     return args;
   }
 
-  collectArg(node: ts.TypeElement): InputValueDefinitionNode | null {
+  collectArgDefaults(
+    node: ts.ObjectBindingPattern,
+  ): Map<string, ts.Expression> {
+    const defaults = new Map();
+    for (const element of node.elements) {
+      if (
+        ts.isBindingElement(element) &&
+        element.initializer &&
+        ts.isIdentifier(element.name)
+      ) {
+        defaults.set(element.name.text, element.initializer);
+      }
+    }
+    return defaults;
+  }
+
+  collectConstValue(node: ts.Expression): ConstValueNode | null {
+    if (ts.isStringLiteral(node)) {
+      return { kind: Kind.STRING, loc: this.loc(node), value: node.text };
+    } else if (ts.isNumericLiteral(node)) {
+      const kind = node.text.includes(".") ? Kind.FLOAT : Kind.INT;
+      return { kind, loc: this.loc(node), value: node.text };
+    } else if (this.isNullish(node)) {
+      return { kind: Kind.NULL, loc: this.loc(node) };
+    }
+    // FIXME: Obeject literals, arrays, etc.
+    this.reportUnhandled(
+      node,
+      "Expected GraphQL field argument default values to be a literal.",
+    );
+    return null;
+  }
+
+  collectArg(
+    node: ts.TypeElement,
+    defaults?: Map<string, ts.Expression> | null,
+  ): InputValueDefinitionNode | null {
     if (!ts.isPropertySignature(node)) {
       this.report(
         node,
@@ -244,6 +286,10 @@ export class Extractor {
     const type = this.collectInputType(node.type);
     if (type == null) return null;
     const description = this.collectDescription(node.name);
+    let defaultValue = null;
+    if (defaults != null && defaults.has(node.name.text)) {
+      defaultValue = this.collectConstValue(defaults.get(node.name.text));
+    }
     return {
       kind: Kind.INPUT_VALUE_DEFINITION,
       loc: this.loc(node),
@@ -251,8 +297,7 @@ export class Extractor {
       name: this.gqlName(node.name, node.name.text),
       // FIXME: Correctly detect nullable types
       type: this.gqlNonNullType(node.type, type),
-      // FIXME: Support default values
-      defaultValue: null,
+      defaultValue,
       directives: [],
     };
   }
@@ -336,6 +381,8 @@ export class Extractor {
   }
 
   collectInputType(node: ts.TypeNode): NamedTypeNode | ListTypeNode | null {
+    if (ts.isOptionalTypeNode(node)) {
+    }
     if (ts.isTypeReferenceNode(node)) {
       // FIXME: Validate type reference
       return this.gqlNamedType(node, node.typeName.getText());
@@ -344,6 +391,13 @@ export class Extractor {
       return this.gqlListType(node, element);
     } else if (node.kind === ts.SyntaxKind.StringKeyword) {
       return this.gqlNamedType(node, "String");
+    } else if (ts.isUnionTypeNode(node)) {
+      const types = node.types.filter((type) => !this.isNullish(type));
+      if (types.length !== 1) {
+        this.report(node, `Expected exactly one non-nullish type.`);
+        return null;
+      }
+      return this.collectInputType(types[0]);
     }
     this.reportUnhandled(node, `Unknown GraphQL type.`);
     return null;
@@ -399,9 +453,15 @@ export class Extractor {
     }
   }
 
-  isNullish(node: ts.TypeNode): boolean {
+  isNullish(node: ts.Node): boolean {
+    if (ts.isIdentifier(node)) {
+      return node.escapedText === "undefined";
+    }
     if (ts.isLiteralTypeNode(node)) {
-      return node.literal.kind === ts.SyntaxKind.NullKeyword;
+      return (
+        node.literal.kind === ts.SyntaxKind.NullKeyword ||
+        node.literal.kind === ts.SyntaxKind.UndefinedKeyword
+      );
     }
     return (
       node.kind === ts.SyntaxKind.NullKeyword ||
