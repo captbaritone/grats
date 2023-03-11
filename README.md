@@ -143,3 +143,11 @@ However, it also has some disadvantages:
   case for TypeScript First GraphQL, which is purely a static analysis tool.
 
 Given these tradeoffs, I decided to use comments instead of decorators.
+
+# Acknowledgements
+
+* @mofeiZ and @alunyov for their Relay hack-week project exploring a similar idea.
+* @josephsavona for input on the design of [Relay Resolvers](https://relay.dev/docs/guides/relay-resolvers/) which inspired this project.
+* @bradzacher for tips on how to handle TypeScript ASTs.
+* [ts2graphql](https://github.com/cevek/ts2graphql) which appears to take a similar approach to this project, except that it focuses on extracting from abstract TS types not class declarations.
+* Everyone who worked on Meta's Hack GraphQL server, the developer experince of which inspired this project.
