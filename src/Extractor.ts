@@ -18,15 +18,11 @@ import {
 import { Position } from "./utils/Location";
 import DiagnosticError, { AnnotatedLocation } from "./utils/DiagnosticError";
 import * as ts from "typescript";
+import { TypeContext, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
 
 const LIBRARY_IMPORT_NAME = "<library import name>";
 const LIBRARY_NAME = "<library name>";
 const ISSUE_URL = "<issue URL>";
-
-let i = 0;
-function uniqueId(): number {
-  return i++;
-}
 
 /**
  * Extracts GraphQL definitions from TypeScript source code.
@@ -37,15 +33,12 @@ function uniqueId(): number {
  */
 export class Extractor {
   definitions: DefinitionNode[] = [];
-  symbolToId: Map<ts.Symbol, number> = new Map();
-  idToName: Map<number, string> = new Map();
   sourceFile: ts.SourceFile;
-  checker: ts.TypeChecker;
-  unresolvedTypes: Map<NamedTypeNode, number> = new Map();
+  ctx: TypeContext;
 
-  constructor(sourceFile: ts.SourceFile, checker: ts.TypeChecker) {
+  constructor(sourceFile: ts.SourceFile, ctx: TypeContext) {
     this.sourceFile = sourceFile;
-    this.checker = checker;
+    this.ctx = ctx;
   }
 
   extract(): DefinitionNode[] {
@@ -54,24 +47,7 @@ export class Extractor {
         this.classDeclaration(node);
       }
     });
-    return this.definitions.map((def) => {
-      return visit(def, {
-        NamedType: (t) => {
-          const id = this.unresolvedTypes.get(t);
-          if (id == null) {
-            // FIXME: Assert that this doesn't have a dummy name that we are
-            // expecting to get resolved.
-            return t;
-          }
-          const name = this.idToName.get(id);
-          if (name == null) {
-            // FIXME: This should be a diagnostic error
-            throw new Error("Expected to find a name for id " + id);
-          }
-          return { ...t, name: { ...t.name, value: name } };
-        },
-      });
-    });
+    return this.definitions;
   }
 
   /** Error handling and location juggling */
@@ -132,7 +108,7 @@ export class Extractor {
 
     const fields = this.collectFields(node);
 
-    this.idToName.set(this.getSymbolId(node.name), name.value);
+    this.ctx.recordTypeName(node.name, name.value);
 
     this.definitions.push({
       kind: Kind.OBJECT_TYPE_DEFINITION,
@@ -263,8 +239,8 @@ export class Extractor {
   }
 
   collectDescription(node: ts.Node): StringValueNode | null {
-    const symbol = this.checker.getSymbolAtLocation(node);
-    const doc = symbol.getDocumentationComment(this.checker);
+    const symbol = this.ctx.checker.getSymbolAtLocation(node);
+    const doc = symbol.getDocumentationComment(this.ctx.checker);
     const description = ts.displayPartsToString(doc);
     if (description) {
       return { kind: Kind.STRING, loc: this.loc(node), value: description };
@@ -355,15 +331,12 @@ export class Extractor {
           this.report(node.typeArguments[0], `Unexpected type argument.`);
         }
 
-        const symbolId = this.getSymbolId(node.typeName);
-        if (symbolId == null) {
-          this.report(
-            node.typeName,
-            "Could not resolve type reference. You probably have a TypeScript error.",
-          );
-        }
-        const namedType = this.gqlNamedType(node, `UNRESOLVED_${symbolId}`);
-        this.unresolvedTypes.set(namedType, symbolId);
+        // We may not have encountered the definition of this type yet. So, we
+        // mark it as unresolved and return a placeholder type.
+        //
+        // A later pass will resolve the type.
+        const namedType = this.gqlNamedType(node, UNRESOLVED_REFERENCE_NAME);
+        this.ctx.markUnresolvedType(node.typeName, namedType);
         return namedType;
     }
   }
@@ -415,14 +388,5 @@ export class Extractor {
   }
   gqlListType(node: ts.Node, type: TypeNode): ListTypeNode {
     return { kind: Kind.LIST_TYPE, loc: this.loc(node), type };
-  }
-
-  /** Internal Helpers */
-  getSymbolId(node: ts.Node): number {
-    const symbol = this.checker.getSymbolAtLocation(node);
-    if (!this.symbolToId.has(symbol)) {
-      this.symbolToId.set(symbol, uniqueId());
-    }
-    return this.symbolToId.get(symbol);
   }
 }

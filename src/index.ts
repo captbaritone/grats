@@ -1,17 +1,24 @@
-import { buildASTSchema, DefinitionNode, GraphQLSchema, Kind } from "graphql";
+import {
+  buildASTSchema,
+  DefinitionNode,
+  DocumentNode,
+  GraphQLSchema,
+  Kind,
+  visit,
+} from "graphql";
 import { glob } from "glob";
 import { validateSDL } from "graphql/validation/validate";
 import { graphQlErrorToDiagnostic } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { Extractor } from "./Extractor";
+import { TypeContext } from "./TypeContext";
 
 // Construct a schema, using GraphQL schema language
 export async function buildSchema(pattern: string): Promise<GraphQLSchema> {
   const files = await glob(pattern);
 
-  const typeDefinitions = definitionsFromFile(files);
+  const doc = definitionsFromFile(files);
 
-  const doc = { kind: Kind.DOCUMENT, definitions: typeDefinitions } as const;
   const validationErrors = validateSDL(doc);
   if (validationErrors.length > 0) {
     // TODO: Report all errors
@@ -22,9 +29,7 @@ export async function buildSchema(pattern: string): Promise<GraphQLSchema> {
   return buildASTSchema(doc, { assumeValidSDL: true });
 }
 
-function definitionsFromFile(
-  filePaths: string[],
-): ReadonlyArray<DefinitionNode> {
+function definitionsFromFile(filePaths: string[]): DocumentNode {
   // https://stackoverflow.com/a/66604532/1263117
   const options: ts.CompilerOptions = { allowJs: true };
   const compilerHost = ts.createCompilerHost(
@@ -34,15 +39,17 @@ function definitionsFromFile(
   );
   let program = ts.createProgram(filePaths, options, compilerHost);
   const checker = program.getTypeChecker();
+  const ctx = new TypeContext(checker);
 
-  const allDefinitions: DefinitionNode[] = [];
+  const definitions: DefinitionNode[] = [];
   for (const filePath of filePaths) {
     const sourceFile = program.getSourceFile(filePath);
 
-    const extractor = new Extractor(sourceFile, checker);
+    const extractor = new Extractor(sourceFile, ctx);
     for (const definition of extractor.extract()) {
-      allDefinitions.push(definition);
+      definitions.push(definition);
     }
   }
-  return allDefinitions;
+
+  return ctx.resolveTypes({ kind: Kind.DOCUMENT, definitions });
 }
