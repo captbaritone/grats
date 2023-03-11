@@ -4,7 +4,6 @@
 - [ ] Escape hatches
     - [ ] `@graphql` directive
 - [ ] Enable exhaustive switch statements
-- [ ] Trace types back to their source
 - [ ] Handle optional/non optional
     - [ ] Default: All fields are optional, there's a docblock to mark them as required (this asserts that the return type is non-nullable)
     - [ ] Configurable: Optionality is purely derived from the types
@@ -28,20 +27,11 @@
 - [ ] Define custom scalars
 - [ ] Playground
 - [ ] Docs
+- [ ] Extract error messages to a separate file
 
 ## Future
 - [ ] Define resolvers?
 - [ ] Generate tasks from playground
 - [ ] LSP/VSCode Extension
 - [ ] Websites
-
-
-
-
-## Beta
-- [ ] Extract error messages to a separate file
-- [ ] Consider supporting docblocks instead/also?
-
-## Future
-
 - [ ] Support positional arguments
