@@ -4,7 +4,6 @@ import {
   DocumentNode,
   GraphQLSchema,
   Kind,
-  visit,
 } from "graphql";
 import { glob } from "glob";
 import { validateSDL } from "graphql/validation/validate";
