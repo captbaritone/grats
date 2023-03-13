@@ -51,6 +51,8 @@ export class Extractor {
         this.classDeclaration(node);
       } else if (ts.isInterfaceDeclaration(node)) {
         this.interfaceDeclaration(node);
+      } else if (ts.isTypeAliasDeclaration(node)) {
+        this.typeAliasDeclaration(node);
       }
     });
     return this.definitions;
@@ -106,6 +108,24 @@ export class Extractor {
   }
 
   /** TypeScript traversals */
+
+  typeAliasDeclaration(node: ts.TypeAliasDeclaration) {
+    const tag = this.findTag(node, "GQLScalar");
+    if (tag == null) return;
+
+    const name = this.entityName(node, tag);
+    if (name == null) return null;
+
+    const description = this.collectDescription(node.name);
+    this.ctx.recordTypeName(node.name, name.value);
+
+    this.definitions.push({
+      kind: Kind.SCALAR_TYPE_DEFINITION,
+      loc: this.loc(node),
+      description: description ?? undefined,
+      name,
+    });
+  }
 
   classDeclaration(node: ts.ClassDeclaration) {
     const tag = this.findTag(node, "GQLType");
@@ -346,12 +366,14 @@ export class Extractor {
       | ts.MethodDeclaration
       | ts.PropertyDeclaration
       | ts.InterfaceDeclaration
-      | ts.PropertySignature,
+      | ts.PropertySignature
+      | ts.TypeAliasDeclaration,
     tag: ts.JSDocTag,
   ) {
     if (tag.comment != null) {
       const commentName = ts.getTextOfJSDocComment(tag.comment);
       if (commentName != null) {
+        // FIXME: Use the _value_'s location not the tag's
         return this.gqlName(tag, commentName);
       }
     }

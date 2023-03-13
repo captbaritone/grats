@@ -1,0 +1,12 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLScalar CustomName */
+type MyUrl = string;
+
+-----------------
+OUTPUT
+-----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
+scalar CustomName

@@ -10,7 +10,7 @@ class Query {
 -----------------
 OUTPUT
 -----------------
-Error: This type is not a valid GraphQL type. Did you mean to annotate it's definition with `/** @GQLType */`?:
+Error: This type is not a valid GraphQL type. Did you mean to annotate it's definition with `/** @GQLType */` or `/** @GQLScalar */`?:
  --> src/tests/fixtures/field_definitions/ReferenceUndefinedType.ts:4:22
 
   |   /** @GQLField */

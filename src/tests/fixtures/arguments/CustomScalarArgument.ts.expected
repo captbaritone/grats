@@ -1,0 +1,24 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLScalar */
+type MyString = string;
+
+/** @GQLType */
+export default class Query {
+  /** @GQLField */
+  hello({ greeting }: { greeting: MyString }): string {
+    return "Hello world!";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
+scalar MyString
+
+type Query {
+  hello(greeting: MyString!): String
+}

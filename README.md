@@ -145,6 +145,16 @@ myField({ greeting = "Hello" }: { greeting: string }): string {
 }
 ```
 
+### @GQLScalar
+
+GraphQL custom sclars can be defined by placing a `@GQLScalar` docblock directly before an:
+
+* Type alias declaration
+
+```ts
+/** @GQLScalar */
+type MyCustomString = string;
+```
 
 ## Example
 

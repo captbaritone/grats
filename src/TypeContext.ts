@@ -79,7 +79,7 @@ export class TypeContext {
         throw new Error("Expected namedType to have a location.");
       }
       throw new DiagnosticError(
-        "This type is not a valid GraphQL type. Did you mean to annotate it's definition with `/** @GQLType */`?",
+        "This type is not a valid GraphQL type. Did you mean to annotate it's definition with `/** @GQLType */` or `/** @GQLScalar */`?",
         new AnnotatedLocation(Location.fromGraphQLLocation(namedType.loc), ""),
       );
     }
