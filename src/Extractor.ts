@@ -14,6 +14,8 @@ import {
   NonNullTypeNode,
   StringValueNode,
   ConstValueNode,
+  ConstDirectiveNode,
+  ConstArgumentNode,
 } from "graphql";
 import { Position } from "./utils/Location";
 import DiagnosticError, { AnnotatedLocation } from "./utils/DiagnosticError";
@@ -335,6 +337,25 @@ export class Extractor {
 
     const description = this.collectDescription(node.name);
 
+    const id = this.expectIdentifier(node.name);
+    if (id == null) return null;
+    let directives: ConstDirectiveNode[] | null = null;
+    if (id.text !== name.value) {
+      directives = [
+        this.gqlConstDirective(
+          node.name,
+          this.gqlName(node.name, "renameField"),
+          [
+            this.gqlConstArgument(
+              node.name,
+              this.gqlName(node.name, "name"),
+              this.gqlString(node.name, id.text),
+            ),
+          ],
+        ),
+      ];
+    }
+
     return {
       kind: Kind.FIELD_DEFINITION,
       loc: this.loc(node),
@@ -342,6 +363,7 @@ export class Extractor {
       name,
       arguments: args,
       type,
+      directives,
     };
   }
 
@@ -370,6 +392,24 @@ export class Extractor {
     if (type == null) return null;
     const description = this.collectDescription(node.name);
 
+    let directives: ConstDirectiveNode[] | null = null;
+    const id = this.expectIdentifier(node.name);
+    if (id.text !== name.value) {
+      directives = [
+        this.gqlConstDirective(
+          node.name,
+          this.gqlName(node.name, "renameField"),
+          [
+            this.gqlConstArgument(
+              node.name,
+              this.gqlName(node.name, "name"),
+              this.gqlString(node.name, id.text),
+            ),
+          ],
+        ),
+      ];
+    }
+
     return {
       kind: Kind.FIELD_DEFINITION,
       loc: this.loc(node),
@@ -377,6 +417,7 @@ export class Extractor {
       name,
       arguments: null,
       type,
+      directives,
     };
   }
 
@@ -506,5 +547,24 @@ export class Extractor {
   }
   gqlListType(node: ts.Node, type: TypeNode): ListTypeNode {
     return { kind: Kind.LIST_TYPE, loc: this.loc(node), type };
+  }
+
+  gqlConstArgument(
+    node: ts.Node,
+    name: NameNode,
+    value: ConstValueNode,
+  ): ConstArgumentNode {
+    return { kind: Kind.ARGUMENT, loc: this.loc(node), name, value };
+  }
+
+  gqlConstDirective(
+    node: ts.Node,
+    name: NameNode,
+    args: ReadonlyArray<ConstArgumentNode>,
+  ): ConstDirectiveNode {
+    return { kind: Kind.DIRECTIVE, loc: this.loc(node), name, arguments: args };
+  }
+  gqlString(node: ts.Node, value: string): StringValueNode {
+    return { kind: Kind.STRING, loc: this.loc(node), value };
   }
 }

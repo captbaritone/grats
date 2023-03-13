@@ -58,8 +58,10 @@ Still very rough, but you can try it out with:
 
 ```bash
 git clone ...
-yarn
-yarn cli <glob of files to analyze>
+pnpm install
+pnpm cli <glob of files to analyze>
+
+# Example: `pnpm cli "example-server/**/*.ts"`
 ```
 
 ## API Usage
