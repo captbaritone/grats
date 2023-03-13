@@ -1,0 +1,21 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+export default class Query {
+  /** @GQLField */
+  hello({ greeting }: { greeting }): string {
+    return "Hello world!";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+Error: Expected GraphQL field argument to have a type.:
+ --> src/tests/fixtures/arguments/ArgWithNoType.invalid.ts:4:25
+
+  |   /** @GQLField */
+4 |   hello({ greeting }: { greeting }): string {
+  |                         ^^^^^^^^ 
+  |     return "Hello world!";

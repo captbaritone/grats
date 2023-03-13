@@ -1,0 +1,21 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+export default class Query {
+  /** @GQLField */
+  hello(args): string {
+    return "Hello world!";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+Error: Expected GraphQL field arguments to have a TypeScript type. If there are no arguments, you can use `args: never`.:
+ --> src/tests/fixtures/arguments/NoTypeAnnotation.invalid.ts:4:9
+
+  |   /** @GQLField */
+4 |   hello(args): string {
+  |         ^^^^ 
+  |     return "Hello world!";

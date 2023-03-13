@@ -1,0 +1,21 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class Query {
+  /** @GQLField */
+  someMethodField() {
+    return "Hello world!";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+Error: Expected GraphQL field to have a type.:
+ --> src/tests/fixtures/field_definitions/MethodFieldMissingType.invalid.ts:4:3
+
+  |   /** @GQLField */
+4 |   someMethodField() {
+  |   ^^^^^^^^^^^^^^^ 
+  |     return "Hello world!";

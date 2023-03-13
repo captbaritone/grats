@@ -1,0 +1,19 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class Query {
+  /** @GQLField */
+  somePropertyField: SomeUndefienedType;
+}
+
+-----------------
+OUTPUT
+-----------------
+Error: This type is not a valid GraphQL type. Did you mean to annotate it's definition with `/** @GQLType */`?:
+ --> src/tests/fixtures/field_definitions/ReferenceUndefinedType.ts:4:22
+
+  |   /** @GQLField */
+4 |   somePropertyField: SomeUndefienedType;
+  |                      ^^^^^^^^^^^^^^^^^^ 
+  | }

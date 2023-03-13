@@ -111,8 +111,16 @@ export class Extractor {
     const tag = this.findTag(node, "GQLType");
     if (tag == null) return;
 
+    if (node.name == null) {
+      this.report(
+        node,
+        `Unexpected \`@GQLType\` annotation on unnamed class declaration.`,
+      );
+      return null;
+    }
+
     const name = this.entityName(node, tag);
-    if (name == null || node.name == null) return null;
+    if (name == null) return null;
 
     const description = this.collectDescription(node.name);
 
@@ -289,6 +297,7 @@ export class Extractor {
     defaults?: Map<string, ts.Expression> | null,
   ): InputValueDefinitionNode | null {
     if (!ts.isPropertySignature(node)) {
+      // TODO: How can I create this error?
       this.report(
         node,
         "Expected GraphQL field argument type to be a property signature.",
@@ -296,6 +305,7 @@ export class Extractor {
       return null;
     }
     if (!ts.isIdentifier(node.name)) {
+      // TODO: How can I create this error?
       this.report(
         node.name,
         "Expected GraphQL field argument names to be a literal.",

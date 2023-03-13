@@ -1,0 +1,23 @@
+-----------------
+INPUT
+----------------- 
+type SomeType = any;
+
+/** @GQLType */
+export default class Query {
+  /** @GQLField */
+  hello({ greeting }: SomeType): string {
+    return "Hello world!";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+Error: Expected GraphQL field arguments to be typed using a literal object: `{someField: string}`.:
+ --> src/tests/fixtures/arguments/OpaqueArgType.invalid.ts:6:23
+
+  |   /** @GQLField */
+6 |   hello({ greeting }: SomeType): string {
+  |                       ^^^^^^^^ 
+  |     return "Hello world!";

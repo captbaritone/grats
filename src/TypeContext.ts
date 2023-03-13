@@ -1,5 +1,7 @@
 import { DocumentNode, NamedTypeNode, visit } from "graphql";
 import * as ts from "typescript";
+import DiagnosticError, { AnnotatedLocation } from "./utils/DiagnosticError";
+import * as Location from "./utils/Location";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
@@ -73,9 +75,12 @@ export class TypeContext {
     }
     const name = this._symbolToName.get(symbol);
     if (name == null) {
-      // FIXME: This should be a diagnostic error
-      throw new Error(
+      if (namedType.loc == null) {
+        throw new Error("Expected namedType to have a location.");
+      }
+      throw new DiagnosticError(
         "This type is not a valid GraphQL type. Did you mean to annotate it's definition with `/** @GQLType */`?",
+        new AnnotatedLocation(Location.fromGraphQLLocation(namedType.loc), ""),
       );
     }
     return { ...namedType, name: { ...namedType.name, value: name } };

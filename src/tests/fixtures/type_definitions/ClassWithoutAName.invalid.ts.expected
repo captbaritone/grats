@@ -1,0 +1,28 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * @GQLType
+ */
+export default class {
+  /** @GQLField */
+  hello(): string {
+    return "Hello world!";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+Error: Unexpected `@GQLType` annotation on unnamed class declaration.:
+ --> src/tests/fixtures/type_definitions/ClassWithoutAName.invalid.ts:4:1
+
+  |  */
+4 | export default class {
+  | ^ 
+  |   /** @GQLField */
+  |   hello(): string {
+  |     return "Hello world!";
+  |   }
+  | }
+  | 

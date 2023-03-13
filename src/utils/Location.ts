@@ -1,3 +1,5 @@
+import { Location as GraphQLLocation } from "graphql";
+import * as ts from "typescript";
 export type Position = { offset: number; line: number; column: number };
 
 export type Location = {
@@ -5,6 +7,22 @@ export type Location = {
   end: Position;
   filepath: string;
 };
+
+export function fromGraphQLLocation(gqlLoc: GraphQLLocation): Location {
+  return {
+    start: {
+      offset: gqlLoc.start,
+      line: gqlLoc.startToken.line + 1,
+      column: gqlLoc.startToken.column + 1,
+    },
+    end: {
+      offset: gqlLoc.end,
+      line: gqlLoc.endToken.line + 1,
+      column: gqlLoc.endToken.column + 1,
+    },
+    filepath: gqlLoc.source.name,
+  };
+}
 
 export function firstChar(location: Location): Location {
   return {
