@@ -18,6 +18,8 @@ export default class Query {
 -----------------
 OUTPUT
 -----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
 type Query {
   someField1(hello: String!): String
   someField2(hello: String!): String

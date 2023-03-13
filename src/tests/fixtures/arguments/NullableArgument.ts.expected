@@ -32,6 +32,8 @@ export default class Query {
 -----------------
 OUTPUT
 -----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
 type Query {
   hello1(greeting: String!): String
   hello2(greeting: String!): String

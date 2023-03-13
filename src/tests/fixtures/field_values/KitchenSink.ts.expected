@@ -61,6 +61,8 @@ class Group {
 -----------------
 OUTPUT
 -----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
 type Query {
   hello(greeting: String!): String
   greetings(greeting: String!): [String]

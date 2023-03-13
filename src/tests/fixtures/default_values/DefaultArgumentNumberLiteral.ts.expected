@@ -19,6 +19,8 @@ export default class Query {
 -----------------
 OUTPUT
 -----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
 type Query {
   intField(count: Int! = 10): String
   floatField(scale: Float! = 10): String

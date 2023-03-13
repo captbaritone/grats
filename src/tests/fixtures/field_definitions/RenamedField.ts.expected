@@ -15,6 +15,8 @@ class Query {
 -----------------
 OUTPUT
 -----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
 type Query {
   greeting: String
   salutaion: String

@@ -30,6 +30,8 @@ class User implements Person, Actor {
 -----------------
 OUTPUT
 -----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
 type Query {
   me: User
 }

@@ -26,6 +26,8 @@ class User<T> {
 -----------------
 OUTPUT
 -----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
 type Query {
   me: User
 }
