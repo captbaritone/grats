@@ -3,6 +3,7 @@ export type Position = { offset: number; line: number; column: number };
 export type Location = {
   start: Position;
   end: Position;
+  filepath: string;
 };
 
 export function firstChar(location: Location): Location {
@@ -13,6 +14,7 @@ export function firstChar(location: Location): Location {
       line: location.start.line,
       column: location.start.column + 1,
     },
+    filepath: location.filepath,
   };
 }
 export function lastChar(location: Location): Location {
@@ -23,11 +25,14 @@ export function lastChar(location: Location): Location {
       column: location.end.column - 1,
     },
     end: location.end,
+    filepath: location.filepath,
   };
 }
 
 export function union(start: Location, end: Location): Location {
-  return { start: start.start, end: end.end };
+  if (start.filepath !== end.filepath)
+    throw new Error("Cannot union locations from different files");
+  return { start: start.start, end: end.end, filepath: start.filepath };
 }
 
 // TS AST Location => Diagnostic Location

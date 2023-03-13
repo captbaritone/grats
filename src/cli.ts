@@ -2,6 +2,7 @@
 
 import { printSchema } from "graphql";
 import { buildSchema } from ".";
+import DiagnosticError from "./utils/DiagnosticError";
 
 /**
  * Build a schema from a glob pattern.
@@ -13,8 +14,17 @@ async function main() {
   if (!glob) {
     throw new Error("Expected glob as first argument");
   }
-  const schema = await buildSchema(glob);
-  console.log(printSchema(schema));
+  try {
+    const schema = await buildSchema(glob);
+    console.log(printSchema(schema));
+  } catch (e) {
+    if (e.loc) {
+      console.log(DiagnosticError.prototype.asCodeFrame.call(e));
+      process.exit(1);
+    } else {
+      throw e;
+    }
+  }
 }
 
 main();

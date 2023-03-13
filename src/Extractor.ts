@@ -77,7 +77,10 @@ export class Extractor {
   diagnosticAnnotatedLocation(node: ts.Node): AnnotatedLocation {
     const start = this.diagnosticPosition(node.getStart());
     const end = this.diagnosticPosition(node.getEnd());
-    return new AnnotatedLocation({ start, end }, "");
+    return new AnnotatedLocation(
+      { start, end, filepath: this.sourceFile.fileName },
+      "",
+    );
   }
 
   diagnosticPosition(pos: number): Position {
@@ -221,9 +224,12 @@ export class Extractor {
     if (argsType == null) {
       this.report(
         argsParam,
-        "Expected GraphQL field arguments to have a TypeScript type.",
+        "Expected GraphQL field arguments to have a TypeScript type. If there are no arguments, you can use `args: never`.",
       );
       return null;
+    }
+    if (argsType.kind === ts.SyntaxKind.NeverKeyword) {
+      return [];
     }
     if (!ts.isTypeLiteralNode(argsType)) {
       this.report(
@@ -357,7 +363,7 @@ export class Extractor {
     if (name == null) return null;
 
     if (node.type == null) {
-      this.report(node, "Expected GraphQL field to have a type.");
+      this.report(node.name, "Expected GraphQL field to have a type.");
       return null;
     }
 
@@ -427,7 +433,7 @@ export class Extractor {
     if (name == null) return null;
 
     if (node.type == null) {
-      this.report(node, "Expected GraphQL field to have a type.");
+      this.report(node.name, "Expected GraphQL field to have a type.");
       return null;
     }
 

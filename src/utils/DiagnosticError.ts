@@ -1,5 +1,7 @@
 import { GraphQLError } from "graphql";
 import { Location } from "./Location";
+import * as fs from "fs";
+import * as path from "path";
 
 export class AnnotatedLocation {
   loc: Location;
@@ -29,18 +31,18 @@ export default class DiagnosticError extends Error {
   }
 
   // Prints a diagnostic message with code frame to the console.
-  reportDiagnostic(source: string) {
-    console.error(this.asCodeFrame(source, "<dummy file name>"));
+  reportDiagnostic() {
+    console.error(this.asCodeFrame());
   }
 
   // Formats the diagnostic message with code frame.
-  asCodeFrame(source: string, filePath: string): string {
+  asCodeFrame(): string {
+    const source = fs.readFileSync(this.loc.loc.filepath, "utf-8");
     const lines = source.split("\n");
 
-    let frame = _asCodeFrame(lines, this.loc, this.message, filePath);
+    let frame = _asCodeFrame(lines, this.loc, this.message);
     for (const related of this.related) {
-      frame +=
-        "\n\n" + _asCodeFrame(lines, related, related.annotation, filePath);
+      frame += "\n\n" + _asCodeFrame(lines, related, related.annotation);
     }
     return frame;
   }
@@ -50,21 +52,25 @@ function _asCodeFrame(
   lines: string[],
   annotated: AnnotatedLocation,
   message: string,
-  filePath: string,
 ): string {
   const location = annotated.loc;
   const startLine = Math.max(location.start.line - 2, 0);
   const endLine = Math.min(location.end.line, lines.length - 1);
 
   if (location.start.line !== location.end.line) {
-    location.end = location.start;
-    // throw new Error("TODO: Multi-line error reporting");
+    location.end = {
+      line: location.start.line,
+      column: location.start.column + 1,
+      offset: location.start.offset + 1,
+    };
   }
 
   const gutter = String(endLine).length;
   const defaultGutter = " ".repeat(gutter) + " | ";
 
-  const fileLocation = `${filePath}:${location.start.line}:${location.start.column}`;
+  const relativePath = path.relative(process.cwd(), annotated.loc.filepath);
+
+  const fileLocation = `${relativePath}:${location.start.line}:${location.start.column}`;
 
   const codeFrameLines: string[] = [
     `Error: ${message}:`,
@@ -124,14 +130,16 @@ export function graphQlErrorToDiagnostic(error: GraphQLError): DiagnosticError {
         line: loc.line,
         column: loc.column + 1,
       };
-      related.push(new AnnotatedLocation({ start, end }, ""));
+      related.push(
+        new AnnotatedLocation({ start, end, filepath: error.source!.name }, ""),
+      );
     }
   }
   const start = { offset: position, line: loc.line, column: loc.column };
   const end = { offset: position + 1, line: loc.line, column: loc.column + 1 };
   return new DiagnosticError(
     error.message,
-    new AnnotatedLocation({ start, end }, ""),
+    new AnnotatedLocation({ start, end, filepath: error.source!.name }, ""),
     related,
   );
 }

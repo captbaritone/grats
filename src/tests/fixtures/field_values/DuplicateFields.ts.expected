@@ -19,7 +19,7 @@ export default class Query {
 OUTPUT
 -----------------
 Error: Field "Query.hello" can only be defined once.:
- --> field_values/DuplicateFields.ts:6:3
+ --> src/tests/fixtures/field_values/DuplicateFields.ts:6:3
 
   |   /** @GQLField */
 6 |   hello(): string {
@@ -28,7 +28,7 @@ Error: Field "Query.hello" can only be defined once.:
 
 
 Error: :
- --> field_values/DuplicateFields.ts:10:3
+ --> src/tests/fixtures/field_values/DuplicateFields.ts:10:3
 
    |   /** @GQLField */
 10 |   hello(): Array<string> {

@@ -123,7 +123,7 @@ ${actual}`;
       return await this._transformer(code, filename);
     } catch (e) {
       if (e instanceof DiagnosticError) {
-        return e.asCodeFrame(code, filename);
+        return e.asCodeFrame();
       }
       console.error(e);
       return e.message;
