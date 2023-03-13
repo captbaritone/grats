@@ -104,8 +104,8 @@ function _asCodeFrame(
 
 // TODO: This is just a hack. Improve handling of multiple locations.
 export function graphQlErrorToDiagnostic(error: GraphQLError): DiagnosticError {
-  const loc = error.locations[0];
-  const position = error.positions[0];
+  const loc = error.locations![0];
+  const position = error.positions![0];
   if (loc == null) {
     throw new Error("Expected error to have a location");
   }
@@ -113,10 +113,10 @@ export function graphQlErrorToDiagnostic(error: GraphQLError): DiagnosticError {
     throw new Error("Expected error to have a position");
   }
 
-  const related = [];
-  for (let i = 1; i < error.locations.length; i++) {
-    const loc = error.locations[i];
-    const position = error.positions[i];
+  const related: AnnotatedLocation[] = [];
+  for (let i = 1; i < error.locations!.length; i++) {
+    const loc = error.locations![i];
+    const position = error.positions![i];
     if (loc && position) {
       const start = { offset: position, line: loc.line, column: loc.column };
       const end = {

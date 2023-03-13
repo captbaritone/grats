@@ -26,6 +26,8 @@ const LIBRARY_IMPORT_NAME = "<library import name>";
 const LIBRARY_NAME = "<library name>";
 const ISSUE_URL = "<issue URL>";
 
+type ArgDefaults = Map<string, ts.Expression>;
+
 /**
  * Extracts GraphQL definitions from TypeScript source code.
  *
@@ -97,7 +99,7 @@ export class Extractor {
   gqlDummyToken(pos: number): Token {
     const { line, character } =
       this.sourceFile.getLineAndCharacterOfPosition(pos);
-    return new Token(TokenKind.SOF, pos, pos, line, character, null);
+    return new Token(TokenKind.SOF, pos, pos, line, character, undefined);
   }
 
   /** TypeScript traversals */
@@ -107,7 +109,8 @@ export class Extractor {
     if (tag == null) return;
 
     const name = this.entityName(node, tag);
-    if (name == null) return null;
+    if (name == null || node.name == null) return null;
+
     const description = this.collectDescription(node.name);
 
     const fields = this.collectFields(node);
@@ -118,35 +121,42 @@ export class Extractor {
 
     this.definitions.push({
       kind: Kind.OBJECT_TYPE_DEFINITION,
-      loc: null,
-      description,
+      loc: this.loc(node),
+      description: description ?? undefined,
       name,
       fields,
-      interfaces,
+      interfaces: interfaces ?? undefined,
     });
   }
 
   collectInterfaces(node: ts.ClassDeclaration): Array<NamedTypeNode> | null {
     if (node.heritageClauses == null) return null;
 
-    const interfaces = node.heritageClauses.flatMap((clause) => {
-      if (clause.token !== ts.SyntaxKind.ImplementsKeyword) return [];
-      return clause.types.map((type) => {
-        if (!ts.isIdentifier(type.expression)) {
-          // TODO: Are there valid cases we want to cover here?
-          return null;
-        }
-        const namedType = this.gqlNamedType(
-          type.expression,
-          UNRESOLVED_REFERENCE_NAME,
-        );
-        this.ctx.markUnresolvedType(type.expression, namedType);
-        return namedType;
+    const maybeInterfaces: Array<NamedTypeNode | null> =
+      node.heritageClauses.flatMap((clause): Array<NamedTypeNode | null> => {
+        if (clause.token !== ts.SyntaxKind.ImplementsKeyword) return [];
+        return clause.types.map((type) => {
+          if (!ts.isIdentifier(type.expression)) {
+            // TODO: Are there valid cases we want to cover here?
+            return null;
+          }
+          const namedType = this.gqlNamedType(
+            type.expression,
+            UNRESOLVED_REFERENCE_NAME,
+          );
+          this.ctx.markUnresolvedType(type.expression, namedType);
+          return namedType;
+        });
       });
-    });
+
+    const interfaces = maybeInterfaces.filter(
+      (i): i is NamedTypeNode => i != null,
+    );
+
     if (interfaces.length === 0) {
       return null;
     }
+
     return interfaces;
   }
 
@@ -155,6 +165,9 @@ export class Extractor {
     if (tag == null) return;
 
     const name = this.entityName(node, tag);
+    if (name == null || name.value == null) {
+      return;
+    }
     const description = this.collectDescription(node.name);
 
     const fields = this.collectFields(node);
@@ -166,8 +179,8 @@ export class Extractor {
 
     this.definitions.push({
       kind: Kind.INTERFACE_TYPE_DEFINITION,
-      loc: null,
-      description,
+      loc: this.loc(node),
+      description: description || undefined,
       name,
       fields,
     });
@@ -220,7 +233,7 @@ export class Extractor {
       return null;
     }
 
-    let defaults = null;
+    let defaults: ArgDefaults | null = null;
     if (ts.isObjectBindingPattern(argsParam.name)) {
       defaults = this.collectArgDefaults(argsParam.name);
     }
@@ -234,9 +247,7 @@ export class Extractor {
     return args;
   }
 
-  collectArgDefaults(
-    node: ts.ObjectBindingPattern,
-  ): Map<string, ts.Expression> {
+  collectArgDefaults(node: ts.ObjectBindingPattern): ArgDefaults {
     const defaults = new Map();
     for (const element of node.elements) {
       if (
@@ -285,21 +296,30 @@ export class Extractor {
       );
       return null;
     }
+
+    if (node.type == null) {
+      this.report(node.name, "Expected GraphQL field argument to have a type.");
+      return null;
+    }
     const type = this.collectInputType(node.type);
     if (type == null) return null;
     const description = this.collectDescription(node.name);
-    let defaultValue = null;
-    if (defaults != null && defaults.has(node.name.text)) {
-      defaultValue = this.collectConstValue(defaults.get(node.name.text));
+
+    let defaultValue: ConstValueNode | null = null;
+    if (defaults != null) {
+      const def = defaults.get(node.name.text);
+      if (def != null) {
+        defaultValue = this.collectConstValue(def);
+      }
     }
     return {
       kind: Kind.INPUT_VALUE_DEFINITION,
       loc: this.loc(node),
-      description,
+      description: description || undefined,
       name: this.gqlName(node.name, node.name.text),
       // FIXME: Correctly detect nullable types
       type: this.gqlNonNullType(node.type, type),
-      defaultValue,
+      defaultValue: defaultValue || undefined,
       directives: [],
     };
   }
@@ -314,7 +334,15 @@ export class Extractor {
     tag: ts.JSDocTag,
   ) {
     if (tag.comment != null) {
-      return this.gqlName(tag, ts.getTextOfJSDocComment(tag.comment));
+      const commentName = ts.getTextOfJSDocComment(tag.comment);
+      if (commentName != null) {
+        return this.gqlName(tag, commentName);
+      }
+    }
+
+    if (node.name == null) {
+      this.report(node, "Expected GraphQL entity to have a name.");
+      return null;
     }
     const id = this.expectIdentifier(node.name);
     if (id == null) return null;
@@ -323,10 +351,15 @@ export class Extractor {
 
   methodDeclaration(node: ts.MethodDeclaration): FieldDefinitionNode | null {
     const tag = this.findTag(node, "GQLField");
-    if (tag == null) return;
+    if (tag == null) return null;
 
     const name = this.entityName(node, tag);
     if (name == null) return null;
+
+    if (node.type == null) {
+      this.report(node, "Expected GraphQL field to have a type.");
+      return null;
+    }
 
     const type = this.collectType(node.type);
 
@@ -359,16 +392,23 @@ export class Extractor {
     return {
       kind: Kind.FIELD_DEFINITION,
       loc: this.loc(node),
-      description,
+      description: description || undefined,
       name,
-      arguments: args,
+      arguments: args || undefined,
       type,
-      directives,
+      directives: directives || undefined,
     };
   }
 
   collectDescription(node: ts.Node): StringValueNode | null {
     const symbol = this.ctx.checker.getSymbolAtLocation(node);
+    if (symbol == null) {
+      this.report(
+        node,
+        "Expected TypeScript to be able to resolve this GraphQL entity to a symbol.",
+      );
+      return null;
+    }
     const doc = symbol.getDocumentationComment(this.ctx.checker);
     const description = ts.displayPartsToString(doc);
     if (description) {
@@ -386,6 +426,11 @@ export class Extractor {
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
+    if (node.type == null) {
+      this.report(node, "Expected GraphQL field to have a type.");
+      return null;
+    }
+
     const type = this.collectType(node.type);
 
     // We already reported an error
@@ -394,6 +439,8 @@ export class Extractor {
 
     let directives: ConstDirectiveNode[] | null = null;
     const id = this.expectIdentifier(node.name);
+    if (id == null) return null;
+
     if (id.text !== name.value) {
       directives = [
         this.gqlConstDirective(
@@ -413,11 +460,11 @@ export class Extractor {
     return {
       kind: Kind.FIELD_DEFINITION,
       loc: this.loc(node),
-      description,
+      description: description || undefined,
       name,
-      arguments: null,
+      arguments: undefined,
       type,
-      directives,
+      directives: directives || undefined,
     };
   }
 
@@ -429,6 +476,7 @@ export class Extractor {
       return this.gqlNamedType(node, node.typeName.getText());
     } else if (ts.isArrayTypeNode(node)) {
       const element = this.collectInputType(node.elementType);
+      if (element == null) return null;
       return this.gqlListType(node, element);
     } else if (node.kind === ts.SyntaxKind.StringKeyword) {
       return this.gqlNamedType(node, "String");
@@ -449,6 +497,7 @@ export class Extractor {
       return this.typeReference(node);
     } else if (ts.isArrayTypeNode(node)) {
       const element = this.collectType(node.elementType);
+      if (element == null) return null;
       return this.gqlListType(node, element);
     } else if (ts.isUnionTypeNode(node)) {
       const types = node.types.filter((type) => !this.isNullish(type));
@@ -477,11 +526,20 @@ export class Extractor {
     const typeName = identifier.text;
     switch (typeName) {
       case "Promise":
+        if (node.typeArguments == null) {
+          this.report(node, `Expected type reference to have type arguments.`);
+          return null;
+        }
         return this.collectType(node.typeArguments[0]);
       case "Array":
       case "Iterator":
       case "ReadonlyArray":
+        if (node.typeArguments == null) {
+          this.report(node, `Expected type reference to have type arguments.`);
+          return null;
+        }
         const element = this.collectType(node.typeArguments[0]);
+        if (element == null) return null;
         return this.gqlListType(node, element);
       default:
         // We may not have encountered the definition of this type yet. So, we

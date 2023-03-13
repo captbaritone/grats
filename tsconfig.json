@@ -17,7 +17,8 @@
     // typescript options here
     "experimentalDecorators": true,
     "outDir": "dist",
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "strictNullChecks": true
   },
   "exclude": ["node_modules", "dist", "src/tests/fixtures"]
 }
