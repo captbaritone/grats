@@ -1,0 +1,20 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLEnum */
+enum Enum {
+  VALID,
+  INVALID,
+}
+
+-----------------
+OUTPUT
+-----------------
+Error: `@GQLEnum` is not yet implemented.
+
+If you think <library name> should be able to infer this type, please report an issue at <issue URL>.:
+ --> src/tests/fixtures/todo/Enum.ts:1:5
+
+1 | /** @GQLEnum */
+  |     ^^^^^^^^^ 
+  | enum Enum {

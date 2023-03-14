@@ -65,10 +65,10 @@ export class Extractor {
             this.extractInterface(node, tag);
             break;
           case "GQLEnum":
-            this.reportUnhandled(tag, "GQLEnum is not yet implemented.");
+            this.reportUnhandled(tag, "`@GQLEnum` is not yet implemented.");
             break;
           case "GQLUnion":
-            this.reportUnhandled(tag, "GQLUnion is not yet implemented.");
+            this.reportUnhandled(tag, "`@GQLUnion` is not yet implemented.");
             break;
         }
       }
@@ -80,7 +80,7 @@ export class Extractor {
     if (ts.isClassDeclaration(node)) {
       this.classDeclaration(node);
     } else {
-      this.report(tag, `@GQLType can only be used on class declarations.`);
+      this.report(tag, "`@GQLType` can only be used on class declarations.");
     }
   }
 
@@ -90,7 +90,7 @@ export class Extractor {
     } else {
       this.report(
         tag,
-        `@GQLScalar can only be used on type alias declarations.`,
+        "`@GQLScalar` can only be used on type alias declarations.",
       );
     }
   }
@@ -101,7 +101,7 @@ export class Extractor {
     } else {
       this.report(
         tag,
-        `@GQLInterface can only be used on interface declarations.`,
+        "`@GQLInterface` can only be used on interface declarations.",
       );
     }
   }

@@ -1,0 +1,2 @@
+/** @GQLScalar Matrix */
+function Foo() {}

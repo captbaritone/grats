@@ -1,0 +1,34 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class User {
+  /** @GQLField */
+  name(): string {
+    return "Alice";
+  }
+}
+
+/** @GQLType */
+class Group {
+  /** @GQLField */
+  name(): string {
+    return "Fan Club";
+  }
+}
+
+/** @GQLUnion */
+type MyUnion = User | Group;
+
+-----------------
+OUTPUT
+-----------------
+Error: `@GQLUnion` is not yet implemented.
+
+If you think <library name> should be able to infer this type, please report an issue at <issue URL>.:
+ --> src/tests/fixtures/todo/Union.ts:17:5
+
+   | 
+17 | /** @GQLUnion */
+   |     ^^^^^^^^^^ 
+   | type MyUnion = User | Group;

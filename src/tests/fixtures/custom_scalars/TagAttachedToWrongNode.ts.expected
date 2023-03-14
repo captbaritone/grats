@@ -1,0 +1,15 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLScalar Matrix */
+function Foo() {}
+
+-----------------
+OUTPUT
+-----------------
+Error: `@GQLScalar` can only be used on type alias declarations.:
+ --> src/tests/fixtures/custom_scalars/TagAttachedToWrongNode.ts:1:5
+
+1 | /** @GQLScalar Matrix */
+  |     ^^^^^^^^^^^^^^^^^^ 
+  | function Foo() {}
