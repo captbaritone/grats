@@ -126,9 +126,7 @@ myField(): string {
 If you wish to define arguments for a field, define your argument types inline:
 
 ```ts
-/**
- * @GQLField <optional name of the field, if different from method name>
- */
+/** @GQLField */
 myField(args: { greeting: string }): string {
   return `${args.greeting} World`;
 }
@@ -137,17 +135,15 @@ myField(args: { greeting: string }): string {
 Default values for arguments can be defined by using the `=` operator with destructuring:
 
 ```ts
-/**
- * @GQLField <optional name of the field, if different from method name>
- */
+/** @GQLField */
 myField({ greeting = "Hello" }: { greeting: string }): string {
   return `${args.greeting} World`;
 }
 ```
 
-### @GQLScalar
+### @GQLScalar <optional name of the scalar, if different from type name>
 
-GraphQL custom sclars can be defined by placing a `@GQLScalar` docblock directly before an:
+GraphQL custom sclars can be defined by placing a `@GQLScalar` docblock directly before a:
 
 * Type alias declaration
 
