@@ -152,6 +152,23 @@ GraphQL custom sclars can be defined by placing a `@GQLScalar` docblock directly
 type MyCustomString = string;
 ```
 
+### @GQLEnum <optional name of the enum, if different from type name>
+
+GraphQL enums can be defined by placing a `@GQLEnum` docblock directly before a:
+
+* TypeScript enum declaration
+
+```ts
+/** @GQLEnum */
+enum MyEnum {
+  OK = "OK"
+  ERROR = "ERROR"
+}
+```
+
+Note that the values of the enum are used as the GraphQL enum values, and must be string literals.
+
+
 ## Example
 
 See `example-server/` in the repo root for a working example. Here we run the static
@@ -198,4 +215,5 @@ Given these tradeoffs, I decided to use comments instead of decorators.
 * @josephsavona for input on the design of [Relay Resolvers](https://relay.dev/docs/guides/relay-resolvers/) which inspired this project.
 * @bradzacher for tips on how to handle TypeScript ASTs.
 * [ts2graphql](https://github.com/cevek/ts2graphql) which appears to take a similar approach to this project, except that it focuses on extracting from abstract TS types not class declarations.
+* [typegraphql-reflection-poc](https://github.com/MichalLytek/typegraphql-reflection-poc) is an even more similar project, which uses decorators instead of comments.
 * Everyone who worked on Meta's Hack GraphQL server, the developer experince of which inspired this project.

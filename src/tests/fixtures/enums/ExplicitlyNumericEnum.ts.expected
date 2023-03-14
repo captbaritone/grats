@@ -1,0 +1,21 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLEnum */
+enum Enum {
+  VALID = 1,
+  INVALID = 2,
+}
+
+-----------------
+OUTPUT
+-----------------
+Error: Expected `@GQLEnum` enum members to have string literal initializers. For example: `FOO = 'foo'`.
+
+If you think <library name> should be able to infer this type, please report an issue at <issue URL>.:
+ --> src/tests/fixtures/enums/ExplicitlyNumericEnum.ts:3:3
+
+  | enum Enum {
+3 |   VALID = 1,
+  |   ^^^^^^^^^ 
+  |   INVALID = 2,

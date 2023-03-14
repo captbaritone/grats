@@ -10,11 +10,12 @@ enum Enum {
 -----------------
 OUTPUT
 -----------------
-Error: `@GQLEnum` is not yet implemented.
+Error: Expected `@GQLEnum` enum members to have string literal initializers. For example: `FOO = 'foo'`.
 
 If you think <library name> should be able to infer this type, please report an issue at <issue URL>.:
- --> src/tests/fixtures/todo/Enum.ts:1:5
+ --> src/tests/fixtures/enums/ImplicitlyNumericEnum.ts:3:3
 
-1 | /** @GQLEnum */
-  |     ^^^^^^^^^ 
   | enum Enum {
+3 |   VALID,
+  |   ^^^^^ 
+  |   INVALID,

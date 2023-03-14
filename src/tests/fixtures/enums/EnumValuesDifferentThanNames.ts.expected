@@ -1,0 +1,18 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLEnum */
+enum Enum {
+  ABC = "VALID",
+  DEF = "INVALID",
+}
+
+-----------------
+OUTPUT
+-----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
+enum Enum {
+  VALID
+  INVALID
+}

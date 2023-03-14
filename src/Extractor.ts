@@ -16,6 +16,7 @@ import {
   ConstValueNode,
   ConstDirectiveNode,
   ConstArgumentNode,
+  EnumValueDefinitionNode,
 } from "graphql";
 import { Position } from "./utils/Location";
 import DiagnosticError, { AnnotatedLocation } from "./utils/DiagnosticError";
@@ -69,7 +70,7 @@ export class Extractor {
             this.extractInterface(node, tag);
             break;
           case "GQLEnum":
-            this.reportUnhandled(tag, "`@GQLEnum` is not yet implemented.");
+            this.extractEnum(node, tag);
             break;
           case "GQLUnion":
             this.reportUnhandled(tag, "`@GQLUnion` is not yet implemented.");
@@ -107,6 +108,14 @@ export class Extractor {
         tag,
         "`@GQLInterface` can only be used on interface declarations.",
       );
+    }
+  }
+
+  extractEnum(node: ts.Node, tag: ts.JSDocTag) {
+    if (ts.isEnumDeclaration(node)) {
+      this.enumDeclaration(node);
+    } else {
+      this.report(tag, "`@GQLEnum` can only be used on enum declarations.");
     }
   }
 
@@ -415,6 +424,55 @@ export class Extractor {
     };
   }
 
+  enumDeclaration(node: ts.EnumDeclaration): void {
+    const tag = this.findTag(node, "GQLEnum");
+    if (tag == null) return;
+
+    const name = this.entityName(node, tag);
+    if (name == null || name.value == null) {
+      return;
+    }
+    const description = this.collectDescription(node.name);
+
+    const values = this.collectEnumValues(node);
+
+    this.ctx.recordTypeName(node.name, name.value);
+
+    this.definitions.push({
+      kind: Kind.ENUM_TYPE_DEFINITION,
+      loc: this.loc(node),
+      description: description || undefined,
+      name,
+      values,
+    });
+  }
+
+  collectEnumValues(
+    node: ts.EnumDeclaration,
+  ): ReadonlyArray<EnumValueDefinitionNode> {
+    const values: EnumValueDefinitionNode[] = [];
+
+    for (const member of node.members) {
+      if (
+        member.initializer == null ||
+        !ts.isStringLiteral(member.initializer)
+      ) {
+        this.reportUnhandled(
+          member,
+          "Expected `@GQLEnum` enum members to have string literal initializers. For example: `FOO = 'foo'`.",
+        );
+        continue;
+      }
+      values.push({
+        kind: Kind.ENUM_VALUE_DEFINITION,
+        loc: this.loc(member),
+        name: this.gqlName(member.initializer, member.initializer.text),
+      });
+    }
+
+    return values;
+  }
+
   entityName(
     node:
       | ts.ClassDeclaration
@@ -422,6 +480,7 @@ export class Extractor {
       | ts.PropertyDeclaration
       | ts.InterfaceDeclaration
       | ts.PropertySignature
+      | ts.EnumDeclaration
       | ts.TypeAliasDeclaration,
     tag: ts.JSDocTag,
   ) {
