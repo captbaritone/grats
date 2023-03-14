@@ -8,7 +8,7 @@ type MyUrl = string;
 OUTPUT
 -----------------
 Error: Type "String" already exists in the schema. It cannot also be defined in this type definition.:
- --> src/tests/fixtures/custom_scalar/RedefineBuiltinScalar.invalid.ts:1:5
+ --> src/tests/fixtures/custom_scalars/RedefineBuiltinScalar.invalid.ts:1:5
 
 1 | /** @GQLScalar String */
   |     ^ 
