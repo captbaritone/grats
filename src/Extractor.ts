@@ -45,6 +45,10 @@ export class Extractor {
     this.ctx = ctx;
   }
 
+  // Traverse all nodes, checking each one for its JSDoc tags.
+  // If we find a tag we recognize, we extract the relevant information,
+  // reporting an error if it is attached to a node where that tag is not
+  // supported.
   extract(): DefinitionNode[] {
     ts.forEachChild(this.sourceFile, (node) => {
       for (const tag of ts.getJSDocTags(node)) {
@@ -253,8 +257,11 @@ export class Extractor {
 
     this.ctx.recordTypeName(node.name, name.value);
 
-    // While GraphQL supports interfaces taht extend other interfaces,
+    // While GraphQL supports interfaces that extend other interfaces,
     // TypeScript does not. So we can't support that here either.
+
+    // In the future we could support classes that act as interfaces through
+    // inheritance.
 
     this.definitions.push({
       kind: Kind.INTERFACE_TYPE_DEFINITION,
