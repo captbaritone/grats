@@ -8,7 +8,7 @@ function Foo() {}
 OUTPUT
 -----------------
 Error: `@GQLInterface` can only be used on interface declarations.:
- --> src/tests/fixtures/interface/TagAttachedToWrongNode.ts:1:5
+ --> src/tests/fixtures/interfaces/TagAttachedToWrongNode.ts:1:5
 
 1 | /** @GQLInterface Person */
   |     ^^^^^^^^^^^^^^^^^^^^^ 
