@@ -392,7 +392,7 @@ export class Extractor {
       this.report(node.name, "Expected GraphQL field argument to have a type.");
       return null;
     }
-    const type = this.collectInputType(node.type);
+    const type = this.collectType(node.type);
     if (type == null) return null;
     const description = this.collectDescription(node.name);
 
@@ -408,8 +408,7 @@ export class Extractor {
       loc: this.loc(node),
       description: description || undefined,
       name: this.gqlName(node.name, node.name.text),
-      // FIXME: Correctly detect nullable types
-      type: this.gqlNonNullType(node.type, type),
+      type,
       defaultValue: defaultValue || undefined,
       directives: [],
     };
@@ -535,7 +534,7 @@ export class Extractor {
       description: description || undefined,
       name,
       arguments: args || undefined,
-      type,
+      type: this.handleErrorBubbling(type),
       directives: directives || undefined,
     };
   }
@@ -603,49 +602,34 @@ export class Extractor {
       description: description || undefined,
       name,
       arguments: undefined,
-      type,
+      type: this.handleErrorBubbling(type),
       directives: directives || undefined,
     };
   }
 
-  collectInputType(node: ts.TypeNode): NamedTypeNode | ListTypeNode | null {
-    if (ts.isTypeReferenceNode(node)) {
-      // FIXME: Validate type reference
-      return this.gqlNamedType(node, node.typeName.getText());
-    } else if (ts.isArrayTypeNode(node)) {
-      const element = this.collectInputType(node.elementType);
-      if (element == null) return null;
-      return this.gqlListType(node, element);
-    } else if (node.kind === ts.SyntaxKind.StringKeyword) {
-      return this.gqlNamedType(node, "String");
-    } else if (ts.isUnionTypeNode(node)) {
-      const types = node.types.filter((type) => !this.isNullish(type));
-      if (types.length !== 1) {
-        this.report(node, `Expected exactly one non-nullish type.`);
-        return null;
-      }
-      return this.collectInputType(types[0]);
-    }
-    this.reportUnhandled(node, `Unknown GraphQL type.`);
-    return null;
-  }
-
   collectType(node: ts.TypeNode): TypeNode | null {
     if (ts.isTypeReferenceNode(node)) {
-      return this.typeReference(node);
+      const type = this.typeReference(node);
+      if (type == null) return null;
+      return this.gqlNonNullType(node, type);
     } else if (ts.isArrayTypeNode(node)) {
       const element = this.collectType(node.elementType);
       if (element == null) return null;
-      return this.gqlListType(node, element);
+      return this.gqlNonNullType(node, this.gqlListType(node, element));
     } else if (ts.isUnionTypeNode(node)) {
       const types = node.types.filter((type) => !this.isNullish(type));
       if (types.length !== 1) {
         this.report(node, `Expected exactly one non-nullish type.`);
         return null;
       }
-      return this.collectType(types[0]);
+      const type = this.collectType(types[0]);
+      if (type == null) return null;
+      if (node.types.length > 1) {
+        return this.gqlNullableType(type);
+      }
+      return this.gqlNonNullType(node, type);
     } else if (node.kind === ts.SyntaxKind.StringKeyword) {
-      return this.gqlNamedType(node, "String");
+      return this.gqlNonNullType(node, this.gqlNamedType(node, "String"));
     } else if (node.kind === ts.SyntaxKind.NumberKeyword) {
       this.report(
         node,
@@ -678,7 +662,7 @@ export class Extractor {
         }
         const element = this.collectType(node.typeArguments[0]);
         if (element == null) return null;
-        return this.gqlListType(node, element);
+        return this.gqlNonNullType(node, this.gqlListType(node, element));
       default:
         // We may not have encountered the definition of this type yet. So, we
         // mark it as unresolved and return a placeholder type.
@@ -686,7 +670,7 @@ export class Extractor {
         // A later pass will resolve the type.
         const namedType = this.gqlNamedType(node, UNRESOLVED_REFERENCE_NAME);
         this.ctx.markUnresolvedType(node.typeName, namedType);
-        return namedType;
+        return this.gqlNonNullType(node, namedType);
     }
   }
 
@@ -723,6 +707,14 @@ export class Extractor {
     );
   }
 
+  // It is a GraphQL best practice to model all fields as nullable. This allows
+  // the server to handle field level exections by simply returning null for
+  // that field. However, I suspect not everybody wants this behavior, so...
+  // TODO: Make this configurable.
+  handleErrorBubbling(type: TypeNode) {
+    return this.gqlNullableType(type);
+  }
+
   /** GraphQL AST node helper methods */
 
   gqlName(node: ts.Node, value: string): NameNode {
@@ -735,11 +727,18 @@ export class Extractor {
       name: this.gqlName(node, value),
     };
   }
-  gqlNonNullType(
-    node: ts.Node,
-    type: NamedTypeNode | ListTypeNode,
-  ): NonNullTypeNode {
+  gqlNonNullType(node: ts.Node, type: TypeNode): NonNullTypeNode {
+    if (type.kind === Kind.NON_NULL_TYPE) {
+      return type;
+    }
     return { kind: Kind.NON_NULL_TYPE, loc: this.loc(node), type };
+  }
+  gqlNullableType(type: TypeNode): NamedTypeNode | ListTypeNode {
+    let inner = type;
+    while (inner.kind === Kind.NON_NULL_TYPE) {
+      inner = inner.type;
+    }
+    return inner;
   }
   gqlListType(node: ts.Node, type: TypeNode): ListTypeNode {
     return { kind: Kind.LIST_TYPE, loc: this.loc(node), type };

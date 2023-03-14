@@ -123,6 +123,8 @@ myField(): string {
 }
 ```
 
+**Note**: TypeScript First GraphQL makes all fields nullable by default in keeping with [GraphQL best practices](https://graphql.org/learn/best-practices/#nullability). In the future, we should make this configurable.
+
 If you wish to define arguments for a field, define your argument types inline:
 
 ```ts
