@@ -25,7 +25,7 @@ const testDirs = [
   {
     fixturesDir,
     transformer: async (code: string, fileName: string) => {
-      const glob = `${fixturesDir}/${fileName}`;
+      const glob = `{${fixturesDir}/${fileName},src/Types.ts}`;
       try {
         const schema = await buildSchema(glob);
         return printSchema(schema);

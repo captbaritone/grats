@@ -47,15 +47,63 @@ export class Extractor {
 
   extract(): DefinitionNode[] {
     ts.forEachChild(this.sourceFile, (node) => {
-      if (ts.isClassDeclaration(node)) {
-        this.classDeclaration(node);
-      } else if (ts.isInterfaceDeclaration(node)) {
-        this.interfaceDeclaration(node);
-      } else if (ts.isTypeAliasDeclaration(node)) {
-        this.typeAliasDeclaration(node);
+      for (const tag of ts.getJSDocTags(node)) {
+        switch (tag.tagName.text) {
+          case "GQLType":
+            this.extractType(node, tag);
+            break;
+          case "GQLScalar":
+            this.extractScalar(node, tag);
+            break;
+          case "GQLField":
+            // Right now this happens via deep traversal
+            // TODO: Handle GQLField as part of this top level traversal
+            // by keeping track of the current type we're in and appending fields
+            // as we go.
+            break;
+          case "GQLInterface":
+            this.extractInterface(node, tag);
+            break;
+          case "GQLEnum":
+            this.reportUnhandled(tag, "GQLEnum is not yet implemented.");
+            break;
+          case "GQLUnion":
+            this.reportUnhandled(tag, "GQLUnion is not yet implemented.");
+            break;
+        }
       }
     });
     return this.definitions;
+  }
+
+  extractType(node: ts.Node, tag: ts.JSDocTag) {
+    if (ts.isClassDeclaration(node)) {
+      this.classDeclaration(node);
+    } else {
+      this.report(tag, `@GQLType can only be used on class declarations.`);
+    }
+  }
+
+  extractScalar(node: ts.Node, tag: ts.JSDocTag) {
+    if (ts.isTypeAliasDeclaration(node)) {
+      this.typeAliasDeclaration(node);
+    } else {
+      this.report(
+        tag,
+        `@GQLScalar can only be used on type alias declarations.`,
+      );
+    }
+  }
+
+  extractInterface(node: ts.Node, tag: ts.JSDocTag) {
+    if (ts.isInterfaceDeclaration(node)) {
+      this.interfaceDeclaration(node);
+    } else {
+      this.report(
+        tag,
+        `@GQLInterface can only be used on interface declarations.`,
+      );
+    }
   }
 
   /** Error handling and location juggling */

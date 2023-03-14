@@ -44,15 +44,15 @@ export class TypeContext {
 
   markUnresolvedType(node: ts.Node, namedType: NamedTypeNode) {
     let symbol = this.checker.getSymbolAtLocation(node);
-    // Follow any aliases to get the real type declaration.
-    if (symbol && symbol.flags & ts.SymbolFlags.Alias) {
-      symbol = this.checker.getAliasedSymbol(symbol);
-    }
-    // TODO: TS Says this can never be null, but I worry it can.
     if (symbol == null) {
       throw new Error(
         "Could not resolve type reference. You probably have a TypeScript error.",
       );
+    }
+
+    if (symbol.flags & ts.SymbolFlags.Alias) {
+      // Follow any aliases to get the real type declaration.
+      symbol = this.checker.getAliasedSymbol(symbol);
     }
 
     this._unresolvedTypes.set(namedType, symbol);

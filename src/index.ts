@@ -16,6 +16,8 @@ import { TypeContext } from "./TypeContext";
 import { validateSDL } from "graphql/validation/validate";
 import { mapSchema, getDirective, MapperKind } from "@graphql-tools/utils";
 
+export * from "./Types";
+
 const DIRECTIVES = `
   directive @renameField(name: String!) on FIELD_DEFINITION
 `;

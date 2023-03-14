@@ -1,0 +1,15 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+function MyFunc() {}
+
+-----------------
+OUTPUT
+-----------------
+Error: @GQLType can only be used on class declarations.:
+ --> src/tests/fixtures/type_definitions/TagAttachedToWrongNode.ts:1:5
+
+1 | /** @GQLType */
+  |     ^^^^^^^^^ 
+  | function MyFunc() {}

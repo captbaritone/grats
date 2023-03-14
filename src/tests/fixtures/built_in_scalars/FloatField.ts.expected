@@ -1,0 +1,21 @@
+-----------------
+INPUT
+----------------- 
+import { Float } from "../../../Types";
+
+/** @GQLType */
+export default class Query {
+  /** @GQLField */
+  ratio(): Float {
+    return 10;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
+type Query {
+  ratio: Float
+}
