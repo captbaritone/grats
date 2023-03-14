@@ -83,7 +83,7 @@ export class Extractor {
 
   extractType(node: ts.Node, tag: ts.JSDocTag) {
     if (ts.isClassDeclaration(node)) {
-      this.classDeclaration(node);
+      this.classDeclaration(node, tag);
     } else {
       this.report(tag, "`@GQLType` can only be used on class declarations.");
     }
@@ -91,7 +91,7 @@ export class Extractor {
 
   extractScalar(node: ts.Node, tag: ts.JSDocTag) {
     if (ts.isTypeAliasDeclaration(node)) {
-      this.typeAliasDeclaration(node);
+      this.typeAliasDeclaration(node, tag);
     } else {
       this.report(
         tag,
@@ -102,7 +102,7 @@ export class Extractor {
 
   extractInterface(node: ts.Node, tag: ts.JSDocTag) {
     if (ts.isInterfaceDeclaration(node)) {
-      this.interfaceDeclaration(node);
+      this.interfaceDeclaration(node, tag);
     } else {
       this.report(
         tag,
@@ -113,7 +113,7 @@ export class Extractor {
 
   extractEnum(node: ts.Node, tag: ts.JSDocTag) {
     if (ts.isEnumDeclaration(node)) {
-      this.enumDeclaration(node);
+      this.enumDeclaration(node, tag);
     } else {
       this.report(tag, "`@GQLEnum` can only be used on enum declarations.");
     }
@@ -170,10 +170,7 @@ export class Extractor {
 
   /** TypeScript traversals */
 
-  typeAliasDeclaration(node: ts.TypeAliasDeclaration) {
-    const tag = this.findTag(node, "GQLScalar");
-    if (tag == null) return;
-
+  typeAliasDeclaration(node: ts.TypeAliasDeclaration, tag: ts.JSDocTag) {
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
@@ -188,10 +185,7 @@ export class Extractor {
     });
   }
 
-  classDeclaration(node: ts.ClassDeclaration) {
-    const tag = this.findTag(node, "GQLType");
-    if (tag == null) return;
-
+  classDeclaration(node: ts.ClassDeclaration, tag: ts.JSDocTag) {
     if (node.name == null) {
       this.report(
         node,
@@ -252,10 +246,7 @@ export class Extractor {
     return interfaces;
   }
 
-  interfaceDeclaration(node: ts.InterfaceDeclaration) {
-    const tag = this.findTag(node, "GQLInterface");
-    if (tag == null) return;
-
+  interfaceDeclaration(node: ts.InterfaceDeclaration, tag: ts.JSDocTag) {
     const name = this.entityName(node, tag);
     if (name == null || name.value == null) {
       return;
@@ -424,10 +415,7 @@ export class Extractor {
     };
   }
 
-  enumDeclaration(node: ts.EnumDeclaration): void {
-    const tag = this.findTag(node, "GQLEnum");
-    if (tag == null) return;
-
+  enumDeclaration(node: ts.EnumDeclaration, tag: ts.JSDocTag): void {
     const name = this.entityName(node, tag);
     if (name == null || name.value == null) {
       return;
@@ -621,8 +609,6 @@ export class Extractor {
   }
 
   collectInputType(node: ts.TypeNode): NamedTypeNode | ListTypeNode | null {
-    if (ts.isOptionalTypeNode(node)) {
-    }
     if (ts.isTypeReferenceNode(node)) {
       // FIXME: Validate type reference
       return this.gqlNamedType(node, node.typeName.getText());
