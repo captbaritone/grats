@@ -106,7 +106,7 @@ export class Extractor {
 
   extractType(node: ts.Node, tag: ts.JSDocTag) {
     if (ts.isClassDeclaration(node)) {
-      this.classDeclaration(node, tag);
+      this.typeClassDeclaration(node, tag);
     } else {
       this.report(
         tag,
@@ -128,7 +128,7 @@ export class Extractor {
 
   extractInterface(node: ts.Node, tag: ts.JSDocTag) {
     if (ts.isInterfaceDeclaration(node)) {
-      this.interfaceDeclaration(node, tag);
+      this.interfaceInterfaceDeclaration(node, tag);
     } else {
       this.report(
         tag,
@@ -139,7 +139,7 @@ export class Extractor {
 
   extractEnum(node: ts.Node, tag: ts.JSDocTag) {
     if (ts.isEnumDeclaration(node)) {
-      this.enumDeclaration(node, tag);
+      this.enumEnumDeclaration(node, tag);
     } else if (ts.isTypeAliasDeclaration(node)) {
       this.enumTypeAliasDeclaration(node, tag);
     } else {
@@ -303,7 +303,7 @@ export class Extractor {
     };
   }
 
-  classDeclaration(node: ts.ClassDeclaration, tag: ts.JSDocTag) {
+  typeClassDeclaration(node: ts.ClassDeclaration, tag: ts.JSDocTag) {
     if (node.name == null) {
       this.report(
         node,
@@ -364,7 +364,10 @@ export class Extractor {
     return interfaces;
   }
 
-  interfaceDeclaration(node: ts.InterfaceDeclaration, tag: ts.JSDocTag) {
+  interfaceInterfaceDeclaration(
+    node: ts.InterfaceDeclaration,
+    tag: ts.JSDocTag,
+  ) {
     const name = this.entityName(node, tag);
     if (name == null || name.value == null) {
       return;
@@ -532,7 +535,7 @@ export class Extractor {
     };
   }
 
-  enumDeclaration(node: ts.EnumDeclaration, tag: ts.JSDocTag): void {
+  enumEnumDeclaration(node: ts.EnumDeclaration, tag: ts.JSDocTag): void {
     const name = this.entityName(node, tag);
     if (name == null || name.value == null) {
       return;
