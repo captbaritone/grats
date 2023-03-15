@@ -140,6 +140,8 @@ export class Extractor {
   extractEnum(node: ts.Node, tag: ts.JSDocTag) {
     if (ts.isEnumDeclaration(node)) {
       this.enumDeclaration(node, tag);
+    } else if (ts.isTypeAliasDeclaration(node)) {
+      this.enumTypeAliasDeclaration(node, tag);
     } else {
       this.report(
         tag,
@@ -538,6 +540,54 @@ export class Extractor {
     const description = this.collectDescription(node.name);
 
     const values = this.collectEnumValues(node);
+
+    this.ctx.recordTypeName(node.name, name.value);
+
+    this.definitions.push({
+      kind: Kind.ENUM_TYPE_DEFINITION,
+      loc: this.loc(node),
+      description: description || undefined,
+      name,
+      values,
+    });
+  }
+
+  enumTypeAliasDeclaration(
+    node: ts.TypeAliasDeclaration,
+    tag: ts.JSDocTag,
+  ): void {
+    const name = this.entityName(node, tag);
+    if (name == null || name.value == null) {
+      return;
+    }
+    if (!ts.isUnionTypeNode(node.type)) {
+      this.reportUnhandled(
+        node.type,
+        `Expected \`@${ENUM_TAG}\` to be a union type.`,
+      );
+      return;
+    }
+
+    const description = this.collectDescription(node.name);
+
+    const values: EnumValueDefinitionNode[] = [];
+    for (const member of node.type.types) {
+      if (
+        !ts.isLiteralTypeNode(member) ||
+        !ts.isStringLiteral(member.literal)
+      ) {
+        this.reportUnhandled(
+          member,
+          `Expected \`@${ENUM_TAG}\` enum members to be string literal types. For example: \`'foo'\`.`,
+        );
+        continue;
+      }
+      values.push({
+        kind: Kind.ENUM_VALUE_DEFINITION,
+        name: this.gqlName(member.literal, member.literal.text),
+        loc: this.loc(member),
+      });
+    }
 
     this.ctx.recordTypeName(node.name, name.value);
 

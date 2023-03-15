@@ -159,6 +159,7 @@ type MyCustomString = string;
 GraphQL enums can be defined by placing a `@GQLEnum` docblock directly before a:
 
 * TypeScript enum declaration
+* Type alias of a union of string literals
 
 ```ts
 /** @GQLEnum */
@@ -166,6 +167,11 @@ enum MyEnum {
   OK = "OK"
   ERROR = "ERROR"
 }
+```
+
+```ts
+/** @GQLEnum */
+type MyEnum = "OK" | "ERROR";
 ```
 
 Note that the values of the enum are used as the GraphQL enum values, and must be string literals.
