@@ -34,5 +34,5 @@ type Query {
 
 type User {
   name: String
-  friends: [User]
+  friends: [User!]
 }

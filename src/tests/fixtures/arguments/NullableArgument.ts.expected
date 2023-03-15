@@ -35,9 +35,9 @@ OUTPUT
 directive @renameField(name: String!) on FIELD_DEFINITION
 
 type Query {
-  hello1(greeting: String!): String
+  hello1(greeting: String): String
   hello2(greeting: String!): String
-  hello3(greeting: String!): String
-  hello4(greeting: String!): String
-  hello5(greeting: String!): String
+  hello3(greeting: String): String
+  hello4(greeting: String): String
+  hello5(greeting: String): String
 }
