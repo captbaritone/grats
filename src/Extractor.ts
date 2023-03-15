@@ -35,11 +35,15 @@ type ArgDefaults = Map<string, ts.Expression>;
  * Note that we extract a GraphQL AST with the AST nodes' location information
  * populated with references to the TypeScript code from which the types were
  * derived.
+ *
+ * This ensures that we can apply GraphQL schema validation rules, and any reported
+ * errors will point to the correct location in the TypeScript source code.
  */
 export class Extractor {
   definitions: DefinitionNode[] = [];
   sourceFile: ts.SourceFile;
   ctx: TypeContext;
+  errors: DiagnosticError[] = [];
 
   constructor(sourceFile: ts.SourceFile, ctx: TypeContext) {
     this.sourceFile = sourceFile;
@@ -78,6 +82,10 @@ export class Extractor {
         }
       }
     });
+    if (this.errors.length > 0) {
+      // TODO: Ideally we could report all errors
+      throw this.errors[0];
+    }
     return this.definitions;
   }
 
@@ -122,18 +130,20 @@ export class Extractor {
   /** Error handling and location juggling */
 
   report(node: ts.Node, message: string) {
-    // TODO: Ideally we could collect all errors and report them all at once
-    throw new DiagnosticError(message, this.diagnosticAnnotatedLocation(node));
+    this.errors.push(
+      new DiagnosticError(message, this.diagnosticAnnotatedLocation(node)),
+    );
   }
 
   // Report an error that we don't know how to infer a type, but it's possible that we should.
   // Gives the user a path forward if they think we should be able to infer this type.
   reportUnhandled(node: ts.Node, message: string) {
     const suggestion = `If you think ${LIBRARY_NAME} should be able to infer this type, please report an issue at ${ISSUE_URL}.`;
-    // TODO: Ideally we could collect all errors and report them all at once
-    throw new DiagnosticError(
-      `${message}\n\n${suggestion}`,
-      this.diagnosticAnnotatedLocation(node),
+    this.errors.push(
+      new DiagnosticError(
+        `${message}\n\n${suggestion}`,
+        this.diagnosticAnnotatedLocation(node),
+      ),
     );
   }
 
@@ -652,7 +662,9 @@ export class Extractor {
           this.report(node, `Expected type reference to have type arguments.`);
           return null;
         }
-        return this.collectType(node.typeArguments[0]);
+        const type = this.collectType(node.typeArguments[0]);
+        if (type == null) return null;
+        return this.gqlNonNullType(node, type);
       case "Array":
       case "Iterator":
       case "ReadonlyArray":
