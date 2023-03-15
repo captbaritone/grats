@@ -27,6 +27,13 @@ const LIBRARY_IMPORT_NAME = "<library import name>";
 const LIBRARY_NAME = "<library name>";
 const ISSUE_URL = "<issue URL>";
 
+const TYPE_TAG = "GQLType";
+const FIELD_TAG = "GQLField";
+const SCALAR_TAG = "GQLScalar";
+const INTERFACE_TAG = "GQLInterface";
+const ENUM_TAG = "GQLEnum";
+const UNION_TAG = "GQLUnion";
+
 type ArgDefaults = Map<string, ts.Expression>;
 
 /**
@@ -58,26 +65,29 @@ export class Extractor {
     ts.forEachChild(this.sourceFile, (node) => {
       for (const tag of ts.getJSDocTags(node)) {
         switch (tag.tagName.text) {
-          case "GQLType":
+          case TYPE_TAG:
             this.extractType(node, tag);
             break;
-          case "GQLScalar":
+          case SCALAR_TAG:
             this.extractScalar(node, tag);
             break;
-          case "GQLField":
+          case FIELD_TAG:
             // Right now this happens via deep traversal
             // TODO: Handle GQLField as part of this top level traversal
             // by keeping track of the current type we're in and appending fields
             // as we go.
             break;
-          case "GQLInterface":
+          case INTERFACE_TAG:
             this.extractInterface(node, tag);
             break;
-          case "GQLEnum":
+          case ENUM_TAG:
             this.extractEnum(node, tag);
             break;
-          case "GQLUnion":
-            this.reportUnhandled(tag, "`@GQLUnion` is not yet implemented.");
+          case UNION_TAG:
+            this.reportUnhandled(
+              tag,
+              `\`@${UNION_TAG}\` is not yet implemented.`,
+            );
             break;
         }
       }
@@ -93,7 +103,10 @@ export class Extractor {
     if (ts.isClassDeclaration(node)) {
       this.classDeclaration(node, tag);
     } else {
-      this.report(tag, "`@GQLType` can only be used on class declarations.");
+      this.report(
+        tag,
+        `\`@${TYPE_TAG}\` can only be used on class declarations.`,
+      );
     }
   }
 
@@ -103,7 +116,7 @@ export class Extractor {
     } else {
       this.report(
         tag,
-        "`@GQLScalar` can only be used on type alias declarations.",
+        `\`@${SCALAR_TAG}\` can only be used on type alias declarations.`,
       );
     }
   }
@@ -114,7 +127,7 @@ export class Extractor {
     } else {
       this.report(
         tag,
-        "`@GQLInterface` can only be used on interface declarations.",
+        `\`@${INTERFACE_TAG}\` can only be used on interface declarations.`,
       );
     }
   }
@@ -123,7 +136,10 @@ export class Extractor {
     if (ts.isEnumDeclaration(node)) {
       this.enumDeclaration(node, tag);
     } else {
-      this.report(tag, "`@GQLEnum` can only be used on enum declarations.");
+      this.report(
+        tag,
+        `\`@${ENUM_TAG}\` can only be used on enum declarations.`,
+      );
     }
   }
 
@@ -199,7 +215,7 @@ export class Extractor {
     if (node.name == null) {
       this.report(
         node,
-        `Unexpected \`@GQLType\` annotation on unnamed class declaration.`,
+        `Unexpected \`@${TYPE_TAG}\` annotation on unnamed class declaration.`,
       );
       return null;
     }
@@ -456,7 +472,7 @@ export class Extractor {
       ) {
         this.reportUnhandled(
           member,
-          "Expected `@GQLEnum` enum members to have string literal initializers. For example: `FOO = 'foo'`.",
+          `Expected \`@${ENUM_TAG}\` enum members to have string literal initializers. For example: \`FOO = 'foo'\`.`,
         );
         continue;
       }
@@ -499,7 +515,7 @@ export class Extractor {
   }
 
   methodDeclaration(node: ts.MethodDeclaration): FieldDefinitionNode | null {
-    const tag = this.findTag(node, "GQLField");
+    const tag = this.findTag(node, FIELD_TAG);
     if (tag == null) return null;
 
     const name = this.entityName(node, tag);
@@ -569,7 +585,7 @@ export class Extractor {
   property(
     node: ts.PropertyDeclaration | ts.PropertySignature,
   ): FieldDefinitionNode | null {
-    const tag = this.findTag(node, "GQLField");
+    const tag = this.findTag(node, FIELD_TAG);
     if (tag == null) return null;
 
     const name = this.entityName(node, tag);
