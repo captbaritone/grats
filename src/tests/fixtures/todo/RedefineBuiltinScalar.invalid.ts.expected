@@ -1,0 +1,10 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLScalar String */
+type MyUrl = string;
+
+-----------------
+OUTPUT
+-----------------
+directive @renameField(name: String!) on FIELD_DEFINITION

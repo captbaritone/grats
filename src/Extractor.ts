@@ -33,6 +33,7 @@ const SCALAR_TAG = "GQLScalar";
 const INTERFACE_TAG = "GQLInterface";
 const ENUM_TAG = "GQLEnum";
 const UNION_TAG = "GQLUnion";
+const INPUT_TAG = "GQLInput";
 
 type ArgDefaults = Map<string, ts.Expression>;
 
@@ -83,6 +84,10 @@ export class Extractor {
           case ENUM_TAG:
             this.extractEnum(node, tag);
             break;
+          case INPUT_TAG:
+            this.extractInput(node, tag);
+            break;
+
           case UNION_TAG:
             this.reportUnhandled(
               tag,
@@ -112,7 +117,7 @@ export class Extractor {
 
   extractScalar(node: ts.Node, tag: ts.JSDocTag) {
     if (ts.isTypeAliasDeclaration(node)) {
-      this.typeAliasDeclaration(node, tag);
+      this.scalarTypeAliasDeclaration(node, tag);
     } else {
       this.report(
         tag,
@@ -139,6 +144,17 @@ export class Extractor {
       this.report(
         tag,
         `\`@${ENUM_TAG}\` can only be used on enum declarations.`,
+      );
+    }
+  }
+
+  extractInput(node: ts.Node, tag: ts.JSDocTag) {
+    if (ts.isTypeAliasDeclaration(node)) {
+      this.inputTypeAliasDeclaration(node, tag);
+    } else {
+      this.report(
+        tag,
+        `\`@${INPUT_TAG}\` can only be used on type alias declarations.`,
       );
     }
   }
@@ -196,7 +212,7 @@ export class Extractor {
 
   /** TypeScript traversals */
 
-  typeAliasDeclaration(node: ts.TypeAliasDeclaration, tag: ts.JSDocTag) {
+  scalarTypeAliasDeclaration(node: ts.TypeAliasDeclaration, tag: ts.JSDocTag) {
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
@@ -209,6 +225,80 @@ export class Extractor {
       description: description ?? undefined,
       name,
     });
+  }
+
+  inputTypeAliasDeclaration(node: ts.TypeAliasDeclaration, tag: ts.JSDocTag) {
+    const name = this.entityName(node, tag);
+    if (name == null) return null;
+
+    const description = this.collectDescription(node.name);
+    this.ctx.recordTypeName(node.name, name.value);
+
+    const fields = this.collectInputFields(node);
+
+    this.definitions.push({
+      kind: Kind.INPUT_OBJECT_TYPE_DEFINITION,
+      loc: this.loc(node),
+      description: description ?? undefined,
+      name,
+      fields: fields ?? undefined,
+    });
+  }
+
+  collectInputFields(
+    node: ts.TypeAliasDeclaration,
+  ): Array<InputValueDefinitionNode> | null {
+    const fields: Array<InputValueDefinitionNode> = [];
+
+    if (!ts.isTypeLiteralNode(node.type)) {
+      this.reportUnhandled(
+        node,
+        `\`@${INPUT_TAG}\` can only be used on type literals.`,
+      );
+      return null;
+    }
+
+    for (const member of node.type.members) {
+      if (!ts.isPropertySignature(member)) {
+        this.reportUnhandled(
+          member,
+          `\`@${INPUT_TAG}\` types only support property signature members.`,
+        );
+        continue;
+      }
+      const field = this.collectInputField(member);
+      if (field != null) fields.push(field);
+    }
+
+    return fields.length === 0 ? null : fields;
+  }
+
+  collectInputField(
+    node: ts.PropertySignature,
+  ): InputValueDefinitionNode | null {
+    const id = this.expectIdentifier(node.name);
+    if (id == null) return null;
+
+    if (node.type == null) {
+      this.report(node, "Input field must have a type annotation.");
+      return null;
+    }
+
+    const inner = this.collectType(node.type);
+    if (inner == null) return null;
+
+    const type =
+      node.questionToken == null ? inner : this.gqlNullableType(inner);
+
+    return {
+      kind: Kind.INPUT_VALUE_DEFINITION,
+      loc: this.loc(node),
+      description: undefined,
+      name: this.gqlName(id, id.text),
+      type,
+      defaultValue: undefined,
+      directives: undefined,
+    };
   }
 
   classDeclaration(node: ts.ClassDeclaration, tag: ts.JSDocTag) {
@@ -596,10 +686,12 @@ export class Extractor {
       return null;
     }
 
-    const type = this.collectType(node.type);
-
+    const inner = this.collectType(node.type);
     // We already reported an error
-    if (type == null) return null;
+    if (inner == null) return null;
+    const type =
+      node.questionToken == null ? inner : this.gqlNullableType(inner);
+
     const description = this.collectDescription(node.name);
 
     let directives: ConstDirectiveNode[] | null = null;

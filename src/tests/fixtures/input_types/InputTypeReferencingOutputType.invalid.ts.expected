@@ -1,0 +1,24 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class Query {
+  /** @GQLField */
+  someField(args: { input: MyInputType }): string;
+}
+
+/** @GQLInput */
+type MyInputType = {
+  someField: Query;
+};
+
+-----------------
+OUTPUT
+-----------------
+Error: The type of MyInputType.someField must be Input Type but got: Query!.:
+ --> src/tests/fixtures/input_types/InputTypeReferencingOutputType.invalid.ts:9:14
+
+  | type MyInputType = {
+9 |   someField: Query;
+  |              ^ 
+  | };

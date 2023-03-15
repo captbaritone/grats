@@ -7,6 +7,7 @@ import {
   GraphQLSchema,
   Kind,
   parse,
+  validateSchema,
 } from "graphql";
 import { glob } from "glob";
 import { graphQlErrorToDiagnostic } from "./utils/DiagnosticError";
@@ -18,27 +19,45 @@ import { mapSchema, getDirective, MapperKind } from "@graphql-tools/utils";
 
 export * from "./Types";
 
-const DIRECTIVES = `
+const DIRECTIVES_AST = parse(`
   directive @renameField(name: String!) on FIELD_DEFINITION
-`;
-
-const BASE_SCHEMA = buildASTSchema(parse(DIRECTIVES));
+`);
 
 // Construct a schema, using GraphQL schema language
 export async function buildSchema(pattern: string): Promise<GraphQLSchema> {
   const files = await glob(pattern);
 
+  const doc = buildSchemaAst(files);
+
+  // const schema = buildASTSchema(doc, { assumeValidSDL: true });
+  const schema = buildASTSchema(doc, {
+    assumeValidSDL: true,
+  });
+
+  const schemaValidationErrors = validateSchema(schema);
+  if (schemaValidationErrors.length > 0) {
+    const firstError = schemaValidationErrors[0];
+    // FIXME: Handle the error that Query is not defined
+    if (firstError.source && firstError.locations && firstError.positions) {
+      throw graphQlErrorToDiagnostic(firstError);
+    }
+  }
+  return applyServerDirectives(schema);
+}
+
+export function buildSchemaAst(files: string[]): DocumentNode {
   const doc = definitionsFromFile(files);
 
-  const validationErrors = validateSDL(doc, BASE_SCHEMA);
+  // TODO: Currently this does not detect definitions that shadow builtins
+  // (`String`, `Int`, etc). However, if we pass a second param (extending an
+  // existing schema) we do! So, we should find a way to validate that we don't
+  // shadow builtins.
+  const validationErrors = validateSDL(doc);
   if (validationErrors.length > 0) {
     // TODO: Report all errors
-    const diagnostic = graphQlErrorToDiagnostic(validationErrors[0]);
-    throw diagnostic;
+    throw graphQlErrorToDiagnostic(validationErrors[0]);
   }
-
-  const schema = extendSchema(BASE_SCHEMA, doc);
-  return applyServerDirectives(schema);
+  return doc;
 }
 
 /**
@@ -81,7 +100,7 @@ function definitionsFromFile(filePaths: string[]): DocumentNode {
   const checker = program.getTypeChecker();
   const ctx = new TypeContext(checker);
 
-  const definitions: DefinitionNode[] = [];
+  const definitions: DefinitionNode[] = Array.from(DIRECTIVES_AST.definitions);
   for (const filePath of filePaths) {
     const sourceFile = program.getSourceFile(filePath);
     if (!sourceFile) {

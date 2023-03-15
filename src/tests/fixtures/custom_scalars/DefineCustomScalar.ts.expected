@@ -1,6 +1,12 @@
 -----------------
 INPUT
 ----------------- 
+/** @GQLType */
+class Query {
+  /** @GQLField */
+  hello: string;
+}
+
 /** @GQLScalar */
 type MyUrl = string;
 
@@ -8,5 +14,9 @@ type MyUrl = string;
 OUTPUT
 -----------------
 directive @renameField(name: String!) on FIELD_DEFINITION
+
+type Query {
+  hello: String
+}
 
 scalar MyUrl

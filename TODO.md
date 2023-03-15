@@ -15,7 +15,6 @@
 - [ ] Support directives (@deprecated etc)
 - [ ] Extract descriptions
 - [ ] Ensure `__typename`?
-- [ ] Correctly handle `null` and `undefined` in arguments
 - [ ] Correctly handle optional ? arguments
 - [ ] Correctly handle ? return types
 - [ ] More literals
@@ -29,6 +28,9 @@
     - [ ] Null
 - [ ] Support for enums (TS enums), maybe some other kinds?
 - [ ] Classes as interfaces. Classes which extend this interface will implement it in GraphQL.
+- [ ] What about nested input types?
+- [ ] What about default values on input types?
+- [ ] What about renaming fields on input types?
 
 ## Beta
 - [ ] A name
@@ -39,6 +41,7 @@
 - [ ] Docs
 - [ ] Extract error messages to a separate file
 - [ ] Mutations and Query fields as functions
+- [ ] Validate that we don't shadow builtins
 
 ## Future
 - [ ] Define resolvers?

@@ -4,5 +4,7 @@ class Query {
   hello: string;
 }
 
-/** @GQLScalar CustomName */
-type MyUrl = string;
+/** @GQLInput */
+type MyInputType = {
+  someField?: string;
+};

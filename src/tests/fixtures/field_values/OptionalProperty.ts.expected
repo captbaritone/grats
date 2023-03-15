@@ -2,15 +2,9 @@
 INPUT
 ----------------- 
 /** @GQLType */
-class Query {
+export default class Query {
   /** @GQLField */
-  hello: string;
-}
-
-/** @GQLEnum */
-enum Enum {
-  ABC = "VALID",
-  DEF = "INVALID",
+  hello?: string;
 }
 
 -----------------
@@ -20,9 +14,4 @@ directive @renameField(name: String!) on FIELD_DEFINITION
 
 type Query {
   hello: String
-}
-
-enum Enum {
-  VALID
-  INVALID
 }

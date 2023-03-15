@@ -7,11 +7,10 @@ class Query {
   hello: string;
 }
 
-/** @GQLEnum */
-enum Enum {
-  ABC = "VALID",
-  DEF = "INVALID",
-}
+/** @GQLInput */
+type MyInputType = {
+  someField?: string;
+};
 
 -----------------
 OUTPUT
@@ -22,7 +21,6 @@ type Query {
   hello: String
 }
 
-enum Enum {
-  VALID
-  INVALID
+input MyInputType {
+  someField: String
 }

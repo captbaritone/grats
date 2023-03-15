@@ -170,6 +170,19 @@ enum MyEnum {
 
 Note that the values of the enum are used as the GraphQL enum values, and must be string literals.
 
+### @GQLInput <optional name of the input type, if different from type name>
+
+GraphQL input types can be defined by placing a `@GQLInput` docblock directly before a:
+
+* Type alias declaration
+
+```ts
+/** @GQLInput */
+type MyInput = {
+  name: string;
+  age: number;
+};
+```
 
 ## Example
 

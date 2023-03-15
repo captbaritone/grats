@@ -1,6 +1,12 @@
 -----------------
 INPUT
 ----------------- 
+/** @GQLType */
+class Query {
+  /** @GQLField */
+  hello: string;
+}
+
 /** @GQLEnum */
 enum Enum {
   VALID = "VALID",
@@ -11,6 +17,10 @@ enum Enum {
 OUTPUT
 -----------------
 directive @renameField(name: String!) on FIELD_DEFINITION
+
+type Query {
+  hello: String
+}
 
 enum Enum {
   VALID
