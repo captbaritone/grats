@@ -1,5 +1,4 @@
-type Int = number;
-type Float = number;
+import { Float, Int } from "../../../Types";
 
 /** @GQLType */
 export default class Query {
