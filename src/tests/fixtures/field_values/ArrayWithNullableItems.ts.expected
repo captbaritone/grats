@@ -1,0 +1,19 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+export default class Query {
+  /** @GQLField */
+  hello(): Array<string | null> {
+    return ["Hello world!", null];
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
+type Query {
+  hello: [String]
+}
