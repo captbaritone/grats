@@ -818,7 +818,7 @@ export class Extractor {
 
     const typeName = identifier.text;
     switch (typeName) {
-      case "Promise":
+      case "Promise": {
         if (node.typeArguments == null) {
           this.report(node, `Expected type reference to have type arguments.`);
           return null;
@@ -826,9 +826,10 @@ export class Extractor {
         const type = this.collectType(node.typeArguments[0]);
         if (type == null) return null;
         return this.gqlNonNullType(node, type);
+      }
       case "Array":
       case "Iterator":
-      case "ReadonlyArray":
+      case "ReadonlyArray": {
         if (node.typeArguments == null) {
           this.report(node, `Expected type reference to have type arguments.`);
           return null;
@@ -836,7 +837,8 @@ export class Extractor {
         const element = this.collectType(node.typeArguments[0]);
         if (element == null) return null;
         return this.gqlNonNullType(node, this.gqlListType(node, element));
-      default:
+      }
+      default: {
         // We may not have encountered the definition of this type yet. So, we
         // mark it as unresolved and return a placeholder type.
         //
@@ -844,6 +846,7 @@ export class Extractor {
         const namedType = this.gqlNamedType(node, UNRESOLVED_REFERENCE_NAME);
         this.ctx.markUnresolvedType(node.typeName, namedType);
         return this.gqlNonNullType(node, namedType);
+      }
     }
   }
 
