@@ -66,8 +66,11 @@ pnpm cli <glob of files to analyze>
 
 ## API Usage
 
-In order for TypeScript First GraphQL to be able to analyze your code, you need
-to annotate your code with JSDoc docblocks. 
+In order for TypeScript First GraphQL to be able to extract GraphQL schema from
+your code, simply mark which classes and methods should be included in the schema by
+marking them with special JSDoc tags such as `/** @GQLType */` or `/** @GQLField */`.
+
+Any comment text preceding the JSDoc `@` tag will be used as that element's description.
 
 **Note that JSDocs must being with
 `/**` (two asterix).** However, they may be consolidated into a single line.
@@ -80,9 +83,13 @@ GraphQL types can be defined by placing a `@GQLType` docblock directly before a:
 
 ```ts
 /**
+ * Here I can write a description of my type that will be included in the schema.
  * @GQLType <optional name of the type, if different from class name>
  */
-class MyClass {}
+class MyClass {
+  /** @GQLField */
+  someField: string;
+}
 ```
 
 ### @GQLInterface
@@ -93,9 +100,13 @@ GraphQL interfaces can be defined by placing a `@GQLInterface` docblock directly
 
 ```ts
 /**
+ * A description of my interface.
  * @GQLInterface <optional name of the type, if different from class name>
  */
-interface MyClass {}
+interface MyClass {
+  /** @GQLField */
+  someField: string;
+}
 ```
 
 All `@GQLType` types which implement the interface in TypeScript will
@@ -111,11 +122,13 @@ Within a `@GQLType` class, you can define GraphQL fields by placing a `@GQLField
 
 ```ts
 /**
+ * A description of some field.
  * @GQLField <optional name of the field, if different from property name>
  */
 someField: string;
 
 /**
+ * A description of my field.
  * @GQLField <optional name of the field, if different from method name>
  */
 myField(): string {
@@ -139,22 +152,37 @@ Default values for arguments can be defined by using the `=` operator with destr
 ```ts
 /** @GQLField */
 myField({ greeting = "Hello" }: { greeting: string }): string {
+  return `${greeting} World`;
+}
+```
+
+Arguments can be given descriptions by using the `/**` syntax:
+
+```ts
+/** @GQLField */
+myField(args: { 
+  /** A description of the greeting argument */
+  greeting: string
+}): string {
   return `${args.greeting} World`;
 }
 ```
 
-### @GQLScalar <optional name of the scalar, if different from type name>
+### @GQLScalar
 
 GraphQL custom sclars can be defined by placing a `@GQLScalar` docblock directly before a:
 
 * Type alias declaration
 
 ```ts
-/** @GQLScalar */
+/** 
+ * A description of my custom scalar.
+ * @GQLScalar <optional name of the scalar, if different from type name>
+ */
 type MyCustomString = string;
 ```
 
-### @GQLEnum <optional name of the enum, if different from type name>
+### @GQLEnum
 
 GraphQL enums can be defined by placing a `@GQLEnum` docblock directly before a:
 
@@ -162,7 +190,10 @@ GraphQL enums can be defined by placing a `@GQLEnum` docblock directly before a:
 * Type alias of a union of string literals
 
 ```ts
-/** @GQLEnum */
+/** 
+ * A description of my enum.
+ * @GQLEnum <optional name of the enum, if different from type name>
+ */
 enum MyEnum {
   OK = "OK"
   ERROR = "ERROR"
@@ -170,11 +201,16 @@ enum MyEnum {
 ```
 
 ```ts
-/** @GQLEnum */
+/** 
+ * A description of my enum.
+ * @GQLEnum <optional name of the enum, if different from type name>
+ */
 type MyEnum = "OK" | "ERROR";
 ```
 
 Note that the values of the enum are used as the GraphQL enum values, and must be string literals.
+
+**Note:** We do not yet support adding descriptions to enum values when the enum is defined using a union type.
 
 ### @GQLInput <optional name of the input type, if different from type name>
 
@@ -183,7 +219,10 @@ GraphQL input types can be defined by placing a `@GQLInput` docblock directly be
 * Type alias declaration
 
 ```ts
-/** @GQLInput */
+/** 
+ * Description of my input type
+ * @GQLInput <optional name of the input, if different from type name>
+ */
 type MyInput = {
   name: string;
   age: number;

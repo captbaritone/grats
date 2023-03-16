@@ -1,0 +1,44 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+export default class Query {
+  /** @GQLField */
+  me(): User {
+    return new User();
+  }
+}
+
+/** @GQLInterface */
+interface IPerson {
+  /**
+   * The person's name
+   * @GQLField
+   */
+  name: string;
+}
+
+/** @GQLType */
+class User implements IPerson {
+  /** @GQLField */
+  name: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
+type Query {
+  me: User
+}
+
+interface IPerson {
+  """The person's name"""
+  name: String
+}
+
+type User implements IPerson {
+  """The person's name"""
+  name: String
+}

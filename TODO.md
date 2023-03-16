@@ -49,3 +49,4 @@
 - [ ] LSP/VSCode Extension
 - [ ] Websites
 - [ ] Support positional arguments
+- [ ] Support descriptions on enums defined using union types. TS does not support docblock attachements on union types.

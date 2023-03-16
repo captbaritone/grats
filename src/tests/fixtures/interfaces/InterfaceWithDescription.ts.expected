@@ -1,0 +1,44 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+export default class Query {
+  /** @GQLField */
+  me(): User {
+    return new User();
+  }
+}
+
+/**
+ * An interface describing the common elements of all people types.
+ *
+ * @GQLInterface
+ */
+interface IPerson {
+  /** @GQLField */
+  name: string;
+}
+
+/** @GQLType */
+class User implements IPerson {
+  /** @GQLField */
+  name: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
+type Query {
+  me: User
+}
+
+"""An interface describing the common elements of all people types."""
+interface IPerson {
+  name: String
+}
+
+type User implements IPerson {
+  name: String
+}

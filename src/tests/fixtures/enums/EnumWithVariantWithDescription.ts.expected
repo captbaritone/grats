@@ -1,0 +1,33 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class Query {
+  /** @GQLField */
+  hello: string;
+}
+
+/** @GQLEnum */
+enum Enum {
+  /** Valid enum value. */
+  VALID = "VALID",
+  /** Invalid enum value. */
+  INVALID = "INVALID",
+}
+
+-----------------
+OUTPUT
+-----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
+type Query {
+  hello: String
+}
+
+enum Enum {
+  """Valid enum value."""
+  VALID
+
+  """Invalid enum value."""
+  INVALID
+}

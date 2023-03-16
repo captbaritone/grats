@@ -1,0 +1,22 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * The root of all evil.
+ *
+ * @GQLType Query
+ */
+export default class NotQuery {
+  /** @GQLField */
+  hello: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
+"""The root of all evil."""
+type Query {
+  hello: String
+}

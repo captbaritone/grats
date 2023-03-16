@@ -292,10 +292,12 @@ export class Extractor {
     const type =
       node.questionToken == null ? inner : this.gqlNullableType(inner);
 
+    const description = this.collectDescription(node.name);
+
     return {
       kind: Kind.INPUT_VALUE_DEFINITION,
       loc: this.loc(node),
-      description: undefined,
+      description: description ?? undefined,
       name: this.gqlName(id, id.text),
       type,
       defaultValue: undefined,
@@ -585,9 +587,13 @@ export class Extractor {
         );
         continue;
       }
+
+      // TODO: Support descriptions on enum members. As it stands, TypeScript
+      // does not allow comments attached to string literal types.
       values.push({
         kind: Kind.ENUM_VALUE_DEFINITION,
         name: this.gqlName(member.literal, member.literal.text),
+        description: description || undefined,
         loc: this.loc(member),
       });
     }
@@ -619,9 +625,12 @@ export class Extractor {
         );
         continue;
       }
+
+      const description = this.collectDescription(member.name);
       values.push({
         kind: Kind.ENUM_VALUE_DEFINITION,
         loc: this.loc(member),
+        description: description || undefined,
         name: this.gqlName(member.initializer, member.initializer.text),
       });
     }

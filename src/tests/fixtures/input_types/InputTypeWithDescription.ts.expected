@@ -1,0 +1,30 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class Query {
+  /** @GQLField */
+  hello: string;
+}
+
+/**
+ * Check out this great input!
+ * @GQLInput
+ */
+type MyInputType = {
+  someField: string;
+};
+
+-----------------
+OUTPUT
+-----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
+type Query {
+  hello: String
+}
+
+"""Check out this great input!"""
+input MyInputType {
+  someField: String!
+}

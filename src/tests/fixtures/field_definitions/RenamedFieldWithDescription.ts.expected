@@ -1,0 +1,34 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class Query {
+  /**
+   * Number 1 greeting.
+   *
+   * @GQLField greeting
+   */
+  somePropertyField: string;
+
+  /**
+   * Number 1 salutation.
+   *
+   * @GQLField salutaion
+   */
+  someMethodField(): string {
+    return "Hello world!";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
+type Query {
+  """Number 1 greeting."""
+  greeting: String
+
+  """Number 1 salutation."""
+  salutaion: String
+}

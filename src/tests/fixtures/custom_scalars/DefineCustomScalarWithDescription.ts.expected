@@ -1,0 +1,26 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class Query {
+  /** @GQLField */
+  hello: string;
+}
+
+/**
+ * Use this for URLs.
+ * @GQLScalar
+ */
+type MyUrl = string;
+
+-----------------
+OUTPUT
+-----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
+type Query {
+  hello: String
+}
+
+"""Use this for URLs."""
+scalar MyUrl

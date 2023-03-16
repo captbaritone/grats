@@ -1,0 +1,25 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+export default class Query {
+  /** @GQLField */
+  hello(args: {
+    /** The greeting to use. */
+    greeting: string;
+  }): string {
+    return `${args.greeting} world!`;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
+type Query {
+  hello(
+    """The greeting to use."""
+    greeting: String!
+  ): String
+}
