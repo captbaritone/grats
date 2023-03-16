@@ -3,7 +3,6 @@ import {
   defaultFieldResolver,
   DefinitionNode,
   DocumentNode,
-  extendSchema,
   GraphQLSchema,
   Kind,
   parse,
