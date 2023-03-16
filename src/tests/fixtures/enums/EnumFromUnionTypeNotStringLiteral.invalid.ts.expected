@@ -1,0 +1,24 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class Query {
+  /** @GQLField */
+  hello: MyEnum;
+}
+
+/** @GQLEnum */
+type MyEnum = "VALID" | 1;
+
+-----------------
+OUTPUT
+-----------------
+Error: Expected `@GQLEnum` enum members to be string literal types. For example: `'foo'`.
+
+If you think <library name> should be able to infer this type, please report an issue at <issue URL>.:
+ --> src/tests/fixtures/enums/EnumFromUnionTypeNotStringLiteral.invalid.ts:8:25
+
+  | /** @GQLEnum */
+8 | type MyEnum = "VALID" | 1;
+  |                         ^ 
+  | 
