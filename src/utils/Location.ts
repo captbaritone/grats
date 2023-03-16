@@ -1,5 +1,4 @@
 import { Location as GraphQLLocation } from "graphql";
-import * as ts from "typescript";
 export type Position = { offset: number; line: number; column: number };
 
 export type Location = {

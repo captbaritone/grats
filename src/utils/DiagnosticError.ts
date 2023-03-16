@@ -109,6 +109,8 @@ function _asCodeFrame(
 }
 
 // TODO: This is just a hack. Improve handling of multiple locations.
+// TODO: Turn this back on
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 export function graphQlErrorToDiagnostic(error: GraphQLError): DiagnosticError {
   const loc = error.locations![0];
   const position = error.positions![0];

@@ -16,7 +16,7 @@ export default class TestRunner {
   _testFixtures: string[] = [];
   _otherFiles: Set<string> = new Set();
   _skip: Set<string> = new Set();
-  _failureCount: number = 0;
+  _failureCount = 0;
   _transformer: Transformer;
 
   constructor(
