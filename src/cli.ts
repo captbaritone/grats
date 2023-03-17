@@ -21,7 +21,7 @@ async function main() {
     console.log(printSchema(schema));
   } catch (e) {
     if (e.loc) {
-      console.log(DiagnosticError.prototype.asCodeFrame.call(e));
+      console.error(DiagnosticError.prototype.asCodeFrame.call(e));
       process.exit(1);
     } else {
       throw e;
