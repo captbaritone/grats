@@ -41,7 +41,7 @@ class UserResolver {
 
   /** @GQLField */
   greeting(args: { salutation: string }): string {
-    return `${args.salutation}, ${this.name()}`;
+    return `${args.salutation}, ${this.name}`;
   }
 }
 ```
