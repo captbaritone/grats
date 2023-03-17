@@ -33,6 +33,7 @@
 - [ ] What about renaming fields on input types?
 
 ## Beta
+- [ ] Better error message for non GraphQL types.
 - [ ] A name
 - [ ] Handle optional/non optional
     - [ ] Configurable: Optionality is purely derived from the types
@@ -42,6 +43,8 @@
 - [ ] Extract error messages to a separate file
 - [ ] Mutations and Query fields as functions
 - [ ] Validate that we don't shadow builtins
+- [ ] Figure out how to persist schema with attached directives
+  - [ ] https://github.com/graphql/graphql-js/pull/3362
 
 ## Future
 - [ ] Define resolvers?

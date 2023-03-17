@@ -816,7 +816,14 @@ export class Extractor {
         `Unexpected number type. GraphQL supports both Int and Float, making \`number\` ambiguous. Instead, import the \`Int\` or \`Float\` type from \`${LIBRARY_IMPORT_NAME}\` and use that.`,
       );
       return null;
+    } else if (ts.isTypeLiteralNode(node)) {
+      this.report(
+        node,
+        `Unexpected type literal. You may want to define a named GraphQL type elsewhere and reference it here.`,
+      );
+      return null;
     }
+    // TODO: Better error message. This is okay if it's a type reference, but everything else is not.
     this.reportUnhandled(node, `Unknown GraphQL type.`);
     return null;
   }

@@ -1,0 +1,23 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+export default class Query {
+  /** @GQLField */
+  hello({ greeting }: { greeting: [string] }): string {
+    return "Hello world!";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+Error: Unknown GraphQL type.
+
+If you think <library name> should be able to infer this type, please report an issue at <issue URL>.:
+ --> src/tests/fixtures/arguments/TupleLiteralArgument.invalid.ts:4:35
+
+  |   /** @GQLField */
+4 |   hello({ greeting }: { greeting: [string] }): string {
+  |                                   ^^^^^^^^ 
+  |     return "Hello world!";
