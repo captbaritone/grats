@@ -17,6 +17,7 @@ import {
   ConstDirectiveNode,
   ConstArgumentNode,
   EnumValueDefinitionNode,
+  DirectiveNode,
 } from "graphql";
 import { Position } from "./utils/Location";
 import DiagnosticError, { AnnotatedLocation } from "./utils/DiagnosticError";
@@ -34,6 +35,8 @@ const INTERFACE_TAG = "GQLInterface";
 const ENUM_TAG = "GQLEnum";
 const UNION_TAG = "GQLUnion";
 const INPUT_TAG = "GQLInput";
+
+const DEPRECATED_TAG = "deprecated";
 
 type ArgDefaults = Map<string, ts.Expression>;
 
@@ -318,17 +321,15 @@ export class Extractor {
     if (name == null) return null;
 
     const description = this.collectDescription(node.name);
-
     const fields = this.collectFields(node);
-
     const interfaces = this.collectInterfaces(node);
-
     this.ctx.recordTypeName(node.name, name.value);
 
     this.definitions.push({
       kind: Kind.OBJECT_TYPE_DEFINITION,
       loc: this.loc(node),
       description: description ?? undefined,
+      directives: undefined,
       name,
       fields,
       interfaces: interfaces ?? undefined,
@@ -627,11 +628,13 @@ export class Extractor {
       }
 
       const description = this.collectDescription(member.name);
+      const deprecated = this.collectDeprecated(member);
       values.push({
         kind: Kind.ENUM_VALUE_DEFINITION,
         loc: this.loc(member),
         description: description || undefined,
         name: this.gqlName(member.initializer, member.initializer.text),
+        directives: deprecated ? [deprecated] : undefined,
       });
     }
 
@@ -689,7 +692,7 @@ export class Extractor {
 
     const id = this.expectIdentifier(node.name);
     if (id == null) return null;
-    let directives: ConstDirectiveNode[] | null = null;
+    let directives: ConstDirectiveNode[] = [];
     if (id.text !== name.value) {
       directives = [
         this.gqlConstDirective(
@@ -706,6 +709,11 @@ export class Extractor {
       ];
     }
 
+    const deprecated = this.collectDeprecated(node);
+    if (deprecated != null) {
+      directives.push(deprecated);
+    }
+
     return {
       kind: Kind.FIELD_DEFINITION,
       loc: this.loc(node),
@@ -713,7 +721,7 @@ export class Extractor {
       name,
       arguments: args || undefined,
       type: this.handleErrorBubbling(type),
-      directives: directives || undefined,
+      directives: directives.length === 0 ? undefined : directives,
     };
   }
 
@@ -732,6 +740,30 @@ export class Extractor {
       return { kind: Kind.STRING, loc: this.loc(node), value: description };
     }
     return null;
+  }
+
+  collectDeprecated(node: ts.Node): ConstDirectiveNode | null {
+    const tag = this.findTag(node, DEPRECATED_TAG);
+    if (tag == null) return null;
+    let reason: ConstArgumentNode | null = null;
+    if (tag.comment != null) {
+      const reasonComment = ts.getTextOfJSDocComment(tag.comment);
+      if (reasonComment != null) {
+        // FIXME: Use the _value_'s location not the tag's
+        reason = this.gqlConstArgument(
+          tag,
+          this.gqlName(tag, "reason"),
+          this.gqlString(tag, reasonComment),
+        );
+      }
+    }
+    const args = reason == null ? undefined : [reason];
+    return {
+      kind: Kind.DIRECTIVE,
+      loc: this.loc(tag),
+      name: this.gqlName(tag, DEPRECATED_TAG),
+      arguments: args,
+    };
   }
 
   property(
@@ -756,9 +788,14 @@ export class Extractor {
 
     const description = this.collectDescription(node.name);
 
-    let directives: ConstDirectiveNode[] | null = null;
+    let directives: ConstDirectiveNode[] = [];
     const id = this.expectIdentifier(node.name);
     if (id == null) return null;
+
+    const deprecated = this.collectDeprecated(node);
+    if (deprecated != null) {
+      directives.push(deprecated);
+    }
 
     if (id.text !== name.value) {
       directives = [
@@ -783,7 +820,7 @@ export class Extractor {
       name,
       arguments: undefined,
       type: this.handleErrorBubbling(type),
-      directives: directives || undefined,
+      directives: directives.length === 0 ? undefined : directives,
     };
   }
 

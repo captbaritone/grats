@@ -1,0 +1,20 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+export default class Query {
+  /**
+   * @GQLField
+   * @deprecated Use something else.
+   */
+  hello: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
+type Query {
+  hello: String @deprecated(reason: "Use something else.")
+}

@@ -168,6 +168,18 @@ myField(args: {
 }
 ```
 
+To mark a field as deprecated, use the `@deprecated` JSDoc tag:
+
+```ts
+/** 
+ * @GQLField
+ * @deprecated Please use myNewField instead.
+ */
+myOldField(): string {
+  return "Hello World";
+}
+```
+
 ### @GQLScalar
 
 GraphQL custom sclars can be defined by placing a `@GQLScalar` docblock directly before a:
@@ -195,10 +207,36 @@ GraphQL enums can be defined by placing a `@GQLEnum` docblock directly before a:
  * @GQLEnum <optional name of the enum, if different from type name>
  */
 enum MyEnum {
+  /** A description of my variant */
   OK = "OK"
+  /** A description of my other variant */
   ERROR = "ERROR"
 }
 ```
+
+Note that the values of the enum are used as the GraphQL enum values, and must
+be string literals.
+
+To mark a variants as deprecated, use the `@deprecated` JSDoc tag directly before it:
+
+```ts
+/** @GQLEnum */
+enum MyEnum {
+  OK = "OK"
+  /** @deprecated Please use OK instead. */
+  OKAY = "OKAY"
+  ERROR = "ERROR"
+}
+```
+
+We also support defining enums using a union of string literals, howerver there
+are some limitations to this approach:
+
+* You cannot add descriptions to enum values
+* You cannot mark enum values as deprecated
+
+This is due to the fact that TypeScript does not see JSDoc comments as
+"attaching" to string literal types.
 
 ```ts
 /** 
@@ -208,11 +246,7 @@ enum MyEnum {
 type MyEnum = "OK" | "ERROR";
 ```
 
-Note that the values of the enum are used as the GraphQL enum values, and must be string literals.
-
-**Note:** We do not yet support adding descriptions to enum values when the enum is defined using a union type.
-
-### @GQLInput <optional name of the input type, if different from type name>
+### @GQLInput
 
 GraphQL input types can be defined by placing a `@GQLInput` docblock directly before a:
 
@@ -238,11 +272,11 @@ see.
 
 # FAQ
 
-## Why not to use TypeScript First GraphQL?
+## Why would I _not_ want to use TypeScript First GraphQL?
 
 Because TypeScript First GraphQL relies on static analysis to infer types, it
-requires that your GraphQL fields explicitly, using types that can be statically
-analyzed. This means that you can't use complex derived types in positions where
+requires that your GraphQL fields use types that can be statically analyzed.
+This means that you can't use complex derived types in positions where
 TypeScript First GraphQL needs to be able to infer the type. For example, field
 arguments and return values. 
 
@@ -267,7 +301,7 @@ However, it also has some disadvantages:
   the impression that they might have some runtime behavior. This is not the
   case for TypeScript First GraphQL, which is purely a static analysis tool.
 
-Given these tradeoffs, I decided to use comments instead of decorators.
+Given these tradeoffs, we've decided to use comments instead of decorators.
 
 # Acknowledgements
 

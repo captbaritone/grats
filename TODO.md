@@ -45,6 +45,8 @@
 - [ ] Validate that we don't shadow builtins
 - [ ] Figure out how to persist schema with attached directives
   - [ ] https://github.com/graphql/graphql-js/pull/3362
+- [ ] Parse directives from all docblocks and attach them to the schema
+    - [ ] This will help catch places where people are using directives like @deprecated in unsupported positions
 
 ## Future
 - [ ] Define resolvers?
