@@ -3,7 +3,6 @@
 ## Alpha
 - [ ] Rewrite pitch/description 
 - [ ] Decouple from file system
-- [ ] Define unions
 - [ ] Ensure `__typename`?
 - [ ] More literals
     - [ ] Int

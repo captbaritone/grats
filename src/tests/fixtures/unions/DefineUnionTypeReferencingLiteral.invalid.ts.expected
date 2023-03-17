@@ -1,0 +1,30 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+export default class Query {
+  /** @GQLField */
+  me: Actor;
+}
+
+/** @GQLType */
+class User {
+  /** @GQLField */
+  name: string;
+}
+
+/** @GQLUnion */
+type Actor = User | "LOL";
+
+-----------------
+OUTPUT
+-----------------
+Error: Expected `@GQLUnion` union members to be type references.
+
+If you think <library name> should be able to infer this type, please report an issue at <issue URL>.:
+ --> src/tests/fixtures/unions/DefineUnionTypeReferencingLiteral.invalid.ts:14:21
+
+   | /** @GQLUnion */
+14 | type Actor = User | "LOL";
+   |                     ^^^^^ 
+   | 

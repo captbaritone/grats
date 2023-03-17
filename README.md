@@ -180,6 +180,20 @@ myOldField(): string {
 }
 ```
 
+### @GQLUnion
+
+GraphQL unions can be defined by placing a `@GQLUnion` docblock directly before a:
+
+* Type alias of a union of object types
+
+```ts
+/** 
+ * A description of my union.
+ * @GQLUnion <optional name of the union, if different from type name>
+ */
+type MyUnion = User | Post;
+```
+
 ### @GQLScalar
 
 GraphQL custom sclars can be defined by placing a `@GQLScalar` docblock directly before a:

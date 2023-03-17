@@ -17,7 +17,6 @@ import {
   ConstDirectiveNode,
   ConstArgumentNode,
   EnumValueDefinitionNode,
-  DirectiveNode,
 } from "graphql";
 import { Position } from "./utils/Location";
 import DiagnosticError, { AnnotatedLocation } from "./utils/DiagnosticError";
@@ -90,12 +89,8 @@ export class Extractor {
           case INPUT_TAG:
             this.extractInput(node, tag);
             break;
-
           case UNION_TAG:
-            this.reportUnhandled(
-              tag,
-              `\`@${UNION_TAG}\` is not yet implemented.`,
-            );
+            this.extractUnion(node, tag);
             break;
         }
       }
@@ -148,7 +143,7 @@ export class Extractor {
     } else {
       this.report(
         tag,
-        `\`@${ENUM_TAG}\` can only be used on enum declarations.`,
+        `\`@${ENUM_TAG}\` can only be used on enum declarations or TypeScript unions.`,
       );
     }
   }
@@ -160,6 +155,17 @@ export class Extractor {
       this.report(
         tag,
         `\`@${INPUT_TAG}\` can only be used on type alias declarations.`,
+      );
+    }
+  }
+
+  extractUnion(node: ts.Node, tag: ts.JSDocTag) {
+    if (ts.isTypeAliasDeclaration(node)) {
+      this.unionTypeAliasDeclaration(node, tag);
+    } else {
+      this.report(
+        tag,
+        `\`@${UNION_TAG}\` can only be used on type alias declarations.`,
       );
     }
   }
@@ -216,6 +222,47 @@ export class Extractor {
   }
 
   /** TypeScript traversals */
+
+  unionTypeAliasDeclaration(node: ts.TypeAliasDeclaration, tag: ts.JSDocTag) {
+    const name = this.entityName(node, tag);
+    if (name == null) return null;
+
+    if (!ts.isUnionTypeNode(node.type)) {
+      this.report(
+        node,
+        `Expected a TypeScript union. \`@${UNION_TAG}\` can only be used on TypeScript unions.`,
+      );
+      return null;
+    }
+    const description = this.collectDescription(node.name);
+
+    const types: NamedTypeNode[] = [];
+    for (const member of node.type.types) {
+      if (!ts.isTypeReferenceNode(member)) {
+        this.reportUnhandled(
+          member,
+          `Expected \`@${UNION_TAG}\` union members to be type references.`,
+        );
+        return null;
+      }
+      const namedType = this.gqlNamedType(
+        member.typeName,
+        UNRESOLVED_REFERENCE_NAME,
+      );
+      this.ctx.markUnresolvedType(member.typeName, namedType);
+      types.push(namedType);
+    }
+
+    this.ctx.recordTypeName(node.name, name.value);
+
+    this.definitions.push({
+      kind: Kind.UNION_TYPE_DEFINITION,
+      loc: this.loc(node),
+      description: description ?? undefined,
+      name: name,
+      types,
+    });
+  }
 
   scalarTypeAliasDeclaration(node: ts.TypeAliasDeclaration, tag: ts.JSDocTag) {
     const name = this.entityName(node, tag);

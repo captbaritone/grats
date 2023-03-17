@@ -2,35 +2,41 @@
 INPUT
 ----------------- 
 /** @GQLType */
-class User {
+export default class Query {
   /** @GQLField */
-  name(): string {
-    return "Alice";
-  }
+  me: Actor;
 }
 
 /** @GQLType */
-class Group {
+class User {
   /** @GQLField */
-  name(): string {
-    return "Fan Club";
-  }
+  name: string;
+}
+
+/** @GQLType */
+class Entity {
+  /** @GQLField */
+  description: string;
 }
 
 /** @GQLUnion */
-type MyUnion = User | Group;
+type Actor = User | Entity;
 
 -----------------
 OUTPUT
 -----------------
 directive @renameField(name: String!) on FIELD_DEFINITION
 
+type Query {
+  me: Actor
+}
+
 type User {
   name: String
 }
 
-type Group {
-  name: String
+type Entity {
+  description: String
 }
 
-union MyUnion = User | Group
+union Actor = User | Entity

@@ -1,0 +1,44 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+export default class Query {
+  /** @GQLField */
+  me: Actor;
+}
+
+/** @GQLType */
+class User {
+  /** @GQLField */
+  name: string;
+}
+
+/** @GQLType */
+class Entity {
+  /** @GQLField */
+  description: string;
+}
+
+/**
+ * @GQLUnion
+ */
+type Actor = User | Entity;
+
+-----------------
+OUTPUT
+-----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
+type Query {
+  me: Actor
+}
+
+type User {
+  name: String
+}
+
+type Entity {
+  description: String
+}
+
+union Actor = User | Entity
