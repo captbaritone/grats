@@ -92,7 +92,7 @@ function definitionsFromFile(filePaths: string[]): DocumentNode {
     /* setParentNodes this is needed for finding jsDocs */
     true,
   );
-  let program = ts.createProgram(filePaths, options, compilerHost);
+  const program = ts.createProgram(filePaths, options, compilerHost);
   const checker = program.getTypeChecker();
   const ctx = new TypeContext(checker);
 
