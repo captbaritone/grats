@@ -8,7 +8,6 @@ import {
   parse,
   validateSchema,
 } from "graphql";
-import { glob } from "glob";
 import { graphQlErrorToDiagnostic } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { Extractor } from "./Extractor";
@@ -23,9 +22,7 @@ const DIRECTIVES_AST = parse(`
 `);
 
 // Construct a schema, using GraphQL schema language
-export async function buildSchema(pattern: string): Promise<GraphQLSchema> {
-  const files = await glob(pattern);
-
+export function buildSchema(files: string[]): GraphQLSchema {
   const doc = buildSchemaAst(files);
 
   // const schema = buildASTSchema(doc, { assumeValidSDL: true });

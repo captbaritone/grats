@@ -24,10 +24,10 @@ const fixturesDir = path.join(__dirname, "fixtures");
 const testDirs = [
   {
     fixturesDir,
-    transformer: async (code: string, fileName: string) => {
-      const glob = `{${fixturesDir}/${fileName},src/Types.ts}`;
+    transformer: (code: string, fileName: string) => {
+      const files = [`${fixturesDir}/${fileName}`, `src/Types.ts`];
       try {
-        const schema = await buildSchema(glob);
+        const schema = buildSchema(files);
         return printSchema(schema);
       } catch (e) {
         // TODO: WTF. Why is this not instanceof DiagnosticError?
