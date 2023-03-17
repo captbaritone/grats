@@ -19,13 +19,23 @@ GraphQL schema for you via static analysis.
 /** @GQLType */
 export default class Query {
   /** @GQLField */
-  me(): User {
-    return new User();
+  me(): UserResolver {
+    return new UserResolver();
+  }
+  /** 
+   * @GQLField
+   * @deprecated Please use `me` instead.
+   */
+  viewer(): UserResolver {
+    return new UserResolver();
   }
 }
 
-/** @GQLType */
-class User {
+/**
+ * A user in our kick-ass system!
+ * @GQLType User
+ */
+class UserResolver {
   /** @GQLField */
   name(): string {
     return "Alice";
@@ -42,8 +52,10 @@ Extracts the following GraphQL schema:
 ```graphql
 type Query {
   me: User
+  viewer: User @deprecated(reason: "Please use `me` instead.")
 }
 
+"""A user in our kick-ass system!"""
 type User {
   name: String
   greeting(salutation: String!): String
