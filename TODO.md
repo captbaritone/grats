@@ -1,22 +1,10 @@
 # TODO
 
 ## Alpha
-- [ ] Escape hatches
-    - [ ] `@graphql` directive
-- [ ] Enable exhaustive switch statements
-- [ ] Handle optional/non optional
-    - [ ] Default: All fields are optional, there's a docblock to mark them as required (this asserts that the return type is non-nullable)
-    - [ ] Configurable: Optionality is purely derived from the types
-- [ ] Separate out scalar types
+- [ ] Rewrite pitch/description 
+- [ ] Decouple from file system
 - [ ] Define unions
-- [ ] Does GraphQLJS have types for a GraphQL Schema AST?
-- [ ] Try converting the Star Wars example server
-- [ ] Traverse all comments and check for ones in the wrong place
-- [ ] Support directives (@deprecated etc)
-- [ ] Extract descriptions
 - [ ] Ensure `__typename`?
-- [ ] Correctly handle optional ? arguments
-- [ ] Correctly handle ? return types
 - [ ] More literals
     - [ ] Int
     - [ ] Float
@@ -26,20 +14,26 @@
     - [ ] List
     - [ ] Object
     - [ ] Null
-- [ ] Support for enums (TS enums), maybe some other kinds?
-- [ ] Classes as interfaces. Classes which extend this interface will implement it in GraphQL.
-- [ ] What about nested input types?
-- [ ] What about default values on input types?
-- [ ] What about renaming fields on input types?
+- [ ] Build a playground
+    - Code on left, GraphQL on right
+    - Could we actually evaluate the resolvers? Maybe in a worker?
+    - Could we hook up GraphiQL 2?
+    - Could we surface TS errors?
+- [ ] Table of contents for docs
 
 ## Beta
+- [ ] Can we use TS diagnostics and reporting?
+- [ ] Classes as interfaces. Classes which extend this interface will implement it in GraphQL.
+- [ ] Support generic directives 
+    - [ ] How do we handle arguments?
+    - [ ] Same as defaults?
+- [ ] Try converting the Star Wars example server
 - [ ] Better error message for non GraphQL types.
 - [ ] A name
 - [ ] Handle optional/non optional
     - [ ] Configurable: Optionality is purely derived from the types
 - [ ] Define custom scalars
-- [ ] Playground
-- [ ] Docs
+- [ ] Split out docs into multipe files
 - [ ] Extract error messages to a separate file
 - [ ] Mutations and Query fields as functions
 - [ ] Validate that we don't shadow builtins
@@ -47,11 +41,15 @@
   - [ ] https://github.com/graphql/graphql-js/pull/3362
 - [ ] Parse directives from all docblocks and attach them to the schema
     - [ ] This will help catch places where people are using directives like @deprecated in unsupported positions
+- [ ] Ensure stable sort in output?
 
 ## Future
 - [ ] Define resolvers?
 - [ ] Generate tasks from playground
 - [ ] LSP/VSCode Extension
+  - [ ] See SDL on hover?
 - [ ] Websites
 - [ ] Support positional arguments
+- [ ] Rename arguments
 - [ ] Support descriptions on enums defined using union types. TS does not support docblock attachements on union types.
+- [ ] Short links in errors for more info and links to docs/guides.
