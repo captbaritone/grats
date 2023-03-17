@@ -19,9 +19,8 @@ export default class Query {
  */
 class UserResolver {
   /** @GQLField */
-  name(): string {
-    return "Alice";
-  }
+  name: string = "Alice";
+
   /** @GQLField */
   greeting(args: { salutation: string }): string {
     return `${args.salutation}, ${this.name()}`;
