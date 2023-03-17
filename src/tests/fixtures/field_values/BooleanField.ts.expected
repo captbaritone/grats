@@ -1,0 +1,19 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+export default class Query {
+  /** @GQLField */
+  haveBeenGreeted(): boolean {
+    return false;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+directive @renameField(name: String!) on FIELD_DEFINITION
+
+type Query {
+  haveBeenGreeted: Boolean
+}

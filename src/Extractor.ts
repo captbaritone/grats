@@ -894,6 +894,8 @@ export class Extractor {
       return this.gqlNonNullType(node, type);
     } else if (node.kind === ts.SyntaxKind.StringKeyword) {
       return this.gqlNonNullType(node, this.gqlNamedType(node, "String"));
+    } else if (node.kind === ts.SyntaxKind.BooleanKeyword) {
+      return this.gqlNonNullType(node, this.gqlNamedType(node, "Boolean"));
     } else if (node.kind === ts.SyntaxKind.NumberKeyword) {
       this.report(
         node,
