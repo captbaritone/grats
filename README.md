@@ -333,6 +333,8 @@ Given these tradeoffs, we've decided to use comments instead of decorators.
 * @mofeiZ and @alunyov for their Relay hack-week project exploring a similar idea.
 * @josephsavona for input on the design of [Relay Resolvers](https://relay.dev/docs/guides/relay-resolvers/) which inspired this project.
 * @bradzacher for tips on how to handle TypeScript ASTs.
-* [ts2graphql](https://github.com/cevek/ts2graphql) which appears to take a similar approach to this project, except that it focuses on extracting from abstract TS types not class declarations.
-* [typegraphql-reflection-poc](https://github.com/MichalLytek/typegraphql-reflection-poc) is an even more similar project, which uses decorators instead of comments.
 * Everyone who worked on Meta's Hack GraphQL server, the developer experince of which inspired this project.
+* A number of other projects which seem to have explored similar ideas in the past:
+  * [ts2gql](https://github.com/convoyinc/ts2gql)
+  * [ts2graphql](https://github.com/cevek/ts2graphql)
+  * [typegraphql-reflection-poc](https://github.com/MichalLytek/typegraphql-reflection-poc)
