@@ -98,15 +98,23 @@ function definitionsFromFile(filePaths: string[]): DocumentNode {
 
   const definitions: DefinitionNode[] = Array.from(DIRECTIVES_AST.definitions);
   for (const filePath of filePaths) {
-    const sourceFile = program.getSourceFile(filePath);
-    if (!sourceFile) {
-      throw new Error(`Could not find source file ${filePath}`);
-    }
+    // TODO: More robust file extension detection
+    if (
+      filePath.endsWith(".ts") ||
+      filePath.endsWith(".js") ||
+      filePath.endsWith(".jsx") ||
+      filePath.endsWith(".tsx")
+    ) {
+      const sourceFile = program.getSourceFile(filePath);
+      if (!sourceFile) {
+        throw new Error(`Could not find source file ${filePath}`);
+      }
 
-    const extractor = new Extractor(sourceFile, ctx);
-    const extracted = extractor.extract();
-    for (const definition of extracted) {
-      definitions.push(definition);
+      const extractor = new Extractor(sourceFile, ctx);
+      const extracted = extractor.extract();
+      for (const definition of extracted) {
+        definitions.push(definition);
+      }
     }
   }
 
