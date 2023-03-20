@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "main": "dist/src/index.js",
   "bin": "dist/src/cli.js",
+  "types": "dist/src/index.d.ts",
   "license": "MIT",
   "scripts": {
     "cli": "ts-node --esm src/cli.ts",

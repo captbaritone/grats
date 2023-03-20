@@ -18,7 +18,8 @@
     "experimentalDecorators": true,
     "outDir": "dist",
     "downlevelIteration": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "declaration": true
   },
   "exclude": ["node_modules", "dist", "src/tests/fixtures"]
 }
