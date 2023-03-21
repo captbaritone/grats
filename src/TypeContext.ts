@@ -1,9 +1,10 @@
 import { DocumentNode, NamedTypeNode, visit } from "graphql";
 import * as ts from "typescript";
-import DiagnosticError, {
+import {
   DiagnosticResult,
   DiagnosticsResult,
   err,
+  FAKE_ERROR_CODE,
   ok,
 } from "./utils/DiagnosticError";
 
@@ -65,7 +66,7 @@ export class TypeContext {
   }
 
   resolveTypes(doc: DocumentNode): DiagnosticsResult<DocumentNode> {
-    const errors: DiagnosticError[] = [];
+    const errors: ts.Diagnostic[] = [];
     const newDoc = visit(doc, {
       NamedType: (t) => {
         const namedTypeResult = this.resolveNamedType(t);
@@ -96,21 +97,19 @@ export class TypeContext {
       if (namedType.loc == null) {
         throw new Error("Expected namedType to have a location.");
       }
-      return err(
-        new DiagnosticError(
+      return err({
+        messageText:
           "This type is not a valid GraphQL type. Did you mean to annotate it's definition with `/** @GQLType */` or `/** @GQLScalar */`?",
-          {
-            start: namedType.loc.start,
-            length: namedType.loc.end - namedType.loc.start,
-            filepath: ts.createSourceFile(
-              namedType.loc.source.name,
-              namedType.loc.source.body,
-              ts.ScriptTarget.Latest,
-            ),
-          },
-          this.host,
+        start: namedType.loc.start,
+        length: namedType.loc.end - namedType.loc.start,
+        category: ts.DiagnosticCategory.Error,
+        code: FAKE_ERROR_CODE,
+        file: ts.createSourceFile(
+          namedType.loc.source.name,
+          namedType.loc.source.body,
+          ts.ScriptTarget.Latest,
         ),
-      );
+      });
     }
     return ok({ ...namedType, name: { ...namedType.name, value: name } });
   }

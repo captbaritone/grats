@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 
 import { printSchema } from "graphql";
-import { buildSchema } from ".";
-import DiagnosticError from "./utils/DiagnosticError";
+import { buildSchemaResult } from ".";
 import { glob } from "glob";
 
 /**
@@ -15,17 +14,13 @@ async function main() {
   if (!pattern) {
     throw new Error("Expected glob as first argument");
   }
-  try {
-    const files = await glob(pattern);
-    const schema = buildSchema({ files });
-    console.log(printSchema(schema));
-  } catch (e) {
-    if (e instanceof DiagnosticError) {
-      console.error(e.formatWithColorAndContext());
-      process.exit(1);
-    } else {
-      throw e;
-    }
+  const files = await glob(pattern);
+  const schemaResult = buildSchemaResult({ files });
+  if (schemaResult.kind === "ERROR") {
+    console.error(schemaResult.err.formatDiagnosticsWithColorAndContext());
+    process.exit(1);
+  } else {
+    console.log(printSchema(schemaResult.value));
   }
 }
 

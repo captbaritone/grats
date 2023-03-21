@@ -18,9 +18,10 @@ import {
   ConstArgumentNode,
   EnumValueDefinitionNode,
 } from "graphql";
-import DiagnosticError, {
+import {
   DiagnosticsResult,
   err,
+  FAKE_ERROR_CODE,
   ok,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
@@ -58,7 +59,7 @@ export class Extractor {
   sourceFile: ts.SourceFile;
   ctx: TypeContext;
   buildOptions: BuildOptions;
-  errors: DiagnosticError[] = [];
+  errors: ts.Diagnostic[] = [];
 
   constructor(
     sourceFile: ts.SourceFile,
@@ -182,26 +183,24 @@ export class Extractor {
   /** Error handling and location juggling */
 
   report(node: ts.Node, message: string) {
-    this.errors.push(
-      new DiagnosticError(
-        message,
-        this.diagnosticAnnotatedLocation(node),
-        this.ctx.host,
-      ),
-    );
+    const start = node.getStart();
+    const length = node.getEnd() - start;
+    this.errors.push({
+      messageText: message,
+      file: this.sourceFile,
+      code: FAKE_ERROR_CODE,
+      category: ts.DiagnosticCategory.Error,
+      start,
+      length,
+    });
   }
 
   // Report an error that we don't know how to infer a type, but it's possible that we should.
   // Gives the user a path forward if they think we should be able to infer this type.
   reportUnhandled(node: ts.Node, message: string) {
     const suggestion = `If you think ${LIBRARY_NAME} should be able to infer this type, please report an issue at ${ISSUE_URL}.`;
-    this.errors.push(
-      new DiagnosticError(
-        `${message}\n\n${suggestion}`,
-        this.diagnosticAnnotatedLocation(node),
-        this.ctx.host,
-      ),
-    );
+    const completedMessage = `${message}\n\n${suggestion}`;
+    this.report(node, completedMessage);
   }
 
   diagnosticAnnotatedLocation(node: ts.Node): {

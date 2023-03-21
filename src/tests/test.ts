@@ -30,8 +30,7 @@ const testDirs = [
         nullableByDefault: true,
       });
       if (schemaResult.kind === "ERROR") {
-        const firstError = schemaResult.err[0];
-        return firstError.formatWithContext();
+        return schemaResult.err.formatDiagnosticsWithContext();
       }
       return printSchema(schemaResult.value);
     },

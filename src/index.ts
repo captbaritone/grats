@@ -15,6 +15,8 @@ import {
   err,
   graphQlErrorToDiagnostic,
   DiagnosticsResult,
+  Result,
+  ReportableDiagnostics,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { Extractor } from "./Extractor";
@@ -50,8 +52,7 @@ export type BuildOptions = {
 export function buildSchema(options: BuildOptions): GraphQLSchema {
   const schemaResult = buildSchemaResult(options);
   if (schemaResult.kind === "ERROR") {
-    const e = schemaResult.err[0];
-    console.error(e.formatWithColorAndContext());
+    console.error(schemaResult.err.formatDiagnosticsWithColorAndContext());
     process.exit(1);
   }
   return schemaResult.value;
@@ -61,7 +62,7 @@ export function buildSchema(options: BuildOptions): GraphQLSchema {
 // Exported for tests that want to intercept diagnostic errors.
 export function buildSchemaResult(
   options: BuildOptions,
-): DiagnosticsResult<GraphQLSchema> {
+): Result<GraphQLSchema, ReportableDiagnostics> {
   // https://stackoverflow.com/a/66604532/1263117
   const compilerOptions: ts.CompilerOptions = { allowJs: true };
   const compilerHost = ts.createCompilerHost(
@@ -72,7 +73,7 @@ export function buildSchemaResult(
 
   const docResult = buildSchemaAst(options, compilerHost, compilerOptions);
   if (docResult.kind === "ERROR") {
-    return docResult;
+    return err(new ReportableDiagnostics(compilerHost, docResult.err));
   }
   const doc = docResult.value;
 
@@ -82,10 +83,10 @@ export function buildSchemaResult(
   const diagnostics = validateSchema(schema)
     // TODO: Handle case where query is not defined (no location)
     .filter((e) => e.source && e.locations && e.positions)
-    .map((e) => graphQlErrorToDiagnostic(e, compilerHost));
+    .map((e) => graphQlErrorToDiagnostic(e));
 
   if (diagnostics.length > 0) {
-    return err(diagnostics);
+    return err(new ReportableDiagnostics(compilerHost, diagnostics));
   }
 
   let runtimeSchema = applyServerDirectives(schema);
@@ -115,7 +116,7 @@ export function buildSchemaAst(
   // existing schema) we do! So, we should find a way to validate that we don't
   // shadow builtins.
   const validationErrors = validateSDL(doc).map((e) => {
-    return graphQlErrorToDiagnostic(e, host);
+    return graphQlErrorToDiagnostic(e);
   });
   if (validationErrors.length > 0) {
     return err(validationErrors);

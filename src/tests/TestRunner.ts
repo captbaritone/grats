@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
 import { diff } from "jest-diff";
-import DiagnosticError from "../utils/DiagnosticError";
 
 type Transformer = (code: string, filename: string) => Promise<string> | string;
 
@@ -122,9 +121,6 @@ ${actual}`;
     try {
       return await this._transformer(code, filename);
     } catch (e) {
-      if (e instanceof DiagnosticError) {
-        return e.formatWithColorAndContext();
-      }
       console.error(e);
       return e.message;
     }
