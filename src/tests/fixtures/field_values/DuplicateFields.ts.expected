@@ -18,19 +18,7 @@ export default class Query {
 -----------------
 OUTPUT
 -----------------
-Error: Field "Query.hello" can only be defined once.:
- --> src/tests/fixtures/field_values/DuplicateFields.ts:6:3
+src/tests/fixtures/field_values/DuplicateFields.ts:6:3 - error TS0: Field "Query.hello" can only be defined once.
 
-  |   /** @GQLField */
-6 |   hello(): string {
-  |   ^ 
-  |     return "Hello world!";
-
-
-Error: :
- --> src/tests/fixtures/field_values/DuplicateFields.ts:10:3
-
-   |   /** @GQLField */
-10 |   hello(): Array<string> {
-   |   ^ 
-   |     return ["Hello world!"];
+6   hello(): string {
+    ~

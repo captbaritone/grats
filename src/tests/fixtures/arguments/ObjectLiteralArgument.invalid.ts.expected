@@ -12,10 +12,7 @@ export default class Query {
 -----------------
 OUTPUT
 -----------------
-Error: Unexpected type literal. You may want to define a named GraphQL type elsewhere and reference it here.:
- --> src/tests/fixtures/arguments/ObjectLiteralArgument.invalid.ts:4:35
+src/tests/fixtures/arguments/ObjectLiteralArgument.invalid.ts:4:35 - error TS0: Unexpected type literal. You may want to define a named GraphQL type elsewhere and reference it here.
 
-  |   /** @GQLField */
-4 |   hello({ greeting }: { greeting: { foo: string; bar: string } }): string {
-  |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
-  |     return "Hello world!";
+4   hello({ greeting }: { greeting: { foo: string; bar: string } }): string {
+                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

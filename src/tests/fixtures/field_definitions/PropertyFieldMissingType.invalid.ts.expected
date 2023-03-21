@@ -10,10 +10,7 @@ class Query {
 -----------------
 OUTPUT
 -----------------
-Error: Expected GraphQL field to have a type.:
- --> src/tests/fixtures/field_definitions/PropertyFieldMissingType.invalid.ts:4:3
+src/tests/fixtures/field_definitions/PropertyFieldMissingType.invalid.ts:4:3 - error TS0: Expected GraphQL field to have a type.
 
-  |   /** @GQLField */
-4 |   someProp;
-  |   ^^^^^^^^ 
-  | }
+4   someProp;
+    ~~~~~~~~

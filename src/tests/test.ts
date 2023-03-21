@@ -36,12 +36,16 @@ const testDirs = [
       } catch (e) {
         // TODO: WTF. Why is this not instanceof DiagnosticError?
         if (e.loc) {
-          return DiagnosticError.prototype.asCodeFrame.call(e, code, fileName);
+          return stripColor(DiagnosticError.prototype.asTsCodeFrame.call(e));
         }
         throw e;
       }
     },
   },
 ];
+
+function stripColor(str: string): string {
+  return str.replace(/\x1B[[(?);]{0,2}(;?\d)*./g, "");
+}
 
 main();

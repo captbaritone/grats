@@ -56,15 +56,18 @@ export class Extractor {
   ctx: TypeContext;
   buildOptions: BuildOptions;
   errors: DiagnosticError[] = [];
+  host: ts.CompilerHost;
 
   constructor(
     sourceFile: ts.SourceFile,
     ctx: TypeContext,
     buildOptions: BuildOptions,
+    host: ts.CompilerHost,
   ) {
     this.sourceFile = sourceFile;
     this.ctx = ctx;
     this.buildOptions = buildOptions;
+    this.host = host;
   }
 
   // Traverse all nodes, checking each one for its JSDoc tags.
@@ -181,7 +184,12 @@ export class Extractor {
 
   report(node: ts.Node, message: string) {
     this.errors.push(
-      new DiagnosticError(message, this.diagnosticAnnotatedLocation(node)),
+      new DiagnosticError(
+        message,
+        this.diagnosticAnnotatedLocation(node),
+        [],
+        this.host,
+      ),
     );
   }
 
@@ -193,6 +201,8 @@ export class Extractor {
       new DiagnosticError(
         `${message}\n\n${suggestion}`,
         this.diagnosticAnnotatedLocation(node),
+        [],
+        this.host,
       ),
     );
   }

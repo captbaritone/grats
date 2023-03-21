@@ -12,12 +12,9 @@ export default class Query {
 -----------------
 OUTPUT
 -----------------
-Error: Expected GraphQL field argument default values to be a literal.
+src/tests/fixtures/default_values/NonLiteralDefaultValue.invalid.ts:4:22 - error TS0: Expected GraphQL field argument default values to be a literal.
 
-If you think <library name> should be able to infer this type, please report an issue at <issue URL>.:
- --> src/tests/fixtures/default_values/NonLiteralDefaultValue.invalid.ts:4:22
+If you think <library name> should be able to infer this type, please report an issue at <issue URL>.
 
-  |   /** @GQLField */
-4 |   hello({ greeting = String(Math.random()) }: { greeting: string }): string {
-  |                      ^^^^^^^^^^^^^^^^^^^^^ 
-  |     return `${greeting} world!`;
+4   hello({ greeting = String(Math.random()) }: { greeting: string }): string {
+                       ~~~~~~~~~~~~~~~~~~~~~

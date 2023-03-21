@@ -21,10 +21,7 @@ type MyInputType = {
 -----------------
 OUTPUT
 -----------------
-Error: The type of MyType.someField must be Output Type but got: MyInputType.:
- --> src/tests/fixtures/input_types/InputTypeReturnedFromField.invalid.ts:10:16
+src/tests/fixtures/input_types/InputTypeReturnedFromField.invalid.ts:10:16 - error TS0: The type of MyType.someField must be Output Type but got: MyInputType.
 
-   |   /** @GQLField */
-10 |   someField(): MyInputType;
-   |                ^ 
-   | }
+10   someField(): MyInputType;
+                  ~

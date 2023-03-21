@@ -19,7 +19,6 @@ import { TypeContext } from "./TypeContext";
 import { validateSDL } from "graphql/validation/validate";
 import { mapSchema, getDirective, MapperKind } from "@graphql-tools/utils";
 import * as fs from "fs";
-import { run } from "node:test";
 
 export * from "./Types";
 
@@ -63,7 +62,15 @@ export function buildSchema(options: BuildOptions): GraphQLSchema {
 // Construct a schema, using GraphQL schema language
 // Exported for tests that want to intercept diagnostic errors.
 export function _buildSchema(options: BuildOptions): GraphQLSchema {
-  const doc = buildSchemaAst(options);
+  // https://stackoverflow.com/a/66604532/1263117
+  const compilerOptions: ts.CompilerOptions = { allowJs: true };
+  const compilerHost = ts.createCompilerHost(
+    options,
+    /* setParentNodes this is needed for finding jsDocs */
+    true,
+  );
+
+  const doc = buildSchemaAst(options, compilerHost, compilerOptions);
 
   // const schema = buildASTSchema(doc, { assumeValidSDL: true });
   const schema = buildASTSchema(doc, {
@@ -75,7 +82,7 @@ export function _buildSchema(options: BuildOptions): GraphQLSchema {
     const firstError = schemaValidationErrors[0];
     // FIXME: Handle the error that Query is not defined
     if (firstError.source && firstError.locations && firstError.positions) {
-      throw graphQlErrorToDiagnostic(firstError);
+      throw graphQlErrorToDiagnostic(firstError, compilerHost);
     }
   }
   let runtimeSchema = applyServerDirectives(schema);
@@ -91,8 +98,12 @@ export function _buildSchema(options: BuildOptions): GraphQLSchema {
   return runtimeSchema;
 }
 
-export function buildSchemaAst(options: BuildOptions): DocumentNode {
-  const doc = definitionsFromFile(options);
+export function buildSchemaAst(
+  options: BuildOptions,
+  host: ts.CompilerHost,
+  compilerOptions: ts.CompilerOptions,
+): DocumentNode {
+  const doc = definitionsFromFile(options, host, compilerOptions);
 
   // TODO: Currently this does not detect definitions that shadow builtins
   // (`String`, `Int`, etc). However, if we pass a second param (extending an
@@ -101,7 +112,7 @@ export function buildSchemaAst(options: BuildOptions): DocumentNode {
   const validationErrors = validateSDL(doc);
   if (validationErrors.length > 0) {
     // TODO: Report all errors
-    throw graphQlErrorToDiagnostic(validationErrors[0]);
+    throw graphQlErrorToDiagnostic(validationErrors[0], host);
   }
   return doc;
 }
@@ -134,19 +145,12 @@ function applyServerDirectives(schema: GraphQLSchema): GraphQLSchema {
   });
 }
 
-function definitionsFromFile(options: BuildOptions): DocumentNode {
-  // https://stackoverflow.com/a/66604532/1263117
-  const compilerOptions: ts.CompilerOptions = { allowJs: true };
-  const compilerHost = ts.createCompilerHost(
-    options,
-    /* setParentNodes this is needed for finding jsDocs */
-    true,
-  );
-  const program = ts.createProgram(
-    options.files,
-    compilerOptions,
-    compilerHost,
-  );
+function definitionsFromFile(
+  options: BuildOptions,
+  host: ts.CompilerHost,
+  compilerOptions: ts.CompilerOptions,
+): DocumentNode {
+  const program = ts.createProgram(options.files, compilerOptions, host);
   const checker = program.getTypeChecker();
   const ctx = new TypeContext(checker);
 
@@ -158,7 +162,7 @@ function definitionsFromFile(options: BuildOptions): DocumentNode {
       throw new Error(`Could not find source file ${filePath}`);
     }
 
-    const extractor = new Extractor(sourceFile, ctx, options);
+    const extractor = new Extractor(sourceFile, ctx, options, host);
     const extracted = extractor.extract();
     for (const definition of extracted) {
       definitions.push(definition);

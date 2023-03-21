@@ -14,10 +14,7 @@ export default class Query {
 -----------------
 OUTPUT
 -----------------
-Error: Expected GraphQL field arguments to be typed using a literal object: `{someField: string}`.:
- --> src/tests/fixtures/arguments/OpaqueArgType.invalid.ts:6:23
+src/tests/fixtures/arguments/OpaqueArgType.invalid.ts:6:23 - error TS0: Expected GraphQL field arguments to be typed using a literal object: `{someField: string}`.
 
-  |   /** @GQLField */
-6 |   hello({ greeting }: SomeType): string {
-  |                       ^^^^^^^^ 
-  |     return "Hello world!";
+6   hello({ greeting }: SomeType): string {
+                        ~~~~~~~~

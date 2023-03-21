@@ -12,12 +12,9 @@ export default class Query {
 -----------------
 OUTPUT
 -----------------
-Error: Unknown GraphQL type.
+src/tests/fixtures/arguments/TupleLiteralArgument.invalid.ts:4:35 - error TS0: Unknown GraphQL type.
 
-If you think <library name> should be able to infer this type, please report an issue at <issue URL>.:
- --> src/tests/fixtures/arguments/TupleLiteralArgument.invalid.ts:4:35
+If you think <library name> should be able to infer this type, please report an issue at <issue URL>.
 
-  |   /** @GQLField */
-4 |   hello({ greeting }: { greeting: [string] }): string {
-  |                                   ^^^^^^^^ 
-  |     return "Hello world!";
+4   hello({ greeting }: { greeting: [string] }): string {
+                                    ~~~~~~~~

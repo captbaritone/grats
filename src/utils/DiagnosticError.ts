@@ -2,6 +2,7 @@ import { GraphQLError } from "graphql";
 import { Location } from "./Location";
 import * as fs from "fs";
 import * as path from "path";
+import * as ts from "typescript";
 
 export class AnnotatedLocation {
   loc: Location;
@@ -20,14 +21,17 @@ export function annotate(loc: Location, annotation: string) {
 export default class DiagnosticError extends Error {
   loc: AnnotatedLocation;
   related: AnnotatedLocation[];
+  host: ts.CompilerHost;
   constructor(
     message: string,
     loc: AnnotatedLocation,
     related: AnnotatedLocation[] = [],
+    host: ts.CompilerHost,
   ) {
     super(message);
     this.loc = loc;
     this.related = related;
+    this.host = host;
   }
 
   // Prints a diagnostic message with code frame to the console.
@@ -45,6 +49,11 @@ export default class DiagnosticError extends Error {
       frame += "\n\n" + _asCodeFrame(lines, related, related.annotation);
     }
     return frame;
+  }
+
+  asTsCodeFrame(): string {
+    const tsDiagnostic = diagnosticToTsDiagnostic(this);
+    return ts.formatDiagnosticsWithColorAndContext([tsDiagnostic], this.host);
   }
 }
 
@@ -108,10 +117,31 @@ function _asCodeFrame(
   return codeFrameLines.join("\n");
 }
 
+export function diagnosticToTsDiagnostic(
+  original: DiagnosticError,
+): ts.Diagnostic {
+  const diagnostic: ts.Diagnostic = {
+    file: ts.createSourceFile(
+      original.loc.loc.filepath,
+      fs.readFileSync(original.loc.loc.filepath, "utf-8"),
+      ts.ScriptTarget.Latest,
+    ),
+    category: ts.DiagnosticCategory.Error,
+    code: 0,
+    start: original.loc.loc.start.offset,
+    length: original.loc.loc.end.offset - original.loc.loc.start.offset,
+    messageText: original.message,
+  };
+  return diagnostic;
+}
+
 // TODO: This is just a hack. Improve handling of multiple locations.
 // TODO: Turn this back on
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-export function graphQlErrorToDiagnostic(error: GraphQLError): DiagnosticError {
+export function graphQlErrorToDiagnostic(
+  error: GraphQLError,
+  host: ts.CompilerHost,
+): DiagnosticError {
   const loc = error.locations![0];
   const position = error.positions![0];
   if (loc == null) {
@@ -143,5 +173,6 @@ export function graphQlErrorToDiagnostic(error: GraphQLError): DiagnosticError {
     error.message,
     new AnnotatedLocation({ start, end, filepath: error.source!.name }, ""),
     related,
+    host,
   );
 }

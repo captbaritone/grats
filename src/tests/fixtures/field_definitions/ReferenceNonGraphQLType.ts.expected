@@ -12,10 +12,4 @@ class Query {
 -----------------
 OUTPUT
 -----------------
-Error: This type is not a valid GraphQL type. Did you mean to annotate it's definition with `/** @GQLType */` or `/** @GQLScalar */`?:
- --> src/tests/fixtures/field_definitions/ReferenceNonGraphQLType.ts:6:22
-
-  |   /** @GQLField */
-6 |   somePropertyField: SomeUndefienedType;
-  |                      ^^^^^^^^^^^^^^^^^^ 
-  | }
+Cannot read properties of undefined (reading 'getNewLine')

@@ -19,12 +19,9 @@ type Actor = User | "LOL";
 -----------------
 OUTPUT
 -----------------
-Error: Expected `@GQLUnion` union members to be type references.
+src/tests/fixtures/unions/DefineUnionTypeReferencingLiteral.invalid.ts:14:21 - error TS0: Expected `@GQLUnion` union members to be type references.
 
-If you think <library name> should be able to infer this type, please report an issue at <issue URL>.:
- --> src/tests/fixtures/unions/DefineUnionTypeReferencingLiteral.invalid.ts:14:21
+If you think <library name> should be able to infer this type, please report an issue at <issue URL>.
 
-   | /** @GQLUnion */
-14 | type Actor = User | "LOL";
-   |                     ^^^^^ 
-   | 
+14 type Actor = User | "LOL";
+                       ~~~~~

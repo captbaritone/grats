@@ -15,10 +15,7 @@ type MyInputType = {
 -----------------
 OUTPUT
 -----------------
-Error: The type of MyInputType.someField must be Input Type but got: Query!.:
- --> src/tests/fixtures/input_types/InputTypeReferencingOutputType.invalid.ts:9:14
+src/tests/fixtures/input_types/InputTypeReferencingOutputType.invalid.ts:9:14 - error TS0: The type of MyInputType.someField must be Input Type but got: Query!.
 
-  | type MyInputType = {
-9 |   someField: Query;
-  |              ^ 
-  | };
+9   someField: Query;
+               ~

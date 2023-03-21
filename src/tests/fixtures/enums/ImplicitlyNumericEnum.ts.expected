@@ -10,12 +10,9 @@ enum Enum {
 -----------------
 OUTPUT
 -----------------
-Error: Expected `@GQLEnum` enum members to have string literal initializers. For example: `FOO = 'foo'`.
+src/tests/fixtures/enums/ImplicitlyNumericEnum.ts:3:3 - error TS0: Expected `@GQLEnum` enum members to have string literal initializers. For example: `FOO = 'foo'`.
 
-If you think <library name> should be able to infer this type, please report an issue at <issue URL>.:
- --> src/tests/fixtures/enums/ImplicitlyNumericEnum.ts:3:3
+If you think <library name> should be able to infer this type, please report an issue at <issue URL>.
 
-  | enum Enum {
-3 |   VALID,
-  |   ^^^^^ 
-  |   INVALID,
+3   VALID,
+    ~~~~~
