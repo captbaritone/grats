@@ -27,7 +27,6 @@ const testDirs = [
       const files = [`${fixturesDir}/${fileName}`, `src/Types.ts`];
       const schemaResult = buildSchemaResult({
         files,
-        sortSchema: false,
         nullableByDefault: true,
       });
       if (schemaResult.kind === "ERROR") {

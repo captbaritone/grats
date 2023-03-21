@@ -42,8 +42,6 @@ export type BuildOptions = {
   // Should all fields be typed as nullable in accordance with GraphQL best practices?
   // https://graphql.org/learn/best-practices/#nullability
   nullableByDefault?: boolean;
-
-  sortSchema?: boolean;
 };
 
 // Build an executable schema from a set of files. Note that if extraction
@@ -79,12 +77,9 @@ export function buildSchemaResult(
   const doc = docResult.value;
 
   // const schema = buildASTSchema(doc, { assumeValidSDL: true });
-  const schema = buildASTSchema(doc, {
-    assumeValidSDL: true,
-  });
+  const schema = buildASTSchema(doc, { assumeValidSDL: true });
 
-  const schemaValidationErrors = validateSchema(schema);
-  const diagnostics = schemaValidationErrors
+  const diagnostics = validateSchema(schema)
     // TODO: Handle case where query is not defined (no location)
     .filter((e) => e.source && e.locations && e.positions)
     .map((e) => graphQlErrorToDiagnostic(e, compilerHost));
@@ -92,12 +87,11 @@ export function buildSchemaResult(
   if (diagnostics.length > 0) {
     return err(diagnostics);
   }
+
   let runtimeSchema = applyServerDirectives(schema);
-  if (options.sortSchema) {
-    runtimeSchema = lexicographicSortSchema(runtimeSchema);
-  }
+
   if (options.emitSchemaFile) {
-    // Sorting the schema ensures that the output is deterministic.
+    runtimeSchema = lexicographicSortSchema(runtimeSchema);
     const sdl = printSchema(runtimeSchema);
     const filePath = options.emitSchemaFile ?? "./schema.graphql";
     fs.writeFileSync(filePath, sdl);
