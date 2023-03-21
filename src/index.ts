@@ -6,7 +6,6 @@ import {
   GraphQLSchema,
   Kind,
   parse,
-  printSchema,
   validateSchema,
   lexicographicSortSchema,
 } from "graphql";
@@ -22,7 +21,12 @@ import * as ts from "typescript";
 import { Extractor } from "./Extractor";
 import { TypeContext } from "./TypeContext";
 import { validateSDL } from "graphql/validation/validate";
-import { mapSchema, getDirective, MapperKind } from "@graphql-tools/utils";
+import {
+  mapSchema,
+  getDirective,
+  MapperKind,
+  printSchemaWithDirectives,
+} from "@graphql-tools/utils";
 import * as fs from "fs";
 
 export * from "./Types";
@@ -77,7 +81,6 @@ export function buildSchemaResult(
   }
   const doc = docResult.value;
 
-  // const schema = buildASTSchema(doc, { assumeValidSDL: true });
   const schema = buildASTSchema(doc, { assumeValidSDL: true });
 
   const diagnostics = validateSchema(schema)
@@ -93,7 +96,7 @@ export function buildSchemaResult(
 
   if (options.emitSchemaFile) {
     runtimeSchema = lexicographicSortSchema(runtimeSchema);
-    const sdl = printSchema(runtimeSchema);
+    const sdl = printSchemaWithDirectives(runtimeSchema, { assumeValid: true });
     const filePath = options.emitSchemaFile ?? "./schema.graphql";
     fs.writeFileSync(filePath, sdl);
   }

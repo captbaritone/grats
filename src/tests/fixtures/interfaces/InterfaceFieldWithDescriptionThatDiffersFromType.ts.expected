@@ -30,6 +30,10 @@ class User implements IPerson {
 -----------------
 OUTPUT
 -----------------
+schema {
+  query: Query
+}
+
 directive @renameField(name: String!) on FIELD_DEFINITION
 
 type Query {
@@ -37,11 +41,11 @@ type Query {
 }
 
 interface IPerson {
-  """The person's name"""
+  "The person's name"
   name: String
 }
 
 type User implements IPerson {
-  """The user's name"""
+  "The user's name"
   name: String
 }

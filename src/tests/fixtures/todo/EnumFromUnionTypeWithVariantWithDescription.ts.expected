@@ -17,6 +17,10 @@ type MyEnum =
 -----------------
 OUTPUT
 -----------------
+schema {
+  query: Query
+}
+
 directive @renameField(name: String!) on FIELD_DEFINITION
 
 type Query {

@@ -1,7 +1,7 @@
 import * as path from "path";
 import TestRunner from "./TestRunner";
-import { printSchema } from "graphql";
 import { buildSchemaResult } from "..";
+import { printSchemaWithDirectives } from "@graphql-tools/utils";
 
 async function main() {
   const write = process.argv.some((arg) => arg === "--write");
@@ -32,7 +32,9 @@ const testDirs = [
       if (schemaResult.kind === "ERROR") {
         return schemaResult.err.formatDiagnosticsWithContext();
       }
-      return printSchema(schemaResult.value);
+      return printSchemaWithDirectives(schemaResult.value, {
+        assumeValid: true,
+      });
     },
   },
 ];
