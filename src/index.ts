@@ -51,7 +51,9 @@ export function buildSchema(options: BuildOptions): GraphQLSchema {
     return _buildSchema(options);
   } catch (e) {
     if (e.loc) {
-      console.error(DiagnosticError.prototype.asCodeFrame.call(e));
+      console.error(
+        DiagnosticError.prototype.formatWithColorAndContext.call(e),
+      );
       process.exit(1);
     } else {
       throw e;
@@ -152,7 +154,7 @@ function definitionsFromFile(
 ): DocumentNode {
   const program = ts.createProgram(options.files, compilerOptions, host);
   const checker = program.getTypeChecker();
-  const ctx = new TypeContext(checker);
+  const ctx = new TypeContext(checker, host);
 
   const definitions: DefinitionNode[] = Array.from(DIRECTIVES_AST.definitions);
   for (const source of program.getSourceFiles()) {
@@ -162,7 +164,7 @@ function definitionsFromFile(
       throw new Error(`Could not find source file ${filePath}`);
     }
 
-    const extractor = new Extractor(sourceFile, ctx, options, host);
+    const extractor = new Extractor(sourceFile, ctx, options);
     const extracted = extractor.extract();
     for (const definition of extracted) {
       definitions.push(definition);

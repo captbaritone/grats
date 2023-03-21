@@ -1,7 +1,6 @@
 import { DocumentNode, NamedTypeNode, visit } from "graphql";
 import * as ts from "typescript";
-import DiagnosticError, { AnnotatedLocation } from "./utils/DiagnosticError";
-import * as Location from "./utils/Location";
+import DiagnosticError from "./utils/DiagnosticError";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
@@ -19,12 +18,14 @@ export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
  */
 export class TypeContext {
   checker: ts.TypeChecker;
+  host: ts.CompilerHost;
 
   _symbolToName: Map<ts.Symbol, string> = new Map();
   _unresolvedTypes: Map<NamedTypeNode, ts.Symbol> = new Map();
 
-  constructor(checker: ts.TypeChecker) {
+  constructor(checker: ts.TypeChecker, host: ts.CompilerHost) {
     this.checker = checker;
+    this.host = host;
   }
 
   recordTypeName(node: ts.Node, name: string) {
@@ -80,7 +81,12 @@ export class TypeContext {
       }
       throw new DiagnosticError(
         "This type is not a valid GraphQL type. Did you mean to annotate it's definition with `/** @GQLType */` or `/** @GQLScalar */`?",
-        new AnnotatedLocation(Location.fromGraphQLLocation(namedType.loc), ""),
+        {
+          start: namedType.loc.start,
+          length: namedType.loc.end - namedType.loc.start,
+          filepath: namedType.loc.source.name,
+        },
+        this.host,
       );
     }
     return { ...namedType, name: { ...namedType.name, value: name } };

@@ -36,7 +36,9 @@ const testDirs = [
       } catch (e) {
         // TODO: WTF. Why is this not instanceof DiagnosticError?
         if (e.loc) {
-          return stripColor(DiagnosticError.prototype.asTsCodeFrame.call(e));
+          return stripColor(
+            DiagnosticError.prototype.formatWithColorAndContext.call(e),
+          );
         }
         throw e;
       }

@@ -18,8 +18,7 @@ import {
   ConstArgumentNode,
   EnumValueDefinitionNode,
 } from "graphql";
-import { Position } from "./utils/Location";
-import DiagnosticError, { AnnotatedLocation } from "./utils/DiagnosticError";
+import DiagnosticError from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { TypeContext, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
 import { BuildOptions } from ".";
@@ -56,18 +55,15 @@ export class Extractor {
   ctx: TypeContext;
   buildOptions: BuildOptions;
   errors: DiagnosticError[] = [];
-  host: ts.CompilerHost;
 
   constructor(
     sourceFile: ts.SourceFile,
     ctx: TypeContext,
     buildOptions: BuildOptions,
-    host: ts.CompilerHost,
   ) {
     this.sourceFile = sourceFile;
     this.ctx = ctx;
     this.buildOptions = buildOptions;
-    this.host = host;
   }
 
   // Traverse all nodes, checking each one for its JSDoc tags.
@@ -187,8 +183,7 @@ export class Extractor {
       new DiagnosticError(
         message,
         this.diagnosticAnnotatedLocation(node),
-        [],
-        this.host,
+        this.ctx.host,
       ),
     );
   }
@@ -201,25 +196,19 @@ export class Extractor {
       new DiagnosticError(
         `${message}\n\n${suggestion}`,
         this.diagnosticAnnotatedLocation(node),
-        [],
-        this.host,
+        this.ctx.host,
       ),
     );
   }
 
-  diagnosticAnnotatedLocation(node: ts.Node): AnnotatedLocation {
-    const start = this.diagnosticPosition(node.getStart());
-    const end = this.diagnosticPosition(node.getEnd());
-    return new AnnotatedLocation(
-      { start, end, filepath: this.sourceFile.fileName },
-      "",
-    );
-  }
-
-  diagnosticPosition(pos: number): Position {
-    const { line, character } =
-      this.sourceFile.getLineAndCharacterOfPosition(pos);
-    return { offset: pos, line: line + 1, column: character + 1 };
+  diagnosticAnnotatedLocation(node: ts.Node): {
+    start: number;
+    length: number;
+    filepath: string;
+  } {
+    const start = node.getStart();
+    const end = node.getEnd();
+    return { start, length: end - start, filepath: this.sourceFile.fileName };
   }
 
   // TODO: This is potentially quite expensive, and we only need it if we report

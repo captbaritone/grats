@@ -3,7 +3,7 @@ import * as path from "path";
 import { diff } from "jest-diff";
 import DiagnosticError from "../utils/DiagnosticError";
 
-type Transformer = (code: string, filename: string) => Promise<string>;
+type Transformer = (code: string, filename: string) => Promise<string> | string;
 
 /**
  * Looks in a fixtures dir for .ts files, transforms them according to the
@@ -123,7 +123,7 @@ ${actual}`;
       return await this._transformer(code, filename);
     } catch (e) {
       if (e instanceof DiagnosticError) {
-        return e.asCodeFrame();
+        return e.formatWithColorAndContext();
       }
       console.error(e);
       return e.message;
