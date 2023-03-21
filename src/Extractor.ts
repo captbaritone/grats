@@ -22,6 +22,7 @@ import { Position } from "./utils/Location";
 import DiagnosticError, { AnnotatedLocation } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { TypeContext, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
+import { BuildOptions } from ".";
 
 const LIBRARY_IMPORT_NAME = "<library import name>";
 const LIBRARY_NAME = "<library name>";
@@ -53,11 +54,17 @@ export class Extractor {
   definitions: DefinitionNode[] = [];
   sourceFile: ts.SourceFile;
   ctx: TypeContext;
+  buildOptions: BuildOptions;
   errors: DiagnosticError[] = [];
 
-  constructor(sourceFile: ts.SourceFile, ctx: TypeContext) {
+  constructor(
+    sourceFile: ts.SourceFile,
+    ctx: TypeContext,
+    buildOptions: BuildOptions,
+  ) {
     this.sourceFile = sourceFile;
     this.ctx = ctx;
+    this.buildOptions = buildOptions;
   }
 
   // Traverse all nodes, checking each one for its JSDoc tags.
@@ -987,10 +994,13 @@ export class Extractor {
 
   // It is a GraphQL best practice to model all fields as nullable. This allows
   // the server to handle field level exections by simply returning null for
-  // that field. However, I suspect not everybody wants this behavior, so...
-  // TODO: Make this configurable.
+  // that field.
+  // https://graphql.org/learn/best-practices/#nullability
   handleErrorBubbling(type: TypeNode) {
-    return this.gqlNullableType(type);
+    if (this.buildOptions.nullableByDefault) {
+      return this.gqlNullableType(type);
+    }
+    return type;
   }
 
   /** GraphQL AST node helper methods */

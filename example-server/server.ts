@@ -10,7 +10,10 @@ async function main() {
   // FIXME: This is relative to the current working directory, not the file, or
   // something more sensible.
   const files = await glob("./example-server/**/*.ts");
-  const schema = buildSchema(files);
+  const schema = buildSchema({
+    files,
+    emitSchemaFile: "./example-server/schema.graphql",
+  });
 
   app.use(
     "/graphql",

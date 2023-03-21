@@ -17,7 +17,7 @@ async function main() {
   }
   try {
     const files = await glob(pattern);
-    const schema = buildSchema(files);
+    const schema = buildSchema({ files });
     console.log(printSchema(schema));
   } catch (e) {
     if (e.loc) {

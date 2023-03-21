@@ -1,7 +1,7 @@
 import * as path from "path";
 import TestRunner from "./TestRunner";
 import { printSchema } from "graphql";
-import { buildSchema } from "..";
+import { _buildSchema } from "..";
 import DiagnosticError from "../utils/DiagnosticError";
 
 async function main() {
@@ -27,7 +27,11 @@ const testDirs = [
     transformer: (code: string, fileName: string) => {
       const files = [`${fixturesDir}/${fileName}`, `src/Types.ts`];
       try {
-        const schema = buildSchema(files);
+        const schema = _buildSchema({
+          files,
+          sortSchema: false,
+          nullableByDefault: true,
+        });
         return printSchema(schema);
       } catch (e) {
         // TODO: WTF. Why is this not instanceof DiagnosticError?

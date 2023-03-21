@@ -6,14 +6,20 @@ import {
   GraphQLSchema,
   Kind,
   parse,
+  printSchema,
   validateSchema,
+  lexicographicSortSchema,
 } from "graphql";
-import { graphQlErrorToDiagnostic } from "./utils/DiagnosticError";
+import DiagnosticError, {
+  graphQlErrorToDiagnostic,
+} from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { Extractor } from "./Extractor";
 import { TypeContext } from "./TypeContext";
 import { validateSDL } from "graphql/validation/validate";
 import { mapSchema, getDirective, MapperKind } from "@graphql-tools/utils";
+import * as fs from "fs";
+import { run } from "node:test";
 
 export * from "./Types";
 
@@ -21,9 +27,43 @@ const DIRECTIVES_AST = parse(`
   directive @renameField(name: String!) on FIELD_DEFINITION
 `);
 
+export type BuildOptions = {
+  // The set of files which might contain GraphQL definitions.
+  // TODO: Can we get rid of this and just use the tsconfig and search through
+  // _all_ files?
+  files: string[];
+
+  // Should we write a schema file to disk? If so, where?
+  // TODO: Clarify what this path is relative to.
+  emitSchemaFile?: string;
+
+  // Should all fields be typed as nullable in accordance with GraphQL best practices?
+  // https://graphql.org/learn/best-practices/#nullability
+  nullableByDefault?: boolean;
+
+  sortSchema?: boolean;
+};
+
+// Build an executable schema from a set of files. Note that if extraction
+// fails, this function will exit the process and print a helpful error
+// message.
+export function buildSchema(options: BuildOptions): GraphQLSchema {
+  try {
+    return _buildSchema(options);
+  } catch (e) {
+    if (e.loc) {
+      console.error(DiagnosticError.prototype.asCodeFrame.call(e));
+      process.exit(1);
+    } else {
+      throw e;
+    }
+  }
+}
+
 // Construct a schema, using GraphQL schema language
-export function buildSchema(files: string[]): GraphQLSchema {
-  const doc = buildSchemaAst(files);
+// Exported for tests that want to intercept diagnostic errors.
+export function _buildSchema(options: BuildOptions): GraphQLSchema {
+  const doc = buildSchemaAst(options);
 
   // const schema = buildASTSchema(doc, { assumeValidSDL: true });
   const schema = buildASTSchema(doc, {
@@ -38,11 +78,21 @@ export function buildSchema(files: string[]): GraphQLSchema {
       throw graphQlErrorToDiagnostic(firstError);
     }
   }
-  return applyServerDirectives(schema);
+  let runtimeSchema = applyServerDirectives(schema);
+  if (options.sortSchema) {
+    runtimeSchema = lexicographicSortSchema(runtimeSchema);
+  }
+  if (options.emitSchemaFile) {
+    // Sorting the schema ensures that the output is deterministic.
+    const sdl = printSchema(runtimeSchema);
+    const filePath = options.emitSchemaFile ?? "./schema.graphql";
+    fs.writeFileSync(filePath, sdl);
+  }
+  return runtimeSchema;
 }
 
-export function buildSchemaAst(files: string[]): DocumentNode {
-  const doc = definitionsFromFile(files);
+export function buildSchemaAst(options: BuildOptions): DocumentNode {
+  const doc = definitionsFromFile(options);
 
   // TODO: Currently this does not detect definitions that shadow builtins
   // (`String`, `Int`, etc). However, if we pass a second param (extending an
@@ -84,37 +134,34 @@ function applyServerDirectives(schema: GraphQLSchema): GraphQLSchema {
   });
 }
 
-function definitionsFromFile(filePaths: string[]): DocumentNode {
+function definitionsFromFile(options: BuildOptions): DocumentNode {
   // https://stackoverflow.com/a/66604532/1263117
-  const options: ts.CompilerOptions = { allowJs: true };
+  const compilerOptions: ts.CompilerOptions = { allowJs: true };
   const compilerHost = ts.createCompilerHost(
     options,
     /* setParentNodes this is needed for finding jsDocs */
     true,
   );
-  const program = ts.createProgram(filePaths, options, compilerHost);
+  const program = ts.createProgram(
+    options.files,
+    compilerOptions,
+    compilerHost,
+  );
   const checker = program.getTypeChecker();
   const ctx = new TypeContext(checker);
 
   const definitions: DefinitionNode[] = Array.from(DIRECTIVES_AST.definitions);
-  for (const filePath of filePaths) {
-    // TODO: More robust file extension detection
-    if (
-      filePath.endsWith(".ts") ||
-      filePath.endsWith(".js") ||
-      filePath.endsWith(".jsx") ||
-      filePath.endsWith(".tsx")
-    ) {
-      const sourceFile = program.getSourceFile(filePath);
-      if (!sourceFile) {
-        throw new Error(`Could not find source file ${filePath}`);
-      }
+  for (const source of program.getSourceFiles()) {
+    const filePath = source.fileName;
+    const sourceFile = program.getSourceFile(filePath);
+    if (!sourceFile) {
+      throw new Error(`Could not find source file ${filePath}`);
+    }
 
-      const extractor = new Extractor(sourceFile, ctx);
-      const extracted = extractor.extract();
-      for (const definition of extracted) {
-        definitions.push(definition);
-      }
+    const extractor = new Extractor(sourceFile, ctx, options);
+    const extracted = extractor.extract();
+    for (const definition of extracted) {
+      definitions.push(definition);
     }
   }
 
