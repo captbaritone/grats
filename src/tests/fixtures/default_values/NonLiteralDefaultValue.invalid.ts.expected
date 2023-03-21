@@ -12,7 +12,7 @@ export default class Query {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/default_values/NonLiteralDefaultValue.invalid.ts:4:22 - error TS0: Expected GraphQL field argument default values to be a literal.
+src/tests/fixtures/default_values/NonLiteralDefaultValue.invalid.ts:4:22 - error: Expected GraphQL field argument default values to be a literal.
 
 If you think <library name> should be able to infer this type, please report an issue at <issue URL>.
 

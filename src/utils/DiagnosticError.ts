@@ -2,6 +2,10 @@ import { GraphQLError } from "graphql";
 import * as fs from "fs";
 import * as ts from "typescript";
 
+// A madeup error code that we use to fake a TypeScript error code.
+// We pick a very random number to avoid collisions with real error messages.
+const FAKE_ERROR_CODE = 349389149282;
+
 export default class DiagnosticError extends Error {
   loc: true;
   tsDiagnostic: ts.Diagnostic;
@@ -22,7 +26,7 @@ export default class DiagnosticError extends Error {
           )
         : undefined,
       category: ts.DiagnosticCategory.Error,
-      code: 0,
+      code: FAKE_ERROR_CODE,
       start: loc.start,
       length: loc.length,
       messageText: message,
@@ -34,10 +38,14 @@ export default class DiagnosticError extends Error {
   }
 
   formatWithColorAndContext(): string {
-    return ts.formatDiagnosticsWithColorAndContext(
+    const formatted = ts.formatDiagnosticsWithColorAndContext(
       [this.tsDiagnostic],
       this.host,
     );
+    // TypeScript requires having an error code, but we are not a real TS error,
+    // so we don't have an error code. This little hack here is a sin, but it
+    // lets us leverage all of TypeScript's error reporting logic.
+    return formatted.replace(` TS${FAKE_ERROR_CODE}: `, ": ");
   }
 }
 

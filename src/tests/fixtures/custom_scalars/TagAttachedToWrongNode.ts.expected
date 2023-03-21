@@ -7,7 +7,7 @@ function Foo() {}
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/custom_scalars/TagAttachedToWrongNode.ts:1:5 - error TS0: `@GQLScalar` can only be used on type alias declarations.
+src/tests/fixtures/custom_scalars/TagAttachedToWrongNode.ts:1:5 - error: `@GQLScalar` can only be used on type alias declarations.
 
 1 /** @GQLScalar Matrix */
       ~~~~~~~~~~~~~~~~~~

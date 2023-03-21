@@ -25,7 +25,7 @@ type Actor = User | Entity;
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/unions/DefineUnionTypeContainingInterface.invalid.ts:20:21 - error TS0: Union type Actor can only include Object types, it cannot include Entity.
+src/tests/fixtures/unions/DefineUnionTypeContainingInterface.invalid.ts:20:21 - error: Union type Actor can only include Object types, it cannot include Entity.
 
 20 type Actor = User | Entity;
                        ~

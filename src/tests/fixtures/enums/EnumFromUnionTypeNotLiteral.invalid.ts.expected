@@ -13,7 +13,7 @@ type MyEnum = "VALID" | number;
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/enums/EnumFromUnionTypeNotLiteral.invalid.ts:8:25 - error TS0: Expected `@GQLEnum` enum members to be string literal types. For example: `'foo'`.
+src/tests/fixtures/enums/EnumFromUnionTypeNotLiteral.invalid.ts:8:25 - error: Expected `@GQLEnum` enum members to be string literal types. For example: `'foo'`.
 
 If you think <library name> should be able to infer this type, please report an issue at <issue URL>.
 

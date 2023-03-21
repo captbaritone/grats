@@ -14,7 +14,7 @@ export default class {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/type_definitions/ClassWithoutAName.invalid.ts:4:1 - error TS0: Unexpected `@GQLType` annotation on unnamed class declaration.
+src/tests/fixtures/type_definitions/ClassWithoutAName.invalid.ts:4:1 - error: Unexpected `@GQLType` annotation on unnamed class declaration.
 
   4 export default class {
     ~~~~~~~~~~~~~~~~~~~~~~

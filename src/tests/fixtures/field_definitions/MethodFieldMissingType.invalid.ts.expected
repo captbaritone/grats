@@ -12,7 +12,7 @@ class Query {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/field_definitions/MethodFieldMissingType.invalid.ts:4:3 - error TS0: Expected GraphQL field to have a type.
+src/tests/fixtures/field_definitions/MethodFieldMissingType.invalid.ts:4:3 - error: Expected GraphQL field to have a type.
 
 4   someMethodField() {
     ~~~~~~~~~~~~~~~
