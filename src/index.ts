@@ -10,8 +10,11 @@ import {
   validateSchema,
   lexicographicSortSchema,
 } from "graphql";
-import DiagnosticError, {
+import {
+  ok,
+  err,
   graphQlErrorToDiagnostic,
+  DiagnosticsResult,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { Extractor } from "./Extractor";
@@ -47,23 +50,20 @@ export type BuildOptions = {
 // fails, this function will exit the process and print a helpful error
 // message.
 export function buildSchema(options: BuildOptions): GraphQLSchema {
-  try {
-    return _buildSchema(options);
-  } catch (e) {
-    if (e.loc) {
-      console.error(
-        DiagnosticError.prototype.formatWithColorAndContext.call(e),
-      );
-      process.exit(1);
-    } else {
-      throw e;
-    }
+  const schemaResult = buildSchemaResult(options);
+  if (schemaResult.kind === "ERROR") {
+    const e = schemaResult.err[0];
+    console.error(e.formatWithColorAndContext());
+    process.exit(1);
   }
+  return schemaResult.value;
 }
 
 // Construct a schema, using GraphQL schema language
 // Exported for tests that want to intercept diagnostic errors.
-export function _buildSchema(options: BuildOptions): GraphQLSchema {
+export function buildSchemaResult(
+  options: BuildOptions,
+): DiagnosticsResult<GraphQLSchema> {
   // https://stackoverflow.com/a/66604532/1263117
   const compilerOptions: ts.CompilerOptions = { allowJs: true };
   const compilerHost = ts.createCompilerHost(
@@ -72,7 +72,11 @@ export function _buildSchema(options: BuildOptions): GraphQLSchema {
     true,
   );
 
-  const doc = buildSchemaAst(options, compilerHost, compilerOptions);
+  const docResult = buildSchemaAst(options, compilerHost, compilerOptions);
+  if (docResult.kind === "ERROR") {
+    return docResult;
+  }
+  const doc = docResult.value;
 
   // const schema = buildASTSchema(doc, { assumeValidSDL: true });
   const schema = buildASTSchema(doc, {
@@ -80,12 +84,13 @@ export function _buildSchema(options: BuildOptions): GraphQLSchema {
   });
 
   const schemaValidationErrors = validateSchema(schema);
-  if (schemaValidationErrors.length > 0) {
-    const firstError = schemaValidationErrors[0];
-    // FIXME: Handle the error that Query is not defined
-    if (firstError.source && firstError.locations && firstError.positions) {
-      throw graphQlErrorToDiagnostic(firstError, compilerHost);
-    }
+  const diagnostics = schemaValidationErrors
+    // TODO: Handle case where query is not defined (no location)
+    .filter((e) => e.source && e.locations && e.positions)
+    .map((e) => graphQlErrorToDiagnostic(e, compilerHost));
+
+  if (diagnostics.length > 0) {
+    return err(diagnostics);
   }
   let runtimeSchema = applyServerDirectives(schema);
   if (options.sortSchema) {
@@ -97,26 +102,31 @@ export function _buildSchema(options: BuildOptions): GraphQLSchema {
     const filePath = options.emitSchemaFile ?? "./schema.graphql";
     fs.writeFileSync(filePath, sdl);
   }
-  return runtimeSchema;
+  return ok(runtimeSchema);
 }
 
 export function buildSchemaAst(
   options: BuildOptions,
   host: ts.CompilerHost,
   compilerOptions: ts.CompilerOptions,
-): DocumentNode {
-  const doc = definitionsFromFile(options, host, compilerOptions);
+): DiagnosticsResult<DocumentNode> {
+  const docResult = definitionsFromFile(options, host, compilerOptions);
+  if (docResult.kind === "ERROR") {
+    return docResult;
+  }
+  const doc = docResult.value;
 
   // TODO: Currently this does not detect definitions that shadow builtins
   // (`String`, `Int`, etc). However, if we pass a second param (extending an
   // existing schema) we do! So, we should find a way to validate that we don't
   // shadow builtins.
-  const validationErrors = validateSDL(doc);
+  const validationErrors = validateSDL(doc).map((e) => {
+    return graphQlErrorToDiagnostic(e, host);
+  });
   if (validationErrors.length > 0) {
-    // TODO: Report all errors
-    throw graphQlErrorToDiagnostic(validationErrors[0], host);
+    return err(validationErrors);
   }
-  return doc;
+  return ok(doc);
 }
 
 /**
@@ -151,7 +161,7 @@ function definitionsFromFile(
   options: BuildOptions,
   host: ts.CompilerHost,
   compilerOptions: ts.CompilerOptions,
-): DocumentNode {
+): DiagnosticsResult<DocumentNode> {
   const program = ts.createProgram(options.files, compilerOptions, host);
   const checker = program.getTypeChecker();
   const ctx = new TypeContext(checker, host);
@@ -165,9 +175,13 @@ function definitionsFromFile(
     }
 
     const extractor = new Extractor(sourceFile, ctx, options);
-    const extracted = extractor.extract();
-    for (const definition of extracted) {
-      definitions.push(definition);
+    const extractedResult = extractor.extract();
+    if (extractedResult.kind === "ERROR") {
+      return extractedResult;
+    } else {
+      for (const definition of extractedResult.value) {
+        definitions.push(definition);
+      }
     }
   }
 

@@ -18,7 +18,11 @@ import {
   ConstArgumentNode,
   EnumValueDefinitionNode,
 } from "graphql";
-import DiagnosticError from "./utils/DiagnosticError";
+import DiagnosticError, {
+  DiagnosticsResult,
+  err,
+  ok,
+} from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { TypeContext, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
 import { BuildOptions } from ".";
@@ -70,7 +74,7 @@ export class Extractor {
   // If we find a tag we recognize, we extract the relevant information,
   // reporting an error if it is attached to a node where that tag is not
   // supported.
-  extract(): DefinitionNode[] {
+  extract(): DiagnosticsResult<DefinitionNode[]> {
     ts.forEachChild(this.sourceFile, (node) => {
       for (const tag of ts.getJSDocTags(node)) {
         switch (tag.tagName.text) {
@@ -102,10 +106,9 @@ export class Extractor {
       }
     });
     if (this.errors.length > 0) {
-      // TODO: Ideally we could report all errors
-      throw this.errors[0];
+      return err(this.errors);
     }
-    return this.definitions;
+    return ok(this.definitions);
   }
 
   extractType(node: ts.Node, tag: ts.JSDocTag) {
@@ -204,11 +207,11 @@ export class Extractor {
   diagnosticAnnotatedLocation(node: ts.Node): {
     start: number;
     length: number;
-    filepath: string;
+    filepath: ts.SourceFile;
   } {
     const start = node.getStart();
     const end = node.getEnd();
-    return { start, length: end - start, filepath: this.sourceFile.fileName };
+    return { start, length: end - start, filepath: this.sourceFile };
   }
 
   // TODO: This is potentially quite expensive, and we only need it if we report

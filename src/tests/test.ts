@@ -1,8 +1,7 @@
 import * as path from "path";
 import TestRunner from "./TestRunner";
 import { printSchema } from "graphql";
-import { _buildSchema } from "..";
-import DiagnosticError from "../utils/DiagnosticError";
+import { buildSchemaResult } from "..";
 
 async function main() {
   const write = process.argv.some((arg) => arg === "--write");
@@ -26,28 +25,18 @@ const testDirs = [
     fixturesDir,
     transformer: (code: string, fileName: string) => {
       const files = [`${fixturesDir}/${fileName}`, `src/Types.ts`];
-      try {
-        const schema = _buildSchema({
-          files,
-          sortSchema: false,
-          nullableByDefault: true,
-        });
-        return printSchema(schema);
-      } catch (e) {
-        // TODO: WTF. Why is this not instanceof DiagnosticError?
-        if (e.loc) {
-          return stripColor(
-            DiagnosticError.prototype.formatWithColorAndContext.call(e),
-          );
-        }
-        throw e;
+      const schemaResult = buildSchemaResult({
+        files,
+        sortSchema: false,
+        nullableByDefault: true,
+      });
+      if (schemaResult.kind === "ERROR") {
+        const firstError = schemaResult.err[0];
+        return firstError.formatWithContext();
       }
+      return printSchema(schemaResult.value);
     },
   },
 ];
-
-function stripColor(str: string): string {
-  return str.replace(/\x1B[[(?);]{0,2}(;?\d)*./g, "");
-}
 
 main();

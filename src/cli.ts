@@ -20,10 +20,8 @@ async function main() {
     const schema = buildSchema({ files });
     console.log(printSchema(schema));
   } catch (e) {
-    if (e.loc) {
-      console.error(
-        DiagnosticError.prototype.formatWithColorAndContext.call(e),
-      );
+    if (e instanceof DiagnosticError) {
+      console.error(e.formatWithColorAndContext());
       process.exit(1);
     } else {
       throw e;

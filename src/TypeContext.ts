@@ -1,6 +1,11 @@
 import { DocumentNode, NamedTypeNode, visit } from "graphql";
 import * as ts from "typescript";
-import DiagnosticError from "./utils/DiagnosticError";
+import DiagnosticError, {
+  DiagnosticResult,
+  DiagnosticsResult,
+  err,
+  ok,
+} from "./utils/DiagnosticError";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
@@ -59,36 +64,54 @@ export class TypeContext {
     this._unresolvedTypes.set(namedType, symbol);
   }
 
-  resolveTypes(doc: DocumentNode): DocumentNode {
-    return visit(doc, {
-      NamedType: (t) => this.resolveNamedType(t),
+  resolveTypes(doc: DocumentNode): DiagnosticsResult<DocumentNode> {
+    const errors: DiagnosticError[] = [];
+    const newDoc = visit(doc, {
+      NamedType: (t) => {
+        const namedTypeResult = this.resolveNamedType(t);
+        if (namedTypeResult.kind === "ERROR") {
+          errors.push(namedTypeResult.err);
+          return t;
+        }
+        return namedTypeResult.value;
+      },
     });
+    if (errors.length > 0) {
+      return err(errors);
+    }
+    return ok(newDoc);
   }
 
-  resolveNamedType(namedType: NamedTypeNode): NamedTypeNode {
+  resolveNamedType(namedType: NamedTypeNode): DiagnosticResult<NamedTypeNode> {
     const symbol = this._unresolvedTypes.get(namedType);
     if (symbol == null) {
       if (namedType.name.value === UNRESOLVED_REFERENCE_NAME) {
         // This is a logic error on our side.
         throw new Error("Unexpected unresolved reference name.");
       }
-      return namedType;
+      return ok(namedType);
     }
     const name = this._symbolToName.get(symbol);
     if (name == null) {
       if (namedType.loc == null) {
         throw new Error("Expected namedType to have a location.");
       }
-      throw new DiagnosticError(
-        "This type is not a valid GraphQL type. Did you mean to annotate it's definition with `/** @GQLType */` or `/** @GQLScalar */`?",
-        {
-          start: namedType.loc.start,
-          length: namedType.loc.end - namedType.loc.start,
-          filepath: namedType.loc.source.name,
-        },
-        this.host,
+      return err(
+        new DiagnosticError(
+          "This type is not a valid GraphQL type. Did you mean to annotate it's definition with `/** @GQLType */` or `/** @GQLScalar */`?",
+          {
+            start: namedType.loc.start,
+            length: namedType.loc.end - namedType.loc.start,
+            filepath: ts.createSourceFile(
+              namedType.loc.source.name,
+              namedType.loc.source.body,
+              ts.ScriptTarget.Latest,
+            ),
+          },
+          this.host,
+        ),
       );
     }
-    return { ...namedType, name: { ...namedType.name, value: name } };
+    return ok({ ...namedType, name: { ...namedType.name, value: name } });
   }
 }
