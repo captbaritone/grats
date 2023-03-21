@@ -1,0 +1,16 @@
+directive @renameField(name: String!) on FIELD_DEFINITION
+
+type Group {
+  description: String
+  members: [User!]
+  name: String
+}
+
+type Query {
+  me: User
+}
+
+type User {
+  groups: [Group!]
+  name: String
+}
