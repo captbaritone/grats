@@ -21,7 +21,6 @@
 - [ ] Table of contents for docs
 
 ## Beta
-- [ ] Can we use TS diagnostics and reporting?
 - [ ] Classes as interfaces. Classes which extend this interface will implement it in GraphQL.
 - [ ] Support generic directives 
     - [ ] How do we handle arguments?
@@ -29,20 +28,19 @@
 - [ ] Try converting the Star Wars example server
 - [ ] Better error message for non GraphQL types.
 - [ ] A name
-- [ ] Handle optional/non optional
-    - [ ] Configurable: Optionality is purely derived from the types
-- [ ] Define custom scalars
 - [ ] Split out docs into multipe files
 - [ ] Extract error messages to a separate file
 - [ ] Mutations and Query fields as functions
 - [ ] Validate that we don't shadow builtins
-- [ ] Figure out how to persist schema with attached directives
-  - [ ] https://github.com/graphql/graphql-js/pull/3362
 - [ ] Parse directives from all docblocks and attach them to the schema
     - [ ] This will help catch places where people are using directives like @deprecated in unsupported positions
-- [ ] Ensure stable sort in output?
+- [ ] Add header to generated schema file indicating it was generated.
+- [ ] Add option to print sorted schema.
+- [ ] Better capture ranges form GraphQL errors
 
 ## Future
+- [ ] Can we use TypeScript's inference to infer types?
+    - [ ] For example, a method which returns a string, or a property that has a default value.
 - [ ] Define resolvers?
 - [ ] Generate tasks from playground
 - [ ] LSP/VSCode Extension
