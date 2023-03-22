@@ -26,7 +26,7 @@ import {
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { TypeContext, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
-import { BuildOptions } from ".";
+import { BuildOptions } from "./lib";
 
 const LIBRARY_IMPORT_NAME = "<library import name>";
 const LIBRARY_NAME = "<library name>";
@@ -883,7 +883,7 @@ export class Extractor {
     if (ts.isTypeReferenceNode(node)) {
       const type = this.typeReference(node);
       if (type == null) return null;
-      return this.gqlNonNullType(node, type);
+      return type;
     } else if (ts.isArrayTypeNode(node)) {
       const element = this.collectType(node.elementType);
       if (element == null) return null;
@@ -935,7 +935,7 @@ export class Extractor {
         }
         const type = this.collectType(node.typeArguments[0]);
         if (type == null) return null;
-        return this.gqlNonNullType(node, type);
+        return type;
       }
       case "Array":
       case "Iterator":

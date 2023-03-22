@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { printSchema } from "graphql";
-import { buildSchemaResult } from ".";
+import { buildSchemaResult } from "./lib";
 import { glob } from "glob";
 
 /**

@@ -8,6 +8,7 @@ import * as fs from "fs";
 import { applyServerDirectives, BuildOptions, buildSchemaResult } from "./lib";
 
 export * from "./Types";
+export * from "./lib";
 
 // Build an executable schema from a set of files. Note that if extraction
 // fails, this function will exit the process and print a helpful error

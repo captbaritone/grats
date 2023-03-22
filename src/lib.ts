@@ -54,6 +54,14 @@ export function buildSchemaResult(
     true,
   );
 
+  return buildSchemaResultWithHost(options, compilerOptions, compilerHost);
+}
+
+export function buildSchemaResultWithHost(
+  options: BuildOptions,
+  compilerOptions: ts.CompilerOptions,
+  compilerHost: ts.CompilerHost,
+): Result<GraphQLSchema, ReportableDiagnostics> {
   const docResult = buildSchemaAst(options, compilerHost, compilerOptions);
   if (docResult.kind === "ERROR") {
     return err(new ReportableDiagnostics(compilerHost, docResult.err));

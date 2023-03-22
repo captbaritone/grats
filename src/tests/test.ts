@@ -1,6 +1,6 @@
 import * as path from "path";
 import TestRunner from "./TestRunner";
-import { buildSchemaResult } from "..";
+import { buildSchemaResult } from "../lib";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
 
 async function main() {
@@ -24,10 +24,19 @@ const testDirs = [
   {
     fixturesDir,
     transformer: (code: string, fileName: string) => {
+      const firstLine = code.split("\n")[0];
+      let options = {
+        nullableByDefault: true,
+      };
+      if (firstLine.startsWith("// {")) {
+        const json = firstLine.slice(3);
+        const testOptions = JSON.parse(json);
+        options = { ...options, ...testOptions };
+      }
       const files = [`${fixturesDir}/${fileName}`, `src/Types.ts`];
       const schemaResult = buildSchemaResult({
         files,
-        nullableByDefault: true,
+        ...options,
       });
       if (schemaResult.kind === "ERROR") {
         return schemaResult.err.formatDiagnosticsWithContext();
