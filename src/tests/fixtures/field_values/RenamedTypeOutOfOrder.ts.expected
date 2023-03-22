@@ -20,7 +20,7 @@ schema {
   query: Query
 }
 
-directive @renameField(name: String!) on FIELD_DEFINITION
+directive @methodName(name: String!) on FIELD_DEFINITION
 
 type Query {
   me: User

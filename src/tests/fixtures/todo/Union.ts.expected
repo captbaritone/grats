@@ -23,7 +23,7 @@ type MyUnion = User | Group;
 -----------------
 OUTPUT
 -----------------
-directive @renameField(name: String!) on FIELD_DEFINITION
+directive @methodName(name: String!) on FIELD_DEFINITION
 
 type User {
   name: String

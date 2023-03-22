@@ -27,6 +27,7 @@ import {
 import * as ts from "typescript";
 import { TypeContext, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
 import { BuildOptions } from "./lib";
+import { METHOD_NAME_ARG, METHOD_NAME_DIRECTIVE } from "./serverDirectives";
 
 const LIBRARY_IMPORT_NAME = "<library import name>";
 const LIBRARY_NAME = "<library name>";
@@ -749,19 +750,7 @@ export class Extractor {
     if (id == null) return null;
     let directives: ConstDirectiveNode[] = [];
     if (id.text !== name.value) {
-      directives = [
-        this.gqlConstDirective(
-          node.name,
-          this.gqlName(node.name, "renameField"),
-          [
-            this.gqlConstArgument(
-              node.name,
-              this.gqlName(node.name, "name"),
-              this.gqlString(node.name, id.text),
-            ),
-          ],
-        ),
-      ];
+      directives = [this.methodNameDirective(node.name, id.text)];
     }
 
     const deprecated = this.collectDeprecated(node);
@@ -853,19 +842,7 @@ export class Extractor {
     }
 
     if (id.text !== name.value) {
-      directives = [
-        this.gqlConstDirective(
-          node.name,
-          this.gqlName(node.name, "renameField"),
-          [
-            this.gqlConstArgument(
-              node.name,
-              this.gqlName(node.name, "name"),
-              this.gqlString(node.name, id.text),
-            ),
-          ],
-        ),
-      ];
+      directives = [this.methodNameDirective(node.name, id.text)];
     }
 
     return {
@@ -1002,6 +979,20 @@ export class Extractor {
       return this.gqlNullableType(type);
     }
     return type;
+  }
+
+  methodNameDirective(nameNode: ts.Node, name: string): ConstDirectiveNode {
+    return this.gqlConstDirective(
+      nameNode,
+      this.gqlName(nameNode, METHOD_NAME_DIRECTIVE),
+      [
+        this.gqlConstArgument(
+          nameNode,
+          this.gqlName(nameNode, METHOD_NAME_ARG),
+          this.gqlString(nameNode, name),
+        ),
+      ],
+    );
   }
 
   /** GraphQL AST node helper methods */

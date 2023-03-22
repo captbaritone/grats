@@ -7,4 +7,4 @@ type MyUrl = string;
 -----------------
 OUTPUT
 -----------------
-directive @renameField(name: String!) on FIELD_DEFINITION
+directive @methodName(name: String!) on FIELD_DEFINITION

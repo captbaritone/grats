@@ -1,11 +1,9 @@
 import {
   buildASTSchema,
-  defaultFieldResolver,
   DefinitionNode,
   DocumentNode,
   GraphQLSchema,
   Kind,
-  parse,
   validateSchema,
 } from "graphql";
 import {
@@ -20,11 +18,9 @@ import * as ts from "typescript";
 import { Extractor } from "./Extractor";
 import { TypeContext } from "./TypeContext";
 import { validateSDL } from "graphql/validation/validate";
-import { mapSchema, getDirective, MapperKind } from "@graphql-tools/utils";
+import { applyServerDirectives, DIRECTIVES_AST } from "./serverDirectives";
 
-const DIRECTIVES_AST = parse(`
-    directive @renameField(name: String!) on FIELD_DEFINITION
-`);
+export { applyServerDirectives } from "./serverDirectives";
 
 export type BuildOptions = {
   // The set of files which might contain GraphQL definitions.
@@ -102,34 +98,6 @@ export function buildSchemaAst(
     return err(validationErrors);
   }
   return ok(doc);
-}
-
-/**
- * Field renaming directive:
- *
- * By default, when resolving a field, the server will take the schema field
- * name, and look for a resolver/property by that name on the parent object.
- * Since we support exposing a method/property under a different name, we need
- * to modify that field's resolver to look for the implementation name rather
- * than the schema name.
- */
-export function applyServerDirectives(schema: GraphQLSchema): GraphQLSchema {
-  // TODO: Do we really need all of mapSchema here or can we create our own
-  // thing that's simpler.
-  return mapSchema(schema, {
-    [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-      const rename = getDirective(schema, fieldConfig, "renameField")?.[0];
-      if (!rename) return;
-      const { resolve = defaultFieldResolver } = fieldConfig;
-      return {
-        ...fieldConfig,
-        resolve(source, args, context, info) {
-          const newInfo = { ...info, fieldName: rename.name };
-          return resolve(source, args, context, newInfo);
-        },
-      };
-    },
-  });
 }
 
 function definitionsFromFile(
