@@ -295,6 +295,10 @@ analysis at startup time. Nice for development, but not ideal for production
 where you would want to cache the schema and write it to disk for other tools to
 see.
 
+## Contributing
+
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md) in the repo root for details on how to make changes to this project.
+
 # FAQ
 
 ## Why would I _not_ want to use TypeScript First GraphQL?
