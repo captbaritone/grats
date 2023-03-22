@@ -5,6 +5,9 @@
   "bin": "dist/src/cli.js",
   "types": "dist/src/index.d.ts",
   "license": "MIT",
+  "files": [
+    "dist/src"
+  ],
   "scripts": {
     "cli": "ts-node --esm src/cli.ts",
     "example-server": "ts-node --esm example-server/server.ts",
