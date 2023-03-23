@@ -2,22 +2,19 @@
 
 **This is currently a proof of concept. It won't yet work on any real projects.**
 
-#  Grats
-
-**True "code first" GraphQL for TypeScript**
+# Grats: True code-first GraphQL for TypeScript
 
 Grats is a tool for statically infering GraphQL schema from your vanilla
 TypeScript code.
 
-No convoluted directive APIs to remember. No need to define your Schema at
-runtime with complicated builder APIs. Just write your types and resolvers
-as regular TypeScript and annotate your types and fields with simple JSDoc tags.
-Grats will automatically extract your GraphQL schema by statically analyzing
-your code and its types.
+Just write your types and resolvers as regular TypeScript and annotate your
+types and fields with simple JSDoc tags. From there, Grats can extract your
+GraphQL schema automatically by statically analyzing your code and its types. No
+convoluted directive APIs to remember. No need to define your Schema at
+runtime with verbose builder APIs. 
 
-By making your TypeScript code the source of truth, there's no need to worry
-about mismatches types between your GraphQL schema definitions and your
-implementation. Your implementation _is_ the schema!
+By making your TypeScript implementation the source of truth, you entirely
+remove the question of mismatches between your implementation and your GraphQL schema definition. Your implementation _is_ the schema definition!
 
 ## Example
 
