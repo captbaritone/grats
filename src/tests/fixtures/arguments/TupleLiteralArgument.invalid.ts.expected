@@ -14,7 +14,7 @@ OUTPUT
 -----------------
 src/tests/fixtures/arguments/TupleLiteralArgument.invalid.ts:4:35 - error: Unknown GraphQL type.
 
-If you think <library name> should be able to infer this type, please report an issue at <issue URL>.
+If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
 
 4   hello({ greeting }: { greeting: [string] }): string {
                                     ~~~~~~~~

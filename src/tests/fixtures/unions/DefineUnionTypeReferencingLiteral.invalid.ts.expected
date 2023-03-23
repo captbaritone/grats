@@ -21,7 +21,7 @@ OUTPUT
 -----------------
 src/tests/fixtures/unions/DefineUnionTypeReferencingLiteral.invalid.ts:14:21 - error: Expected `@GQLUnion` union members to be type references.
 
-If you think <library name> should be able to infer this type, please report an issue at <issue URL>.
+If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
 
 14 type Actor = User | "LOL";
                        ~~~~~

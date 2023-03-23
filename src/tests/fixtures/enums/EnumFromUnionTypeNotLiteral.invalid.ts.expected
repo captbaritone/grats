@@ -15,7 +15,7 @@ OUTPUT
 -----------------
 src/tests/fixtures/enums/EnumFromUnionTypeNotLiteral.invalid.ts:8:25 - error: Expected `@GQLEnum` enum members to be string literal types. For example: `'foo'`.
 
-If you think <library name> should be able to infer this type, please report an issue at <issue URL>.
+If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
 
 8 type MyEnum = "VALID" | number;
                           ~~~~~~
