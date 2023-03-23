@@ -43,6 +43,6 @@ This will start a web server running GraphiQL which you can use to try out the s
 
 ## Testing with other projects
 
-I haven't been able to get `npm link` to work with this project, perhaps because it hasn't been published yet? In the mean time, I've been using `"tsql": "file:../path/to/tool"` in the `package.json` of the project I'm testing with.
+I haven't been able to get `npm link` to work with this project, perhaps because it hasn't been published yet? In the mean time, I've been using `"grats": "file:../path/to/tool"` in the `package.json` of the project I'm testing with.
 
 Note: **Be sure to run `pnpm run build` first to build the tool.**

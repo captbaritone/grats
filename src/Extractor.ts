@@ -29,9 +29,9 @@ import { TypeContext, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
 import { BuildOptions } from "./lib";
 import { METHOD_NAME_ARG, METHOD_NAME_DIRECTIVE } from "./serverDirectives";
 
-const LIBRARY_IMPORT_NAME = "<library import name>";
-const LIBRARY_NAME = "<library name>";
-const ISSUE_URL = "<issue URL>";
+const LIBRARY_IMPORT_NAME = "grats";
+const LIBRARY_NAME = "Grats";
+const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
 
 const TYPE_TAG = "GQLType";
 const FIELD_TAG = "GQLField";
