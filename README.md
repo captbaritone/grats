@@ -64,6 +64,8 @@ type User {
 }
 ```
 
+**Give it a try in the [online playground](https://capt.dev/grats-example)!**
+
 ## CLI Usage
 
 Still very rough, but you can try it out with:
@@ -88,6 +90,17 @@ Any comment text preceding the JSDoc `@` tag will be used as that element's desc
 
 **Note that JSDocs must being with
 `/**` (two asterix).** However, they may be consolidated into a single line.
+
+The following JSDoc tags are supported:
+
+* [`@GQLType`](#GQLtype)
+* [`@GQLInterface`](#GQLinterface)
+* [`@GQLField`](#GQLfield)
+* [`@GQLUnion`](#GQLunion)
+* [`@GQLScalar`](#GQLscalar)
+* [`@GQLEnum`](#GQLenum)
+* [`@GQLInput`](#GQLinput)
+
 
 ### @GQLType
 
