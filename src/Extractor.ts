@@ -34,6 +34,7 @@ import {
   METHOD_NAME_ARG,
   METHOD_NAME_DIRECTIVE,
 } from "./serverDirectives";
+import { relative } from "path";
 
 const LIBRARY_IMPORT_NAME = "grats";
 const LIBRARY_NAME = "Grats";
@@ -343,9 +344,12 @@ export class Extractor {
       );
     }
 
-    let directives = [
-      this.exportDirective(funcName, node.parent.fileName, funcName.text),
-    ];
+    const filename = relative(
+      this.ctx.host.getCurrentDirectory(),
+      node.parent.fileName,
+    );
+
+    let directives = [this.exportDirective(funcName, filename, funcName.text)];
 
     if (funcName.text !== name.value) {
       directives = [this.methodNameDirective(funcName, funcName.text)];
@@ -1167,7 +1171,7 @@ export class Extractor {
   exportDirective(
     nameNode: ts.Node,
     filename: string,
-    functionName,
+    functionName: string,
   ): ConstDirectiveNode {
     return this.gqlConstDirective(
       nameNode,

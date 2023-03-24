@@ -13,7 +13,7 @@ type Group {
 }
 
 type Query {
-  allUsers: [User!]! @exported(filename: "/Users/captbaritone/projects/grats/example-server/models/User.ts", functionName: "allUsers")
+  allUsers: [User!]! @exported(filename: "example-server/models/User.ts", functionName: "allUsers")
   me: User!
 }
 
