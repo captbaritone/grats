@@ -34,6 +34,8 @@ schema {
 
 directive @methodName(name: String!) on FIELD_DEFINITION
 
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
 type Query {
   me: Actor
 }

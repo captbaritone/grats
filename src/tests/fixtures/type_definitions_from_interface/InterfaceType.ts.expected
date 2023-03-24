@@ -2,14 +2,9 @@
 INPUT
 ----------------- 
 /** @GQLType */
-export default class Query {
+export default interface Query {
   /** @GQLField */
-  hello(args: {
-    /** The greeting to use. */
-    greeting: string;
-  }): string {
-    return `${args.greeting} world!`;
-  }
+  hello: string;
 }
 
 -----------------
@@ -24,8 +19,5 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
 type Query {
-  hello(
-    "The greeting to use."
-    greeting: String!
-  ): String
+  hello: String
 }

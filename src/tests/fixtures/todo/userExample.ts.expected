@@ -1,0 +1,35 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+type Query = {};
+
+/** @GQLExtendType */
+export function me(_: Query): User {
+  return { firstName: "John", lastName: "Doe" };
+}
+
+/** @GQLType */
+type User = {
+  /** @GQLField */
+  firstName: string;
+  /** @GQLField */
+  lastName: string;
+};
+
+/** @GQLExtendType */
+export function fullName(user: User): string {
+  return `${user.firstName} ${user.lastName}`;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/todo/userExample.ts:1:5 - error: `@GQLType` can only be used on class or interface declarations.
+
+1 /** @GQLType */
+      ~~~~~~~~~
+src/tests/fixtures/todo/userExample.ts:9:5 - error TS349389149282: `@GQLType` can only be used on class or interface declarations.
+
+9 /** @GQLType */
+      ~~~~~~~~~

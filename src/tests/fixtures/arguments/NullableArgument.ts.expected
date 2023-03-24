@@ -38,6 +38,8 @@ schema {
 
 directive @methodName(name: String!) on FIELD_DEFINITION
 
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
 type Query {
   hello1(greeting: String): String
   hello2(greeting: String!): String
