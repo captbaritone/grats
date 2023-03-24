@@ -344,6 +344,7 @@ export class Extractor {
       );
     }
 
+    // TODO: Does this work in the browser?
     const filename = relative(
       this.ctx.host.getCurrentDirectory(),
       node.parent.fileName,
