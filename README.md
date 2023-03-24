@@ -119,6 +119,19 @@ class MyClass {
 }
 ```
 
+* Interface declaration
+
+```ts
+/**
+ * Here I can write a description of my type that will be included in the schema.
+ * @GQLType <optional name of the type, if different from interface name>
+ */
+interface MyInterface {
+  /** @GQLField */
+  someField: string;
+}
+```
+
 ### @GQLInterface
 
 GraphQL interfaces can be defined by placing a `@GQLInterface` docblock directly before an:

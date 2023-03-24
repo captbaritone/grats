@@ -1,0 +1,23 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * @GQLType Query
+ */
+interface MyInterface {
+  /** @GQLField */
+  hello: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+type Query {
+  hello: String
+}

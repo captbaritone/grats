@@ -116,10 +116,12 @@ export class Extractor {
   extractType(node: ts.Node, tag: ts.JSDocTag) {
     if (ts.isClassDeclaration(node)) {
       this.typeClassDeclaration(node, tag);
+    } else if (ts.isInterfaceDeclaration(node)) {
+      this.typeInterfaceDeclaration(node, tag);
     } else {
       this.report(
         tag,
-        `\`@${TYPE_TAG}\` can only be used on class declarations.`,
+        `\`@${TYPE_TAG}\` can only be used on class or interface declarations.`,
       );
     }
   }
@@ -392,7 +394,29 @@ export class Extractor {
     });
   }
 
-  collectInterfaces(node: ts.ClassDeclaration): Array<NamedTypeNode> | null {
+  typeInterfaceDeclaration(node: ts.InterfaceDeclaration, tag: ts.JSDocTag) {
+    const name = this.entityName(node, tag);
+    if (name == null) return null;
+
+    const description = this.collectDescription(node.name);
+    const fields = this.collectFields(node);
+    const interfaces = this.collectInterfaces(node);
+    this.ctx.recordTypeName(node.name, name.value);
+
+    this.definitions.push({
+      kind: Kind.OBJECT_TYPE_DEFINITION,
+      loc: this.loc(node),
+      description: description ?? undefined,
+      directives: undefined,
+      name,
+      fields,
+      interfaces: interfaces ?? undefined,
+    });
+  }
+
+  collectInterfaces(
+    node: ts.ClassDeclaration | ts.InterfaceDeclaration,
+  ): Array<NamedTypeNode> | null {
     if (node.heritageClauses == null) return null;
 
     const maybeInterfaces: Array<NamedTypeNode | null> =
