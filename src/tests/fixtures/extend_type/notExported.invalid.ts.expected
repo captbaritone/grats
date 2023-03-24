@@ -1,0 +1,20 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class Query {
+  // No fields
+}
+
+/** @GQLExtendType */
+function greeting(_: Query): string {
+  return `Hello World`;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/extend_type/notExported.invalid.ts:7:10 - error: Expected type extension function to be a named export.
+
+7 function greeting(_: Query): string {
+           ~~~~~~~~

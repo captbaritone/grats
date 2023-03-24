@@ -1,0 +1,42 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class Query {
+  /** @GQLField */
+  me: User;
+}
+
+/** @GQLType */
+class User {
+  /** @GQLField */
+  firstName: string;
+  /** @GQLField */
+  lastName: string;
+}
+
+/** @GQLExtendType */
+export function fullName(user: User): string {
+  return `${user.firstName} ${user.lastName}`;
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  me: User
+}
+
+type User {
+  firstName: String
+  lastName: String
+  fullName: String @exported(filename: "/Users/captbaritone/projects/grats/src/tests/fixtures/extend_type/userExample.ts", functionName: "fullName")
+}

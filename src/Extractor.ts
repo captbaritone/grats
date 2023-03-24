@@ -27,7 +27,13 @@ import {
 import * as ts from "typescript";
 import { TypeContext, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
 import { BuildOptions } from "./lib";
-import { METHOD_NAME_ARG, METHOD_NAME_DIRECTIVE } from "./serverDirectives";
+import {
+  EXPORTED_DIRECTIVE,
+  EXPORTED_FILENAME_ARG,
+  EXPORTED_FUNCTION_NAME_ARG,
+  METHOD_NAME_ARG,
+  METHOD_NAME_DIRECTIVE,
+} from "./serverDirectives";
 
 const LIBRARY_IMPORT_NAME = "grats";
 const LIBRARY_NAME = "Grats";
@@ -40,6 +46,7 @@ const INTERFACE_TAG = "GQLInterface";
 const ENUM_TAG = "GQLEnum";
 const UNION_TAG = "GQLUnion";
 const INPUT_TAG = "GQLInput";
+const EXTEND_TYPE = "GQLExtendType";
 
 const DEPRECATED_TAG = "deprecated";
 
@@ -103,6 +110,9 @@ export class Extractor {
             break;
           case UNION_TAG:
             this.extractUnion(node, tag);
+            break;
+          case EXTEND_TYPE:
+            this.extractExtendType(node, tag);
             break;
         }
       }
@@ -183,9 +193,21 @@ export class Extractor {
     }
   }
 
+  extractExtendType(node: ts.Node, tag: ts.JSDocTag) {
+    if (ts.isFunctionDeclaration(node)) {
+      // FIXME: Validate that the function is a named export
+      this.functionDeclarationExtendType(node, tag);
+    } else {
+      this.report(
+        tag,
+        `\`@${EXTEND_TYPE}\` can only be used on function declarations.`,
+      );
+    }
+  }
+
   /** Error handling and location juggling */
 
-  report(node: ts.Node, message: string) {
+  report(node: ts.Node, message: string): null {
     const start = node.getStart();
     const length = node.getEnd() - start;
     this.errors.push({
@@ -196,14 +218,16 @@ export class Extractor {
       start,
       length,
     });
+    return null;
   }
 
   // Report an error that we don't know how to infer a type, but it's possible that we should.
   // Gives the user a path forward if they think we should be able to infer this type.
-  reportUnhandled(node: ts.Node, message: string) {
+  reportUnhandled(node: ts.Node, message: string): null {
     const suggestion = `If you think ${LIBRARY_NAME} should be able to infer this type, please report an issue at ${ISSUE_URL}.`;
     const completedMessage = `${message}\n\n${suggestion}`;
     this.report(node, completedMessage);
+    return null;
   }
 
   diagnosticAnnotatedLocation(node: ts.Node): {
@@ -239,28 +263,26 @@ export class Extractor {
     if (name == null) return null;
 
     if (!ts.isUnionTypeNode(node.type)) {
-      this.report(
+      return this.report(
         node,
         `Expected a TypeScript union. \`@${UNION_TAG}\` can only be used on TypeScript unions.`,
       );
-      return null;
     }
     const description = this.collectDescription(node.name);
 
     const types: NamedTypeNode[] = [];
     for (const member of node.type.types) {
       if (!ts.isTypeReferenceNode(member)) {
-        this.reportUnhandled(
+        return this.reportUnhandled(
           member,
           `Expected \`@${UNION_TAG}\` union members to be type references.`,
         );
-        return null;
       }
       const namedType = this.gqlNamedType(
         member.typeName,
         UNRESOLVED_REFERENCE_NAME,
       );
-      this.ctx.markUnresolvedType(member.typeName, namedType);
+      this.ctx.markUnresolvedType(member.typeName, namedType.name);
       types.push(namedType);
     }
 
@@ -273,6 +295,134 @@ export class Extractor {
       name: name,
       types,
     });
+  }
+
+  functionDeclarationExtendType(
+    node: ts.FunctionDeclaration,
+    tag: ts.JSDocTag,
+  ) {
+    const funcName = this.namedFunctionExportName(node);
+    if (funcName == null) return null;
+
+    const typeParam = node.parameters[0];
+    if (typeParam == null) {
+      return this.report(
+        funcName,
+        `Expected type extension function to have a first argument representing the type to extend.`,
+      );
+    }
+
+    const typeName = this.typeReferenceFromParam(typeParam);
+    if (typeName == null) return null;
+
+    const name = this.entityName(node, tag);
+    if (name == null) return null;
+
+    if (node.type == null) {
+      return this.report(
+        funcName,
+        "Expected GraphQL field to have an explicit return type.",
+      );
+    }
+
+    const type = this.collectType(node.type);
+    if (type == null) return null;
+
+    let args: readonly InputValueDefinitionNode[] | null = null;
+    const argsParam = node.parameters[1];
+    if (argsParam != null) {
+      args = this.collectArgs(argsParam);
+    }
+
+    const description = this.collectDescription(funcName);
+
+    if (!ts.isSourceFile(node.parent)) {
+      return this.report(
+        node,
+        "Expected type extension function to be a top-level declaration.",
+      );
+    }
+
+    let directives = [
+      this.exportDirective(funcName, node.parent.fileName, funcName.text),
+    ];
+
+    if (funcName.text !== name.value) {
+      directives = [this.methodNameDirective(funcName, funcName.text)];
+    }
+
+    const deprecated = this.collectDeprecated(node);
+    if (deprecated != null) {
+      directives.push(deprecated);
+    }
+
+    this.definitions.push({
+      kind: Kind.OBJECT_TYPE_EXTENSION,
+      loc: this.loc(node),
+      name: typeName,
+      fields: [
+        {
+          kind: Kind.FIELD_DEFINITION,
+          loc: this.loc(node),
+          description: description || undefined,
+          name,
+          arguments: args || undefined,
+          type: this.handleErrorBubbling(type),
+          directives: directives.length === 0 ? undefined : directives,
+        },
+      ],
+    });
+  }
+
+  typeReferenceFromParam(typeParam: ts.ParameterDeclaration): NameNode | null {
+    if (typeParam.type == null) {
+      return this.report(
+        typeParam,
+        `Expected first argument of a type extension function to have an explicit type annotation.`,
+      );
+    }
+    if (!ts.isTypeReferenceNode(typeParam.type)) {
+      return this.report(
+        typeParam.type,
+        `Expected first argument of a type extension function to be typed as a \`@GQLType\` type.`,
+      );
+    }
+
+    const nameNode = typeParam.type.typeName;
+    const typeName = this.gqlName(nameNode, UNRESOLVED_REFERENCE_NAME);
+    this.ctx.markUnresolvedType(nameNode, typeName);
+    return typeName;
+  }
+
+  namedFunctionExportName(node: ts.FunctionDeclaration): ts.Identifier | null {
+    if (node.name == null) {
+      return this.report(
+        node,
+        `Expected type extension function to be a named function.`,
+      );
+    }
+    const exportKeyword = node.modifiers?.some((modifier) => {
+      return modifier.kind === ts.SyntaxKind.ExportKeyword;
+    });
+    const defaultKeyword = node.modifiers?.find((modifier) => {
+      return modifier.kind === ts.SyntaxKind.DefaultKeyword;
+    });
+
+    if (defaultKeyword != null) {
+      // TODO: We could support this
+      return this.report(
+        defaultKeyword,
+        `Expected type extension function to be a named export, not a default export.`,
+      );
+    }
+
+    if (exportKeyword == null) {
+      return this.report(
+        node.name,
+        `Expected type extension function to be a named export.`,
+      );
+    }
+    return node.name;
   }
 
   scalarTypeAliasDeclaration(node: ts.TypeAliasDeclaration, tag: ts.JSDocTag) {
@@ -314,11 +464,10 @@ export class Extractor {
     const fields: Array<InputValueDefinitionNode> = [];
 
     if (!ts.isTypeLiteralNode(node.type)) {
-      this.reportUnhandled(
+      return this.reportUnhandled(
         node,
         `\`@${INPUT_TAG}\` can only be used on type literals.`,
       );
-      return null;
     }
 
     for (const member of node.type.members) {
@@ -343,8 +492,7 @@ export class Extractor {
     if (id == null) return null;
 
     if (node.type == null) {
-      this.report(node, "Input field must have a type annotation.");
-      return null;
+      return this.report(node, "Input field must have a type annotation.");
     }
 
     const inner = this.collectType(node.type);
@@ -368,11 +516,10 @@ export class Extractor {
 
   typeClassDeclaration(node: ts.ClassDeclaration, tag: ts.JSDocTag) {
     if (node.name == null) {
-      this.report(
+      return this.report(
         node,
         `Unexpected \`@${TYPE_TAG}\` annotation on unnamed class declaration.`,
       );
-      return null;
     }
 
     const name = this.entityName(node, tag);
@@ -431,7 +578,7 @@ export class Extractor {
             type.expression,
             UNRESOLVED_REFERENCE_NAME,
           );
-          this.ctx.markUnresolvedType(type.expression, namedType);
+          this.ctx.markUnresolvedType(type.expression, namedType.name);
           return namedType;
         });
       });
@@ -500,30 +647,25 @@ export class Extractor {
   }
 
   collectArgs(
-    node: ts.MethodDeclaration,
+    argsParam: ts.ParameterDeclaration,
   ): ReadonlyArray<InputValueDefinitionNode> | null {
     const args: InputValueDefinitionNode[] = [];
-    const argsParam = node.parameters[0];
-    if (argsParam == null) {
-      return null;
-    }
+
     const argsType = argsParam.type;
     if (argsType == null) {
-      this.report(
+      return this.report(
         argsParam,
         "Expected GraphQL field arguments to have a TypeScript type. If there are no arguments, you can use `args: never`.",
       );
-      return null;
     }
     if (argsType.kind === ts.SyntaxKind.NeverKeyword) {
       return [];
     }
     if (!ts.isTypeLiteralNode(argsType)) {
-      this.report(
+      return this.report(
         argsType,
         "Expected GraphQL field arguments to be typed using a literal object: `{someField: string}`.",
       );
-      return null;
     }
 
     let defaults: ArgDefaults | null = null;
@@ -577,24 +719,24 @@ export class Extractor {
   ): InputValueDefinitionNode | null {
     if (!ts.isPropertySignature(node)) {
       // TODO: How can I create this error?
-      this.report(
+      return this.report(
         node,
         "Expected GraphQL field argument type to be a property signature.",
       );
-      return null;
     }
     if (!ts.isIdentifier(node.name)) {
       // TODO: How can I create this error?
-      this.report(
+      return this.report(
         node.name,
         "Expected GraphQL field argument names to be a literal.",
       );
-      return null;
     }
 
     if (node.type == null) {
-      this.report(node.name, "Expected GraphQL field argument to have a type.");
-      return null;
+      return this.report(
+        node.name,
+        "Expected GraphQL field argument to have a type.",
+      );
     }
     const type = this.collectType(node.type);
     if (type == null) return null;
@@ -729,7 +871,8 @@ export class Extractor {
       | ts.InterfaceDeclaration
       | ts.PropertySignature
       | ts.EnumDeclaration
-      | ts.TypeAliasDeclaration,
+      | ts.TypeAliasDeclaration
+      | ts.FunctionDeclaration,
     tag: ts.JSDocTag,
   ) {
     if (tag.comment != null) {
@@ -741,8 +884,7 @@ export class Extractor {
     }
 
     if (node.name == null) {
-      this.report(node, "Expected GraphQL entity to have a name.");
-      return null;
+      return this.report(node, "Expected GraphQL entity to have a name.");
     }
     const id = this.expectIdentifier(node.name);
     if (id == null) return null;
@@ -757,8 +899,7 @@ export class Extractor {
     if (name == null) return null;
 
     if (node.type == null) {
-      this.report(node.name, "Expected GraphQL field to have a type.");
-      return null;
+      return this.report(node.name, "Expected GraphQL field to have a type.");
     }
 
     const type = this.collectType(node.type);
@@ -766,7 +907,11 @@ export class Extractor {
     // We already reported an error
     if (type == null) return null;
 
-    const args = this.collectArgs(node);
+    let args: readonly InputValueDefinitionNode[] | null = null;
+    const argsParam = node.parameters[0];
+    if (argsParam != null) {
+      args = this.collectArgs(argsParam);
+    }
 
     const description = this.collectDescription(node.name);
 
@@ -796,11 +941,10 @@ export class Extractor {
   collectDescription(node: ts.Node): StringValueNode | null {
     const symbol = this.ctx.checker.getSymbolAtLocation(node);
     if (symbol == null) {
-      this.report(
+      return this.report(
         node,
         "Expected TypeScript to be able to resolve this GraphQL entity to a symbol.",
       );
-      return null;
     }
     const doc = symbol.getDocumentationComment(this.ctx.checker);
     const description = ts.displayPartsToString(doc);
@@ -906,17 +1050,15 @@ export class Extractor {
     } else if (node.kind === ts.SyntaxKind.BooleanKeyword) {
       return this.gqlNonNullType(node, this.gqlNamedType(node, "Boolean"));
     } else if (node.kind === ts.SyntaxKind.NumberKeyword) {
-      this.report(
+      return this.report(
         node,
         `Unexpected number type. GraphQL supports both Int and Float, making \`number\` ambiguous. Instead, import the \`Int\` or \`Float\` type from \`${LIBRARY_IMPORT_NAME}\` and use that.`,
       );
-      return null;
     } else if (ts.isTypeLiteralNode(node)) {
-      this.report(
+      return this.report(
         node,
         `Unexpected type literal. You may want to define a named GraphQL type elsewhere and reference it here.`,
       );
-      return null;
     }
     // TODO: Better error message. This is okay if it's a type reference, but everything else is not.
     this.reportUnhandled(node, `Unknown GraphQL type.`);
@@ -931,8 +1073,10 @@ export class Extractor {
     switch (typeName) {
       case "Promise": {
         if (node.typeArguments == null) {
-          this.report(node, `Expected type reference to have type arguments.`);
-          return null;
+          return this.report(
+            node,
+            `Expected type reference to have type arguments.`,
+          );
         }
         const type = this.collectType(node.typeArguments[0]);
         if (type == null) return null;
@@ -942,8 +1086,10 @@ export class Extractor {
       case "Iterator":
       case "ReadonlyArray": {
         if (node.typeArguments == null) {
-          this.report(node, `Expected type reference to have type arguments.`);
-          return null;
+          return this.report(
+            node,
+            `Expected type reference to have type arguments.`,
+          );
         }
         const element = this.collectType(node.typeArguments[0]);
         if (element == null) return null;
@@ -955,7 +1101,7 @@ export class Extractor {
         //
         // A later pass will resolve the type.
         const namedType = this.gqlNamedType(node, UNRESOLVED_REFERENCE_NAME);
-        this.ctx.markUnresolvedType(node.typeName, namedType);
+        this.ctx.markUnresolvedType(node.typeName, namedType.name);
         return this.gqlNonNullType(node, namedType);
       }
     }
@@ -982,8 +1128,7 @@ export class Extractor {
     if (ts.isIdentifier(node)) {
       return node;
     }
-    this.report(node, "Expected an identifier.");
-    return null;
+    return this.report(node, "Expected an identifier.");
   }
 
   findTag(node: ts.Node, tagName: string): ts.JSDocTag | null {
@@ -1014,6 +1159,29 @@ export class Extractor {
           nameNode,
           this.gqlName(nameNode, METHOD_NAME_ARG),
           this.gqlString(nameNode, name),
+        ),
+      ],
+    );
+  }
+
+  exportDirective(
+    nameNode: ts.Node,
+    filename: string,
+    functionName,
+  ): ConstDirectiveNode {
+    return this.gqlConstDirective(
+      nameNode,
+      this.gqlName(nameNode, EXPORTED_DIRECTIVE),
+      [
+        this.gqlConstArgument(
+          nameNode,
+          this.gqlName(nameNode, EXPORTED_FILENAME_ARG),
+          this.gqlString(nameNode, filename),
+        ),
+        this.gqlConstArgument(
+          nameNode,
+          this.gqlName(nameNode, EXPORTED_FUNCTION_NAME_ARG),
+          this.gqlString(nameNode, functionName),
         ),
       ],
     );

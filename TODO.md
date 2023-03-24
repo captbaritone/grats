@@ -1,8 +1,6 @@
 # TODO
 
 ## Alpha
-- [ ] Rewrite pitch/description 
-- [ ] Decouple from file system
 - [ ] Ensure `__typename`?
 - [ ] More literals
     - [ ] Int
@@ -13,32 +11,43 @@
     - [ ] List
     - [ ] Object
     - [ ] Null
-- [ ] Build a playground
-    - Code on left, GraphQL on right
-    - Could we actually evaluate the resolvers? Maybe in a worker?
-    - Could we hook up GraphiQL 2?
-    - Could we surface TS errors?
-- [ ] Table of contents for docs
+- [ ] Mutations and Query fields as functions
+- [ ] Define types from type literals
+- [ ] Extend interfaces
 
 ## Beta
-- [ ] Classes as interfaces. Classes which extend this interface will implement it in GraphQL.
 - [ ] Support generic directives 
     - [ ] How do we handle arguments?
     - [ ] Same as defaults?
 - [ ] Try converting the Star Wars example server
 - [ ] Better error message for non GraphQL types.
-- [ ] A name
 - [ ] Split out docs into multipe files
 - [ ] Extract error messages to a separate file
-- [ ] Mutations and Query fields as functions
 - [ ] Validate that we don't shadow builtins
 - [ ] Parse directives from all docblocks and attach them to the schema
     - [ ] This will help catch places where people are using directives like @deprecated in unsupported positions
 - [ ] Add header to generated schema file indicating it was generated.
 - [ ] Add option to print sorted schema.
-- [ ] Better capture ranges form GraphQL errors
+
+## Examples, Guides and Documentation
+- [ ] Add a guide for using with Apollo Server
+- [ ] Add a guide for using with Express-graphql
+- [ ] Add a guide for OOP style
+- [ ] Add a guide for functional style
+- [ ] Comparison to Nexus
+- [ ] Comparison to Pothos
+- [ ] Comparison to TypeGraphQL
+- [ ] Migration guide from Nexus
+- [ ] Migration guide from Pothos
+- [ ] Migration guide from TypeGraphQL
+- [ ] Post about what it means to be "True" code-first
 
 ## Future
+- [ ] Improve playground
+    - Could we actually evaluate the resolvers? Maybe in a worker?
+    - Could we hook up GraphiQL 2?
+    - Could we surface TS errors?
+- [ ] Can we ensure the context and ast arguments of resolvers are correct?
 - [ ] Can we use TypeScript's inference to infer types?
     - [ ] For example, a method which returns a string, or a property that has a default value.
 - [ ] Define resolvers?

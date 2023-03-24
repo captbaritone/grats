@@ -1,0 +1,27 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class Query {
+  /** @GQLField */
+  foo: string;
+}
+
+/** @GQLInterface */
+interface IFoo {
+  /** @GQLField */
+  bar: string;
+}
+
+/** @GQLExtendType */
+export function greeting(iFoo: IFoo): string {
+  return "Hello world!";
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/extend_type/interfaceFirstArgumentType.invalid.ts:8:1 - error: Cannot extend non-object type "IFoo".
+
+8 interface IFoo {
+  ~

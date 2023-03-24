@@ -1,0 +1,34 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class Query {
+  // No fields
+}
+
+/** @GQLExtendType */
+export function greeting(
+  // A bit odd that this is optional, but it's fine, since we will always call
+  // it with a non-null value
+  q?: Query,
+): string {
+  if (q == null) {
+    return "Out!";
+  }
+  return "Hello world!";
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  greeting: String @exported(filename: "/Users/captbaritone/projects/grats/src/tests/fixtures/extend_type/optionalModelType.ts", functionName: "greeting")
+}

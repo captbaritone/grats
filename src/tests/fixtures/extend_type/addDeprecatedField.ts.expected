@@ -1,0 +1,30 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class Query {
+  // No fields
+}
+
+/**
+ * @GQLExtendType
+ * @deprecated Because reasons
+ */
+export function greeting(query: Query): string {
+  return "Hello world!";
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  greeting: String @deprecated(reason: "Because reasons") @exported(filename: "/Users/captbaritone/projects/grats/src/tests/fixtures/extend_type/addDeprecatedField.ts", functionName: "greeting")
+}

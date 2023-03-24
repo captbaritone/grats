@@ -1,0 +1,22 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class Query {
+  // No fields
+}
+
+class Foo {}
+
+/** @GQLExtendType */
+export function greeting(query: Foo): string {
+  return "Hello world!";
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/extend_type/nonGQLFirstArgumentType.invalid.ts:9:33 - error: This type is not a valid GraphQL type. Did you mean to annotate it's definition with `/** @GQLType */` or `/** @GQLScalar */`?
+
+9 export function greeting(query: Foo): string {
+                                  ~~~

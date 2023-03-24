@@ -1,0 +1,20 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class Query {
+  // No fields
+}
+
+/** @GQLExtendType */
+export function greeting(/* Without an arg we can't infer the type! */): string {
+  return "Hello world!";
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/extend_type/missingFirstArgument.invalid.ts:7:17 - error: Expected type extension function to have a first argument representing the type to extend.
+
+7 export function greeting(/* Without an arg we can't infer the type! */): string {
+                  ~~~~~~~~

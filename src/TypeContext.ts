@@ -1,4 +1,4 @@
-import { DocumentNode, NamedTypeNode, visit } from "graphql";
+import { DocumentNode, NameNode, visit } from "graphql";
 import * as ts from "typescript";
 import {
   DiagnosticResult,
@@ -27,7 +27,7 @@ export class TypeContext {
   host: ts.CompilerHost;
 
   _symbolToName: Map<ts.Symbol, string> = new Map();
-  _unresolvedTypes: Map<NamedTypeNode, ts.Symbol> = new Map();
+  _unresolvedTypes: Map<NameNode, ts.Symbol> = new Map();
 
   constructor(checker: ts.TypeChecker, host: ts.CompilerHost) {
     this.checker = checker;
@@ -49,9 +49,10 @@ export class TypeContext {
     this._symbolToName.set(symbol, name);
   }
 
-  markUnresolvedType(node: ts.Node, namedType: NamedTypeNode) {
+  markUnresolvedType(node: ts.Node, name: NameNode) {
     let symbol = this.checker.getSymbolAtLocation(node);
     if (symbol == null) {
+      //
       throw new Error(
         "Could not resolve type reference. You probably have a TypeScript error.",
       );
@@ -62,13 +63,13 @@ export class TypeContext {
       symbol = this.checker.getAliasedSymbol(symbol);
     }
 
-    this._unresolvedTypes.set(namedType, symbol);
+    this._unresolvedTypes.set(name, symbol);
   }
 
   resolveTypes(doc: DocumentNode): DiagnosticsResult<DocumentNode> {
     const errors: ts.Diagnostic[] = [];
     const newDoc = visit(doc, {
-      NamedType: (t) => {
+      Name: (t) => {
         const namedTypeResult = this.resolveNamedType(t);
         if (namedTypeResult.kind === "ERROR") {
           errors.push(namedTypeResult.err);
@@ -83,34 +84,34 @@ export class TypeContext {
     return ok(newDoc);
   }
 
-  resolveNamedType(namedType: NamedTypeNode): DiagnosticResult<NamedTypeNode> {
-    const symbol = this._unresolvedTypes.get(namedType);
+  resolveNamedType(unresolved: NameNode): DiagnosticResult<NameNode> {
+    const symbol = this._unresolvedTypes.get(unresolved);
     if (symbol == null) {
-      if (namedType.name.value === UNRESOLVED_REFERENCE_NAME) {
+      if (unresolved.value === UNRESOLVED_REFERENCE_NAME) {
         // This is a logic error on our side.
         throw new Error("Unexpected unresolved reference name.");
       }
-      return ok(namedType);
+      return ok(unresolved);
     }
     const name = this._symbolToName.get(symbol);
     if (name == null) {
-      if (namedType.loc == null) {
+      if (unresolved.loc == null) {
         throw new Error("Expected namedType to have a location.");
       }
       return err({
         messageText:
           "This type is not a valid GraphQL type. Did you mean to annotate it's definition with `/** @GQLType */` or `/** @GQLScalar */`?",
-        start: namedType.loc.start,
-        length: namedType.loc.end - namedType.loc.start,
+        start: unresolved.loc.start,
+        length: unresolved.loc.end - unresolved.loc.start,
         category: ts.DiagnosticCategory.Error,
         code: FAKE_ERROR_CODE,
         file: ts.createSourceFile(
-          namedType.loc.source.name,
-          namedType.loc.source.body,
+          unresolved.loc.source.name,
+          unresolved.loc.source.body,
           ts.ScriptTarget.Latest,
         ),
       });
     }
-    return ok({ ...namedType, name: { ...namedType.name, value: name } });
+    return ok({ ...unresolved, value: name });
   }
 }

@@ -1,0 +1,22 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class Query {
+  // No fields
+}
+
+/** @GQLExtendType */
+export function greeting(
+  query /* Without an arg type we can't infer the GraphQL type to extend! */,
+): string {
+  return "Hello world!";
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/extend_type/missingFirstArgumentType.invalid.ts:8:3 - error: Expected first argument of a type extension function to have an explicit type annotation.
+
+8   query /* Without an arg type we can't infer the GraphQL type to extend! */,
+    ~~~~~

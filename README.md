@@ -100,6 +100,7 @@ The following JSDoc tags are supported:
 * [`@GQLScalar`](#GQLscalar)
 * [`@GQLEnum`](#GQLenum)
 * [`@GQLInput`](#GQLinput)
+* [`@GQLExtendType`](#GQLExtendType)
 
 
 ### @GQLType
@@ -284,7 +285,7 @@ enum MyEnum {
 }
 ```
 
-We also support defining enums using a union of string literals, howerver there
+We also support defining enums using a union of string literals, however there
 are some limitations to this approach:
 
 * You cannot add descriptions to enum values
@@ -317,6 +318,49 @@ type MyInput = {
   age: number;
 };
 ```
+
+### @GQLExtendType
+
+Sometimes you want to add a computed field to a non-class type, or extend base
+type like `Query` or `Mutation` from another file. Both of these usecases are
+enabled by placing a `@GQLExtendType` before a:
+
+* Exported function declaration
+
+In this case, the function should expect an instance of the base type as the
+first argument, and an object representing the GraphQL field arguments as the
+second argument. The function should return the value of the field.
+
+Extending Query:
+
+```ts
+/** 
+ * Description of my field
+ * @GQLExtendType <optional name of the field, if different from function name>
+ */
+export function userById(_: Query, args: {id: string}): User {
+  return DB.getUserById(args.id);
+}
+```
+
+Extending Mutation:
+
+```ts
+/** 
+ * Delete a user. GOODBYE!
+ * @GQLExtendType <optional name of the mutation, if different from function name>
+ */
+export function deleteUser(_: Mutation, args: {id: string}): boolean {
+  return DB.deleteUser(args.id);
+}
+```
+
+Note that Grats will use the type of the first argument to determine which type
+is being extended. So, as seen in the previous examples, even if you don't need
+access to the instance you should still define a typed first argument.
+
+You can think of `@GQLExtendType` as equivalent to the `extend type` syntax in
+GraphQL's schema definition language.
 
 ## Example
 
