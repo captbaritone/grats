@@ -324,7 +324,7 @@ GraphQL enums can be defined by placing a `@GQLEnum` docblock directly before a:
  */
 enum MyEnum {
   /** A description of my variant */
-  OK = "OK"
+  OK = "OK",
   /** A description of my other variant */
   ERROR = "ERROR"
 }

@@ -2,7 +2,6 @@ import * as path from "path";
 import TestRunner from "./TestRunner";
 import { buildSchemaResult, GratsOptions } from "../lib";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
-import * as ts from "typescript";
 
 async function main() {
   const write = process.argv.some((arg) => arg === "--write");
