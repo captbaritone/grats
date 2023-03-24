@@ -113,7 +113,7 @@ console.log("Running a GraphQL API server at http://localhost:4000/graphql");
 Grats has a few configuration options. They can be set in your project's
 `tsconfig.json` file:
 
-```json
+```json5
 {
   "grats": {
     // Should all fields be typed as nullable in accordance with GraphQL best
