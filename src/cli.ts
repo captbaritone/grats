@@ -1,21 +1,24 @@
 #!/usr/bin/env node
 
 import { printSchema } from "graphql";
+import { getParsedTsConfig, gratsOptionsFromTsConfig } from "./";
 import { buildSchemaResult } from "./lib";
-import { glob } from "glob";
 
 /**
- * Build a schema from a glob pattern.
+ * Extract schema from TypeScript files and print to stdout.
  *
- * Usage: node dist/cli.js "./**.ts"
+ * Will search for a tsconfig.json file relative to the current working
+ * directory.
+ *
+ * There are not yet any command line options.
+ *
+ * Usage: grats
  */
 async function main() {
-  const pattern = process.argv[2];
-  if (!pattern) {
-    throw new Error("Expected glob as first argument");
-  }
-  const files = await glob(pattern);
-  const schemaResult = buildSchemaResult({ files });
+  const parsed = getParsedTsConfig();
+  // FIXME: Validate config!
+  // https://github.com/tsconfig/bases
+  const schemaResult = buildSchemaResult(gratsOptionsFromTsConfig(parsed));
   if (schemaResult.kind === "ERROR") {
     console.error(schemaResult.err.formatDiagnosticsWithColorAndContext());
     process.exit(1);

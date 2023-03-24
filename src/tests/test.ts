@@ -1,7 +1,8 @@
 import * as path from "path";
 import TestRunner from "./TestRunner";
-import { buildSchemaResult } from "../lib";
+import { buildSchemaResult, GratsOptions } from "../lib";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
+import * as ts from "typescript";
 
 async function main() {
   const write = process.argv.some((arg) => arg === "--write");
@@ -34,10 +35,12 @@ const testDirs = [
         options = { ...options, ...testOptions };
       }
       const files = [`${fixturesDir}/${fileName}`, `src/Types.ts`];
-      const schemaResult = buildSchemaResult({
+      const parsedOptions: GratsOptions = {
+        tsCompilerOptions: {},
         files,
-        ...options,
-      });
+        configOptions: options,
+      };
+      const schemaResult = buildSchemaResult(parsedOptions);
       if (schemaResult.kind === "ERROR") {
         return schemaResult.err.formatDiagnosticsWithContext();
       }

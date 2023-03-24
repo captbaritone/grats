@@ -1,8 +1,7 @@
 import * as express from "express";
 import { graphqlHTTP } from "express-graphql";
 import Query from "./Query";
-import { buildSchema, buildSchemaFromSDL } from "../src";
-import { glob } from "glob";
+import { extractGratsSchemaAtRuntime, buildSchemaFromSDL } from "../src";
 
 async function main() {
   const app = express();
@@ -10,7 +9,7 @@ async function main() {
   // FIXME: This is relative to the current working directory, not the file, or
   // something more sensible.
 
-  const schema = await getSchema();
+  const schema = getSchema();
 
   app.use(
     "/graphql",
@@ -24,15 +23,13 @@ async function main() {
   console.log("Running a GraphQL API server at http://localhost:4000/graphql");
 }
 
-async function getSchema() {
+function getSchema() {
   if (process.env.FROM_SDL) {
     console.log("Building schema from SDL...");
     return buildSchemaFromSDL("./example-server/schema.graphql");
   }
   console.log("Building schema from source...");
-  const files = await glob("./example-server/**/*.ts");
-  return buildSchema({
-    files,
+  return extractGratsSchemaAtRuntime({
     emitSchemaFile: "./example-server/schema.graphql",
   });
 }

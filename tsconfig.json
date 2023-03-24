@@ -11,6 +11,9 @@
     },
     "transpileOnly": true
   },
+  "grats": {
+    "nullableByDefault": false
+  },
   "compilerOptions": {
     "skipLibCheck": true,
     "lib": ["es2017"],

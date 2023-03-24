@@ -66,24 +66,71 @@ type User {
 
 **Give it a try in the [online playground](https://capt.dev/grats-example)!**
 
-## CLI Usage
+## Quick Start
 
-Still very rough, but you can try it out with:
+For dev mode or small projects, Grats offers a runtime extraction mode. This is
+the easiest way to get started with Grats, although you may find that it causes
+a slow startup time. For larger projects, you probably want to use the build
+mode (documentation to come).
 
-*Note:* Globs will be evaluated relative to the current working directory.
+```sh
+npm install express express-graphql grats
+```
 
-```bash
-git clone ...
-pnpm install
-pnpm cli <glob of files to analyze>
+**Ensure your project has a `tsconfig.json` file.**
 
-# Example: `pnpm cli "example-server/**/*.ts"`
+```ts
+import * as express from "express";
+import { graphqlHTTP } from "express-graphql";
+import { extractGratsSchemaAtRuntime } from "grats";
+
+/** @GQLType */
+class Query {
+  /** @GQLField */
+  hello(): string {
+    return "Hello world!";
+  }
+}
+
+const app = express();
+
+// At runtime Grats will parse your TypeScript project (including this file!) and
+// extract the GraphQL schema.
+const schema = extractGratsSchemaAtRuntime({
+  emitSchemaFile: "./schema.graphql",
+});
+
+app.use(
+  "/graphql",
+  graphqlHTTP({ schema, rootValue: new Query(), graphiql: true }),
+);
+app.listen(4000);
+console.log("Running a GraphQL API server at http://localhost:4000/graphql");
+```
+
+## Configuration
+
+Grats has a few configuration options. They can be set in your project's
+`tsconfig.json` file:
+
+```json
+{
+  "grats": {
+    // Should all fields be typed as nullable in accordance with GraphQL best
+    // practices?
+    // https://graphql.org/learn/best-practices/#nullability
+    "nullableByDefault": true, // Default: true
+  },
+  "compilerOptions": {
+    // ... TypeScript config...
+  }
+}
 ```
 
 ## API Usage
 
 In order for Grats to extract GraphQL schema from your code, simply mark which
-classes and methods should be included in the schema by marking them with
+TypeScript structures should be included in the schema by marking them with
 special JSDoc tags such as `/** @GQLType */` or `/** @GQLField */`.
 
 Any comment text preceding the JSDoc `@` tag will be used as that element's description.
@@ -108,6 +155,7 @@ The following JSDoc tags are supported:
 GraphQL types can be defined by placing a `@GQLType` docblock directly before a:
 
 * Class declaration
+* Interface declaration
 
 ```ts
 /**
@@ -119,8 +167,6 @@ class MyClass {
   someField: string;
 }
 ```
-
-* Interface declaration
 
 ```ts
 /**
@@ -248,6 +294,20 @@ GraphQL custom sclars can be defined by placing a `@GQLScalar` docblock directly
  * @GQLScalar <optional name of the scalar, if different from type name>
  */
 type MyCustomString = string;
+```
+
+Note: For the built-in GraphQL scalars that don't have a corresponding TypeScript type, Grats ships with type aliases you can import. You may be promted to use one of these by Grat if you try to use `number` in a positon from which Grat needs to infer a GraphQL type.
+
+```ts
+import { Float, Int } from "grats";
+
+/** @GQLType */
+class Query {
+  /** @GQLField */
+  round(args: {float: Float}): Int {
+    return Math.round(args.float);
+  }
+}
 ```
 
 ### @GQLEnum

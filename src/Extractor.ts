@@ -26,7 +26,7 @@ import {
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { TypeContext, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
-import { BuildOptions } from "./lib";
+import { ConfigOptions } from "./lib";
 import {
   EXPORTED_DIRECTIVE,
   EXPORTED_FILENAME_ARG,
@@ -67,17 +67,17 @@ export class Extractor {
   definitions: DefinitionNode[] = [];
   sourceFile: ts.SourceFile;
   ctx: TypeContext;
-  buildOptions: BuildOptions;
+  configOptions: ConfigOptions;
   errors: ts.Diagnostic[] = [];
 
   constructor(
     sourceFile: ts.SourceFile,
     ctx: TypeContext,
-    buildOptions: BuildOptions,
+    buildOptions: ConfigOptions,
   ) {
     this.sourceFile = sourceFile;
     this.ctx = ctx;
-    this.buildOptions = buildOptions;
+    this.configOptions = buildOptions;
   }
 
   // Traverse all nodes, checking each one for its JSDoc tags.
@@ -1149,7 +1149,7 @@ export class Extractor {
   // that field.
   // https://graphql.org/learn/best-practices/#nullability
   handleErrorBubbling(type: TypeNode) {
-    if (this.buildOptions.nullableByDefault) {
+    if (this.configOptions.nullableByDefault) {
       return this.gqlNullableType(type);
     }
     return type;
