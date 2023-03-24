@@ -177,7 +177,7 @@ myField(): string {
 ```
 
 **Note**: By default, Grats makes all fields nullable in keeping with [GraphQL
-*best practices](https://graphql.org/learn/best-practices/#nullability). This behavior can be changed by setting config option `nullableByDefault` to `true`.
+*best practices](https://graphql.org/learn/best-practices/#nullability). This behavior can be changed by setting config option `nullableByDefault` to `false`.
 
 If you wish to define arguments for a field, define your argument types inline:
 
