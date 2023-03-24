@@ -473,9 +473,9 @@ Given these tradeoffs, we've decided to use comments instead of decorators.
 
 # Acknowledgements
 
-* @mofeiZ and @alunyov for their Relay hack-week project exploring a similar idea.
-* @josephsavona for input on the design of [Relay Resolvers](https://relay.dev/docs/guides/relay-resolvers/) which inspired this project.
-* @bradzacher for tips on how to handle TypeScript ASTs.
+* [@mofeiZ](https://github.com/mofeiZ) and [@alunyov](https://github/alunyov) for their Relay hack-week project exploring a similar idea.
+* [@josephsavona](https://github.com/josephsavona) for input on the design of [Relay Resolvers](https://relay.dev/docs/guides/relay-resolvers/) which inspired this project.
+* [@bradzacher](https://github.com/bradzacher) for tips on how to handle TypeScript ASTs.
 * Everyone who worked on Meta's Hack GraphQL server, the developer experince of which inspired this project.
 * A number of other projects which seem to have explored similar ideas in the past:
   * [ts2gql](https://github.com/convoyinc/ts2gql)
