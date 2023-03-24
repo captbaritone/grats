@@ -1,0 +1,26 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * The root of all evil.
+ *
+ * @GQLType
+ */
+export default interface Query {
+  /** @GQLField */
+  hello: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+"The root of all evil."
+type Query {
+  hello: String
+}
