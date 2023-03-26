@@ -1,6 +1,7 @@
 import { mapSchema, getDirective, MapperKind } from "@graphql-tools/utils";
 import {
   defaultFieldResolver,
+  DocumentNode,
   GraphQLFieldConfig,
   GraphQLSchema,
   parse,
@@ -13,7 +14,7 @@ export const EXPORTED_DIRECTIVE = "exported";
 export const EXPORTED_FILENAME_ARG = "filename";
 export const EXPORTED_FUNCTION_NAME_ARG = "functionName";
 
-export const DIRECTIVES_AST = parse(`
+export const DIRECTIVES_AST: DocumentNode = parse(`
     directive @${METHOD_NAME_DIRECTIVE}(${METHOD_NAME_ARG}: String!) on FIELD_DEFINITION
     directive @${EXPORTED_DIRECTIVE}(
       ${EXPORTED_FILENAME_ARG}: String!,
