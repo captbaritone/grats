@@ -14,6 +14,8 @@
 - [ ] Mutations and Query fields as functions
 - [ ] Define types from type literals
 - [ ] Extend interfaces
+    - [ ] interface types implement interfaces
+    - [ ] interface interfaces implement interfaces
 - [ ] Allow interfaces to specify resolveType
 
 ## Beta
