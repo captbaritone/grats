@@ -14,6 +14,7 @@
 - [ ] Mutations and Query fields as functions
 - [ ] Define types from type literals
 - [ ] Extend interfaces
+- [ ] Allow interfaces to specify resolveType
 
 ## Beta
 - [ ] Support generic directives 

@@ -6,18 +6,20 @@ export default class Query {
   }
 }
 
-/**
- * An interface describing the common elements of all people types.
- *
- * @GQLInterface
- */
-interface IPerson {
+/** @GQLInterface */
+interface Person {
+  /** @GQLField */
+  name: string;
+}
+
+/** @GQLInterface */
+interface Actor {
   /** @GQLField */
   name: string;
 }
 
 /** @GQLType */
-class User implements IPerson {
+class User implements Person, Actor {
   __typename = "User";
   /** @GQLField */
   name: string;

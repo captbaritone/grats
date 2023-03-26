@@ -28,6 +28,7 @@ export class TypeContext {
 
   _symbolToName: Map<ts.Symbol, string> = new Map();
   _unresolvedTypes: Map<NameNode, ts.Symbol> = new Map();
+  hasTypename: Set<string> = new Set();
 
   constructor(checker: ts.TypeChecker, host: ts.CompilerHost) {
     this.checker = checker;
@@ -47,6 +48,10 @@ export class TypeContext {
       throw new Error("Unexpected double recording of typename.");
     }
     this._symbolToName.set(symbol, name);
+  }
+
+  recordHasTypenameField(name: string) {
+    this.hasTypename.add(name);
   }
 
   markUnresolvedType(node: ts.Node, name: NameNode) {
@@ -113,5 +118,9 @@ export class TypeContext {
       });
     }
     return ok({ ...unresolved, value: name });
+  }
+
+  validateInterfaceImplementorsHaveTypenameField(): DiagnosticResult<null> {
+    return ok(null);
   }
 }

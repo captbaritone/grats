@@ -2,25 +2,11 @@
 INPUT
 ----------------- 
 /** @GQLType */
-class User {
+export class User {
   __typename = "User";
   /** @GQLField */
-  name(): string {
-    return "Alice";
-  }
+  name: string = "Alice";
 }
-
-/** @GQLType */
-class Group {
-  __typename = "Group";
-  /** @GQLField */
-  name(): string {
-    return "Fan Club";
-  }
-}
-
-/** @GQLUnion */
-type MyUnion = User | Group;
 
 -----------------
 OUTPUT
@@ -32,9 +18,3 @@ directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITIO
 type User {
   name: String
 }
-
-type Group {
-  name: String
-}
-
-union MyUnion = User | Group

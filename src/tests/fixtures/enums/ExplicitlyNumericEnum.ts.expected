@@ -16,7 +16,7 @@ If you think Grats should be able to infer this type, please report an issue at 
 
 3   VALID = 1,
     ~~~~~~~~~
-src/tests/fixtures/enums/ExplicitlyNumericEnum.ts:4:3 - error TS349389149282: Expected `@GQLEnum` enum members to have string literal initializers. For example: `FOO = 'foo'`.
+src/tests/fixtures/enums/ExplicitlyNumericEnum.ts:4:3 - error: Expected `@GQLEnum` enum members to have string literal initializers. For example: `FOO = 'foo'`.
 
 If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
 

@@ -1,0 +1,17 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType User */
+export class UserModel {
+  __typename = "UserModel";
+  /** @GQLField */
+  name: string = "Alice";
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/typename/PropertyTypenameDoesNotMatchDeclaredName.ts:3:16 - error: Expected `__typename` property initializer to be `"User"`, found `"UserModel"`.
+
+3   __typename = "UserModel";
+                 ~~~~~~~~~~~

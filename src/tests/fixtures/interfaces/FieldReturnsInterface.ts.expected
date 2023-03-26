@@ -4,25 +4,20 @@ INPUT
 /** @GQLType */
 export default class Query {
   /** @GQLField */
-  me(): User {
+  me(): IPerson {
     return new User();
   }
 }
 
-/** @GQLInterface */
-interface Person {
-  /** @GQLField */
-  name: string;
-}
-
-/** @GQLInterface */
-interface Actor {
+/** @GQLInterface Person */
+interface IPerson {
   /** @GQLField */
   name: string;
 }
 
 /** @GQLType */
-class User implements Person, Actor {
+class User implements IPerson {
+  __typename = "User";
   /** @GQLField */
   name: string;
 }
@@ -39,17 +34,13 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
 type Query {
-  me: User
+  me: Person
 }
 
 interface Person {
   name: String
 }
 
-interface Actor {
-  name: String
-}
-
-type User implements Person & Actor {
+type User implements Person {
   name: String
 }

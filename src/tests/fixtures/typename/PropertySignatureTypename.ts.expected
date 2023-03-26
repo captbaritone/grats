@@ -2,21 +2,14 @@
 INPUT
 ----------------- 
 /** @GQLType */
-export default class Query {
-  /** @GQLField */
-  me(): IPerson {
-    return new User();
-  }
-}
-
-/** @GQLInterface Person */
-interface IPerson {
+export class User implements IPerson {
+  __typename: "User";
   /** @GQLField */
   name: string;
 }
 
-/** @GQLType */
-class User implements IPerson {
+/** @GQLInterface */
+export interface IPerson {
   /** @GQLField */
   name: string;
 }
@@ -24,22 +17,14 @@ class User implements IPerson {
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
-  me: Person
-}
-
-interface Person {
+type User implements IPerson {
   name: String
 }
 
-type User implements Person {
+interface IPerson {
   name: String
 }

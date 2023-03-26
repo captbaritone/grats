@@ -1,8 +1,9 @@
 import {
   buildASTSchema,
   DefinitionNode,
-  DocumentNode,
   GraphQLSchema,
+  isAbstractType,
+  isType,
   Kind,
   validateSchema,
 } from "graphql";
@@ -13,6 +14,7 @@ import {
   DiagnosticsResult,
   Result,
   ReportableDiagnostics,
+  diagnosticAtGraphQLLocation,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { Extractor } from "./Extractor";
@@ -53,51 +55,18 @@ export function buildSchemaResultWithHost(
   options: GratsOptions,
   compilerHost: ts.CompilerHost,
 ): Result<GraphQLSchema, ReportableDiagnostics> {
-  const docResult = buildSchemaAst(options, compilerHost);
-  if (docResult.kind === "ERROR") {
-    return err(new ReportableDiagnostics(compilerHost, docResult.err));
+  const schemaResult = definitionsFromFile(options, compilerHost);
+  if (schemaResult.kind === "ERROR") {
+    return err(new ReportableDiagnostics(compilerHost, schemaResult.err));
   }
 
-  const schema = buildASTSchema(docResult.value, { assumeValidSDL: true });
-
-  const diagnostics = validateSchema(schema)
-    // FIXME: Handle case where query is not defined (no location)
-    .filter((e) => e.source && e.locations && e.positions)
-    .map((e) => graphQlErrorToDiagnostic(e));
-
-  if (diagnostics.length > 0) {
-    return err(new ReportableDiagnostics(compilerHost, diagnostics));
-  }
-
-  return ok(applyServerDirectives(schema));
-}
-
-export function buildSchemaAst(
-  options: GratsOptions,
-  host: ts.CompilerHost,
-): DiagnosticsResult<DocumentNode> {
-  const docResult = definitionsFromFile(options, host);
-  if (docResult.kind === "ERROR") return docResult;
-
-  const doc = docResult.value;
-
-  // TODO: Currently this does not detect definitions that shadow builtins
-  // (`String`, `Int`, etc). However, if we pass a second param (extending an
-  // existing schema) we do! So, we should find a way to validate that we don't
-  // shadow builtins.
-  const validationErrors = validateSDL(doc).map((e) => {
-    return graphQlErrorToDiagnostic(e);
-  });
-  if (validationErrors.length > 0) {
-    return err(validationErrors);
-  }
-  return ok(doc);
+  return ok(applyServerDirectives(schemaResult.value));
 }
 
 function definitionsFromFile(
   options: GratsOptions,
   host: ts.CompilerHost,
-): DiagnosticsResult<DocumentNode> {
+): DiagnosticsResult<GraphQLSchema> {
   const program = ts.createProgram(
     options.files,
     options.tsCompilerOptions,
@@ -121,5 +90,66 @@ function definitionsFromFile(
     }
   }
 
-  return ctx.resolveTypes({ kind: Kind.DOCUMENT, definitions });
+  const docResult = ctx.resolveTypes({ kind: Kind.DOCUMENT, definitions });
+  if (docResult.kind === "ERROR") return docResult;
+
+  const doc = docResult.value;
+
+  // TODO: Currently this does not detect definitions that shadow builtins
+  // (`String`, `Int`, etc). However, if we pass a second param (extending an
+  // existing schema) we do! So, we should find a way to validate that we don't
+  // shadow builtins.
+  const validationErrors = validateSDL(doc).map((e) => {
+    return graphQlErrorToDiagnostic(e);
+  });
+  if (validationErrors.length > 0) {
+    return err(validationErrors);
+  }
+  const schema = buildASTSchema(doc, { assumeValidSDL: true });
+
+  const diagnostics = validateSchema(schema)
+    // FIXME: Handle case where query is not defined (no location)
+    .filter((e) => e.source && e.locations && e.positions)
+    .map((e) => graphQlErrorToDiagnostic(e));
+
+  if (diagnostics.length > 0) {
+    return err(diagnostics);
+  }
+
+  const typenameDiagnostics = validateTypename(schema, ctx);
+  if (typenameDiagnostics.length > 0) return err(typenameDiagnostics);
+
+  return ok(schema);
+}
+
+function validateTypename(
+  schema: GraphQLSchema,
+  ctx: TypeContext,
+): ts.Diagnostic[] {
+  const typenameDiagnostics: ts.Diagnostic[] = [];
+  const abstractTypes = Object.values(schema.getTypeMap()).filter(
+    isAbstractType,
+  );
+  for (const type of abstractTypes) {
+    // TODO: If we already implement resolveType, we don't need to check implementors
+
+    const typeImplementors = schema.getPossibleTypes(type).filter(isType);
+    for (const implementor of typeImplementors) {
+      if (!ctx.hasTypename.has(implementor.name)) {
+        const loc = implementor.astNode?.name?.loc;
+        if (loc == null) {
+          throw new Error(
+            `Grats expected the parsed type \`${implementor.name}\` to have location information. This is a bug in Grats. Please report it.`,
+          );
+        }
+        typenameDiagnostics.push(
+          diagnosticAtGraphQLLocation(
+            `Missing __typename on \`${implementor.name}\`. The type \`${type.name}\` is used in a union or interface, so it must have a \`__typename\` field.`,
+            loc,
+          ),
+        );
+      }
+    }
+  }
+  return typenameDiagnostics;
 }

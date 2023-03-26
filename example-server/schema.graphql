@@ -12,12 +12,17 @@ type Group {
   name: String!
 }
 
+interface IPerson {
+  name: String!
+}
+
 type Query {
   allUsers: [User!]! @exported(filename: "example-server/models/User.ts", functionName: "allUsers")
   me: User!
+  person: IPerson!
 }
 
-type User {
+type User implements IPerson {
   groups: [Group!]!
   name: String!
 }

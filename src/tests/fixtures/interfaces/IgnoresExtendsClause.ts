@@ -18,6 +18,7 @@ interface Actor {
 
 /** @GQLType */
 class User extends Person implements Actor {
+  __typename = "User";
   /** @GQLField */
   name: string;
 }

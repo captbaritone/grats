@@ -1,5 +1,6 @@
 /** @GQLType */
 class User {
+  __typename = "User";
   /** @GQLField */
   name(): string {
     return "Alice";
@@ -8,6 +9,7 @@ class User {
 
 /** @GQLType */
 class Group {
+  __typename = "Group";
   /** @GQLField */
   name(): string {
     return "Fan Club";

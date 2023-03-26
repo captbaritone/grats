@@ -1,8 +1,10 @@
+import IPerson from "../interfaces/IPerson";
 import Query from "../Query";
 import Group from "./Group";
 
 /** @GQLType User */
-export default class UserResolver {
+export default class UserResolver implements IPerson {
+  __typename = "User";
   /** @GQLField */
   name(): string {
     return "Alice";

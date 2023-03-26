@@ -16,6 +16,7 @@ interface Person<T> {
 
 /** @GQLType */
 class User implements Person<string> {
+  __typename = "User";
   /** @GQLField */
   name: string;
 

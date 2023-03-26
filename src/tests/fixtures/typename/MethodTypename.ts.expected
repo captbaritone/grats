@@ -1,0 +1,19 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+class User {
+  __typename() {
+    return "User";
+  }
+  /** @GQLField */
+  name: string = "Alice";
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/typename/MethodTypename.ts:3:3 - error: Expected `__typename` to be a property declaration.
+
+3   __typename() {
+    ~~~~~~~~~~

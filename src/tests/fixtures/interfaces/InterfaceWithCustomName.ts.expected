@@ -17,6 +17,7 @@ interface IPerson {
 
 /** @GQLType */
 class User implements IPerson {
+  __typename = "User";
   /** @GQLField */
   name: string;
 }

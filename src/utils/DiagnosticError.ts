@@ -1,4 +1,4 @@
-import { GraphQLError } from "graphql";
+import { GraphQLError, Location, Source } from "graphql";
 import * as ts from "typescript";
 
 type Ok<T> = { kind: "OK"; value: T };
@@ -31,7 +31,7 @@ export class ReportableDiagnostics {
     // TypeScript requires having an error code, but we are not a real TS error,
     // so we don't have an error code. This little hack here is a sin, but it
     // lets us leverage all of TypeScript's error reporting logic.
-    return formatted.replace(` TS${FAKE_ERROR_CODE}: `, ": ");
+    return formatted.replace(new RegExp(` TS${FAKE_ERROR_CODE}: `, "g"), ": ");
   }
 
   formatDiagnosticsWithContext(): string {
@@ -59,11 +59,7 @@ export function graphQlErrorToDiagnostic(error: GraphQLError): ts.Diagnostic {
 
   let sourceFile: ts.SourceFile | undefined;
   if (error.source != null) {
-    sourceFile = ts.createSourceFile(
-      error.source.name,
-      error.source.body,
-      ts.ScriptTarget.Latest,
-    );
+    sourceFile = graphqlSourceToSourceFile(error.source);
   }
 
   return {
@@ -75,4 +71,22 @@ export function graphQlErrorToDiagnostic(error: GraphQLError): ts.Diagnostic {
     // FIXME: Improve ranges
     length: 1,
   };
+}
+
+export function diagnosticAtGraphQLLocation(
+  message: string,
+  loc: Location,
+): ts.Diagnostic {
+  return {
+    messageText: message,
+    file: graphqlSourceToSourceFile(loc.source),
+    code: FAKE_ERROR_CODE,
+    category: ts.DiagnosticCategory.Error,
+    start: loc.start,
+    length: loc.end - loc.start,
+  };
+}
+
+export function graphqlSourceToSourceFile(source: Source): ts.SourceFile {
+  return ts.createSourceFile(source.name, source.body, ts.ScriptTarget.Latest);
 }

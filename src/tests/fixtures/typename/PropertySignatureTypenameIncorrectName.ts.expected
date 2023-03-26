@@ -1,0 +1,23 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+export class User implements IPerson {
+  __typename: "Group";
+  /** @GQLField */
+  name: string;
+}
+
+/** @GQLInterface */
+export interface IPerson {
+  /** @GQLField */
+  name: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/typename/PropertySignatureTypenameIncorrectName.ts:3:15 - error: Expected `__typename` property to be `"User"`
+
+3   __typename: "Group";
+                ~~~~~~~

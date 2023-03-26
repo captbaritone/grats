@@ -1,0 +1,17 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLType */
+export class User {
+  __typename: string;
+  /** @GQLField */
+  name: string = "Alice";
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/typename/PropertyTypenameNoInitializer.ts:3:3 - error: Expected `__typename` property to have an initializer. For example: `__typename = "MyType"`.
+
+3   __typename: string;
+    ~~~~~~~~~~

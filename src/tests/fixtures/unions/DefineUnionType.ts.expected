@@ -9,12 +9,14 @@ export default class Query {
 
 /** @GQLType */
 class User {
+  __typename = "User";
   /** @GQLField */
   name: string;
 }
 
 /** @GQLType */
 class Entity {
+  __typename = "Entity";
   /** @GQLField */
   description: string;
 }

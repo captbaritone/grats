@@ -546,6 +546,8 @@ export class Extractor {
     const interfaces = this.collectInterfaces(node);
     this.ctx.recordTypeName(node.name, name.value);
 
+    this.checkForTypenameProperty(node, name.value);
+
     this.definitions.push({
       kind: Kind.OBJECT_TYPE_DEFINITION,
       loc: this.loc(node),
@@ -566,6 +568,8 @@ export class Extractor {
     const interfaces = this.collectInterfaces(node);
     this.ctx.recordTypeName(node.name, name.value);
 
+    this.checkForTypenameProperty(node, name.value);
+
     this.definitions.push({
       kind: Kind.OBJECT_TYPE_DEFINITION,
       loc: this.loc(node),
@@ -575,6 +579,113 @@ export class Extractor {
       fields,
       interfaces: interfaces ?? undefined,
     });
+  }
+
+  checkForTypenameProperty(
+    node: ts.ClassDeclaration | ts.InterfaceDeclaration,
+    expectedName: string,
+  ) {
+    const hasTypename = node.members.some((member) => {
+      return this.isValidTypeNameProperty(member, expectedName);
+    });
+    if (hasTypename) {
+      this.ctx.recordHasTypenameField(expectedName);
+    }
+  }
+
+  isValidTypeNameProperty(
+    member: ts.ClassElement | ts.TypeElement,
+    expectedName: string,
+  ) {
+    if (
+      member.name == null ||
+      !ts.isIdentifier(member.name) ||
+      member.name.text !== "__typename"
+    ) {
+      return false;
+    }
+
+    if (ts.isPropertyDeclaration(member)) {
+      return this.isValidTypenamePropertyDeclaration(member, expectedName);
+    }
+    if (ts.isPropertySignature(member)) {
+      return this.isValidTypenamePropertySignature(member, expectedName);
+    }
+
+    this.report(
+      member.name,
+      // TODO: Could show what kind we found, but TS AST does not have node names.
+      `Expected \`__typename\` to be a property declaration.`,
+    );
+    return false;
+  }
+
+  isValidTypenamePropertyDeclaration(
+    node: ts.PropertyDeclaration,
+    expectedName: string,
+  ) {
+    // If we have a type annotation, we ask that it be a string literal.
+    // That means, that if we have one, _and_ it's valid, we're done.
+    // Otherwise we fall through to the initializer check.
+    if (node.type != null) {
+      return this.isValidTypenamePropertyType(node.type, expectedName);
+    }
+    if (node.initializer == null) {
+      this.report(
+        node.name,
+        `Expected \`__typename\` property to have an initializer or a string literal type. For example: \`__typename = "MyType"\` or \`__typename: "MyType";\`.`,
+      );
+      return false;
+    }
+
+    if (!ts.isStringLiteral(node.initializer)) {
+      this.report(
+        node.initializer,
+        `Expected \`__typename\` property initializer to be a string literal. For example: \`__typename = "MyType"\` or \`__typename: "MyType";\`.`,
+      );
+      return false;
+    }
+
+    if (node.initializer.text !== expectedName) {
+      this.report(
+        node.initializer,
+        `Expected \`__typename\` property initializer to be \`"${expectedName}"\`, found \`"${node.initializer.text}"\`.`,
+      );
+      return false;
+    }
+    return true;
+  }
+
+  isValidTypenamePropertySignature(
+    node: ts.PropertySignature,
+    expectedName: string,
+  ) {
+    if (node.type == null) {
+      this.report(
+        node,
+        `Expected \`__typename\` property signature to specify the typename as a string literal string type. For example \`__typename: "${expectedName}";\``,
+      );
+      return false;
+    }
+    return this.isValidTypenamePropertyType(node.type, expectedName);
+  }
+
+  isValidTypenamePropertyType(node: ts.TypeNode, expectedName: string) {
+    if (!ts.isLiteralTypeNode(node) || !ts.isStringLiteral(node.literal)) {
+      this.report(
+        node,
+        `Expected \`__typename\` property signature to specify the typename as a string literal string type. For example \`__typename: "${expectedName}";\``,
+      );
+      return false;
+    }
+    if (node.literal.text !== expectedName) {
+      this.report(
+        node,
+        `Expected \`__typename\` property to be \`"${expectedName}"\``,
+      );
+      return false;
+    }
+    return true;
   }
 
   collectInterfaces(
