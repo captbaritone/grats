@@ -94,12 +94,6 @@ export class Extractor {
           case SCALAR_TAG:
             this.extractScalar(node, tag);
             break;
-          case FIELD_TAG:
-            // Right now this happens via deep traversal
-            // TODO: Handle GQLField as part of this top level traversal
-            // by keeping track of the current type we're in and appending fields
-            // as we go.
-            break;
           case INTERFACE_TAG:
             this.extractInterface(node, tag);
             break;
@@ -114,6 +108,23 @@ export class Extractor {
             break;
           case EXTEND_TYPE:
             this.extractExtendType(node, tag);
+            break;
+          case FIELD_TAG:
+            // Right now this happens via deep traversal
+            // Note: Keep this in sync with `collectFields`
+            if (
+              !(
+                ts.isMethodDeclaration(node) ||
+                ts.isPropertyDeclaration(node) ||
+                ts.isMethodSignature(node) ||
+                ts.isPropertySignature(node)
+              )
+            ) {
+              this.reportUnhandled(
+                node,
+                `\`@${FIELD_TAG}\` can only be used on method/property declarations or signatures.`,
+              );
+            }
             break;
         }
       }
@@ -633,7 +644,7 @@ export class Extractor {
   ): Array<FieldDefinitionNode> {
     const fields: FieldDefinitionNode[] = [];
     ts.forEachChild(node, (node) => {
-      if (ts.isMethodDeclaration(node)) {
+      if (ts.isMethodDeclaration(node) || ts.isMethodSignature(node)) {
         const field = this.methodDeclaration(node);
         if (field) {
           fields.push(field);
@@ -872,6 +883,7 @@ export class Extractor {
     node:
       | ts.ClassDeclaration
       | ts.MethodDeclaration
+      | ts.MethodSignature
       | ts.PropertyDeclaration
       | ts.InterfaceDeclaration
       | ts.PropertySignature
@@ -896,7 +908,9 @@ export class Extractor {
     return this.gqlName(id, id.text);
   }
 
-  methodDeclaration(node: ts.MethodDeclaration): FieldDefinitionNode | null {
+  methodDeclaration(
+    node: ts.MethodDeclaration | ts.MethodSignature,
+  ): FieldDefinitionNode | null {
     const tag = this.findTag(node, FIELD_TAG);
     if (tag == null) return null;
 

@@ -14,7 +14,8 @@ convoluted directive APIs to remember. No need to define your Schema at
 runtime with verbose builder APIs. 
 
 By making your TypeScript implementation the source of truth, you entirely
-remove the question of mismatches between your implementation and your GraphQL schema definition. Your implementation _is_ the schema definition!
+remove the question of mismatches between your implementation and your GraphQL
+schema definition. Your implementation _is_ the schema definition!
 
 ## Example
 
@@ -64,7 +65,7 @@ type User {
 }
 ```
 
-**Give it a try in the [online playground](https://capt.dev/grats-example)!**
+**Give it a try in the [online playground](https://capt.dev/grats-sandbox)!**
 
 ## Quick Start
 
@@ -107,6 +108,8 @@ app.use(
 app.listen(4000);
 console.log("Running a GraphQL API server at http://localhost:4000/graphql");
 ```
+
+Try it out on [CodeSandbox](https://capt.dev/grats-sandbox)!
 
 ## Configuration
 
@@ -204,6 +207,7 @@ automatically implement it in GraphQL as well.
 Within a `@GQLType` class, you can define GraphQL fields by placing a `@GQLField` directly before a:
 
 * Method declaration
+* Method signature
 * Property declaration
 * Property signature
 

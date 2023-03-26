@@ -1,0 +1,19 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLInterface */
+interface ICarly {
+  /** @GQLField */
+  name(): string;
+}
+
+-----------------
+OUTPUT
+-----------------
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+interface ICarly {
+  name: String
+}
