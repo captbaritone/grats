@@ -11,7 +11,7 @@ export class User {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/typename/PropertyTypenameNonStringInitializer.ts:3:16 - error: Expected `__typename` property initializer to be a string literal. For example: `__typename = "MyType"`.
+src/tests/fixtures/typename/PropertyTypenameNonStringInitializer.ts:3:16 - error: Expected `__typename` property initializer to be a string literal. For example: `__typename = "MyType"` or `__typename: "MyType";`.
 
 3   __typename = 1;
                  ~
