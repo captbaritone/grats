@@ -4,6 +4,8 @@
 
 # Grats: True code-first GraphQL for TypeScript
 
+[![Join our Discord!](https://img.shields.io/discord/1089650710796320868?logo=discord)](https://capt.dev/grats-chat)
+
 Grats is a tool for statically infering GraphQL schema from your vanilla
 TypeScript code.
 
@@ -181,6 +183,10 @@ interface MyInterface {
   someField: string;
 }
 ```
+
+Note: If your type implements a GraphQL interface or is a member of a GraphQL
+union, Grats will remind you to add a `__typename: "MyType"` property to your
+class or interface.
 
 ### @GQLInterface
 
