@@ -6,7 +6,7 @@ class Query {
   // No fields
 }
 
-/** @GQLExtendType */
+/** @GQLField */
 export function greeting(query: { name: string }): string {
   return "Hello world!";
 }
@@ -14,7 +14,7 @@ export function greeting(query: { name: string }): string {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/extend_type/nonAliasFirstArgumentType.invalid.ts:7:33 - error: Expected first argument of a type extension function to be typed as a `@GQLType` type.
+src/tests/fixtures/extend_type/nonAliasFirstArgumentType.invalid.ts:7:33 - error: Expected first argument of a `@GQLField` function to be typed as a `@GQLType` type.
 
 7 export function greeting(query: { name: string }): string {
                                   ~~~~~~~~~~~~~~~~

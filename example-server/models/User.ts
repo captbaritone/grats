@@ -15,7 +15,7 @@ export default class UserResolver implements IPerson {
   }
 }
 
-/** @GQLExtendType */
+/** @GQLField */
 export function allUsers(_: Query): UserResolver[] {
   return [new UserResolver(), new UserResolver()];
 }

@@ -10,7 +10,7 @@ interface IFoo {
   bar: string;
 }
 
-/** @GQLExtendType */
+/** @GQLField */
 export function greeting(iFoo: IFoo): string {
   return "Hello world!";
 }

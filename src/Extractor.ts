@@ -47,7 +47,6 @@ const INTERFACE_TAG = "GQLInterface";
 const ENUM_TAG = "GQLEnum";
 const UNION_TAG = "GQLUnion";
 const INPUT_TAG = "GQLInput";
-const EXTEND_TYPE = "GQLExtendType";
 
 const DEPRECATED_TAG = "deprecated";
 
@@ -106,13 +105,10 @@ export class Extractor {
           case UNION_TAG:
             this.extractUnion(node, tag);
             break;
-          case EXTEND_TYPE:
-            this.extractExtendType(node, tag);
-            break;
           case FIELD_TAG:
-            // Right now this happens via deep traversal
-            // Note: Keep this in sync with `collectFields`
-            if (
+            if (ts.isFunctionDeclaration(node)) {
+              this.functionDeclarationExtendType(node, tag);
+            } else if (
               !(
                 ts.isMethodDeclaration(node) ||
                 ts.isPropertyDeclaration(node) ||
@@ -120,6 +116,8 @@ export class Extractor {
                 ts.isPropertySignature(node)
               )
             ) {
+              // Right now this happens via deep traversal
+              // Note: Keep this in sync with `collectFields`
               this.reportUnhandled(
                 node,
                 `\`@${FIELD_TAG}\` can only be used on method/property declarations or signatures.`,
@@ -201,18 +199,6 @@ export class Extractor {
       this.report(
         tag,
         `\`@${UNION_TAG}\` can only be used on type alias declarations.`,
-      );
-    }
-  }
-
-  extractExtendType(node: ts.Node, tag: ts.JSDocTag) {
-    if (ts.isFunctionDeclaration(node)) {
-      // FIXME: Validate that the function is a named export
-      this.functionDeclarationExtendType(node, tag);
-    } else {
-      this.report(
-        tag,
-        `\`@${EXTEND_TYPE}\` can only be used on function declarations.`,
       );
     }
   }
@@ -320,7 +306,7 @@ export class Extractor {
     if (typeParam == null) {
       return this.report(
         funcName,
-        `Expected type extension function to have a first argument representing the type to extend.`,
+        `Expected \`@${FIELD_TAG}\` function to have a first argument representing the type to extend.`,
       );
     }
 
@@ -351,7 +337,7 @@ export class Extractor {
     if (!ts.isSourceFile(node.parent)) {
       return this.report(
         node,
-        "Expected type extension function to be a top-level declaration.",
+        `Expected \`@${FIELD_TAG}\` function to be a top-level declaration.`,
       );
     }
 
@@ -394,13 +380,13 @@ export class Extractor {
     if (typeParam.type == null) {
       return this.report(
         typeParam,
-        `Expected first argument of a type extension function to have an explicit type annotation.`,
+        `Expected first argument of a \`@${FIELD_TAG}\` function to have an explicit type annotation.`,
       );
     }
     if (!ts.isTypeReferenceNode(typeParam.type)) {
       return this.report(
         typeParam.type,
-        `Expected first argument of a type extension function to be typed as a \`@GQLType\` type.`,
+        `Expected first argument of a \`@${FIELD_TAG}\` function to be typed as a \`@GQLType\` type.`,
       );
     }
 
@@ -414,7 +400,7 @@ export class Extractor {
     if (node.name == null) {
       return this.report(
         node,
-        `Expected type extension function to be a named function.`,
+        `Expected a \`@${FIELD_TAG}\` function to be a named function.`,
       );
     }
     const exportKeyword = node.modifiers?.some((modifier) => {
@@ -428,14 +414,14 @@ export class Extractor {
       // TODO: We could support this
       return this.report(
         defaultKeyword,
-        `Expected type extension function to be a named export, not a default export.`,
+        `Expected a \`@${FIELD_TAG}\` function to be a named export, not a default export.`,
       );
     }
 
     if (exportKeyword == null) {
       return this.report(
         node.name,
-        `Expected type extension function to be a named export.`,
+        `Expected a \`@${FIELD_TAG}\` function to be a named export.`,
       );
     }
     return node.name;

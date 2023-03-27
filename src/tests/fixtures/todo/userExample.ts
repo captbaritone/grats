@@ -1,7 +1,7 @@
 /** @GQLType */
 type Query = {};
 
-/** @GQLExtendType */
+/** @GQLField */
 export function me(_: Query): User {
   return { firstName: "John", lastName: "Doe" };
 }
@@ -14,7 +14,7 @@ type User = {
   lastName: string;
 };
 
-/** @GQLExtendType */
+/** @GQLField */
 export function fullName(user: User): string {
   return `${user.firstName} ${user.lastName}`;
 }

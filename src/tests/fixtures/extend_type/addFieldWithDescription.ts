@@ -5,7 +5,7 @@ class Query {
 
 /**
  * Best field ever!
- * @GQLExtendType
+ * @GQLField
  */
 export function greeting(_: Query): string {
   return "Hello world!";

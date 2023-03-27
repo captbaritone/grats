@@ -8,7 +8,7 @@ class Query {
 
 class Foo {}
 
-/** @GQLExtendType */
+/** @GQLField */
 export function greeting(query: Foo): string {
   return "Hello world!";
 }

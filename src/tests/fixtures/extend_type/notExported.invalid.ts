@@ -3,7 +3,7 @@ class Query {
   // No fields
 }
 
-/** @GQLExtendType */
+/** @GQLField */
 function greeting(_: Query): string {
   return `Hello World`;
 }

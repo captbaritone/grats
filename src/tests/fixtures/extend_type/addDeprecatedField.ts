@@ -4,7 +4,7 @@ class Query {
 }
 
 /**
- * @GQLExtendType
+ * @GQLField
  * @deprecated Because reasons
  */
 export function greeting(query: Query): string {
