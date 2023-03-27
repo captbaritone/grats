@@ -1,0 +1,2 @@
+/** @GQLField */
+function field() {}

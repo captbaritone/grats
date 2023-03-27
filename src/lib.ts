@@ -55,7 +55,7 @@ export function buildSchemaResultWithHost(
   options: GratsOptions,
   compilerHost: ts.CompilerHost,
 ): Result<GraphQLSchema, ReportableDiagnostics> {
-  const schemaResult = definitionsFromFile(options, compilerHost);
+  const schemaResult = extractSchema(options, compilerHost);
   if (schemaResult.kind === "ERROR") {
     return err(new ReportableDiagnostics(compilerHost, schemaResult.err));
   }
@@ -63,7 +63,7 @@ export function buildSchemaResultWithHost(
   return ok(applyServerDirectives(schemaResult.value));
 }
 
-function definitionsFromFile(
+function extractSchema(
   options: GratsOptions,
   host: ts.CompilerHost,
 ): DiagnosticsResult<GraphQLSchema> {
@@ -78,7 +78,7 @@ function definitionsFromFile(
   const definitions: DefinitionNode[] = Array.from(DIRECTIVES_AST.definitions);
   for (const sourceFile of program.getSourceFiles()) {
     // If the file doesn't contain any GraphQL definitions, skip it.
-    if (!/@gql/.test(sourceFile.text)) {
+    if (!/@gql/i.test(sourceFile.text)) {
       continue;
     }
 

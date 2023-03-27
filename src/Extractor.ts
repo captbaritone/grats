@@ -48,6 +48,16 @@ const ENUM_TAG = "gqlEnum";
 const UNION_TAG = "gqlUnion";
 const INPUT_TAG = "gqlInput";
 
+const ALL_TAGS = [
+  TYPE_TAG,
+  FIELD_TAG,
+  SCALAR_TAG,
+  INTERFACE_TAG,
+  ENUM_TAG,
+  UNION_TAG,
+  INPUT_TAG,
+];
+
 const DEPRECATED_TAG = "deprecated";
 
 type ArgDefaults = Map<string, ts.Expression>;
@@ -121,6 +131,28 @@ export class Extractor {
               this.reportUnhandled(
                 node,
                 `\`@${FIELD_TAG}\` can only be used on method/property declarations or signatures.`,
+              );
+            }
+            break;
+          default:
+            const lowerCaseTag = tag.tagName.text.toLowerCase();
+            if (lowerCaseTag.startsWith("gql")) {
+              for (const t of ALL_TAGS) {
+                if (t.toLowerCase() === lowerCaseTag) {
+                  this.report(
+                    tag.tagName,
+                    `Incorrect casing for Grats tag \`@${tag.tagName.text}\`. Use \`@${t}\` instead.`,
+                  );
+                  break;
+                }
+              }
+              this.report(
+                tag.tagName,
+                `\`@${
+                  tag.tagName.text
+                }\` is not a valid Grats tag. Valid tags are: ${ALL_TAGS.map(
+                  (t) => `\`@${t}\``,
+                ).join(", ")}.`,
               );
             }
             break;
