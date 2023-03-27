@@ -1,0 +1,17 @@
+-----------------
+INPUT
+----------------- 
+/** @GQLField */
+function field() {}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/user_error/WrongCaseGqlTag.ts:1:6 - error: Incorrect casing for Grats tag `@GQLField`. Use `@gqlField` instead.
+
+1 /** @GQLField */
+       ~~~~~~~~
+src/tests/fixtures/user_error/WrongCaseGqlTag.ts:1:6 - error: `@GQLField` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`.
+
+1 /** @GQLField */
+       ~~~~~~~~

@@ -1,0 +1,12 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlFiled */
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/user_error/GqlTagDoesNotExist.ts:1:6 - error: `@gqlFiled` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`.
+
+1 /** @gqlFiled */
+       ~~~~~~~~
