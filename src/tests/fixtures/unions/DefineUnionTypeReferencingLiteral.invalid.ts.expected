@@ -1,25 +1,25 @@
 -----------------
 INPUT
 ----------------- 
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   me: Actor;
 }
 
-/** @GQLType */
+/** @gqlType */
 class User {
-  /** @GQLField */
+  /** @gqlField */
   name: string;
 }
 
-/** @GQLUnion */
+/** @gqlUnion */
 type Actor = User | "LOL";
 
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/unions/DefineUnionTypeReferencingLiteral.invalid.ts:14:21 - error: Expected `@GQLUnion` union members to be type references.
+src/tests/fixtures/unions/DefineUnionTypeReferencingLiteral.invalid.ts:14:21 - error: Expected `@gqlUnion` union members to be type references.
 
 If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
 

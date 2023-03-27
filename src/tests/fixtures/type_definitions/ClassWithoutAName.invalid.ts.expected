@@ -2,10 +2,10 @@
 INPUT
 ----------------- 
 /**
- * @GQLType
+ * @gqlType
  */
 export default class {
-  /** @GQLField */
+  /** @gqlField */
   hello(): string {
     return "Hello world!";
   }
@@ -14,11 +14,11 @@ export default class {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/type_definitions/ClassWithoutAName.invalid.ts:4:1 - error: Unexpected `@GQLType` annotation on unnamed class declaration.
+src/tests/fixtures/type_definitions/ClassWithoutAName.invalid.ts:4:1 - error: Unexpected `@gqlType` annotation on unnamed class declaration.
 
   4 export default class {
     ~~~~~~~~~~~~~~~~~~~~~~
-  5   /** @GQLField */
+  5   /** @gqlField */
     ~~~~~~~~~~~~~~~~~~
 ... 
   8   }

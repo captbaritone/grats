@@ -1,12 +1,12 @@
 import { Float, Int } from "../../../Types";
 
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   intField({ count = 10 }: { count: Int }): string {
     return `${count} world!`;
   }
-  /** @GQLField */
+  /** @gqlField */
   floatField({ scale = 10.0 }: { scale: Float }): string {
     return `${scale} world!`;
   }

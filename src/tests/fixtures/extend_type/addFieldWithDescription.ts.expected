@@ -1,14 +1,14 @@
 -----------------
 INPUT
 ----------------- 
-/** @GQLType */
+/** @gqlType */
 class Query {
   // No fields
 }
 
 /**
  * Best field ever!
- * @GQLField
+ * @gqlField
  */
 export function greeting(_: Query): string {
   return "Hello world!";

@@ -1,7 +1,7 @@
 // { "nullableByDefault": false }
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello(): Promise<string | void> {
     return Promise.resolve("Hello world!");
   }

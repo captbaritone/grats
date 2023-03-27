@@ -22,14 +22,14 @@ schema definition. Your implementation _is_ the schema definition!
 ## Example
 
 ```ts
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   me(): UserResolver {
     return new UserResolver();
   }
   /** 
-   * @GQLField
+   * @gqlField
    * @deprecated Please use `me` instead.
    */
   viewer(): UserResolver {
@@ -39,13 +39,13 @@ export default class Query {
 
 /**
  * A user in our kick-ass system!
- * @GQLType User
+ * @gqlType User
  */
 class UserResolver {
-  /** @GQLField */
+  /** @gqlField */
   name: string = 'Alice';
 
-  /** @GQLField */
+  /** @gqlField */
   greeting(args: { salutation: string }): string {
     return `${args.salutation}, ${this.name}`;
   }
@@ -87,9 +87,9 @@ import * as express from "express";
 import { graphqlHTTP } from "express-graphql";
 import { extractGratsSchemaAtRuntime } from "grats";
 
-/** @GQLType */
+/** @gqlType */
 class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello(): string {
     return "Hello world!";
   }
@@ -136,7 +136,7 @@ Grats has a few configuration options. They can be set in your project's
 
 In order for Grats to extract GraphQL schema from your code, simply mark which
 TypeScript structures should be included in the schema by marking them with
-special JSDoc tags such as `/** @GQLType */` or `/** @GQLField */`.
+special JSDoc tags such as `/** @gqlType */` or `/** @gqlField */`.
 
 Any comment text preceding the JSDoc `@` tag will be used as that element's description.
 
@@ -145,17 +145,17 @@ Any comment text preceding the JSDoc `@` tag will be used as that element's desc
 
 The following JSDoc tags are supported:
 
-* [`@GQLType`](#GQLtype)
-* [`@GQLInterface`](#GQLinterface)
-* [`@GQLField`](#GQLfield)
-* [`@GQLUnion`](#GQLunion)
-* [`@GQLScalar`](#GQLscalar)
-* [`@GQLEnum`](#GQLenum)
-* [`@GQLInput`](#GQLinput)
+* [`@gqlType`](#GQLtype)
+* [`@gqlInterface`](#GQLinterface)
+* [`@gqlField`](#GQLfield)
+* [`@gqlUnion`](#GQLunion)
+* [`@gqlScalar`](#GQLscalar)
+* [`@gqlEnum`](#GQLenum)
+* [`@gqlInput`](#GQLinput)
 
-### @GQLType
+### @gqlType
 
-GraphQL types can be defined by placing a `@GQLType` docblock directly before a:
+GraphQL types can be defined by placing a `@gqlType` docblock directly before a:
 
 * Class declaration
 * Interface declaration
@@ -163,10 +163,10 @@ GraphQL types can be defined by placing a `@GQLType` docblock directly before a:
 ```ts
 /**
  * Here I can write a description of my type that will be included in the schema.
- * @GQLType <optional name of the type, if different from class name>
+ * @gqlType <optional name of the type, if different from class name>
  */
 class MyClass {
-  /** @GQLField */
+  /** @gqlField */
   someField: string;
 }
 ```
@@ -174,10 +174,10 @@ class MyClass {
 ```ts
 /**
  * Here I can write a description of my type that will be included in the schema.
- * @GQLType <optional name of the type, if different from interface name>
+ * @gqlType <optional name of the type, if different from interface name>
  */
 interface MyInterface {
-  /** @GQLField */
+  /** @gqlField */
   someField: string;
 }
 ```
@@ -186,29 +186,29 @@ Note: If your type implements a GraphQL interface or is a member of a GraphQL
 union, Grats will remind you to add a `__typename: "MyType"` property to your
 class or interface.
 
-### @GQLInterface
+### @gqlInterface
 
-GraphQL interfaces can be defined by placing a `@GQLInterface` docblock directly before an:
+GraphQL interfaces can be defined by placing a `@gqlInterface` docblock directly before an:
 
 * Interface declaration
 
 ```ts
 /**
  * A description of my interface.
- * @GQLInterface <optional name of the type, if different from class name>
+ * @gqlInterface <optional name of the type, if different from class name>
  */
 interface MyClass {
-  /** @GQLField */
+  /** @gqlField */
   someField: string;
 }
 ```
 
-All `@GQLType` types which implement the interface in TypeScript will
+All `@gqlType` types which implement the interface in TypeScript will
 automatically implement it in GraphQL as well.
 
-### @GQLField
+### @gqlField
 
-You can define GraphQL fields by placing a `@GQLField` directly before a:
+You can define GraphQL fields by placing a `@gqlField` directly before a:
 
 * Method declaration
 * Method signature
@@ -219,13 +219,13 @@ You can define GraphQL fields by placing a `@GQLField` directly before a:
 ```ts
 /**
  * A description of some field.
- * @GQLField <optional name of the field, if different from property name>
+ * @gqlField <optional name of the field, if different from property name>
  */
 someField: string;
 
 /**
  * A description of my field.
- * @GQLField <optional name of the field, if different from method name>
+ * @gqlField <optional name of the field, if different from method name>
  */
 myField(): string {
   return "Hello World";
@@ -240,7 +240,7 @@ myField(): string {
 If you wish to define arguments for a field, define your argument types inline:
 
 ```ts
-/** @GQLField */
+/** @gqlField */
 myField(args: { greeting: string }): string {
   return `${args.greeting} World`;
 }
@@ -249,7 +249,7 @@ myField(args: { greeting: string }): string {
 Default values for arguments can be defined by using the `=` operator with destructuring:
 
 ```ts
-/** @GQLField */
+/** @gqlField */
 myField({ greeting = "Hello" }: { greeting: string }): string {
   return `${greeting} World`;
 }
@@ -258,7 +258,7 @@ myField({ greeting = "Hello" }: { greeting: string }): string {
 Arguments can be given descriptions by using the `/**` syntax:
 
 ```ts
-/** @GQLField */
+/** @gqlField */
 myField(args: { 
   /** A description of the greeting argument */
   greeting: string
@@ -271,7 +271,7 @@ To mark a field as deprecated, use the `@deprecated` JSDoc tag:
 
 ```ts
 /** 
- * @GQLField
+ * @gqlField
  * @deprecated Please use myNewField instead.
  */
 myOldField(): string {
@@ -281,7 +281,7 @@ myOldField(): string {
 
 Sometimes you want to add a computed field to a non-class type, or extend base
 types like `Query` or `Mutation` from another file. Both of these usecases are
-enabled by placing a `@GQLField` before an exported function declaration.
+enabled by placing a `@gqlField` before an exported function declaration.
 
 In this case, the function should expect an instance of the base type as the
 first argument, and an object representing the GraphQL field arguments as the
@@ -292,7 +292,7 @@ Extending Query:
 ```ts
 /** 
  * Description of my field
- * @GQLField <optional name of the field, if different from function name>
+ * @gqlField <optional name of the field, if different from function name>
  */
 export function userById(_: Query, args: {id: string}): User {
   return DB.getUserById(args.id);
@@ -304,7 +304,7 @@ Extending Mutation:
 ```ts
 /** 
  * Delete a user. GOODBYE!
- * @GQLField <optional name of the mutation, if different from function name>
+ * @gqlField <optional name of the mutation, if different from function name>
  */
 export function deleteUser(_: Mutation, args: {id: string}): boolean {
   return DB.deleteUser(args.id);
@@ -315,30 +315,30 @@ Note that Grats will use the type of the first argument to determine which type
 is being extended. So, as seen in the previous examples, even if you don't need
 access to the instance you should still define a typed first argument.
 
-### @GQLUnion
+### @gqlUnion
 
-GraphQL unions can be defined by placing a `@GQLUnion` docblock directly before a:
+GraphQL unions can be defined by placing a `@gqlUnion` docblock directly before a:
 
 * Type alias of a union of object types
 
 ```ts
 /** 
  * A description of my union.
- * @GQLUnion <optional name of the union, if different from type name>
+ * @gqlUnion <optional name of the union, if different from type name>
  */
 type MyUnion = User | Post;
 ```
 
-### @GQLScalar
+### @gqlScalar
 
-GraphQL custom sclars can be defined by placing a `@GQLScalar` docblock directly before a:
+GraphQL custom sclars can be defined by placing a `@gqlScalar` docblock directly before a:
 
 * Type alias declaration
 
 ```ts
 /** 
  * A description of my custom scalar.
- * @GQLScalar <optional name of the scalar, if different from type name>
+ * @gqlScalar <optional name of the scalar, if different from type name>
  */
 type MyCustomString = string;
 ```
@@ -348,18 +348,18 @@ Note: For the built-in GraphQL scalars that don't have a corresponding TypeScrip
 ```ts
 import { Float, Int } from "grats";
 
-/** @GQLType */
+/** @gqlType */
 class Query {
-  /** @GQLField */
+  /** @gqlField */
   round(args: {float: Float}): Int {
     return Math.round(args.float);
   }
 }
 ```
 
-### @GQLEnum
+### @gqlEnum
 
-GraphQL enums can be defined by placing a `@GQLEnum` docblock directly before a:
+GraphQL enums can be defined by placing a `@gqlEnum` docblock directly before a:
 
 * TypeScript enum declaration
 * Type alias of a union of string literals
@@ -367,7 +367,7 @@ GraphQL enums can be defined by placing a `@GQLEnum` docblock directly before a:
 ```ts
 /** 
  * A description of my enum.
- * @GQLEnum <optional name of the enum, if different from type name>
+ * @gqlEnum <optional name of the enum, if different from type name>
  */
 enum MyEnum {
   /** A description of my variant */
@@ -383,7 +383,7 @@ be string literals.
 To mark a variants as deprecated, use the `@deprecated` JSDoc tag directly before it:
 
 ```ts
-/** @GQLEnum */
+/** @gqlEnum */
 enum MyEnum {
   OK = "OK"
   /** @deprecated Please use OK instead. */
@@ -404,21 +404,21 @@ This is due to the fact that TypeScript does not see JSDoc comments as
 ```ts
 /** 
  * A description of my enum.
- * @GQLEnum <optional name of the enum, if different from type name>
+ * @gqlEnum <optional name of the enum, if different from type name>
  */
 type MyEnum = "OK" | "ERROR";
 ```
 
-### @GQLInput
+### @gqlInput
 
-GraphQL input types can be defined by placing a `@GQLInput` docblock directly before a:
+GraphQL input types can be defined by placing a `@gqlInput` docblock directly before a:
 
 * Type alias declaration
 
 ```ts
 /** 
  * Description of my input type
- * @GQLInput <optional name of the input, if different from type name>
+ * @gqlInput <optional name of the input, if different from type name>
  */
 type MyInput = {
   name: string;

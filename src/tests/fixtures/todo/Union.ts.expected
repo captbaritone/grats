@@ -1,25 +1,25 @@
 -----------------
 INPUT
 ----------------- 
-/** @GQLType */
+/** @gqlType */
 class User {
   __typename = "User";
-  /** @GQLField */
+  /** @gqlField */
   name(): string {
     return "Alice";
   }
 }
 
-/** @GQLType */
+/** @gqlType */
 class Group {
   __typename = "Group";
-  /** @GQLField */
+  /** @gqlField */
   name(): string {
     return "Fan Club";
   }
 }
 
-/** @GQLUnion */
+/** @gqlUnion */
 type MyUnion = User | Group;
 
 -----------------

@@ -1,9 +1,9 @@
 /**
  * The root of all evil.
  *
- * @GQLType Query
+ * @gqlType Query
  */
 export default interface NotQuery {
-  /** @GQLField */
+  /** @gqlField */
   hello: string;
 }

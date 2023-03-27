@@ -1,12 +1,12 @@
 // @ts-nocheck
 
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello(): string {
     return "Hello world!";
   }
-  /** @GQLField */
+  /** @gqlField */
   hello(): Array<string> {
     return ["Hello world!"];
   }

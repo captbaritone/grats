@@ -1,4 +1,4 @@
-/** @GQLScalar */
+/** @gqlScalar */
 export type Float = number;
-/** @GQLScalar */
+/** @gqlScalar */
 export type Int = number;

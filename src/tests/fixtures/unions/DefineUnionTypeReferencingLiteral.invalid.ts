@@ -1,14 +1,14 @@
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   me: Actor;
 }
 
-/** @GQLType */
+/** @gqlType */
 class User {
-  /** @GQLField */
+  /** @gqlField */
   name: string;
 }
 
-/** @GQLUnion */
+/** @gqlUnion */
 type Actor = User | "LOL";

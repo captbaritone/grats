@@ -1,5 +1,5 @@
-/** @GQLType */
+/** @gqlType */
 class Query {
-  /** @GQLField */
+  /** @gqlField */
   someProp;
 }

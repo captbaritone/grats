@@ -1,6 +1,6 @@
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   me(): User {
     return new User();
   }
@@ -9,16 +9,16 @@ export default class Query {
 /**
  * An interface describing the common elements of all people types.
  *
- * @GQLInterface
+ * @gqlInterface
  */
 interface IPerson {
-  /** @GQLField */
+  /** @gqlField */
   name: string;
 }
 
-/** @GQLType */
+/** @gqlType */
 class User implements IPerson {
   __typename = "User";
-  /** @GQLField */
+  /** @gqlField */
   name: string;
 }

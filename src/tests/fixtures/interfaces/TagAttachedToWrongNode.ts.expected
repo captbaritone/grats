@@ -1,13 +1,13 @@
 -----------------
 INPUT
 ----------------- 
-/** @GQLInterface Person */
+/** @gqlInterface Person */
 function Foo() {}
 
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/interfaces/TagAttachedToWrongNode.ts:1:5 - error: `@GQLInterface` can only be used on interface declarations.
+src/tests/fixtures/interfaces/TagAttachedToWrongNode.ts:1:5 - error: `@gqlInterface` can only be used on interface declarations.
 
-1 /** @GQLInterface Person */
+1 /** @gqlInterface Person */
       ~~~~~~~~~~~~~~~~~~~~~

@@ -1,8 +1,8 @@
-/** @GQLType */
+/** @gqlType */
 class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello: MyEnum;
 }
 
-/** @GQLEnum */
+/** @gqlEnum */
 type MyEnum = "VALID" | "INVALID";

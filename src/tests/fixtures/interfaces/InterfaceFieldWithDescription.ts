@@ -1,23 +1,23 @@
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   me(): User {
     return new User();
   }
 }
 
-/** @GQLInterface */
+/** @gqlInterface */
 interface IPerson {
   /**
    * The person's name
-   * @GQLField
+   * @gqlField
    */
   name: string;
 }
 
-/** @GQLType */
+/** @gqlType */
 class User implements IPerson {
   __typename = "User";
-  /** @GQLField */
+  /** @gqlField */
   name: string;
 }

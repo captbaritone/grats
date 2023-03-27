@@ -1,13 +1,13 @@
 import IPerson from "./interfaces/IPerson";
 import User from "./models/User";
 
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   me(): User {
     return new User();
   }
-  /** @GQLField */
+  /** @gqlField */
   person(): IPerson {
     return new User();
   }

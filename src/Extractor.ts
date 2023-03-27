@@ -40,13 +40,13 @@ const LIBRARY_IMPORT_NAME = "grats";
 const LIBRARY_NAME = "Grats";
 const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
 
-const TYPE_TAG = "GQLType";
-const FIELD_TAG = "GQLField";
-const SCALAR_TAG = "GQLScalar";
-const INTERFACE_TAG = "GQLInterface";
-const ENUM_TAG = "GQLEnum";
-const UNION_TAG = "GQLUnion";
-const INPUT_TAG = "GQLInput";
+const TYPE_TAG = "gqlType";
+const FIELD_TAG = "gqlField";
+const SCALAR_TAG = "gqlScalar";
+const INTERFACE_TAG = "gqlInterface";
+const ENUM_TAG = "gqlEnum";
+const UNION_TAG = "gqlUnion";
+const INPUT_TAG = "gqlInput";
 
 const DEPRECATED_TAG = "deprecated";
 
@@ -386,7 +386,7 @@ export class Extractor {
     if (!ts.isTypeReferenceNode(typeParam.type)) {
       return this.report(
         typeParam.type,
-        `Expected first argument of a \`@${FIELD_TAG}\` function to be typed as a \`@GQLType\` type.`,
+        `Expected first argument of a \`@${FIELD_TAG}\` function to be typed as a \`@gqlType\` type.`,
       );
     }
 

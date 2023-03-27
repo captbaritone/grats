@@ -78,7 +78,7 @@ function definitionsFromFile(
   const definitions: DefinitionNode[] = Array.from(DIRECTIVES_AST.definitions);
   for (const sourceFile of program.getSourceFiles()) {
     // If the file doesn't contain any GraphQL definitions, skip it.
-    if (!/@GQL/.test(sourceFile.text)) {
+    if (!/@gql/.test(sourceFile.text)) {
       continue;
     }
 

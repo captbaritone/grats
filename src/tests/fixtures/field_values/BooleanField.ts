@@ -1,6 +1,6 @@
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   haveBeenGreeted(): boolean {
     return false;
   }

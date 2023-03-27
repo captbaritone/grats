@@ -1,6 +1,6 @@
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello(): Array<string | null> {
     return ["Hello world!", null];
   }

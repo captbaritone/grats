@@ -1,10 +1,10 @@
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello: MyEnum;
 }
 
-/** @GQLEnum */
+/** @gqlEnum */
 type MyEnum =
   /** VALIDATED! */
   | "VALID"

@@ -1,12 +1,12 @@
-/** @GQLType */
+/** @gqlType */
 export class User implements IPerson {
   __typename: "Group";
-  /** @GQLField */
+  /** @gqlField */
   name: string;
 }
 
-/** @GQLInterface */
+/** @gqlInterface */
 export interface IPerson {
-  /** @GQLField */
+  /** @gqlField */
   name: string;
 }

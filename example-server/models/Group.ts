@@ -1,19 +1,19 @@
 import User from "./User";
 
-/** @GQLType */
+/** @gqlType */
 export default class Group {
-  /** @GQLField */
+  /** @gqlField */
   description: string;
 
   constructor() {
     this.description = "A group of people";
   }
 
-  /** @GQLField */
+  /** @gqlField */
   name(): string {
     return "Pal's Club";
   }
-  /** @GQLField */
+  /** @gqlField */
   async members(): Promise<User[]> {
     return [new User()];
   }

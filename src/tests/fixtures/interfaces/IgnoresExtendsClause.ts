@@ -1,6 +1,6 @@
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   me(): User {
     return new User();
   }
@@ -10,15 +10,15 @@ class Person {
   name: string;
 }
 
-/** @GQLInterface */
+/** @gqlInterface */
 interface Actor {
-  /** @GQLField */
+  /** @gqlField */
   name: string;
 }
 
-/** @GQLType */
+/** @gqlType */
 class User extends Person implements Actor {
   __typename = "User";
-  /** @GQLField */
+  /** @gqlField */
   name: string;
 }

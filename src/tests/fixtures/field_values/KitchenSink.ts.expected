@@ -1,58 +1,58 @@
 -----------------
 INPUT
 ----------------- 
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello(args: { greeting: string }): string {
     return `${args.greeting ?? "Hello"} world!`;
   }
 
-  /** @GQLField */
+  /** @gqlField */
   greetings(args: { greeting: string }): string[] {
     return [`${args.greeting ?? "Hello"} world!`];
   }
-  /** @GQLField */
+  /** @gqlField */
   greetings1(args: { greeting: string }): Array<string> {
     return [`${args.greeting ?? "Hello"} world!`];
   }
-  /** @GQLField */
+  /** @gqlField */
   greetings2(args: { greeting: string }): ReadonlyArray<string> {
     return [`${args.greeting ?? "Hello"} world!`];
   }
 
-  /** @GQLField */
+  /** @gqlField */
   me(): User {
     return new User();
   }
 }
 
-/** @GQLType */
+/** @gqlType */
 class User {
-  /** @GQLField */
+  /** @gqlField */
   name(): string {
     return "Alice";
   }
-  /** @GQLField */
+  /** @gqlField */
   groups(): Group[] {
     return [new Group()];
   }
 }
 
-/** @GQLType */
+/** @gqlType */
 class Group {
-  /** @GQLField */
+  /** @gqlField */
   description: string;
 
   constructor() {
     this.description = "A group of people";
   }
 
-  /** @GQLField */
+  /** @gqlField */
   name(): string {
     return "Pal's Club";
   }
-  /** @GQLField */
+  /** @gqlField */
   async members(): Promise<User[]> {
     return [new User()];
   }

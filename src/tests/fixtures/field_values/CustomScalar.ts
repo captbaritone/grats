@@ -1,9 +1,9 @@
-/** @GQLScalar */
+/** @gqlScalar */
 type MyString = string;
 
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello(): MyString {
     return "Hello world!";
   }

@@ -1,11 +1,11 @@
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   me(): UserResolver {
     return new UserResolver();
   }
   /**
-   * @GQLField
+   * @gqlField
    * @deprecated Please use `me` instead.
    */
   viewer(): UserResolver {
@@ -15,19 +15,19 @@ export default class Query {
 
 /**
  * A user in our kick-ass system!
- * @GQLType User
+ * @gqlType User
  */
 class UserResolver {
-  /** @GQLField */
+  /** @gqlField */
   name: string = "Alice";
 
-  /** @GQLField */
+  /** @gqlField */
   greeting(args: { salutation: string }): string {
     return `${args.salutation}, ${this.name}`;
   }
 }
 
-/** @GQLField */
+/** @gqlField */
 export function getUser(_: Query): UserResolver {
   return new UserResolver();
 }

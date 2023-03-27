@@ -1,14 +1,14 @@
-/** @GQLType */
+/** @gqlType */
 export class User {
-  /** @GQLField */
+  /** @gqlField */
   name: string = "Alice";
 }
 
-/** @GQLType */
+/** @gqlType */
 export class Group {
-  /** @GQLField */
+  /** @gqlField */
   name: string = "Alice Fan Club";
 }
 
-/** @GQLUnion */
+/** @gqlUnion */
 export type MyUnion = User | Group;

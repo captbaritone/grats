@@ -16,7 +16,7 @@ There are a potentially large number of types of syntax that {LIBRARY_NAME} coul
 
 ## No new concepts
 
-Aside from the `@GQL` docblock tag, {LIBRARY_NAME} should not introduce any new concepts to the GraphQL ecosystem. Docblocks should represent constructs that are well defined in the GraphQL spec, and should feel familiar to those who have used GraphQL in other contexts/languages.
+Aside from the `@gql` docblock tag, {LIBRARY_NAME} should not introduce any new concepts to the GraphQL ecosystem. Docblocks should represent constructs that are well defined in the GraphQL spec, and should feel familiar to those who have used GraphQL in other contexts/languages.
 
 ## A few dependencies well leveraged
 

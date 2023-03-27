@@ -2,20 +2,20 @@ import IPerson from "../interfaces/IPerson";
 import Query from "../Query";
 import Group from "./Group";
 
-/** @GQLType User */
+/** @gqlType User */
 export default class UserResolver implements IPerson {
   __typename = "User";
-  /** @GQLField */
+  /** @gqlField */
   name(): string {
     return "Alice";
   }
-  /** @GQLField */
+  /** @gqlField */
   groups(): Group[] {
     return [new Group()];
   }
 }
 
-/** @GQLField */
+/** @gqlField */
 export function allUsers(_: Query): UserResolver[] {
   return [new UserResolver(), new UserResolver()];
 }

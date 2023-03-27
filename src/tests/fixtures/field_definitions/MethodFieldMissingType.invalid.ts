@@ -1,6 +1,6 @@
-/** @GQLType */
+/** @gqlType */
 class Query {
-  /** @GQLField */
+  /** @gqlField */
   someMethodField() {
     return "Hello world!";
   }

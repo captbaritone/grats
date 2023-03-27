@@ -1,7 +1,7 @@
-/** @GQLType */
+/** @gqlType */
 export default class Query {
   /**
-   * @GQLField
+   * @gqlField
    * @deprecated Use something else.
    */
   hello(): string {

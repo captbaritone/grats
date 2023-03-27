@@ -1,14 +1,14 @@
-/** @GQLType */
+/** @gqlType */
 export default interface Query extends HasName {
-  /** @GQLField */
+  /** @gqlField */
   hello: string;
 
-  /** @GQLField */
+  /** @gqlField */
   name: string;
 }
 
-/** @GQLInterface */
+/** @gqlInterface */
 interface HasName {
-  /** @GQLField */
+  /** @gqlField */
   name: string;
 }

@@ -1,7 +1,7 @@
 /**
- * @GQLType Query
+ * @gqlType Query
  */
 interface MyInterface {
-  /** @GQLField */
+  /** @gqlField */
   hello: string;
 }

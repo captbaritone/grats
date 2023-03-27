@@ -1,6 +1,6 @@
-/** @GQLType */
+/** @gqlType */
 export class User {
   __typename = "User";
-  /** @GQLField */
+  /** @gqlField */
   name: string = "Alice";
 }

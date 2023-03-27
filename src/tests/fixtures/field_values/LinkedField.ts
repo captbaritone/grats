@@ -1,18 +1,18 @@
-/** @GQLType */
+/** @gqlType */
 class Query {
-  /** @GQLField */
+  /** @gqlField */
   async me(): Promise<User> {
     return new User();
   }
 }
 
-/** @GQLType */
+/** @gqlType */
 class User {
-  /** @GQLField */
+  /** @gqlField */
   name(): string {
     return "Alice";
   }
-  /** @GQLField */
+  /** @gqlField */
   friends(): User[] {
     return [new User()];
   }

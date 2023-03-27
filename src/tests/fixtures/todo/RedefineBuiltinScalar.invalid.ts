@@ -1,2 +1,2 @@
-/** @GQLScalar String */
+/** @gqlScalar String */
 type MyUrl = string;

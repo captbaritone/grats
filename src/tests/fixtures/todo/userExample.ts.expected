@@ -1,23 +1,23 @@
 -----------------
 INPUT
 ----------------- 
-/** @GQLType */
+/** @gqlType */
 type Query = {};
 
-/** @GQLField */
+/** @gqlField */
 export function me(_: Query): User {
   return { firstName: "John", lastName: "Doe" };
 }
 
-/** @GQLType */
+/** @gqlType */
 type User = {
-  /** @GQLField */
+  /** @gqlField */
   firstName: string;
-  /** @GQLField */
+  /** @gqlField */
   lastName: string;
 };
 
-/** @GQLField */
+/** @gqlField */
 export function fullName(user: User): string {
   return `${user.firstName} ${user.lastName}`;
 }
@@ -25,11 +25,11 @@ export function fullName(user: User): string {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/todo/userExample.ts:1:5 - error: `@GQLType` can only be used on class or interface declarations.
+src/tests/fixtures/todo/userExample.ts:1:5 - error: `@gqlType` can only be used on class or interface declarations.
 
-1 /** @GQLType */
+1 /** @gqlType */
       ~~~~~~~~~
-src/tests/fixtures/todo/userExample.ts:9:5 - error: `@GQLType` can only be used on class or interface declarations.
+src/tests/fixtures/todo/userExample.ts:9:5 - error: `@gqlType` can only be used on class or interface declarations.
 
-9 /** @GQLType */
+9 /** @gqlType */
       ~~~~~~~~~

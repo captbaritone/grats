@@ -1,8 +1,8 @@
-/** @GQLType */
+/** @gqlType */
 class User {
   __typename() {
     return "User";
   }
-  /** @GQLField */
+  /** @gqlField */
   name: string = "Alice";
 }

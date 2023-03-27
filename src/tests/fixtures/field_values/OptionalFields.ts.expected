@@ -1,21 +1,21 @@
 -----------------
 INPUT
 ----------------- 
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello(): string | void {
     return "Hello world!";
   }
-  /** @GQLField */
+  /** @gqlField */
   goodbye(): string | null {
     return "Hello world!";
   }
-  /** @GQLField */
+  /** @gqlField */
   farewell(): string | null | void | undefined {
     return "Hello world!";
   }
-  /** @GQLField */
+  /** @gqlField */
   async adieu(): Promise<string | null | void> {
     return "Hello world!";
   }

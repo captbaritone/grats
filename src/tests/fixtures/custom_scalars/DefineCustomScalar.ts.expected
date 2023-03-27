@@ -1,13 +1,13 @@
 -----------------
 INPUT
 ----------------- 
-/** @GQLType */
+/** @gqlType */
 class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello: string;
 }
 
-/** @GQLScalar */
+/** @gqlScalar */
 type MyUrl = string;
 
 -----------------

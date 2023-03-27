@@ -1,10 +1,10 @@
-/** @GQLType */
+/** @gqlType */
 class Query {
   // No fields
 }
 
 /**
- * @GQLField
+ * @gqlField
  * @deprecated Because reasons
  */
 export function greeting(query: Query): string {

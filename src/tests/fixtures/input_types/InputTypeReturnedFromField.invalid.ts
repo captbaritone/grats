@@ -1,16 +1,16 @@
-/** @GQLType */
+/** @gqlType */
 class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello: string;
 }
 
-/** @GQLType */
+/** @gqlType */
 class MyType {
-  /** @GQLField */
+  /** @gqlField */
   someField(): MyInputType;
 }
 
-/** @GQLInput */
+/** @gqlInput */
 type MyInputType = {
   someField: MyType;
 };

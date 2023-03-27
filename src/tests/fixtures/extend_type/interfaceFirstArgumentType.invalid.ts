@@ -1,16 +1,16 @@
-/** @GQLType */
+/** @gqlType */
 class Query {
-  /** @GQLField */
+  /** @gqlField */
   foo: string;
 }
 
-/** @GQLInterface */
+/** @gqlInterface */
 interface IFoo {
-  /** @GQLField */
+  /** @gqlField */
   bar: string;
 }
 
-/** @GQLField */
+/** @gqlField */
 export function greeting(iFoo: IFoo): string {
   return "Hello world!";
 }

@@ -1,9 +1,9 @@
 -----------------
 INPUT
 ----------------- 
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello({ greeting }: { greeting: string }): string {
     return "Hello world!";
   }

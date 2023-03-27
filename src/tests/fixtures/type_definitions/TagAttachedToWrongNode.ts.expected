@@ -1,13 +1,13 @@
 -----------------
 INPUT
 ----------------- 
-/** @GQLType */
+/** @gqlType */
 function MyFunc() {}
 
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/type_definitions/TagAttachedToWrongNode.ts:1:5 - error: `@GQLType` can only be used on class or interface declarations.
+src/tests/fixtures/type_definitions/TagAttachedToWrongNode.ts:1:5 - error: `@gqlType` can only be used on class or interface declarations.
 
-1 /** @GQLType */
+1 /** @gqlType */
       ~~~~~~~~~

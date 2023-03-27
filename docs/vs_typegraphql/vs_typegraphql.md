@@ -6,21 +6,21 @@
 8c7
 < @ObjectType()
 ---
-> /** @GQLType */
+> /** @gqlType */
 10c9
 <   @Field()
 ---
->   /** @GQLField */
+>   /** @gqlField */
 13c12
 <   @Field((type) => String, { nullable: true })
 ---
->   /** @GQLField */
+>   /** @gqlField */
 17,19c16,18
 < @Resolver(User)
 < export class UserResolver {
 <   @Query((returns) => [User], { nullable: true })
 ---
-> /** @GQLType */
+> /** @gqlType */
 > export class Query {
->   /** @GQLField */
+>   /** @gqlField */
 ```

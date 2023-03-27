@@ -1,12 +1,12 @@
 -----------------
 INPUT
 ----------------- 
-/** @GQLType */
+/** @gqlType */
 class Query {
   // No fields
 }
 
-/** @GQLField */
+/** @gqlField */
 export function greeting(query: { name: string }): string {
   return "Hello world!";
 }
@@ -14,7 +14,7 @@ export function greeting(query: { name: string }): string {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/extend_type/nonAliasFirstArgumentType.invalid.ts:7:33 - error: Expected first argument of a `@GQLField` function to be typed as a `@GQLType` type.
+src/tests/fixtures/extend_type/nonAliasFirstArgumentType.invalid.ts:7:33 - error: Expected first argument of a `@gqlField` function to be typed as a `@gqlType` type.
 
 7 export function greeting(query: { name: string }): string {
                                   ~~~~~~~~~~~~~~~~

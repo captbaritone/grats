@@ -1,11 +1,11 @@
-/** @GQLType */
+/** @gqlType */
 export class User implements IPerson {
-  /** @GQLField */
+  /** @gqlField */
   name: string = "Alice";
 }
 
-/** @GQLInterface */
+/** @gqlInterface */
 export interface IPerson {
-  /** @GQLField */
+  /** @gqlField */
   name: string;
 }

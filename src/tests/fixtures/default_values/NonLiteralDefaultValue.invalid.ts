@@ -1,6 +1,6 @@
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello({ greeting = String(Math.random()) }: { greeting: string }): string {
     return `${greeting} world!`;
   }

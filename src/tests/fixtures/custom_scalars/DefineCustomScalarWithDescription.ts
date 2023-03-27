@@ -1,11 +1,11 @@
-/** @GQLType */
+/** @gqlType */
 class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello: string;
 }
 
 /**
  * Use this for URLs.
- * @GQLScalar
+ * @gqlScalar
  */
 type MyUrl = string;

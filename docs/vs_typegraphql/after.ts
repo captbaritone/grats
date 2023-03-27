@@ -4,18 +4,18 @@ import { graphqlHTTP } from "express-graphql";
 
 const prisma = new PrismaClient();
 
-/** @GQLType */
+/** @gqlType */
 export class User {
-  /** @GQLField */
+  /** @gqlField */
   email: string;
 
-  /** @GQLField */
+  /** @gqlField */
   name?: string | null;
 }
 
-/** @GQLType */
+/** @gqlType */
 export class Query {
-  /** @GQLField */
+  /** @gqlField */
   async allUsers() {
     return prisma.user.findMany();
   }

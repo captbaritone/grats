@@ -1,9 +1,9 @@
-/** @GQLType */
+/** @gqlType */
 class Query {
   // No fields
 }
 
-/** @GQLField */
+/** @gqlField */
 export function greeting(
   query /* Without an arg type we can't infer the GraphQL type to extend! */,
 ): string {

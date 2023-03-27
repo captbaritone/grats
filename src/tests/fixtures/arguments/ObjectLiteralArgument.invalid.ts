@@ -1,6 +1,6 @@
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello({ greeting }: { greeting: { foo: string; bar: string } }): string {
     return "Hello world!";
   }

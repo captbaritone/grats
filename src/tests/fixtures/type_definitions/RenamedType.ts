@@ -1,8 +1,8 @@
 /**
- * @GQLType Query
+ * @gqlType Query
  */
 class MyClass {
-  /** @GQLField */
+  /** @gqlField */
   hello(): string {
     return "Hello world!";
   }

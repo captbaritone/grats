@@ -1,16 +1,16 @@
-/** @GQLType */
+/** @gqlType */
 class Query {
   /**
    * Number 1 greeting.
    *
-   * @GQLField greeting
+   * @gqlField greeting
    */
   somePropertyField: string;
 
   /**
    * Number 1 salutation.
    *
-   * @GQLField salutaion
+   * @gqlField salutaion
    */
   someMethodField(): string {
     return "Hello world!";

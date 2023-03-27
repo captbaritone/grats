@@ -1,26 +1,26 @@
 -----------------
 INPUT
 ----------------- 
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   me(): User {
     return new User();
   }
 }
 
-/** @GQLInterface */
+/** @gqlInterface */
 interface Person<T> {
-  /** @GQLField */
+  /** @gqlField */
   name: string;
 
   other: T;
 }
 
-/** @GQLType */
+/** @gqlType */
 class User implements Person<string> {
   __typename = "User";
-  /** @GQLField */
+  /** @gqlField */
   name: string;
 
   other: string;

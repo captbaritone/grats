@@ -1,13 +1,13 @@
-/** @GQLType */
+/** @gqlType */
 class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello: string;
 }
 
 /**
  * World's best enum.
  *
- * @GQLEnum
+ * @gqlEnum
  */
 enum Enum {
   VALID = "VALID",

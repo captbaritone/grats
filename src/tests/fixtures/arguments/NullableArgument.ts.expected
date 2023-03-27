@@ -1,25 +1,25 @@
 -----------------
 INPUT
 ----------------- 
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello1({ greeting }: { greeting: string | null }): string {
     return "Hello world!";
   }
-  /** @GQLField */
+  /** @gqlField */
   hello2({ greeting }: { greeting?: string }): string {
     return "Hello world!";
   }
-  /** @GQLField */
+  /** @gqlField */
   hello3({ greeting }: { greeting: string | void }): string {
     return "Hello world!";
   }
-  /** @GQLField */
+  /** @gqlField */
   hello4({ greeting }: { greeting: string | undefined }): string {
     return "Hello world!";
   }
-  /** @GQLField */
+  /** @gqlField */
   hello5({
     greeting,
   }: {

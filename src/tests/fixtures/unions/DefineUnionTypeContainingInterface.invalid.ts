@@ -1,20 +1,20 @@
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   me: Actor;
 }
 
-/** @GQLType */
+/** @gqlType */
 class User {
-  /** @GQLField */
+  /** @gqlField */
   name: string;
 }
 
-/** @GQLInterface */
+/** @gqlInterface */
 interface Entity {
-  /** @GQLField */
+  /** @gqlField */
   description: string;
 }
 
-/** @GQLUnion */
+/** @gqlUnion */
 type Actor = User | Entity;

@@ -1,5 +1,5 @@
-/** @GQLType */
+/** @gqlType */
 export default interface Query {
-  /** @GQLField */
+  /** @gqlField */
   hello: string;
 }

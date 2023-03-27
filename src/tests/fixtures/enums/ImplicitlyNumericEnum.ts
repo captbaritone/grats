@@ -1,4 +1,4 @@
-/** @GQLEnum */
+/** @gqlEnum */
 enum Enum {
   VALID,
   INVALID,

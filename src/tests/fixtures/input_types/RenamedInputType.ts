@@ -1,10 +1,10 @@
-/** @GQLType */
+/** @gqlType */
 class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello: string;
 }
 
-/** @GQLInput OtherName */
+/** @gqlInput OtherName */
 type MyInputType = {
   someField: string;
 };

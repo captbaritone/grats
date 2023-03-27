@@ -1,9 +1,9 @@
-/** @GQLType */
+/** @gqlType */
 class Query {
   // No fields
 }
 
-/** @GQLField */
+/** @gqlField */
 export default function greeting(_: Query): string {
   return `Hello World`;
 }

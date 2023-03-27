@@ -1,12 +1,12 @@
 -----------------
 INPUT
 ----------------- 
-/** @GQLType */
+/** @gqlType */
 class Query {
   // No fields
 }
 
-/** @GQLField */
+/** @gqlField */
 export function greeting(/* Without an arg we can't infer the type! */): string {
   return "Hello world!";
 }
@@ -14,7 +14,7 @@ export function greeting(/* Without an arg we can't infer the type! */): string 
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/extend_type/missingFirstArgument.invalid.ts:7:17 - error: Expected `@GQLField` function to have a first argument representing the type to extend.
+src/tests/fixtures/extend_type/missingFirstArgument.invalid.ts:7:17 - error: Expected `@gqlField` function to have a first argument representing the type to extend.
 
 7 export function greeting(/* Without an arg we can't infer the type! */): string {
                   ~~~~~~~~

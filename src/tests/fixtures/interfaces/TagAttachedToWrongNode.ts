@@ -1,2 +1,2 @@
-/** @GQLInterface Person */
+/** @gqlInterface Person */
 function Foo() {}

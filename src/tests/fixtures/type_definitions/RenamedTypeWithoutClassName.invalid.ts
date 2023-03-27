@@ -1,8 +1,8 @@
 /**
- * @GQLType Query
+ * @gqlType Query
  */
 export default class {
-  /** @GQLField */
+  /** @gqlField */
   hello(): string {
     return "Hello world!";
   }

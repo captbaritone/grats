@@ -1,5 +1,5 @@
-/** @GQLInterface */
+/** @gqlInterface */
 interface ICarly {
-  /** @GQLField */
+  /** @gqlField */
   name(): string;
 }

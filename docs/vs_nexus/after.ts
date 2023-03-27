@@ -5,15 +5,15 @@ import { graphqlHTTP } from "express-graphql";
 const prisma = new PrismaClient();
 
 // FIXME: Not supported yet
-/** @GQLType */
+/** @gqlType */
 type User = {
-  /** @GQLField */
+  /** @gqlField */
   email: string;
-  /** @GQLField */
+  /** @gqlField */
   name?: string;
 };
 
-/** @GQLType */
+/** @gqlType */
 class Query {
   allUsers(): Promise<User[]> {
     return prisma.user.findMany();

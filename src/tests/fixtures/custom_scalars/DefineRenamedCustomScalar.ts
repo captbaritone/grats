@@ -1,8 +1,8 @@
-/** @GQLType */
+/** @gqlType */
 class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello: string;
 }
 
-/** @GQLScalar CustomName */
+/** @gqlScalar CustomName */
 type MyUrl = string;

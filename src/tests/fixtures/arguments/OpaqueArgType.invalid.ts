@@ -1,8 +1,8 @@
 type SomeType = any;
 
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello({ greeting }: SomeType): string {
     return "Hello world!";
   }

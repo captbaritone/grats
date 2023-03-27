@@ -1,12 +1,12 @@
 -----------------
 INPUT
 ----------------- 
-/** @GQLScalar */
+/** @gqlScalar */
 type MyString = string;
 
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello({ greeting }: { greeting: MyString }): string {
     return "Hello world!";
   }

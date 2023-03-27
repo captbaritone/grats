@@ -1,20 +1,20 @@
-/** @GQLType */
+/** @gqlType */
 type Query = {};
 
-/** @GQLField */
+/** @gqlField */
 export function me(_: Query): User {
   return { firstName: "John", lastName: "Doe" };
 }
 
-/** @GQLType */
+/** @gqlType */
 type User = {
-  /** @GQLField */
+  /** @gqlField */
   firstName: string;
-  /** @GQLField */
+  /** @gqlField */
   lastName: string;
 };
 
-/** @GQLField */
+/** @gqlField */
 export function fullName(user: User): string {
   return `${user.firstName} ${user.lastName}`;
 }

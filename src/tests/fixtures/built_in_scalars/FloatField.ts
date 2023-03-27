@@ -1,8 +1,8 @@
 import { Float } from "../../../Types";
 
-/** @GQLType */
+/** @gqlType */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   ratio(): Float {
     return 10;
   }

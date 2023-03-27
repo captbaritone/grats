@@ -1,11 +1,11 @@
-/** @GQLType User */
+/** @gqlType User */
 class UserResolver {
-  /** @GQLField */
+  /** @gqlField */
   name: string;
 }
 
-/** @GQLType */
+/** @gqlType */
 class Query {
-  /** @GQLField */
+  /** @gqlField */
   me: UserResolver;
 }

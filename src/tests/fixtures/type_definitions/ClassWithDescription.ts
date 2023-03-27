@@ -1,9 +1,9 @@
 /**
  * The root of all evil.
  *
- * @GQLType
+ * @gqlType
  */
 export default class Query {
-  /** @GQLField */
+  /** @gqlField */
   hello: string;
 }

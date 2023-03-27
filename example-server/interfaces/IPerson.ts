@@ -1,5 +1,5 @@
-/** @GQLInterface */
+/** @gqlInterface */
 export default interface IPerson {
-  /** @GQLField */
+  /** @gqlField */
   name(): string;
 }
