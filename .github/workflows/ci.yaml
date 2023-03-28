@@ -29,6 +29,8 @@ jobs:
         run: pnpm run build
       - name: Unit Tests
         run: pnpm run test
+      - name: Install dependencies for other packages
+        run: pnpm run -r install
       - name: Build Other Packages
         run: pnpm run -r build
       - name: Integration Tests
