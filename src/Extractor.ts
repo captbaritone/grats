@@ -916,8 +916,13 @@ export class Extractor {
         "Expected GraphQL field argument to have a type.",
       );
     }
-    const type = this.collectType(node.type);
+    let type = this.collectType(node.type);
     if (type == null) return null;
+
+    if (node.questionToken) {
+      type = this.gqlNullableType(type);
+    }
+
     const description = this.collectDescription(node.name);
 
     let defaultValue: ConstValueNode | null = null;
@@ -927,6 +932,7 @@ export class Extractor {
         defaultValue = this.collectConstValue(def);
       }
     }
+
     return {
       kind: Kind.INPUT_VALUE_DEFINITION,
       loc: this.loc(node),

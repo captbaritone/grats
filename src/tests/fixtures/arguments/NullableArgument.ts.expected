@@ -42,7 +42,7 @@ directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITIO
 
 type Query {
   hello1(greeting: String): String
-  hello2(greeting: String!): String
+  hello2(greeting: String): String
   hello3(greeting: String): String
   hello4(greeting: String): String
   hello5(greeting: String): String
