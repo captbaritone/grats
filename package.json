@@ -11,6 +11,7 @@
   "scripts": {
     "cli": "ts-node --esm src/cli.ts",
     "test": "ts-node --esm src/tests/test.ts",
+    "integration-tests": "node src/tests/integration.js",
     "build": "tsc",
     "lint": "eslint src/**/*.ts"
   },
