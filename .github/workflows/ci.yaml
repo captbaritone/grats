@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    name: "JS Tests, Build, and Lint"
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -30,3 +31,24 @@ jobs:
         run: pnpm run test
       - name: Lint
         run: pnpm run lint
+  build-playground:
+    name: "Build Playgrounnd"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./playground
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+      - name: Install Deps In Root
+        working-directory: ./
+        run: pnpm install
+      - name: Build Grats
+        working-directory: ./
+        run: pnpm run build
+      - name: Install dependencies
+        run: pnpm install
+      - name: Build
+        run: pnpm run build
