@@ -1,0 +1,28 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * The root of all evil.
+ *
+ * @gqlType
+ */
+export type Query = {
+  /** @gqlField */
+  hello: string;
+};
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+"The root of all evil."
+type Query {
+  hello: String
+}

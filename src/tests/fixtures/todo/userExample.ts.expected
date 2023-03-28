@@ -25,11 +25,20 @@ export function fullName(user: User): string {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/todo/userExample.ts:1:5 - error: `@gqlType` can only be used on class or interface declarations.
+schema {
+  query: Query
+}
 
-1 /** @gqlType */
-      ~~~~~~~~~
-src/tests/fixtures/todo/userExample.ts:9:5 - error: `@gqlType` can only be used on class or interface declarations.
+directive @methodName(name: String!) on FIELD_DEFINITION
 
-9 /** @gqlType */
-      ~~~~~~~~~
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  me: User @exported(filename: "src/tests/fixtures/todo/userExample.ts", functionName: "me")
+}
+
+type User {
+  firstName: String
+  lastName: String
+  fullName: String @exported(filename: "src/tests/fixtures/todo/userExample.ts", functionName: "fullName")
+}

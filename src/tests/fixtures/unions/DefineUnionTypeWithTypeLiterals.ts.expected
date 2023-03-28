@@ -1,0 +1,50 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class Query {
+  /** @gqlField */
+  me: Actor;
+}
+
+/** @gqlType */
+type User = {
+  __typename: "User";
+  /** @gqlField */
+  name: string;
+};
+
+/** @gqlType */
+type Entity = {
+  __typename: "Entity";
+  /** @gqlField */
+  description: string;
+};
+
+/** @gqlUnion */
+type Actor = User | Entity;
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  me: Actor
+}
+
+type User {
+  name: String
+}
+
+type Entity {
+  description: String
+}
+
+union Actor = User | Entity

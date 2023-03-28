@@ -170,6 +170,8 @@ export class Extractor {
       this.typeClassDeclaration(node, tag);
     } else if (ts.isInterfaceDeclaration(node)) {
       this.typeInterfaceDeclaration(node, tag);
+    } else if (ts.isTypeAliasDeclaration(node)) {
+      this.typeTypeAliasDeclaration(node, tag);
     } else {
       this.report(
         tag,
@@ -599,8 +601,39 @@ export class Extractor {
     });
   }
 
+  typeTypeAliasDeclaration(node: ts.TypeAliasDeclaration, tag: ts.JSDocTag) {
+    const name = this.entityName(node, tag);
+    if (name == null) return null;
+
+    if (!ts.isTypeLiteralNode(node.type)) {
+      this.reportUnhandled(
+        node.type,
+        `Expected \`@${TYPE_TAG}\` type to be a type literal. For example: \`type Foo = { bar: string }\``,
+      );
+      return;
+    }
+
+    const description = this.collectDescription(node.name);
+    const fields = this.collectFields(node.type);
+    this.ctx.recordTypeName(node.name, name.value);
+
+    this.checkForTypenameProperty(node.type, name.value);
+
+    this.definitions.push({
+      kind: Kind.OBJECT_TYPE_DEFINITION,
+      loc: this.loc(node),
+      description: description ?? undefined,
+      directives: undefined,
+      name,
+      fields,
+      // I don't believe there is a reasonable way to specify that a type
+      // implements an interface.
+      interfaces: undefined,
+    });
+  }
+
   checkForTypenameProperty(
-    node: ts.ClassDeclaration | ts.InterfaceDeclaration,
+    node: ts.ClassDeclaration | ts.InterfaceDeclaration | ts.TypeLiteralNode,
     expectedName: string,
   ) {
     const hasTypename = node.members.some((member) => {
@@ -769,7 +802,7 @@ export class Extractor {
   }
 
   collectFields(
-    node: ts.ClassDeclaration | ts.InterfaceDeclaration,
+    node: ts.ClassDeclaration | ts.InterfaceDeclaration | ts.TypeLiteralNode,
   ): Array<FieldDefinitionNode> {
     const fields: FieldDefinitionNode[] = [];
     ts.forEachChild(node, (node) => {

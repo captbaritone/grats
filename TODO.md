@@ -17,6 +17,8 @@
     - [ ] interface types implement interfaces
     - [ ] interface interfaces implement interfaces
 - [ ] Allow interfaces to specify resolveType
+- [ ] Args with defaults should be nullable?
+- [ ] Args with ? should be nullable?
 
 ## Beta
 - [ ] Support generic directives 

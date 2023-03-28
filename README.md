@@ -140,8 +140,7 @@ special JSDoc tags such as `/** @gqlType */` or `/** @gqlField */`.
 
 Any comment text preceding the JSDoc `@` tag will be used as that element's description.
 
-**Note that JSDocs must being with
-`/**` (two asterix).** However, they may be consolidated into a single line.
+**Note that JSDocs must being with `/**` (two asterix).** However, they may be consolidated into a single line.
 
 The following JSDoc tags are supported:
 
@@ -159,6 +158,7 @@ GraphQL types can be defined by placing a `@gqlType` docblock directly before a:
 
 * Class declaration
 * Interface declaration
+* Type alias of a literal type
 
 ```ts
 /**
@@ -176,7 +176,18 @@ class MyClass {
  * Here I can write a description of my type that will be included in the schema.
  * @gqlType <optional name of the type, if different from interface name>
  */
-interface MyInterface {
+interface MyType {
+  /** @gqlField */
+  someField: string;
+}
+```
+
+```ts
+/**
+ * Here I can write a description of my type that will be included in the schema.
+ * @gqlType <optional name of the type, if different from interface name>
+ */
+type MyType = {
   /** @gqlField */
   someField: string;
 }
@@ -205,6 +216,10 @@ interface MyClass {
 
 All `@gqlType` types which implement the interface in TypeScript will
 automatically implement it in GraphQL as well.
+
+**Note**: Types declared using type literals `type MyType = { ... }` cannot yet
+implement interfaces. For now, you must use a class declarations for types which
+implement interfaces.
 
 ### @gqlField
 
