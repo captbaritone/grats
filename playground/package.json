@@ -1,0 +1,40 @@
+{
+  "name": "ts-playground",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "parcel build index.html",
+    "start": "parcel index.html",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "pnpm build && netlify deploy --prod --dir dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@codemirror/commands": "^6.2.2",
+    "@codemirror/lang-javascript": "^6.1.4",
+    "@codemirror/language": "^6.6.0",
+    "@codemirror/lint": "^6.2.0",
+    "@codemirror/state": "^6.2.0",
+    "@codemirror/view": "^6.9.3",
+    "@graphql-tools/utils": "^9.2.1",
+    "@typescript/vfs": "^1.4.0",
+    "cm6-graphql": "^0.0.3",
+    "graphql": "^16.6.0",
+    "graphql-language-service": "^5.1.2",
+    "grats": "workspace:*",
+    "lz-string": "^1.5.0",
+    "netlify-cli": "^13.2.1",
+    "parcel": "^2.8.3",
+    "path-browserify": "^1.0.1",
+    "process": "^0.11.10",
+    "typescript": "^5.0.2"
+  },
+  "alias": {
+    "process": {
+      "browser": "process/browser.js"
+    }
+  },
+  "prettier": {}
+}

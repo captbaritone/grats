@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grats: True code-first GraphQL for TypeScript</title>
+    <style type="text/css">
+      html,
+      body,
+      .wrapper {
+        height: 100%;
+      }
+      body {
+        font-family: sans-serif;
+        padding: 0;
+        margin: 0;
+      }
+      .wrapper {
+        display: flex;
+        flex-direction: column;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        background-color: #eee;
+        border-bottom: 1px solid #ccc;
+        gap: 20px;
+      }
+      .header .title {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+      }
+      .header .title h1 {
+        margin: 0;
+        flex-grow: 1;
+        color: #333;
+      }
+      .header .spacer {
+        flex-grow: 1;
+      }
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem;
+        background-color: #eee;
+        border-top: 1px solid #ccc;
+        text-align: center;
+        font-family: Verdana, sans-serif;
+        font-size: 0.8rem;
+      }
+      #app {
+        flex-grow: 1;
+        position: relative;
+        top: 0;
+        left: 0;
+        right: 0;
+        left: 0;
+      }
+      .cm-editor {
+        height: 100%;
+      }
+      .cm-scroller {
+        overflow: auto;
+      }
+      label {
+        /* TODO: Turn this back on */
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module" src="app.js"></script>
+    <div class="wrapper">
+      <div class="header">
+        <div class="title">
+          <h1>Grats</h1>
+          <span>True code-first GraphQL for TypeScript</span>
+        </div>
+        <div class="spacer"></div>
+        <a href="https://github.com/captbaritone/graphql-from-ts">Docs</a>
+        <a href="https://github.com/captbaritone/graphql-from-ts">GitHub</a>
+      </div>
+      <div id="app"></div>
+      <div class="footer">
+        <div>
+          <label>
+            <input type="checkbox" id="default-nullable" />
+            Default nullable
+          </label>
+        </div>
+        <div>Pre-release Alpha</div>
+      </div>
+    </div>
+  </body>
+</html>
