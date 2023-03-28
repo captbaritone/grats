@@ -1,5 +1,5 @@
 {
-  "name": "ts-playground",
+  "name": "grats-playground",
   "version": "1.0.0",
   "description": "",
   "scripts": {
@@ -10,7 +10,6 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
   "dependencies": {
     "@codemirror/commands": "^6.2.2",
     "@codemirror/lang-javascript": "^6.1.4",

@@ -9,8 +9,6 @@ importers:
       '@typescript-eslint/eslint-plugin': ^5.55.0
       '@typescript-eslint/parser': ^5.55.0
       eslint: ^8.36.0
-      express: ^4.18.2
-      express-graphql: ^0.12.0
       graphql: ^16.6.0
       jest-diff: ^29.4.3
       path-browserify: ^1.0.1
@@ -26,11 +24,28 @@ importers:
       '@typescript-eslint/eslint-plugin': 5.55.0_342y7v4tc7ytrrysmit6jo4wri
       '@typescript-eslint/parser': 5.55.0_vgl77cfdswitgr47lm5swmv43m
       eslint: 8.36.0
-      express: 4.18.2
-      express-graphql: 0.12.0_graphql@16.6.0
       jest-diff: 29.5.0
       path-browserify: 1.0.1
       process: 0.11.10
+      ts-node: 10.9.1_lwgqdwokjtwlohdqtbb6s252kq
+
+  examples/express-graphql:
+    specifiers:
+      '@types/node': ^18.14.6
+      express: ^4.18.2
+      express-graphql: ^0.12.0
+      graphql: ^16.6.0
+      grats: workspace:*
+      ts-node: ^10.9.1
+      typescript: ^4.9.5
+    dependencies:
+      graphql: 16.6.0
+      grats: link:../..
+      typescript: 4.9.5
+    devDependencies:
+      '@types/node': 18.15.0
+      express: 4.18.2
+      express-graphql: 0.12.0_graphql@16.6.0
       ts-node: 10.9.1_lwgqdwokjtwlohdqtbb6s252kq
 
   playground:
@@ -4568,6 +4583,7 @@ packages:
   /express-graphql/0.12.0_graphql@16.6.0:
     resolution: {integrity: sha512-DwYaJQy0amdy3pgNtiTDuGGM2BLdj+YO2SgbKoLliCfuHv3VVTt7vNG/ZqK2hRYjtYHE2t2KB705EU94mE64zg==}
     engines: {node: '>= 10.x'}
+    deprecated: This package is no longer maintained. We recommend using `graphql-http` instead. Please consult the migration document https://github.com/graphql/graphql-http#migrating-express-grpahql.
     peerDependencies:
       graphql: ^14.7.0 || ^15.3.0
     dependencies:

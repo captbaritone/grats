@@ -36,13 +36,11 @@ The code base includes an example server that can be used to manually test
 features of the tool. To start the server, run the following command:
 
 ```
-pnpm run example-server
+# Ensure you build grats first!
+pnpm build
+cd examples/express-graphql
+pnpm install
+pnpm run start
 ```
 
 This will start a web server running GraphiQL which you can use to try out the server.
-
-## Testing with other projects
-
-I haven't been able to get `npm link` to work with this project, perhaps because it hasn't been published yet? In the mean time, I've been using `"grats": "file:../path/to/tool"` in the `package.json` of the project I'm testing with.
-
-Note: **Be sure to run `pnpm run build` first to build the tool.**

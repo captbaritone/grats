@@ -443,10 +443,10 @@ type MyInput = {
 
 ## Example
 
-See `example-server/` in the repo root for a working example. Here we run the static
-analysis at startup time. Nice for development, but not ideal for production
-where you would want to cache the schema and write it to disk for other tools to
-see.
+See `examples/express-graphql/` in the repo root for a working example. Here we
+run the static analysis at startup time. Nice for development, but not ideal for
+production where you would want to cache the schema and write it to disk for
+other tools to see.
 
 ## Contributing
 

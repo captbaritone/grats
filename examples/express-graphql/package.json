@@ -1,0 +1,22 @@
+{
+  "name": "express-graphql-grats-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node --esm server.ts"
+  },
+  "dependencies": {
+    "graphql": "^16.6.0",
+    "typescript": "^4.9.5",
+    "grats": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^18.14.6",
+    "express": "^4.18.2",
+    "express-graphql": "^0.12.0",
+    "ts-node": "^10.9.1"
+  },
+  "keywords": [],
+  "author": ""
+}
