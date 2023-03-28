@@ -18,7 +18,7 @@
     - [ ] interface interfaces implement interfaces
 - [ ] Allow interfaces to specify resolveType
 - [ ] Args with defaults should be nullable?
-- [ ] Args with ? should be nullable?
+- [ ] Optional args must include `null` as an option, since GraphQL JS may send that.
 
 ## Beta
 - [ ] Support generic directives 
