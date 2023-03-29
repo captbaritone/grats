@@ -22,7 +22,7 @@ function buildSchemaResultWithFsMap(state, fsMap) {
       grats: {},
     },
     options: compilerOpts,
-    files: ["index.ts"],
+    fileNames: ["index.ts"],
     errors: [],
   };
 
