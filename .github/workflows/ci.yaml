@@ -33,7 +33,7 @@ jobs:
         run: pnpm install -r
       - name: Build Other Packages
         run: pnpm run -r build
-      # - name: Integration Tests
-      #  run: pnpm run integration-tests
+      - name: Integration Tests
+        run: pnpm run integration-tests
       - name: Lint
         run: pnpm run lint
