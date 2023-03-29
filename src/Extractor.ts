@@ -380,7 +380,7 @@ export class Extractor {
     let directives = [this.exportDirective(funcName, filename, funcName.text)];
 
     if (funcName.text !== name.value) {
-      directives = [this.methodNameDirective(funcName, funcName.text)];
+      directives.push(this.methodNameDirective(funcName, funcName.text));
     }
 
     const deprecated = this.collectDeprecated(node);
