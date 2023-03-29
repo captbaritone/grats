@@ -69,6 +69,8 @@ importers:
       parcel: ^2.8.3
       path-browserify: ^1.0.1
       process: ^0.11.10
+      redux: ^4.2.1
+      reselect: ^4.1.7
       typescript: ^5.0.2
     dependencies:
       '@codemirror/commands': 6.2.2
@@ -88,6 +90,8 @@ importers:
       parcel: 2.8.3
       path-browserify: 1.0.1
       process: 0.11.10
+      redux: 4.2.1
+      reselect: 4.1.7
       typescript: 5.0.2
 
 packages:
@@ -124,6 +128,13 @@ packages:
     hasBin: true
     dependencies:
       '@babel/types': 7.21.3
+    dev: false
+
+  /@babel/runtime/7.21.0:
+    resolution: {integrity: sha512-xwII0//EObnq89Ji5AKYQaRYiW/nZ3llSv29d49IuxPhKbtJoLP+9QUUZ4nVragQVtaVGeZrpB+ZtG/Pdy/POw==}
+    engines: {node: '>=6.9.0'}
+    dependencies:
+      regenerator-runtime: 0.13.11
     dev: false
 
   /@babel/types/7.21.3:
@@ -8476,6 +8487,12 @@ packages:
     engines: {node: '>= 12.13.0'}
     dev: false
 
+  /redux/4.2.1:
+    resolution: {integrity: sha512-LAUYz4lc+Do8/g7aeRa8JkyDErK6ekstQaqWQrNRW//MY1TvCEpMtpTWvlQ+FPbWCx+Xixu/6SHt5N0HR+SB4w==}
+    dependencies:
+      '@babel/runtime': 7.21.0
+    dev: false
+
   /regenerator-runtime/0.13.11:
     resolution: {integrity: sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==}
     dev: false
@@ -8537,6 +8554,10 @@ packages:
 
   /requires-port/1.0.0:
     resolution: {integrity: sha512-KigOCHcocU3XODJxsu8i/j8T9tzT4adHiecwORRQ0ZZFcp7ahwXuRU1m+yuO90C5ZUyGeGfocHDI14M3L3yDAQ==}
+    dev: false
+
+  /reselect/4.1.7:
+    resolution: {integrity: sha512-Zu1xbUt3/OPwsXL46hvOOoQrap2azE7ZQbokq61BQfiXvhewsKDwhMeZjTX9sX0nvw1t/U5Audyn1I9P/m9z0A==}
     dev: false
 
   /resolve-alpn/1.2.1:

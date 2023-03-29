@@ -1,17 +1,15 @@
 import { createSystem, createVirtualCompilerHost } from "@typescript/vfs";
 import * as ts from "typescript";
 import { buildSchemaResultWithHost } from "grats";
-import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import { linter } from "@codemirror/lint";
-import lzstring from "lz-string";
+import { printSchema } from "graphql";
+import { printSchemaWithDirectives } from "@graphql-tools/utils";
 
-function updateUrlHash(state) {
-  const hash = lzstring.compressToEncodedURIComponent(JSON.stringify(state));
-  window.location.hash = hash;
-}
+import store from "./store";
 
-function buildSchemaResultWithFsMap(state, fsMap) {
-  fsMap.set("index.ts", state.doc);
+function buildSchemaResultWithFsMap(fsMap, text, view, config) {
+  fsMap.set("index.ts", text);
+  // TODO: Don't recreate the system each time!
   const system = createSystem(fsMap);
 
   const compilerOpts = { allowJs: true };
@@ -19,33 +17,45 @@ function buildSchemaResultWithFsMap(state, fsMap) {
 
   const parsedOptions = {
     raw: {
-      grats: {},
+      grats: config,
     },
     options: compilerOpts,
     fileNames: ["index.ts"],
     errors: [],
   };
 
-  return buildSchemaResultWithHost(parsedOptions, host.compilerHost);
+  let schemaResult;
+  try {
+    schemaResult = buildSchemaResultWithHost(parsedOptions, host.compilerHost);
+  } catch (e) {
+    return `# Grats Bug - please report this!\n#\n# Grats threw the following error:\n# ===============================\n\n${e.stack}`;
+  }
+
+  if (schemaResult.kind === "ERROR") {
+    const errorText = schemaResult.err.formatDiagnosticsWithContext();
+    return `# ERROR MESSAGE\n# =============\n\n${errorText}`;
+  }
+
+  const schema = schemaResult.value;
+  if (!view.showGratsDirectives) {
+    // HACK!
+    schema._directives = schema._directives.filter(
+      (directive) =>
+        directive.name !== "exported" && directive.name !== "methodName"
+    );
+    return printSchema(schema);
+  }
+  return printSchemaWithDirectives(schema, { assumeValid: true });
 }
 
-export function createLinter(outputView, fsMap) {
-  return linter((view) => {
-    const nullableByDefault =
-      document.getElementById("default-nullable").checked;
+export function createLinter(fsMap, view, config) {
+  return linter((codeMirrorView) => {
+    const text = codeMirrorView.viewState.state.doc.toString();
 
-    // TODO: Don't recreate the system each time!
-    const text = view.viewState.state.doc.toString();
-    const state = {
-      doc: text,
-      config: {
-        nullableByDefault,
-      },
-      VERSION: 1,
-    };
-    updateUrlHash(state);
+    const result = buildSchemaResultWithFsMap(fsMap, text, view, config);
 
-    const result = buildSchemaResultWithFsMap(state, fsMap);
+    store.dispatch({ type: "NEW_DOCUMENT_TEXT", value: text });
+    store.dispatch({ type: "GRATS_EMITTED_NEW_RESULT", value: result });
     let diagnostics = [];
 
     if (result.kind === "ERROR") {
@@ -58,24 +68,6 @@ export function createLinter(outputView, fsMap) {
           actions: [],
         });
       }
-
-      const errorText = result.err.formatDiagnosticsWithContext();
-      outputView.dispatch({
-        changes: {
-          from: 0,
-          to: outputView.state.doc.length,
-          insert: `# ERROR MESSAGE\n# =============\n\n${errorText}`,
-        },
-      });
-    } else {
-      const sdl = printSchemaWithDirectives(result.value);
-      outputView.dispatch({
-        changes: {
-          from: 0,
-          to: outputView.state.doc.length,
-          insert: sdl,
-        },
-      });
     }
 
     return diagnostics;
