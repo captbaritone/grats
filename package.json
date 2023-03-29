@@ -1,15 +1,14 @@
 {
   "name": "grats",
   "version": "0.0.2",
-  "main": "dist/src/index.js",
-  "bin": "dist/src/cli.js",
-  "types": "dist/src/index.d.ts",
+  "main": "dist/index.js",
+  "bin": "dist/cli.js",
+  "types": "dist/index.d.ts",
   "license": "MIT",
   "files": [
     "dist/src"
   ],
   "scripts": {
-    "cli": "ts-node --esm src/cli.ts",
     "test": "ts-node --esm src/tests/test.ts",
     "integration-tests": "node src/tests/integration.js",
     "build": "tsc",
