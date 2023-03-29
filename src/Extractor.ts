@@ -878,6 +878,10 @@ export class Extractor {
       return { kind, loc: this.loc(node), value: node.text };
     } else if (this.isNullish(node)) {
       return { kind: Kind.NULL, loc: this.loc(node) };
+    } else if (node.kind === ts.SyntaxKind.TrueKeyword) {
+      return { kind: Kind.BOOLEAN, loc: this.loc(node), value: true };
+    } else if (node.kind === ts.SyntaxKind.FalseKeyword) {
+      return { kind: Kind.BOOLEAN, loc: this.loc(node), value: false };
     }
     // FIXME: Obeject literals, arrays, etc.
     this.reportUnhandled(
