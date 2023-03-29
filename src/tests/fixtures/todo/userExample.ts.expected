@@ -34,11 +34,11 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
 type Query {
-  me: User @exported(filename: "src/tests/fixtures/todo/userExample.ts", functionName: "me")
+  me: User @exported(filename: "tests/fixtures/todo/userExample.js", functionName: "me")
 }
 
 type User {
   firstName: String
   lastName: String
-  fullName: String @exported(filename: "src/tests/fixtures/todo/userExample.ts", functionName: "fullName")
+  fullName: String @exported(filename: "tests/fixtures/todo/userExample.js", functionName: "fullName")
 }

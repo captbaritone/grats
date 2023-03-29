@@ -30,5 +30,5 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
 type Query {
-  greeting: String @exported(filename: "src/tests/fixtures/extend_type/optionalModelType.ts", functionName: "greeting")
+  greeting: String @exported(filename: "tests/fixtures/extend_type/optionalModelType.js", functionName: "greeting")
 }

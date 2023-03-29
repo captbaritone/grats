@@ -7,6 +7,7 @@ import {
   FAKE_ERROR_CODE,
   ok,
 } from "./utils/DiagnosticError";
+import { getRelativeOutputPath } from "./gratsRoot";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
@@ -26,11 +27,17 @@ export class TypeContext {
   checker: ts.TypeChecker;
   host: ts.CompilerHost;
 
+  _options: ts.ParsedCommandLine;
   _symbolToName: Map<ts.Symbol, string> = new Map();
   _unresolvedTypes: Map<NameNode, ts.Symbol> = new Map();
   hasTypename: Set<string> = new Set();
 
-  constructor(checker: ts.TypeChecker, host: ts.CompilerHost) {
+  constructor(
+    options: ts.ParsedCommandLine,
+    checker: ts.TypeChecker,
+    host: ts.CompilerHost,
+  ) {
+    this._options = options;
     this.checker = checker;
     this.host = host;
   }
@@ -122,5 +129,9 @@ export class TypeContext {
 
   validateInterfaceImplementorsHaveTypenameField(): DiagnosticResult<null> {
     return ok(null);
+  }
+
+  getDestFilePath(sourceFile: ts.SourceFile): string {
+    return getRelativeOutputPath(this._options, sourceFile);
   }
 }

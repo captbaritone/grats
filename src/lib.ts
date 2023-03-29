@@ -39,11 +39,11 @@ export type GratsOptions = {
 // Construct a schema, using GraphQL schema language
 // Exported for tests that want to intercept diagnostic errors.
 export function buildSchemaResult(
-  options: GratsOptions,
+  options: ts.ParsedCommandLine,
 ): Result<GraphQLSchema, ReportableDiagnostics> {
   // https://stackoverflow.com/a/66604532/1263117
   const compilerHost = ts.createCompilerHost(
-    options.tsCompilerOptions,
+    options.options,
     /* setParentNodes this is needed for finding jsDocs */
     true,
   );
@@ -52,7 +52,7 @@ export function buildSchemaResult(
 }
 
 export function buildSchemaResultWithHost(
-  options: GratsOptions,
+  options: ts.ParsedCommandLine,
   compilerHost: ts.CompilerHost,
 ): Result<GraphQLSchema, ReportableDiagnostics> {
   const schemaResult = extractSchema(options, compilerHost);
@@ -64,16 +64,12 @@ export function buildSchemaResultWithHost(
 }
 
 function extractSchema(
-  options: GratsOptions,
+  options: ts.ParsedCommandLine,
   host: ts.CompilerHost,
 ): DiagnosticsResult<GraphQLSchema> {
-  const program = ts.createProgram(
-    options.files,
-    options.tsCompilerOptions,
-    host,
-  );
+  const program = ts.createProgram(options.fileNames, options.options, host);
   const checker = program.getTypeChecker();
-  const ctx = new TypeContext(checker, host);
+  const ctx = new TypeContext(options, checker, host);
 
   const definitions: DefinitionNode[] = Array.from(DIRECTIVES_AST.definitions);
   for (const sourceFile of program.getSourceFiles()) {
@@ -82,7 +78,7 @@ function extractSchema(
       continue;
     }
 
-    const extractor = new Extractor(sourceFile, ctx, options.configOptions);
+    const extractor = new Extractor(sourceFile, ctx, options.raw.grats);
     const extractedResult = extractor.extract();
     if (extractedResult.kind === "ERROR") return extractedResult;
     for (const definition of extractedResult.value) {

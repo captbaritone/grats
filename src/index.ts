@@ -22,9 +22,8 @@ export function extractGratsSchemaAtRuntime(
   runtimeOptions: RuntimeOptions,
 ): GraphQLSchema {
   const parsedTsConfig = getParsedTsConfig();
-  const schemaResult = buildSchemaResult(
-    gratsOptionsFromTsConfig(parsedTsConfig),
-  );
+
+  const schemaResult = buildSchemaResult(parsedTsConfig);
   if (schemaResult.kind === "ERROR") {
     console.error(schemaResult.err.formatDiagnosticsWithColorAndContext());
     process.exit(1);
@@ -44,17 +43,6 @@ export function buildSchemaFromSDL(sdlFilePath: string): GraphQLSchema {
   const sdl = fs.readFileSync(sdlFilePath, "utf8");
   const schema = gqlBuildSchema(sdl);
   return applyServerDirectives(schema);
-}
-
-export function gratsOptionsFromTsConfig(
-  tsConfig: ts.ParsedCommandLine,
-): GratsOptions {
-  const gratsConfig = tsConfig.raw.grats ?? {};
-  return {
-    configOptions: gratsConfig,
-    files: tsConfig.fileNames,
-    tsCompilerOptions: tsConfig.options,
-  };
 }
 
 // #FIXME: Report diagnostics instead of throwing!

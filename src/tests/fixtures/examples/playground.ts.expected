@@ -49,7 +49,7 @@ directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITIO
 type Query {
   me: User
   viewer: User @deprecated(reason: "Please use `me` instead.")
-  getUser: User @exported(filename: "src/tests/fixtures/examples/playground.ts", functionName: "getUser")
+  getUser: User @exported(filename: "tests/fixtures/examples/playground.js", functionName: "getUser")
 }
 
 "A user in our kick-ass system!"

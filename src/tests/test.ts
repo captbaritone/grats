@@ -2,6 +2,7 @@ import * as path from "path";
 import TestRunner from "./TestRunner";
 import { buildSchemaResult, GratsOptions } from "../lib";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
+import * as ts from "typescript";
 
 async function main() {
   const write = process.argv.some((arg) => arg === "--write");
@@ -34,10 +35,13 @@ const testDirs = [
         options = { ...options, ...testOptions };
       }
       const files = [`${fixturesDir}/${fileName}`, `src/Types.ts`];
-      const parsedOptions: GratsOptions = {
-        tsCompilerOptions: {},
-        files,
-        configOptions: options,
+      const parsedOptions: ts.ParsedCommandLine = {
+        options: {},
+        raw: {
+          grats: options,
+        },
+        errors: [],
+        fileNames: files,
       };
       const schemaResult = buildSchemaResult(parsedOptions);
       if (schemaResult.kind === "ERROR") {

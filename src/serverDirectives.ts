@@ -6,7 +6,7 @@ import {
   GraphQLSchema,
   parse,
 } from "graphql";
-import { resolve } from "path";
+import { resolveRelativePath } from "./gratsRoot";
 
 export const METHOD_NAME_DIRECTIVE = "methodName";
 export const METHOD_NAME_ARG = "name";
@@ -96,10 +96,8 @@ function applyExportDirective(
   fieldConfig: GraphQLFieldConfig<any, any, any>,
   methodNameDirective: Record<string, any>,
 ): GraphQLFieldConfig<any, any, any> {
-  // FIXME: This relies on the server being run with the same cwd as the build script.
   // TODO: Does this work in the browser?
-  const filename = resolve(
-    process.cwd(),
+  const filename = resolveRelativePath(
     methodNameDirective[EXPORTED_FILENAME_ARG],
   );
   const functionName = methodNameDirective[EXPORTED_FUNCTION_NAME_ARG];

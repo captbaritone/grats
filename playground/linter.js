@@ -17,13 +17,16 @@ function buildSchemaResultWithFsMap(state, fsMap) {
   const compilerOpts = { allowJs: true };
   const host = createVirtualCompilerHost(system, compilerOpts, ts);
 
-  const gratsOptions = {
-    configOptions: {},
-    tsCompilerOptions: compilerOpts,
+  const parsedOptions = {
+    raw: {
+      grats: {},
+    },
+    options: compilerOpts,
     files: ["index.ts"],
+    errors: [],
   };
 
-  return buildSchemaResultWithHost(gratsOptions, host.compilerHost);
+  return buildSchemaResultWithHost(parsedOptions, host.compilerHost);
 }
 
 export function createLinter(outputView, fsMap) {
