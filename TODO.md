@@ -19,6 +19,7 @@
 - [ ] Allow interfaces to specify resolveType
 - [ ] Args with defaults should be nullable?
 - [ ] Optional args must include `null` as an option, since GraphQL JS may send that.
+- [ ] Document that fields get passed context etc
 
 ## Beta
 - [ ] Support generic directives 

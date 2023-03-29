@@ -2,7 +2,7 @@
 
 **This is currently a proof of concept. It won't yet work on any real projects.**
 
-# Grats: True code-first GraphQL for TypeScript
+# Grats: Implementation-First GraphQL for TypeScript
 
 [![Join our Discord!](https://img.shields.io/discord/1089650710796320868?logo=discord)](https://capt.dev/grats-chat)
 
