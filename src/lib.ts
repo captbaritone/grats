@@ -77,6 +77,12 @@ function extractSchema(
     if (!/@gql/i.test(sourceFile.text)) {
       continue;
     }
+    const syntaxErrors = program.getSyntacticDiagnostics(sourceFile);
+    if (syntaxErrors.length > 0) {
+      // It's not very helpful to report multiple syntax errors, so just report
+      // the first one.
+      return err([syntaxErrors[0]]);
+    }
 
     const extractor = new Extractor(sourceFile, ctx, options.raw.grats);
     const extractedResult = extractor.extract();

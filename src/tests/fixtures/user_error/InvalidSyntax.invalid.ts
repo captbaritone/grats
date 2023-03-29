@@ -1,0 +1,4 @@
+/** @gqlType */
+class #Foo {
+
+}
