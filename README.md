@@ -361,10 +361,11 @@ type MyCustomString = string;
 Note: For the built-in GraphQL scalars that don't have a corresponding TypeScript type, Grats ships with type aliases you can import. You may be promted to use one of these by Grat if you try to use `number` in a positon from which Grat needs to infer a GraphQL type.
 
 ```ts
-import { Float, Int } from "grats";
+import { Float, Int, ID } from "grats";
 
 /** @gqlType */
-class Query {
+class Math {
+  id: ID;
   /** @gqlField */
   round(args: {float: Float}): Int {
     return Math.round(args.float);

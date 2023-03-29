@@ -1,0 +1,27 @@
+-----------------
+INPUT
+----------------- 
+import { ID } from "../../../Types";
+
+/** @gqlType */
+export default class Query {
+  /** @gqlField */
+  id(): ID {
+    return "QUERY_ID";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  id: ID
+}
