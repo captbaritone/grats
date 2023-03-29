@@ -1,18 +1,6 @@
 # TODO
 
 ## Alpha
-- [ ] Ensure `__typename`?
-- [ ] More literals
-    - [ ] Int
-    - [ ] Float
-    - [ ] Boolean
-    - [ ] String
-    - [ ] Enum
-    - [ ] List
-    - [ ] Object
-    - [ ] Null
-- [ ] Mutations and Query fields as functions
-- [ ] Define types from type literals
 - [ ] Extend interfaces
     - [ ] interface types implement interfaces
     - [ ] interface interfaces implement interfaces
@@ -20,6 +8,7 @@
 - [ ] Args with defaults should be nullable?
 - [ ] Optional args must include `null` as an option, since GraphQL JS may send that.
 - [ ] Document that fields get passed context etc
+- [ ] Allow type literal types to implement interfaces
 
 ## Beta
 - [ ] Support generic directives 
