@@ -1,0 +1,27 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class Query {
+  // No fields
+}
+
+/** @gqlField hello */
+export function greeting(_: Query): string {
+  return "Hello world!";
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  hello: String @exported(filename: "tests/fixtures/extend_type/addRenamedFieldToQuery.js", functionName: "greeting") @methodName(name: "greeting")
+}
