@@ -9,6 +9,8 @@
 - [ ] Optional args must include `null` as an option, since GraphQL JS may send that.
 - [ ] Document that fields get passed context etc
 - [ ] Allow type literal types to implement interfaces
+- [ ] Print multiline descriptiosn with `"""` instead of `"\n`
+- [ ] Add more robust config validation
 
 ## Beta
 - [ ] Support generic directives 

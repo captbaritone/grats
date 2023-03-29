@@ -28,12 +28,10 @@ export type ConfigOptions = {
   // Should all fields be typed as nullable in accordance with GraphQL best practices?
   // https://graphql.org/learn/best-practices/#nullability
   nullableByDefault?: boolean;
-};
 
-export type GratsOptions = {
-  configOptions: ConfigOptions;
-  tsCompilerOptions: ts.CompilerOptions;
-  files: string[];
+  // Should Grats report TypeScript type errors?
+  // Defaults to `false`.
+  reportTypeScriptTypeErrors?: boolean;
 };
 
 // Construct a schema, using GraphQL schema language
@@ -55,7 +53,8 @@ export function buildSchemaResultWithHost(
   options: ts.ParsedCommandLine,
   compilerHost: ts.CompilerHost,
 ): Result<GraphQLSchema, ReportableDiagnostics> {
-  const schemaResult = extractSchema(options, compilerHost);
+  const gratsOptions: ConfigOptions = parseGratsOptions(options);
+  const schemaResult = extractSchema(options, gratsOptions, compilerHost);
   if (schemaResult.kind === "ERROR") {
     return err(new ReportableDiagnostics(compilerHost, schemaResult.err));
   }
@@ -63,8 +62,30 @@ export function buildSchemaResultWithHost(
   return ok(applyServerDirectives(schemaResult.value));
 }
 
+// TODO: Make this return diagnostics
+function parseGratsOptions(options: ts.ParsedCommandLine): ConfigOptions {
+  const gratsOptions = { ...(options.raw?.grats ?? {}) };
+  if (gratsOptions.nullableByDefault === undefined) {
+    gratsOptions.nullableByDefault = true;
+  } else if (typeof gratsOptions.nullableByDefault !== "boolean") {
+    throw new Error(
+      "Grats: The Grats config option `nullableByDefault` must be a boolean if provided.",
+    );
+  }
+  if (gratsOptions.reportTypeScriptTypeErrors === undefined) {
+    gratsOptions.reportTypeScriptTypeErrors = false;
+  } else if (typeof gratsOptions.reportTypeScriptTypeErrors !== "boolean") {
+    throw new Error(
+      "Grats: The Grats config option `reportTypeScriptTypeErrors` must be a boolean if provided",
+    );
+  }
+  // FIXME: Check for unknown options
+  return gratsOptions;
+}
+
 function extractSchema(
   options: ts.ParsedCommandLine,
+  gratsOptions: ConfigOptions,
   host: ts.CompilerHost,
 ): DiagnosticsResult<GraphQLSchema> {
   const program = ts.createProgram(options.fileNames, options.options, host);
@@ -77,14 +98,25 @@ function extractSchema(
     if (!/@gql/i.test(sourceFile.text)) {
       continue;
     }
-    const syntaxErrors = program.getSyntacticDiagnostics(sourceFile);
-    if (syntaxErrors.length > 0) {
-      // It's not very helpful to report multiple syntax errors, so just report
-      // the first one.
-      return err([syntaxErrors[0]]);
+
+    if (gratsOptions.reportTypeScriptTypeErrors) {
+      // If the user asked for us to report TypeScript errors, then we'll report them.
+      const typeErrors = ts.getPreEmitDiagnostics(program, sourceFile);
+      if (typeErrors.length > 0) {
+        return err(typeErrors as ts.Diagnostic[]);
+      }
+    } else {
+      // Otherwise, we will only report syntax errors, since they will prevent us from
+      // extracting any GraphQL definitions.
+      const syntaxErrors = program.getSyntacticDiagnostics(sourceFile);
+      if (syntaxErrors.length > 0) {
+        // It's not very helpful to report multiple syntax errors, so just report
+        // the first one.
+        return err([syntaxErrors[0]]);
+      }
     }
 
-    const extractor = new Extractor(sourceFile, ctx, options.raw.grats);
+    const extractor = new Extractor(sourceFile, ctx, gratsOptions);
     const extractedResult = extractor.extract();
     if (extractedResult.kind === "ERROR") return extractedResult;
     for (const definition of extractedResult.value) {

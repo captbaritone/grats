@@ -7,7 +7,7 @@ import { printSchemaWithDirectives } from "@graphql-tools/utils";
 
 import store from "./store";
 
-function buildSchemaResultWithFsMap(fsMap, text, view, config) {
+function buildSchemaResultWithFsMap(fsMap, text, config) {
   fsMap.set("index.ts", text);
   // TODO: Don't recreate the system each time!
   const system = createSystem(fsMap);
@@ -24,38 +24,20 @@ function buildSchemaResultWithFsMap(fsMap, text, view, config) {
     errors: [],
   };
 
-  let schemaResult;
-  try {
-    schemaResult = buildSchemaResultWithHost(parsedOptions, host.compilerHost);
-  } catch (e) {
-    return `# Grats Bug - please report this!\n#\n# Grats threw the following error:\n# ===============================\n\n${e.stack}`;
-  }
-
-  if (schemaResult.kind === "ERROR") {
-    const errorText = schemaResult.err.formatDiagnosticsWithContext();
-    return `# ERROR MESSAGE\n# =============\n\n${errorText}`;
-  }
-
-  const schema = schemaResult.value;
-  if (!view.showGratsDirectives) {
-    // HACK!
-    schema._directives = schema._directives.filter(
-      (directive) =>
-        directive.name !== "exported" && directive.name !== "methodName"
-    );
-    return printSchema(schema);
-  }
-  return printSchemaWithDirectives(schema, { assumeValid: true });
+  return buildSchemaResultWithHost(parsedOptions, host.compilerHost);
 }
 
 export function createLinter(fsMap, view, config) {
   return linter((codeMirrorView) => {
     const text = codeMirrorView.viewState.state.doc.toString();
 
-    const result = buildSchemaResultWithFsMap(fsMap, text, view, config);
+    const result = buildSchemaResultWithFsMap(fsMap, text, config);
 
     store.dispatch({ type: "NEW_DOCUMENT_TEXT", value: text });
-    store.dispatch({ type: "GRATS_EMITTED_NEW_RESULT", value: result });
+
+    const output = computeOutput(result, view);
+
+    store.dispatch({ type: "GRATS_EMITTED_NEW_RESULT", value: output });
     let diagnostics = [];
 
     if (result.kind === "ERROR") {
@@ -72,4 +54,22 @@ export function createLinter(fsMap, view, config) {
 
     return diagnostics;
   });
+}
+
+function computeOutput(schemaResult, view) {
+  if (schemaResult.kind === "ERROR") {
+    const errorText = schemaResult.err.formatDiagnosticsWithContext();
+    return `# ERROR MESSAGE\n# =============\n\n${errorText}`;
+  }
+
+  const schema = schemaResult.value;
+  if (!view.showGratsDirectives) {
+    // HACK!
+    schema._directives = schema._directives.filter(
+      (directive) =>
+        directive.name !== "exported" && directive.name !== "methodName"
+    );
+    return printSchema(schema);
+  }
+  return printSchemaWithDirectives(schema, { assumeValid: true });
 }

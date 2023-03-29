@@ -6,7 +6,7 @@ import {
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import * as fs from "fs";
 import * as ts from "typescript";
-import { applyServerDirectives, buildSchemaResult, GratsOptions } from "./lib";
+import { applyServerDirectives, buildSchemaResult } from "./lib";
 
 export * from "./Types";
 export * from "./lib";

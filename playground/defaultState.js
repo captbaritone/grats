@@ -31,6 +31,7 @@ export const DEFAULT_STATE = {
   doc: CONTENT,
   config: {
     nullableByDefault: false,
+    reportTypeScriptTypeErrors: true,
   },
   view: {
     showGratsDirectives: false,

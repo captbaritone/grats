@@ -1,6 +1,6 @@
 import * as path from "path";
 import TestRunner from "./TestRunner";
-import { buildSchemaResult, GratsOptions } from "../lib";
+import { buildSchemaResult, ConfigOptions } from "../lib";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import * as ts from "typescript";
 
@@ -26,7 +26,7 @@ const testDirs = [
     fixturesDir,
     transformer: (code: string, fileName: string) => {
       const firstLine = code.split("\n")[0];
-      let options = {
+      let options: ConfigOptions = {
         nullableByDefault: true,
       };
       if (firstLine.startsWith("// {")) {

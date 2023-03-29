@@ -125,6 +125,11 @@ Grats has a few configuration options. They can be set in your project's
     // practices?
     // https://graphql.org/learn/best-practices/#nullability
     "nullableByDefault": true, // Default: true
+
+    // Should Grats error if it encounters a TypeScript type error?
+    // Note that Grats will always error if it encounters a TypeScript syntax
+    // error.
+    "reportTypeScriptTypeErrors": false, // Default: false
   },
   "compilerOptions": {
     // ... TypeScript config...
