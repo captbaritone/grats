@@ -29,6 +29,6 @@ type Query {
 }
 
 input MyInputType {
-  "Sweet field!"
+  """Sweet field!"""
   someField: String!
 }

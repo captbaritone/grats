@@ -41,7 +41,7 @@ type Query {
   me: User
 }
 
-"An interface describing the common elements of all people types."
+"""An interface describing the common elements of all people types."""
 interface IPerson {
   name: String
 }

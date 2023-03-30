@@ -1,0 +1,36 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * ’Twas brillig, and the slithy toves
+ *   Did gyre and gimble in the wabe:
+ * All mimsy were the borogoves,
+ *   And the mome raths outgrabe.
+ *
+ * @gqlType
+ */
+class Query {
+  /** @gqlField */
+  name: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+"""
+’Twas brillig, and the slithy toves
+  Did gyre and gimble in the wabe:
+All mimsy were the borogoves,
+  And the mome raths outgrabe.
+"""
+type Query {
+  name: String
+}

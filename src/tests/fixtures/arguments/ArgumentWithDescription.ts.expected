@@ -25,7 +25,7 @@ directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITIO
 
 type Query {
   hello(
-    "The greeting to use."
+    """The greeting to use."""
     greeting: String!
   ): String
 }

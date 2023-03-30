@@ -30,7 +30,7 @@ type Query {
   hello: String
 }
 
-"Check out this great input!"
+"""Check out this great input!"""
 input MyInputType {
   someField: String!
 }

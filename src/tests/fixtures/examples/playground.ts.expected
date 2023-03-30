@@ -52,7 +52,7 @@ type Query {
   getUser: User @exported(filename: "tests/fixtures/examples/playground.js", functionName: "getUser")
 }
 
-"A user in our kick-ass system!"
+"""A user in our kick-ass system!"""
 type User {
   name: String
   greeting(salutation: String!): String

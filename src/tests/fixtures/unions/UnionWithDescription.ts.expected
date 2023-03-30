@@ -50,5 +50,5 @@ type Entity {
   description: String
 }
 
-"One type to rule them all, and in a union bind them."
+"""One type to rule them all, and in a union bind them."""
 union Actor = User | Entity

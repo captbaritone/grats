@@ -32,8 +32,8 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
 type Query {
-  "Number 1 greeting."
+  """Number 1 greeting."""
   greeting: String @methodName(name: "somePropertyField")
-  "Number 1 salutation."
+  """Number 1 salutation."""
   salutaion: String @methodName(name: "someMethodField")
 }

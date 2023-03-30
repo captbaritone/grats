@@ -31,8 +31,8 @@ type Query {
 }
 
 enum Enum {
-  "Valid enum value."
+  """Valid enum value."""
   VALID
-  "Invalid enum value."
+  """Invalid enum value."""
   INVALID
 }

@@ -34,8 +34,8 @@ type Query {
 }
 
 enum Enum {
-  "Valid enum value."
+  """Valid enum value."""
   VALID @deprecated(reason: "Use something else.")
-  "Invalid enum value."
+  """Invalid enum value."""
   INVALID
 }

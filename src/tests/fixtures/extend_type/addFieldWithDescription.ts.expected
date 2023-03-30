@@ -26,6 +26,6 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
 type Query {
-  "Best field ever!"
+  """Best field ever!"""
   greeting: String @exported(filename: "tests/fixtures/extend_type/addFieldWithDescription.js", functionName: "greeting")
 }

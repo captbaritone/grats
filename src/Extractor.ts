@@ -1236,7 +1236,12 @@ export class Extractor {
     const doc = symbol.getDocumentationComment(this.ctx.checker);
     const description = ts.displayPartsToString(doc);
     if (description) {
-      return { kind: Kind.STRING, loc: this.loc(node), value: description };
+      return {
+        kind: Kind.STRING,
+        loc: this.loc(node),
+        value: description,
+        block: true,
+      };
     }
     return null;
   }

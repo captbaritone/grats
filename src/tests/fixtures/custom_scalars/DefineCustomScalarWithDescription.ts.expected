@@ -28,5 +28,5 @@ type Query {
   hello: String
 }
 
-"Use this for URLs."
+"""Use this for URLs."""
 scalar MyUrl

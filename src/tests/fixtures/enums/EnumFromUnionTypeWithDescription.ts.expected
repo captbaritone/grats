@@ -28,10 +28,10 @@ type Query {
   hello: MyEnum
 }
 
-"Hello!"
+"""Hello!"""
 enum MyEnum {
-  "Hello!"
+  """Hello!"""
   VALID
-  "Hello!"
+  """Hello!"""
   INVALID
 }

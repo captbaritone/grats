@@ -32,7 +32,7 @@ type Query {
   hello: String
 }
 
-"World's best enum."
+"""World's best enum."""
 enum Enum {
   VALID
   INVALID

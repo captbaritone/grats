@@ -24,6 +24,6 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
 type Query {
-  "Greet the world!"
+  """Greet the world!"""
   hello: String
 }

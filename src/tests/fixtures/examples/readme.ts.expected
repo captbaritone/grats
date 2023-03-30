@@ -46,7 +46,7 @@ type Query {
   viewer: User @deprecated(reason: "Please use `me` instead.")
 }
 
-"A user in our kick-ass system!"
+"""A user in our kick-ass system!"""
 type User {
   name: String
   greeting(salutation: String!): String
