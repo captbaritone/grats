@@ -1,0 +1,27 @@
+-----------------
+INPUT
+----------------- 
+import { Int } from "../../../Types";
+
+/** @gqlType */
+export default class Query {
+  /** @gqlField */
+  someField1({ inputs = ["hello", "there"] }: { inputs?: string[] }): string {
+    return inputs.join("|");
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  someField1(inputs: [String!] = ["hello", "there"]): String
+}

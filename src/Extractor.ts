@@ -19,6 +19,7 @@ import {
   EnumValueDefinitionNode,
   ConstObjectFieldNode,
   ConstObjectValueNode,
+  ConstListValueNode,
 } from "graphql";
 import {
   DiagnosticsResult,
@@ -886,13 +887,37 @@ export class Extractor {
       return { kind: Kind.BOOLEAN, loc: this.loc(node), value: false };
     } else if (ts.isObjectLiteralExpression(node)) {
       return this.cellectObjectLiteral(node);
+    } else if (ts.isArrayLiteralExpression(node)) {
+      return this.collectArrayLiteral(node);
     }
-    // FIXME: Arrays, etc.
     this.reportUnhandled(
       node,
       "Expected GraphQL field argument default values to be a literal.",
     );
     return null;
+  }
+
+  collectArrayLiteral(
+    node: ts.ArrayLiteralExpression,
+  ): ConstListValueNode | null {
+    const values: ConstValueNode[] = [];
+    let errors = false;
+    for (const element of node.elements) {
+      const value = this.collectConstValue(element);
+      if (value == null) {
+        errors = true;
+      } else {
+        values.push(value);
+      }
+    }
+    if (errors) {
+      return null;
+    }
+    return {
+      kind: Kind.LIST,
+      loc: this.loc(node),
+      values,
+    };
   }
 
   cellectObjectLiteral(

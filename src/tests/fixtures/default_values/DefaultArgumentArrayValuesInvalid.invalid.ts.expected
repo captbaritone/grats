@@ -1,0 +1,30 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class Query {
+  /** @gqlField */
+  someField1({ inputs = [func(), func()] }: { inputs?: string[] }): string {
+    return inputs.join("|");
+  }
+}
+
+function func(): string {
+  return "sup";
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/default_values/DefaultArgumentArrayValuesInvalid.invalid.ts:4:26 - error: Expected GraphQL field argument default values to be a literal.
+
+If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
+
+4   someField1({ inputs = [func(), func()] }: { inputs?: string[] }): string {
+                           ~~~~~~
+src/tests/fixtures/default_values/DefaultArgumentArrayValuesInvalid.invalid.ts:4:34 - error: Expected GraphQL field argument default values to be a literal.
+
+If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
+
+4   someField1({ inputs = [func(), func()] }: { inputs?: string[] }): string {
+                                   ~~~~~~
