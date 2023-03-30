@@ -1,0 +1,40 @@
+-----------------
+INPUT
+----------------- 
+import { Int } from "../../../Types";
+
+const first = 10;
+const offset = 100;
+/** @gqlType */
+export default class Query {
+  /** @gqlField */
+  someField1({
+    input = { first, offset },
+  }: {
+    input?: ConnectionInput;
+  }): string {
+    return "hello";
+  }
+}
+
+/** @gqlInput */
+type ConnectionInput = {
+  first: Int;
+  offset: Int;
+};
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/default_values/DefaultArgumentObjectLiteralInterpolation.ts:9:15 - error: Expected object literal property to be a property assignment.
+
+If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
+
+9     input = { first, offset },
+                ~~~~~
+src/tests/fixtures/default_values/DefaultArgumentObjectLiteralInterpolation.ts:9:22 - error: Expected object literal property to be a property assignment.
+
+If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
+
+9     input = { first, offset },
+                       ~~~~~~

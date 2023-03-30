@@ -17,6 +17,8 @@ import {
   ConstDirectiveNode,
   ConstArgumentNode,
   EnumValueDefinitionNode,
+  ConstObjectFieldNode,
+  ConstObjectValueNode,
 } from "graphql";
 import {
   DiagnosticsResult,
@@ -882,13 +884,73 @@ export class Extractor {
       return { kind: Kind.BOOLEAN, loc: this.loc(node), value: true };
     } else if (node.kind === ts.SyntaxKind.FalseKeyword) {
       return { kind: Kind.BOOLEAN, loc: this.loc(node), value: false };
+    } else if (ts.isObjectLiteralExpression(node)) {
+      return this.cellectObjectLiteral(node);
     }
-    // FIXME: Obeject literals, arrays, etc.
+    // FIXME: Arrays, etc.
     this.reportUnhandled(
       node,
       "Expected GraphQL field argument default values to be a literal.",
     );
     return null;
+  }
+
+  cellectObjectLiteral(
+    node: ts.ObjectLiteralExpression,
+  ): ConstObjectValueNode | null {
+    const fields: ConstObjectFieldNode[] = [];
+    let errors = false;
+    for (const property of node.properties) {
+      const field = this.collectObjectField(property);
+      if (field == null) {
+        errors = true;
+      } else {
+        fields.push(field);
+      }
+    }
+    if (errors) {
+      return null;
+    }
+    return {
+      kind: Kind.OBJECT,
+      loc: this.loc(node),
+      fields,
+    };
+  }
+
+  collectObjectField(
+    node: ts.ObjectLiteralElementLike,
+  ): ConstObjectFieldNode | null {
+    if (!ts.isPropertyAssignment(node)) {
+      return this.reportUnhandled(
+        node,
+        "Expected object literal property to be a property assignment.",
+      );
+    }
+    if (node.name == null) {
+      return this.reportUnhandled(
+        node,
+        "Expected object literal property to have a name.",
+      );
+    }
+    const name = this.expectIdentifier(node.name);
+    if (name == null) return null;
+    const initialize = node.initializer;
+    if (initialize == null) {
+      return this.report(
+        node,
+        "Expected object literal property to have an initializer. For example: `{ offset = 10}`.",
+      );
+    }
+
+    const value = this.collectConstValue(initialize);
+    if (value == null) return null;
+    return {
+      kind: Kind.OBJECT_FIELD,
+      loc: this.loc(node),
+      name: this.gqlName(node.name, name.text),
+      value,
+    };
   }
 
   collectArg(

@@ -275,6 +275,13 @@ myField({ greeting = "Hello" }: { greeting: string }): string {
 }
 ```
 
+```ts
+/** @gqlField */
+myField({ greeting = { salutation: "Sup" } }: { greeting: GreetingConfig }): string {
+  return `${greeting.salutation} World`;
+}
+```
+
 Arguments can be given descriptions by using the `/**` syntax:
 
 ```ts
