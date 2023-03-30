@@ -1,0 +1,33 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class Query {
+  /** @gqlField */
+  someField1({ greet = false }: { greet?: boolean }): string {
+    if (!greet) return "";
+    return "hello";
+  }
+
+  /** @gqlField */
+  someField2({ greet = true }: { greet?: boolean }): string {
+    if (!greet) return "";
+    return "hello";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  someField1(greet: Boolean = false): String
+  someField2(greet: Boolean = true): String
+}
