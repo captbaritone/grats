@@ -124,6 +124,9 @@ Grats has a few configuration options. They can be set in your project's
     // Should all fields be typed as nullable in accordance with GraphQL best
     // practices?
     // https://graphql.org/learn/best-practices/#nullability
+    // 
+    // Individual fileds can declare themselves as nonnullable by adding the
+    // docblock tag `@killsParentOnException`.
     "nullableByDefault": true, // Default: true
 
     // Should Grats error if it encounters a TypeScript type error?
@@ -149,13 +152,13 @@ Any comment text preceding the JSDoc `@` tag will be used as that element's desc
 
 The following JSDoc tags are supported:
 
-* [`@gqlType`](#GQLtype)
-* [`@gqlInterface`](#GQLinterface)
-* [`@gqlField`](#GQLfield)
-* [`@gqlUnion`](#GQLunion)
-* [`@gqlScalar`](#GQLscalar)
-* [`@gqlEnum`](#GQLenum)
-* [`@gqlInput`](#GQLinput)
+* [`@gqlType`](#gqltype)
+* [`@gqlInterface`](#gqlinterface)
+* [`@gqlField`](#gqlfield)
+* [`@gqlUnion`](#gqlunion)
+* [`@gqlScalar`](#gqlscalar)
+* [`@gqlEnum`](#gqlenum)
+* [`@gqlInput`](#gqlinput)
 
 ### @gqlType
 
@@ -252,10 +255,34 @@ myField(): string {
 }
 ```
 
+#### Field nullability
+
 **Note**: By default, Grats makes all fields nullable in keeping with [GraphQL
 *best practices](https://graphql.org/learn/best-practices/#nullability). This
 *behavior can be changed by setting the config option `nullableByDefault` to
 `false`.
+
+With `nullableByDefault` _enabled_, you may declare an individual field as
+nonnullable adding the docblock tag `@killsParentOnException`.  This will cause
+the field to be typed as non-nullable, but _it comes at a price_.  Should the
+resolver throw, the error will bubble up to the first nullable parent. If
+`@killsParentOnException` is used too liberally, small errors can take down huge
+portions of your query.
+
+Dissabling `nullableByDefault` is equivilent to marking all nonnullable fields
+with `@killsParentOnException`.
+
+```ts
+/**
+ * @gqlField 
+ * @killsParentOnException
+ */
+myField(): string {
+  return this.someOtherMethod();
+}
+```
+
+#### Field arguments
 
 If you wish to define arguments for a field, define your argument types inline:
 
@@ -282,6 +309,8 @@ myField({ greeting = { salutation: "Sup" } }: { greeting: GreetingConfig }): str
 }
 ```
 
+#### Field descriptions
+
 Arguments can be given descriptions by using the `/**` syntax:
 
 ```ts
@@ -294,6 +323,8 @@ myField(args: {
 }
 ```
 
+#### Deprecated fields
+
 To mark a field as deprecated, use the `@deprecated` JSDoc tag:
 
 ```ts
@@ -305,6 +336,8 @@ myOldField(): string {
   return "Hello World";
 }
 ```
+
+#### Functional style fields
 
 Sometimes you want to add a computed field to a non-class type, or extend base
 types like `Query` or `Mutation` from another file. Both of these usecases are

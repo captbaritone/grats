@@ -1,0 +1,21 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class Query {
+  /**
+   * @gqlField
+   * @killsParentOnException
+   */
+  hello(): string | null {
+    return "Hello world!";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/field_values/OptionalStringFieldKillsParentOnException.invalid.ts:5:7 - error: Unexpected `@killsParentOnException` tag. `@killsParentOnException` is unnessesary on fields that are already nullable.
+
+5    * @killsParentOnException
+        ~~~~~~~~~~~~~~~~~~~~~~

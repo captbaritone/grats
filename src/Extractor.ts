@@ -49,6 +49,7 @@ const INTERFACE_TAG = "gqlInterface";
 const ENUM_TAG = "gqlEnum";
 const UNION_TAG = "gqlUnion";
 const INPUT_TAG = "gqlInput";
+const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
 
 const ALL_TAGS = [
   TYPE_TAG,
@@ -136,6 +137,18 @@ export class Extractor {
               );
             }
             break;
+          case KILLS_PARENT_ON_EXCEPTION_TAG:
+            const hasFieldTag = ts.getJSDocTags(node).some((t) => {
+              return t.tagName.text === FIELD_TAG;
+            });
+            if (!hasFieldTag) {
+              this.report(
+                tag.tagName,
+                `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\`. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` can only be used in field annotation docblocks. Perhaps you are missing a \`@${FIELD_TAG}\` tag?`,
+              );
+            }
+            break;
+
           default:
             const lowerCaseTag = tag.tagName.text.toLowerCase();
             if (lowerCaseTag.startsWith("gql")) {
@@ -402,7 +415,7 @@ export class Extractor {
           description: description || undefined,
           name,
           arguments: args || undefined,
-          type: this.handleErrorBubbling(type),
+          type: this.handleErrorBubbling(node, type),
           directives: directives.length === 0 ? undefined : directives,
         },
       ],
@@ -1207,7 +1220,7 @@ export class Extractor {
       description: description || undefined,
       name,
       arguments: args || undefined,
-      type: this.handleErrorBubbling(type),
+      type: this.handleErrorBubbling(node, type),
       directives: directives.length === 0 ? undefined : directives,
     };
   }
@@ -1293,7 +1306,7 @@ export class Extractor {
       description: description || undefined,
       name,
       arguments: undefined,
-      type: this.handleErrorBubbling(type),
+      type: this.handleErrorBubbling(node, type),
       directives: directives.length === 0 ? undefined : directives,
     };
   }
@@ -1417,7 +1430,28 @@ export class Extractor {
   // the server to handle field level exections by simply returning null for
   // that field.
   // https://graphql.org/learn/best-practices/#nullability
-  handleErrorBubbling(type: TypeNode) {
+  handleErrorBubbling(parentNode: ts.Node, type: TypeNode) {
+    const tags = ts.getJSDocTags(parentNode);
+    const killsParentOnExceptions = tags.find(
+      (tag) => tag.tagName.text === KILLS_PARENT_ON_EXCEPTION_TAG,
+    );
+
+    if (killsParentOnExceptions) {
+      if (!this.configOptions.nullableByDefault) {
+        this.report(
+          killsParentOnExceptions.tagName,
+          `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` tag. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` is only supported when the Grats config \`nullableByDefault\` is enabled.`,
+        );
+      }
+      if (type.kind !== Kind.NON_NULL_TYPE) {
+        this.report(
+          killsParentOnExceptions.tagName,
+          `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` tag. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` is unnessesary on fields that are already nullable.`,
+        );
+      }
+      return type;
+    }
+
     if (this.configOptions.nullableByDefault) {
       return this.gqlNullableType(type);
     }

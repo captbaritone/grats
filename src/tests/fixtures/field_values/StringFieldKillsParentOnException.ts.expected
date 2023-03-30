@@ -1,0 +1,28 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class Query {
+  /**
+   * @gqlField
+   * @killsParentOnException
+   */
+  hello(): string {
+    return "Hello world!";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  hello: String!
+}
