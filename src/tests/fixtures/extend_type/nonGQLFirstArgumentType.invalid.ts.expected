@@ -16,7 +16,7 @@ export function greeting(query: Foo): string {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/extend_type/nonGQLFirstArgumentType.invalid.ts:9:33 - error: This type is not a valid GraphQL type. Did you mean to annotate it's definition with `/** @gqlType */` or `/** @gqlScalar */`?
+src/tests/fixtures/extend_type/nonGQLFirstArgumentType.invalid.ts:9:33 - error: This type is not a valid GraphQL type. Did you mean to annotate it's definition with a `/** @gql */` tag such as `/** @gqlType */` or `/** @gqlInput **/`?
 
 9 export function greeting(query: Foo): string {
                                   ~~~

@@ -372,7 +372,7 @@ export class Extractor {
       );
     }
 
-    const type = this.collectType(node.type);
+    const type = this.collectMethodType(node.type);
     if (type == null) return null;
 
     let args: readonly InputValueDefinitionNode[] | null = null;
@@ -432,7 +432,7 @@ export class Extractor {
     if (!ts.isTypeReferenceNode(typeParam.type)) {
       return this.report(
         typeParam.type,
-        `Expected first argument of a \`@${FIELD_TAG}\` function to be typed as a \`@gqlType\` type.`,
+        `Expected first argument of a \`@${FIELD_TAG}\` function to be typed as a \`@${TYPE_TAG}\` type.`,
       );
     }
 
@@ -1189,7 +1189,7 @@ export class Extractor {
       return this.report(node.name, "Expected GraphQL field to have a type.");
     }
 
-    const type = this.collectType(node.type);
+    const type = this.collectMethodType(node.type);
 
     // We already reported an error
     if (type == null) return null;
@@ -1223,6 +1223,37 @@ export class Extractor {
       type: this.handleErrorBubbling(node, type),
       directives: directives.length === 0 ? undefined : directives,
     };
+  }
+
+  collectMethodType(node: ts.TypeNode): TypeNode | null {
+    const inner = this.maybeUnwrapePromise(node);
+    if (inner == null) return null;
+    return this.collectType(inner);
+  }
+
+  collectPropertyType(node: ts.TypeNode): TypeNode | null {
+    // TODO: Handle function types here.
+    const inner = this.maybeUnwrapePromise(node);
+    if (inner == null) return null;
+    return this.collectType(inner);
+  }
+
+  maybeUnwrapePromise(node: ts.TypeNode): ts.TypeNode | null {
+    if (ts.isTypeReferenceNode(node)) {
+      const identifier = this.expectIdentifier(node.typeName);
+      if (identifier == null) return null;
+
+      if (identifier.text === "Promise") {
+        if (node.typeArguments == null) {
+          return this.report(
+            node,
+            `Expected type reference to have type arguments.`,
+          );
+        }
+        return node.typeArguments[0];
+      }
+    }
+    return node;
   }
 
   collectDescription(node: ts.Node): StringValueNode | null {
@@ -1284,7 +1315,7 @@ export class Extractor {
       return null;
     }
 
-    const inner = this.collectType(node.type);
+    const inner = this.collectPropertyType(node.type);
     // We already reported an error
     if (inner == null) return null;
     const type =
@@ -1344,7 +1375,7 @@ export class Extractor {
     } else if (node.kind === ts.SyntaxKind.NumberKeyword) {
       return this.report(
         node,
-        `Unexpected number type. GraphQL supports both Int and Float, making \`number\` ambiguous. Instead, import the \`Int\` or \`Float\` type from \`${LIBRARY_IMPORT_NAME}\` and use that.`,
+        `Unexpected number type. GraphQL supports both Int and Float, making \`number\` ambiguous. Instead, import the \`Int\` or \`Float\` type from \`${LIBRARY_IMPORT_NAME}\` and use that. e.g. \`import { Int, Float } from "${LIBRARY_IMPORT_NAME}";\`.`,
       );
     } else if (ts.isTypeLiteralNode(node)) {
       return this.report(
@@ -1363,17 +1394,6 @@ export class Extractor {
 
     const typeName = identifier.text;
     switch (typeName) {
-      case "Promise": {
-        if (node.typeArguments == null) {
-          return this.report(
-            node,
-            `Expected type reference to have type arguments.`,
-          );
-        }
-        const type = this.collectType(node.typeArguments[0]);
-        if (type == null) return null;
-        return type;
-      }
       case "Array":
       case "Iterator":
       case "ReadonlyArray": {

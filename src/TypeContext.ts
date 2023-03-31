@@ -112,7 +112,7 @@ export class TypeContext {
       }
       return err({
         messageText:
-          "This type is not a valid GraphQL type. Did you mean to annotate it's definition with `/** @gqlType */` or `/** @gqlScalar */`?",
+          "This type is not a valid GraphQL type. Did you mean to annotate it's definition with a `/** @gql */` tag such as `/** @gqlType */` or `/** @gqlInput **/`?",
         start: unresolved.loc.start,
         length: unresolved.loc.end - unresolved.loc.start,
         category: ts.DiagnosticCategory.Error,

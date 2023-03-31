@@ -1,0 +1,16 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class Query {
+  /** @gqlField */
+  b: Promise<Promise<string>>;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/field_values/PromiseOfPromise.invalid.ts:4:14 - error: This type is not a valid GraphQL type. Did you mean to annotate it's definition with a `/** @gql */` tag such as `/** @gqlType */` or `/** @gqlInput **/`?
+
+4   b: Promise<Promise<string>>;
+               ~~~~~~~~~~~~~~~

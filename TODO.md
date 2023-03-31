@@ -11,6 +11,8 @@
 - [ ] Allow type literal types to implement interfaces
 - [ ] Print multiline descriptiosn with `"""` instead of `"\n`
 - [ ] Add more robust config validation
+- [ ] Allow property types to be functions
+- [ ] Allow `Promise<T> | T`
 
 ## Beta
 - [ ] Support generic directives 
