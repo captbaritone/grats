@@ -160,6 +160,12 @@ The following JSDoc tags are supported:
 * [`@gqlEnum`](#gqlenum)
 * [`@gqlInput`](#gqlinput)
 
+Each tag maps directly to a concept in the GraphQL [Schema Definition
+Language](https://graphql.org/learn/schema/) (SDL). The documentation below aims
+to be complete, but our hope is that you feel empowered to just slap one of
+these docblock tags on the relevent TypeScript class/type/method/etc in your
+code, and let Grats' helpful error messages guide you.
+
 ### @gqlType
 
 GraphQL types can be defined by placing a `@gqlType` docblock directly before a:
@@ -180,10 +186,7 @@ class MyClass {
 ```
 
 ```ts
-/**
- * Here I can write a description of my type that will be included in the schema.
- * @gqlType <optional name of the type, if different from interface name>
- */
+/** @gqlType */
 interface MyType {
   /** @gqlField */
   someField: string;
@@ -191,10 +194,7 @@ interface MyType {
 ```
 
 ```ts
-/**
- * Here I can write a description of my type that will be included in the schema.
- * @gqlType <optional name of the type, if different from interface name>
- */
+/** @gqlType */
 type MyType = {
   /** @gqlField */
   someField: string;
@@ -246,10 +246,7 @@ You can define GraphQL fields by placing a `@gqlField` directly before a:
  */
 someField: string;
 
-/**
- * A description of my field.
- * @gqlField <optional name of the field, if different from method name>
- */
+/** @gqlField */
 myField(): string {
   return "Hello World";
 }
@@ -350,10 +347,7 @@ second argument. The function should return the value of the field.
 Extending Query:
 
 ```ts
-/** 
- * Description of my field
- * @gqlField <optional name of the field, if different from function name>
- */
+/** @gqlField */
 export function userById(_: Query, args: {id: string}): User {
   return DB.getUserById(args.id);
 }
@@ -362,10 +356,7 @@ export function userById(_: Query, args: {id: string}): User {
 Extending Mutation:
 
 ```ts
-/** 
- * Delete a user. GOODBYE!
- * @gqlField <optional name of the mutation, if different from function name>
- */
+/** @gqlField */
 export function deleteUser(_: Mutation, args: {id: string}): boolean {
   return DB.deleteUser(args.id);
 }
@@ -463,10 +454,7 @@ This is due to the fact that TypeScript does not see JSDoc comments as
 "attaching" to string literal types.
 
 ```ts
-/** 
- * A description of my enum.
- * @gqlEnum <optional name of the enum, if different from type name>
- */
+/** @gqlEnum */
 type MyEnum = "OK" | "ERROR";
 ```
 

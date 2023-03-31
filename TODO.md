@@ -13,6 +13,12 @@
 - [ ] Add more robust config validation
 - [ ] Allow property types to be functions
 - [ ] Allow `Promise<T> | T`
+- [ ] Write guides
+  - [ ] Oop style
+  - [ ] Request context
+  - [ ] Functional style
+  - [ ] DataLoader pattern
+  - [ ] Subscriptions
 
 ## Beta
 - [ ] Support generic directives 
