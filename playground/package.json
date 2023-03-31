@@ -27,6 +27,7 @@
     "netlify-cli": "^13.2.1",
     "parcel": "^2.8.3",
     "path-browserify": "^1.0.1",
+    "prettier": "^2.8.7",
     "process": "^0.11.10",
     "redux": "^4.2.1",
     "reselect": "^4.1.7",

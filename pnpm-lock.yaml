@@ -68,6 +68,7 @@ importers:
       netlify-cli: ^13.2.1
       parcel: ^2.8.3
       path-browserify: ^1.0.1
+      prettier: ^2.8.7
       process: ^0.11.10
       redux: ^4.2.1
       reselect: ^4.1.7
@@ -89,6 +90,7 @@ importers:
       netlify-cli: 13.2.1
       parcel: 2.8.3
       path-browserify: 1.0.1
+      prettier: 2.8.7
       process: 0.11.10
       redux: 4.2.1
       reselect: 4.1.7
@@ -8206,6 +8208,12 @@ packages:
   /prepend-http/2.0.0:
     resolution: {integrity: sha512-ravE6m9Atw9Z/jjttRUZ+clIXogdghyZAuWJ3qEzjT+jI/dL1ifAqhZeC5VHzQp1MSt1+jxKkFNemj/iO7tVUA==}
     engines: {node: '>=4'}
+    dev: false
+
+  /prettier/2.8.7:
+    resolution: {integrity: sha512-yPngTo3aXUUmyuTjeTUT75txrf+aMh9FiD7q9ZE/i6r0bPb22g4FsE6Y338PQX1bmfy08i9QQCB7/rcUAVntfw==}
+    engines: {node: '>=10.13.0'}
+    hasBin: true
     dev: false
 
   /pretty-format/27.5.1:

@@ -13,6 +13,8 @@ import { createDefaultMapFromCDN } from "@typescript/vfs";
 import { getConfig, getView, onSelectorChange } from "../store";
 import { createSelector } from "reselect";
 import { Theme } from "./theme";
+import prettier from "prettier/standalone";
+import parserTypeScript from "prettier/parser-typescript";
 
 export async function createInputView(store) {
   const state = store.getState();
@@ -50,6 +52,25 @@ export async function createInputView(store) {
   });
 
   const leftView = new EditorView({ state: inputState, parent: left });
+
+  const formatButton = document.getElementById("format-code");
+  formatButton.addEventListener("click", () => {
+    const state = leftView.state;
+    const formatted = prettier.format(state.doc.toString(), {
+      parser: "typescript",
+      plugins: [parserTypeScript],
+    });
+
+    console.log({ state });
+    const to = state.doc.length;
+    console.log({ to });
+
+    const update = state.update({
+      changes: { from: 0, to, insert: formatted },
+    });
+
+    leftView.dispatch(update);
+  });
 
   // When the linter changes, update the linter
   onSelectorChange(store, getLinter, (linter) => {

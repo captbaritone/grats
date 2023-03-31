@@ -99,6 +99,10 @@
         display: flex;
         justify-content: space-between;
       }
+      #config-bar-left {
+        display: flex;
+        justify-content: space-between;
+      }
       .version {
         color: #666;
       }
@@ -107,6 +111,13 @@
         border: 1px solid #ccc;
         border-radius: 4px;
         padding: 0.5rem 1rem;
+        cursor: pointer;
+      }
+
+      #format-button {
+        background-color: #eee;
+        border: 1px solid #ccc;
+        border-radius: 4px;
         cursor: pointer;
       }
     </style>
@@ -130,7 +141,7 @@
         <div id="right"></div>
       </div>
       <div id="config-bar">
-        <div>
+        <div id="config-bar-left">
           <div class="config-block">
             <strong>Grats config:</strong>
             <label>
@@ -138,6 +149,7 @@
               Make fields nullable by default
             </label>
           </div>
+          <button id="format-code">Format</button>
         </div>
         <div id="config-bar-right">
           <div class="config-block">
