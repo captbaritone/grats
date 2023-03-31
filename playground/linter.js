@@ -59,7 +59,7 @@ export function createLinter(fsMap, view, config) {
 function computeOutput(schemaResult, view) {
   if (schemaResult.kind === "ERROR") {
     const errorText = schemaResult.err.formatDiagnosticsWithContext();
-    return `# ERROR MESSAGE\n# =============\n\n${errorText}`;
+    return `# ERROR MESSAGE\n# =============\n\n${commentLines(errorText)}`;
   }
 
   const schema = schemaResult.value;
@@ -72,4 +72,11 @@ function computeOutput(schemaResult, view) {
     return printSchema(schema);
   }
   return printSchemaWithDirectives(schema, { assumeValid: true });
+}
+
+function commentLines(text) {
+  return text
+    .split("\n")
+    .map((line) => `# ${line}`)
+    .join("\n");
 }
