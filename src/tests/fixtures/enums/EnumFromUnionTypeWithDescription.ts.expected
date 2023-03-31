@@ -30,8 +30,6 @@ type Query {
 
 """Hello!"""
 enum MyEnum {
-  """Hello!"""
   VALID
-  """Hello!"""
   INVALID
 }

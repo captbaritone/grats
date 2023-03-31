@@ -1100,7 +1100,7 @@ export class Extractor {
       values.push({
         kind: Kind.ENUM_VALUE_DEFINITION,
         name: this.gqlName(member.literal, member.literal.text),
-        description: description || undefined,
+        description: undefined,
         loc: this.loc(member),
       });
     }
