@@ -2,6 +2,7 @@ import * as express from "express";
 import { graphqlHTTP } from "express-graphql";
 import Query from "./Query";
 import { extractGratsSchemaAtRuntime, buildSchemaFromSDL } from "grats";
+import { readFileSync } from "fs";
 
 async function main() {
   const app = express();
@@ -26,7 +27,8 @@ async function main() {
 function getSchema() {
   if (process.env.FROM_SDL) {
     console.log("Building schema from SDL...");
-    return buildSchemaFromSDL("./schema.graphql");
+    const sdl = readFileSync("./schema.graphql", "utf8");
+    return buildSchemaFromSDL(sdl);
   }
   console.log("Building schema from source...");
   return extractGratsSchemaAtRuntime({

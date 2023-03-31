@@ -39,15 +39,15 @@ export function extractGratsSchemaAtRuntime(
   return runtimeSchema;
 }
 
-export function buildSchemaFromSDL(sdlFilePath: string): GraphQLSchema {
-  const sdl = fs.readFileSync(sdlFilePath, "utf8");
+export function buildSchemaFromSDL(sdl: string): GraphQLSchema {
   const schema = gqlBuildSchema(sdl);
   return applyServerDirectives(schema);
 }
 
 // #FIXME: Report diagnostics instead of throwing!
-export function getParsedTsConfig(): ts.ParsedCommandLine {
-  const configFile = ts.findConfigFile(process.cwd(), ts.sys.fileExists);
+export function getParsedTsConfig(configPath?: string): ts.ParsedCommandLine {
+  const configFile =
+    configPath || ts.findConfigFile(process.cwd(), ts.sys.fileExists);
 
   if (!configFile) {
     throw new Error("Grats: Could not find tsconfig.json");

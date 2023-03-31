@@ -22,7 +22,8 @@
     "outDir": "dist",
     "downlevelIteration": true,
     "strictNullChecks": true,
-    "declaration": true
+    "declaration": true,
+    "resolveJsonModule": true
   },
   "exclude": ["node_modules", "dist", "src/tests/fixtures", "docs", "examples"]
 }
