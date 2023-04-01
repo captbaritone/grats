@@ -101,14 +101,10 @@ jobs:
         run: pnpm run build
         env:
           RELEASE_COMMIT_SHA: ${{ github.sha }}
-
-      # - name: Build release version
-      #   if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
-      #   run: yarn gulp release
-
-      - name: Publish to npm
-        if: github.ref == 'refs/heads/main' || github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
-        run: npm publish ${TAG}
+      # https://github.com/pnpm/pnpm/issues/3141#issuecomment-1305563972
+      - name: Set publishing config
+        run: pnpm config set '//registry.npmjs.org/:_authToken' "${NODE_AUTH_TOKEN}"
         env:
-          TAG: ${{ github.ref == 'refs/heads/main' && '--tag=main' || ((contains(github.ref_name, '-rc.') && '--tag=dev') || '' )}}
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+      - name: Publish
+        run: pnpm publish --tag latest --access=public
