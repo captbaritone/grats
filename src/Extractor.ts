@@ -1072,15 +1072,51 @@ export class Extractor {
     if (name == null || name.value == null) {
       return;
     }
+
+    const values = this.enumTypeAliasVariants(node);
+    if (values == null) return;
+
+    const description = this.collectDescription(node.name);
+    this.ctx.recordTypeName(node.name, name.value);
+
+    this.definitions.push({
+      kind: Kind.ENUM_TYPE_DEFINITION,
+      loc: this.loc(node),
+      description: description || undefined,
+      name,
+      values,
+    });
+  }
+
+  enumTypeAliasVariants(
+    node: ts.TypeAliasDeclaration,
+  ): EnumValueDefinitionNode[] | null {
+    // Semantically we only support deriving enums from type aliases that
+    // are unions of string literals. However, in the edge case of a union
+    // of one item, there is no way to construct a union type of one item in
+    // TypeScript. So, we also support deriving enums from type aliases of a single
+    // string literal.
+    if (
+      ts.isLiteralTypeNode(node.type) &&
+      ts.isStringLiteral(node.type.literal)
+    ) {
+      return [
+        {
+          kind: Kind.ENUM_VALUE_DEFINITION,
+          name: this.gqlName(node.type.literal, node.type.literal.text),
+          description: undefined,
+          loc: this.loc(node),
+        },
+      ];
+    }
+
     if (!ts.isUnionTypeNode(node.type)) {
       this.reportUnhandled(
         node.type,
-        `Expected \`@${ENUM_TAG}\` to be a union type.`,
+        `Expected \`@${ENUM_TAG}\` to be a union type, or a string literal in the edge case of a single value enum.`,
       );
-      return;
+      return null;
     }
-
-    const description = this.collectDescription(node.name);
 
     const values: EnumValueDefinitionNode[] = [];
     for (const member of node.type.types) {
@@ -1105,15 +1141,7 @@ export class Extractor {
       });
     }
 
-    this.ctx.recordTypeName(node.name, name.value);
-
-    this.definitions.push({
-      kind: Kind.ENUM_TYPE_DEFINITION,
-      loc: this.loc(node),
-      description: description || undefined,
-      name,
-      values,
-    });
+    return values;
   }
 
   collectEnumValues(
