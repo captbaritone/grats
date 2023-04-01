@@ -27,6 +27,10 @@ jobs:
         run: pnpm install
       - name: Build
         run: pnpm run build
+      - name: Build Other Packages
+        run: pnpm run -r build
+      - name: Integration Tests
+        run: pnpm run integration-tests
   test:
     name: "JS Tests"
     runs-on: ubuntu-latest
@@ -67,43 +71,3 @@ jobs:
         run: pnpm install
       - name: Lint
         run: pnpm run lint
-  build-other:
-    name: "Build other packages"
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [16.x, 19.x]
-    needs: [build]
-    steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 7
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
-      - name: Install dependencies for other packages
-        run: pnpm install -r
-      - name: Build Other Packages
-        run: pnpm run -r build
-  integration-tests:
-    name: "Integration tests"
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [16.x, 19.x]
-    needs: [build-other]
-    steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 7
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
-      - name: Integration Tests
-        run: pnpm run integration-tests
