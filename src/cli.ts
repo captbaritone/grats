@@ -7,8 +7,7 @@ import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import { Command } from "commander";
 import { writeFileSync, existsSync } from "fs";
 import { resolve } from "path";
-// @ts-ignore We need this path to be relative to the compiled JS file
-import { version } from "../../package.json";
+import { version } from "../package.json";
 
 const program = new Command();
 
