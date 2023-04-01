@@ -99,6 +99,8 @@ jobs:
       - name: Build latest (main) version
         if: github.ref == 'refs/heads/main'
         run: pnpm run build
+      - name: Set package version
+        run: pnpm version --no-git-tag-version 0.0.0-main-${RELEASE_COMMIT_SHA:0:8}
         env:
           RELEASE_COMMIT_SHA: ${{ github.sha }}
       # https://github.com/pnpm/pnpm/issues/3141#issuecomment-1305563972
