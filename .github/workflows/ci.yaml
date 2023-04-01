@@ -71,3 +71,46 @@ jobs:
         run: pnpm install
       - name: Lint
         run: pnpm run lint
+  main-release:
+    name: Publish to NPM
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.repository == 'captbaritone/grats'
+    needs: [build, test, lint]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install
+      #- name: Mark binaries as executable
+      #  working-directory: artifacts
+      #  run: |
+      #    chmod +x linux-x64/relay
+      #    chmod +x linux-arm64/relay
+      #    chmod +x macos-x64/relay
+      #    chmod +x macos-arm64/relay
+      - name: Build latest (main) version
+        if: github.ref == 'refs/heads/main'
+        run: pnpm run build
+        env:
+          RELEASE_COMMIT_SHA: ${{ github.sha }}
+
+      # - name: Build release version
+      #   if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
+      #   run: yarn gulp release
+
+      - name: Publish to npm
+        if: github.ref == 'refs/heads/main' || github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
+        run: |
+          for pkg in dist/*; do
+            npm publish "$pkg" ${TAG}
+          done
+        env:
+          TAG: ${{ github.ref == 'refs/heads/main' && '--tag=main' || ((contains(github.ref_name, '-rc.') && '--tag=dev') || '' )}}
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
