@@ -5,9 +5,12 @@ import { getParsedTsConfig } from "./";
 import { buildSchemaResult } from "./lib";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import { Command } from "commander";
-import { version } from "../package.json";
 import { writeFileSync, existsSync } from "fs";
 import { resolve } from "path";
+
+// This path is relative to the compiled JS file, not the TS file.
+// @ts-ignore
+import { version } from "../../package.json";
 
 const program = new Command();
 
