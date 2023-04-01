@@ -109,4 +109,4 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
       - name: Publish
-        run: pnpm publish --tag latest --access=public --no-git-checks
+        run: pnpm publish --tag main --access=public --no-git-checks
