@@ -74,6 +74,7 @@ jobs:
   main-release:
     name: Publish to NPM
     runs-on: ubuntu-latest
+    environment: CI
     if: github.event_name == 'push' && github.repository == 'captbaritone/grats'
     needs: [build, test, lint]
     steps:
