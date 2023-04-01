@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: "Build"
+    name: "Build and run integration tests"
     runs-on: ubuntu-latest
     strategy:
       matrix:
