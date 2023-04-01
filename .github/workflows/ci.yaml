@@ -27,6 +27,8 @@ jobs:
         run: pnpm install
       - name: Build
         run: pnpm run build
+      - name: Install dependencies
+        run: pnpm install -r
       - name: Build Other Packages
         run: pnpm run -r build
       - name: Integration Tests
