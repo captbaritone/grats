@@ -1396,6 +1396,8 @@ export class Extractor {
         return this.gqlNullableType(type);
       }
       return this.gqlNonNullType(node, type);
+    } else if (ts.isParenthesizedTypeNode(node)) {
+      return this.collectType(node.type);
     } else if (node.kind === ts.SyntaxKind.StringKeyword) {
       return this.gqlNonNullType(node, this.gqlNamedType(node, "String"));
     } else if (node.kind === ts.SyntaxKind.BooleanKeyword) {
