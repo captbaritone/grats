@@ -19,29 +19,34 @@ By making your TypeScript implementation the source of truth, you entirely
 remove the question of mismatches between your implementation and your GraphQL
 schema definition. Your implementation _is_ the schema definition!
 
-## Example
+## Examples
+
+Grats is flexible enough to work with both class-based and functional
+approaches to authoring GraphQL types and resolvers.
+
+### Class-Based
 
 ```ts
 /** @gqlType */
 export default class Query {
   /** @gqlField */
-  me(): UserResolver {
-    return new UserResolver();
+  me(): User {
+    return new User();
   }
   /** 
    * @gqlField
    * @deprecated Please use `me` instead.
    */
-  viewer(): UserResolver {
-    return new UserResolver();
+  viewer(): User {
+    return new User();
   }
 }
 
 /**
  * A user in our kick-ass system!
- * @gqlType User
+ * @gqlType
  */
-class UserResolver {
+class User {
   /** @gqlField */
   name: string = 'Alice';
 
@@ -52,7 +57,42 @@ class UserResolver {
 }
 ```
 
-Extracts the following GraphQL schema:
+### Functional
+
+```ts
+/** @gqlType */
+export type Query {};
+
+/** @gqlField */
+export function me(_: Query): User {
+  return { name: "Alice" };
+}
+
+/** 
+ * @gqlField
+ * @deprecated Please use `me` instead.
+ */
+export function viewer(_: Query): User {
+  return { name: "Alice" };
+}
+
+/**
+ * A user in our kick-ass system!
+ * @gqlType
+ */
+type User = {
+  /** @gqlField */
+  name: string;
+}
+
+
+/** @gqlField */
+export function greeting(user: User, args: { salutation: string }): string {
+  return `${args.salutation}, ${user.name}`;
+}
+```
+
+Both of the above examples extract the following GraphQL schema:
 
 ```graphql
 type Query {
