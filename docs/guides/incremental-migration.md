@@ -30,7 +30,7 @@ existing schema:
 
 ```bash
 npx grats --output=./grats-schema.gql
-npx graphql-schema-diff path/to/existing/schema.gql ./grats-schema.gql
+npx graphql-schema-diff --fail-on-all-changes --sort-schema path/to/existing/schema.gql ./grats-schema.gql
 ```
 
 This should give you a todo list of types that sill need annotations, or places
