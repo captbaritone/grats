@@ -1120,6 +1120,37 @@ export class Extractor {
 
     const values: EnumValueDefinitionNode[] = [];
     for (const member of node.type.types) {
+      // TODO: Complete this feature
+      if (ts.isTypeReferenceNode(member)) {
+        if (member.typeName.kind === ts.SyntaxKind.Identifier) {
+          const symbol = this.ctx.checker.getSymbolAtLocation(member.typeName);
+          if (symbol?.declarations?.length === 1) {
+            const declaration = symbol.declarations[0]!;
+            if (ts.isTypeAliasDeclaration(declaration)) {
+              if (
+                ts.isLiteralTypeNode(declaration.type) &&
+                ts.isStringLiteral(declaration.type.literal)
+              ) {
+                const deprecatedDirective = this.collectDeprecated(declaration);
+                const memberDescription = this.collectDescription(
+                  declaration.name,
+                );
+                values.push({
+                  kind: Kind.ENUM_VALUE_DEFINITION,
+                  name: this.gqlName(
+                    declaration.type.literal,
+                    declaration.type.literal.text,
+                  ),
+                  directives: deprecatedDirective ? [deprecatedDirective] : [],
+                  description: memberDescription || undefined,
+                  loc: this.loc(node),
+                });
+                continue;
+              }
+            }
+          }
+        }
+      }
       if (
         !ts.isLiteralTypeNode(member) ||
         !ts.isStringLiteral(member.literal)
