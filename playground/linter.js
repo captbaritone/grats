@@ -4,15 +4,27 @@ import { buildSchemaResultWithHost } from "grats";
 import { linter } from "@codemirror/lint";
 import { printSchema } from "graphql";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
+import * as fs from "fs";
 
 import store from "./store";
 
+const GRATS_PATH = "node_modules/grats/src/index.ts";
+const GRATS_TYPE_DECLARATIONS = fs.readFileSync(
+  "node_modules/grats/src/Types.ts",
+  "utf8"
+);
+
 function buildSchemaResultWithFsMap(fsMap, text, config) {
   fsMap.set("index.ts", text);
+  fsMap.set(GRATS_PATH, GRATS_TYPE_DECLARATIONS);
   // TODO: Don't recreate the system each time!
   const system = createSystem(fsMap);
 
-  const compilerOpts = { allowJs: true };
+  const compilerOpts = {
+    allowJs: true,
+    baseUrl: "./",
+    paths: { grats: [GRATS_PATH] },
+  };
   const host = createVirtualCompilerHost(system, compilerOpts, ts);
 
   const parsedOptions = {
