@@ -1,31 +1,8 @@
-const CONTENT = `/** @gqlType */
-export default class Query {
-  /** @gqlField */
-  me(): UserResolver {
-    return new UserResolver();
-  }
-  /** 
-   * @gqlField
-   * @deprecated Please use \`me\` instead.
-   */
-  viewer(): UserResolver {
-    return new UserResolver();
-  }
-}
+import * as fs from "fs";
+import * as path from "path";
 
-/**
- * A user in our kick-ass system!
- * @gqlType User
- */
-class UserResolver {
-  /** @gqlField */
-  name: string = 'Alice';
-
-  /** @gqlField */
-  greeting(args: { salutation: string }): string {
-    return \`\${args.salutation}, \${this.name}\`;
-  }
-}`;
+// Parcel will inline this for us.
+const CONTENT = fs.readFileSync(path.join(__dirname, "defaultText.ts"), "utf8");
 
 export const DEFAULT_STATE = {
   doc: CONTENT,

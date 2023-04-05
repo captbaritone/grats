@@ -1,0 +1,108 @@
+# Welcome to Grats
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+
+Grats is a tool for statically infering GraphQL schema from your vanilla
+TypeScript code.
+
+Just write your types and resolvers as regular TypeScript and annotate your
+types and fields with simple JSDoc tags. From there, Grats can extract your
+GraphQL schema automatically by statically analyzing your code and its types. No
+convoluted directive APIs to remember. No need to define your Schema at
+runtime with verbose builder APIs. 
+
+By making your TypeScript implementation the source of truth, you entirely
+remove the question of mismatches between your implementation and your GraphQL
+schema definition. Your implementation _is_ the schema definition!
+
+## Examples
+
+Grats is flexible enough to work with both class-based and functional
+approaches to authoring GraphQL types and resolvers.
+
+<Tabs>
+  <TabItem value="oop" label="Classes" default>
+
+```ts
+/** @gqlType */
+export default class Query {
+  /** @gqlField */
+  me(): User {
+    return new User();
+  }
+  /** 
+   * @gqlField
+   * @deprecated Please use `me` instead. */
+  viewer(): User {
+    return new User();
+  }
+}
+
+/**
+ * A user in our kick-ass system!
+ * @gqlType */
+class User {
+  /** @gqlField */
+  name: string = 'Alice';
+
+  /** @gqlField */
+  greeting(args: { salutation: string }): string {
+    return `${args.salutation}, ${this.name}`;
+  }
+}
+```
+
+  </TabItem>
+  <TabItem value="fp" label="Functional">
+
+```ts
+/** @gqlType */
+export type Query {};
+
+/** @gqlField */
+export function me(_: Query): User {
+  return { name: "Alice" };
+}
+
+/** 
+ * @gqlField
+ * @deprecated Please use `me` instead.  */
+export function viewer(_: Query): User {
+  return { name: "Alice" };
+}
+
+/**
+ * A user in our kick-ass system!
+ * @gqlType */
+type User = {
+  /** @gqlField */
+  name: string;
+}
+
+/** @gqlField */
+export function greeting(user: User, args: { salutation: string }): string {
+  return `${args.salutation}, ${user.name}`;
+}
+```
+  </TabItem>
+</Tabs>
+
+
+## Output
+
+Both of the above examples extract the following GraphQL schema:
+
+```graphql
+type Query {
+  me: User
+  viewer: User @deprecated(reason: "Please use `me` instead.")
+}
+
+"""A user in our kick-ass system!"""
+type User {
+  name: String
+  greeting(salutation: String!): String
+}
+```

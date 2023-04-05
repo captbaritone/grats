@@ -116,7 +116,7 @@ the easiest way to get started with Grats, although you may find that it causes
 a slow startup time. For larger projects, you probably want to use the build
 mode (documentation to come).
 
-```sh
+```bash
 npm install express express-graphql grats
 ```
 
@@ -462,9 +462,9 @@ GraphQL enums can be defined by placing a `@gqlEnum` docblock directly before a:
  * @gqlEnum <optional name of the enum, if different from type name>
  */
 enum MyEnum {
-  /** A description of my variant */
+  /** A description of my value */
   OK = "OK",
-  /** A description of my other variant */
+  /** A description of my other value */
   ERROR = "ERROR"
 }
 ```

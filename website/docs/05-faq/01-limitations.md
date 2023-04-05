@@ -10,10 +10,12 @@ Sometimes it can be useful to wrap a method in a function. This can emulate the
 behavior of of a decorator. For example:
 
 ```typescript
-approve_post = requireAuthed(({ id }: { id: ID }) => {
-   Post.approve(id);
-  return true;
-});
+class User {
+  approve_post = requireAuthed(({ id }: { id: ID }) => {
+    Post.approve(id);
+    return true;
+  });
+}
 ```
 
 Currently Grats cannot handle this because it's not able to "see" what type the
@@ -40,7 +42,7 @@ request](https://github.com/microsoft/TypeScript/issues/9879) is merged.
 ## Descriptions and @deprecated on TypeScript union @gqlEnums
 
 Currently Grats does not support descriptions or `@deprecated` on GraphQL enum
-variants when the enum is defined as a TypeScript union.
+values when the enum is defined as a TypeScript union.
 
 ```typescript
 /** @gqlEnum */

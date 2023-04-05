@@ -1,6 +1,8 @@
 # TODO
 
 ## Alpha
+- [ ] Test and clarify behavior of killsParentOnException
+    - [ ] Should there be a way to enable killsParentOnException for nullable resolvers?
 - [ ] Extend interfaces
     - [ ] interface types implement interfaces
     - [ ] interface interfaces implement interfaces
@@ -19,6 +21,10 @@
   - [ ] Functional style
   - [ ] DataLoader pattern
   - [ ] Subscriptions
+- [ ] Playground does not support promises
+- [ ] Support @deprecated in all the places:
+  - [ ] https://spec.graphql.org/draft/#sec--deprecated
+  - [ ] FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION | ENUM_VALUE
 
 ## Beta
 - [ ] Support generic directives 

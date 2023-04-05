@@ -47,7 +47,7 @@ npx grats --output=path/to/existing/schema.gql
 
 At this point you may want to add some CI step to ensure that any changes to
 your code that result in schema changes are committed. See the
-[Workflows](./workflows.md) guide for more details.
+[Workflows](./01-workflows.md) guide for more details.
 
 ### Migrate
 

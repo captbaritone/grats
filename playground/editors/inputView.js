@@ -23,8 +23,8 @@ export async function createInputView(store) {
 
   const shouldCache = true;
   const fsMap = await createDefaultMapFromCDN(
-    { target: ts.ScriptTarget.ES2015 },
-    "3.7.3",
+    { target: ts.ScriptTarget.ES2021, lib: ["es2021"] },
+    ts.version,
     shouldCache,
     ts,
     lzstring

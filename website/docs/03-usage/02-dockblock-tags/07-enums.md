@@ -1,0 +1,48 @@
+# Enums
+
+GraphQL enums can be defined by placing a `@gqlEnum` docblock directly before a:
+
+* TypeScript enum declaration
+* Type alias of a union of string literals
+
+```ts
+/** 
+ * A description of my enum.
+ * @gqlEnum <optional name of the enum, if different from type name>
+ */
+enum MyEnum {
+  /** A description of my variant */
+  OK = "OK",
+  /** A description of my other variant */
+  ERROR = "ERROR"
+}
+```
+
+Note that the values of the enum are used as the GraphQL enum values, and must
+be string literals.
+
+To mark a variants as deprecated, use the `@deprecated` JSDoc tag directly before it:
+
+```ts
+/** @gqlEnum */
+enum MyEnum {
+  OK = "OK"
+  /** @deprecated Please use OK instead. */
+  OKAY = "OKAY"
+  ERROR = "ERROR"
+}
+```
+
+We also support defining enums using a union of string literals, however there
+are some limitations to this approach:
+
+* You cannot add descriptions to enum values
+* You cannot mark enum values as deprecated
+
+This is due to the fact that TypeScript does not see JSDoc comments as
+"attaching" to string literal types.
+
+```ts
+/** @gqlEnum */
+type MyEnum = "OK" | "ERROR";
+```
