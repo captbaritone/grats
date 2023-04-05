@@ -1,0 +1,36 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export class Query {
+  /** @gqlField */
+  hello: MyEnum;
+}
+
+/** @deprecated Don't use this */
+type Valid = "VALID";
+/** @deprecated Don't use this either */
+type Invalid = "INVALID";
+
+/** @gqlEnum */
+type MyEnum = Valid | Invalid;
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  hello: MyEnum
+}
+
+enum MyEnum {
+  VALID @deprecated(reason: "Don't use this")
+  INVALID @deprecated(reason: "Don't use this either")
+}

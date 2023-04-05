@@ -1,0 +1,34 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export class Query {
+  /** @gqlField */
+  hello: MyEnum;
+}
+
+type Valid = "VALID";
+type Invalid = "INVALID";
+
+/** @gqlEnum */
+type MyEnum = Valid | Invalid;
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  hello: MyEnum
+}
+
+enum MyEnum {
+  VALID
+  INVALID
+}
