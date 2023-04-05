@@ -14,3 +14,5 @@ type MyInput = {
   age: number;
 };
 ```
+
+Unlike with fields, every property of an input type is automatically included as part of the GraphQL definition. You do not need to annotate individual properties with `@gqlField`.

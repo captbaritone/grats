@@ -15,9 +15,44 @@ interface MyClass {
 }
 ```
 
-All `@gqlType` types which implement the interface in TypeScript will
-automatically implement it in GraphQL as well.
+## Implementing Interfaces
 
-**Note**: Types declared using type literals `type MyType = { ... }` cannot yet
-implement interfaces. For now, you must use a class declarations for types which
-implement interfaces.
+By defining a class which implements an interface annotated as `@gqlInterface`, Grats will automatically generate a GraphQL type which implements that interface.
+
+:::caution
+
+Grats does not **yet** support implementing interfaces when you define your types using interfaces of type aliases, but support is on our roadmap.
+
+:::
+
+```ts
+/** @gqlInterface */
+interface Person {
+  /** @gqlField */
+  name: string;
+}
+
+/** @gqlType */
+class User implements Person {
+  __typename: "User";
+  /** @gqlField */
+  name: string;
+}
+```
+
+Will generate the following GraphQL schema:
+
+```graphql
+interface Person {
+  name: String
+}
+
+type User implements Person {
+  name: String
+}
+```
+
+:::note
+If your type implements a GraphQL interface Grats will remind you to add a `__typename: "MyType"` property to your
+class.
+:::

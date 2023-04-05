@@ -1,18 +1,14 @@
 # Field Nullability
 
-By default, Grats makes all fields nullabl* in keeping with **[GraphQL
-best practices](https://graphql.org/learn/best-practices/#nullability)**. This
-behavior can be changed by setting the [config option](/docs/getting-started/configuration) `{ "nullableByDefault": false }`.
+By default, Grats makes all fields nullabl* in keeping with **[GraphQL best practices](https://graphql.org/learn/best-practices/#nullability)**. By modeling fields as nullable by default, any error encountered when evaluating a resolver function/method will be caught by the GraphQL executor and returned as a `null` value with error metadata attached to the response.
 
-With `nullableByDefault` _enabled_, you may declare an individual field as
-nonnullable adding the docblock tag `@killsParentOnException`.  This will cause
-the field to be typed as non-nullable, but _it comes at a price_.  Should the
-resolver throw, the error will bubble up to the first nullable parent. If
-`@killsParentOnException` is used too liberally, small errors can take down huge
-portions of your query.
+This approach allows for maximally resiliant network requests, since a single error will not take down the entire query, generally it will only affect the field that threw the error.
 
-Dissabling `nullableByDefault` is equivilent to marking all nonnullable fields
-with `@killsParentOnException`.
+However, there are some fields where it is nessesary to have a non-nullable field. In this case, you may add the docblock tag `@killsParentOnException` to the field. This will cause the field to be typed as non-nullable, but _it comes at a price_.  Should the resolver throw, the error will bubble up to the first nullable parent.
+
+:::caution
+If `@killsParentOnException` is used too liberally, small errors can take down huge portions of your query.
+:::
 
 ```ts
 /**
@@ -25,3 +21,11 @@ myField(): string {
   return this.someOtherMethod();
 }
 ```
+
+## Changing the default
+
+This behavior can be changed by setting the [config option](/docs/getting-started/configuration) `{ "nullableByDefault": false }`.
+
+:::danger
+Dissabling `nullableByDefault` is equivilent to marking all non-nullable fields as `@killsParentOnException`.
+:::

@@ -1,6 +1,6 @@
 # Arguments
 
-If you wish to define arguments for a field, define your argument types inline:
+If you wish to define arguments for a field, you must define your argument types explicitly using a type literal in your function or method signature. This allows Grats to "see" the types being used.
 
 ```ts
 /** @gqlField */
@@ -11,7 +11,20 @@ myField(args: { greeting: string }): string {
 }
 ```
 
-Default values for arguments can be defined by using the `=` operator with destructuring:
+## Functional style fields
+
+In functional style fields, the arguments object is the second argument to the function. The first argument is the instance of the base type being extended.
+
+```ts
+/** @gqlField */
+export function userById(_: Query, args: { id: string }): User {
+  return DB.getUserById(args.id);
+}
+```
+
+## Default values
+
+Default values for arguments can be defined by using the `=` operator with destructuring. Note tha tyou must perform the destructuring in the argument list, not in the function body:
 
 ```ts
 /** @gqlField */
@@ -20,9 +33,16 @@ myField({ greeting = "Hello" }: { greeting: string }): string {
 }
 ```
 
+Deeply nested default values can also be defined:
+
 ```ts
 /** @gqlField */
 myField({ greeting = { salutation: "Sup" } }: { greeting: GreetingConfig }): string {
   return `${greeting.salutation} World`;
 }
+
+/** @gqlInput */
+type GreetingConfig = {
+  salutation: string;
+};
 ```

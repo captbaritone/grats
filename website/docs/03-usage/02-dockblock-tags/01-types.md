@@ -45,6 +45,18 @@ type MyType = {
 }
 ```
 
+## Renaming Types
+
+If you want to use a different name for your type in GraphQL than in your code, you can specify the name of the type in the `@gqlType` docblock tag. See [Renaming](../04-renaming.md) for more information.
+
+```ts
+/** @gqlType User */
+class UserModel = {
+  /** @gqlField */
+  someField: string;
+}
+```
+
 ## Implementing Interfaces
 
 If you are using classes to model your GraphQL resolvers, you can define your types as implementing a GraphQL interface by declaring that your class implements an interface which has been annotated with [`@gqlInterface`](./04-interfaces.md).
@@ -82,8 +94,6 @@ type User implements Person {
   name: String
 }
 ```
-
-
 
 :::note
 If your type implements a GraphQL interface or is a member of a GraphQL
