@@ -4,7 +4,7 @@ export default class Query {
   me(): UserResolver {
     return new UserResolver();
   }
-  /** 
+  /**
    * @gqlField
    * @deprecated Please use \`me\` instead.
    */
@@ -19,10 +19,10 @@ export default class Query {
  */
 class UserResolver {
   /** @gqlField */
-  name: string = 'Alice';
+  name: string = "Alice";
 
   /** @gqlField */
   greeting(args: { salutation: string }): string {
-    return `\${args.salutation}, \${this.name}\`;
+    return `\${args.salutation}, \${this.name}`;
   }
 }
