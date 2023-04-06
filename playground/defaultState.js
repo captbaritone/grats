@@ -7,7 +7,7 @@ const CONTENT = fs.readFileSync(path.join(__dirname, "defaultText.ts"), "utf8");
 export const DEFAULT_STATE = {
   doc: CONTENT,
   config: {
-    nullableByDefault: false,
+    nullableByDefault: true,
     reportTypeScriptTypeErrors: true,
   },
   view: {

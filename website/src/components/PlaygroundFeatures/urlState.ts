@@ -39,6 +39,8 @@ export function getSerializabelState(state) {
 
 export function useUrlState(store) {
   useEffect(() => {
+    const hash = getUrlHash(store.getState());
+    window.history.replaceState(null, null, hash);
     return onSelectorChange(store, getUrlHash, (urlHash) => {
       window.history.replaceState(null, null, urlHash);
     });

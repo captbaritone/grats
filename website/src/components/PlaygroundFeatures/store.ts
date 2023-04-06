@@ -3,6 +3,8 @@ import { stateFromUrl } from "./urlState";
 import { createSelector } from "reselect";
 import lzstring from "lz-string";
 
+import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
+
 export type State = {
   doc: string;
   config: {
@@ -92,6 +94,15 @@ export function onSelectorChange<V>(
 
 const store = createStore<State, Action, any, any>(reducer);
 
+// Infer the `RootState` and `AppDispatch` types from the store itself
+export type RootState = ReturnType<typeof store.getState>;
+// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
+export type AppDispatch = typeof store.dispatch;
+
+// Use throughout your app instead of plain `useDispatch` and `useSelector`
+export const useAppDispatch: (action: Action) => void = useDispatch;
+export const useAppSelector: TypedUseSelectorHook<State> = useSelector;
+
 export function getView(state: State) {
   return state.view;
 }
@@ -106,6 +117,14 @@ export function getDoc(state: State) {
 
 export function getGratsResult(state: State) {
   return state.gratsResult;
+}
+
+export function getNullableByDefault(state): boolean {
+  return state.config.nullableByDefault;
+}
+
+export function getShowGratsDirectives(state): boolean {
+  return state.view.showGratsDirectives;
 }
 
 export const getOutputString = createSelector(getGratsResult, (gratsResult) => {

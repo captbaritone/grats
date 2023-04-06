@@ -32,7 +32,7 @@ class UserResolver {
 export const DEFAULT_STATE: State = {
   doc: CONTENT,
   config: {
-    nullableByDefault: false,
+    nullableByDefault: true,
     reportTypeScriptTypeErrors: true,
   },
   view: {

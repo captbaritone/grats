@@ -20,11 +20,12 @@ import { useUrlState } from "../urlState";
 export default function InputView() {
   useUrlState(store);
   const [ref, setRef] = useState(null);
+  const fsMap = useFsMap();
   useEffect(() => {
-    if (ref != null) {
-      createInputView(store, ref);
+    if (ref != null && fsMap != null) {
+      createInputView(store, fsMap, ref);
     }
-  }, [ref]);
+  }, [ref, fsMap]);
   return (
     <div
       style={{
@@ -37,18 +38,36 @@ export default function InputView() {
   );
 }
 
-// TODO: Make this into hooks
-async function createInputView(store, left) {
-  const state = store.getState();
+function useFsMap() {
+  const [fsMap, setFsMap] = useState(null);
 
-  const shouldCache = true;
-  const fsMap = await createDefaultMapFromCDN(
-    { target: ts.ScriptTarget.ES2021, lib: ["es2021"] },
-    ts.version,
-    shouldCache,
-    ts,
-    lzstring,
-  );
+  useEffect(() => {
+    let unmounted = false;
+    const shouldCache = true;
+    createDefaultMapFromCDN(
+      { target: ts.ScriptTarget.ES2021, lib: ["es2021"] },
+      ts.version,
+      shouldCache,
+      ts,
+      lzstring,
+    ).then((fsMap) => {
+      if (!unmounted) {
+        setFsMap(fsMap);
+      }
+    });
+
+    return () => {
+      unmounted = true;
+    };
+  }, []);
+
+  return fsMap;
+}
+
+// TODO: Make this into hooks
+async function createInputView(store, fsMap, left) {
+  const state = store.getState();
+  console.log(state);
 
   // Create a selector that memoizes the linter and closes over the fsMap
   const getLinter = createSelector(getView, getConfig, (view, config) => {

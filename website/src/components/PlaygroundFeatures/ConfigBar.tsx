@@ -1,18 +1,22 @@
 import React from "react";
-import store, { getUrlHash } from "./store";
+import store, {
+  getNullableByDefault,
+  getShowGratsDirectives,
+  useAppSelector,
+} from "./store";
 import FormatButton from "./FormatButton";
 import ShareButton from "./ShareButton";
 
 export default function ConfigBar(): JSX.Element {
-  const nullableByDefault = store.getState().nullableByDefault;
-  const showGratsDirectives = store.getState().showGratsDirectives;
+  const nullableByDefault = useAppSelector(getNullableByDefault);
+  const showGratsDirectives = useAppSelector(getShowGratsDirectives);
   return (
     <div
       style={{
         display: "flex",
         justifyContent: "stretch",
         alignItems: "center",
-        borderTop: "1px solid var(--ifm-color-emphasis-300)",
+        borderBottom: "1px solid var(--ifm-color-emphasis-300)",
         fontFamily: "Verdana, sans-serif",
         fontSize: "0.8rem",
         position: "sticky",
@@ -50,6 +54,7 @@ export default function ConfigBar(): JSX.Element {
               checked={showGratsDirectives}
               type="checkbox"
               onChange={(e) => {
+                console.log(e.target.checked);
                 store.dispatch({
                   type: "SHOW_GRATS_DIRECTIVE_INPUT_CHANGED",
                   value: e.target.checked,

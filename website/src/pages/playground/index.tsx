@@ -2,32 +2,37 @@ import React, { useLayoutEffect, useState } from "react";
 import InputView from "../../components/PlaygroundFeatures/editors/InputView";
 import OutputView from "../../components/PlaygroundFeatures/editors/OutputView";
 import ConfigBar from "../../components/PlaygroundFeatures/ConfigBar";
-import Header from "../../components/PlaygroundFeatures/Header";
 import Layout from "@theme/Layout";
+import store from "../../components/PlaygroundFeatures/store";
+import { Provider } from "react-redux";
+import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 
 export default function Playground(): JSX.Element {
+  const { siteConfig } = useDocusaurusContext();
   return (
-    <Layout>
+    <Layout title={`Playground | ${siteConfig.title}`}>
       <FillRemainingHeight minHeight={300}>
-        <div
-          style={{ display: "flex", flexDirection: "column", height: "100%" }}
-        >
+        <Provider store={store}>
           <div
-            style={{
-              flexGrow: 1,
-              position: "relative",
-              top: 0,
-              left: 0,
-              right: 0,
-              display: "flex",
-              flexDirection: "row",
-            }}
+            style={{ display: "flex", flexDirection: "column", height: "100%" }}
           >
-            <InputView />
-            <OutputView />
+            <ConfigBar />
+            <div
+              style={{
+                flexGrow: 1,
+                position: "relative",
+                top: 0,
+                left: 0,
+                right: 0,
+                display: "flex",
+                flexDirection: "row",
+              }}
+            >
+              <InputView />
+              <OutputView />
+            </div>
           </div>
-          <ConfigBar />
-        </div>
+        </Provider>
       </FillRemainingHeight>
     </Layout>
   );
