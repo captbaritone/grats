@@ -8,6 +8,9 @@ module.exports = function (context, options) {
             path: require.resolve("path-browserify"),
           },
         },
+        node: {
+          __dirname: "mock",
+        },
       };
     },
   };

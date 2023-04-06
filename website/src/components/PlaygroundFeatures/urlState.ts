@@ -2,8 +2,12 @@ import { useEffect } from "react";
 import { DEFAULT_STATE } from "./defaultState";
 import { onSelectorChange, getUrlHash, State } from "./store";
 import lzstring from "lz-string";
+import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 
 export function stateFromUrl(): State {
+  if (!ExecutionEnvironment.canUseDOM) {
+    return DEFAULT_STATE;
+  }
   const hash = window.location.hash;
   if (!hash) return DEFAULT_STATE;
 

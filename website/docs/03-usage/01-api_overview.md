@@ -10,13 +10,13 @@ JSDocs must being with `/**` (two asterix). However, they may be consolidated in
 
 Each tag maps directly to a concept in the GraphQL [Schema Definition Language](https://graphql.org/learn/schema/) (SDL).  The following JSDoc tags are supported:
 
-* [`@gqlType`](./02-dockblock-tags/01-types.md)
-* [`@gqlInterface`](./02-dockblock-tags/04-interfaces.md)
-* [`@gqlField`](./02-dockblock-tags/02-fields.md)
-* [`@gqlUnion`](./02-dockblock-tags/05-unions.md)
-* [`@gqlScalar`](./02-dockblock-tags/06-scalars.md)
-* [`@gqlEnum`](./02-dockblock-tags/07-enums.md)
-* [`@gqlInput`](./02-dockblock-tags/08-inputs.md)
+* [`@gqlType`](./02-dockblock-tags/01-types.mdx)
+* [`@gqlInterface`](./02-dockblock-tags/04-interfaces.mdx)
+* [`@gqlField`](./02-dockblock-tags/02-fields.mdx)
+* [`@gqlUnion`](./02-dockblock-tags/05-unions.mdx)
+* [`@gqlScalar`](./02-dockblock-tags/06-scalars.mdx)
+* [`@gqlEnum`](./02-dockblock-tags/07-enums.mdx)
+* [`@gqlInput`](./02-dockblock-tags/08-inputs.mdx)
 
 
 :::tip
