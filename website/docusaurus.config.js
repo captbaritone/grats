@@ -32,6 +32,8 @@ const config = {
     locales: ["en"],
   },
 
+  plugins: [require.resolve("./plugins/webpack.js")],
+
   presets: [
     [
       "classic",
@@ -84,7 +86,7 @@ const config = {
           { to: "/blog", label: "Blog", position: "left" },
           */
           {
-            to: "https://capt.dev/grats",
+            to: "/playground",
             label: "Playground",
             position: "right",
           },
