@@ -1,8 +1,7 @@
 # Welcome to Grats
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
 Grats is a tool for statically infering GraphQL schema from your vanilla
 TypeScript code.
@@ -11,7 +10,7 @@ Just write your types and resolvers as regular TypeScript and annotate your
 types and fields with simple JSDoc tags. From there, Grats can extract your
 GraphQL schema automatically by statically analyzing your code and its types. No
 convoluted directive APIs to remember. No need to define your Schema at
-runtime with verbose builder APIs. 
+runtime with verbose builder APIs.
 
 By making your TypeScript implementation the source of truth, you entirely
 remove the question of mismatches between your implementation and your GraphQL
@@ -32,7 +31,7 @@ export default class Query {
   me(): User {
     return new User();
   }
-  /** 
+  /**
    * @gqlField
    * @deprecated Please use `me` instead. */
   viewer(): User {
@@ -45,7 +44,7 @@ export default class Query {
  * @gqlType */
 class User {
   /** @gqlField */
-  name: string = 'Alice';
+  name: string = "Alice";
 
   /** @gqlField */
   greeting(args: { salutation: string }): string {
@@ -66,7 +65,7 @@ export function me(_: Query): User {
   return { name: "Alice" };
 }
 
-/** 
+/**
  * @gqlField
  * @deprecated Please use `me` instead.  */
 export function viewer(_: Query): User {
@@ -86,9 +85,9 @@ export function greeting(user: User, args: { salutation: string }): string {
   return `${args.salutation}, ${user.name}`;
 }
 ```
+
   </TabItem>
 </Tabs>
-
 
 ## Output
 
@@ -100,7 +99,9 @@ type Query {
   viewer: User @deprecated(reason: "Please use `me` instead.")
 }
 
-"""A user in our kick-ass system!"""
+"""
+A user in our kick-ass system!
+"""
 type User {
   name: String
   greeting(salutation: String!): String

@@ -1,0 +1,29 @@
+import GratsCode from "@site/src/components/GratsCode";
+import Example from "!!raw-loader!./snippets/03-description-example.out";
+import EnumFail from "!!raw-loader!./snippets/03-description-enum-fail.out";
+
+# Descriptions
+
+GraphQL supports adding descriptions to types, fields, and arguments and more. These descriptions are used by tools like [Graphiql](https://github.com/graphql/graphiql) and [editor integrations](https://marketplace.visualstudio.com/items?itemName=meta.relay) to provide context to developers.
+
+Grats makes it easy to populate these descriptions and keep them in sync with the implementaiton by using the leading free text in your docblocks as that construct's description.
+
+## Example
+
+<GratsCode mode="both" out={Example} />
+
+## Limitations
+
+:::caution
+
+In some cases, TypeScript does not support "attaching" docblock comments to certain constructs. In these cases, Grats is currently unable to extract descriptions.
+
+:::
+
+For example, Grats is **not** currently able to attach descriptions to enum values defined using a type union.
+
+<GratsCode mode="ts" out={EnumFail} />
+
+Will _incorrectly_ extract this GraphQL:
+
+<GratsCode mode="gql" out={EnumFail} />

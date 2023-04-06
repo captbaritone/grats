@@ -27,22 +27,42 @@ export function userById(_: Query, args: { id: string }): User {
 Default values for arguments can be defined by using the `=` operator with destructuring. Note tha tyou must perform the destructuring in the argument list, not in the function body:
 
 ```ts
-/** @gqlField */
-myField({ greeting = "Hello" }: { greeting: string }): string {
-  return `${greeting} World`;
+class MyClass {
+  /** @gqlField */
+  myField({ greeting = "Hello" }: { greeting: string }): string {
+    return `${greeting} World`;
+  }
 }
 ```
 
 Deeply nested default values can also be defined:
 
 ```ts
-/** @gqlField */
-myField({ greeting = { salutation: "Sup" } }: { greeting: GreetingConfig }): string {
-  return `${greeting.salutation} World`;
+class MyClass {
+  /** @gqlField */
+  myField({ greeting = { salutation: "Sup" } }: { greeting: GreetingConfig }): string {
+    return `${greeting.salutation} World`;
+  }
 }
 
 /** @gqlInput */
 type GreetingConfig = {
   salutation: string;
 };
+```
+
+## Deprecated arguments
+
+Optional arguments can be marked as `@deprecated` by using the `@deprecated` JSDoc tag:
+
+```ts
+class MyClass {
+  /** @gqlField */
+  myField(_: { 
+    /** @deprecated Unused! */
+    greeting?: string
+  }): string {
+    return `Hello World`;
+  }
+}
 ```

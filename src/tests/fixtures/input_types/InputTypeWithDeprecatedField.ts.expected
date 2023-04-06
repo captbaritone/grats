@@ -1,0 +1,36 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class Query {
+  /** @gqlField */
+  hello: string;
+}
+
+/** @gqlInput */
+type MyInputType = {
+  /** Sweet field!
+   * @deprecated Sweet, but stale
+   */
+  someField?: string;
+};
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  hello: String
+}
+
+input MyInputType {
+  """Sweet field!"""
+  someField: String @deprecated(reason: "Sweet, but stale")
+}

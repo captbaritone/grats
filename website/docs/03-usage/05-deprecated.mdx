@@ -1,0 +1,16 @@
+import GratsCode from "@site/src/components/GratsCode";
+import DeprecatedExample from "!!raw-loader!./snippets/05-deprecated-example.out";
+
+# Deprecated
+
+GraphQL supports marking fields, input fields, arguments and enum values as [`@deprecated`](https://spec.graphql.org/draft/#sec--deprecated) with an optional reason. These directives are used by tools like [Graphiql](https://github.com/graphql/graphiql) and [editor integrations](https://marketplace.visualstudio.com/items?itemName=meta.relay) to provide context to developers.
+
+Grats supports this feature by using the `@deprecated` JSDoc tag. This tag can be used on fields, enum variants, and arguments. If the tag is followed by text, that text is used as the reason for the deprecation.
+
+## Field example
+
+<GratsCode out={DeprecatedExample} mode="ts" />
+
+Would extract:
+
+<GratsCode out={DeprecatedExample} mode="gql" />

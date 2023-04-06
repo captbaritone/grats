@@ -497,12 +497,16 @@ export class Extractor {
 
     const fields = this.collectInputFields(node);
 
+    const deprecatedDirective = this.collectDeprecated(node);
+
     this.definitions.push({
       kind: Kind.INPUT_OBJECT_TYPE_DEFINITION,
       loc: this.loc(node),
       description: description ?? undefined,
       name,
       fields: fields ?? undefined,
+      directives:
+        deprecatedDirective == null ? undefined : [deprecatedDirective],
     });
   }
 
@@ -551,6 +555,8 @@ export class Extractor {
 
     const description = this.collectDescription(node.name);
 
+    const deprecatedDirective = this.collectDeprecated(node);
+
     return {
       kind: Kind.INPUT_VALUE_DEFINITION,
       loc: this.loc(node),
@@ -558,7 +564,8 @@ export class Extractor {
       name: this.gqlName(id, id.text),
       type,
       defaultValue: undefined,
-      directives: undefined,
+      directives:
+        deprecatedDirective == null ? undefined : [deprecatedDirective],
     };
   }
 
@@ -1033,6 +1040,8 @@ export class Extractor {
       }
     }
 
+    const deprecatedDirective = this.collectDeprecated(node);
+
     return {
       kind: Kind.INPUT_VALUE_DEFINITION,
       loc: this.loc(node),
@@ -1040,7 +1049,8 @@ export class Extractor {
       name: this.gqlName(node.name, node.name.text),
       type,
       defaultValue: defaultValue || undefined,
-      directives: [],
+      directives:
+        deprecatedDirective != null ? [deprecatedDirective] : undefined,
     };
   }
 

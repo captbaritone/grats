@@ -16,3 +16,16 @@ type MyInput = {
 ```
 
 Unlike with fields, every property of an input type is automatically included as part of the GraphQL definition. You do not need to annotate individual properties with `@gqlField`.
+
+## Deprecated fields
+
+Individual optional fields can be marked as `@deprecated` in the GraphQL schema using the `@deprecated` JSDoc tag:
+
+```ts
+/** @gqlInput */
+type MyInput = {
+  name: string;
+  /** @deprecated Don't ask for age any more */
+  age?: number;
+};
+```

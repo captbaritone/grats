@@ -1,66 +1,48 @@
+import GratsCode from "@site/src/components/GratsCode";
+import TypesClass from "!!raw-loader!./snippets/01-types-class.out";
+import TypesInterface from "!!raw-loader!./snippets/01-types-interface.out";
+import TypesAlias from "!!raw-loader!./snippets/01-types-alias.out";
+import TypesRenaming from "!!raw-loader!./snippets/01-types-renaming.out";
+import TypesImplementInterface from "!!raw-loader!./snippets/01-types-implement-interface.out";
+
 # Types
 
 GraphQL types can be defined by placing a `@gqlType` docblock directly before a:
 
-* Class declaration
-* Interface declaration
-* Type alias of a literal type
-
+- Class declaration
+- Interface declaration
+- Type alias of a literal type
 
 If model your GraphQL resolvers using classes, simply add a `@gqlType` docblock
 before the class conaining that type's resolvers.
 
-```ts
-/**
- * Here I can write a description of my type that will be included in the schema.
- * @gqlType <optional name of the type, if different from class name>
- */
-class MyClass {
-  /** @gqlField */
-  someField: string;
-}
-```
+<GratsCode out={TypesClass} mode="ts" />
 
 If youre types are represented in your code by interfaces, simply add a
 `@gqlType` docblock before the interface representing that type. Note that by
 using `@gqlType` on an interface, Grats will treat it as a GraphQL type and not
 an interface.
 
-```ts
-/** @gqlType */
-interface MyType {
-  /** @gqlField */
-  someField: string;
-}
-```
+<GratsCode out={TypesInterface} mode="ts" />
 
 Finally, if your types are represented in your code by named types, simply add a
 `@gqlType` docblock before the type alias which describes that type.
 
-```ts
-/** @gqlType */
-type MyType = {
-  /** @gqlField */
-  someField: string;
-}
-```
+<GratsCode out={TypesAlias} mode="ts" />
 
 ## Renaming Types
 
 If you want to use a different name for your type in GraphQL than in your code, you can specify the name of the type in the `@gqlType` docblock tag. See [Renaming](../04-renaming.md) for more information.
 
-```ts
-/** @gqlType User */
-class UserModel = {
-  /** @gqlField */
-  someField: string;
-}
-```
+<GratsCode out={TypesRenaming} mode="ts" />
+
+Which would extract:
+
+<GratsCode out={TypesRenaming} mode="gql" />
 
 ## Implementing Interfaces
 
 If you are using classes to model your GraphQL resolvers, you can define your types as implementing a GraphQL interface by declaring that your class implements an interface which has been annotated with [`@gqlInterface`](./04-interfaces.md).
-
 
 :::caution
 
@@ -68,32 +50,11 @@ Grats does not **yet** support implementing interfaces when you define your type
 
 :::
 
-```ts
-/** @gqlInterface */
-interface Person {
-  /** @gqlField */
-  name: string;
-}
-
-/** @gqlType */
-class User implements Person {
-  __typename: "User";
-  /** @gqlField */
-  name: string;
-}
-```
+<GratsCode out={TypesImplementInterface} mode="ts" />
 
 Will generate the following GraphQL schema:
 
-```graphql
-interface Person {
-  name: String
-}
-
-type User implements Person {
-  name: String
-}
-```
+<GratsCode out={TypesImplementInterface} mode="gql" />
 
 :::note
 If your type implements a GraphQL interface or is a member of a GraphQL

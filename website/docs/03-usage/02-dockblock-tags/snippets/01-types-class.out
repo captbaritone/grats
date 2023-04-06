@@ -1,0 +1,10 @@
+/** @gqlType */
+class MyClass {
+  /** @gqlField */
+  someField: string;
+}
+
+=== SNIP ===
+type MyClass {
+  someField: String
+}

@@ -1,0 +1,19 @@
+import GratsCode from "@site/src/components/GratsCode";
+import RenamingType from "!!raw-loader!./snippets/04-renaming-type.out";
+import RenamingField from "!!raw-loader!./snippets/04-renaming-field.out";
+
+# Renaming
+
+In some cases the name of your TypeScript construct might not match the name you want to use in your GraphQL schema. For example, you might want to use a more descriptive name in your GraphQL schema, or you might want to use a different casing style.
+
+Grats enables this by allowing you to specify a name for your construct immediatly following the `@gql*` docblock tag for the construct.
+
+## Example
+
+In this example, the TypeScript class representing our user is called `UserModel`, but we want to use `User` in our GraphQL schema
+
+<GratsCode mode="ts" out={RenamingType} />
+
+And here we want to expose the `getGreeting()` method as a field named `greeting`.
+
+<GratsCode mode="ts" out={RenamingField} />

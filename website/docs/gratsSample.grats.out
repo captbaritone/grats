@@ -1,0 +1,46 @@
+/** @gqlType */
+export default class Query {
+  /** @gqlField */
+  me(): User {
+    return new User();
+  }
+  /**
+   * @gqlField
+   * @deprecated Please use `me` instead. */
+  viewer(): User {
+    return new User();
+  }
+}
+
+/**
+ * A user in our kick-ass system!
+ * @gqlType */
+class User {
+  /** @gqlField */
+  name: string = "Alice";
+
+  /** @gqlField */
+  greeting(args: { salutation: string }): string {
+    return `${args.salutation}, ${this.name}`;
+  }
+}
+
+=== SNIP ===
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  me: User
+  viewer: User @deprecated(reason: "Please use `me` instead.")
+}
+
+"""A user in our kick-ass system!"""
+type User {
+  name: String
+  greeting(salutation: String!): String
+}

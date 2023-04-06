@@ -22,9 +22,7 @@
   - [ ] DataLoader pattern
   - [ ] Subscriptions
 - [ ] Playground does not support promises
-- [ ] Support @deprecated in all the places:
-  - [ ] https://spec.graphql.org/draft/#sec--deprecated
-  - [ ] FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION | ENUM_VALUE
+- [ ] Collect deprecated tags on all nodes and let GraphQL validation report an error
 
 ## Beta
 - [ ] Support generic directives 

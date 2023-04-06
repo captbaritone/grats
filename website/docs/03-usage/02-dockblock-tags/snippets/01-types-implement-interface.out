@@ -1,0 +1,21 @@
+/** @gqlInterface */
+interface Person {
+  /** @gqlField */
+  name: string;
+}
+
+/** @gqlType */
+export class User implements Person {
+  __typename: "User";
+  /** @gqlField */
+  name: string;
+}
+
+=== SNIP ===
+interface Person {
+  name: String
+}
+
+type User implements Person {
+  name: String
+}

@@ -1,0 +1,10 @@
+/** @gqlType */
+export type MyType = {
+  /** @gqlField */
+  someField: string;
+};
+
+=== SNIP ===
+type MyType {
+  someField: String
+}

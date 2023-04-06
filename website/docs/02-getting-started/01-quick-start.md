@@ -9,7 +9,7 @@ mode (documentation to come).
 
 Grats can be used with many different GraphQL servers, but this example uses `graphql-express`.
 
-```bash
+```bash https://docusaurus.io/docs/markdown-features/code-blocks#npm2yarn-remark-plugin
 npm install express express-graphql grats
 ```
 

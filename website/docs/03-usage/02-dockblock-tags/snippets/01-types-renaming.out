@@ -1,0 +1,10 @@
+/** @gqlType User */
+class UserModel {
+  /** @gqlField */
+  someField: string;
+}
+
+=== SNIP ===
+type User {
+  someField: String
+}
