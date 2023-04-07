@@ -33,5 +33,15 @@
   },
   "prettier": {
     "trailingComma": "all"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "@codemirror/language"
+      ],
+      "allowedVersions": {
+        "graphql": "16.6.0"
+      }
+    }
   }
 }
