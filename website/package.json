@@ -50,7 +50,8 @@
     "redux": "^4.2.1",
     "reselect": "^4.1.7",
     "ts-node": ">=10",
-    "typescript": "^5.0.2"
+    "typescript": "^5.0.2",
+    "webpack": "^5.78.0"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "2.4.0",
