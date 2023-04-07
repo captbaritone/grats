@@ -6,7 +6,7 @@ const glob = require("glob");
 const { printSchema } = require("graphql");
 
 async function main() {
-  const gratsFiles = glob.sync("docs/**/*.grats.ts");
+  const gratsFiles = glob.sync("**/*.grats.ts");
   console.log("Found files to process:", gratsFiles);
 
   for (const file of gratsFiles) {
