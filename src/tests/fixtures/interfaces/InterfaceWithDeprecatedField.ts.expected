@@ -1,0 +1,48 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class Query {
+  /** @gqlField */
+  me(): User {
+    return new User();
+  }
+}
+
+/** @gqlInterface */
+interface IPerson {
+  /** @gqlField
+   * @deprecated Not used anymore
+   */
+  name?: string;
+}
+
+/** @gqlType */
+class User implements IPerson {
+  __typename = "User";
+  /** @gqlField */
+  name?: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  me: User
+}
+
+interface IPerson {
+  name: String @deprecated(reason: "Not used anymore")
+}
+
+type User implements IPerson {
+  name: String
+}

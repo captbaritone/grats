@@ -1,0 +1,23 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class Query {
+  /** @gqlField */
+  hello({
+    greeting,
+  }: {
+    /** @deprecated Not used anymore */
+    greeting: string;
+  }): string {
+    return "Hello world!";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/arguments/DeprecatedRequiredArgument.invalid.ts:7:9 - error: Required argument Query.hello(greeting:) cannot be deprecated.
+
+7     /** @deprecated Not used anymore */
+          ~
