@@ -69,6 +69,6 @@ node ./server.js
 
 :::tip
 
-For guidance on how to integrate Grats' build mode with your development flow, CI system etc, see our [Workflow Guide](../04-guides/01-workflows.md).
+For guidance on how to integrate Grats' build mode with your development flow, CI system etc, see our [Workflow Guide](../05-guides/01-workflows.md).
 
 :::
