@@ -44,6 +44,7 @@ function useFsMap() {
   useEffect(() => {
     let unmounted = false;
     const shouldCache = true;
+    console.log("ts version", ts.version);
     createDefaultMapFromCDN(
       { target: ts.ScriptTarget.ES2021, lib: ["es2021"] },
       ts.version,
