@@ -3,18 +3,33 @@
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 
-Grats is a tool for statically infering GraphQL schema from your vanilla
-TypeScript code.
+**What if building a GraphQL server were as easy as writing the resolvers?**
 
-Just write your types and resolvers as regular TypeScript and annotate your
-types and fields with simple JSDoc tags. From there, Grats can extract your
-GraphQL schema automatically by statically analyzing your code and its types. No
-convoluted directive APIs to remember. No need to define your Schema at
-runtime with verbose builder APIs.
+When you write your GraphQL server in TypeScript, your fields and resovlers
+are _already_ annotated with type information. _Grats leverages your existing
+type annotations to automatically extract an executable GraphQL schema from your
+generic TypeScript resolver code._
 
-By making your TypeScript implementation the source of truth, you entirely
-remove the question of mismatches between your implementation and your GraphQL
-schema definition. Your implementation _is_ the schema definition!
+By making your TypeScript implementation the source of truth, you never have to
+worry about valiating that your implementiaton matches your schema. Your
+implementation _is_ your schema!
+
+## How it works
+
+Grats works as a **built step** which statically analyzes your TypeScript code and
+extracts a `.graphql` schema file. This file can be shared with other tools, but
+also used directly by Grats' slim runtime wrapper around `graphql-js` to build a
+GraphQL endpoint.
+
+To tell Grats which parts of your code to expose in the schema, simply annotate
+them with [docblock tags](../03-dockblock-tags/index.md) like `/** @gqlField
+*/`. Grats will scan your code for these tags and use them to automatically
+build your schema.
+
+:::note
+In some cases Grats may prompt you to use more explicit type annotations to
+ensure that it can "see" all the relevent type information.
+:::
 
 ## Examples
 
@@ -91,7 +106,7 @@ export function greeting(user: User, args: { salutation: string }): string {
 
 ## Output
 
-Both of the above examples extract the following GraphQL schema:
+Both of the above examples define the following GraphQL schema:
 
 ```graphql
 type Query {

@@ -1,6 +1,6 @@
 # Build Mode
 
-Our [quick start](./01-quick-start.md) guide shows you how to get started with Grats in dev mode. This is the easiest way to get started with Grats, but it can cause a slow startup time. For larger projects, you probably want to use the build mode.
+Our [quick start](./01-quick-start.md) guide shows you how to get started with Grats in dev mode. This is the easiest way to get started with Grats, but it can cause slow startup times. For production use cases, you probably want to use the build mode.
 
 With build mode, you can extract your schema at build time, and then use with zero overhead at runtime. This is the recommended way to use Grats in production.
 

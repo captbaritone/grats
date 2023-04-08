@@ -2,7 +2,7 @@
 
 For dev mode or small projects, Grats offers a runtime extraction mode. This is
 the easiest way to get started with Grats, although you may find that it causes
-a slow startup time. For larger projects, you probably want to use the build
+a slow startup times. For larger projects, you probably want to use the build
 mode (documentation to come).
 
 ## Install dependencies
@@ -59,3 +59,7 @@ npm run tsc
 # Run your server
 node ./server.js
 ```
+
+## Next steps
+
+Once you have Grats working in your code case, you can proceed to setup [Build Mode](./04-build-mode.md) for production use, and read about [Workflows](../05-guides/01-workflows.md) to learn how to integrate Grats into your develop ment workflows.

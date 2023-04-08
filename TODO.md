@@ -23,6 +23,8 @@
   - [ ] Subscriptions
 - [ ] Playground does not support promises
 - [ ] Collect deprecated tags on all nodes and let GraphQL validation report an error
+- [ ] Google Analytics for docs
+- [ ] Algolia search for docs
 
 ## Beta
 - [ ] Support generic directives 

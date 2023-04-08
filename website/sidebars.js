@@ -19,6 +19,7 @@ const sidebars = {
     {
       type: "category",
       collapsed: false,
+      collapsible: false,
       label: "Try",
       items: [
         {
