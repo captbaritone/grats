@@ -1,1 +1,76 @@
 # Runtime API
+
+Nearly all of Grats' work is done at [build time](./03-cli.md) where it extracts a schema
+definition. However there are a few features of Grats that require additional runtime
+handling.
+
+If you define a field whose [GraphQL name is different than its method
+name](../03-resolvers/04-renaming.mdx), Grats needs to configure that field's resover to call
+the correct field. If you define a field whose GraphQL name is different than
+its method name, Grats needs to configure that field's resover to call the
+correct field.
+
+To enable these featurs to work, you must use a Grats-specific function to
+stantiate your GraphQL exectutor:
+
+## `buildSchemaFromSDL`
+
+`buildSchemaFromSDL` is a wrapper around `buildSchema` from
+`graphql-js`. It takes a GraphQL SDL string and returns a `GraphQLSchema` that
+has can be used to execute queries.
+
+### Options
+
+`buildSchemaFromSDL` does not currently accept any options.
+
+### Example
+
+```ts
+import * as express from "express";
+import { buildSchemaFromSDL } from "grats";
+
+const sdl = fs.readFileSync("./schema.graphql", "utf8");
+const schema = buildSchemaFromSDL(sdl);
+
+// ... use `GraphQLSchema` schema to execute queries
+```
+
+For a full example see [Build Mode](./index.md).
+
+## `extractGratsSchemaAtRuntime`
+
+For getting a quick start and prototyping, you can use
+`extractGratsSchemaAtRuntime`. This works by running Grats's static analysis at
+startup time. This will make your server slower to startup, but may offer a
+nicer iteration loop during developemnt. It's not intended for production use.
+
+You can think of `extractGratsSchemaAtRuntime` as running the Grats CLI and
+immediately passing the results to buildSchemaFromSDL`.
+
+### Options
+
+`extractGratsSchemaAtRuntime` accepts the following options:
+
+- `emitSchemaFile` - (_optional_) A path where Grats should write your schema file
+
+### Example
+
+```ts
+import * as express from "express";
+import { extractGratsSchemaAtRuntime } from "grats";
+
+/** @gqlType */
+class Query {
+  /** @gqlField */
+  hello(): string {
+    return "Hello world!";
+  }
+}
+
+const schema = extractGratsSchemaAtRuntime({
+  emitSchemaFile: "./path/to/write/schema.graphql",
+});
+// ... use `GraphQLSchema` schema to execute queries
+```
+
+For a full example see [Quick Start](../01-getting-started/01-quick-start.md).

@@ -1,0 +1,56 @@
+import GratsCode from "@site/src/components/GratsCode";
+import ContextMethod from "!!raw-loader!./snippets/02-resolver-signature-method.out";
+import ContextFunction from "!!raw-loader!./snippets/02-resolver-signature-function.out";
+
+# Resolvers
+
+Grats leverages [`graphql-js`](https://graphql.org/graphql-js/) for its execution engine, this means each resolver
+is passed the [conventional four
+arguments](https://graphql.org/learn/execution/#root-fields-resolvers):
+
+### `obj`
+
+The parent object, which for a field on the root Query type is often not used.
+
+:::note
+When defining your resolvers as methods on a class, the initial `obj` argument
+is omitted in favor of `this`.
+:::
+
+When using the functional style, Grats inspects
+the type annotation of the first argument to determine which which type this
+field is being defined on. In other word, the defintion of the type applied to
+the `obj` argument must be annotated with `/** @gqlType */`. Grats will report a helpful error if you forget to do this.
+
+### `args`
+
+The arguments provided to the field in the GraphQL query.
+
+Args must be annotated with an **explicit** inline literal type. Grats will
+inspect this type declaration to determine the GraphQL type of the expected arguments.
+
+### `context`
+
+A value which is provided to every resolver and holds important contextual information. This generally used for things like:
+
+- Information about the current request
+- Context about the currently logged in user
+- Per-request caches, such as [DataLoaders](https://github.com/graphql/dataloader)
+
+### `info`
+
+A value which holds field-specific information relevant to the current query as well as the schema details, also refer to type [GraphQLResolveInfo](https://graphql.org/graphql-js/type/#graphqlobjecttype) for more details.
+
+This is rarely used, but can be useful for advanced cases such as trying to optimize database queries to perform joins or only fetch the fields that are actually requested.
+
+## Class Method Example
+
+<GratsCode mode="ts" out={ContextMethod} />
+
+## Functional Style Example
+
+:::note
+Grats will inspect the type of the first argument in order to dermine which GraphQL type the field is being added to.
+:::
+
+<GratsCode mode="ts" out={ContextFunction} />

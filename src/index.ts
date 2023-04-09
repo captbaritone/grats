@@ -33,7 +33,7 @@ export function extractGratsSchemaAtRuntime(
   if (runtimeOptions.emitSchemaFile) {
     runtimeSchema = lexicographicSortSchema(runtimeSchema);
     const sdl = printSchemaWithDirectives(runtimeSchema, { assumeValid: true });
-    const filePath = runtimeOptions.emitSchemaFile ?? "./schema.graphql";
+    const filePath = runtimeOptions.emitSchemaFile;
     fs.writeFileSync(filePath, sdl);
   }
   return runtimeSchema;

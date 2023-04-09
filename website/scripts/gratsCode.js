@@ -33,7 +33,7 @@ function processFile(file) {
   const schemaResult = buildSchemaResult(parsedOptions);
   if (schemaResult.kind === "ERROR") {
     const errors = schemaResult.err.formatDiagnosticsWithContext();
-    console.errors(errors);
+    console.error(errors);
     throw new Error("Invalid grats code");
   }
 

@@ -15,7 +15,7 @@ npm install express express-graphql grats
 
 ## Create your server
 
-For this quick start example, we'll use `extractGratsSchemaAtRuntime` which will extract your schema at runtime. This is the easiest way to get started with Grats, but it can cause a slow startup time. **For production, we recommend using the [build mode](./04-build-mode.md).**
+For this quick start example, we'll use `extractGratsSchemaAtRuntime` which will extract your schema at runtime. This is the easiest way to get started with Grats, but it can cause a slow startup time. **For production, we recommend using the [build mode](../02-usage/index.md).**
 
 ```ts title="/server.ts"
 import * as express from "express";
@@ -49,7 +49,7 @@ console.log("Running a GraphQL API server at http://localhost:4000/graphql");
 
 :::caution
 
-Grats uses your TypeScript config to for its [configuration](./02-configuration.md) and to know which files to scan, so ensure your project has a `tsconfig.json` file defined.
+Grats uses your TypeScript config to for its [configuration](../02-usage/02-configuration.md) and to know which files to scan, so ensure your project has a `tsconfig.json` file defined.
 
 :::
 
@@ -62,4 +62,4 @@ node ./server.js
 
 ## Next steps
 
-Once you have Grats working in your code case, you can proceed to setup [Build Mode](./04-build-mode.md) for production use, and read about [Workflows](../05-guides/01-workflows.md) to learn how to integrate Grats into your develop ment workflows.
+Once you have Grats working in your code case, you can proceed to setup for production with the [Runtime API docs](../02-usage/01-runtime-api.mdx), and read about [Workflows](../05-guides/01-workflows.md) to learn how to integrate Grats into your develop ment workflows.

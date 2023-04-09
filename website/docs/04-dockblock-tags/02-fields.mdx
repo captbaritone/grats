@@ -2,11 +2,11 @@
 
 You can define GraphQL fields by placing a `@gqlField` directly before a:
 
-* Method declaration
-* Method signature
-* Property declaration
-* Property signature
-* Function declaration (with named export)
+- Method declaration
+- Method signature
+- Property declaration
+- Property signature
+- Function declaration (with named export)
 
 ```ts
 /** @gqlType */
@@ -24,6 +24,8 @@ class User {
 }
 ```
 
+For more information about field resolves, see [Resolver Signature](../03-resolvers/index.mdx).
+
 ## Functional style fields
 
 Sometimes you want to add a computed field to a non-class type, or extend base
@@ -38,7 +40,7 @@ Extending Query:
 
 ```ts
 /** @gqlField */
-export function userById(_: Query, args: {id: string}): User {
+export function userById(_: Query, args: { id: string }): User {
   return DB.getUserById(args.id);
 }
 ```
@@ -47,7 +49,7 @@ Extending Mutation:
 
 ```ts
 /** @gqlField */
-export function deleteUser(_: Mutation, args: {id: string}): boolean {
+export function deleteUser(_: Mutation, args: { id: string }): boolean {
   return DB.deleteUser(args.id);
 }
 ```
