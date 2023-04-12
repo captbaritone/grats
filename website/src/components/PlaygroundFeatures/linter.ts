@@ -10,6 +10,17 @@ import store from "./store";
 
 const GRATS_PATH = "node_modules/grats/src/index.ts";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+window.process = {
+  // Grats depends upon calling path.resolver and path.relative
+  // which depend upon process.cwd() being set.
+  // Here we supply a fake cwd() function that returns the root
+  cwd() {
+    return "/";
+  },
+};
+
 function buildSchemaResultWithFsMap(fsMap, text, config) {
   fsMap.set("index.ts", text);
   fsMap.set(GRATS_PATH, GRATS_TYPE_DECLARATIONS);
@@ -33,7 +44,15 @@ function buildSchemaResultWithFsMap(fsMap, text, config) {
     errors: [],
   };
 
-  return buildSchemaResultWithHost(parsedOptions, host.compilerHost);
+  try {
+    return buildSchemaResultWithHost(parsedOptions, host.compilerHost);
+  } catch (e) {
+    const message = `Grats playground bug encountered. Please report this error:\n\n ${e.stack}`;
+    return {
+      kind: "ERROR",
+      err: { formatDiagnosticsWithContext: () => message, _diagnostics: [] },
+    };
+  }
 }
 
 export function createLinter(fsMap, view, config) {
@@ -47,7 +66,7 @@ export function createLinter(fsMap, view, config) {
     const output = computeOutput(result, view);
 
     store.dispatch({ type: "GRATS_EMITTED_NEW_RESULT", value: output });
-    let diagnostics = [];
+    const diagnostics = [];
 
     if (result.kind === "ERROR") {
       for (const diagnostic of result.err._diagnostics) {
