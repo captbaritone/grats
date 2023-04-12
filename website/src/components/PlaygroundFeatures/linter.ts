@@ -5,21 +5,24 @@ import { linter } from "@codemirror/lint";
 import { printSchema } from "graphql";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import GRATS_TYPE_DECLARATIONS from "!!raw-loader!grats/src/Types.ts";
+import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 
 import store from "./store";
 
 const GRATS_PATH = "node_modules/grats/src/index.ts";
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-window.process = {
-  // Grats depends upon calling path.resolver and path.relative
-  // which depend upon process.cwd() being set.
-  // Here we supply a fake cwd() function that returns the root
-  cwd() {
-    return "/";
-  },
-};
+if (ExecutionEnvironment.canUseDOM) {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  window.process = {
+    // Grats depends upon calling path.resolver and path.relative
+    // which depend upon process.cwd() being set.
+    // Here we supply a fake cwd() function that returns the root
+    cwd() {
+      return "/";
+    },
+  };
+}
 
 function buildSchemaResultWithFsMap(fsMap, text, config) {
   fsMap.set("index.ts", text);
