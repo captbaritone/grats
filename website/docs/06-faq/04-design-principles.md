@@ -1,6 +1,6 @@
 # Design Principles
 
-This document describes the design principles of Grats. These are not hard and fast rules, but rather a set of principals to consdier when making design decisions and tradeoffs. For a concrete descripiton of how Grats _actuall_ works, see [How Grats Works](./03-how-grats-works.md).
+This document describes the design principles of Grats. These are not hard and fast rules, but rather a set of principals to I'm trying to consider when making design decisions and tradeoffs. For a concrete descripiton of how Grats _actually_ works, see [How Grats Works](./03-how-grats-works.md).
 
 ## Progressive disclosure
 
@@ -8,7 +8,7 @@ Grats should have a small user-facing API that is intuitive to use. Users should
 
 ## Internal complexity is okay
 
-Grats should be willing to take on additional internal complexity if it means being able to do the obviously right thing in more cases. Alternatively, features add external complexity or API surface area should be avoided where possible.
+Grats should be willing to take on additional internal complexity if it means being able to do the obviously right thing in more cases. Alternatively, features that add external complexity or API surface area should be avoided where possible.
 
 ## Incremental improvements
 
@@ -20,14 +20,14 @@ Aside from the `@gql` docblock tag, Grats should try to avoid introducing new co
 
 ## A few dependencies well leveraged
 
-Grats should have a small number of dependencies, and should leverage those dependencies to their fullest extent. For example, Grats should use the `graphql-js` for constructing, serializing, and validating GraphQL schemas, rather than implementing its own schema construction and validation logic. Similarly, Grats should use TypeScript's own AST parsing and type inference logic, rather than implementing its own.
+Grats should have a small number of dependencies, and should leverage those dependencies to their fullest extent. For example, Grats uses the `graphql-js` for constructing, serializing, and validating GraphQL schemas, rather than implementing its own schema construction and validation logic. Similarly, Grats uses TypeScript's own AST parsing and type inference logic, rather than implementing its own.
 
 In it's public APIs, Grats should expose the same types and concepts that are used by the underlying dependencies, rather than introducing new concepts that are redundant or confusing.
 
 Where other utility tools are needed, Grats should consider mainting/forking/vendoring its own implememtatation of exactly the functionality it needs, rather than taking on a dependency on a larger library that provides more functionality than is needed.
 
-## Test validated behavior
+## Test-validated behavior
 
 All externally visible behavior of Grats should be captured by our fixture tests, including errors. Every added feature or capability, as well as every bug fix, should be accompanied by a new fixture test that demonstrates the changed behavior.
 
-Fixture tests should be narrow in focus, that containst the minimal amount of code necessary to demonstrate the behavior being tested. It's perfectly fine to have many many fixture tests.
+Fixture tests should be narrow in focus, that consist of the minimal amount of code necessary to demonstrate the behavior being tested. It's perfectly fine to have many many fixture tests.
