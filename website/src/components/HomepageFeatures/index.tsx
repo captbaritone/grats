@@ -7,58 +7,65 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 
 export default function HomepageFeatures(): JSX.Element {
-  if (true) {
-    // While we are in development, we don't want to show the homepage
-    return null;
-  }
   return (
     <section className={styles.features}>
       <div className="container">
         <div className="row">
-          <div>
-            <h2>Implementation-First</h2>
+          <div className="col col--8 col--offset-2">
+            <h2 className="text--center margin-bottom--xl">
+              What if building a GraphQL server were as simple as just writing
+              resolvers?
+            </h2>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col">
+            <h2>No Duplication</h2>
             <p>
-              Grats is a tool for statically infering GraphQL schema from your
-              vanilla TypeScript code.
-            </p>
-            <p>
-              Just write your types and resolvers as regular TypeScript and
-              annotate your types and fields with simple JSDoc tags. From there,
-              Grats can extract your GraphQL schema automatically by statically
-              analyzing your code and its types. No convoluted directive APIs to
-              remember. No need to define your Schema at runtime with verbose
-              builder APIs.
-            </p>
-
-            <p>
-              By making your TypeScript implementation the source of truth, you
-              entirely remove the question of mismatches between your
-              implementation and your GraphQL schema definition. Your
-              implementation _is_ the schema definition!
-            </p>
-
-            <h2> Examples</h2>
-
-            <p>
-              Grats is flexible enough to work with both class-based and
-              functional approaches to authoring GraphQL types and resolvers.
+              Your TypeScript resolvers are <i>already annotated</i> with type
+              information. Grats uses those <i>existing types</i> to determine
+              your GraphQL schema.
             </p>
           </div>
-          <div>
+          <div className="col">
+            <h2>No Conflicts</h2>
+            <p>
+              When your implementation <i>is</i> your schema, there's no need
+              for clever TypeScript tricks to validate that your code and schema
+              match.
+            </p>
+          </div>
+          <div className="col">
+            <h2>No Library Code</h2>
+            <p>
+              Grats determines your schema at <strong>build time</strong> from
+              docblock hints. There is no library code to import or invoke in
+              your resolver code.
+            </p>
+          </div>
+
+          <div className="col col--8 margin-top--xl margin-bottom--xl col--offset-2">
             <Tabs>
-              <TabItem value="oop" label="Classes" default>
-                <GratsCode out={HomepageExample} mode="ts" />
+              <TabItem value="oop" label="Object Oriented">
+                <Example out={HomepageExample} />
               </TabItem>
               <TabItem value="fp" label="Functional">
-                <GratsCode out={HomepageExampleFP} mode="ts" />
+                <Example out={HomepageExampleFP} />
               </TabItem>
             </Tabs>
-          </div>
-          <div>
-            <GratsCode out={HomepageExample} mode="gql" />
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function Example({ out }) {
+  return (
+    <>
+      <GratsCode mode="ts" out={out} />
+      <h3>Schema</h3>
+      <GratsCode mode="gql" out={out} />
+    </>
   );
 }
