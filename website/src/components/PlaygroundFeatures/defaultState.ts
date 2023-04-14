@@ -1,5 +1,7 @@
 import { State } from "./store";
 
+export const URL_VERSION = 1;
+
 const CONTENT = `/** @gqlType */
 export default class Query {
   /** @gqlField */
@@ -39,5 +41,5 @@ export const DEFAULT_STATE: State = {
     showGratsDirectives: false,
   },
   gratsResult: null,
-  VERSION: 1,
+  VERSION: URL_VERSION,
 };

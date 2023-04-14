@@ -1,7 +1,7 @@
+import { useEffect } from "react";
 import { createStore } from "redux";
-import { stateFromUrl } from "./urlState";
+import { serializeState, stateFromUrl } from "./urlState";
 import { createSelector } from "reselect";
-import lzstring from "lz-string";
 
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 
@@ -131,8 +131,20 @@ export const getOutputString = createSelector(getGratsResult, (gratsResult) => {
   return gratsResult == null ? "Loading..." : gratsResult;
 });
 
+export type SerializableState = {
+  doc: string;
+  config: {
+    nullableByDefault: boolean;
+    reportTypeScriptTypeErrors: boolean;
+  };
+  view: {
+    showGratsDirectives: boolean;
+  };
+  VERSION: number;
+};
+
 // TODO: Avoid recomputing
-export function getSerializabelState(state: State) {
+export function getSerializabelState(state: State): SerializableState {
   const { gratsResult, ...serializableState } = state;
   return serializableState;
 }
@@ -140,11 +152,17 @@ export function getSerializabelState(state: State) {
 export const getUrlHash = createSelector(
   getSerializabelState,
   (serializableState) => {
-    const hash = lzstring.compressToEncodedURIComponent(
-      JSON.stringify(serializableState),
-    );
-    return "#" + hash;
+    return "#" + serializeState(serializableState);
   },
 );
+export function useUrlState(store) {
+  useEffect(() => {
+    const hash = getUrlHash(store.getState());
+    window.history.replaceState(null, null, hash);
+    return onSelectorChange(store, getUrlHash, (urlHash) => {
+      window.history.replaceState(null, null, urlHash);
+    });
+  }, [store]);
+}
 
 export default store;

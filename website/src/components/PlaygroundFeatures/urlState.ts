@@ -1,6 +1,5 @@
-import { useEffect } from "react";
 import { DEFAULT_STATE } from "./defaultState";
-import { onSelectorChange, getUrlHash, State } from "./store";
+import { State, SerializableState } from "./store";
 import lzstring from "lz-string";
 import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 
@@ -35,18 +34,9 @@ export function stateFromUrl(): State {
   return DEFAULT_STATE;
 }
 
-// TODO: Avoid recomputing
-export function getSerializabelState(state) {
-  const { gratsResult, ...serializableState } = state;
-  return serializableState;
-}
-
-export function useUrlState(store) {
-  useEffect(() => {
-    const hash = getUrlHash(store.getState());
-    window.history.replaceState(null, null, hash);
-    return onSelectorChange(store, getUrlHash, (urlHash) => {
-      window.history.replaceState(null, null, urlHash);
-    });
-  }, [store]);
+export function serializeState(serializableState: SerializableState): string {
+  const hash = lzstring.compressToEncodedURIComponent(
+    JSON.stringify(serializableState),
+  );
+  return hash;
 }

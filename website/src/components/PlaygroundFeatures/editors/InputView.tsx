@@ -14,8 +14,7 @@ import { createDefaultMapFromCDN } from "@typescript/vfs";
 import { getConfig, getDoc, getView, onSelectorChange } from "../store";
 import { createSelector } from "reselect";
 import { Theme } from "./theme";
-import store from "../store";
-import { useUrlState } from "../urlState";
+import store, { useUrlState } from "../store";
 
 export default function InputView() {
   useUrlState(store);
