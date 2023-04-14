@@ -17,6 +17,9 @@ import { Theme } from "./theme";
 import store, { useUrlState } from "../store";
 
 export default function InputView() {
+  useEffect(() => {
+    store.dispatch({ type: "SET_STATE_FROM_URL" });
+  }, []);
   useUrlState(store);
   const [ref, setRef] = useState(null);
   const fsMap = useFsMap();

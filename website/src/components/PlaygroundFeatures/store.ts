@@ -20,6 +20,9 @@ export type State = {
 
 export type Action =
   | {
+      type: "SET_STATE_FROM_URL";
+    }
+  | {
       type: "SET_WHOLE_STATE";
       state: State;
     }
@@ -42,6 +45,8 @@ export type Action =
 
 function reducer(state: State = stateFromUrl(), action: Action) {
   switch (action.type) {
+    case "SET_STATE_FROM_URL":
+      return stateFromUrl();
     case "SET_WHOLE_STATE":
       return action.state;
     case "SHOW_GRATS_DIRECTIVE_INPUT_CHANGED":
