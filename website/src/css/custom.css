@@ -36,3 +36,8 @@
 .cm-scroller {
   overflow: auto;
 }
+
+/* See prism.magicComments in docusorus config */
+.code-trimmed-line {
+  display: none;
+}

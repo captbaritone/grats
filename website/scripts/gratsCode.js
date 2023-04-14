@@ -21,6 +21,7 @@ function processFile(file) {
   const files = [file /*, `src/Types.ts`*/];
   let options = {
     nullableByDefault: true,
+    reportTypeScriptTypeErrors: true,
   };
   const parsedOptions = {
     options: {},

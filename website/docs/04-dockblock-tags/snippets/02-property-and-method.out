@@ -1,0 +1,20 @@
+/** @gqlType */
+class User {
+  /**
+   * A description of some field.
+   * @gqlField
+   */
+  someField: string;
+
+  /** @gqlField */
+  myField(): string {
+    return "Hello World";
+  }
+}
+
+=== SNIP ===
+type User {
+  """A description of some field."""
+  someField: String
+  myField: String
+}

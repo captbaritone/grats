@@ -1,3 +1,8 @@
+import GratsCode from "@site/src/components/GratsCode";
+import PropertyAndMethodFields from "!!raw-loader!./snippets/02-property-and-method.out";
+import FunctionExtendQuery from "!!raw-loader!./snippets/02-function-extending-query.out";
+import FunctionExtendMutation from "!!raw-loader!./snippets/02-function-extending-mutation.out";
+
 # Fields
 
 You can define GraphQL fields by placing a `@gqlField` directly before a:
@@ -8,21 +13,9 @@ You can define GraphQL fields by placing a `@gqlField` directly before a:
 - Property signature
 - Function declaration (with named export)
 
-```ts
-/** @gqlType */
-class User {
-  /**
-   * A description of some field.
-   * @gqlField <optional name of the field, if different from property name>
-   */
-  someField: string;
+## Class-based fields
 
-  /** @gqlField */
-  myField(): string {
-    return "Hello World";
-  }
-}
-```
+<GratsCode out={PropertyAndMethodFields} mode="ts" />
 
 For more information about field resolves, see [Resolver Signature](../03-resolvers/index.mdx).
 
@@ -38,22 +31,20 @@ second argument. The function should return the value of the field.
 
 Extending Query:
 
-```ts
-/** @gqlField */
-export function userById(_: Query, args: { id: string }): User {
-  return DB.getUserById(args.id);
-}
-```
+<GratsCode out={FunctionExtendQuery} mode="ts" />
 
 Extending Mutation:
 
-```ts
-/** @gqlField */
-export function deleteUser(_: Mutation, args: { id: string }): boolean {
-  return DB.deleteUser(args.id);
-}
-```
+<GratsCode out={FunctionExtendMutation} mode="ts" />
 
 Note that Grats will use the type of the first argument to determine which type
 is being extended. So, as seen in the previous examples, even if you don't need
 access to the instance you should still define a typed first argument.
+
+## More field documentation
+
+- [Renaming](../03-resolvers/04-renaming.mdx) for how to expose your field under a different name than your function/property/method
+- [Field Arguments](./03-arguments.mdx) for how to define arguments
+- [Descriptions](../03-resolvers/03-descriptions.mdx) for how to add descriptions to your fields
+- [Nullablity](../03-resolvers/06-nullability.mdx) for how to controll the error handling and nullability of your field
+- [Deprecated](../03-resolvers/05-deprecated.mdx) for how to controll the nullability of your field

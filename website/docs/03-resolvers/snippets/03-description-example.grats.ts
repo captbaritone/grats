@@ -7,8 +7,8 @@
 class User {
   /** 
   // highlight-start
-     * A friendly greeting for the user, intended for 
-     * their first visit.
+   * A friendly greeting for the user, intended for 
+   * their first visit.
   // highlight-end
    * @gqlField
    */
