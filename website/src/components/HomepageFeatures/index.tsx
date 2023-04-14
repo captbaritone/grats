@@ -14,7 +14,7 @@ export default function HomepageFeatures(): JSX.Element {
           <div className="col col--8 col--offset-2">
             <h2 className="text--center margin-bottom--xl">
               What if building a GraphQL server were as simple as just writing
-              resolvers?
+              functions?
             </h2>
           </div>
         </div>

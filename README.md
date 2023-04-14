@@ -6,7 +6,7 @@
 
 [![Join our Discord!](https://img.shields.io/discord/1089650710796320868?logo=discord)](https://capt.dev/grats-chat)
 
-**What if building a GraphQL server were as easy as writing the resolvers?**
+**What if building a GraphQL server were as simple as just writing functions?**
 
 When you write your GraphQL server in TypeScript, your fields and resovlers
 are _already_ annotated with type information. _Grats leverages your existing
@@ -17,7 +17,7 @@ By making your TypeScript implementation the source of truth, you never have to
 worry about valiating that your implementiaton matches your schema. Your
 implementation _is_ your schema!
 
-## Read the docs: https://capt.dev/grats
+## Read the docs: https://grats.capt.dev/
 
 ## Contributing
 
