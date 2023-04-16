@@ -137,7 +137,7 @@ export class Extractor {
               );
             }
             break;
-          case KILLS_PARENT_ON_EXCEPTION_TAG:
+          case KILLS_PARENT_ON_EXCEPTION_TAG: {
             const hasFieldTag = ts.getJSDocTags(node).some((t) => {
               return t.tagName.text === FIELD_TAG;
             });
@@ -148,27 +148,29 @@ export class Extractor {
               );
             }
             break;
-
+          }
           default:
-            const lowerCaseTag = tag.tagName.text.toLowerCase();
-            if (lowerCaseTag.startsWith("gql")) {
-              for (const t of ALL_TAGS) {
-                if (t.toLowerCase() === lowerCaseTag) {
-                  this.report(
-                    tag.tagName,
-                    `Incorrect casing for Grats tag \`@${tag.tagName.text}\`. Use \`@${t}\` instead.`,
-                  );
-                  break;
+            {
+              const lowerCaseTag = tag.tagName.text.toLowerCase();
+              if (lowerCaseTag.startsWith("gql")) {
+                for (const t of ALL_TAGS) {
+                  if (t.toLowerCase() === lowerCaseTag) {
+                    this.report(
+                      tag.tagName,
+                      `Incorrect casing for Grats tag \`@${tag.tagName.text}\`. Use \`@${t}\` instead.`,
+                    );
+                    break;
+                  }
                 }
+                this.report(
+                  tag.tagName,
+                  `\`@${
+                    tag.tagName.text
+                  }\` is not a valid Grats tag. Valid tags are: ${ALL_TAGS.map(
+                    (t) => `\`@${t}\``,
+                  ).join(", ")}.`,
+                );
               }
-              this.report(
-                tag.tagName,
-                `\`@${
-                  tag.tagName.text
-                }\` is not a valid Grats tag. Valid tags are: ${ALL_TAGS.map(
-                  (t) => `\`@${t}\``,
-                ).join(", ")}.`,
-              );
             }
             break;
         }
