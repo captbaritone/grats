@@ -1,0 +1,6 @@
+class Query {
+  /** @gqlField */
+  constructor() {
+    //
+  }
+}

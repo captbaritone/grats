@@ -38,6 +38,7 @@ import {
   METHOD_NAME_DIRECTIVE,
 } from "./serverDirectives";
 import * as E from "./Errors";
+import { traverseJSDocTags } from "./utils/JSDoc";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -98,70 +99,68 @@ export class Extractor {
   // reporting an error if it is attached to a node where that tag is not
   // supported.
   extract(): DiagnosticsResult<DefinitionNode[]> {
-    ts.forEachChild(this.sourceFile, (node) => {
-      for (const tag of ts.getJSDocTags(node)) {
-        switch (tag.tagName.text) {
-          case TYPE_TAG:
-            this.extractType(node, tag);
-            break;
-          case SCALAR_TAG:
-            this.extractScalar(node, tag);
-            break;
-          case INTERFACE_TAG:
-            this.extractInterface(node, tag);
-            break;
-          case ENUM_TAG:
-            this.extractEnum(node, tag);
-            break;
-          case INPUT_TAG:
-            this.extractInput(node, tag);
-            break;
-          case UNION_TAG:
-            this.extractUnion(node, tag);
-            break;
-          case FIELD_TAG:
-            if (ts.isFunctionDeclaration(node)) {
-              this.functionDeclarationExtendType(node, tag);
-            } else if (
-              !(
-                ts.isMethodDeclaration(node) ||
-                ts.isPropertyDeclaration(node) ||
-                ts.isMethodSignature(node) ||
-                ts.isPropertySignature(node)
-              )
-            ) {
-              // Right now this happens via deep traversal
-              // Note: Keep this in sync with `collectFields`
-              this.reportUnhandled(node, E.fieldTagOnWrongNode());
-            }
-            break;
-          case KILLS_PARENT_ON_EXCEPTION_TAG: {
-            const hasFieldTag = ts.getJSDocTags(node).some((t) => {
-              return t.tagName.text === FIELD_TAG;
-            });
-            if (!hasFieldTag) {
-              this.report(tag.tagName, E.killsParentOnExceptionOnWrongNode());
-            }
-            break;
+    traverseJSDocTags(this.sourceFile, (node, tag) => {
+      switch (tag.tagName.text) {
+        case TYPE_TAG:
+          this.extractType(node, tag);
+          break;
+        case SCALAR_TAG:
+          this.extractScalar(node, tag);
+          break;
+        case INTERFACE_TAG:
+          this.extractInterface(node, tag);
+          break;
+        case ENUM_TAG:
+          this.extractEnum(node, tag);
+          break;
+        case INPUT_TAG:
+          this.extractInput(node, tag);
+          break;
+        case UNION_TAG:
+          this.extractUnion(node, tag);
+          break;
+        case FIELD_TAG:
+          if (ts.isFunctionDeclaration(node)) {
+            this.functionDeclarationExtendType(node, tag);
+          } else if (
+            !(
+              ts.isMethodDeclaration(node) ||
+              ts.isPropertyDeclaration(node) ||
+              ts.isMethodSignature(node) ||
+              ts.isPropertySignature(node)
+            )
+          ) {
+            // Right now this happens via deep traversal
+            // Note: Keep this in sync with `collectFields`
+            this.reportUnhandled(node, E.fieldTagOnWrongNode());
           }
-          default:
-            {
-              const lowerCaseTag = tag.tagName.text.toLowerCase();
-              if (lowerCaseTag.startsWith("gql")) {
-                for (const t of ALL_TAGS) {
-                  if (t.toLowerCase() === lowerCaseTag) {
-                    this.report(
-                      tag.tagName,
-                      E.wrongCasingForGratsTag(tag.tagName.text, t),
-                    );
-                    break;
-                  }
-                }
-                this.report(tag.tagName, E.invalidGratsTag(tag.tagName.text));
-              }
-            }
-            break;
+          break;
+        case KILLS_PARENT_ON_EXCEPTION_TAG: {
+          const hasFieldTag = ts.getJSDocTags(node).some((t) => {
+            return t.tagName.text === FIELD_TAG;
+          });
+          if (!hasFieldTag) {
+            this.report(tag.tagName, E.killsParentOnExceptionOnWrongNode());
+          }
+          break;
         }
+        default:
+          {
+            const lowerCaseTag = tag.tagName.text.toLowerCase();
+            if (lowerCaseTag.startsWith("gql")) {
+              for (const t of ALL_TAGS) {
+                if (t.toLowerCase() === lowerCaseTag) {
+                  this.report(
+                    tag.tagName,
+                    E.wrongCasingForGratsTag(tag.tagName.text, t),
+                  );
+                  break;
+                }
+              }
+              this.report(tag.tagName, E.invalidGratsTag(tag.tagName.text));
+            }
+          }
+          break;
       }
     });
     if (this.errors.length > 0) {

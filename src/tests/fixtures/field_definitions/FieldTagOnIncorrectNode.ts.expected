@@ -1,0 +1,23 @@
+-----------------
+INPUT
+----------------- 
+class Query {
+  /** @gqlField */
+  constructor() {
+    //
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/field_definitions/FieldTagOnIncorrectNode.ts:3:3 - error: `@gqlField` can only be used on method/property declarations or signatures.
+
+If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
+
+3   constructor() {
+    ~~~~~~~~~~~~~~~
+4     //
+  ~~~~~~
+5   }
+  ~~~
