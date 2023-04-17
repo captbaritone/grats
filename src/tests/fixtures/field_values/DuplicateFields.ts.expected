@@ -21,4 +21,9 @@ OUTPUT
 src/tests/fixtures/field_values/DuplicateFields.ts:6:3 - error: Field "Query.hello" can only be defined once.
 
 6   hello(): string {
-    ~
+    ~~~~~
+
+  src/tests/fixtures/field_values/DuplicateFields.ts:10:3
+    10   hello(): Array<string> {
+         ~~~~~
+    Related location

@@ -23,5 +23,20 @@ OUTPUT
 -----------------
 src/tests/fixtures/extend_type/interfaceFirstArgumentType.invalid.ts:8:1 - error: Cannot extend non-object type "IFoo".
 
-8 interface IFoo {
-  ~
+ 8 interface IFoo {
+   ~~~~~~~~~~~~~~~~
+ 9   /** @gqlField */
+   ~~~~~~~~~~~~~~~~~~
+10   bar: string;
+   ~~~~~~~~~~~~~~
+11 }
+   ~
+
+  src/tests/fixtures/extend_type/interfaceFirstArgumentType.invalid.ts:14:1
+    14 export function greeting(iFoo: IFoo): string {
+       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    15   return "Hello world!";
+       ~~~~~~~~~~~~~~~~~~~~~~~~
+    16 }
+       ~
+    Related location

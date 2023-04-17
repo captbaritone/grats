@@ -1237,8 +1237,8 @@ export class Extractor {
     const args = reason == null ? undefined : [reason];
     return {
       kind: Kind.DIRECTIVE,
-      loc: this.loc(tag),
-      name: this.gqlName(tag, DEPRECATED_TAG),
+      loc: this.loc(tag.tagName),
+      name: this.gqlName(tag.tagName, DEPRECATED_TAG),
       arguments: args,
     };
   }

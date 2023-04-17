@@ -57,6 +57,37 @@ export function graphQlErrorToDiagnostic(error: GraphQLError): ts.Diagnostic {
     throw new Error("Expected error to have a position");
   }
 
+  // Start with baseline location infromation
+  let start = position;
+  let length = 1;
+  let relatedInformation: ts.DiagnosticRelatedInformation[] | undefined;
+
+  // Nodes have actual ranges (not just a single position), so we we have one
+  // (or more!) use that instead.
+  if (error.nodes != null && error.nodes.length > 0) {
+    const [node, ...rest] = error.nodes;
+    if (node.loc != null) {
+      start = node.loc.start;
+      length = node.loc.end - node.loc.start;
+      if (rest.length > 0) {
+        relatedInformation = [];
+        for (const relatedNode of rest) {
+          if (relatedNode.loc == null) {
+            continue;
+          }
+          relatedInformation.push({
+            category: ts.DiagnosticCategory.Message,
+            code: FAKE_ERROR_CODE,
+            messageText: "Related location",
+            file: graphqlSourceToSourceFile(relatedNode.loc.source),
+            start: relatedNode.loc.start,
+            length: relatedNode.loc.end - relatedNode.loc.start,
+          });
+        }
+      }
+    }
+  }
+
   let sourceFile: ts.SourceFile | undefined;
   if (error.source != null) {
     sourceFile = graphqlSourceToSourceFile(error.source);
@@ -67,9 +98,9 @@ export function graphQlErrorToDiagnostic(error: GraphQLError): ts.Diagnostic {
     file: sourceFile,
     code: FAKE_ERROR_CODE,
     category: ts.DiagnosticCategory.Error,
-    start: position,
-    // FIXME: Improve ranges
-    length: 1,
+    start,
+    length,
+    relatedInformation,
   };
 }
 
