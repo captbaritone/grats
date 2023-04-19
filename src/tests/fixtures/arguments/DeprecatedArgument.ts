@@ -5,7 +5,7 @@ export default class Query {
     greeting,
   }: {
     /** @deprecated Not used anymore */
-    greeting?: string;
+    greeting?: string | null;
   }): string {
     return "Hello world!";
   }

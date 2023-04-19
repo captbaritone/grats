@@ -5,7 +5,7 @@ export default class Query {
     return "Hello world!";
   }
   /** @gqlField */
-  hello2({ greeting }: { greeting?: string }): string {
+  hello2({ greeting }: { greeting?: string | null }): string {
     return "Hello world!";
   }
   /** @gqlField */

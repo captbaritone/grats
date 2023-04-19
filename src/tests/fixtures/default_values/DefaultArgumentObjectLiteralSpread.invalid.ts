@@ -8,7 +8,7 @@ export default class Query {
   someField1({
     input = { ...defaultArgs },
   }: {
-    input?: ConnectionInput;
+    input?: ConnectionInput | null;
   }): string {
     return "hello";
   }
