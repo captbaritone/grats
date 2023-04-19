@@ -11,6 +11,17 @@ import {
   UNION_TAG,
 } from "./Extractor";
 
+/**
+ * Error messages for Grats
+ *
+ * Ideally each error message conveys all of the following:
+ * - What went wrong
+ * - What Grats expected with an example
+ * - Why Grats expected that
+ * - A suggestion for how to fix the error
+ * - A link to the Grats documentation
+ */
+
 export function fieldTagOnWrongNode() {
   return `\`@${FIELD_TAG}\` can only be used on method/property declarations or signatures.`;
 }
@@ -238,4 +249,8 @@ export function killsParentOnExceptionWithWrongConfig() {
 
 export function killsParentOnExceptionOnNullable() {
   return `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` tag. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` is unnessesary on fields that are already nullable.`;
+}
+
+export function nonNullTypeCannotBeOptional() {
+  return `Unexpected optional argument that does not also accept \`null\`. Optional arguments in GraphQL may get passed an explict \`null\` value. This means optional arguments must be typed to also accept \`null\`.`;
 }

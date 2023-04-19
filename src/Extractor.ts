@@ -225,7 +225,11 @@ export class Extractor {
 
   /** Error handling and location juggling */
 
-  report(node: ts.Node, message: string): null {
+  report(
+    node: ts.Node,
+    message: string,
+    relatedInformation?: ts.DiagnosticRelatedInformation[],
+  ): null {
     const start = node.getStart();
     const length = node.getEnd() - start;
     this.errors.push({
@@ -235,17 +239,32 @@ export class Extractor {
       category: ts.DiagnosticCategory.Error,
       start,
       length,
+      relatedInformation,
     });
     return null;
   }
 
   // Report an error that we don't know how to infer a type, but it's possible that we should.
   // Gives the user a path forward if they think we should be able to infer this type.
-  reportUnhandled(node: ts.Node, message: string): null {
+  reportUnhandled(
+    node: ts.Node,
+    message: string,
+    relatedInformation?: ts.DiagnosticRelatedInformation[],
+  ): null {
     const suggestion = `If you think ${LIBRARY_NAME} should be able to infer this type, please report an issue at ${ISSUE_URL}.`;
     const completedMessage = `${message}\n\n${suggestion}`;
-    this.report(node, completedMessage);
-    return null;
+    return this.report(node, completedMessage, relatedInformation);
+  }
+
+  related(node: ts.Node, message: string): ts.DiagnosticRelatedInformation {
+    return {
+      category: ts.DiagnosticCategory.Message,
+      code: 0,
+      file: node.getSourceFile(),
+      start: node.getStart(),
+      length: node.getWidth(),
+      messageText: message,
+    };
   }
 
   diagnosticAnnotatedLocation(node: ts.Node): {
@@ -818,8 +837,7 @@ export class Extractor {
     } else if (ts.isArrayLiteralExpression(node)) {
       return this.collectArrayLiteral(node);
     }
-    this.reportUnhandled(node, E.defaultValueIsNotLiteral());
-    return null;
+    return this.reportUnhandled(node, E.defaultValueIsNotLiteral());
   }
 
   collectArrayLiteral(
@@ -914,6 +932,12 @@ export class Extractor {
     if (type == null) return null;
 
     if (node.questionToken) {
+      /*
+      // TODO: Don't allow args that are optional but don't accept null
+      if (type.kind === Kind.NON_NULL_TYPE) {
+        return this.report(node.questionToken, E.nonNullTypeCannotBeOptional());
+      }
+      */
       type = this.gqlNullableType(type);
     }
 
@@ -1289,6 +1313,8 @@ export class Extractor {
     };
   }
 
+  // TODO: Support separate modes for input and output types
+  // For input nodes and field may only be optional if `null` is a valid value.
   collectType(node: ts.TypeNode): TypeNode | null {
     if (ts.isTypeReferenceNode(node)) {
       const type = this.typeReference(node);
@@ -1300,12 +1326,22 @@ export class Extractor {
       return this.gqlNonNullType(node, this.gqlListType(node, element));
     } else if (ts.isUnionTypeNode(node)) {
       const types = node.types.filter((type) => !this.isNullish(type));
-      if (types.length !== 1) {
-        this.report(node, E.expectedOneNonNullishType());
-        return null;
+      if (types.length === 0) {
+        return this.report(node, E.expectedOneNonNullishType());
       }
+
       const type = this.collectType(types[0]);
       if (type == null) return null;
+
+      if (types.length > 1) {
+        const [first, ...rest] = types;
+        // FIXME: If each of `rest` matches `first` this should be okay.
+        const incompatibleVariants = rest.map((tsType) => {
+          return this.related(tsType, "Other non-nullish type");
+        });
+        this.report(first, E.expectedOneNonNullishType(), incompatibleVariants);
+        return null;
+      }
       if (node.types.length > 1) {
         return this.gqlNullableType(type);
       }
