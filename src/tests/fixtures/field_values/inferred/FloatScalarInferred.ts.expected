@@ -1,0 +1,31 @@
+-----------------
+INPUT
+----------------- 
+import { Float } from "../../../../Types";
+
+/** @gqlType */
+export default class Query {
+  /** @gqlField */
+  ratio() {
+    return getFloat(10);
+  }
+}
+
+function getFloat(n: number): Float {
+  return n;
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  ratio: Float
+}

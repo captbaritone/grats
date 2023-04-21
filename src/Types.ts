@@ -1,6 +1,6 @@
 /** @gqlScalar */
-export type Float = number;
+export type Float = number & {};
 /** @gqlScalar */
-export type Int = number;
+export type Int = number & {};
 /** @gqlScalar */
-export type ID = string;
+export type ID = string & {};

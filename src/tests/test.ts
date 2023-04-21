@@ -36,7 +36,9 @@ const testDirs = [
       }
       const files = [`${fixturesDir}/${fileName}`, `src/Types.ts`];
       const parsedOptions: ts.ParsedCommandLine = {
-        options: {},
+        options: {
+          strictNullChecks: true,
+        },
         raw: {
           grats: options,
         },

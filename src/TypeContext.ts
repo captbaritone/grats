@@ -62,14 +62,17 @@ export class TypeContext {
   }
 
   markUnresolvedType(node: ts.Node, name: NameNode) {
-    let symbol = this.checker.getSymbolAtLocation(node);
+    const symbol = this.checker.getSymbolAtLocation(node);
     if (symbol == null) {
       //
       throw new Error(
         "Could not resolve type reference. You probably have a TypeScript error.",
       );
     }
+    this.markUnresolvedSymbol(symbol, name);
+  }
 
+  markUnresolvedSymbol(symbol: ts.Symbol, name: NameNode) {
     if (symbol.flags & ts.SymbolFlags.Alias) {
       // Follow any aliases to get the real type declaration.
       symbol = this.checker.getAliasedSymbol(symbol);
@@ -107,6 +110,7 @@ export class TypeContext {
     }
     const name = this._symbolToName.get(symbol);
     if (name == null) {
+      // FIXME: Report some common errors here, like trying to return a `number`.
       if (unresolved.loc == null) {
         throw new Error("Expected namedType to have a location.");
       }

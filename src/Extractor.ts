@@ -1157,11 +1157,16 @@ export class Extractor {
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
+    let type: TypeNode | null = null;
     if (node.type == null) {
-      return this.report(node.name, E.methodMissingType());
+      type = this.collectInferredMethodType(node);
+    } else {
+      type = this.collectMethodType(node.type);
     }
 
-    const type = this.collectMethodType(node.type);
+    if (type == null) {
+      return this.report(node.name, E.methodMissingType());
+    }
 
     // We already reported an error
     if (type == null) return null;
@@ -1195,6 +1200,60 @@ export class Extractor {
       type: this.handleErrorBubbling(node, type),
       directives: directives.length === 0 ? undefined : directives,
     };
+  }
+
+  isTypeAssignableTo(type: ts.Type, assignableTo: ts.Type): boolean {
+    // TODO: `isTypeAssignableTo` is not in the public API.
+    // See: https://github.com/microsoft/TypeScript/issues/50694
+    //      https://github.com/microsoft/TypeScript/pull/52473
+    // @ts-ignore
+    return this.ctx.checker.isTypeAssignableTo(type, assignableTo);
+  }
+
+  collectInferredMethodType(
+    node: ts.MethodDeclaration | ts.MethodSignature,
+  ): TypeNode | null {
+    const numberType = this.ctx.checker.getNumberType();
+
+    const namedTypes = {
+      String: this.ctx.checker.getStringType(),
+      Boolean: this.ctx.checker.getBooleanType(),
+    };
+
+    const signature = this.ctx.checker.getSignatureFromDeclaration(node);
+    if (signature == null) {
+      throw new Error(
+        "Expected to be able to get a signature from a method declaration",
+      );
+    }
+    const returnType = this.ctx.checker.getReturnTypeOfSignature(signature);
+
+    // TODO: Might be able to work around this by manually wrapping in `Awaited<T>`?
+    // @ts-ignore
+    const awaitedType = this.ctx.checker.getAwaitedType(returnType);
+    const isNullable = awaitedType.isNullableType();
+    const isPlural = this.ctx.checker.isArrayLikeType(awaitedType);
+    const nonNullable = this.ctx.checker.getNonNullableType(awaitedType);
+
+    if (nonNullable.aliasSymbol != null) {
+      const gqlType = this.gqlNamedType(node.name, UNRESOLVED_REFERENCE_NAME);
+      this.ctx.markUnresolvedSymbol(nonNullable.aliasSymbol, gqlType.name);
+      return isNullable ? gqlType : this.gqlNonNullType(node, gqlType);
+    }
+
+    // Catch common errors:
+    if (this.isTypeAssignableTo(nonNullable, numberType)) {
+      return this.report(node.name, E.ambiguousNumberType());
+    }
+
+    for (const [name, type] of Object.entries(namedTypes)) {
+      if (this.isTypeAssignableTo(nonNullable, type)) {
+        const gqlType = this.gqlNamedType(node.name, name);
+        return isNullable ? gqlType : this.gqlNonNullType(node, gqlType);
+      }
+    }
+
+    return null;
   }
 
   collectMethodType(node: ts.TypeNode): TypeNode | null {
