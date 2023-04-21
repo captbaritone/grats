@@ -1203,14 +1203,16 @@ export class Extractor {
   }
 
   isTypeAssignableTo(type: ts.Type, assignableTo: ts.Type): boolean {
-    // TODO: `isTypeAssignableTo` is not in the public API.
-    // See: https://github.com/microsoft/TypeScript/issues/50694
-    //      https://github.com/microsoft/TypeScript/pull/52473
-    // @ts-ignore
     return this.ctx.checker.isTypeAssignableTo(type, assignableTo);
   }
 
   inferType(node: ts.Node, type: ts.Type): TypeNode | null {
+    if (type.flags & ts.TypeFlags.Any) {
+      return this.reportUnhandled(node, E.couldNotInferGraphQLTypeFromAny());
+    }
+    if (type.flags & ts.TypeFlags.Never) {
+      return this.reportUnhandled(node, E.couldNotInferGraphQLTypeFromNever());
+    }
     const nullType = this.ctx.checker.getNullType();
     const undefinedType = this.ctx.checker.getUndefinedType();
     const isOptionalType = (type: ts.Type) => {
@@ -1236,7 +1238,11 @@ export class Extractor {
         ts.IndexKind.Number,
       );
       if (inner == null) {
-        throw new Error("inner is null");
+        // This probably means we are missing some cases in Grats
+        return this.reportUnhandled(
+          node,
+          E.couldNotInferGraphQLType(this.ctx.checker.typeToString(type)),
+        );
       }
       const innerGqlType = this.inferType(node, inner);
       if (innerGqlType == null) return null;
@@ -1280,8 +1286,6 @@ export class Extractor {
     }
     const returnType = this.ctx.checker.getReturnTypeOfSignature(signature);
 
-    // TODO: Might be able to work around this by manually wrapping in `Awaited<T>`?
-    // @ts-ignore
     const awaitedType: ts.Type = this.ctx.checker.getAwaitedType(returnType);
     return this.inferType(node.type ?? node.name, awaitedType);
   }

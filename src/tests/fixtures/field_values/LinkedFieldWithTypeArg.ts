@@ -13,7 +13,7 @@ class User<T> {
     return "Alice";
   }
   /** @gqlField */
-  friends(): User[] {
+  friends(): User<string>[] {
     return [new User()];
   }
 

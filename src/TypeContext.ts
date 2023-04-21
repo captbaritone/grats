@@ -11,6 +11,25 @@ import { getRelativeOutputPath } from "./gratsRoot";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
+type TypeCheckerExtras = {
+  getNumberType(): ts.Type;
+  getNullType(): ts.Type;
+  getUndefinedType(): ts.Type;
+  getStringType(): ts.Type;
+  getBooleanType(): ts.Type;
+  isArrayLikeType(type: ts.Type): boolean;
+
+  // TODO: Might be able to work around this by manually wrapping in `Awaited<T>`?
+  // @ts-ignore
+  getAwaitedType(type: ts.Type): ts.Type;
+
+  // TODO: `isTypeAssignableTo` is not in the public API.
+  // See: https://github.com/microsoft/TypeScript/issues/50694
+  //      https://github.com/microsoft/TypeScript/pull/52473
+  // @ts-ignore
+  isTypeAssignableTo(from: ts.Type, to: ts.Type): boolean;
+};
+
 /**
  * Used to track TypeScript references.
  *
@@ -24,7 +43,7 @@ export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
  * type references.
  */
 export class TypeContext {
-  checker: ts.TypeChecker;
+  checker: ts.TypeChecker & TypeCheckerExtras;
   host: ts.CompilerHost;
 
   _options: ts.ParsedCommandLine;
@@ -38,6 +57,7 @@ export class TypeContext {
     host: ts.CompilerHost,
   ) {
     this._options = options;
+    // @ts-ignore We lie here and pretend we have extra types
     this.checker = checker;
     this.host = host;
   }

@@ -239,6 +239,14 @@ export function couldNotInferGraphQLType(typeString: string) {
   return `Could not infer the GraphQL type of \`${typeString}\`.`;
 }
 
+export function couldNotInferGraphQLTypeFromAny() {
+  return `Could not infer the GraphQL type. TypeScript sees this value as being typed as \`any\`. Perhaps you missing a type annotation, or have a type error elsewhere in your code?.`;
+}
+
+export function couldNotInferGraphQLTypeFromNever() {
+  return `Could not infer the GraphQL type. TypeScript sees this value as being typed as \`never\`. Perhaps you missing a type annotation, or have a type error elsewhere in your code?.`;
+}
+
 export function pluralTypeMissingParameter() {
   return `Expected type reference to have type arguments.`;
 }

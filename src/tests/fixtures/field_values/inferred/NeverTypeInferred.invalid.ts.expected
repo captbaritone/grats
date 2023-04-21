@@ -1,0 +1,20 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class Query {
+  /** @gqlField */
+  foo(): never {
+    throw new Error("Not implemented");
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/field_values/inferred/NeverTypeInferred.invalid.ts:4:10 - error: Could not infer the GraphQL type. TypeScript sees this value as being typed as `never`. Perhaps you missing a type annotation, or have a type error elsewhere in your code?.
+
+If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
+
+4   foo(): never {
+           ~~~~~
