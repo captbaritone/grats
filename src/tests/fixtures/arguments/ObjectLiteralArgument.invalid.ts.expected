@@ -12,7 +12,7 @@ export default class Query {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/arguments/ObjectLiteralArgument.invalid.ts:4:35 - error: Unexpected type literal. You may want to define a named GraphQL type elsewhere and reference it here.
+src/tests/fixtures/arguments/ObjectLiteralArgument.invalid.ts:4:35 - error: This type is not a valid GraphQL type. Did you mean to annotate it's definition with a `/** @gql */` tag such as `/** @gqlType */` or `/** @gqlInput **/`?
 
 4   hello({ greeting }: { greeting: { foo: string; bar: string } }): string {
                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
