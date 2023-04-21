@@ -443,6 +443,8 @@ export class Extractor {
     const description = this.collectDescription(node.name);
     this.ctx.recordTypeName(node.name, name.value);
 
+    // TODO: Assert that this type is unique enough for Grats to infer it distinctly
+
     this.definitions.push({
       kind: Kind.SCALAR_TYPE_DEFINITION,
       loc: this.loc(node),
@@ -1158,15 +1160,13 @@ export class Extractor {
     if (name == null) return null;
 
     let type: TypeNode | null = null;
-    if (node.type == null) {
-      type = this.collectInferredMethodType(node);
-    } else {
-      type = this.collectMethodType(node.type);
-    }
+    //if (node.type == null) {
+    type = this.inferMethodType(node);
+    // } else {
+    // type = this.collectMethodType(node.type);
+    // }
 
-    if (type == null) {
-      return this.report(node.name, E.methodMissingType());
-    }
+    if (type == null) return null;
 
     // We already reported an error
     if (type == null) return null;
@@ -1210,9 +1210,15 @@ export class Extractor {
     return this.ctx.checker.isTypeAssignableTo(type, assignableTo);
   }
 
-  collectInferredMethodType(
-    node: ts.MethodDeclaration | ts.MethodSignature,
-  ): TypeNode | null {
+  inferType(node: ts.Node, type: ts.Type): TypeNode | null {
+    const nullType = this.ctx.checker.getNullType();
+    const undefinedType = this.ctx.checker.getUndefinedType();
+    const isOptionalType = (type: ts.Type) => {
+      return (
+        this.isTypeAssignableTo(nullType, type) ||
+        this.isTypeAssignableTo(undefinedType, type)
+      );
+    };
     const numberType = this.ctx.checker.getNumberType();
 
     const namedTypes = {
@@ -1220,6 +1226,52 @@ export class Extractor {
       Boolean: this.ctx.checker.getBooleanType(),
     };
 
+    const isNullable = isOptionalType(type);
+    const isPlural = this.ctx.checker.isArrayLikeType(type);
+    const nonNullable = this.ctx.checker.getNonNullableType(type);
+
+    if (isPlural) {
+      const inner = this.ctx.checker.getIndexTypeOfType(
+        nonNullable,
+        ts.IndexKind.Number,
+      );
+      if (inner == null) {
+        throw new Error("inner is null");
+      }
+      const innerGqlType = this.inferType(node, inner);
+      if (innerGqlType == null) return null;
+      const gqlType = this.gqlListType(node, innerGqlType);
+      return isNullable ? gqlType : this.gqlNonNullType(node, gqlType);
+    }
+
+    const symbol = nonNullable.aliasSymbol ?? nonNullable.getSymbol();
+    if (symbol != null) {
+      const gqlType = this.gqlNamedType(node, UNRESOLVED_REFERENCE_NAME);
+      this.ctx.markUnresolvedSymbol(symbol, gqlType.name);
+      return isNullable ? gqlType : this.gqlNonNullType(node, gqlType);
+    }
+
+    // Catch common errors:
+    if (this.isTypeAssignableTo(nonNullable, numberType)) {
+      return this.report(node, E.ambiguousNumberType());
+    }
+
+    for (const [name, type] of Object.entries(namedTypes)) {
+      if (this.isTypeAssignableTo(nonNullable, type)) {
+        const gqlType = this.gqlNamedType(node, name);
+        return isNullable ? gqlType : this.gqlNonNullType(node, gqlType);
+      }
+    }
+
+    return this.reportUnhandled(
+      node,
+      E.couldNotInferGraphQLType(this.ctx.checker.typeToString(type)),
+    );
+  }
+
+  inferMethodType(
+    node: ts.MethodDeclaration | ts.MethodSignature,
+  ): TypeNode | null {
     const signature = this.ctx.checker.getSignatureFromDeclaration(node);
     if (signature == null) {
       throw new Error(
@@ -1230,38 +1282,18 @@ export class Extractor {
 
     // TODO: Might be able to work around this by manually wrapping in `Awaited<T>`?
     // @ts-ignore
-    const awaitedType = this.ctx.checker.getAwaitedType(returnType);
-    const isNullable = awaitedType.isNullableType();
-    const isPlural = this.ctx.checker.isArrayLikeType(awaitedType);
-    const nonNullable = this.ctx.checker.getNonNullableType(awaitedType);
-
-    if (nonNullable.aliasSymbol != null) {
-      const gqlType = this.gqlNamedType(node.name, UNRESOLVED_REFERENCE_NAME);
-      this.ctx.markUnresolvedSymbol(nonNullable.aliasSymbol, gqlType.name);
-      return isNullable ? gqlType : this.gqlNonNullType(node, gqlType);
-    }
-
-    // Catch common errors:
-    if (this.isTypeAssignableTo(nonNullable, numberType)) {
-      return this.report(node.name, E.ambiguousNumberType());
-    }
-
-    for (const [name, type] of Object.entries(namedTypes)) {
-      if (this.isTypeAssignableTo(nonNullable, type)) {
-        const gqlType = this.gqlNamedType(node.name, name);
-        return isNullable ? gqlType : this.gqlNonNullType(node, gqlType);
-      }
-    }
-
-    return null;
+    const awaitedType: ts.Type = this.ctx.checker.getAwaitedType(returnType);
+    return this.inferType(node.type ?? node.name, awaitedType);
   }
 
+  /** @deprecated Use inferMethodType */
   collectMethodType(node: ts.TypeNode): TypeNode | null {
     const inner = this.maybeUnwrapePromise(node);
     if (inner == null) return null;
     return this.collectType(inner);
   }
 
+  /** @deprecated infer */
   collectPropertyType(node: ts.TypeNode): TypeNode | null {
     // TODO: Handle function types here.
     const inner = this.maybeUnwrapePromise(node);
@@ -1269,6 +1301,7 @@ export class Extractor {
     return this.collectType(inner);
   }
 
+  /** @deprecated infer */
   maybeUnwrapePromise(node: ts.TypeNode): ts.TypeNode | null {
     if (ts.isTypeReferenceNode(node)) {
       const identifier = this.expectIdentifier(node.typeName);

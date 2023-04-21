@@ -1,5 +1,5 @@
 /** @gqlScalar */
-type MyString = string;
+type MyString = string & {};
 
 /** @gqlType */
 export default class Query {

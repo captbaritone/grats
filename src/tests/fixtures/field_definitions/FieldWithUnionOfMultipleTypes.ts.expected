@@ -1,0 +1,20 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class Query {
+  /** @gqlField */
+  hello(): string | boolean {
+    return "Hello world!";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/field_definitions/FieldWithUnionOfMultipleTypes.ts:4:12 - error: Could not infer the GraphQL type of `string | boolean`.
+
+If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
+
+4   hello(): string | boolean {
+             ~~~~~~~~~~~~~~~~

@@ -235,6 +235,10 @@ export function unknownGraphQLType() {
   return `Unknown GraphQL type.`;
 }
 
+export function couldNotInferGraphQLType(typeString: string) {
+  return `Could not infer the GraphQL type of \`${typeString}\`.`;
+}
+
 export function pluralTypeMissingParameter() {
   return `Expected type reference to have type arguments.`;
 }

@@ -1,0 +1,39 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class Query {
+  /** @gqlField */
+  async me() {
+    return getUser();
+  }
+}
+
+/** @gqlType */
+class User {
+  /** @gqlField */
+  name: string;
+}
+
+function getUser(): User {
+  return new User();
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  me: User
+}
+
+type User {
+  name: String
+}
