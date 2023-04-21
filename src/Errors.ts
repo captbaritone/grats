@@ -187,10 +187,6 @@ export function gqlEntityMissingName() {
   return "Expected GraphQL entity to have a name.";
 }
 
-export function methodMissingType() {
-  return "Expected GraphQL field to have a type.";
-}
-
 export function promiseMissingTypeArg() {
   return `Expected type reference to have type arguments.`;
 }
