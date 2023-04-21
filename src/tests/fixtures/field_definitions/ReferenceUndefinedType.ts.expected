@@ -10,7 +10,9 @@ class Query {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/field_definitions/ReferenceUndefinedType.ts:4:22 - error: This type is not a valid GraphQL type. Did you mean to annotate it's definition with a `/** @gql */` tag such as `/** @gqlType */` or `/** @gqlInput **/`?
+src/tests/fixtures/field_definitions/ReferenceUndefinedType.ts:4:22 - error: Could not infer the GraphQL type. TypeScript sees this value as being typed as `any`. Perhaps you missing a type annotation, or have a type error elsewhere in your code?.
+
+If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
 
 4   somePropertyField: SomeUndefienedType;
                        ~~~~~~~~~~~~~~~~~~

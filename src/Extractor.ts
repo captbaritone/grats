@@ -351,7 +351,7 @@ export class Extractor {
       return this.report(funcName, E.invalidReturnTypeForFunctionField());
     }
 
-    const type = this.collectMethodType(node.type);
+    const type = this.inferMethodType(node);
     if (type == null) return null;
 
     let args: readonly InputValueDefinitionNode[] | null = null;
@@ -506,7 +506,10 @@ export class Extractor {
       return this.report(node, E.inputFieldUntyped());
     }
 
-    const inner = this.collectType(node.type);
+    const inner = this.inferType(
+      node.type ?? node,
+      this.ctx.checker.getTypeAtLocation(node),
+    );
     if (inner == null) return null;
 
     const type =
@@ -927,10 +930,10 @@ export class Extractor {
       return this.report(node.name, E.argNameNotLiteral());
     }
 
-    if (node.type == null) {
-      return this.report(node.name, E.argNotTyped());
-    }
-    let type = this.collectType(node.type);
+    let type = this.inferType(
+      node.type ?? node,
+      this.ctx.checker.getTypeAtLocation(node),
+    );
     if (type == null) return null;
 
     if (node.questionToken) {
@@ -1019,14 +1022,22 @@ export class Extractor {
     // of one item, there is no way to construct a union type of one item in
     // TypeScript. So, we also support deriving enums from type aliases of a single
     // string literal.
-    if (
-      ts.isLiteralTypeNode(node.type) &&
-      ts.isStringLiteral(node.type.literal)
-    ) {
+    if (ts.isIntersectionTypeNode(node.type)) {
+      if (node.type.types.length !== 2) {
+        throw new Error("Invalid intersection type");
+      }
+      const str: ts.LiteralTypeNode | void = node.type.types.find(
+        (t) => ts.isLiteralTypeNode(t) && ts.isStringLiteral(t.literal),
+      );
+      const brand = node.type.types.find((t) => ts.isTypeLiteralNode(t));
+      if (str == null || brand == null) {
+        throw new Error("Invalid intersection type");
+      }
+
       return [
         {
           kind: Kind.ENUM_VALUE_DEFINITION,
-          name: this.gqlName(node.type.literal, node.type.literal.text),
+          name: this.gqlName(str, str.literal.text),
           description: undefined,
           loc: this.loc(node),
         },
@@ -1159,12 +1170,7 @@ export class Extractor {
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
-    let type: TypeNode | null = null;
-    //if (node.type == null) {
-    type = this.inferMethodType(node);
-    // } else {
-    // type = this.collectMethodType(node.type);
-    // }
+    const type = this.inferMethodType(node);
 
     if (type == null) return null;
 
@@ -1229,8 +1235,8 @@ export class Extractor {
     };
 
     const isNullable = isOptionalType(type);
-    const isPlural = this.ctx.checker.isArrayLikeType(type);
     const nonNullable = this.ctx.checker.getNonNullableType(type);
+    const isPlural = this.ctx.checker.isArrayLikeType(nonNullable);
 
     if (isPlural) {
       const inner = this.ctx.checker.getIndexTypeOfType(
@@ -1276,7 +1282,7 @@ export class Extractor {
   }
 
   inferMethodType(
-    node: ts.MethodDeclaration | ts.MethodSignature,
+    node: ts.MethodDeclaration | ts.MethodSignature | ts.FunctionDeclaration,
   ): TypeNode | null {
     const signature = this.ctx.checker.getSignatureFromDeclaration(node);
     if (signature == null) {
@@ -1286,39 +1292,17 @@ export class Extractor {
     }
     const returnType = this.ctx.checker.getReturnTypeOfSignature(signature);
 
-    const awaitedType: ts.Type = this.ctx.checker.getAwaitedType(returnType);
-    return this.inferType(node.type ?? node.name, awaitedType);
+    const awaitedType = this.ctx.checker.getAwaitedType(returnType);
+    return this.inferType(node.type ?? node.name ?? node, awaitedType);
   }
 
-  /** @deprecated Use inferMethodType */
-  collectMethodType(node: ts.TypeNode): TypeNode | null {
-    const inner = this.maybeUnwrapePromise(node);
-    if (inner == null) return null;
-    return this.collectType(inner);
-  }
+  inferPropertyType(
+    node: ts.PropertyDeclaration | ts.PropertySignature,
+  ): TypeNode | null {
+    const type = this.ctx.checker.getTypeAtLocation(node);
 
-  /** @deprecated infer */
-  collectPropertyType(node: ts.TypeNode): TypeNode | null {
-    // TODO: Handle function types here.
-    const inner = this.maybeUnwrapePromise(node);
-    if (inner == null) return null;
-    return this.collectType(inner);
-  }
-
-  /** @deprecated infer */
-  maybeUnwrapePromise(node: ts.TypeNode): ts.TypeNode | null {
-    if (ts.isTypeReferenceNode(node)) {
-      const identifier = this.expectIdentifier(node.typeName);
-      if (identifier == null) return null;
-
-      if (identifier.text === "Promise") {
-        if (node.typeArguments == null) {
-          return this.report(node, E.promiseMissingTypeArg());
-        }
-        return node.typeArguments[0];
-      }
-    }
-    return node;
+    const awaitedType = this.ctx.checker.getAwaitedType(type);
+    return this.inferType(node.type ?? node.name ?? node, awaitedType);
   }
 
   collectDescription(node: ts.Node): StringValueNode | null {
@@ -1377,7 +1361,7 @@ export class Extractor {
       return null;
     }
 
-    const inner = this.collectPropertyType(node.type);
+    const inner = this.inferPropertyType(node);
     // We already reported an error
     if (inner == null) return null;
     const type =
@@ -1407,85 +1391,6 @@ export class Extractor {
       type: this.handleErrorBubbling(node, type),
       directives: directives.length === 0 ? undefined : directives,
     };
-  }
-
-  // TODO: Support separate modes for input and output types
-  // For input nodes and field may only be optional if `null` is a valid value.
-  /** @deprecated */
-  collectType(node: ts.TypeNode): TypeNode | null {
-    if (ts.isTypeReferenceNode(node)) {
-      const type = this.typeReference(node);
-      if (type == null) return null;
-      return type;
-    } else if (ts.isArrayTypeNode(node)) {
-      const element = this.collectType(node.elementType);
-      if (element == null) return null;
-      return this.gqlNonNullType(node, this.gqlListType(node, element));
-    } else if (ts.isUnionTypeNode(node)) {
-      const types = node.types.filter((type) => !this.isNullish(type));
-      if (types.length === 0) {
-        return this.report(node, E.expectedOneNonNullishType());
-      }
-
-      const type = this.collectType(types[0]);
-      if (type == null) return null;
-
-      if (types.length > 1) {
-        const [first, ...rest] = types;
-        // FIXME: If each of `rest` matches `first` this should be okay.
-        const incompatibleVariants = rest.map((tsType) => {
-          return this.related(tsType, "Other non-nullish type");
-        });
-        this.report(first, E.expectedOneNonNullishType(), incompatibleVariants);
-        return null;
-      }
-      if (node.types.length > 1) {
-        return this.gqlNullableType(type);
-      }
-      return this.gqlNonNullType(node, type);
-    } else if (ts.isParenthesizedTypeNode(node)) {
-      return this.collectType(node.type);
-    } else if (node.kind === ts.SyntaxKind.StringKeyword) {
-      return this.gqlNonNullType(node, this.gqlNamedType(node, "String"));
-    } else if (node.kind === ts.SyntaxKind.BooleanKeyword) {
-      return this.gqlNonNullType(node, this.gqlNamedType(node, "Boolean"));
-    } else if (node.kind === ts.SyntaxKind.NumberKeyword) {
-      return this.report(node, E.ambiguousNumberType());
-    } else if (ts.isTypeLiteralNode(node)) {
-      return this.report(node, E.unsupportedTypeLiteral());
-    }
-    // TODO: Better error message. This is okay if it's a type reference, but everything else is not.
-    this.reportUnhandled(node, E.unknownGraphQLType());
-    return null;
-  }
-
-  /** @deprecated */
-  typeReference(node: ts.TypeReferenceNode): TypeNode | null {
-    const identifier = this.expectIdentifier(node.typeName);
-    if (identifier == null) return null;
-
-    const typeName = identifier.text;
-    switch (typeName) {
-      case "Array":
-      case "Iterator":
-      case "ReadonlyArray": {
-        if (node.typeArguments == null) {
-          return this.report(node, E.pluralTypeMissingParameter());
-        }
-        const element = this.collectType(node.typeArguments[0]);
-        if (element == null) return null;
-        return this.gqlNonNullType(node, this.gqlListType(node, element));
-      }
-      default: {
-        // We may not have encountered the definition of this type yet. So, we
-        // mark it as unresolved and return a placeholder type.
-        //
-        // A later pass will resolve the type.
-        const namedType = this.gqlNamedType(node, UNRESOLVED_REFERENCE_NAME);
-        this.ctx.markUnresolvedType(node.typeName, namedType.name);
-        return this.gqlNonNullType(node, namedType);
-      }
-    }
   }
 
   /** @deprecated */

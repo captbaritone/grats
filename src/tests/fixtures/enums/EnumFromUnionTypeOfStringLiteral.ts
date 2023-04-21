@@ -1,8 +1,18 @@
-/** @gqlType */
-class Query {
-  /** @gqlField */
-  hello: MyEnum;
-}
+/** @gqlScalar */
+type MyScalar = "SCALAR" & {};
 
-/** @gqlEnum */
-type MyEnum = "VALID";
+/** @gqlScalar */
+type MyString = string & {};
+
+/** @gqlType */
+export default class Query {
+  /** @gqlField */
+  hello(): MyString {
+    return "Hello world!";
+  }
+
+  /** @gqlField */
+  bye(): MyScalar {
+    return "SCALAR";
+  }
+}

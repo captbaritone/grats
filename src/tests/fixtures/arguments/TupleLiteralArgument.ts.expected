@@ -4,7 +4,9 @@ INPUT
 /** @gqlType */
 export default class Query {
   /** @gqlField */
-  b: Promise<Promise<string>>;
+  hello({ greeting }: { greeting: [string] }): string {
+    return "Hello world!";
+  }
 }
 
 -----------------
@@ -19,5 +21,5 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
 type Query {
-  b: String
+  hello(greeting: [String!]!): String
 }

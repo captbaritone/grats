@@ -1,4 +1,4 @@
-type SomeUndefienedType = string;
+type SomeUndefienedType = {};
 
 /** @gqlType */
 class Query {
