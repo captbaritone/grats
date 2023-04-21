@@ -16,7 +16,3 @@ src/tests/fixtures/field_values/inferred/NumberFieldInferred.invalid.ts:4:3 - er
 
 4   num() {
     ~~~
-src/tests/fixtures/field_values/inferred/NumberFieldInferred.invalid.ts:4:3 - error: Expected GraphQL field to have a type.
-
-4   num() {
-    ~~~

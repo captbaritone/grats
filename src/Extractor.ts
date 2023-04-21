@@ -1411,6 +1411,7 @@ export class Extractor {
 
   // TODO: Support separate modes for input and output types
   // For input nodes and field may only be optional if `null` is a valid value.
+  /** @deprecated */
   collectType(node: ts.TypeNode): TypeNode | null {
     if (ts.isTypeReferenceNode(node)) {
       const type = this.typeReference(node);
@@ -1458,6 +1459,7 @@ export class Extractor {
     return null;
   }
 
+  /** @deprecated */
   typeReference(node: ts.TypeReferenceNode): TypeNode | null {
     const identifier = this.expectIdentifier(node.typeName);
     if (identifier == null) return null;
@@ -1486,6 +1488,7 @@ export class Extractor {
     }
   }
 
+  /** @deprecated */
   isNullish(node: ts.Node): boolean {
     if (ts.isIdentifier(node)) {
       return node.escapedText === "undefined";
