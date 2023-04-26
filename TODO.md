@@ -9,22 +9,17 @@
 - [ ] Allow interfaces to specify resolveType
 - [ ] Args with defaults should be nullable?
 - [ ] Optional args must include `null` as an option, since GraphQL JS may send that.
-- [ ] Document that fields get passed context etc
 - [ ] Allow type literal types to implement interfaces
-- [ ] Print multiline descriptiosn with `"""` instead of `"\n`
 - [ ] Add more robust config validation
 - [ ] Allow property types to be functions
 - [ ] Allow `Promise<T> | T`
 - [ ] Write guides
-  - [ ] Oop style
-  - [ ] Request context
-  - [ ] Functional style
   - [ ] DataLoader pattern
   - [ ] Subscriptions
 - [ ] Playground does not support promises
 - [ ] Collect deprecated tags on all nodes and let GraphQL validation report an error
-- [ ] Google Analytics for docs
 - [ ] Algolia search for docs
+  - [ ] Requested access https://docsearch.algolia.com/apply/
 
 ## Beta
 - [ ] Support generic directives 
@@ -32,8 +27,6 @@
     - [ ] Same as defaults?
 - [ ] Try converting the Star Wars example server
 - [ ] Better error message for non GraphQL types.
-- [ ] Split out docs into multipe files
-- [ ] Extract error messages to a separate file
 - [ ] Validate that we don't shadow builtins
 - [ ] Parse directives from all docblocks and attach them to the schema
     - [ ] This will help catch places where people are using directives like @deprecated in unsupported positions
@@ -57,12 +50,12 @@
 - [ ] Improve playground
     - Could we actually evaluate the resolvers? Maybe in a worker?
     - Could we hook up GraphiQL 2?
-    - Could we surface TS errors?
 - [ ] Can we ensure the context and ast arguments of resolvers are correct?
 - [ ] Can we use TypeScript's inference to infer types?
     - [ ] For example, a method which returns a string, or a property that has a default value.
 - [ ] Define resolvers?
 - [ ] Generate tasks from playground
+- [ ] TypeScript plugin?
 - [ ] LSP/VSCode Extension
   - [ ] See SDL on hover?
 - [ ] Websites
