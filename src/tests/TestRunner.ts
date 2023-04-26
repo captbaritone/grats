@@ -31,7 +31,8 @@ export default class TestRunner {
     for (const fileName of readdirSyncRecursive(fixturesDir)) {
       if (fileName.endsWith(".ts")) {
         this._testFixtures.push(fileName);
-        if (filterRegex != null && !fileName.match(filterRegex)) {
+        const filePath = path.join(fixturesDir, fileName);
+        if (filterRegex != null && !filePath.match(filterRegex)) {
           this._skip.add(fileName);
         }
       } else {

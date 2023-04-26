@@ -1,0 +1,39 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export class Query {
+  /** @gqlField */
+  alwaysThrows(): string {
+    throw new Error("This should null out the field");
+  }
+}
+
+export const query = `
+  query {
+    alwaysThrows
+  }
+`;
+
+-----------------
+OUTPUT
+-----------------
+{
+  "errors": [
+    {
+      "message": "This should null out the field",
+      "locations": [
+        {
+          "line": 3,
+          "column": 5
+        }
+      ],
+      "path": [
+        "alwaysThrows"
+      ]
+    }
+  ],
+  "data": {
+    "alwaysThrows": null
+  }
+}

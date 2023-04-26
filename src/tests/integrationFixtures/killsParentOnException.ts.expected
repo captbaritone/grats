@@ -1,0 +1,53 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export class Query {
+  /** @gqlField */
+  me(): User {
+    return new User();
+  }
+}
+
+/** @gqlType */
+class User {
+  /**
+   * @gqlField
+   * @killsParentOnException
+   */
+  alwaysThrowsKillsParentOnException(): string {
+    throw new Error("This error should kill User");
+  }
+}
+
+export const query = `
+  query {
+    me {
+      alwaysThrowsKillsParentOnException
+    }
+  }
+`;
+
+-----------------
+OUTPUT
+-----------------
+{
+  "errors": [
+    {
+      "message": "This error should kill User",
+      "locations": [
+        {
+          "line": 4,
+          "column": 7
+        }
+      ],
+      "path": [
+        "me",
+        "alwaysThrowsKillsParentOnException"
+      ]
+    }
+  ],
+  "data": {
+    "me": null
+  }
+}

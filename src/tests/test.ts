@@ -3,6 +3,7 @@ import TestRunner from "./TestRunner";
 import { buildSchemaResult, ConfigOptions } from "../lib";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import * as ts from "typescript";
+import { graphql } from "graphql";
 
 async function main() {
   const write = process.argv.some((arg) => arg === "--write");
@@ -20,6 +21,7 @@ async function main() {
 }
 
 const fixturesDir = path.join(__dirname, "fixtures");
+const integrationFixturesDir = path.join(__dirname, "integrationFixtures");
 
 const testDirs = [
   {
@@ -50,6 +52,50 @@ const testDirs = [
       return printSchemaWithDirectives(schemaResult.value, {
         assumeValid: true,
       });
+    },
+  },
+  {
+    fixturesDir: integrationFixturesDir,
+    transformer: async (code: string, fileName: string) => {
+      const filePath = `${integrationFixturesDir}/${fileName}`;
+      const server = await import(filePath);
+
+      if (server.query == null || typeof server.query !== "string") {
+        throw new Error(
+          `Expected \`${filePath}\` to export a query text as \`query\``,
+        );
+      }
+      if (server.Query == null || typeof server.Query !== "function") {
+        throw new Error(
+          `Expected \`${filePath}\` to export a Query type as \`Query\``,
+        );
+      }
+
+      const options: ConfigOptions = {
+        nullableByDefault: true,
+      };
+      const files = [filePath, `src/Types.ts`];
+      const parsedOptions: ts.ParsedCommandLine = {
+        options: {},
+        raw: {
+          grats: options,
+        },
+        errors: [],
+        fileNames: files,
+      };
+      const schemaResult = buildSchemaResult(parsedOptions);
+      if (schemaResult.kind === "ERROR") {
+        throw new Error(schemaResult.err.formatDiagnosticsWithContext());
+      }
+      const schema = schemaResult.value;
+
+      const data = await graphql({
+        schema,
+        source: server.query,
+        rootValue: new server.Query(),
+      });
+
+      return JSON.stringify(data, null, 2);
     },
   },
 ];
