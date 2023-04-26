@@ -4,21 +4,37 @@ import { buildSchemaResult, ConfigOptions } from "../lib";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import * as ts from "typescript";
 import { graphql } from "graphql";
+import { Command } from "commander";
 
-async function main() {
-  const write = process.argv.some((arg) => arg === "--write");
-  const filter = process.argv.find((arg) => arg.startsWith("--filter="));
+const program = new Command();
 
-  const filterRegex = filter != null ? filter.slice(9) : null;
-  let failures = false;
-  for (const { fixturesDir, transformer } of testDirs) {
-    const runner = new TestRunner(fixturesDir, write, filterRegex, transformer);
-    failures = !(await runner.run()) || failures;
-  }
-  if (failures) {
-    process.exit(1);
-  }
-}
+program
+  .name("grats-tests")
+  .description("Run Grats' internal tests")
+  .option(
+    "-w, --write",
+    "Write the actual ouput of the test to the expected output files. Useful for updating tests.",
+  )
+  .option(
+    "-f, --filter <FILTER_REGEX>",
+    "A regex to filter the tests to run. Only tests with a file path matching the regex will be run.",
+  )
+  .action(async ({ filter, write }) => {
+    const filterRegex = filter ?? null;
+    let failures = false;
+    for (const { fixturesDir, transformer } of testDirs) {
+      const runner = new TestRunner(
+        fixturesDir,
+        !!write,
+        filterRegex,
+        transformer,
+      );
+      failures = !(await runner.run()) || failures;
+    }
+    if (failures) {
+      process.exit(1);
+    }
+  });
 
 const fixturesDir = path.join(__dirname, "fixtures");
 const integrationFixturesDir = path.join(__dirname, "integrationFixtures");
@@ -100,4 +116,4 @@ const testDirs = [
   },
 ];
 
-main();
+program.parse();
