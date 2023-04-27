@@ -11,6 +11,12 @@ import {
   UNION_TAG,
 } from "./Extractor";
 
+// TODO: Move these to short URLS that are easier to keep from breaking.
+const DOC_URLS = {
+  mergedInterfaces:
+    "https://grats.capt.dev/docs/dockblock-tags/interfaces/#merged-interfaces",
+};
+
 /**
  * Error messages for Grats
  *
@@ -253,4 +259,14 @@ export function killsParentOnExceptionOnNullable() {
 
 export function nonNullTypeCannotBeOptional() {
   return `Unexpected optional argument that does not also accept \`null\`. Optional arguments in GraphQL may get passed an explict \`null\` value. This means optional arguments must be typed to also accept \`null\`.`;
+}
+
+export function mergedInterfaces(interfaceName: string) {
+  return [
+    `Unexpected merged interface \`${interfaceName}\`.`,
+    `If an interface is declared multiple times in a scope, TypeScript merges them.`,
+    `To avoid ambiguity Grats does not support using merged interfaces as GraphQL interfaces.`,
+    `Consider using a unique name for your TypeScript interface and renaming it.\n\n`,
+    `Learn more: ${DOC_URLS.mergedInterfaces}`,
+  ].join(" ");
 }

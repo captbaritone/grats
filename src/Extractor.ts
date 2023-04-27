@@ -732,6 +732,28 @@ export class Extractor {
     if (name == null || name.value == null) {
       return;
     }
+
+    // Prevent using merged interfaces as GraphQL interfaces.
+    // https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces
+    const symbol = this.ctx.checker.getSymbolAtLocation(node.name);
+    if (
+      symbol != null &&
+      symbol.declarations != null &&
+      symbol.declarations.length > 1
+    ) {
+      const otherLocations = symbol.declarations
+        .filter((d) => d !== node)
+        .map((d) => {
+          const locNode = ts.getNameOfDeclaration(d) ?? d;
+          return this.related(locNode, "Other declaration");
+        });
+      return this.report(
+        node.name,
+        E.mergedInterfaces(name.value),
+        otherLocations,
+      );
+    }
+
     const description = this.collectDescription(node.name);
 
     const fields = this.collectFields(node);

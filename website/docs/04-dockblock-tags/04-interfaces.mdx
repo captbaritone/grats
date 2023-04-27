@@ -1,8 +1,11 @@
+import GratsCode from "@site/src/components/GratsCode";
+import NodeInterface from "!!raw-loader!./snippets/04-merged-interface-renaming.out";
+
 # Interfaces
 
 GraphQL interfaces can be defined by placing a `@gqlInterface` docblock directly before an:
 
-* Interface declaration
+- Interface declaration
 
 ```ts
 /**
@@ -56,3 +59,11 @@ type User implements Person {
 If your type implements a GraphQL interface Grats will remind you to add a `__typename: "MyType"` property to your
 class.
 :::
+
+## Merged Interfaces
+
+TypeScript [merges interfaces](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces) if you to define multiple interfaces with the same name in the same scope. For example, `Node` is a built-in interface that describes DOM nodes. So, if you define a `Node` interface in your code, TypeScript will merge your interface with the built-in one.
+
+To avoid ambiguity, Grats will error if you try to define a GraphQL interface using a merged TypeScript interface. To avoid this error you can define a new interface, with a unique name, and then [rename](../03-resolvers/04-renaming.mdx) it to the name you want to use in your schema.
+
+<GratsCode out={NodeInterface} mode="ts" />
