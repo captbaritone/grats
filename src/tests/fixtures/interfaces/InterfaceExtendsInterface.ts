@@ -10,11 +10,11 @@ interface Person {
   name: string;
 }
 
-/**
- * @gqlInterface
- * @gqlImplements Node, Person
- */
-interface Actor {
+/** @gqlInterface */
+interface Actor
+  // Grats ignores these
+  extends GqlNode,
+    Person {
   /** @gqlField */
   id: string;
   /** @gqlField */

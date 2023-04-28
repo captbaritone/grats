@@ -707,16 +707,25 @@ export class Extractor {
   }
 
   collectInterfaces(
-    node: ts.ClassDeclaration | ts.InterfaceDeclaration,
+    node:
+      | ts.ClassDeclaration
+      | ts.InterfaceDeclaration
+      | ts.TypeAliasDeclaration,
   ): Array<NamedTypeNode> | null {
+    const heritageInterfaces = ts.isClassDeclaration(node)
+      ? this.collectHeritageInterfaces(node)
+      : null;
     return concatMaybeArrays(
-      this.collectHeritageInterfaces(node),
+      heritageInterfaces,
       this.collectTagInterfaces(node),
     );
   }
 
   collectTagInterfaces(
-    node: ts.ClassDeclaration | ts.InterfaceDeclaration,
+    node:
+      | ts.ClassDeclaration
+      | ts.InterfaceDeclaration
+      | ts.TypeAliasDeclaration,
   ): Array<NamedTypeNode> | null {
     const tag = this.findTag(node, IMPLEMENTS_TAG);
     if (tag == null) return null;
@@ -727,12 +736,15 @@ export class Extractor {
     }
     return commentName.split(",").map((name) => {
       // FIXME: Use more targeted location information.
+      // Will require rewriting everything that expects a node for location
+      // purposes to transform the node into a location eagerly. Then we can have
+      // a richer set of tools to construct custom locations.
       return this.gqlNamedType(tag, name.trim());
     });
   }
 
   collectHeritageInterfaces(
-    node: ts.ClassDeclaration | ts.InterfaceDeclaration,
+    node: ts.ClassDeclaration,
   ): Array<NamedTypeNode> | null {
     if (node.heritageClauses == null) return null;
 
@@ -782,29 +794,27 @@ export class Extractor {
       symbol.declarations.length > 1
     ) {
       const otherLocations = symbol.declarations
-        .filter((d) => d !== node)
+        .filter((d) => d !== node && ts.isInterfaceDeclaration(d))
         .map((d) => {
           const locNode = ts.getNameOfDeclaration(d) ?? d;
           return this.related(locNode, "Other declaration");
         });
-      return this.report(
-        node.name,
-        E.mergedInterfaces(name.value),
-        otherLocations,
-      );
+
+      if (otherLocations.length > 0) {
+        return this.report(
+          node.name,
+          E.mergedInterfaces(name.value),
+          otherLocations,
+        );
+      }
     }
 
     const description = this.collectDescription(node.name);
+    const interfaces = this.collectInterfaces(node);
 
     const fields = this.collectFields(node);
 
     this.ctx.recordTypeName(node.name, name.value);
-
-    // While GraphQL supports interfaces that extend other interfaces,
-    // TypeScript does not. So we can't support that here either.
-
-    // In the future we could support classes that act as interfaces through
-    // inheritance.
 
     this.definitions.push({
       kind: Kind.INTERFACE_TYPE_DEFINITION,
@@ -812,6 +822,7 @@ export class Extractor {
       description: description || undefined,
       name,
       fields,
+      interfaces: interfaces || undefined,
     });
   }
 

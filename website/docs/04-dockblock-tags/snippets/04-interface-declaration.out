@@ -1,0 +1,14 @@
+/**
+ * A description of my interface.
+ * @gqlInterface MyInterfaceName
+ */
+interface MyClass {
+  /** @gqlField */
+  someField: string;
+}
+
+=== SNIP ===
+"""A description of my interface."""
+interface MyInterfaceName {
+  someField: String
+}

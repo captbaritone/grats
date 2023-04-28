@@ -4,6 +4,8 @@ import TypesInterface from "!!raw-loader!./snippets/01-types-interface.out";
 import TypesAlias from "!!raw-loader!./snippets/01-types-alias.out";
 import TypesRenaming from "!!raw-loader!./snippets/01-types-renaming.out";
 import TypesImplementInterface from "!!raw-loader!./snippets/01-types-implement-interface.out";
+import TypesAliasImplementInterface from "!!raw-loader!./snippets/01-types-alias-and-implement-interface.out";
+import TypesInterfaceImplementInterface from "!!raw-loader!./snippets/01-types-interface-implement-interface.out";
 
 # Types
 
@@ -42,19 +44,35 @@ Which would extract:
 
 ## Implementing Interfaces
 
-If you are using classes to model your GraphQL resolvers, you can define your types as implementing a GraphQL interface by declaring that your class implements an interface which has been annotated with [`@gqlInterface`](./04-interfaces.mdx).
-
-:::caution
-
-Grats does not **yet** support implementing interfaces when you define your types using interfaces of type aliases, but support is on our roadmap.
-
+:::note
+Like GraphQL's schema definition language, each type which implemnts of an interface must manually define all the fields required by the interface with `/** @gqlField */` tags. Grats will not automatically inherit the fields of the interface. If you omit any fields, or fail to match types correctly, Grats will report an error.
 :::
+
+### Classes
+
+If you are using classes to model your GraphQL resolvers, you can define your types as implementing a GraphQL interface by declaring that your class implements an interface which has been annotated with [`@gqlInterface`](./04-interfaces.mdx).
 
 <GratsCode out={TypesImplementInterface} mode="ts" />
 
 Will generate the following GraphQL schema:
 
 <GratsCode out={TypesImplementInterface} mode="gql" />
+
+### Other Declarations
+
+If you are using an **interface** or **type alias** to define your GraphQL type, there is no TypeScript concept which cleanly maps to the GraphQL concept of an interface. In this case, you can use the `@gqlImplements` docblock tag to specify that your type implements one or more GraphQL comma separated interface. Note that with this approach you do not get TypeScript validation that you implementation implements the interface, however Grats will validate that you implement all the fields of the interface with the correct arguments and types.
+
+#### Type Alias
+
+<GratsCode out={TypesAliasImplementInterface} mode="ts" />
+
+:::info
+See [Interfaces](./04-interfaces.mdx) for more information about defining interfaces.
+:::
+
+#### TypeScript Interface
+
+<GratsCode out={TypesInterfaceImplementInterface} mode="ts" />
 
 :::note
 If your type implements a GraphQL interface or is a member of a GraphQL
