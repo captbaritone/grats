@@ -2,6 +2,7 @@ import {
   ALL_TAGS,
   ENUM_TAG,
   FIELD_TAG,
+  IMPLEMENTS_TAG,
   INPUT_TAG,
   INTERFACE_TAG,
   KILLS_PARENT_ON_EXCEPTION_TAG,
@@ -30,6 +31,10 @@ const DOC_URLS = {
 
 export function fieldTagOnWrongNode() {
   return `\`@${FIELD_TAG}\` can only be used on method/property declarations or signatures.`;
+}
+
+export function implementsTagOnWrongNode() {
+  return `\`@${IMPLEMENTS_TAG}\` can only be used on Grats type or interface declarations. Did you mean to include the \`@${TYPE_TAG}\` or \`@${INTERFACE_TAG}\` tag in this docblock?`;
 }
 
 export function killsParentOnExceptionOnWrongNode() {
@@ -269,4 +274,16 @@ export function mergedInterfaces(interfaceName: string) {
     `Consider using a unique name for your TypeScript interface and renaming it.\n\n`,
     `Learn more: ${DOC_URLS.mergedInterfaces}`,
   ].join(" ");
+}
+
+export function implementsTagMissingValue() {
+  return `Expected \`@${IMPLEMENTS_TAG}\` to be followed by one or more interface names.`;
+}
+
+export function duplicateTag(tagName: string) {
+  return `Unexpected duplicate \`@${tagName}\` tag. Grats does not accept multiple instances of the same tag.`;
+}
+
+export function duplicateInterfaceTag() {
+  return `Unexpected duplicate \`@${IMPLEMENTS_TAG}\` tag. To declare that a type or interface implements multiple interfaces list them as comma separated values: \`@${IMPLEMENTS_TAG} interfaceA, interfaceB\`.`;
 }

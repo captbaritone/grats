@@ -3,19 +3,16 @@ INPUT
 ----------------- 
 /**
  * @gqlType
- * @gqlImplements HasName
+ * @gqlImplements Person
  */
-export default interface User {
+export type User = {
   __typename: "User";
   /** @gqlField */
-  hello: string;
-
-  /** @gqlField */
   name: string;
-}
+};
 
 /** @gqlInterface */
-interface HasName {
+interface Person {
   /** @gqlField */
   name: string;
 }
@@ -27,11 +24,10 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type User implements HasName {
-  hello: String
+type User implements Person {
   name: String
 }
 
-interface HasName {
+interface Person {
   name: String
 }

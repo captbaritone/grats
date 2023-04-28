@@ -1,18 +1,17 @@
 /**
  * @gqlType
- * @gqlImplements HasName
+ * @gqlImplements Person
  */
-export default interface User {
+export type User = {
   __typename: "User";
   /** @gqlField */
-  hello: string;
-
-  /** @gqlField */
   name: string;
-}
+};
 
 /** @gqlInterface */
-interface HasName {
+interface Person {
   /** @gqlField */
   name: string;
+  /** @gqlField */
+  title: string;
 }

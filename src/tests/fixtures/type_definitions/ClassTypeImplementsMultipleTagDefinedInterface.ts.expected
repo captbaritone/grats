@@ -1,0 +1,50 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * @gqlType
+ * @gqlImplements Person
+ * @gqlImplements Member
+ */
+export default class User {
+  __typename: "User";
+  /** @gqlField */
+  id: string;
+  /** @gqlField */
+  name(): string {
+    return "Samantha";
+  }
+}
+
+/**
+ * @gqlInterface
+ */
+interface Person {
+  /** @gqlField */
+  name(): string;
+}
+
+/**
+ * @gqlInterface
+ */
+interface Member {
+  /** @gqlField */
+  id: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/type_definitions/ClassTypeImplementsMultipleTagDefinedInterface.ts:3:4 - error: Unexpected duplicate `@gqlImplements` tag. To declare that a type or interface implements multiple interfaces list them as comma separated values: `@gqlImplements interfaceA, interfaceB`.
+
+3  * @gqlImplements Person
+     ~~~~~~~~~~~~~~~~~~~~~
+4  * @gqlImplements Member
+  ~~~
+
+  src/tests/fixtures/type_definitions/ClassTypeImplementsMultipleTagDefinedInterface.ts:4:4
+    4  * @gqlImplements Member
+         ~~~~~~~~~~~~~~~~~~~~~
+    5  */
+      ~
+    Additional tag
