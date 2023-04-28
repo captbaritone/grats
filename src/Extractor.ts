@@ -574,6 +574,7 @@ export class Extractor {
 
     const description = this.collectDescription(node.name);
     const fields = this.collectFields(node);
+    const interfaces = this.collectInterfaces(node);
     this.ctx.recordTypeName(node.name, name.value);
 
     this.checkForTypenameProperty(node, name.value);
@@ -585,7 +586,7 @@ export class Extractor {
       directives: undefined,
       name,
       fields,
-      interfaces: undefined,
+      interfaces: interfaces ?? undefined,
     });
   }
 
@@ -744,6 +745,31 @@ export class Extractor {
 
   collectHeritageInterfaces(
     node: ts.ClassDeclaration,
+  ): Array<NamedTypeNode> | null {
+    return concatMaybeArrays(
+      this.collectHeritageInterfaces(node),
+      this.collectTagInterfaces(node),
+    );
+  }
+
+  collectTagInterfaces(
+    node: ts.ClassDeclaration | ts.InterfaceDeclaration,
+  ): Array<NamedTypeNode> | null {
+    const tag = this.findTag(node, IMPLEMENTS_TAG);
+    if (tag == null) return null;
+
+    const commentName = ts.getTextOfJSDocComment(tag.comment);
+    if (commentName == null) {
+      return this.report(tag, E.implementsTagMissingValue());
+    }
+    return commentName.split(",").map((name) => {
+      // FIXME: Use more targeted location information.
+      return this.gqlNamedType(tag, name.trim());
+    });
+  }
+
+  collectHeritageInterfaces(
+    node: ts.ClassDeclaration | ts.InterfaceDeclaration,
   ): Array<NamedTypeNode> | null {
     if (node.heritageClauses == null) return null;
 
