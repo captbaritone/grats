@@ -746,31 +746,6 @@ export class Extractor {
   collectHeritageInterfaces(
     node: ts.ClassDeclaration,
   ): Array<NamedTypeNode> | null {
-    return concatMaybeArrays(
-      this.collectHeritageInterfaces(node),
-      this.collectTagInterfaces(node),
-    );
-  }
-
-  collectTagInterfaces(
-    node: ts.ClassDeclaration | ts.InterfaceDeclaration,
-  ): Array<NamedTypeNode> | null {
-    const tag = this.findTag(node, IMPLEMENTS_TAG);
-    if (tag == null) return null;
-
-    const commentName = ts.getTextOfJSDocComment(tag.comment);
-    if (commentName == null) {
-      return this.report(tag, E.implementsTagMissingValue());
-    }
-    return commentName.split(",").map((name) => {
-      // FIXME: Use more targeted location information.
-      return this.gqlNamedType(tag, name.trim());
-    });
-  }
-
-  collectHeritageInterfaces(
-    node: ts.ClassDeclaration | ts.InterfaceDeclaration,
-  ): Array<NamedTypeNode> | null {
     if (node.heritageClauses == null) return null;
 
     const maybeInterfaces: Array<NamedTypeNode | null> =
