@@ -1,0 +1,45 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface Node */
+interface GqlNode {
+  /** @gqlField */
+  id: string;
+}
+
+/** @gqlInterface */
+interface Person {
+  /** @gqlField */
+  name: string;
+}
+
+/** @gqlInterface */
+interface Actor
+  // Grats ignores these
+  extends GqlNode,
+    Person {
+  /** @gqlField */
+  id: string;
+  /** @gqlField */
+  name: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+interface Node {
+  id: String
+}
+
+interface Person {
+  name: String
+}
+
+interface Actor {
+  id: String
+  name: String
+}
