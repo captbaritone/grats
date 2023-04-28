@@ -574,7 +574,6 @@ export class Extractor {
 
     const description = this.collectDescription(node.name);
     const fields = this.collectFields(node);
-    const interfaces = this.collectInterfaces(node);
     this.ctx.recordTypeName(node.name, name.value);
 
     this.checkForTypenameProperty(node, name.value);
@@ -586,7 +585,7 @@ export class Extractor {
       directives: undefined,
       name,
       fields,
-      interfaces: interfaces ?? undefined,
+      interfaces: undefined,
     });
   }
 
