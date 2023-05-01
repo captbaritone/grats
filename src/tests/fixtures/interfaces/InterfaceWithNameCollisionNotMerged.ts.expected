@@ -1,37 +1,41 @@
 -----------------
 INPUT
 ----------------- 
-/**
- * @gqlType
- * @gqlImplements HasName
- */
-export default interface User {
-  __typename: "User";
-  /** @gqlField */
-  hello: string;
+import { ID } from "../../../types";
 
+/** @gqlType */
+export default class Query {
   /** @gqlField */
-  name: string;
+  me(): Node {
+    throw new Error("Not implemented");
+  }
+}
+
+class Node {
+  id: ID;
 }
 
 /** @gqlInterface */
-interface HasName {
+interface Node {
   /** @gqlField */
-  name: string;
+  id: string;
 }
 
 -----------------
 OUTPUT
 -----------------
+schema {
+  query: Query
+}
+
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type User implements HasName {
-  hello: String
-  name: String
+type Query {
+  me: Node
 }
 
-interface HasName {
-  name: String
+interface Node {
+  id: String
 }

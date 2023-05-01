@@ -1,0 +1,40 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * @gqlType
+ * @gqlImplements Person
+ */
+export type User = {
+  __typename: "User";
+  /** @gqlField */
+  name: string;
+};
+
+/** @gqlInterface */
+interface Person {
+  /** @gqlField */
+  name: string;
+  /** @gqlField */
+  title: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/type_definitions_from_alias/AliasTypeImplementsInterfaceIncorrectly.invalid.ts:16:3 - error: Interface field Person.title expected but User does not provide it.
+
+16   title: string;
+     ~~~~~~~~~~~~~~
+
+  src/tests/fixtures/type_definitions_from_alias/AliasTypeImplementsInterfaceIncorrectly.invalid.ts:5:1
+      5 export type User = {
+        ~~~~~~~~~~~~~~~~~~~~
+      6   __typename: "User";
+        ~~~~~~~~~~~~~~~~~~~~~
+    ... 
+      8   name: string;
+        ~~~~~~~~~~~~~~~
+      9 };
+        ~~
+    Related location

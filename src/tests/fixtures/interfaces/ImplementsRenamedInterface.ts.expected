@@ -1,21 +1,15 @@
 -----------------
 INPUT
 ----------------- 
-/**
- * @gqlType
- * @gqlImplements HasName
- */
-export default interface User {
-  __typename: "User";
-  /** @gqlField */
-  hello: string;
-
+/** @gqlInterface Person */
+interface DONT_USE_THIS {
   /** @gqlField */
   name: string;
 }
 
-/** @gqlInterface */
-interface HasName {
+/** @gqlType */
+class User implements DONT_USE_THIS {
+  __typename = "User";
   /** @gqlField */
   name: string;
 }
@@ -27,11 +21,10 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type User implements HasName {
-  hello: String
+interface Person {
   name: String
 }
 
-interface HasName {
+type User implements Person {
   name: String
 }

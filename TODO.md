@@ -1,6 +1,7 @@
 # TODO
 
 ## Alpha
+- [ ] Don't report name collisions as merged interfaces (class + interface with the same name)
 - [ ] Test and clarify behavior of killsParentOnException
     - [ ] Should there be a way to enable killsParentOnException for nullable resolvers?
 - [ ] Extend interfaces

@@ -39,6 +39,7 @@ import {
 } from "./serverDirectives";
 import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
+import { concatMaybeArrays } from "./utils/helpers";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -51,8 +52,11 @@ export const INTERFACE_TAG = "gqlInterface";
 export const ENUM_TAG = "gqlEnum";
 export const UNION_TAG = "gqlUnion";
 export const INPUT_TAG = "gqlInput";
+
+export const IMPLEMENTS_TAG = "gqlImplements";
 export const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
 
+// All the tags that start with gql
 export const ALL_TAGS = [
   TYPE_TAG,
   FIELD_TAG,
@@ -61,6 +65,7 @@ export const ALL_TAGS = [
   ENUM_TAG,
   UNION_TAG,
   INPUT_TAG,
+  IMPLEMENTS_TAG,
 ];
 
 const DEPRECATED_TAG = "deprecated";
@@ -135,6 +140,17 @@ export class Extractor {
             this.reportUnhandled(node, E.fieldTagOnWrongNode());
           }
           break;
+        case IMPLEMENTS_TAG: {
+          const hasTypeOrInterfaceTag = ts.getJSDocTags(node).some((t) => {
+            return (
+              t.tagName.text === TYPE_TAG || t.tagName.text === INTERFACE_TAG
+            );
+          });
+          if (!hasTypeOrInterfaceTag) {
+            this.report(tag.tagName, E.implementsTagOnWrongNode());
+          }
+          break;
+        }
         case KILLS_PARENT_ON_EXCEPTION_TAG: {
           const hasFieldTag = ts.getJSDocTags(node).some((t) => {
             return t.tagName.text === FIELD_TAG;
@@ -585,6 +601,7 @@ export class Extractor {
 
     const description = this.collectDescription(node.name);
     const fields = this.collectFields(node.type);
+    const interfaces = this.collectInterfaces(node);
     this.ctx.recordTypeName(node.name, name.value);
 
     this.checkForTypenameProperty(node.type, name.value);
@@ -596,9 +613,7 @@ export class Extractor {
       directives: undefined,
       name,
       fields,
-      // I don't believe there is a reasonable way to specify that a type
-      // implements an interface.
-      interfaces: undefined,
+      interfaces: interfaces ?? undefined,
     });
   }
 
@@ -692,7 +707,44 @@ export class Extractor {
   }
 
   collectInterfaces(
-    node: ts.ClassDeclaration | ts.InterfaceDeclaration,
+    node:
+      | ts.ClassDeclaration
+      | ts.InterfaceDeclaration
+      | ts.TypeAliasDeclaration,
+  ): Array<NamedTypeNode> | null {
+    const heritageInterfaces = ts.isClassDeclaration(node)
+      ? this.collectHeritageInterfaces(node)
+      : null;
+    return concatMaybeArrays(
+      heritageInterfaces,
+      this.collectTagInterfaces(node),
+    );
+  }
+
+  collectTagInterfaces(
+    node:
+      | ts.ClassDeclaration
+      | ts.InterfaceDeclaration
+      | ts.TypeAliasDeclaration,
+  ): Array<NamedTypeNode> | null {
+    const tag = this.findTag(node, IMPLEMENTS_TAG);
+    if (tag == null) return null;
+
+    const commentName = ts.getTextOfJSDocComment(tag.comment);
+    if (commentName == null) {
+      return this.report(tag, E.implementsTagMissingValue());
+    }
+    return commentName.split(",").map((name) => {
+      // FIXME: Use more targeted location information.
+      // Will require rewriting everything that expects a node for location
+      // purposes to transform the node into a location eagerly. Then we can have
+      // a richer set of tools to construct custom locations.
+      return this.gqlNamedType(tag, name.trim());
+    });
+  }
+
+  collectHeritageInterfaces(
+    node: ts.ClassDeclaration,
   ): Array<NamedTypeNode> | null {
     if (node.heritageClauses == null) return null;
 
@@ -742,29 +794,27 @@ export class Extractor {
       symbol.declarations.length > 1
     ) {
       const otherLocations = symbol.declarations
-        .filter((d) => d !== node)
+        .filter((d) => d !== node && ts.isInterfaceDeclaration(d))
         .map((d) => {
           const locNode = ts.getNameOfDeclaration(d) ?? d;
           return this.related(locNode, "Other declaration");
         });
-      return this.report(
-        node.name,
-        E.mergedInterfaces(name.value),
-        otherLocations,
-      );
+
+      if (otherLocations.length > 0) {
+        return this.report(
+          node.name,
+          E.mergedInterfaces(name.value),
+          otherLocations,
+        );
+      }
     }
 
     const description = this.collectDescription(node.name);
+    const interfaces = this.collectInterfaces(node);
 
     const fields = this.collectFields(node);
 
     this.ctx.recordTypeName(node.name, name.value);
-
-    // While GraphQL supports interfaces that extend other interfaces,
-    // TypeScript does not. So we can't support that here either.
-
-    // In the future we could support classes that act as interfaces through
-    // inheritance.
 
     this.definitions.push({
       kind: Kind.INTERFACE_TYPE_DEFINITION,
@@ -772,6 +822,7 @@ export class Extractor {
       description: description || undefined,
       name,
       fields,
+      interfaces: interfaces || undefined,
     });
   }
 
@@ -1437,11 +1488,26 @@ export class Extractor {
   }
 
   findTag(node: ts.Node, tagName: string): ts.JSDocTag | null {
-    return (
-      ts
-        .getJSDocTags(node)
-        .find((tag) => tag.tagName.escapedText === tagName) ?? null
-    );
+    const tags = ts
+      .getJSDocTags(node)
+      .filter((tag) => tag.tagName.escapedText === tagName);
+
+    if (tags.length === 0) {
+      return null;
+    }
+    if (tags.length > 1) {
+      const additionalTags = tags.slice(1).map((tag) => {
+        return this.related(tag, "Additional tag");
+      });
+
+      const message =
+        tagName === IMPLEMENTS_TAG
+          ? E.duplicateInterfaceTag()
+          : E.duplicateTag(tagName);
+
+      return this.report(tags[0], message, additionalTags);
+    }
+    return tags[0];
   }
 
   // It is a GraphQL best practice to model all fields as nullable. This allows

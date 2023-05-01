@@ -1,5 +1,7 @@
 import GratsCode from "@site/src/components/GratsCode";
+import InterfaceDeclaration from "!!raw-loader!./snippets/04-interface-declaration.out";
 import NodeInterface from "!!raw-loader!./snippets/04-merged-interface-renaming.out";
+import InterfaceImplementingInterface from "!!raw-loader!./snippets/04-interface-implement-interface.out";
 
 # Interfaces
 
@@ -7,57 +9,22 @@ GraphQL interfaces can be defined by placing a `@gqlInterface` docblock directly
 
 - Interface declaration
 
-```ts
-/**
- * A description of my interface.
- * @gqlInterface <optional name of the type, if different from class name>
- */
-interface MyClass {
-  /** @gqlField */
-  someField: string;
-}
-```
+<GratsCode out={InterfaceDeclaration} mode="ts" />
 
-## Implementing Interfaces
-
-By defining a class which implements an interface annotated as `@gqlInterface`, Grats will automatically generate a GraphQL type which implements that interface.
-
-:::caution
-
-Grats does not **yet** support implementing interfaces when you define your types using interfaces of type aliases, but support is on our roadmap.
-
-:::
-
-```ts
-/** @gqlInterface */
-interface Person {
-  /** @gqlField */
-  name: string;
-}
-
-/** @gqlType */
-class User implements Person {
-  __typename: "User";
-  /** @gqlField */
-  name: string;
-}
-```
-
-Will generate the following GraphQL schema:
-
-```graphql
-interface Person {
-  name: String
-}
-
-type User implements Person {
-  name: String
-}
-```
+## Types Implementing Interfaces
 
 :::note
-If your type implements a GraphQL interface Grats will remind you to add a `__typename: "MyType"` property to your
-class.
+To declare that a **type implements an interface**, see the [Implementing Interfaces](./01-types.mdx#implementing-interfaces) section of the Types docs.
+:::
+
+## Interfaces Implementing Interfaces
+
+TypeScript does not have a concept of interfaces implementing interfaces. However, GraphQL does. To declare that an interface implements another interface, you can use the `@gqlInterface` docblock tag in an interface declaration. The value following the tag should be a comma-separated list of interfaces that the interface implements.
+
+<GratsCode out={InterfaceImplementingInterface} mode="ts" />
+
+:::note
+Each implementor of an interface must declare define all the fields required by the interface with `/** @gqlField */`. This means that if you have an interface that implements another interface, you must define all the fields required by both interfaces.
 :::
 
 ## Merged Interfaces
