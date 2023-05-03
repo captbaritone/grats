@@ -12,13 +12,13 @@ OUTPUT
 -----------------
 src/tests/fixtures/enums/ImplicitlyNumericEnum.ts:3:3 - error: Expected `@gqlEnum` enum members to have string literal initializers. For example: `FOO = 'foo'`.
 
-If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
+If you think Grats should be able to infer this enum value, please report an issue at https://github.com/captbaritone/grats/issues.
 
 3   VALID,
     ~~~~~
 src/tests/fixtures/enums/ImplicitlyNumericEnum.ts:4:3 - error: Expected `@gqlEnum` enum members to have string literal initializers. For example: `FOO = 'foo'`.
 
-If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
+If you think Grats should be able to infer this enum value, please report an issue at https://github.com/captbaritone/grats/issues.
 
 4   INVALID,
     ~~~~~~~
