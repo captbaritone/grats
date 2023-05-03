@@ -28,7 +28,7 @@ OUTPUT
 -----------------
 src/tests/fixtures/default_values/DefaultArgumentObjectLiteralSpread.invalid.ts:9:15 - error: Expected object literal property to be a property assignment.
 
-If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
+If you think Grats should be able to infer this constant value, please report an issue at https://github.com/captbaritone/grats/issues.
 
 9     input = { ...defaultArgs },
                 ~~~~~~~~~~~~~~

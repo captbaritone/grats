@@ -137,7 +137,7 @@ export class Extractor {
           ) {
             // Right now this happens via deep traversal
             // Note: Keep this in sync with `collectFields`
-            this.reportUnhandled(node, E.fieldTagOnWrongNode());
+            this.reportUnhandled(node, "field", E.fieldTagOnWrongNode());
           }
           break;
         case IMPLEMENTS_TAG: {
@@ -264,10 +264,20 @@ export class Extractor {
   // Gives the user a path forward if they think we should be able to infer this type.
   reportUnhandled(
     node: ts.Node,
+    positionKind:
+      | "type"
+      | "field"
+      | "field type"
+      | "input"
+      | "input field"
+      | "union member"
+      | "constant value"
+      | "union"
+      | "enum value",
     message: string,
     relatedInformation?: ts.DiagnosticRelatedInformation[],
   ): null {
-    const suggestion = `If you think ${LIBRARY_NAME} should be able to infer this type, please report an issue at ${ISSUE_URL}.`;
+    const suggestion = `If you think ${LIBRARY_NAME} should be able to infer this ${positionKind}, please report an issue at ${ISSUE_URL}.`;
     const completedMessage = `${message}\n\n${suggestion}`;
     return this.report(node, completedMessage, relatedInformation);
   }
@@ -324,7 +334,11 @@ export class Extractor {
     const types: NamedTypeNode[] = [];
     for (const member of node.type.types) {
       if (!ts.isTypeReferenceNode(member)) {
-        return this.reportUnhandled(member, E.expectedUnionTypeReference());
+        return this.reportUnhandled(
+          member,
+          "union member",
+          E.expectedUnionTypeReference(),
+        );
       }
       const namedType = this.gqlNamedType(
         member.typeName,
@@ -495,12 +509,16 @@ export class Extractor {
     const fields: Array<InputValueDefinitionNode> = [];
 
     if (!ts.isTypeLiteralNode(node.type)) {
-      return this.reportUnhandled(node, E.inputTypeNotLiteral());
+      return this.reportUnhandled(node, "input", E.inputTypeNotLiteral());
     }
 
     for (const member of node.type.members) {
       if (!ts.isPropertySignature(member)) {
-        this.reportUnhandled(member, E.inputTypeFieldNotProperty());
+        this.reportUnhandled(
+          member,
+          "input field",
+          E.inputTypeFieldNotProperty(),
+        );
         continue;
       }
       const field = this.collectInputField(member);
@@ -595,7 +613,7 @@ export class Extractor {
     if (name == null) return null;
 
     if (!ts.isTypeLiteralNode(node.type)) {
-      this.reportUnhandled(node.type, E.typeTagOnAliasOfNonObject());
+      this.reportUnhandled(node.type, "type", E.typeTagOnAliasOfNonObject());
       return;
     }
 
@@ -910,7 +928,11 @@ export class Extractor {
     } else if (ts.isArrayLiteralExpression(node)) {
       return this.collectArrayLiteral(node);
     }
-    return this.reportUnhandled(node, E.defaultValueIsNotLiteral());
+    return this.reportUnhandled(
+      node,
+      "constant value",
+      E.defaultValueIsNotLiteral(),
+    );
   }
 
   collectArrayLiteral(
@@ -963,10 +985,18 @@ export class Extractor {
     node: ts.ObjectLiteralElementLike,
   ): ConstObjectFieldNode | null {
     if (!ts.isPropertyAssignment(node)) {
-      return this.reportUnhandled(node, E.defaultArgElementIsNotAssignment());
+      return this.reportUnhandled(
+        node,
+        "constant value",
+        E.defaultArgElementIsNotAssignment(),
+      );
     }
     if (node.name == null) {
-      return this.reportUnhandled(node, E.defaultArgPropertyMissingName());
+      return this.reportUnhandled(
+        node,
+        "field",
+        E.defaultArgPropertyMissingName(),
+      );
     }
     const name = this.expectIdentifier(node.name);
     if (name == null) return null;
@@ -1105,7 +1135,7 @@ export class Extractor {
     }
 
     if (!ts.isUnionTypeNode(node.type)) {
-      this.reportUnhandled(node.type, E.enumTagOnInvalidNode());
+      this.reportUnhandled(node.type, "union", E.enumTagOnInvalidNode());
       return null;
     }
 
@@ -1147,7 +1177,11 @@ export class Extractor {
         !ts.isLiteralTypeNode(member) ||
         !ts.isStringLiteral(member.literal)
       ) {
-        this.reportUnhandled(member, E.enumVariantNotStringLiteral());
+        this.reportUnhandled(
+          member,
+          "union member",
+          E.enumVariantNotStringLiteral(),
+        );
         continue;
       }
 
@@ -1174,7 +1208,11 @@ export class Extractor {
         member.initializer == null ||
         !ts.isStringLiteral(member.initializer)
       ) {
-        this.reportUnhandled(member, E.enumVariantMissingInitializer());
+        this.reportUnhandled(
+          member,
+          "enum value",
+          E.enumVariantMissingInitializer(),
+        );
         continue;
       }
 
@@ -1431,7 +1469,7 @@ export class Extractor {
       return this.report(node, E.unsupportedTypeLiteral());
     }
     // TODO: Better error message. This is okay if it's a type reference, but everything else is not.
-    this.reportUnhandled(node, E.unknownGraphQLType());
+    this.reportUnhandled(node, "type", E.unknownGraphQLType());
     return null;
   }
 

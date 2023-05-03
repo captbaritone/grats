@@ -14,7 +14,7 @@ OUTPUT
 -----------------
 src/tests/fixtures/default_values/NonLiteralDefaultValue.invalid.ts:4:22 - error: Expected GraphQL field argument default values to be a literal.
 
-If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
+If you think Grats should be able to infer this constant value, please report an issue at https://github.com/captbaritone/grats/issues.
 
 4   hello({ greeting = String(Math.random()) }: { greeting: string }): string {
                        ~~~~~~~~~~~~~~~~~~~~~
