@@ -11,12 +11,29 @@ export class Query {
   }
 }
 
+type Connection<T> = {
+  pageInfo: PageInfo<T>;
+  edges: Edge<T>[];
+};
+
+type PageInfo<T> = {
+  hasNext: boolean;
+  hasPrevious: boolean;
+  startCursor: string;
+  endCursor: string;
+};
+
+type Edge<T> = {
+  cursor: string;
+  node: T;
+};
+
 /** @gqlType */
 class FirstHundredIntegersConnection {
   _max: number = 100;
 
   /** @gqlField */
-  pageInfo: PageInfo;
+  pageInfo: FirstHundredIntegersPageInfo;
 
   /** @gqlField */
   edges: FirstHundredIntegersEdge[];
@@ -31,7 +48,7 @@ class FirstHundredIntegersConnection {
     }
 
     // TODO: What about empty connections
-    this.pageInfo = new PageInfo({
+    this.pageInfo = new FirstHundredIntegersPageInfo({
       hasNext: end < this._max,
       hasPrevious: start > 0,
       startCursor: this.edges[0].cursor,
@@ -41,7 +58,7 @@ class FirstHundredIntegersConnection {
 }
 
 /** @gqlType */
-class PageInfo {
+class FirstHundredIntegersPageInfo {
   constructor({
     hasNext,
     hasPrevious,

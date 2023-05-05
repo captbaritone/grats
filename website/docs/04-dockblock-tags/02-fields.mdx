@@ -1,5 +1,6 @@
 import GratsCode from "@site/src/components/GratsCode";
 import PropertyAndMethodFields from "!!raw-loader!./snippets/02-property-and-method.out";
+import ParameterPropertyFields from "!!raw-loader!./snippets/02-parameter-property-fields.out";
 import FunctionExtendQuery from "!!raw-loader!./snippets/02-function-extending-query.out";
 import FunctionExtendMutation from "!!raw-loader!./snippets/02-function-extending-mutation.out";
 
@@ -11,29 +12,54 @@ You can define GraphQL fields by placing a `@gqlField` directly before a:
 - Method signature
 - Property declaration
 - Property signature
+- Parameter property
 - Function declaration (with named export)
 
 ## Class-based fields
 
+When using classes or interfaces to define GraphQL types, fields can be defined using class properties or methods:
+
 <GratsCode out={PropertyAndMethodFields} mode="ts" />
+
+Fields can also be defined using TypeScript's [parameter properties](https://www.typescriptlang.org/docs/handbook/2/classes.html#parameter-properties), wich is a short-hand for defining a field value that is passed to the class constructor:
+
+<GratsCode out={ParameterPropertyFields} mode="ts" />
 
 For more information about field resolves, see [Resolver Signature](../03-resolvers/index.mdx).
 
 ## Functional style fields
 
-Sometimes you want to add a computed field to a non-class type, or extend base
-types like `Query` or `Mutation` from another file. Both of these usecases are
-enabled by placing a `@gqlField` before an exported function declaration.
+If you prefer to avoid classes, types can be defined using type literals. However, this approach does not allow you to define derived/resolver fields. To solve this, Grats
+also allows you to **define derived fields using named exported functions**. Function resolvers:
 
-In this case, the function should expect an instance of the base type as the
-first argument, and an object representing the GraphQL field arguments as the
-second argument. The function should return the value of the field.
+- Accept an instance of the parent type as the first argument
+- Have a return type that matches the field type
+- Are exported named functions where the function name is the desired field name
 
-Extending Query:
+```typescript
+/** @gqlType */
+const User = {
+  /** @gqlField */
+  firstName: string,
+  /** @gqlField */
+  lastName: string,
+};
+
+export function fullName(user: User): string {
+  return `${user.firstName} ${user.lastName}`;
+}
+```
+
+:::tip
+In addition to adding derived fields to type literals, functionl fields are also
+useful to define root fields on `Query` or `Mutation` next to the type they return or mofidy.
+:::
+
+#### Extending Query:
 
 <GratsCode out={FunctionExtendQuery} mode="ts" />
 
-Extending Mutation:
+#### Extending Mutation:
 
 <GratsCode out={FunctionExtendMutation} mode="ts" />
 

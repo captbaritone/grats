@@ -1,0 +1,18 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class Query {
+  constructor(
+    /** @gqlField */
+    public hello,
+  ) {}
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/field_definitions/ParameterPropertyFieldNoType.invalid.ts:5:5 - error: Expected `@gqlField` parameter property to have a type annotation.
+
+5     public hello,
+      ~~~~~~~~~~~~

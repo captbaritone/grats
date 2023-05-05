@@ -1,0 +1,25 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class Query {
+  constructor(
+    /** @gqlField hello */
+    public foo: string,
+  ) {}
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  hello: String @methodName(name: "foo")
+}

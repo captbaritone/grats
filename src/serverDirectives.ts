@@ -8,6 +8,7 @@ import {
 } from "graphql";
 import { resolveRelativePath } from "./gratsRoot";
 
+// TODO: Rename to be generic since it can apply to properties as well as methods.
 export const METHOD_NAME_DIRECTIVE = "methodName";
 export const METHOD_NAME_ARG = "name";
 export const EXPORTED_DIRECTIVE = "exported";
