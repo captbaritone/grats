@@ -1,0 +1,18 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class Query {
+  constructor(
+    /** @gqlField */
+    public [foo]: string,
+  ) {}
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/field_definitions/ParameterPropertyFieldBindingPattern.invalid.ts:5:12 - error: Expected an identifier.
+
+5     public [foo]: string,
+             ~~~~~

@@ -16,6 +16,8 @@ import {
 const DOC_URLS = {
   mergedInterfaces:
     "https://grats.capt.dev/docs/dockblock-tags/interfaces/#merged-interfaces",
+  parameterProperties:
+    "https://grats.capt.dev/docs/dockblock-tags/fields#class-based-fields",
 };
 
 /**
@@ -286,4 +288,22 @@ export function duplicateTag(tagName: string) {
 
 export function duplicateInterfaceTag() {
   return `Unexpected duplicate \`@${IMPLEMENTS_TAG}\` tag. To declare that a type or interface implements multiple interfaces list them as comma separated values: \`@${IMPLEMENTS_TAG} interfaceA, interfaceB\`.`;
+}
+
+export function parameterWithoutModifiers() {
+  return [
+    `Expected \`@${FIELD_TAG}\` constructor paramater to be a parameter property. This requires a modifier such as \`public\` or \`readonly\` before the parameter name.\n\n`,
+    `Learn more: ${DOC_URLS.parameterProperties}`,
+  ].join("");
+}
+
+export function parameterPropertyNotPublic() {
+  return [
+    `Expected \`@${FIELD_TAG}\` parameter property to be public. Valid modifiers for \`@${FIELD_TAG}\` parameter properties are  \`public\` and \`readonly\`.\n\n`,
+    `Learn more: ${DOC_URLS.parameterProperties}`,
+  ].join("");
+}
+
+export function parameterPropertyMissingType() {
+  return `Expected \`@${FIELD_TAG}\` parameter property to have a type annotation.`;
 }

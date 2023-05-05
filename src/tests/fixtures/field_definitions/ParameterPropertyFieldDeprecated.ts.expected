@@ -1,0 +1,28 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class Query {
+  constructor(
+    /**
+     * @gqlField
+     * @deprecated Don't use this
+     */
+    public hello: string,
+  ) {}
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  hello: String @deprecated(reason: "Don't use this")
+}

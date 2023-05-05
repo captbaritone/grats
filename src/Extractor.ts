@@ -129,6 +129,7 @@ export class Extractor {
             this.functionDeclarationExtendType(node, tag);
           } else if (
             !(
+              ts.isParameter(node) ||
               ts.isMethodDeclaration(node) ||
               ts.isPropertyDeclaration(node) ||
               ts.isMethodSignature(node) ||
@@ -404,7 +405,7 @@ export class Extractor {
     ];
 
     if (funcName.text !== name.value) {
-      directives.push(this.methodNameDirective(funcName, funcName.text));
+      directives.push(this.fieldNameDirective(funcName, funcName.text));
     }
 
     const deprecated = this.collectDeprecated(node);
@@ -849,9 +850,19 @@ export class Extractor {
   ): Array<FieldDefinitionNode> {
     const fields: FieldDefinitionNode[] = [];
     ts.forEachChild(node, (node) => {
+      if (ts.isConstructorDeclaration(node)) {
+        // Handle parameter properties
+        // https://www.typescriptlang.org/docs/handbook/2/classes.html#parameter-properties
+        for (const param of node.parameters) {
+          const field = this.constructorParam(param);
+          if (field != null) {
+            fields.push(field);
+          }
+        }
+      }
       if (ts.isMethodDeclaration(node) || ts.isMethodSignature(node)) {
         const field = this.methodDeclaration(node);
-        if (field) {
+        if (field != null) {
           fields.push(field);
         }
       } else if (
@@ -865,6 +876,75 @@ export class Extractor {
       }
     });
     return fields;
+  }
+
+  constructorParam(node: ts.ParameterDeclaration): FieldDefinitionNode | null {
+    const tag = this.findTag(node, FIELD_TAG);
+    if (tag == null) return null;
+    if (node.modifiers == null) {
+      return this.report(node, E.parameterWithoutModifiers());
+    }
+
+    const isParameterProperty = node.modifiers.some(
+      (modifier) =>
+        modifier.kind === ts.SyntaxKind.PublicKeyword ||
+        modifier.kind === ts.SyntaxKind.PrivateKeyword ||
+        modifier.kind === ts.SyntaxKind.ProtectedKeyword ||
+        modifier.kind === ts.SyntaxKind.ReadonlyKeyword,
+    );
+
+    if (!isParameterProperty) {
+      return this.report(node, E.parameterWithoutModifiers());
+    }
+
+    const notPublic = node.modifiers.find(
+      (modifier) =>
+        modifier.kind === ts.SyntaxKind.PrivateKeyword ||
+        modifier.kind === ts.SyntaxKind.ProtectedKeyword,
+    );
+
+    if (notPublic != null) {
+      return this.report(notPublic, E.parameterPropertyNotPublic());
+    }
+
+    const name = this.entityName(node, tag);
+    if (name == null) return null;
+
+    if (node.type == null) {
+      return this.report(node, E.parameterPropertyMissingType());
+    }
+
+    const id = node.name;
+    if (ts.isArrayBindingPattern(id) || ts.isObjectBindingPattern(id)) {
+      // TypeScript triggers an error if a binding pattern is used for a
+      // parameter property, so we don't need to report them.
+      // https://www.typescriptlang.org/play?#code/MYGwhgzhAEBiD29oG8BQ1rHgOwgFwCcBXYPeAgCgAciAjEAS2BQDNEBfAShXdXaA
+      return null;
+    }
+
+    let directives: ConstDirectiveNode[] = [];
+    if (id.text !== name.value) {
+      directives = [this.fieldNameDirective(node.name, id.text)];
+    }
+
+    const type = this.collectType(node.type);
+    if (type == null) return null;
+
+    const deprecated = this.collectDeprecated(node);
+    if (deprecated != null) {
+      directives.push(deprecated);
+    }
+    const description = this.collectDescription(node.name);
+
+    return {
+      kind: Kind.FIELD_DEFINITION,
+      loc: this.loc(node),
+      description: description || undefined,
+      name,
+      arguments: undefined,
+      type: this.handleErrorBubbling(node, type),
+      directives: directives.length > 0 ? directives : undefined,
+    };
   }
 
   collectArgs(
@@ -1240,7 +1320,8 @@ export class Extractor {
       | ts.PropertySignature
       | ts.EnumDeclaration
       | ts.TypeAliasDeclaration
-      | ts.FunctionDeclaration,
+      | ts.FunctionDeclaration
+      | ts.ParameterDeclaration,
     tag: ts.JSDocTag,
   ) {
     if (tag.comment != null) {
@@ -1289,7 +1370,7 @@ export class Extractor {
     if (id == null) return null;
     let directives: ConstDirectiveNode[] = [];
     if (id.text !== name.value) {
-      directives = [this.methodNameDirective(node.name, id.text)];
+      directives = [this.fieldNameDirective(node.name, id.text)];
     }
 
     const deprecated = this.collectDeprecated(node);
@@ -1410,7 +1491,7 @@ export class Extractor {
     }
 
     if (id.text !== name.value) {
-      directives = [this.methodNameDirective(node.name, id.text)];
+      directives = [this.fieldNameDirective(node.name, id.text)];
     }
 
     return {
@@ -1580,7 +1661,7 @@ export class Extractor {
     return type;
   }
 
-  methodNameDirective(nameNode: ts.Node, name: string): ConstDirectiveNode {
+  fieldNameDirective(nameNode: ts.Node, name: string): ConstDirectiveNode {
     return this.gqlConstDirective(
       nameNode,
       this.gqlName(nameNode, METHOD_NAME_DIRECTIVE),
