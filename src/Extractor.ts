@@ -3,15 +3,9 @@ import {
   FieldDefinitionNode,
   InputValueDefinitionNode,
   Kind,
-  ListTypeNode,
   NamedTypeNode,
-  Location as GraphQLLocation,
   NameNode,
-  Source,
-  Token,
-  TokenKind,
   TypeNode,
-  NonNullTypeNode,
   StringValueNode,
   ConstValueNode,
   ConstDirectiveNode,
@@ -30,6 +24,10 @@ import {
 import * as ts from "typescript";
 import { TypeContext, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
 import { ConfigOptions } from "./lib";
+import * as E from "./Errors";
+import { traverseJSDocTags } from "./utils/JSDoc";
+import { concatMaybeArrays } from "./utils/helpers";
+import { GraphQLConstructor } from "./GraphQLConstructor";
 import {
   EXPORTED_DIRECTIVE,
   EXPORTED_FILENAME_ARG,
@@ -37,9 +35,6 @@ import {
   METHOD_NAME_ARG,
   METHOD_NAME_DIRECTIVE,
 } from "./serverDirectives";
-import * as E from "./Errors";
-import { traverseJSDocTags } from "./utils/JSDoc";
-import { concatMaybeArrays } from "./utils/helpers";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -88,6 +83,7 @@ export class Extractor {
   ctx: TypeContext;
   configOptions: ConfigOptions;
   errors: ts.Diagnostic[] = [];
+  gql: GraphQLConstructor;
 
   constructor(
     sourceFile: ts.SourceFile,
@@ -97,6 +93,7 @@ export class Extractor {
     this.sourceFile = sourceFile;
     this.ctx = ctx;
     this.configOptions = buildOptions;
+    this.gql = new GraphQLConstructor(sourceFile);
   }
 
   // Traverse all nodes, checking each one for its JSDoc tags.
@@ -304,22 +301,6 @@ export class Extractor {
     return { start, length: end - start, filepath: this.sourceFile };
   }
 
-  // TODO: This is potentially quite expensive, and we only need it if we report
-  // an error at one of these locations. We could consider some trick to return a
-  // proxy object that would lazily compute the line/column info.
-  loc(node: ts.Node): GraphQLLocation {
-    const source = new Source(this.sourceFile.text, this.sourceFile.fileName);
-    const startToken = this.gqlDummyToken(node.getStart());
-    const endToken = this.gqlDummyToken(node.getEnd());
-    return new GraphQLLocation(startToken, endToken, source);
-  }
-
-  gqlDummyToken(pos: number): Token {
-    const { line, character } =
-      this.sourceFile.getLineAndCharacterOfPosition(pos);
-    return new Token(TokenKind.SOF, pos, pos, line, character, undefined);
-  }
-
   /** TypeScript traversals */
 
   unionTypeAliasDeclaration(node: ts.TypeAliasDeclaration, tag: ts.JSDocTag) {
@@ -341,7 +322,7 @@ export class Extractor {
           E.expectedUnionTypeReference(),
         );
       }
-      const namedType = this.gqlNamedType(
+      const namedType = this.gql.namedType(
         member.typeName,
         UNRESOLVED_REFERENCE_NAME,
       );
@@ -351,13 +332,9 @@ export class Extractor {
 
     this.ctx.recordTypeName(node.name, name.value);
 
-    this.definitions.push({
-      kind: Kind.UNION_TYPE_DEFINITION,
-      loc: this.loc(node),
-      description: description ?? undefined,
-      name: name,
-      types,
-    });
+    this.definitions.push(
+      this.gql.unionTypeDefinition(node, name, types, description),
+    );
   }
 
   functionDeclarationExtendType(
@@ -413,22 +390,20 @@ export class Extractor {
       directives.push(deprecated);
     }
 
-    this.definitions.push({
-      kind: Kind.OBJECT_TYPE_EXTENSION,
-      loc: this.loc(node),
-      name: typeName,
-      fields: [
-        {
-          kind: Kind.FIELD_DEFINITION,
-          loc: this.loc(node),
-          description: description || undefined,
-          name,
-          arguments: args || undefined,
-          type: this.handleErrorBubbling(node, type),
-          directives: directives.length === 0 ? undefined : directives,
-        },
-      ],
-    });
+    const fields = [
+      this.gql.fieldDefinition(
+        node,
+        name,
+        this.handleErrorBubbling(node, type),
+        args,
+        directives,
+        description,
+      ),
+    ];
+
+    this.definitions.push(
+      this.gql.objectTypeExtension(node, typeName, fields, null),
+    );
   }
 
   typeReferenceFromParam(typeParam: ts.ParameterDeclaration): NameNode | null {
@@ -440,7 +415,7 @@ export class Extractor {
     }
 
     const nameNode = typeParam.type.typeName;
-    const typeName = this.gqlName(nameNode, UNRESOLVED_REFERENCE_NAME);
+    const typeName = this.gql.name(nameNode, UNRESOLVED_REFERENCE_NAME);
     this.ctx.markUnresolvedType(nameNode, typeName);
     return typeName;
   }
@@ -474,12 +449,9 @@ export class Extractor {
     const description = this.collectDescription(node.name);
     this.ctx.recordTypeName(node.name, name.value);
 
-    this.definitions.push({
-      kind: Kind.SCALAR_TYPE_DEFINITION,
-      loc: this.loc(node),
-      description: description ?? undefined,
-      name,
-    });
+    this.definitions.push(
+      this.gql.scalarTypeDefinition(node, name, description),
+    );
   }
 
   inputTypeAliasDeclaration(node: ts.TypeAliasDeclaration, tag: ts.JSDocTag) {
@@ -493,15 +465,15 @@ export class Extractor {
 
     const deprecatedDirective = this.collectDeprecated(node);
 
-    this.definitions.push({
-      kind: Kind.INPUT_OBJECT_TYPE_DEFINITION,
-      loc: this.loc(node),
-      description: description ?? undefined,
-      name,
-      fields: fields ?? undefined,
-      directives:
-        deprecatedDirective == null ? undefined : [deprecatedDirective],
-    });
+    this.definitions.push(
+      this.gql.inputObjectTypeDefinition(
+        node,
+        name,
+        fields,
+        deprecatedDirective == null ? null : [deprecatedDirective],
+        description,
+      ),
+    );
   }
 
   collectInputFields(
@@ -543,22 +515,20 @@ export class Extractor {
     if (inner == null) return null;
 
     const type =
-      node.questionToken == null ? inner : this.gqlNullableType(inner);
+      node.questionToken == null ? inner : this.gql.nullableType(inner);
 
     const description = this.collectDescription(node.name);
 
     const deprecatedDirective = this.collectDeprecated(node);
 
-    return {
-      kind: Kind.INPUT_VALUE_DEFINITION,
-      loc: this.loc(node),
-      description: description ?? undefined,
-      name: this.gqlName(id, id.text),
+    return this.gql.inputValueDefinition(
+      node,
+      this.gql.name(id, id.text),
       type,
-      defaultValue: undefined,
-      directives:
-        deprecatedDirective == null ? undefined : [deprecatedDirective],
-    };
+      deprecatedDirective == null ? null : [deprecatedDirective],
+      null,
+      description,
+    );
   }
 
   typeClassDeclaration(node: ts.ClassDeclaration, tag: ts.JSDocTag) {
@@ -576,15 +546,15 @@ export class Extractor {
 
     this.checkForTypenameProperty(node, name.value);
 
-    this.definitions.push({
-      kind: Kind.OBJECT_TYPE_DEFINITION,
-      loc: this.loc(node),
-      description: description ?? undefined,
-      directives: undefined,
-      name,
-      fields,
-      interfaces: interfaces ?? undefined,
-    });
+    this.definitions.push(
+      this.gql.objectTypeDefinition(
+        node,
+        name,
+        fields,
+        interfaces,
+        description,
+      ),
+    );
   }
 
   typeInterfaceDeclaration(node: ts.InterfaceDeclaration, tag: ts.JSDocTag) {
@@ -598,15 +568,15 @@ export class Extractor {
 
     this.checkForTypenameProperty(node, name.value);
 
-    this.definitions.push({
-      kind: Kind.OBJECT_TYPE_DEFINITION,
-      loc: this.loc(node),
-      description: description ?? undefined,
-      directives: undefined,
-      name,
-      fields,
-      interfaces: interfaces ?? undefined,
-    });
+    this.definitions.push(
+      this.gql.objectTypeDefinition(
+        node,
+        name,
+        fields,
+        interfaces,
+        description,
+      ),
+    );
   }
 
   typeTypeAliasDeclaration(node: ts.TypeAliasDeclaration, tag: ts.JSDocTag) {
@@ -625,15 +595,15 @@ export class Extractor {
 
     this.checkForTypenameProperty(node.type, name.value);
 
-    this.definitions.push({
-      kind: Kind.OBJECT_TYPE_DEFINITION,
-      loc: this.loc(node),
-      description: description ?? undefined,
-      directives: undefined,
-      name,
-      fields,
-      interfaces: interfaces ?? undefined,
-    });
+    this.definitions.push(
+      this.gql.objectTypeDefinition(
+        node,
+        name,
+        fields,
+        interfaces,
+        description,
+      ),
+    );
   }
 
   checkForTypenameProperty(
@@ -758,7 +728,7 @@ export class Extractor {
       // Will require rewriting everything that expects a node for location
       // purposes to transform the node into a location eagerly. Then we can have
       // a richer set of tools to construct custom locations.
-      return this.gqlNamedType(tag, name.trim());
+      return this.gql.namedType(tag, name.trim());
     });
   }
 
@@ -775,7 +745,7 @@ export class Extractor {
             // TODO: Are there valid cases we want to cover here?
             return null;
           }
-          const namedType = this.gqlNamedType(
+          const namedType = this.gql.namedType(
             type.expression,
             UNRESOLVED_REFERENCE_NAME,
           );
@@ -835,14 +805,15 @@ export class Extractor {
 
     this.ctx.recordTypeName(node.name, name.value);
 
-    this.definitions.push({
-      kind: Kind.INTERFACE_TYPE_DEFINITION,
-      loc: this.loc(node),
-      description: description || undefined,
-      name,
-      fields,
-      interfaces: interfaces || undefined,
-    });
+    this.definitions.push(
+      this.gql.interfaceTypeDefinition(
+        node,
+        name,
+        fields,
+        interfaces,
+        description,
+      ),
+    );
   }
 
   collectFields(
@@ -936,15 +907,15 @@ export class Extractor {
     }
     const description = this.collectDescription(node.name);
 
-    return {
-      kind: Kind.FIELD_DEFINITION,
-      loc: this.loc(node),
-      description: description || undefined,
+    return this.gql.fieldDefinition(
+      node,
       name,
-      arguments: undefined,
-      type: this.handleErrorBubbling(node, type),
-      directives: directives.length > 0 ? directives : undefined,
-    };
+
+      this.handleErrorBubbling(node, type),
+      null,
+      directives,
+      description,
+    );
   }
 
   collectArgs(
@@ -993,16 +964,17 @@ export class Extractor {
 
   collectConstValue(node: ts.Expression): ConstValueNode | null {
     if (ts.isStringLiteral(node)) {
-      return { kind: Kind.STRING, loc: this.loc(node), value: node.text };
+      return this.gql.string(node, node.text);
     } else if (ts.isNumericLiteral(node)) {
-      const kind = node.text.includes(".") ? Kind.FLOAT : Kind.INT;
-      return { kind, loc: this.loc(node), value: node.text };
+      return node.text.includes(".")
+        ? this.gql.float(node, node.text)
+        : this.gql.int(node, node.text);
     } else if (this.isNullish(node)) {
-      return { kind: Kind.NULL, loc: this.loc(node) };
+      return this.gql.null(node);
     } else if (node.kind === ts.SyntaxKind.TrueKeyword) {
-      return { kind: Kind.BOOLEAN, loc: this.loc(node), value: true };
+      return this.gql.boolean(node, true);
     } else if (node.kind === ts.SyntaxKind.FalseKeyword) {
-      return { kind: Kind.BOOLEAN, loc: this.loc(node), value: false };
+      return this.gql.boolean(node, false);
     } else if (ts.isObjectLiteralExpression(node)) {
       return this.cellectObjectLiteral(node);
     } else if (ts.isArrayLiteralExpression(node)) {
@@ -1031,11 +1003,7 @@ export class Extractor {
     if (errors) {
       return null;
     }
-    return {
-      kind: Kind.LIST,
-      loc: this.loc(node),
-      values,
-    };
+    return this.gql.list(node, values);
   }
 
   cellectObjectLiteral(
@@ -1054,11 +1022,7 @@ export class Extractor {
     if (errors) {
       return null;
     }
-    return {
-      kind: Kind.OBJECT,
-      loc: this.loc(node),
-      fields,
-    };
+    return this.gql.object(node, fields);
   }
 
   collectObjectField(
@@ -1087,12 +1051,11 @@ export class Extractor {
 
     const value = this.collectConstValue(initialize);
     if (value == null) return null;
-    return {
-      kind: Kind.OBJECT_FIELD,
-      loc: this.loc(node),
-      name: this.gqlName(node.name, name.text),
+    return this.gql.constObjectField(
+      node,
+      this.gql.name(node.name, name.text),
       value,
-    };
+    );
   }
 
   collectArg(
@@ -1121,7 +1084,7 @@ export class Extractor {
         return this.report(node.questionToken, E.nonNullTypeCannotBeOptional());
       }
       */
-      type = this.gqlNullableType(type);
+      type = this.gql.nullableType(type);
     }
 
     const description = this.collectDescription(node.name);
@@ -1136,16 +1099,14 @@ export class Extractor {
 
     const deprecatedDirective = this.collectDeprecated(node);
 
-    return {
-      kind: Kind.INPUT_VALUE_DEFINITION,
-      loc: this.loc(node),
-      description: description || undefined,
-      name: this.gqlName(node.name, node.name.text),
+    return this.gql.inputValueDefinition(
+      node,
+      this.gql.name(node.name, node.name.text),
       type,
-      defaultValue: defaultValue || undefined,
-      directives:
-        deprecatedDirective != null ? [deprecatedDirective] : undefined,
-    };
+      deprecatedDirective == null ? null : [deprecatedDirective],
+      defaultValue,
+      description,
+    );
   }
 
   enumEnumDeclaration(node: ts.EnumDeclaration, tag: ts.JSDocTag): void {
@@ -1159,13 +1120,9 @@ export class Extractor {
 
     this.ctx.recordTypeName(node.name, name.value);
 
-    this.definitions.push({
-      kind: Kind.ENUM_TYPE_DEFINITION,
-      loc: this.loc(node),
-      description: description || undefined,
-      name,
-      values,
-    });
+    this.definitions.push(
+      this.gql.enumTypeDefinition(node, name, values, description),
+    );
   }
 
   enumTypeAliasDeclaration(
@@ -1183,13 +1140,9 @@ export class Extractor {
     const description = this.collectDescription(node.name);
     this.ctx.recordTypeName(node.name, name.value);
 
-    this.definitions.push({
-      kind: Kind.ENUM_TYPE_DEFINITION,
-      loc: this.loc(node),
-      description: description || undefined,
-      name,
-      values,
-    });
+    this.definitions.push(
+      this.gql.enumTypeDefinition(node, name, values, description),
+    );
   }
 
   enumTypeAliasVariants(
@@ -1205,12 +1158,12 @@ export class Extractor {
       ts.isStringLiteral(node.type.literal)
     ) {
       return [
-        {
-          kind: Kind.ENUM_VALUE_DEFINITION,
-          name: this.gqlName(node.type.literal, node.type.literal.text),
-          description: undefined,
-          loc: this.loc(node),
-        },
+        this.gql.enumValueDefinition(
+          node,
+          this.gql.name(node.type.literal, node.type.literal.text),
+          undefined,
+          null,
+        ),
       ];
     }
 
@@ -1237,16 +1190,17 @@ export class Extractor {
                 const memberDescription = this.collectDescription(
                   declaration.name,
                 );
-                values.push({
-                  kind: Kind.ENUM_VALUE_DEFINITION,
-                  name: this.gqlName(
-                    declaration.type.literal,
-                    declaration.type.literal.text,
+                values.push(
+                  this.gql.enumValueDefinition(
+                    node,
+                    this.gql.name(
+                      declaration.type.literal,
+                      declaration.type.literal.text,
+                    ),
+                    deprecatedDirective ? [deprecatedDirective] : [],
+                    memberDescription,
                   ),
-                  directives: deprecatedDirective ? [deprecatedDirective] : [],
-                  description: memberDescription || undefined,
-                  loc: this.loc(node),
-                });
+                );
                 continue;
               }
             }
@@ -1267,12 +1221,14 @@ export class Extractor {
 
       // TODO: Support descriptions on enum members. As it stands, TypeScript
       // does not allow comments attached to string literal types.
-      values.push({
-        kind: Kind.ENUM_VALUE_DEFINITION,
-        name: this.gqlName(member.literal, member.literal.text),
-        description: undefined,
-        loc: this.loc(member),
-      });
+      values.push(
+        this.gql.enumValueDefinition(
+          node,
+          this.gql.name(member.literal, member.literal.text),
+          undefined,
+          null,
+        ),
+      );
     }
 
     return values;
@@ -1298,13 +1254,14 @@ export class Extractor {
 
       const description = this.collectDescription(member.name);
       const deprecated = this.collectDeprecated(member);
-      values.push({
-        kind: Kind.ENUM_VALUE_DEFINITION,
-        loc: this.loc(member),
-        description: description || undefined,
-        name: this.gqlName(member.initializer, member.initializer.text),
-        directives: deprecated ? [deprecated] : undefined,
-      });
+      values.push(
+        this.gql.enumValueDefinition(
+          member,
+          this.gql.name(member.initializer, member.initializer.text),
+          deprecated ? [deprecated] : undefined,
+          description,
+        ),
+      );
     }
 
     return values;
@@ -1328,7 +1285,7 @@ export class Extractor {
       const commentName = ts.getTextOfJSDocComment(tag.comment);
       if (commentName != null) {
         // FIXME: Use the _value_'s location not the tag's
-        return this.gqlName(tag, commentName);
+        return this.gql.name(tag, commentName);
       }
     }
 
@@ -1337,7 +1294,7 @@ export class Extractor {
     }
     const id = this.expectIdentifier(node.name);
     if (id == null) return null;
-    return this.gqlName(id, id.text);
+    return this.gql.name(id, id.text);
   }
 
   methodDeclaration(
@@ -1378,15 +1335,14 @@ export class Extractor {
       directives.push(deprecated);
     }
 
-    return {
-      kind: Kind.FIELD_DEFINITION,
-      loc: this.loc(node),
-      description: description || undefined,
+    return this.gql.fieldDefinition(
+      node,
       name,
-      arguments: args || undefined,
-      type: this.handleErrorBubbling(node, type),
-      directives: directives.length === 0 ? undefined : directives,
-    };
+      this.handleErrorBubbling(node, type),
+      args,
+      directives,
+      description,
+    );
   }
 
   collectMethodType(node: ts.TypeNode): TypeNode | null {
@@ -1425,12 +1381,7 @@ export class Extractor {
     const doc = symbol.getDocumentationComment(this.ctx.checker);
     const description = ts.displayPartsToString(doc);
     if (description) {
-      return {
-        kind: Kind.STRING,
-        loc: this.loc(node),
-        value: description,
-        block: true,
-      };
+      return this.gql.string(node, description, true);
     }
     return null;
   }
@@ -1443,20 +1394,19 @@ export class Extractor {
       const reasonComment = ts.getTextOfJSDocComment(tag.comment);
       if (reasonComment != null) {
         // FIXME: Use the _value_'s location not the tag's
-        reason = this.gqlConstArgument(
+        reason = this.gql.constArgument(
           tag,
-          this.gqlName(tag, "reason"),
-          this.gqlString(tag, reasonComment),
+          this.gql.name(tag, "reason"),
+          this.gql.string(tag, reasonComment),
         );
       }
     }
-    const args = reason == null ? undefined : [reason];
-    return {
-      kind: Kind.DIRECTIVE,
-      loc: this.loc(tag.tagName),
-      name: this.gqlName(tag.tagName, DEPRECATED_TAG),
-      arguments: args,
-    };
+
+    return this.gql.constDirective(
+      tag.tagName,
+      this.gql.name(node, DEPRECATED_TAG),
+      reason == null ? null : [reason],
+    );
   }
 
   property(
@@ -1477,7 +1427,7 @@ export class Extractor {
     // We already reported an error
     if (inner == null) return null;
     const type =
-      node.questionToken == null ? inner : this.gqlNullableType(inner);
+      node.questionToken == null ? inner : this.gql.nullableType(inner);
 
     const description = this.collectDescription(node.name);
 
@@ -1494,15 +1444,14 @@ export class Extractor {
       directives = [this.fieldNameDirective(node.name, id.text)];
     }
 
-    return {
-      kind: Kind.FIELD_DEFINITION,
-      loc: this.loc(node),
-      description: description || undefined,
+    return this.gql.fieldDefinition(
+      node,
       name,
-      arguments: undefined,
-      type: this.handleErrorBubbling(node, type),
-      directives: directives.length === 0 ? undefined : directives,
-    };
+      this.handleErrorBubbling(node, type),
+      null,
+      directives,
+      description,
+    );
   }
 
   // TODO: Support separate modes for input and output types
@@ -1515,7 +1464,7 @@ export class Extractor {
     } else if (ts.isArrayTypeNode(node)) {
       const element = this.collectType(node.elementType);
       if (element == null) return null;
-      return this.gqlNonNullType(node, this.gqlListType(node, element));
+      return this.gql.nonNullType(node, this.gql.listType(node, element));
     } else if (ts.isUnionTypeNode(node)) {
       const types = node.types.filter((type) => !this.isNullish(type));
       if (types.length === 0) {
@@ -1535,15 +1484,15 @@ export class Extractor {
         return null;
       }
       if (node.types.length > 1) {
-        return this.gqlNullableType(type);
+        return this.gql.nullableType(type);
       }
-      return this.gqlNonNullType(node, type);
+      return this.gql.nonNullType(node, type);
     } else if (ts.isParenthesizedTypeNode(node)) {
       return this.collectType(node.type);
     } else if (node.kind === ts.SyntaxKind.StringKeyword) {
-      return this.gqlNonNullType(node, this.gqlNamedType(node, "String"));
+      return this.gql.nonNullType(node, this.gql.namedType(node, "String"));
     } else if (node.kind === ts.SyntaxKind.BooleanKeyword) {
-      return this.gqlNonNullType(node, this.gqlNamedType(node, "Boolean"));
+      return this.gql.nonNullType(node, this.gql.namedType(node, "Boolean"));
     } else if (node.kind === ts.SyntaxKind.NumberKeyword) {
       return this.report(node, E.ambiguousNumberType());
     } else if (ts.isTypeLiteralNode(node)) {
@@ -1568,16 +1517,16 @@ export class Extractor {
         }
         const element = this.collectType(node.typeArguments[0]);
         if (element == null) return null;
-        return this.gqlNonNullType(node, this.gqlListType(node, element));
+        return this.gql.nonNullType(node, this.gql.listType(node, element));
       }
       default: {
         // We may not have encountered the definition of this type yet. So, we
         // mark it as unresolved and return a placeholder type.
         //
         // A later pass will resolve the type.
-        const namedType = this.gqlNamedType(node, UNRESOLVED_REFERENCE_NAME);
+        const namedType = this.gql.namedType(node, UNRESOLVED_REFERENCE_NAME);
         this.ctx.markUnresolvedType(node.typeName, namedType.name);
-        return this.gqlNonNullType(node, namedType);
+        return this.gql.nonNullType(node, namedType);
       }
     }
   }
@@ -1656,93 +1605,46 @@ export class Extractor {
     }
 
     if (this.configOptions.nullableByDefault) {
-      return this.gqlNullableType(type);
+      return this.gql.nullableType(type);
     }
     return type;
   }
 
-  fieldNameDirective(nameNode: ts.Node, name: string): ConstDirectiveNode {
-    return this.gqlConstDirective(
-      nameNode,
-      this.gqlName(nameNode, METHOD_NAME_DIRECTIVE),
-      [
-        this.gqlConstArgument(
-          nameNode,
-          this.gqlName(nameNode, METHOD_NAME_ARG),
-          this.gqlString(nameNode, name),
-        ),
-      ],
-    );
-  }
-
+  /* Grats directives */
   exportDirective(
     nameNode: ts.Node,
     filename: string,
     functionName: string,
   ): ConstDirectiveNode {
-    return this.gqlConstDirective(
+    return this.gql.constDirective(
       nameNode,
-      this.gqlName(nameNode, EXPORTED_DIRECTIVE),
+      this.gql.name(nameNode, EXPORTED_DIRECTIVE),
       [
-        this.gqlConstArgument(
+        this.gql.constArgument(
           nameNode,
-          this.gqlName(nameNode, EXPORTED_FILENAME_ARG),
-          this.gqlString(nameNode, filename),
+          this.gql.name(nameNode, EXPORTED_FILENAME_ARG),
+          this.gql.string(nameNode, filename),
         ),
-        this.gqlConstArgument(
+        this.gql.constArgument(
           nameNode,
-          this.gqlName(nameNode, EXPORTED_FUNCTION_NAME_ARG),
-          this.gqlString(nameNode, functionName),
+          this.gql.name(nameNode, EXPORTED_FUNCTION_NAME_ARG),
+          this.gql.string(nameNode, functionName),
         ),
       ],
     );
   }
 
-  /** GraphQL AST node helper methods */
-
-  gqlName(node: ts.Node, value: string): NameNode {
-    return { kind: Kind.NAME, loc: this.loc(node), value };
-  }
-  gqlNamedType(node: ts.Node, value: string): NamedTypeNode {
-    return {
-      kind: Kind.NAMED_TYPE,
-      loc: this.loc(node),
-      name: this.gqlName(node, value),
-    };
-  }
-  gqlNonNullType(node: ts.Node, type: TypeNode): NonNullTypeNode {
-    if (type.kind === Kind.NON_NULL_TYPE) {
-      return type;
-    }
-    return { kind: Kind.NON_NULL_TYPE, loc: this.loc(node), type };
-  }
-  gqlNullableType(type: TypeNode): NamedTypeNode | ListTypeNode {
-    let inner = type;
-    while (inner.kind === Kind.NON_NULL_TYPE) {
-      inner = inner.type;
-    }
-    return inner;
-  }
-  gqlListType(node: ts.Node, type: TypeNode): ListTypeNode {
-    return { kind: Kind.LIST_TYPE, loc: this.loc(node), type };
-  }
-
-  gqlConstArgument(
-    node: ts.Node,
-    name: NameNode,
-    value: ConstValueNode,
-  ): ConstArgumentNode {
-    return { kind: Kind.ARGUMENT, loc: this.loc(node), name, value };
-  }
-
-  gqlConstDirective(
-    node: ts.Node,
-    name: NameNode,
-    args: ReadonlyArray<ConstArgumentNode>,
-  ): ConstDirectiveNode {
-    return { kind: Kind.DIRECTIVE, loc: this.loc(node), name, arguments: args };
-  }
-  gqlString(node: ts.Node, value: string): StringValueNode {
-    return { kind: Kind.STRING, loc: this.loc(node), value };
+  fieldNameDirective(nameNode: ts.Node, name: string): ConstDirectiveNode {
+    return this.gql.constDirective(
+      nameNode,
+      this.gql.name(nameNode, METHOD_NAME_DIRECTIVE),
+      [
+        this.gql.constArgument(
+          nameNode,
+          this.gql.name(nameNode, METHOD_NAME_ARG),
+          this.gql.string(nameNode, name),
+        ),
+      ],
+    );
   }
 }

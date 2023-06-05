@@ -4,10 +4,6 @@
 - [ ] Don't report name collisions as merged interfaces (class + interface with the same name)
 - [ ] Test and clarify behavior of killsParentOnException
     - [ ] Should there be a way to enable killsParentOnException for nullable resolvers?
-- [ ] Extend interfaces
-    - [ ] interface types implement interfaces
-    - [ ] interface interfaces implement interfaces
-- [ ] Allow interfaces to specify resolveType
 - [ ] Args with defaults should be nullable?
 - [ ] Optional args must include `null` as an option, since GraphQL JS may send that.
 - [ ] Allow type literal types to implement interfaces
@@ -19,8 +15,6 @@
   - [ ] Subscriptions
 - [ ] Playground does not support promises
 - [ ] Collect deprecated tags on all nodes and let GraphQL validation report an error
-- [ ] Algolia search for docs
-  - [ ] Requested access https://docsearch.algolia.com/apply/
 
 ## Beta
 - [ ] Support generic directives 
@@ -29,8 +23,6 @@
 - [ ] Try converting the Star Wars example server
 - [ ] Better error message for non GraphQL types.
 - [ ] Validate that we don't shadow builtins
-- [ ] Parse directives from all docblocks and attach them to the schema
-    - [ ] This will help catch places where people are using directives like @deprecated in unsupported positions
 - [ ] Add header to generated schema file indicating it was generated.
 - [ ] Add option to print sorted schema.
 
