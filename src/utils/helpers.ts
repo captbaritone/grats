@@ -17,3 +17,10 @@ export class DefaultMap<K, V> {
     return this._map.get(key)!;
   }
 }
+
+// Similar to a.push(...b), but avoids potential stack overflows.
+export function extend<T>(a: T[], b: T[]) {
+  for (const item of b) {
+    a.push(item);
+  }
+}

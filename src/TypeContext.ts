@@ -20,6 +20,7 @@ import { EXPORTED_DIRECTIVE } from "./serverDirectives";
 import { FIELD_TAG } from "./Extractor";
 import * as E from "./Errors";
 import { InterfaceMap, computeInterfaceMap } from "./InterfaceGraph";
+import { extend } from "./utils/helpers";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
@@ -133,7 +134,7 @@ export class TypeContext {
     const newDocs: DefinitionNode[] = [];
     const errors: ts.Diagnostic[] = [];
 
-    const interfaceGraphResult = computeInterfaceMap(docs);
+    const interfaceGraphResult = computeInterfaceMap(this, docs);
     if (interfaceGraphResult.kind === "ERROR") {
       return interfaceGraphResult;
     }
@@ -146,13 +147,9 @@ export class TypeContext {
           interfaceGraph,
         );
         if (abstractDocResults.kind === "ERROR") {
-          for (const err of abstractDocResults.err) {
-            errors.push(err);
-          }
+          extend(errors, abstractDocResults.err);
         } else {
-          for (const doc of abstractDocResults.value) {
-            newDocs.push(doc);
-          }
+          extend(newDocs, abstractDocResults.value);
         }
       } else {
         newDocs.push(doc);

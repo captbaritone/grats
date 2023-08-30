@@ -1,0 +1,17 @@
+-----------------
+INPUT
+----------------- 
+type SomeNonGratsType = string;
+
+/** @gqlField */
+export function greeting(someType: SomeNonGratsType): string {
+  return `Hello ${someType}!`;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/extend_interface/addStringFieldToNonGrats.invalid.ts:4:36 - error: This type is not a valid GraphQL type. Did you mean to annotate it's definition with a `/** @gql */` tag such as `/** @gqlType */` or `/** @gqlInput **/`?
+
+4 export function greeting(someType: SomeNonGratsType): string {
+                                     ~~~~~~~~~~~~~~~~
