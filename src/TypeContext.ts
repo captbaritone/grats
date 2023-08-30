@@ -2,11 +2,9 @@ import {
   DefinitionNode,
   DocumentNode,
   FieldDefinitionNode,
-  InterfaceTypeDefinitionNode,
   Kind,
   Location,
   NameNode,
-  ObjectTypeDefinitionNode,
   visit,
 } from "graphql";
 import * as ts from "typescript";
@@ -19,8 +17,9 @@ import {
 } from "./utils/DiagnosticError";
 import { getRelativeOutputPath } from "./gratsRoot";
 import { EXPORTED_DIRECTIVE } from "./serverDirectives";
-import { FIELD_TAG, INTERFACE_TAG, TYPE_TAG } from "./Extractor";
+import { FIELD_TAG } from "./Extractor";
 import * as E from "./Errors";
+import { DefaultMap } from "./utils/helpers";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
@@ -43,6 +42,8 @@ export type AbstractFieldDefinitionNode = {
   readonly field: FieldDefinitionNode;
 };
 
+type InterfaceImplementor = { kind: "TYPE" | "INTERFACE"; name: string };
+type InterfaceMap = DefaultMap<string, Set<InterfaceImplementor>>;
 /**
  * Used to track TypeScript references.
  *
@@ -128,124 +129,21 @@ export class TypeContext {
     return ok(newDoc);
   }
 
-  addInterfaceImplementations(
+  handleAbstractDefinitions(
     docs: GratsDefinitionNode[],
   ): DiagnosticsResult<DefinitionNode[]> {
     const newDocs: DefinitionNode[] = [];
     const errors: ts.Diagnostic[] = [];
     for (const doc of docs) {
       if (doc.kind === "AbstractFieldDefinition") {
-        const typeNameResult = this.resolveNamedType(doc.onType);
-        if (typeNameResult.kind === "ERROR") {
-          errors.push(typeNameResult.err);
-          continue;
-        }
-        const symbol = this._unresolvedTypes.get(doc.onType);
-        if (symbol == null) {
-          // This should have already been handled by resolveNamedType
-          throw new Error("Expected to find unresolved type.");
-        }
-        const nameDefinition = this._symbolToName.get(symbol);
-        if (nameDefinition == null) {
-          // This should have already been handled by resolveNamedType
-          throw new Error("Expected to find name definition.");
-        }
-
-        switch (nameDefinition.kind) {
-          case "TYPE":
-            // Extending a type, is just adding a field to it.
-            newDocs.push({
-              kind: Kind.OBJECT_TYPE_EXTENSION,
-              name: doc.onType,
-              fields: [doc.field],
-            });
-            break;
-          case "INTERFACE": {
-            // Extending an interface is a bit more complicated. We need to add the field
-            // to the interface, and to each type that implements the interface.
-
-            // The interface field definition is not executable, so we don't
-            // need to annotate it with the details of the implementation.
-            const directives = doc.field.directives?.filter((directive) => {
-              return directive.name.value !== EXPORTED_DIRECTIVE;
-            });
-            newDocs.push({
-              kind: Kind.INTERFACE_TYPE_EXTENSION,
-              name: doc.onType,
-              fields: [{ ...doc.field, directives }],
-            });
-
-            const isImplementor = (
-              definition: DefinitionNode,
-            ): definition is
-              | ObjectTypeDefinitionNode
-              | InterfaceTypeDefinitionNode => {
-              // TODO: Is it possible that a type implements an interface via an extension?
-              // `extend type Foo implements Bar { ... }`
-              return (
-                (definition.kind === Kind.OBJECT_TYPE_DEFINITION ||
-                  definition.kind === Kind.INTERFACE_TYPE_DEFINITION) &&
-                definition.interfaces != null &&
-                definition.interfaces.some((i) => {
-                  const resolved = this.resolveNamedDefinition(i.name);
-                  if (resolved.kind === "ERROR") {
-                    throw new Error(
-                      "Unexpected error resolving interface implementor.",
-                    );
-                  }
-                  return resolved.value.value === nameDefinition.name.value;
-                })
-              );
-            };
-
-            // TODO: This is inefficient, `O(definition count * field definition)`. We could start with a single pass
-            // where we collect all the interface implementors, and then add them
-            // to a map.
-            const interfaceImplementors = docs.filter(isImplementor);
-
-            for (const definition of interfaceImplementors) {
-              switch (definition.kind) {
-                case Kind.OBJECT_TYPE_DEFINITION:
-                  newDocs.push({
-                    kind: Kind.OBJECT_TYPE_EXTENSION,
-                    name: definition.name,
-                    fields: [doc.field],
-                  });
-                  break;
-                case Kind.INTERFACE_TYPE_DEFINITION:
-                  newDocs.push({
-                    kind: Kind.INTERFACE_TYPE_EXTENSION,
-                    name: definition.name,
-                    fields: [{ ...doc.field, directives }],
-                  });
-                  break;
-                default: {
-                  const _: never = definition;
-                  break;
-                }
-              }
-            }
-            break;
+        const abstractDocResults = this.addAbstractFieldDefinition(docs, doc);
+        if (abstractDocResults.kind === "ERROR") {
+          for (const err of abstractDocResults.err) {
+            errors.push(err);
           }
-          default: {
-            // Extending any other type of definition is not supported.
-            const loc = doc.onType.loc;
-            if (loc == null) {
-              throw new Error("Expected onType to have a location.");
-            }
-            const relatedLoc = nameDefinition.name.loc;
-            if (relatedLoc == null) {
-              throw new Error("Expected nameDefinition to have a location.");
-            }
-
-            errors.push(
-              this.err(loc, E.invalidTypePassedToFieldFunction(), [
-                this.relatedInformation(
-                  relatedLoc,
-                  `This is the type that was passed to \`@${FIELD_TAG}\`.`,
-                ),
-              ]),
-            );
+        } else {
+          for (const doc of abstractDocResults.value) {
+            newDocs.push(doc);
           }
         }
       } else {
@@ -254,6 +152,161 @@ export class TypeContext {
     }
     if (errors.length > 0) {
       return err(errors);
+    }
+    return ok(newDocs);
+  }
+
+  computeInterfaceGraph(
+    docs: GratsDefinitionNode[],
+  ): DiagnosticsResult<InterfaceMap> {
+    // For each interface definition, we need to know which types and interfaces implement it.
+    const graph = new DefaultMap<string, Set<InterfaceImplementor>>(
+      () => new Set(),
+    );
+
+    const add = (interfaceName: string, implementor: InterfaceImplementor) => {
+      graph.get(interfaceName).add(implementor);
+    };
+
+    const errors: ts.Diagnostic[] = [];
+
+    for (const doc of docs) {
+      switch (doc.kind) {
+        case Kind.INTERFACE_TYPE_DEFINITION:
+        case Kind.INTERFACE_TYPE_EXTENSION:
+          for (const implementor of doc.interfaces ?? []) {
+            const resolved = this.resolveNamedDefinition(implementor.name);
+            if (resolved.kind === "ERROR") {
+              errors.push(resolved.err);
+              continue;
+            }
+            add(resolved.value.value, {
+              kind: "INTERFACE",
+              name: doc.name.value,
+            });
+          }
+          break;
+        case Kind.OBJECT_TYPE_DEFINITION:
+        case Kind.OBJECT_TYPE_EXTENSION:
+          for (const implementor of doc.interfaces ?? []) {
+            const resolved = this.resolveNamedDefinition(implementor.name);
+            if (resolved.kind === "ERROR") {
+              errors.push(resolved.err);
+              continue;
+            }
+            add(resolved.value.value, { kind: "TYPE", name: doc.name.value });
+          }
+          break;
+      }
+    }
+
+    if (errors.length > 0) {
+      return err(errors);
+    }
+
+    return ok(graph);
+  }
+
+  addAbstractFieldDefinition(
+    docs: GratsDefinitionNode[],
+    doc: AbstractFieldDefinitionNode,
+  ): DiagnosticsResult<DefinitionNode[]> {
+    const interfaceGraphResult = this.computeInterfaceGraph(docs);
+    if (interfaceGraphResult.kind === "ERROR") {
+      return interfaceGraphResult;
+    }
+    const interfaceGraph = interfaceGraphResult.value;
+
+    const newDocs: DefinitionNode[] = [];
+    const typeNameResult = this.resolveNamedType(doc.onType);
+    if (typeNameResult.kind === "ERROR") {
+      return err([typeNameResult.err]);
+    }
+    const symbol = this._unresolvedTypes.get(doc.onType);
+    if (symbol == null) {
+      // This should have already been handled by resolveNamedType
+      throw new Error("Expected to find unresolved type.");
+    }
+    const nameDefinition = this._symbolToName.get(symbol);
+    if (nameDefinition == null) {
+      // This should have already been handled by resolveNamedType
+      throw new Error("Expected to find name definition.");
+    }
+
+    switch (nameDefinition.kind) {
+      case "TYPE":
+        // Extending a type, is just adding a field to it.
+        newDocs.push({
+          kind: Kind.OBJECT_TYPE_EXTENSION,
+          name: doc.onType,
+          fields: [doc.field],
+        });
+        break;
+      case "INTERFACE": {
+        // Extending an interface is a bit more complicated. We need to add the field
+        // to the interface, and to each type that implements the interface.
+
+        // The interface field definition is not executable, so we don't
+        // need to annotate it with the details of the implementation.
+        const directives = doc.field.directives?.filter((directive) => {
+          return directive.name.value !== EXPORTED_DIRECTIVE;
+        });
+        newDocs.push({
+          kind: Kind.INTERFACE_TYPE_EXTENSION,
+          name: doc.onType,
+          fields: [{ ...doc.field, directives }],
+        });
+
+        for (const implementor of interfaceGraph.get(
+          nameDefinition.name.value,
+        )) {
+          switch (implementor.kind) {
+            case "TYPE":
+              newDocs.push({
+                kind: Kind.OBJECT_TYPE_EXTENSION,
+                name: {
+                  kind: Kind.NAME,
+                  value: implementor.name,
+                },
+                fields: [doc.field],
+                loc: doc.loc,
+              });
+              break;
+            case "INTERFACE":
+              newDocs.push({
+                kind: Kind.INTERFACE_TYPE_EXTENSION,
+                name: {
+                  kind: Kind.NAME,
+                  value: implementor.name,
+                },
+                fields: [{ ...doc.field, directives }],
+                loc: doc.loc,
+              });
+              break;
+          }
+        }
+        break;
+      }
+      default: {
+        // Extending any other type of definition is not supported.
+        const loc = doc.onType.loc;
+        if (loc == null) {
+          throw new Error("Expected onType to have a location.");
+        }
+        const relatedLoc = nameDefinition.name.loc;
+        if (relatedLoc == null) {
+          throw new Error("Expected nameDefinition to have a location.");
+        }
+
+        return err([
+          this.err(loc, E.invalidTypePassedToFieldFunction(), [
+            this.relatedInformation(
+              relatedLoc,
+              `This is the type that was passed to \`@${FIELD_TAG}\`.`,
+            ),
+          ]),
+        ]);
+      }
     }
     return ok(newDocs);
   }
