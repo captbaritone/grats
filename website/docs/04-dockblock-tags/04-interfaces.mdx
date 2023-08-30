@@ -2,6 +2,7 @@ import GratsCode from "@site/src/components/GratsCode";
 import InterfaceDeclaration from "!!raw-loader!./snippets/04-interface-declaration.out";
 import NodeInterface from "!!raw-loader!./snippets/04-merged-interface-renaming.out";
 import InterfaceImplementingInterface from "!!raw-loader!./snippets/04-interface-implement-interface.out";
+import InterfaceFieldCommonImpl from "!!raw-loader!./snippets/04-interface-field-common-impl.out";
 
 # Interfaces
 
@@ -10,6 +11,12 @@ GraphQL interfaces can be defined by placing a `@gqlInterface` docblock directly
 - Interface declaration
 
 <GratsCode out={InterfaceDeclaration} mode="ts" />
+
+## Shared Field Implementation
+
+If you wish to define field which has a single implementation that is shared by all implementors, you can use the [function style of `@gqlField`](./02-fields.mdx#functional-style-fields) to define the field. This will automatically add the field to all implementors of the interface.
+
+<GratsCode out={InterfaceFieldCommonImpl} mode="both" />
 
 ## Types Implementing Interfaces
 

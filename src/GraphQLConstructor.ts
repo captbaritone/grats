@@ -25,13 +25,13 @@ import {
   ConstObjectFieldNode,
   ObjectTypeDefinitionNode,
   EnumValueDefinitionNode,
-  ObjectTypeExtensionNode,
   ScalarTypeDefinitionNode,
   InputObjectTypeDefinitionNode,
   EnumTypeDefinitionNode,
   InterfaceTypeDefinitionNode,
 } from "graphql";
 import * as ts from "typescript";
+import { AbstractFieldDefinitionNode } from "./TypeContext";
 
 export class GraphQLConstructor {
   sourceFile: ts.SourceFile;
@@ -109,19 +109,16 @@ export class GraphQLConstructor {
 
   /* Top Level Extensions */
 
-  objectTypeExtension(
+  abstractFieldDefinition(
     node: ts.Node,
-    name: NameNode,
-    fields: FieldDefinitionNode[],
-    interfaces: NamedTypeNode[] | null,
-  ): ObjectTypeExtensionNode {
+    onType: NameNode,
+    field: FieldDefinitionNode,
+  ): AbstractFieldDefinitionNode {
     return {
-      kind: Kind.OBJECT_TYPE_EXTENSION,
+      kind: "AbstractFieldDefinition",
       loc: this._loc(node),
-      directives: undefined,
-      name,
-      fields,
-      interfaces: interfaces ?? undefined,
+      onType,
+      field,
     };
   }
 

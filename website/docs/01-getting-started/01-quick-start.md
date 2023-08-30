@@ -10,7 +10,32 @@ mode (documentation to come).
 Grats can be used with many different GraphQL servers, but this example uses `graphql-express`.
 
 ```bash https://docusaurus.io/docs/markdown-features/code-blocks#npm2yarn-remark-plugin
-npm install express express-graphql grats
+npm install express express-graphql typescript graphql@^16.6.0 grats
+```
+
+:::
+
+```bash
+npm install --dev @types/express @types/express-graphql
+```
+
+## Initialize TypeScript
+
+:::caution
+
+Grats uses your TypeScript config to for its [configuration](../02-usage/02-configuration.md) and to know which files to scan, so ensure your project has a `tsconfig.json` file defined.
+
+:::
+
+Create a `tsconfig.json` in your project root:
+
+```title="/tsconfig.json"
+{
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "strictNullChecks": true
+  }
+}
 ```
 
 ## Create your server
@@ -47,16 +72,11 @@ console.log("Running a GraphQL API server at http://localhost:4000/graphql");
 
 ## Start your server
 
-:::caution
-
-Grats uses your TypeScript config to for its [configuration](../02-usage/02-configuration.md) and to know which files to scan, so ensure your project has a `tsconfig.json` file defined.
-
-:::
 
 ```bash
 # Build your projects
-npm run tsc
-# Run your server
+npx tsc
+# Run your server. NOTE: This is the generated `.js` file adjacent to your `.ts` file.
 node ./server.js
 ```
 

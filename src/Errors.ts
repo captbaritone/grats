@@ -307,3 +307,11 @@ export function parameterPropertyNotPublic() {
 export function parameterPropertyMissingType() {
   return `Expected \`@${FIELD_TAG}\` parameter property to have a type annotation.`;
 }
+
+export function invalidTypePassedToFieldFunction() {
+  return `Unexpected type passed to \`@${FIELD_TAG}\` function. \`@${FIELD_TAG}\` functions can only be used to extend \`@${TYPE_TAG}\` and \`@${INTERFACE_TAG}\` types.`;
+}
+
+export function unresolvedTypeReference() {
+  return "This type is not a valid GraphQL type. Did you mean to annotate it's definition with a `/** @gql */` tag such as `/** @gqlType */` or `/** @gqlInput **/`?";
+}

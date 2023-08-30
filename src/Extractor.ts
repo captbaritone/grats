@@ -1,5 +1,4 @@
 import {
-  DefinitionNode,
   FieldDefinitionNode,
   InputValueDefinitionNode,
   Kind,
@@ -22,7 +21,11 @@ import {
   ok,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
-import { TypeContext, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
+import {
+  GratsDefinitionNode,
+  TypeContext,
+  UNRESOLVED_REFERENCE_NAME,
+} from "./TypeContext";
 import { ConfigOptions } from "./lib";
 import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
@@ -78,7 +81,7 @@ type ArgDefaults = Map<string, ts.Expression>;
  * errors will point to the correct location in the TypeScript source code.
  */
 export class Extractor {
-  definitions: DefinitionNode[] = [];
+  definitions: GratsDefinitionNode[] = [];
   sourceFile: ts.SourceFile;
   ctx: TypeContext;
   configOptions: ConfigOptions;
@@ -100,7 +103,7 @@ export class Extractor {
   // If we find a tag we recognize, we extract the relevant information,
   // reporting an error if it is attached to a node where that tag is not
   // supported.
-  extract(): DiagnosticsResult<DefinitionNode[]> {
+  extract(): DiagnosticsResult<GratsDefinitionNode[]> {
     traverseJSDocTags(this.sourceFile, (node, tag) => {
       switch (tag.tagName.text) {
         case TYPE_TAG:
@@ -330,7 +333,7 @@ export class Extractor {
       types.push(namedType);
     }
 
-    this.ctx.recordTypeName(node.name, name.value);
+    this.ctx.recordTypeName(node.name, name, "UNION");
 
     this.definitions.push(
       this.gql.unionTypeDefinition(node, name, types, description),
@@ -390,19 +393,16 @@ export class Extractor {
       directives.push(deprecated);
     }
 
-    const fields = [
-      this.gql.fieldDefinition(
-        node,
-        name,
-        this.handleErrorBubbling(node, type),
-        args,
-        directives,
-        description,
-      ),
-    ];
-
+    const field = this.gql.fieldDefinition(
+      node,
+      name,
+      this.handleErrorBubbling(node, type),
+      args,
+      directives,
+      description,
+    );
     this.definitions.push(
-      this.gql.objectTypeExtension(node, typeName, fields, null),
+      this.gql.abstractFieldDefinition(node, typeName, field),
     );
   }
 
@@ -447,7 +447,7 @@ export class Extractor {
     if (name == null) return null;
 
     const description = this.collectDescription(node.name);
-    this.ctx.recordTypeName(node.name, name.value);
+    this.ctx.recordTypeName(node.name, name, "SCALAR");
 
     this.definitions.push(
       this.gql.scalarTypeDefinition(node, name, description),
@@ -459,7 +459,7 @@ export class Extractor {
     if (name == null) return null;
 
     const description = this.collectDescription(node.name);
-    this.ctx.recordTypeName(node.name, name.value);
+    this.ctx.recordTypeName(node.name, name, "INPUT_OBJECT");
 
     const fields = this.collectInputFields(node);
 
@@ -542,7 +542,7 @@ export class Extractor {
     const description = this.collectDescription(node.name);
     const fields = this.collectFields(node);
     const interfaces = this.collectInterfaces(node);
-    this.ctx.recordTypeName(node.name, name.value);
+    this.ctx.recordTypeName(node.name, name, "TYPE");
 
     this.checkForTypenameProperty(node, name.value);
 
@@ -564,7 +564,7 @@ export class Extractor {
     const description = this.collectDescription(node.name);
     const fields = this.collectFields(node);
     const interfaces = this.collectInterfaces(node);
-    this.ctx.recordTypeName(node.name, name.value);
+    this.ctx.recordTypeName(node.name, name, "INTERFACE");
 
     this.checkForTypenameProperty(node, name.value);
 
@@ -591,7 +591,7 @@ export class Extractor {
     const description = this.collectDescription(node.name);
     const fields = this.collectFields(node.type);
     const interfaces = this.collectInterfaces(node);
-    this.ctx.recordTypeName(node.name, name.value);
+    this.ctx.recordTypeName(node.name, name, "TYPE");
 
     this.checkForTypenameProperty(node.type, name.value);
 
@@ -803,7 +803,7 @@ export class Extractor {
 
     const fields = this.collectFields(node);
 
-    this.ctx.recordTypeName(node.name, name.value);
+    this.ctx.recordTypeName(node.name, name, "INTERFACE");
 
     this.definitions.push(
       this.gql.interfaceTypeDefinition(
@@ -1118,7 +1118,7 @@ export class Extractor {
 
     const values = this.collectEnumValues(node);
 
-    this.ctx.recordTypeName(node.name, name.value);
+    this.ctx.recordTypeName(node.name, name, "ENUM");
 
     this.definitions.push(
       this.gql.enumTypeDefinition(node, name, values, description),
@@ -1138,7 +1138,7 @@ export class Extractor {
     if (values == null) return;
 
     const description = this.collectDescription(node.name);
-    this.ctx.recordTypeName(node.name, name.value);
+    this.ctx.recordTypeName(node.name, name, "ENUM");
 
     this.definitions.push(
       this.gql.enumTypeDefinition(node, name, values, description),

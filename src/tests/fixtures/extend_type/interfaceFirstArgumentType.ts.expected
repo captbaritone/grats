@@ -1,0 +1,39 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class Query {
+  /** @gqlField */
+  foo: string;
+}
+
+/** @gqlInterface */
+interface IFoo {
+  /** @gqlField */
+  bar: string;
+}
+
+/** @gqlField */
+export function greeting(iFoo: IFoo): string {
+  return "Hello world!";
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  query: Query
+}
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type Query {
+  foo: String
+}
+
+interface IFoo {
+  bar: String
+  greeting: String
+}
