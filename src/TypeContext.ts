@@ -19,7 +19,7 @@ import { getRelativeOutputPath } from "./gratsRoot";
 import { EXPORTED_DIRECTIVE } from "./serverDirectives";
 import { FIELD_TAG } from "./Extractor";
 import * as E from "./Errors";
-import { DefaultMap } from "./utils/helpers";
+import { InterfaceMap, computeInterfaceMap } from "./InterfaceGraph";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
@@ -42,8 +42,6 @@ export type AbstractFieldDefinitionNode = {
   readonly field: FieldDefinitionNode;
 };
 
-type InterfaceImplementor = { kind: "TYPE" | "INTERFACE"; name: string };
-type InterfaceMap = DefaultMap<string, Set<InterfaceImplementor>>;
 /**
  * Used to track TypeScript references.
  *
@@ -134,9 +132,19 @@ export class TypeContext {
   ): DiagnosticsResult<DefinitionNode[]> {
     const newDocs: DefinitionNode[] = [];
     const errors: ts.Diagnostic[] = [];
+
+    const interfaceGraphResult = computeInterfaceMap(docs);
+    if (interfaceGraphResult.kind === "ERROR") {
+      return interfaceGraphResult;
+    }
+    const interfaceGraph = interfaceGraphResult.value;
+
     for (const doc of docs) {
       if (doc.kind === "AbstractFieldDefinition") {
-        const abstractDocResults = this.addAbstractFieldDefinition(docs, doc);
+        const abstractDocResults = this.addAbstractFieldDefinition(
+          doc,
+          interfaceGraph,
+        );
         if (abstractDocResults.kind === "ERROR") {
           for (const err of abstractDocResults.err) {
             errors.push(err);
@@ -156,67 +164,12 @@ export class TypeContext {
     return ok(newDocs);
   }
 
-  computeInterfaceGraph(
-    docs: GratsDefinitionNode[],
-  ): DiagnosticsResult<InterfaceMap> {
-    // For each interface definition, we need to know which types and interfaces implement it.
-    const graph = new DefaultMap<string, Set<InterfaceImplementor>>(
-      () => new Set(),
-    );
-
-    const add = (interfaceName: string, implementor: InterfaceImplementor) => {
-      graph.get(interfaceName).add(implementor);
-    };
-
-    const errors: ts.Diagnostic[] = [];
-
-    for (const doc of docs) {
-      switch (doc.kind) {
-        case Kind.INTERFACE_TYPE_DEFINITION:
-        case Kind.INTERFACE_TYPE_EXTENSION:
-          for (const implementor of doc.interfaces ?? []) {
-            const resolved = this.resolveNamedDefinition(implementor.name);
-            if (resolved.kind === "ERROR") {
-              errors.push(resolved.err);
-              continue;
-            }
-            add(resolved.value.value, {
-              kind: "INTERFACE",
-              name: doc.name.value,
-            });
-          }
-          break;
-        case Kind.OBJECT_TYPE_DEFINITION:
-        case Kind.OBJECT_TYPE_EXTENSION:
-          for (const implementor of doc.interfaces ?? []) {
-            const resolved = this.resolveNamedDefinition(implementor.name);
-            if (resolved.kind === "ERROR") {
-              errors.push(resolved.err);
-              continue;
-            }
-            add(resolved.value.value, { kind: "TYPE", name: doc.name.value });
-          }
-          break;
-      }
-    }
-
-    if (errors.length > 0) {
-      return err(errors);
-    }
-
-    return ok(graph);
-  }
-
+  // A field definition may be on a concrete type, or on an interface. If it's on an interface,
+  // we need to add it to each concrete type that implements the interface.
   addAbstractFieldDefinition(
-    docs: GratsDefinitionNode[],
     doc: AbstractFieldDefinitionNode,
+    interfaceGraph: InterfaceMap,
   ): DiagnosticsResult<DefinitionNode[]> {
-    const interfaceGraphResult = this.computeInterfaceGraph(docs);
-    if (interfaceGraphResult.kind === "ERROR") {
-      return interfaceGraphResult;
-    }
-    const interfaceGraph = interfaceGraphResult.value;
-
     const newDocs: DefinitionNode[] = [];
     const typeNameResult = this.resolveNamedType(doc.onType);
     if (typeNameResult.kind === "ERROR") {
@@ -240,6 +193,7 @@ export class TypeContext {
           kind: Kind.OBJECT_TYPE_EXTENSION,
           name: doc.onType,
           fields: [doc.field],
+          loc: doc.loc,
         });
         break;
       case "INTERFACE": {
@@ -260,14 +214,16 @@ export class TypeContext {
         for (const implementor of interfaceGraph.get(
           nameDefinition.name.value,
         )) {
+          const name = {
+            kind: Kind.NAME,
+            value: implementor.name,
+            loc: doc.loc, // Bit of a lie, but I don't see a better option.
+          } as const;
           switch (implementor.kind) {
             case "TYPE":
               newDocs.push({
                 kind: Kind.OBJECT_TYPE_EXTENSION,
-                name: {
-                  kind: Kind.NAME,
-                  value: implementor.name,
-                },
+                name,
                 fields: [doc.field],
                 loc: doc.loc,
               });
@@ -275,10 +231,7 @@ export class TypeContext {
             case "INTERFACE":
               newDocs.push({
                 kind: Kind.INTERFACE_TYPE_EXTENSION,
-                name: {
-                  kind: Kind.NAME,
-                  value: implementor.name,
-                },
+                name,
                 fields: [{ ...doc.field, directives }],
                 loc: doc.loc,
               });
