@@ -1,0 +1,17 @@
+-----------------
+INPUT
+----------------- 
+// Locate: Person
+/** @gqlInterface */
+interface Person {
+  /** @gqlField */
+  name: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/locate/interface.ts:3:11 - error: Located here
+
+3 interface Person {
+            ~~~~~~

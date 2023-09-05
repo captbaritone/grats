@@ -1,0 +1,17 @@
+-----------------
+INPUT
+----------------- 
+// Locate: User.name
+/** @gqlInput */
+type User = {
+  /** @gqlField */
+  name: string;
+};
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/locate/inputTypeField.ts:5:3 - error: Located here
+
+5   name: string;
+    ~~~~

@@ -1,10 +1,19 @@
 import * as path from "path";
 import TestRunner from "./TestRunner";
-import { buildSchemaResult, ConfigOptions } from "../lib";
+import {
+  buildSchemaResult,
+  buildSchemaResultWithHost,
+  ConfigOptions,
+} from "../lib";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import * as ts from "typescript";
 import { graphql } from "graphql";
 import { Command } from "commander";
+import { locate } from "../Locate";
+import {
+  diagnosticAtGraphQLLocation,
+  ReportableDiagnostics,
+} from "../utils/DiagnosticError";
 
 const program = new Command();
 
@@ -13,7 +22,7 @@ program
   .description("Run Grats' internal tests")
   .option(
     "-w, --write",
-    "Write the actual ouput of the test to the expected output files. Useful for updating tests.",
+    "Write the actual output of the test to the expected output files. Useful for updating tests.",
   )
   .option(
     "-f, --filter <FILTER_REGEX>",
@@ -61,13 +70,37 @@ const testDirs = [
         errors: [],
         fileNames: files,
       };
-      const schemaResult = buildSchemaResult(parsedOptions);
+
+      // https://stackoverflow.com/a/66604532/1263117
+      const compilerHost = ts.createCompilerHost(
+        parsedOptions.options,
+        /* setParentNodes this is needed for finding jsDocs */
+        true,
+      );
+
+      const schemaResult = buildSchemaResultWithHost(
+        parsedOptions,
+        compilerHost,
+      );
       if (schemaResult.kind === "ERROR") {
         return schemaResult.err.formatDiagnosticsWithContext();
       }
-      return printSchemaWithDirectives(schemaResult.value, {
-        assumeValid: true,
-      });
+      const LOCATION_REGEX = /^\/\/ Locate: (.*)/;
+      const locationMatch = code.match(LOCATION_REGEX);
+      if (locationMatch != null) {
+        const locResult = locate(schemaResult.value, locationMatch[1].trim());
+        if (locResult.kind === "ERROR") {
+          return locResult.err;
+        }
+
+        return new ReportableDiagnostics(compilerHost, [
+          diagnosticAtGraphQLLocation("Located here", locResult.value),
+        ]).formatDiagnosticsWithContext();
+      } else {
+        return printSchemaWithDirectives(schemaResult.value, {
+          assumeValid: true,
+        });
+      }
     },
   },
   {
