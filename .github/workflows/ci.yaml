@@ -91,13 +91,6 @@ jobs:
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install
-      #- name: Mark binaries as executable
-      #  working-directory: artifacts
-      #  run: |
-      #    chmod +x linux-x64/relay
-      #    chmod +x linux-arm64/relay
-      #    chmod +x macos-x64/relay
-      #    chmod +x macos-arm64/relay
       - name: Build latest (main) version
         if: github.ref == 'refs/heads/main'
         run: pnpm run build
