@@ -71,6 +71,13 @@ pnpm run start
 
 This will start a web server running GraphiQL which you can use to try out the server.
 
-```
+## NPM Releases
 
+GitHub CI publishes a release to npm for each commit. They use the version number convention `0.0.0-main-<git hash prefix>`.
+
+To publish a new release:
+
+```bash
+pnpm run build
+pnpm release
 ```
