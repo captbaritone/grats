@@ -20,15 +20,19 @@ If you wish to define field which has a single implementation that is shared by 
 
 ## Types Implementing Interfaces
 
-:::note
 To declare that a **type implements an interface**, see the [Implementing Interfaces](./01-types.mdx#implementing-interfaces) section of the Types docs.
-:::
 
 ## Interfaces Implementing Interfaces
 
-TypeScript does not have a concept of interfaces implementing interfaces. However, GraphQL does. To declare that an interface implements another interface, you can use the `@gqlInterface` docblock tag in an interface declaration. The value following the tag should be a comma-separated list of interfaces that the interface implements.
+To declare that an interface implements another interface, you can use TypeScript's `extends` keyword:
 
 <GratsCode out={InterfaceImplementingInterface} mode="ts" />
+
+Which will generate the following GraphQL schema:
+
+<GratsCode out={InterfaceImplementingInterface} mode="gql" />
+
+---
 
 :::note
 Each implementor of an interface must declare define all the fields required by the interface with `/** @gqlField */`. This means that if you have an interface that implements another interface, you must define all the fields required by both interfaces.

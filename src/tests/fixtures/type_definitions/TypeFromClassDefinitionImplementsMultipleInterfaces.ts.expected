@@ -1,33 +1,24 @@
 -----------------
 INPUT
 ----------------- 
-/**
- * @gqlType
- * @gqlImplements
- *    Person,    Member
- */
-export default class User {
-  __typename: "User";
+/** @gqlInterface Node */
+interface GqlNode {
   /** @gqlField */
   id: string;
-  /** @gqlField */
-  name(): string {
-    return "Samantha";
-  }
 }
 
-/**
- * @gqlInterface
- */
+/** @gqlInterface */
 interface Person {
   /** @gqlField */
-  name(): string;
+  hello: string;
 }
 
-/**
- * @gqlInterface
- */
-interface Member {
+/** @gqlType */
+export default class User implements Person, GqlNode {
+  readonly __typename = "User";
+  /** @gqlField */
+  hello: string;
+
   /** @gqlField */
   id: string;
 }
@@ -39,15 +30,15 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type User implements Person & Member {
+interface Node {
   id: String
-  name: String
 }
 
 interface Person {
-  name: String
+  hello: String
 }
 
-interface Member {
+type User implements Person & Node {
+  hello: String
   id: String
 }

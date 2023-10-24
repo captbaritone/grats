@@ -1,5 +1,9 @@
 # TODO
 
+## This PR
+
+- [ ] What happens if you extend a class/interface with some random value?
+
 ## Alpha
 - [ ] Don't report name collisions as merged interfaces (class + interface with the same name)
 - [ ] Test and clarify behavior of killsParentOnException

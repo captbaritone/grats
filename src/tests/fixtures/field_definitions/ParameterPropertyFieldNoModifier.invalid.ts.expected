@@ -14,7 +14,7 @@ export default class Query {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/field_definitions/ParameterPropertyFieldNoModifier.invalid.ts:5:5 - error: Expected `@gqlField` constructor paramater to be a parameter property. This requires a modifier such as `public` or `readonly` before the parameter name.
+src/tests/fixtures/field_definitions/ParameterPropertyFieldNoModifier.invalid.ts:5:5 - error: Expected `@gqlField` constructor parameter to be a parameter property. This requires a modifier such as `public` or `readonly` before the parameter name.
 
 Learn more: https://grats.capt.dev/docs/dockblock-tags/fields#class-based-fields
 

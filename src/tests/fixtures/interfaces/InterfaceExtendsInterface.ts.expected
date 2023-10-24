@@ -14,10 +14,7 @@ interface Person {
 }
 
 /** @gqlInterface */
-interface Actor
-  // Grats ignores these
-  extends GqlNode,
-    Person {
+interface Actor extends GqlNode, Person {
   /** @gqlField */
   id: string;
   /** @gqlField */
@@ -39,7 +36,7 @@ interface Person {
   name: String
 }
 
-interface Actor {
+interface Actor implements Node & Person {
   id: String
   name: String
 }

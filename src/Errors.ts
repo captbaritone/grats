@@ -2,7 +2,7 @@ import {
   ALL_TAGS,
   ENUM_TAG,
   FIELD_TAG,
-  IMPLEMENTS_TAG,
+  IMPLEMENTS_TAG_DEPRECATED,
   INPUT_TAG,
   INTERFACE_TAG,
   KILLS_PARENT_ON_EXCEPTION_TAG,
@@ -18,6 +18,7 @@ const DOC_URLS = {
     "https://grats.capt.dev/docs/dockblock-tags/interfaces/#merged-interfaces",
   parameterProperties:
     "https://grats.capt.dev/docs/dockblock-tags/fields#class-based-fields",
+  typeImplementsInterface: "TODO",
 };
 
 /**
@@ -34,11 +35,6 @@ const DOC_URLS = {
 export function fieldTagOnWrongNode() {
   return `\`@${FIELD_TAG}\` can only be used on method/property declarations or signatures.`;
 }
-
-export function implementsTagOnWrongNode() {
-  return `\`@${IMPLEMENTS_TAG}\` can only be used on Grats type or interface declarations. Did you mean to include the \`@${TYPE_TAG}\` or \`@${INTERFACE_TAG}\` tag in this docblock?`;
-}
-
 export function killsParentOnExceptionOnWrongNode() {
   return `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\`. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` can only be used in field annotation docblocks. Perhaps you are missing a \`@${FIELD_TAG}\` tag?`;
 }
@@ -279,7 +275,19 @@ export function mergedInterfaces(interfaceName: string) {
 }
 
 export function implementsTagMissingValue() {
-  return `Expected \`@${IMPLEMENTS_TAG}\` to be followed by one or more interface names.`;
+  return `Expected \`@${IMPLEMENTS_TAG_DEPRECATED}\` to be followed by one or more interface names.`;
+}
+
+export function implementsTagOnClass() {
+  return `\`@${IMPLEMENTS_TAG_DEPRECATED}\` has been deprecated. Instead use \`class MyType implements MyInterface\`.`;
+}
+
+export function implementsTagOnInterface() {
+  return `\`@${IMPLEMENTS_TAG_DEPRECATED}\` has been deprecated. Instead use \`interface MyType extends MyInterface\`.`;
+}
+
+export function implementsTagOnTypeAlias() {
+  return `\`@${IMPLEMENTS_TAG_DEPRECATED}\` has been deprecated. Types which implement GraphQL interfaces should be defined using TypeScript class or interface declarations. Learn more: ${DOC_URLS.typeImplementsInterface}.`;
 }
 
 export function duplicateTag(tagName: string) {
@@ -287,12 +295,12 @@ export function duplicateTag(tagName: string) {
 }
 
 export function duplicateInterfaceTag() {
-  return `Unexpected duplicate \`@${IMPLEMENTS_TAG}\` tag. To declare that a type or interface implements multiple interfaces list them as comma separated values: \`@${IMPLEMENTS_TAG} interfaceA, interfaceB\`.`;
+  return `Unexpected duplicate \`@${IMPLEMENTS_TAG_DEPRECATED}\` tag. To declare that a type or interface implements multiple interfaces list them as comma separated values: \`@${IMPLEMENTS_TAG_DEPRECATED} interfaceA, interfaceB\`.`;
 }
 
 export function parameterWithoutModifiers() {
   return [
-    `Expected \`@${FIELD_TAG}\` constructor paramater to be a parameter property. This requires a modifier such as \`public\` or \`readonly\` before the parameter name.\n\n`,
+    `Expected \`@${FIELD_TAG}\` constructor parameter to be a parameter property. This requires a modifier such as \`public\` or \`readonly\` before the parameter name.\n\n`,
     `Learn more: ${DOC_URLS.parameterProperties}`,
   ].join("");
 }

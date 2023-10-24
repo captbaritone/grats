@@ -10,11 +10,8 @@ interface Person {
   name: string;
 }
 
-/**
- * @gqlInterface
- * @gqlImplements Node, Person
- */
-interface Actor {
+/** @gqlInterface */
+interface Actor extends GqlNode, Person {
   /** @gqlField */
   id: string;
   /** @gqlField */

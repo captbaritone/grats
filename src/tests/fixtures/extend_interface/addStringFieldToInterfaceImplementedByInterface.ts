@@ -11,7 +11,6 @@ interface IThing {
 
 /**
  * @gqlInterface
- * @gqlImplements IThing
  */
 interface IPerson extends IThing {
   name: string;

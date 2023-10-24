@@ -13,11 +13,8 @@ export function greeting(person: IPerson): string {
   return `Hello ${person.name}!`;
 }
 
-/**
- * @gqlInterface
- * @gqlImplements IPerson
- */
-interface User {
+/** @gqlInterface */
+interface User extends IPerson {
   __typename: "User";
   name: string;
   /** @gqlField */
@@ -35,7 +32,7 @@ src/tests/fixtures/extend_interface/redefineFiledThatExistsOnImplementingInterfa
 9 export function greeting(person: IPerson): string {
                   ~~~~~~~~
 
-  src/tests/fixtures/extend_interface/redefineFiledThatExistsOnImplementingInterface.invalid.ts:24:3
-    24   greeting(): string;
+  src/tests/fixtures/extend_interface/redefineFiledThatExistsOnImplementingInterface.invalid.ts:21:3
+    21   greeting(): string;
          ~~~~~~~~
     Related location

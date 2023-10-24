@@ -5,10 +5,9 @@ interface Person {
 }
 
 /** @gqlType */
-// highlight-start
-export class User implements Person {
-  // highlight-end
+export interface User extends Person {
   __typename: "User";
+
   /** @gqlField */
   name: string;
 }

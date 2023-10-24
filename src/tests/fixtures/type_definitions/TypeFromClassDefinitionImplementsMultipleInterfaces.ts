@@ -7,13 +7,15 @@ interface GqlNode {
 /** @gqlInterface */
 interface Person {
   /** @gqlField */
-  name: string;
+  hello: string;
 }
 
-/** @gqlInterface */
-interface Actor extends GqlNode, Person {
+/** @gqlType */
+export default class User implements Person, GqlNode {
+  readonly __typename = "User";
+  /** @gqlField */
+  hello: string;
+
   /** @gqlField */
   id: string;
-  /** @gqlField */
-  name: string;
 }
