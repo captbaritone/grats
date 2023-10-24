@@ -1,0 +1,25 @@
+-----------------
+INPUT
+----------------- 
+interface IThing {
+  name: string;
+}
+
+/**
+ * @gqlInterface
+ */
+export interface IPerson extends IThing {
+  /** @gqlField */
+  name: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+interface IPerson {
+  name: String
+}

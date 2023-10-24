@@ -729,18 +729,18 @@ export class Extractor {
         return true;
       })
       .flatMap((clause): Array<NamedTypeNode | null> => {
-        return clause.types.map((type) => {
-          if (!ts.isIdentifier(type.expression)) {
-            // TODO: Are there valid cases we want to cover here?
-            return null;
-          }
-          const namedType = this.gql.namedType(
-            type.expression,
-            UNRESOLVED_REFERENCE_NAME,
-          );
-          this.ctx.markUnresolvedType(type.expression, namedType.name);
-          return namedType;
-        });
+        return clause.types
+          .map((type) => type.expression)
+          .filter((expression) => ts.isIdentifier(expression))
+          .filter((expression) => this.symbolHasGqlTag(expression))
+          .map((expression) => {
+            const namedType = this.gql.namedType(
+              expression,
+              UNRESOLVED_REFERENCE_NAME,
+            );
+            this.ctx.markUnresolvedType(expression, namedType.name);
+            return namedType;
+          });
       });
 
     const interfaces = maybeInterfaces.filter(
@@ -752,6 +752,20 @@ export class Extractor {
     }
 
     return interfaces;
+  }
+
+  symbolHasGqlTag(node: ts.Node): boolean {
+    const symbol = this.ctx.checker.getSymbolAtLocation(node);
+    if (symbol == null) return false;
+    const declaration = symbol.declarations?.[0];
+    if (declaration == null) return false;
+    return this.hasGqlTag(declaration);
+  }
+
+  hasGqlTag(node: ts.Node): boolean {
+    return ts.getJSDocTags(node).some((tag) => {
+      return ALL_TAGS.includes(tag.tagName.text);
+    });
   }
 
   interfaceInterfaceDeclaration(
