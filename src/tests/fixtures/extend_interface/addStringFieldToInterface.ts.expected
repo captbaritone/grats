@@ -32,21 +32,23 @@ class Admin implements IPerson {
 -----------------
 OUTPUT
 -----------------
-directive @methodName(name: String!) on FIELD_DEFINITION
+src/tests/fixtures/extend_interface/addStringFieldToInterface.ts:2:1 - error: Cannot extend non-object type "IPerson".
 
-directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+  2 interface IPerson {
+    ~~~~~~~~~~~~~~~~~~~
+  3   name: string;
+    ~~~~~~~~~~~~~~~
+... 
+  5   hello: string;
+    ~~~~~~~~~~~~~~~~
+  6 }
+    ~
 
-interface IPerson {
-  hello: String
-  greeting: String
-}
-
-type User implements IPerson {
-  hello: String
-  greeting: String @exported(filename: "tests/fixtures/extend_interface/addStringFieldToInterface.js", functionName: "greeting")
-}
-
-type Admin implements IPerson {
-  hello: String
-  greeting: String @exported(filename: "tests/fixtures/extend_interface/addStringFieldToInterface.js", functionName: "greeting")
-}
+  src/tests/fixtures/extend_interface/addStringFieldToInterface.ts:9:1
+     9 export function greeting(person: IPerson): string {
+       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    10   return `Hello ${person.name}!`;
+       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    11 }
+       ~
+    Related location

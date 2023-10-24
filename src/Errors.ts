@@ -128,7 +128,7 @@ export function inputFieldUntyped() {
   return "Input field must have a type annotation.";
 }
 
-export function typeTagOnUnamedClass() {
+export function typeTagOnUnnamedClass() {
   return `Unexpected \`@${TYPE_TAG}\` annotation on unnamed class declaration.`;
 }
 
@@ -252,7 +252,7 @@ export function pluralTypeMissingParameter() {
   return `Expected type reference to have type arguments.`;
 }
 
-export function expectedIdentifer() {
+export function expectedIdentifier() {
   return "Expected an identifier.";
 }
 
@@ -292,7 +292,7 @@ export function duplicateInterfaceTag() {
 
 export function parameterWithoutModifiers() {
   return [
-    `Expected \`@${FIELD_TAG}\` constructor paramater to be a parameter property. This requires a modifier such as \`public\` or \`readonly\` before the parameter name.\n\n`,
+    `Expected \`@${FIELD_TAG}\` constructor parameter to be a parameter property. This requires a modifier such as \`public\` or \`readonly\` before the parameter name.\n\n`,
     `Learn more: ${DOC_URLS.parameterProperties}`,
   ].join("");
 }
@@ -309,7 +309,7 @@ export function parameterPropertyMissingType() {
 }
 
 export function invalidTypePassedToFieldFunction() {
-  return `Unexpected type passed to \`@${FIELD_TAG}\` function. \`@${FIELD_TAG}\` functions can only be used to extend \`@${TYPE_TAG}\` and \`@${INTERFACE_TAG}\` types.`;
+  return `Unexpected type passed to \`@${FIELD_TAG}\` function. \`@${FIELD_TAG}\` functions can only be used to extend \`@${TYPE_TAG}\` types.`;
 }
 
 export function unresolvedTypeReference() {

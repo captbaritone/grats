@@ -1,12 +1,4 @@
-import {
-  DefinitionNode,
-  DocumentNode,
-  FieldDefinitionNode,
-  Kind,
-  Location,
-  NameNode,
-  visit,
-} from "graphql";
+import { DocumentNode, Kind, Location, NameNode, visit } from "graphql";
 import * as ts from "typescript";
 import {
   DiagnosticResult,
@@ -16,31 +8,13 @@ import {
   ok,
 } from "./utils/DiagnosticError";
 import { getRelativeOutputPath } from "./gratsRoot";
-import { EXPORTED_DIRECTIVE } from "./serverDirectives";
-import { FIELD_TAG } from "./Extractor";
 import * as E from "./Errors";
-import { InterfaceMap, computeInterfaceMap } from "./InterfaceGraph";
-import { extend } from "./utils/helpers";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
 type NameDefinition = {
   name: NameNode;
   kind: "TYPE" | "INTERFACE" | "UNION" | "SCALAR" | "INPUT_OBJECT" | "ENUM";
-};
-
-// Grats can't always extract an SDL AST node right away. In some cases, it
-// needs to extract something abstract which can only be converted into an SDL
-// AST after the whole program has been analyzed.
-export type GratsDefinitionNode = DefinitionNode | AbstractFieldDefinitionNode;
-
-// A field definition that applies to some construct. We don't yet know if it applies to
-// a concrete type, or an interface.
-export type AbstractFieldDefinitionNode = {
-  readonly kind: "AbstractFieldDefinition";
-  readonly loc: Location;
-  readonly onType: NameNode;
-  readonly field: FieldDefinitionNode;
 };
 
 /**
@@ -126,139 +100,6 @@ export class TypeContext {
       return err(errors);
     }
     return ok(newDoc);
-  }
-
-  handleAbstractDefinitions(
-    docs: GratsDefinitionNode[],
-  ): DiagnosticsResult<DefinitionNode[]> {
-    const newDocs: DefinitionNode[] = [];
-    const errors: ts.Diagnostic[] = [];
-
-    const interfaceGraphResult = computeInterfaceMap(this, docs);
-    if (interfaceGraphResult.kind === "ERROR") {
-      return interfaceGraphResult;
-    }
-    const interfaceGraph = interfaceGraphResult.value;
-
-    for (const doc of docs) {
-      if (doc.kind === "AbstractFieldDefinition") {
-        const abstractDocResults = this.addAbstractFieldDefinition(
-          doc,
-          interfaceGraph,
-        );
-        if (abstractDocResults.kind === "ERROR") {
-          extend(errors, abstractDocResults.err);
-        } else {
-          extend(newDocs, abstractDocResults.value);
-        }
-      } else {
-        newDocs.push(doc);
-      }
-    }
-    if (errors.length > 0) {
-      return err(errors);
-    }
-    return ok(newDocs);
-  }
-
-  // A field definition may be on a concrete type, or on an interface. If it's on an interface,
-  // we need to add it to each concrete type that implements the interface.
-  addAbstractFieldDefinition(
-    doc: AbstractFieldDefinitionNode,
-    interfaceGraph: InterfaceMap,
-  ): DiagnosticsResult<DefinitionNode[]> {
-    const newDocs: DefinitionNode[] = [];
-    const typeNameResult = this.resolveNamedType(doc.onType);
-    if (typeNameResult.kind === "ERROR") {
-      return err([typeNameResult.err]);
-    }
-    const symbol = this._unresolvedTypes.get(doc.onType);
-    if (symbol == null) {
-      // This should have already been handled by resolveNamedType
-      throw new Error("Expected to find unresolved type.");
-    }
-    const nameDefinition = this._symbolToName.get(symbol);
-    if (nameDefinition == null) {
-      // This should have already been handled by resolveNamedType
-      throw new Error("Expected to find name definition.");
-    }
-
-    switch (nameDefinition.kind) {
-      case "TYPE":
-        // Extending a type, is just adding a field to it.
-        newDocs.push({
-          kind: Kind.OBJECT_TYPE_EXTENSION,
-          name: doc.onType,
-          fields: [doc.field],
-          loc: doc.loc,
-        });
-        break;
-      case "INTERFACE": {
-        // Extending an interface is a bit more complicated. We need to add the field
-        // to the interface, and to each type that implements the interface.
-
-        // The interface field definition is not executable, so we don't
-        // need to annotate it with the details of the implementation.
-        const directives = doc.field.directives?.filter((directive) => {
-          return directive.name.value !== EXPORTED_DIRECTIVE;
-        });
-        newDocs.push({
-          kind: Kind.INTERFACE_TYPE_EXTENSION,
-          name: doc.onType,
-          fields: [{ ...doc.field, directives }],
-        });
-
-        for (const implementor of interfaceGraph.get(
-          nameDefinition.name.value,
-        )) {
-          const name = {
-            kind: Kind.NAME,
-            value: implementor.name,
-            loc: doc.loc, // Bit of a lie, but I don't see a better option.
-          } as const;
-          switch (implementor.kind) {
-            case "TYPE":
-              newDocs.push({
-                kind: Kind.OBJECT_TYPE_EXTENSION,
-                name,
-                fields: [doc.field],
-                loc: doc.loc,
-              });
-              break;
-            case "INTERFACE":
-              newDocs.push({
-                kind: Kind.INTERFACE_TYPE_EXTENSION,
-                name,
-                fields: [{ ...doc.field, directives }],
-                loc: doc.loc,
-              });
-              break;
-          }
-        }
-        break;
-      }
-      default: {
-        // Extending any other type of definition is not supported.
-        const loc = doc.onType.loc;
-        if (loc == null) {
-          throw new Error("Expected onType to have a location.");
-        }
-        const relatedLoc = nameDefinition.name.loc;
-        if (relatedLoc == null) {
-          throw new Error("Expected nameDefinition to have a location.");
-        }
-
-        return err([
-          this.err(loc, E.invalidTypePassedToFieldFunction(), [
-            this.relatedInformation(
-              relatedLoc,
-              `This is the type that was passed to \`@${FIELD_TAG}\`.`,
-            ),
-          ]),
-        ]);
-      }
-    }
-    return ok(newDocs);
   }
 
   resolveNamedDefinition(unresolved: NameNode): DiagnosticResult<NameNode> {

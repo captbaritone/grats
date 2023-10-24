@@ -1,5 +1,6 @@
 import {
   buildASTSchema,
+  DefinitionNode,
   GraphQLSchema,
   isAbstractType,
   isType,
@@ -17,7 +18,7 @@ import {
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { Extractor } from "./Extractor";
-import { GratsDefinitionNode, TypeContext } from "./TypeContext";
+import { TypeContext } from "./TypeContext";
 import { validateSDL } from "graphql/validation/validate";
 import { applyServerDirectives, DIRECTIVES_AST } from "./serverDirectives";
 
@@ -91,9 +92,7 @@ function extractSchema(
   const checker = program.getTypeChecker();
   const ctx = new TypeContext(options, checker, host);
 
-  const definitions: GratsDefinitionNode[] = Array.from(
-    DIRECTIVES_AST.definitions,
-  );
+  const definitions: DefinitionNode[] = Array.from(DIRECTIVES_AST.definitions);
   for (const sourceFile of program.getSourceFiles()) {
     // If the file doesn't contain any GraphQL definitions, skip it.
     if (!/@gql/i.test(sourceFile.text)) {
@@ -125,17 +124,9 @@ function extractSchema(
     }
   }
 
-  // If you define a field on an interface using the functional style, we need to add
-  // that field to each concrete type as well. This must be done after all types are created,
-  // but before we validate the schema.
-  const definitionsResult = ctx.handleAbstractDefinitions(definitions);
-  if (definitionsResult.kind === "ERROR") {
-    return definitionsResult;
-  }
-
   const docResult = ctx.resolveTypes({
     kind: Kind.DOCUMENT,
-    definitions: definitionsResult.value,
+    definitions,
   });
   if (docResult.kind === "ERROR") return docResult;
 

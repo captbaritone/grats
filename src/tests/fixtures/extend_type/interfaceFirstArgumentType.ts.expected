@@ -21,19 +21,22 @@ export function greeting(iFoo: IFoo): string {
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
+src/tests/fixtures/extend_type/interfaceFirstArgumentType.ts:8:1 - error: Cannot extend non-object type "IFoo".
 
-directive @methodName(name: String!) on FIELD_DEFINITION
+ 8 interface IFoo {
+   ~~~~~~~~~~~~~~~~
+ 9   /** @gqlField */
+   ~~~~~~~~~~~~~~~~~~
+10   bar: string;
+   ~~~~~~~~~~~~~~
+11 }
+   ~
 
-directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
-
-type Query {
-  foo: String
-}
-
-interface IFoo {
-  bar: String
-  greeting: String
-}
+  src/tests/fixtures/extend_type/interfaceFirstArgumentType.ts:14:1
+    14 export function greeting(iFoo: IFoo): string {
+       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    15   return "Hello world!";
+       ~~~~~~~~~~~~~~~~~~~~~~~~
+    16 }
+       ~
+    Related location

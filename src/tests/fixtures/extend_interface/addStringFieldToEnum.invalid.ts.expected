@@ -12,12 +12,16 @@ export function greeting(myEnum: MyEnum): string {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/extend_interface/addStringFieldToEnum.invalid.ts:5:34 - error: Unexpected type passed to `@gqlField` function. `@gqlField` functions can only be used to extend `@gqlType` and `@gqlInterface` types.
+src/tests/fixtures/extend_interface/addStringFieldToEnum.invalid.ts:2:1 - error: Cannot extend non-object type "MyEnum".
 
-5 export function greeting(myEnum: MyEnum): string {
-                                   ~~~~~~
+2 type MyEnum = "Foo" | "Bar";
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  src/tests/fixtures/extend_interface/addStringFieldToEnum.invalid.ts:2:6
-    2 type MyEnum = "Foo" | "Bar";
-           ~~~~~~
-    This is the type that was passed to `@gqlField`.
+  src/tests/fixtures/extend_interface/addStringFieldToEnum.invalid.ts:5:1
+    5 export function greeting(myEnum: MyEnum): string {
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    6   return `Hello ${myEnum}!`;
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    7 }
+      ~
+    Related location

@@ -38,22 +38,22 @@ class Admin implements IPerson, IThing {
 -----------------
 OUTPUT
 -----------------
-directive @methodName(name: String!) on FIELD_DEFINITION
+src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts:7:1 - error: Cannot extend non-object type "IThing".
 
-directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+ 7 interface IThing {
+   ~~~~~~~~~~~~~~~~~~
+ 8   name: string;
+   ~~~~~~~~~~~~~~~
+ 9   // Should have greeting added
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10 }
+   ~
 
-interface IThing {
-  greeting: String
-}
-
-interface IPerson implements IThing {
-  greeting: String
-}
-
-type User implements IPerson & IThing {
-  greeting: String @exported(filename: "tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.js", functionName: "greeting")
-}
-
-type Admin implements IPerson & IThing {
-  greeting: String @exported(filename: "tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.js", functionName: "greeting")
-}
+  src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts:2:1
+    2 export function greeting(thing: IThing): string {
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    3   return `Hello ${thing.name}!`;
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    4 }
+      ~
+    Related location

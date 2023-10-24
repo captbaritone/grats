@@ -13,6 +13,7 @@ import {
   ConstObjectFieldNode,
   ConstObjectValueNode,
   ConstListValueNode,
+  DefinitionNode,
 } from "graphql";
 import {
   DiagnosticsResult,
@@ -21,11 +22,7 @@ import {
   ok,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
-import {
-  GratsDefinitionNode,
-  TypeContext,
-  UNRESOLVED_REFERENCE_NAME,
-} from "./TypeContext";
+import { TypeContext, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
 import { ConfigOptions } from "./lib";
 import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
@@ -81,7 +78,7 @@ type ArgDefaults = Map<string, ts.Expression>;
  * errors will point to the correct location in the TypeScript source code.
  */
 export class Extractor {
-  definitions: GratsDefinitionNode[] = [];
+  definitions: DefinitionNode[] = [];
   sourceFile: ts.SourceFile;
   ctx: TypeContext;
   configOptions: ConfigOptions;
@@ -103,7 +100,7 @@ export class Extractor {
   // If we find a tag we recognize, we extract the relevant information,
   // reporting an error if it is attached to a node where that tag is not
   // supported.
-  extract(): DiagnosticsResult<GratsDefinitionNode[]> {
+  extract(): DiagnosticsResult<DefinitionNode[]> {
     traverseJSDocTags(this.sourceFile, (node, tag) => {
       switch (tag.tagName.text) {
         case TYPE_TAG:
@@ -402,7 +399,7 @@ export class Extractor {
       description,
     );
     this.definitions.push(
-      this.gql.abstractFieldDefinition(node, typeName, field),
+      this.gql.extendObjectWithField(node, typeName, field),
     );
   }
 
@@ -533,7 +530,7 @@ export class Extractor {
 
   typeClassDeclaration(node: ts.ClassDeclaration, tag: ts.JSDocTag) {
     if (node.name == null) {
-      return this.report(node, E.typeTagOnUnamedClass());
+      return this.report(node, E.typeTagOnUnnamedClass());
     }
 
     const name = this.entityName(node, tag);
@@ -976,7 +973,7 @@ export class Extractor {
     } else if (node.kind === ts.SyntaxKind.FalseKeyword) {
       return this.gql.boolean(node, false);
     } else if (ts.isObjectLiteralExpression(node)) {
-      return this.cellectObjectLiteral(node);
+      return this.collectObjectLiteral(node);
     } else if (ts.isArrayLiteralExpression(node)) {
       return this.collectArrayLiteral(node);
     }
@@ -1006,7 +1003,7 @@ export class Extractor {
     return this.gql.list(node, values);
   }
 
-  cellectObjectLiteral(
+  collectObjectLiteral(
     node: ts.ObjectLiteralExpression,
   ): ConstObjectValueNode | null {
     const fields: ConstObjectFieldNode[] = [];
@@ -1346,19 +1343,19 @@ export class Extractor {
   }
 
   collectMethodType(node: ts.TypeNode): TypeNode | null {
-    const inner = this.maybeUnwrapePromise(node);
+    const inner = this.maybeUnwrapPromise(node);
     if (inner == null) return null;
     return this.collectType(inner);
   }
 
   collectPropertyType(node: ts.TypeNode): TypeNode | null {
     // TODO: Handle function types here.
-    const inner = this.maybeUnwrapePromise(node);
+    const inner = this.maybeUnwrapPromise(node);
     if (inner == null) return null;
     return this.collectType(inner);
   }
 
-  maybeUnwrapePromise(node: ts.TypeNode): ts.TypeNode | null {
+  maybeUnwrapPromise(node: ts.TypeNode): ts.TypeNode | null {
     if (ts.isTypeReferenceNode(node)) {
       const identifier = this.expectIdentifier(node.typeName);
       if (identifier == null) return null;
@@ -1552,7 +1549,7 @@ export class Extractor {
     if (ts.isIdentifier(node)) {
       return node;
     }
-    return this.report(node, E.expectedIdentifer());
+    return this.report(node, E.expectedIdentifier());
   }
 
   findTag(node: ts.Node, tagName: string): ts.JSDocTag | null {
@@ -1579,7 +1576,7 @@ export class Extractor {
   }
 
   // It is a GraphQL best practice to model all fields as nullable. This allows
-  // the server to handle field level exections by simply returning null for
+  // the server to handle field level executions by simply returning null for
   // that field.
   // https://graphql.org/learn/best-practices/#nullability
   handleErrorBubbling(parentNode: ts.Node, type: TypeNode) {
