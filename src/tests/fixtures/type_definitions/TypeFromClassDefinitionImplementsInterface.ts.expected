@@ -1,24 +1,17 @@
 -----------------
 INPUT
 ----------------- 
-/** @gqlInterface Node */
-interface GqlNode {
-  /** @gqlField */
-  id: string;
-}
-
 /** @gqlInterface */
 interface Person {
   /** @gqlField */
-  name: string;
+  hello: string;
 }
 
-/** @gqlInterface */
-interface Actor extends GqlNode, Person {
+/** @gqlType */
+export default class User implements Person {
+  readonly __typename = "User";
   /** @gqlField */
-  id: string;
-  /** @gqlField */
-  name: string;
+  hello: string;
 }
 
 -----------------
@@ -28,15 +21,10 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-interface Node {
-  id: String
-}
-
 interface Person {
-  name: String
+  hello: String
 }
 
-interface Actor implements Node & Person {
-  id: String
-  name: String
+type User implements Person {
+  hello: String
 }

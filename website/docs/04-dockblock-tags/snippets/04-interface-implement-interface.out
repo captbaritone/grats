@@ -4,11 +4,10 @@ interface Person {
   name: string;
 }
 
-/**
- * @gqlInterface
- * @gqlImplements Person
- */
-interface User {
+/** @gqlInterface */
+// highlight-start
+interface User extends Person {
+// highlight-end
   /** @gqlField */
   name: string;
 

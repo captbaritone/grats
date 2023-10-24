@@ -1,15 +1,15 @@
 /** @gqlInterface */
 interface Person {
   /** @gqlField */
-  name: string;
+  hello: string;
 }
 
 /**
  * @gqlType
  * @gqlImplements Person
  */
-type Visitor = {
-  __typename: "Visitor";
+export default class User {
+  readonly __typename = "User";
   /** @gqlField */
-  name: string;
-};
+  hello: string;
+}

@@ -30,9 +30,9 @@ export function computeInterfaceMap(
       case Kind.INTERFACE_TYPE_DEFINITION:
       case Kind.INTERFACE_TYPE_EXTENSION:
         for (const implementor of doc.interfaces ?? []) {
-          const resolved = typeContext.resolveNamedDefinition(implementor.name);
+          const resolved = typeContext.resolveNamedType(implementor.name);
           if (resolved.kind === "ERROR") {
-            errors.push(resolved.err);
+            // We trust that these errors will be reported elsewhere.
             continue;
           }
           add(resolved.value.value, {
@@ -44,9 +44,9 @@ export function computeInterfaceMap(
       case Kind.OBJECT_TYPE_DEFINITION:
       case Kind.OBJECT_TYPE_EXTENSION:
         for (const implementor of doc.interfaces ?? []) {
-          const resolved = typeContext.resolveNamedDefinition(implementor.name);
+          const resolved = typeContext.resolveNamedType(implementor.name);
           if (resolved.kind === "ERROR") {
-            errors.push(resolved.err);
+            // We trust that these errors will be reported elsewhere.
             continue;
           }
           add(resolved.value.value, { kind: "TYPE", name: doc.name.value });

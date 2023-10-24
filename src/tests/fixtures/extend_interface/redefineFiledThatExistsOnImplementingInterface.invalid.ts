@@ -10,11 +10,8 @@ export function greeting(person: IPerson): string {
   return `Hello ${person.name}!`;
 }
 
-/**
- * @gqlInterface
- * @gqlImplements IPerson
- */
-interface User {
+/** @gqlInterface */
+interface User extends IPerson {
   __typename: "User";
   name: string;
   /** @gqlField */

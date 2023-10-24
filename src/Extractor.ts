@@ -29,7 +29,6 @@ import {
 import { ConfigOptions } from "./lib";
 import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
-import { concatMaybeArrays } from "./utils/helpers";
 import { GraphQLConstructor } from "./GraphQLConstructor";
 import {
   EXPORTED_DIRECTIVE,
@@ -51,7 +50,7 @@ export const ENUM_TAG = "gqlEnum";
 export const UNION_TAG = "gqlUnion";
 export const INPUT_TAG = "gqlInput";
 
-export const IMPLEMENTS_TAG = "gqlImplements";
+export const IMPLEMENTS_TAG_DEPRECATED = "gqlImplements";
 export const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
 
 // All the tags that start with gql
@@ -63,7 +62,6 @@ export const ALL_TAGS = [
   ENUM_TAG,
   UNION_TAG,
   INPUT_TAG,
-  IMPLEMENTS_TAG,
 ];
 
 const DEPRECATED_TAG = "deprecated";
@@ -141,17 +139,6 @@ export class Extractor {
             this.reportUnhandled(node, "field", E.fieldTagOnWrongNode());
           }
           break;
-        case IMPLEMENTS_TAG: {
-          const hasTypeOrInterfaceTag = ts.getJSDocTags(node).some((t) => {
-            return (
-              t.tagName.text === TYPE_TAG || t.tagName.text === INTERFACE_TAG
-            );
-          });
-          if (!hasTypeOrInterfaceTag) {
-            this.report(tag.tagName, E.implementsTagOnWrongNode());
-          }
-          break;
-        }
         case KILLS_PARENT_ON_EXCEPTION_TAG: {
           const hasFieldTag = ts.getJSDocTags(node).some((t) => {
             return t.tagName.text === FIELD_TAG;
@@ -701,57 +688,59 @@ export class Extractor {
       | ts.InterfaceDeclaration
       | ts.TypeAliasDeclaration,
   ): Array<NamedTypeNode> | null {
-    const heritageInterfaces = ts.isClassDeclaration(node)
+    this.reportTagInterfaces(node);
+
+    return ts.isClassDeclaration(node) || ts.isInterfaceDeclaration(node)
       ? this.collectHeritageInterfaces(node)
       : null;
-    return concatMaybeArrays(
-      heritageInterfaces,
-      this.collectTagInterfaces(node),
-    );
   }
 
-  collectTagInterfaces(
+  reportTagInterfaces(
     node:
+      | ts.TypeAliasDeclaration
       | ts.ClassDeclaration
-      | ts.InterfaceDeclaration
-      | ts.TypeAliasDeclaration,
-  ): Array<NamedTypeNode> | null {
-    const tag = this.findTag(node, IMPLEMENTS_TAG);
+      | ts.InterfaceDeclaration,
+  ) {
+    const tag = this.findTag(node, IMPLEMENTS_TAG_DEPRECATED);
     if (tag == null) return null;
 
-    const commentName = ts.getTextOfJSDocComment(tag.comment);
-    if (commentName == null) {
-      return this.report(tag, E.implementsTagMissingValue());
+    if (node.kind === ts.SyntaxKind.ClassDeclaration) {
+      this.report(tag, E.implementsTagOnClass());
     }
-    return commentName.split(",").map((name) => {
-      // FIXME: Use more targeted location information.
-      // Will require rewriting everything that expects a node for location
-      // purposes to transform the node into a location eagerly. Then we can have
-      // a richer set of tools to construct custom locations.
-      return this.gql.namedType(tag, name.trim());
-    });
+    if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
+      this.report(tag, E.implementsTagOnInterface());
+    }
+    if (node.kind === ts.SyntaxKind.TypeAliasDeclaration) {
+      this.report(tag, E.implementsTagOnTypeAlias());
+    }
   }
 
   collectHeritageInterfaces(
-    node: ts.ClassDeclaration,
+    node: ts.ClassDeclaration | ts.InterfaceDeclaration,
   ): Array<NamedTypeNode> | null {
     if (node.heritageClauses == null) return null;
 
-    const maybeInterfaces: Array<NamedTypeNode | null> =
-      node.heritageClauses.flatMap((clause): Array<NamedTypeNode | null> => {
-        if (clause.token !== ts.SyntaxKind.ImplementsKeyword) return [];
-        return clause.types.map((type) => {
-          if (!ts.isIdentifier(type.expression)) {
-            // TODO: Are there valid cases we want to cover here?
-            return null;
-          }
-          const namedType = this.gql.namedType(
-            type.expression,
-            UNRESOLVED_REFERENCE_NAME,
-          );
-          this.ctx.markUnresolvedType(type.expression, namedType.name);
-          return namedType;
-        });
+    const maybeInterfaces: Array<NamedTypeNode | null> = node.heritageClauses
+      .filter((clause) => {
+        if (node.kind === ts.SyntaxKind.ClassDeclaration) {
+          return clause.token === ts.SyntaxKind.ImplementsKeyword;
+        }
+        // Interfaces can only have extends clauses, and those are allowed.
+        return true;
+      })
+      .flatMap((clause): Array<NamedTypeNode | null> => {
+        return clause.types
+          .map((type) => type.expression)
+          .filter((expression) => ts.isIdentifier(expression))
+          .filter((expression) => this.symbolHasGqlTag(expression))
+          .map((expression) => {
+            const namedType = this.gql.namedType(
+              expression,
+              UNRESOLVED_REFERENCE_NAME,
+            );
+            this.ctx.markUnresolvedType(expression, namedType.name);
+            return namedType;
+          });
       });
 
     const interfaces = maybeInterfaces.filter(
@@ -763,6 +752,20 @@ export class Extractor {
     }
 
     return interfaces;
+  }
+
+  symbolHasGqlTag(node: ts.Node): boolean {
+    const symbol = this.ctx.checker.getSymbolAtLocation(node);
+    if (symbol == null) return false;
+    const declaration = symbol.declarations?.[0];
+    if (declaration == null) return false;
+    return this.hasGqlTag(declaration);
+  }
+
+  hasGqlTag(node: ts.Node): boolean {
+    return ts.getJSDocTags(node).some((tag) => {
+      return ALL_TAGS.includes(tag.tagName.text);
+    });
   }
 
   interfaceInterfaceDeclaration(
@@ -1569,7 +1572,7 @@ export class Extractor {
       });
 
       const message =
-        tagName === IMPLEMENTS_TAG
+        tagName === IMPLEMENTS_TAG_DEPRECATED
           ? E.duplicateInterfaceTag()
           : E.duplicateTag(tagName);
 

@@ -9,7 +9,7 @@ function hello() {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/interfaces/tag/ImplementsTagWithoutTypeOrInterface.invalid.ts:1:6 - error: `@gqlImplements` can only be used on Grats type or interface declarations. Did you mean to include the `@gqlType` or `@gqlInterface` tag in this docblock?
+src/tests/fixtures/interfaces/tag/ImplementsTagWithoutTypeOrInterface.invalid.ts:1:6 - error: `@gqlImplements` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`.
 
 1 /** @gqlImplements Node */
        ~~~~~~~~~~~~~

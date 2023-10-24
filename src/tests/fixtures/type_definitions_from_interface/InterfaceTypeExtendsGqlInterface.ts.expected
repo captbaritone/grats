@@ -1,24 +1,18 @@
 -----------------
 INPUT
 ----------------- 
-/**
- * @gqlType
- * @gqlImplements Person
- */
-export default class User {
-  __typename: "User";
-  /** @gqlField */
-  name(): string {
-    return "Samantha";
-  }
-}
-
-/**
- * @gqlInterface
- */
+/** @gqlInterface */
 interface Person {
   /** @gqlField */
-  name(): string;
+  name: string;
+}
+
+/** @gqlType */
+export interface User extends Person {
+  __typename: "User";
+
+  /** @gqlField */
+  name: string;
 }
 
 -----------------
@@ -28,10 +22,10 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type User implements Person {
+interface Person {
   name: String
 }
 
-interface Person {
+type User implements Person {
   name: String
 }

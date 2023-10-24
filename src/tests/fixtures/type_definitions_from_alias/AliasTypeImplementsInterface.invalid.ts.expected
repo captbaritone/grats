@@ -1,0 +1,32 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * @gqlType
+ * @gqlImplements Person
+ */
+export type User = {
+  __typename: "User";
+  /** @gqlField */
+  name: string;
+};
+
+/** @gqlInterface */
+interface Person {
+  /** @gqlField */
+  name: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/type_definitions_from_alias/AliasTypeImplementsInterface.invalid.ts:3:4 - error: `@gqlImplements` has been deprecated. Types which implement GraphQL interfaces should be defined using TypeScript class or interface declarations. Learn more: TODO.
+
+3  * @gqlImplements Person
+     ~~~~~~~~~~~~~~~~~~~~~
+4  */
+  ~
+src/tests/fixtures/type_definitions_from_alias/AliasTypeImplementsInterface.invalid.ts:3:5 - error: `@gqlImplements` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`.
+
+3  * @gqlImplements Person
+      ~~~~~~~~~~~~~

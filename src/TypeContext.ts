@@ -261,25 +261,6 @@ export class TypeContext {
     return ok(newDocs);
   }
 
-  resolveNamedDefinition(unresolved: NameNode): DiagnosticResult<NameNode> {
-    const symbol = this._unresolvedTypes.get(unresolved);
-    if (symbol == null) {
-      if (unresolved.value === UNRESOLVED_REFERENCE_NAME) {
-        // This is a logic error on our side.
-        throw new Error("Unexpected unresolved reference name.");
-      }
-      return ok(unresolved);
-    }
-    const nameDefinition = this._symbolToName.get(symbol);
-    if (nameDefinition == null) {
-      if (unresolved.loc == null) {
-        throw new Error("Expected namedType to have a location.");
-      }
-      return err(this.err(unresolved.loc, E.unresolvedTypeReference()));
-    }
-    return ok({ ...unresolved, value: nameDefinition.name.value });
-  }
-
   resolveNamedType(unresolved: NameNode): DiagnosticResult<NameNode> {
     const symbol = this._unresolvedTypes.get(unresolved);
     if (symbol == null) {

@@ -8,17 +8,9 @@ interface Person {
  * @gqlType
  * @gqlImplements Person
  */
-type Visitor = {
-  __typename: "Visitor";
+export interface User {
+  __typename: "User";
+
   /** @gqlField */
   name: string;
-};
-
-=== SNIP ===
-interface Person {
-  name: String
-}
-
-type Visitor implements Person {
-  name: String
 }
