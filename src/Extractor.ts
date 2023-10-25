@@ -13,6 +13,7 @@ import {
   ConstObjectFieldNode,
   ConstObjectValueNode,
   ConstListValueNode,
+  OperationTypeNode,
 } from "graphql";
 import {
   DiagnosticsResult,
@@ -36,6 +37,10 @@ import {
   EXPORTED_FUNCTION_NAME_ARG,
   METHOD_NAME_ARG,
   METHOD_NAME_DIRECTIVE,
+  EXPORTED_OPERATION_DIRECTIVE,
+  EXPORTED_OPERATION_FILENAME_ARG,
+  EXPORTED_OPERATION_FUNCTION_NAME_ARG,
+  EXPORTED_OPERATION_OPERATION_ARG,
 } from "./serverDirectives";
 
 export const LIBRARY_IMPORT_NAME = "grats";
@@ -49,6 +54,9 @@ export const INTERFACE_TAG = "gqlInterface";
 export const ENUM_TAG = "gqlEnum";
 export const UNION_TAG = "gqlUnion";
 export const INPUT_TAG = "gqlInput";
+// TODO: What should this be called?
+// Operation Type Definition?
+export const OPERATION_TYPE_TAG = "gqlOperationType";
 
 export const IMPLEMENTS_TAG_DEPRECATED = "gqlImplements";
 export const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
@@ -139,6 +147,9 @@ export class Extractor {
             this.reportUnhandled(node, "field", E.fieldTagOnWrongNode());
           }
           break;
+        case OPERATION_TYPE_TAG:
+          this.extractOperationType(node, tag);
+          break;
         case KILLS_PARENT_ON_EXCEPTION_TAG: {
           const hasFieldTag = ts.getJSDocTags(node).some((t) => {
             return t.tagName.text === FIELD_TAG;
@@ -224,6 +235,96 @@ export class Extractor {
       this.unionTypeAliasDeclaration(node, tag);
     } else {
       this.report(tag, E.invalidUnionTagUsage());
+    }
+  }
+
+  extractOperationType(node: ts.Node, tag: ts.JSDocTag) {
+    if (ts.isFunctionDeclaration(node)) {
+      const funcName = this.namedFunctionExportName(node);
+      if (funcName == null) return null;
+
+      if (node.parameters.length > 0) {
+        return this.report(
+          node,
+          "Operation type functions cannot have parameters.",
+        );
+      }
+
+      const name = this.entityName(node, tag);
+      if (name == null) return null;
+
+      if (node.type == null) {
+        return this.report(funcName, E.invalidReturnTypeForFunctionField());
+      }
+
+      const type = this.collectMethodType(node.type);
+      if (type == null) return null;
+
+      let operation: OperationTypeNode;
+
+      switch (name.value) {
+        case "query":
+          operation = OperationTypeNode.QUERY;
+          break;
+        case "mutation":
+          operation = OperationTypeNode.MUTATION;
+          break;
+
+        case "subscription":
+          operation = OperationTypeNode.SUBSCRIPTION;
+          break;
+          break;
+        default:
+          return this.report(
+            node,
+            "Operation type functions must be named `query`, `mutation`, or `subscription`.",
+          );
+      }
+
+      if (!ts.isSourceFile(node.parent)) {
+        return this.report(node, E.functionFieldNotTopLevel());
+      }
+
+      // TODO: Does this work in the browser?
+      const filename = this.ctx.getDestFilePath(node.parent);
+
+      const directives = [
+        this.exportedOperationDirective(
+          funcName,
+          filename,
+          funcName.text,
+          operation,
+        ),
+      ];
+
+      // TODO: We can't put directives here... wut do!
+
+      if (funcName.text !== name.value) {
+        directives.push(this.fieldNameDirective(funcName, funcName.text));
+      }
+
+      if (
+        type.kind !== Kind.NON_NULL_TYPE ||
+        type.type.kind !== Kind.NAMED_TYPE
+      ) {
+        return this.report(
+          node,
+          "Operation type functions must return a named type.",
+        );
+      }
+
+      const operationType = this.gql.operationTypeDefinition(
+        node,
+        operation,
+        type.type,
+      );
+
+      this.definitions.push(
+        this.gql.schemaExtension(node, [operationType], directives),
+      );
+      //
+    } else {
+      this.report(tag, E.invalidTypeTagUsage());
     }
   }
 
@@ -1632,6 +1733,35 @@ export class Extractor {
           nameNode,
           this.gql.name(nameNode, EXPORTED_FUNCTION_NAME_ARG),
           this.gql.string(nameNode, functionName),
+        ),
+      ],
+    );
+  }
+
+  exportedOperationDirective(
+    nameNode: ts.Node,
+    filename: string,
+    functionName: string,
+    operation: OperationTypeNode,
+  ): ConstDirectiveNode {
+    return this.gql.constDirective(
+      nameNode,
+      this.gql.name(nameNode, EXPORTED_OPERATION_DIRECTIVE),
+      [
+        this.gql.constArgument(
+          nameNode,
+          this.gql.name(nameNode, EXPORTED_OPERATION_FILENAME_ARG),
+          this.gql.string(nameNode, filename),
+        ),
+        this.gql.constArgument(
+          nameNode,
+          this.gql.name(nameNode, EXPORTED_OPERATION_FUNCTION_NAME_ARG),
+          this.gql.string(nameNode, functionName),
+        ),
+        this.gql.constArgument(
+          nameNode,
+          this.gql.name(nameNode, EXPORTED_OPERATION_OPERATION_ARG),
+          this.gql.string(nameNode, operation.toString()),
         ),
       ],
     );

@@ -126,9 +126,7 @@ const testDirs = [
       const files = [filePath, `src/Types.ts`];
       const parsedOptions: ts.ParsedCommandLine = {
         options: {},
-        raw: {
-          grats: options,
-        },
+        raw: { grats: options },
         errors: [],
         fileNames: files,
       };

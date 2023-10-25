@@ -12,3 +12,8 @@ export default class Query {
     return new User();
   }
 }
+
+/** @gqlOperationType */
+export function query(): Query {
+  return new Query();
+}

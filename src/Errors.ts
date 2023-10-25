@@ -35,6 +35,7 @@ const DOC_URLS = {
 export function fieldTagOnWrongNode() {
   return `\`@${FIELD_TAG}\` can only be used on method/property declarations or signatures.`;
 }
+
 export function killsParentOnExceptionOnWrongNode() {
   return `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\`. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` can only be used in field annotation docblocks. Perhaps you are missing a \`@${FIELD_TAG}\` tag?`;
 }

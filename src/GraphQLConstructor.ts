@@ -29,6 +29,10 @@ import {
   InputObjectTypeDefinitionNode,
   EnumTypeDefinitionNode,
   InterfaceTypeDefinitionNode,
+  OperationTypeDefinitionNode,
+  OperationTypeNode,
+  SchemaDefinitionNode,
+  SchemaExtensionNode,
 } from "graphql";
 import * as ts from "typescript";
 import { AbstractFieldDefinitionNode } from "./TypeContext";
@@ -71,6 +75,32 @@ export class GraphQLConstructor {
       name,
       fields,
       interfaces: interfaces ?? undefined,
+    };
+  }
+
+  operationTypeDefinition(
+    node: ts.Node,
+    operation: OperationTypeNode,
+    type: NamedTypeNode,
+  ): OperationTypeDefinitionNode {
+    return {
+      kind: Kind.OPERATION_TYPE_DEFINITION,
+      loc: this._loc(node),
+      operation,
+      type,
+    };
+  }
+
+  schemaExtension(
+    node: ts.Node,
+    operations: OperationTypeDefinitionNode[],
+    directives: readonly ConstDirectiveNode[] | null,
+  ): SchemaExtensionNode {
+    return {
+      kind: Kind.SCHEMA_EXTENSION,
+      loc: this._loc(node),
+      directives: directives ?? undefined,
+      operationTypes: operations,
     };
   }
 

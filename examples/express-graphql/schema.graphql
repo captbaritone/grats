@@ -1,8 +1,10 @@
-schema {
+schema @exportedOperation(filename: "../../examples/express-graphql/dist/Query.js", functionName: "query", operation: "query") {
   query: Query
 }
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+directive @exportedOperation(filename: String!, functionName: String!, operation: String!) repeatable on SCHEMA
 
 directive @methodName(name: String!) on FIELD_DEFINITION
 
@@ -17,12 +19,12 @@ interface IPerson {
 }
 
 type Query {
-  allUsers: [User!]! @exported(filename: "../examples/express-graphql/dist/models/User.js", functionName: "allUsers")
+  allUsers: [User!]! @exported(filename: "../../examples/express-graphql/dist/models/User.js", functionName: "allUsers")
   me: User!
   person: IPerson!
 }
 
-type User implements IPerson {
+type User {
   groups: [Group!]!
   name: String!
 }
