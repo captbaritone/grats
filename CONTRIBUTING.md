@@ -79,7 +79,16 @@ To publish a new release:
 
 ```bash
 pnpm version patch # or minor or major
+pnpm i
 pnpm run build
-pnpm release
+pnpm publish
 git push --tags
+```
+
+You probably also want to update the docs:
+
+```bash
+cd website
+pnpm i
+pnpm run deploy
 ```

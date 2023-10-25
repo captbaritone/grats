@@ -3,11 +3,11 @@
 ## Alpha
 
 - [ ] Don't report name collisions as merged interfaces (class + interface with the same name)
+- [ ] Validate how fields get called on interfaces if we define a different field on the type.
 - [ ] Test and clarify behavior of killsParentOnException
   - [ ] Should there be a way to enable killsParentOnException for nullable resolvers?
 - [ ] Args with defaults should be nullable?
 - [ ] Optional args must include `null` as an option, since GraphQL JS may send that.
-- [ ] Allow type literal types to implement interfaces
 - [ ] Add more robust config validation
 - [ ] Allow property types to be functions
 - [ ] Allow `Promise<T> | T`
@@ -16,6 +16,8 @@
   - [ ] Subscriptions
 - [ ] Playground does not support promises
 - [ ] Collect deprecated tags on all nodes and let GraphQL validation report an error
+- [ ] Consider checking for @gql in non-docblock comments
+- Example that includes a mutation and query
 
 ## Beta
 
@@ -27,6 +29,8 @@
 - [ ] Validate that we don't shadow builtins
 - [ ] Add header to generated schema file indicating it was generated.
 - [ ] Add option to print sorted schema.
+- [ ] Could we support query fields using static methods?
+  - [ ] Could be helpful for exposing root fields for a type
 
 ## Examples, Guides and Documentation
 
