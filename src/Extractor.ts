@@ -755,7 +755,12 @@ export class Extractor {
   }
 
   symbolHasGqlTag(node: ts.Node): boolean {
-    const symbol = this.ctx.checker.getSymbolAtLocation(node);
+    let symbol = this.ctx.checker.getSymbolAtLocation(node);
+    if (symbol == null) return false;
+    if (symbol.flags & ts.SymbolFlags.Alias) {
+      // Follow any aliases to get the real type declaration. For example, if the declaration is an import.
+      symbol = this.ctx.checker.getAliasedSymbol(symbol);
+    }
     if (symbol == null) return false;
     const declaration = symbol.declarations?.[0];
     if (declaration == null) return false;
