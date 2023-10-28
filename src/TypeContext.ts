@@ -94,7 +94,7 @@ export class TypeContext {
   }
 
   markUnresolvedType(node: ts.Node, name: NameNode) {
-    let symbol = this.checker.getSymbolAtLocation(node);
+    const symbol = this.checker.getSymbolAtLocation(node);
     if (symbol == null) {
       //
       throw new Error(
@@ -102,12 +102,30 @@ export class TypeContext {
       );
     }
 
-    if (symbol.flags & ts.SymbolFlags.Alias) {
-      // Follow any aliases to get the real type declaration.
+    this._unresolvedTypes.set(name, this.resolveSymbol(symbol));
+  }
+
+  findSymbolDeclaration(startSymbol: ts.Symbol): ts.Declaration | null {
+    const symbol = this.resolveSymbol(startSymbol);
+    const declaration = symbol.declarations?.[0];
+    return declaration ?? null;
+  }
+
+  // Follow symbol aliases until we find the original symbol. Accounts for
+  // cyclical aliases.
+  resolveSymbol(startSymbol: ts.Symbol): ts.Symbol {
+    let symbol = startSymbol;
+    const visitedSymbols = new Set<ts.Symbol>();
+
+    while (ts.SymbolFlags.Alias & symbol.flags) {
+      if (visitedSymbols.has(symbol)) {
+        throw new Error("Cyclical alias detected. Breaking resolution.");
+      }
+
+      visitedSymbols.add(symbol);
       symbol = this.checker.getAliasedSymbol(symbol);
     }
-
-    this._unresolvedTypes.set(name, symbol);
+    return symbol;
   }
 
   resolveTypes(doc: DocumentNode): DiagnosticsResult<DocumentNode> {
