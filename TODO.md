@@ -14,7 +14,6 @@
 - [ ] Write guides
   - [ ] DataLoader pattern
   - [ ] Subscriptions
-- [ ] Playground does not support promises
 - [ ] Collect deprecated tags on all nodes and let GraphQL validation report an error
 - [ ] Consider checking for @gql in non-docblock comments
 - Example that includes a mutation and query
