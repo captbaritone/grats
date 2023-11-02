@@ -1,0 +1,23 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlContext */
+type GratsContext = {
+  greeting: string;
+};
+
+/** @gqlType */
+export class Query {
+  /** @gqlField */
+  greeting(ctx: GratsContext): string {
+    return ctx.greeting;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/resolver_context/ClassMethodWithContextValueInArgsPos.invalid.ts:9:17 - error: Expected GraphQL field arguments to be typed using a literal object: `{someField: string}`.
+
+9   greeting(ctx: GratsContext): string {
+                  ~~~~~~~~~~~~

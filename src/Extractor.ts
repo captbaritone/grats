@@ -49,6 +49,7 @@ export const INTERFACE_TAG = "gqlInterface";
 export const ENUM_TAG = "gqlEnum";
 export const UNION_TAG = "gqlUnion";
 export const INPUT_TAG = "gqlInput";
+export const CONTEXT_TAG = "gqlContext";
 
 export const IMPLEMENTS_TAG_DEPRECATED = "gqlImplements";
 export const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
@@ -62,6 +63,7 @@ export const ALL_TAGS = [
   ENUM_TAG,
   UNION_TAG,
   INPUT_TAG,
+  CONTEXT_TAG,
 ];
 
 const DEPRECATED_TAG = "deprecated";
@@ -146,6 +148,24 @@ export class Extractor {
           if (!hasFieldTag) {
             this.report(tag.tagName, E.killsParentOnExceptionOnWrongNode());
           }
+          break;
+        }
+        case CONTEXT_TAG: {
+          if (this.ctx.contextDeclaration == null) {
+            this.ctx.contextDeclaration = { node: tag };
+          } else {
+            this.report(tag.tagName, E.duplicateContextDeclaration(), [
+              this.related(
+                this.ctx.contextDeclaration.node,
+                "Previous context declaration",
+              ),
+            ]);
+          }
+          // TODO: Validate that this is some kind of declaration
+          //   type alias?
+          //   interface?
+          //   class?
+          //   export of one of the above?
           break;
         }
         default:
@@ -356,6 +376,11 @@ export class Extractor {
     const argsParam = node.parameters[1];
     if (argsParam != null) {
       args = this.collectArgs(argsParam);
+    }
+
+    const context = node.parameters[2];
+    if (context != null) {
+      this.validateContextParameter(context);
     }
 
     const description = this.collectDescription(funcName);
@@ -980,7 +1005,7 @@ export class Extractor {
     } else if (node.kind === ts.SyntaxKind.FalseKeyword) {
       return this.gql.boolean(node, false);
     } else if (ts.isObjectLiteralExpression(node)) {
-      return this.cellectObjectLiteral(node);
+      return this.collectObjectLiteral(node);
     } else if (ts.isArrayLiteralExpression(node)) {
       return this.collectArrayLiteral(node);
     }
@@ -1010,7 +1035,7 @@ export class Extractor {
     return this.gql.list(node, values);
   }
 
-  cellectObjectLiteral(
+  collectObjectLiteral(
     node: ts.ObjectLiteralExpression,
   ): ConstObjectValueNode | null {
     const fields: ConstObjectFieldNode[] = [];
@@ -1301,6 +1326,55 @@ export class Extractor {
     return this.gql.name(id, id.text);
   }
 
+  // Ensure the type of the ctx param resolves to the declaration
+  // annotated with `@gqlContext`.
+  validateContextParameter(node: ts.ParameterDeclaration) {
+    if (node.type == null) {
+      return this.report(node, E.expectedTypeAnnotationOnContext());
+    }
+
+    if (!ts.isTypeReferenceNode(node.type)) {
+      return this.report(
+        node.type,
+        E.expectedTypeAnnotationOfReferenceOnContext(),
+      );
+    }
+
+    // Check for ...
+    if (node.dotDotDotToken != null) {
+      return this.report(
+        node.dotDotDotToken,
+        E.unexpectedParamSpreadForContextParam(),
+      );
+    }
+
+    const symbol = this.ctx.checker.getSymbolAtLocation(node.type.typeName);
+    if (symbol == null) {
+      return this.report(
+        node.type.typeName,
+        E.expectedTypeAnnotationOnContextToBeResolvable(),
+      );
+    }
+
+    const declaration = this.ctx.findSymbolDeclaration(symbol);
+    if (declaration == null) {
+      return this.report(
+        node.type.typeName,
+        E.expectedTypeAnnotationOnContextToHaveDeclaration(),
+      );
+    }
+
+    const contextTag = this.findTag(declaration, CONTEXT_TAG);
+
+    if (contextTag == null) {
+      return this.report(
+        node.type.typeName,
+        E.expectedTypeAnnotationOnContextToHaveContextTag(),
+        [this.related(declaration, "The type was declared here")],
+      );
+    }
+  }
+
   methodDeclaration(
     node: ts.MethodDeclaration | ts.MethodSignature,
   ): FieldDefinitionNode | null {
@@ -1323,6 +1397,11 @@ export class Extractor {
     const argsParam = node.parameters[0];
     if (argsParam != null) {
       args = this.collectArgs(argsParam);
+    }
+
+    const context = node.parameters[1];
+    if (context != null) {
+      this.validateContextParameter(context);
     }
 
     const description = this.collectDescription(node.name);
@@ -1556,7 +1635,7 @@ export class Extractor {
     if (ts.isIdentifier(node)) {
       return node;
     }
-    return this.report(node, E.expectedIdentifer());
+    return this.report(node, E.expectedIdentifier());
   }
 
   findTag(node: ts.Node, tagName: string): ts.JSDocTag | null {

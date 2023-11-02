@@ -1,0 +1,25 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlContext */
+export type GratsContext = {
+  greeting: string;
+};
+
+/** @gqlContext */
+export type AlsoGratsContext = {
+  greeting: string;
+};
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/resolver_context/MultipleContextTags.invalid.ts:6:6 - error: Unexpected duplicate declaration of `/** @gqlContext */`. Grats expects there to be only one context type.
+
+6 /** @gqlContext */
+       ~~~~~~~~~~
+
+  src/tests/fixtures/resolver_context/MultipleContextTags.invalid.ts:1:5
+    1 /** @gqlContext */
+          ~~~~~~~~~~~~
+    Previous context declaration

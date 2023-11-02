@@ -248,7 +248,7 @@ export function pluralTypeMissingParameter() {
   return `Expected type reference to have type arguments.`;
 }
 
-export function expectedIdentifer() {
+export function expectedIdentifier() {
   return "Expected an identifier.";
 }
 
@@ -322,4 +322,34 @@ export function invalidTypePassedToFieldFunction() {
 
 export function unresolvedTypeReference() {
   return "This type is not a valid GraphQL type. Did you mean to annotate it's definition with a `/** @gql */` tag such as `/** @gqlType */` or `/** @gqlInput **/`?";
+}
+
+export function expectedTypeAnnotationOnContext() {
+  return "Expected context parameter to have a type annotation. Grats validates that your context parameter is type-safe by checking that it references the type declaration annotated with `/** @gqlContext */`.";
+}
+
+export function expectedTypeAnnotationOfReferenceOnContext() {
+  return "Expected context parameter's type to be a type reference. Grats validates that your context parameter is type-safe by checking that it references the type declaration annotated with `/** @gqlContext */`.";
+}
+
+export function expectedTypeAnnotationOnContextToBeResolvable() {
+  // TODO: Provide guidance?
+  return "Unable to resolve the type of the context parameter. Grats validates that your context parameter is type-safe by checking that it references the type declaration annotated with `/** @gqlContext */`.";
+}
+
+export function expectedTypeAnnotationOnContextToHaveDeclaration() {
+  // TODO: Provide guidance?
+  return "Unable to locate the declaration of the type of the context parameter. Grats validates that your context parameter is type-safe by checking that it references the type declaration annotated with `/** @gqlContext */`. Did you mean to import or define this type?";
+}
+
+export function expectedTypeAnnotationOnContextToHaveContextTag() {
+  return "Expected the definition of the context type to be annotated with `/** @gqlContext */`. Did you mean to add that annotation?";
+}
+
+export function duplicateContextDeclaration() {
+  return "Unexpected duplicate declaration of `/** @gqlContext */`. Grats expects there to be only one context type.";
+}
+
+export function unexpectedParamSpreadForContextParam() {
+  return "Unexpected spread parameter in context parameter position. Grats expects the context parameter to be a single, explicitly typed, argument.";
 }

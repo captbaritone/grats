@@ -43,6 +43,10 @@ export type AbstractFieldDefinitionNode = {
   readonly field: FieldDefinitionNode;
 };
 
+type ContextDeclaration = {
+  node: ts.Node;
+};
+
 /**
  * Used to track TypeScript references.
  *
@@ -62,6 +66,8 @@ export class TypeContext {
   _options: ts.ParsedCommandLine;
   _symbolToName: Map<ts.Symbol, NameDefinition> = new Map();
   _unresolvedTypes: Map<NameNode, ts.Symbol> = new Map();
+  // The `@gqlContext` declaration, if it has been encountered.
+  contextDeclaration: ContextDeclaration | null = null;
   hasTypename: Set<string> = new Set();
 
   constructor(
