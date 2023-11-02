@@ -115,8 +115,8 @@ importers:
         specifier: ^18.15.0
         version: 18.15.0
       '@typescript/vfs':
-        specifier: 1.5.0
-        version: 1.5.0
+        specifier: ^1.4.0
+        version: 1.4.0
       clsx:
         specifier: ^1.2.1
         version: 1.2.1
@@ -4390,8 +4390,8 @@ packages:
       '@typescript-eslint/types': 5.55.0
       eslint-visitor-keys: 3.3.0
 
-  /@typescript/vfs@1.5.0:
-    resolution: {integrity: sha512-AJS307bPgbsZZ9ggCT3wwpg3VbTKMFNHfaY/uF0ahSkYYrPF2dSSKDNIDIQAHm9qJqbLvCsSJH7yN4Vs/CsMMg==}
+  /@typescript/vfs@1.4.0:
+    resolution: {integrity: sha512-Pood7yv5YWMIX+yCHo176OnF8WUlKGImFG7XlsuH14Zb1YN5+dYD3uUtS7lqZtsH7tAveNUi2NzdpQCN0yRbaw==}
     dependencies:
       debug: 4.3.4(supports-color@9.3.1)
     transitivePeerDependencies:
