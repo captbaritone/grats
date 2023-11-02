@@ -34,7 +34,7 @@ function buildSchemaResultWithFsMap(fsMap, text, config) {
     allowJs: true,
     baseUrl: "./",
     paths: { grats: [GRATS_PATH] },
-    // lib: ["es2021"],
+    lib: [...fsMap.keys()],
   };
   const host = createVirtualCompilerHost(system, compilerOpts, ts);
 
