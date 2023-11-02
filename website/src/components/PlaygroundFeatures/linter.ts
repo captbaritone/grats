@@ -34,7 +34,9 @@ function buildSchemaResultWithFsMap(fsMap, text, config) {
     allowJs: true,
     baseUrl: "./",
     paths: { grats: [GRATS_PATH] },
-    lib: [...fsMap.keys()],
+    // TODO: Which other files should be included here?
+    // For some reason `[...fsMap.keys()]` doesn't work.
+    lib: ["/lib.es2021.full.d.ts", "/lib.es2018.promise.d.ts"],
   };
   const host = createVirtualCompilerHost(system, compilerOpts, ts);
 
