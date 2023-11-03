@@ -20,6 +20,7 @@ import { Extractor } from "./Extractor";
 import { GratsDefinitionNode, TypeContext } from "./TypeContext";
 import { validateSDL } from "graphql/validation/validate";
 import { applyServerDirectives, DIRECTIVES_AST } from "./serverDirectives";
+import { extend } from "./utils/helpers";
 
 export { applyServerDirectives } from "./serverDirectives";
 
@@ -94,6 +95,8 @@ function extractSchema(
   const definitions: GratsDefinitionNode[] = Array.from(
     DIRECTIVES_AST.definitions,
   );
+
+  const errors: ts.Diagnostic[] = [];
   for (const sourceFile of program.getSourceFiles()) {
     // If the file doesn't contain any GraphQL definitions, skip it.
     if (!/@gql/i.test(sourceFile.text)) {
@@ -104,7 +107,8 @@ function extractSchema(
       // If the user asked for us to report TypeScript errors, then we'll report them.
       const typeErrors = ts.getPreEmitDiagnostics(program, sourceFile);
       if (typeErrors.length > 0) {
-        return err(typeErrors as ts.Diagnostic[]);
+        extend(errors, typeErrors);
+        continue;
       }
     } else {
       // Otherwise, we will only report syntax errors, since they will prevent us from
@@ -113,16 +117,24 @@ function extractSchema(
       if (syntaxErrors.length > 0) {
         // It's not very helpful to report multiple syntax errors, so just report
         // the first one.
-        return err([syntaxErrors[0]]);
+        errors.push(syntaxErrors[0]);
+        continue;
       }
     }
 
     const extractor = new Extractor(sourceFile, ctx, gratsOptions);
     const extractedResult = extractor.extract();
-    if (extractedResult.kind === "ERROR") return extractedResult;
+    if (extractedResult.kind === "ERROR") {
+      extend(errors, extractedResult.err);
+      continue;
+    }
     for (const definition of extractedResult.value) {
       definitions.push(definition);
     }
+  }
+
+  if (errors.length > 0) {
+    return err(errors);
   }
 
   // If you define a field on an interface using the functional style, we need to add
