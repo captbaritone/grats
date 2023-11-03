@@ -1,7 +1,6 @@
 -----------------
 INPUT
 ----------------- 
-/** @gqlContext */
 type GratsContext = {
   greeting: string;
 };
@@ -17,7 +16,7 @@ export class Query {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/resolver_context/ClassMethodWithContextValueInArgsPos.invalid.ts:9:17 - error: Expected GraphQL field arguments to be typed using a literal object: `{someField: string}`.
+src/tests/fixtures/resolver_context/ClassMethodWithContextValueInArgsPos.invalid.ts:8:17 - error: Expected GraphQL field arguments to be typed using a literal object: `{someField: string}`.
 
-9   greeting(ctx: GratsContext): string {
+8   greeting(ctx: GratsContext): string {
                   ~~~~~~~~~~~~

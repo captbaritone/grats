@@ -325,31 +325,27 @@ export function unresolvedTypeReference() {
 }
 
 export function expectedTypeAnnotationOnContext() {
-  return "Expected context parameter to have a type annotation. Grats validates that your context parameter is type-safe by checking that it references the type declaration annotated with `/** @gqlContext */`.";
+  return "Expected context parameter to have a type annotation. Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration.";
 }
 
 export function expectedTypeAnnotationOfReferenceOnContext() {
-  return "Expected context parameter's type to be a type reference. Grats validates that your context parameter is type-safe by checking that it references the type declaration annotated with `/** @gqlContext */`.";
+  return "Expected context parameter's type to be a type reference Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration.";
 }
 
 export function expectedTypeAnnotationOnContextToBeResolvable() {
   // TODO: Provide guidance?
-  return "Unable to resolve the type of the context parameter. Grats validates that your context parameter is type-safe by checking that it references the type declaration annotated with `/** @gqlContext */`.";
+  // TODO: I don't think we have a test case that triggers this error.
+  return "Unable to resolve context parameter type. Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration.";
 }
 
 export function expectedTypeAnnotationOnContextToHaveDeclaration() {
-  // TODO: Provide guidance?
-  return "Unable to locate the declaration of the type of the context parameter. Grats validates that your context parameter is type-safe by checking that it references the type declaration annotated with `/** @gqlContext */`. Did you mean to import or define this type?";
-}
-
-export function expectedTypeAnnotationOnContextToHaveContextTag() {
-  return "Expected the definition of the context type to be annotated with `/** @gqlContext */`. Did you mean to add that annotation?";
-}
-
-export function duplicateContextDeclaration() {
-  return "Unexpected duplicate declaration of `/** @gqlContext */`. Grats expects there to be only one context type.";
+  return "Unable to locate the declaration of the context parameter's type. Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration. Did you forget to import or define this type?";
 }
 
 export function unexpectedParamSpreadForContextParam() {
   return "Unexpected spread parameter in context parameter position. Grats expects the context parameter to be a single, explicitly typed, argument.";
+}
+
+export function multipleContextTypes() {
+  return "Context argument's type does not match. Grats expects all resolvers that read the context argument to use the same type for that argument. Did you use the incorrect type in one of your resolvers?";
 }

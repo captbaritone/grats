@@ -1,7 +1,6 @@
 -----------------
 INPUT
 ----------------- 
-/** @gqlContext */
 type GratsContext = {
   greeting: string;
 };

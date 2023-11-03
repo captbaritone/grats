@@ -12,7 +12,7 @@ export class Query {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/resolver_context/ContextValueTypedAsAny.invalid.ts:4:30 - error: Expected context parameter's type to be a type reference. Grats validates that your context parameter is type-safe by checking that it references the type declaration annotated with `/** @gqlContext */`.
+src/tests/fixtures/resolver_context/ContextValueTypedAsAny.invalid.ts:4:30 - error: Expected context parameter's type to be a type reference Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration.
 
 4   greeting(args: never, ctx: any): string {
                                ~~~

@@ -49,7 +49,6 @@ export const INTERFACE_TAG = "gqlInterface";
 export const ENUM_TAG = "gqlEnum";
 export const UNION_TAG = "gqlUnion";
 export const INPUT_TAG = "gqlInput";
-export const CONTEXT_TAG = "gqlContext";
 
 export const IMPLEMENTS_TAG_DEPRECATED = "gqlImplements";
 export const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
@@ -63,7 +62,6 @@ export const ALL_TAGS = [
   ENUM_TAG,
   UNION_TAG,
   INPUT_TAG,
-  CONTEXT_TAG,
 ];
 
 const DEPRECATED_TAG = "deprecated";
@@ -148,24 +146,6 @@ export class Extractor {
           if (!hasFieldTag) {
             this.report(tag.tagName, E.killsParentOnExceptionOnWrongNode());
           }
-          break;
-        }
-        case CONTEXT_TAG: {
-          if (this.ctx.contextDeclaration == null) {
-            this.ctx.contextDeclaration = { node: tag };
-          } else {
-            this.report(tag.tagName, E.duplicateContextDeclaration(), [
-              this.related(
-                this.ctx.contextDeclaration.node,
-                "Previous context declaration",
-              ),
-            ]);
-          }
-          // TODO: Validate that this is some kind of declaration
-          //   type alias?
-          //   interface?
-          //   class?
-          //   export of one of the above?
           break;
         }
         default:
@@ -1364,14 +1344,19 @@ export class Extractor {
       );
     }
 
-    const contextTag = this.findTag(declaration, CONTEXT_TAG);
-
-    if (contextTag == null) {
-      return this.report(
-        node.type.typeName,
-        E.expectedTypeAnnotationOnContextToHaveContextTag(),
-        [this.related(declaration, "The type was declared here")],
-      );
+    if (this.ctx.gqlContext == null) {
+      // This is the first typed context value we've seen...
+      this.ctx.gqlContext = {
+        declaration: declaration,
+        firstReference: node.type.typeName,
+      };
+    } else if (this.ctx.gqlContext.declaration !== declaration) {
+      return this.report(node.type.typeName, E.multipleContextTypes(), [
+        this.related(
+          this.ctx.gqlContext.firstReference,
+          "A different type reference was used here",
+        ),
+      ]);
     }
   }
 

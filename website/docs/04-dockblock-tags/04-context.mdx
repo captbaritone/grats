@@ -1,0 +1,40 @@
+# Context
+
+After the [arguments object](./03-arguments.mdx), each resolver method/function is passed a [context value](https://graphql.org/learn/execution/#root-fields-resolvers). Context is the standard way to implement depednecy injection for GraphQL resolvers. Typically the context value will be an object includiding the current request, information about the requesting user, as well as a database connection and per-request caches, such as [DataLoaders](https://github.com/graphql/dataloader).
+
+Becuase GraphQL invokes resolver functions dynamically, there are generally no static calls to your resolver methods/functions that are visible to TypeScript. This means that there is no typecheck that can confirm that the context arugment is typed correctly.
+
+Grats helps to mitigate this risk by alidating that **every resolver that specifies a context argument references _the same defintion_ for the context value's type**. This at least ensures all your resolvers match.
+
+```ts
+type GQLCtx = {
+  req: Request;
+  userID: string;
+  db: Database;
+};
+
+/** @gqlField */
+// highlight-start
+export function me(_: Query, args: never, ctx: GQLCtx): User {
+  // highlight-end
+  return ctx.db.users.getById(ctx.userID);
+}
+```
+
+The context argument is passed as the third argument of resovler _functions_ and the second argument of resolver _methods_. If your resolver does not need access to the context object, you can omit the context argument.
+
+:::tip
+If you need to access the context object in your resolver, but your field does not define any args, you can type your args parameter as `never`.
+:::
+
+:::info
+Due to limitations in the TypeScript compiler, Grats is not able to [structurally](https://en.wikipedia.org/wiki/Structural_type_system) typecheck the context value. Instead is simply checks that every resolver that specifies a context argument references the same _type definition_.
+:::
+
+## Constructing your context object
+
+The mechanism by which you construct your context object will vary depending upon the GraphQL server library you are using. See your GraphQL server library's documentation for more information.
+
+:::caution
+Grats can ensure that every resolver is expecting the same context type, but it cannot ensure that the context value you construct and pass in matches that type. **It is up to you to ensure that your context value is constructed correctly and passed to the GraphQL execution engine.**
+:::

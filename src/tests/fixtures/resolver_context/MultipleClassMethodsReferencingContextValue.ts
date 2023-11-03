@@ -1,4 +1,4 @@
-export type GratsContext = {
+type GratsContext = {
   greeting: string;
 };
 
@@ -6,6 +6,11 @@ export type GratsContext = {
 export class Query {
   /** @gqlField */
   greeting(args: never, ctx: GratsContext): string {
+    return ctx.greeting;
+  }
+
+  /** @gqlField */
+  alsoGreeting(args: never, ctx: GratsContext): string {
     return ctx.greeting;
   }
 }

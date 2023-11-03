@@ -6,5 +6,4 @@ export class Query {
   }
 }
 
-/** @gqlContext */
 type SomeType = { greeting: string };
