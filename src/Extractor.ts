@@ -936,7 +936,7 @@ export class Extractor {
     if (argsType == null) {
       return this.report(argsParam, E.argumentParamIsMissingType());
     }
-    if (argsType.kind === ts.SyntaxKind.NeverKeyword) {
+    if (argsType.kind === ts.SyntaxKind.UnknownKeyword) {
       return [];
     }
     if (!ts.isTypeLiteralNode(argsType)) {
@@ -1311,6 +1311,12 @@ export class Extractor {
   validateContextParameter(node: ts.ParameterDeclaration) {
     if (node.type == null) {
       return this.report(node, E.expectedTypeAnnotationOnContext());
+    }
+
+    if (node.type.kind === ts.SyntaxKind.UnknownKeyword) {
+      // If the user just needs to define the argument to get to a later parameter,
+      // they can use `ctx: unknown` to safely avoid triggering a Grats error.
+      return;
     }
 
     if (!ts.isTypeReferenceNode(node.type)) {

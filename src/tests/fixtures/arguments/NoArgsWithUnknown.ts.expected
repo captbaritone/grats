@@ -1,15 +1,12 @@
 -----------------
 INPUT
 ----------------- 
-type GratsContext = {
-  greeting: string;
-};
-
 /** @gqlType */
-export class Query {
+export default class Query {
   /** @gqlField */
-  greeting(args: unknown, ctx: GratsContext): string {
-    return ctx.greeting;
+  hello(args: unknown): string {
+    console.log("hello");
+    return "Hello world!";
   }
 }
 
@@ -25,5 +22,5 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
 type Query {
-  greeting: String
+  hello: String
 }

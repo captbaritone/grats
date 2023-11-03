@@ -161,11 +161,11 @@ export function typeNameDoesNotMatchExpected(expected: string) {
 }
 
 export function argumentParamIsMissingType() {
-  return "Expected GraphQL field arguments to have a TypeScript type. If there are no arguments, you can use `args: never`.";
+  return "Expected GraphQL field arguments to have a TypeScript type. If there are no arguments, you can use `args: unknown`.";
 }
 
 export function argumentParamIsNotObject() {
-  return "Expected GraphQL field arguments to be typed using a literal object: `{someField: string}`.";
+  return "Expected GraphQL field arguments to be typed using a literal object: `{someField: string}`. If there are no arguments, you can use `args: unknown`.";
 }
 
 export function argIsNotProperty() {

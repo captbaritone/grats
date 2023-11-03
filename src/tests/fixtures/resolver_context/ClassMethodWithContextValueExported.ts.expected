@@ -16,14 +16,7 @@ export class Query {
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
+src/tests/fixtures/resolver_context/ClassMethodWithContextValueExported.ts:8:18 - error: Expected GraphQL field arguments to be typed using a literal object: `{someField: string}`. If there are no arguments, you can use `args: unknown`.
 
-directive @methodName(name: String!) on FIELD_DEFINITION
-
-directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
-
-type Query {
-  greeting: String
-}
+8   greeting(args: never, ctx: GratsContext): string {
+                   ~~~~~

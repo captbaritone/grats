@@ -4,7 +4,7 @@ INPUT
 /** @gqlType */
 export class Query {
   /** @gqlField */
-  greeting(args: never, ctx: { greeting: string }): string {
+  greeting(args: unknown, ctx: { greeting: string }): string {
     return ctx.greeting;
   }
 }
@@ -12,7 +12,7 @@ export class Query {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/resolver_context/ContextValueTypedAsLiteral.invalid.ts:4:30 - error: Expected context parameter's type to be a type reference Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration.
+src/tests/fixtures/resolver_context/ContextValueTypedAsLiteral.invalid.ts:4:32 - error: Expected context parameter's type to be a type reference Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration.
 
-4   greeting(args: never, ctx: { greeting: string }): string {
-                               ~~~~~~~~~~~~~~~~~~~~
+4   greeting(args: unknown, ctx: { greeting: string }): string {
+                                 ~~~~~~~~~~~~~~~~~~~~

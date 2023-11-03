@@ -15,7 +15,7 @@ type GQLCtx = {
 
 /** @gqlField */
 // highlight-start
-export function me(_: Query, args: never, ctx: GQLCtx): User {
+export function me(_: Query, args: unknown, ctx: GQLCtx): User {
   // highlight-end
   return ctx.db.users.getById(ctx.userID);
 }
@@ -24,7 +24,7 @@ export function me(_: Query, args: never, ctx: GQLCtx): User {
 The context argument is passed as the third argument of resovler _functions_ and the second argument of resolver _methods_. If your resolver does not need access to the context object, you can omit the context argument.
 
 :::tip
-If you need to access the context object in your resolver, but your field does not define any args, you can type your args parameter as `never`.
+If you need to access the context object in your resolver, but your field does not define any args, you can type your args parameter as `unknown`.
 :::
 
 :::info
