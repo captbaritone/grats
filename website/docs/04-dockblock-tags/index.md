@@ -8,16 +8,17 @@ special JSDoc tags such as `/** @gqlType */` or `/** @gqlField */`.
 JSDocs must being with `/**` (two asterix). However, they may be consolidated into a single line `/** Like this */`.
 :::
 
-Each tag maps directly to a concept in the GraphQL [Schema Definition Language](https://graphql.org/learn/schema/) (SDL).  The following JSDoc tags are supported:
+Each tag maps directly to a concept in the GraphQL [Schema Definition Language](https://graphql.org/learn/schema/) (SDL). The following JSDoc tags are supported:
 
-* [`@gqlType`](./01-types.mdx)
-* [`@gqlInterface`](./04-interfaces.mdx)
-* [`@gqlField`](./02-fields.mdx)
-* [`@gqlUnion`](./05-unions.mdx)
-* [`@gqlScalar`](./06-scalars.mdx)
-* [`@gqlEnum`](./07-enums.mdx)
-* [`@gqlInput`](./08-inputs.mdx)
-
+- [`@gqlType`](./01-types.mdx)
+- [`@gqlField`](./02-fields.mdx)
+  - [Arguments](./03-arguments.mdx)
+  - [Context](./04-context.mdx)
+- [`@gqlInterface`](./05-interfaces.mdx)
+- [`@gqlUnion`](./06-unions.mdx)
+- [`@gqlEnum`](./07-enums.mdx)
+- [`@gqlScalar`](./08-scalars.mdx)
+- [`@gqlInput`](./09-inputs.mdx)
 
 :::tip
 This documentaiton aims

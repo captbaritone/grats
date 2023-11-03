@@ -5,7 +5,7 @@ export type GratsContext = {
 /** @gqlType */
 export class Query {
   /** @gqlField */
-  greeting(args: never, ctx: GratsContext): string {
+  greeting(args: unknown, ctx: GratsContext): string {
     return ctx.greeting;
   }
 }
