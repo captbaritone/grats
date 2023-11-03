@@ -9,7 +9,7 @@
     "dist"
   ],
   "scripts": {
-    "test": "ts-node --esm src/tests/test.ts",
+    "test": "ts-node src/tests/test.ts",
     "integration-tests": "node src/tests/integration.mjs",
     "build": "tsc --build",
     "lint": "eslint src/**/*.ts"
