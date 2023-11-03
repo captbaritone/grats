@@ -81,7 +81,7 @@ export function expectedUnionTypeReference() {
 }
 
 export function invalidParentArgForFunctionField() {
-  return `Expected \`@${FIELD_TAG}\` function to have a first argument representing the type to extend.`;
+  return `Expected \`@${FIELD_TAG}\` function to have a first argument representing the type to extend. If you don't need access to the parent object in the function, you can name the variable \`_\` to indicate that it is unused. e.g. \`function myField(_: ParentType) {}\``;
 }
 
 export function invalidReturnTypeForFunctionField() {
