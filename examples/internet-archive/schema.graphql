@@ -1,0 +1,111 @@
+schema {
+  query: Query
+}
+
+directive @exported(
+  filename: String!
+  functionName: String!
+) on FIELD_DEFINITION
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+"""
+Items can be placed in collections. For example, a collection called European
+Libraries can contain several items, one of which can be Euclid’s Geometry.
+An item can belong to more than one collection. See [Internet Archive
+Items](https://archive.org/developers/items.html).
+"""
+type Collection {
+  """
+  Unique identifier for this collection.
+  """
+  identifier: String
+  items(
+    """
+    Max 10,000
+    """
+    first: Int = 100
+  ): ItemsConnection
+  url: String
+}
+
+"""
+Archive.org is made up of “items”. An item is a logical “thing” that we
+represent on one web page on archive.org. An item can be considered as a
+group of files that deserve their own metadata. If the files in an item have
+separate metadata, the files should probably be in different items. An item
+can be a book, a song, an album, a dataset, a movie, an image or set of
+images, etc. Every item has an identifier that is unique across archive.org.
+
+https://archive.org/developers/items.html
+"""
+type Item {
+  collections: [Collection!]
+  creator_name: String
+  """
+  HTML string of the item's description.
+  """
+  description: String
+  """
+  The Internet Archive's unique identifier for this item.
+  """
+  identifier: String
+  mediaType: String
+  stars: Float
+  title: String
+  uploader_name: String
+  url: String
+}
+
+"""
+A connection to a list of items.
+"""
+type ItemsConnection {
+  """
+  A list of edges.
+  """
+  edges: [ItemsEdge!]
+  nodes: [Item!]
+}
+
+"""
+An edge in a connection of Search Items.
+"""
+type ItemsEdge {
+  """
+  The item at the end of the edge
+  """
+  node: Item
+}
+
+"""
+This API is a GraphQL facade on top of the Internet Archive's existing REST API.
+
+Its goal is to improve the developer experience of using the Internet Archive's
+API by:
+
+- Providing a single endpoint for all queries.
+- Providing a well defined schema that can be used to explore the API and reason about the data it returns.
+
+In the future it might also:
+
+- Provide an abstraction that can be used client-side in the browser or server-side in Node.js.
+- Provide a more efficient way to fetch data by leveraging query planing to batch requests or make other optimizations.
+- Provide a proof of concept to motivate the Internet Archive to build a GraphQL API.
+"""
+type Query {
+  """
+  Search the Internet Archive for books, movies, and more.
+  """
+  searchItems(
+    """
+    Max 10,000
+    """
+    first: Int = 100
+    query: String!
+  ): ItemsConnection
+    @exported(
+      filename: "../../examples/internet-archive/dist/schema/Query.js"
+      functionName: "searchItems"
+    )
+}
