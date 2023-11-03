@@ -358,6 +358,11 @@ export class Extractor {
       args = this.collectArgs(argsParam);
     }
 
+    const context = node.parameters[2];
+    if (context != null) {
+      this.validateContextParameter(context);
+    }
+
     const description = this.collectDescription(funcName);
 
     if (!ts.isSourceFile(node.parent)) {
@@ -931,7 +936,7 @@ export class Extractor {
     if (argsType == null) {
       return this.report(argsParam, E.argumentParamIsMissingType());
     }
-    if (argsType.kind === ts.SyntaxKind.NeverKeyword) {
+    if (argsType.kind === ts.SyntaxKind.UnknownKeyword) {
       return [];
     }
     if (!ts.isTypeLiteralNode(argsType)) {
@@ -980,7 +985,7 @@ export class Extractor {
     } else if (node.kind === ts.SyntaxKind.FalseKeyword) {
       return this.gql.boolean(node, false);
     } else if (ts.isObjectLiteralExpression(node)) {
-      return this.cellectObjectLiteral(node);
+      return this.collectObjectLiteral(node);
     } else if (ts.isArrayLiteralExpression(node)) {
       return this.collectArrayLiteral(node);
     }
@@ -1010,7 +1015,7 @@ export class Extractor {
     return this.gql.list(node, values);
   }
 
-  cellectObjectLiteral(
+  collectObjectLiteral(
     node: ts.ObjectLiteralExpression,
   ): ConstObjectValueNode | null {
     const fields: ConstObjectFieldNode[] = [];
@@ -1301,6 +1306,66 @@ export class Extractor {
     return this.gql.name(id, id.text);
   }
 
+  // Ensure the type of the ctx param resolves to the declaration
+  // annotated with `@gqlContext`.
+  validateContextParameter(node: ts.ParameterDeclaration) {
+    if (node.type == null) {
+      return this.report(node, E.expectedTypeAnnotationOnContext());
+    }
+
+    if (node.type.kind === ts.SyntaxKind.UnknownKeyword) {
+      // If the user just needs to define the argument to get to a later parameter,
+      // they can use `ctx: unknown` to safely avoid triggering a Grats error.
+      return;
+    }
+
+    if (!ts.isTypeReferenceNode(node.type)) {
+      return this.report(
+        node.type,
+        E.expectedTypeAnnotationOfReferenceOnContext(),
+      );
+    }
+
+    // Check for ...
+    if (node.dotDotDotToken != null) {
+      return this.report(
+        node.dotDotDotToken,
+        E.unexpectedParamSpreadForContextParam(),
+      );
+    }
+
+    const symbol = this.ctx.checker.getSymbolAtLocation(node.type.typeName);
+    if (symbol == null) {
+      return this.report(
+        node.type.typeName,
+        E.expectedTypeAnnotationOnContextToBeResolvable(),
+      );
+    }
+
+    const declaration = this.ctx.findSymbolDeclaration(symbol);
+    if (declaration == null) {
+      return this.report(
+        node.type.typeName,
+        E.expectedTypeAnnotationOnContextToHaveDeclaration(),
+      );
+    }
+
+    if (this.ctx.gqlContext == null) {
+      // This is the first typed context value we've seen...
+      this.ctx.gqlContext = {
+        declaration: declaration,
+        firstReference: node.type.typeName,
+      };
+    } else if (this.ctx.gqlContext.declaration !== declaration) {
+      return this.report(node.type.typeName, E.multipleContextTypes(), [
+        this.related(
+          this.ctx.gqlContext.firstReference,
+          "A different type reference was used here",
+        ),
+      ]);
+    }
+  }
+
   methodDeclaration(
     node: ts.MethodDeclaration | ts.MethodSignature,
   ): FieldDefinitionNode | null {
@@ -1323,6 +1388,11 @@ export class Extractor {
     const argsParam = node.parameters[0];
     if (argsParam != null) {
       args = this.collectArgs(argsParam);
+    }
+
+    const context = node.parameters[1];
+    if (context != null) {
+      this.validateContextParameter(context);
     }
 
     const description = this.collectDescription(node.name);
@@ -1556,7 +1626,7 @@ export class Extractor {
     if (ts.isIdentifier(node)) {
       return node;
     }
-    return this.report(node, E.expectedIdentifer());
+    return this.report(node, E.expectedIdentifier());
   }
 
   findTag(node: ts.Node, tagName: string): ts.JSDocTag | null {

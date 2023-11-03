@@ -49,7 +49,7 @@ Like GraphQL's schema definition language, each type which implemnts of an inter
 
 ### Classes
 
-If you are using classes to model your GraphQL resolvers, you can define your types as implementing a GraphQL interface by declaring that your class `implements` an interface which has been annotated with [`@gqlInterface`](./04-interfaces.mdx).
+If you are using classes to model your GraphQL resolvers, you can define your types as implementing a GraphQL interface by declaring that your class `implements` an interface which has been annotated with [`@gqlInterface`](./05-interfaces.mdx).
 
 <GratsCode out={TypesImplementInterface} mode="ts" />
 
@@ -59,7 +59,7 @@ Will generate the following GraphQL schema:
 
 ### TypeScript Interface
 
-If you are using interfaces to model your GraphQL resolvers, you can define your types as implementing a GraphQL interface by declaring that your class `extends` an interface which has been annotated with [`@gqlInterface`](./04-interfaces.mdx).
+If you are using interfaces to model your GraphQL resolvers, you can define your types as implementing a GraphQL interface by declaring that your class `extends` an interface which has been annotated with [`@gqlInterface`](./05-interfaces.mdx).
 
 <GratsCode out={TypesInterfaceImplementInterface} mode="ts" />
 
@@ -74,7 +74,7 @@ Types declared using a type alias _may not_ implement a GraphQL interface. Inste
 ---
 
 :::info
-See [Interfaces](./04-interfaces.mdx) for more information about defining interfaces.
+See [Interfaces](./05-interfaces.mdx) for more information about defining interfaces.
 :::
 
 :::note

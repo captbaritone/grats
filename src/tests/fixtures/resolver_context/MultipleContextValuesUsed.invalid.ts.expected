@@ -1,0 +1,35 @@
+-----------------
+INPUT
+----------------- 
+type GratsContext = {
+  greeting: string;
+};
+
+type AlsoGratsContext = {
+  greeting: string;
+};
+
+/** @gqlType */
+export class Query {
+  /** @gqlField */
+  greeting(args: unknown, ctx: GratsContext): string {
+    return ctx.greeting;
+  }
+  /** @gqlField */
+  alsoGreeting(args: unknown, ctx: AlsoGratsContext): string {
+    return ctx.greeting;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/resolver_context/MultipleContextValuesUsed.invalid.ts:16:36 - error: Context argument's type does not match. Grats expects all resolvers that read the context argument to use the same type for that argument. Did you use the incorrect type in one of your resolvers?
+
+16   alsoGreeting(args: unknown, ctx: AlsoGratsContext): string {
+                                      ~~~~~~~~~~~~~~~~
+
+  src/tests/fixtures/resolver_context/MultipleContextValuesUsed.invalid.ts:12:32
+    12   greeting(args: unknown, ctx: GratsContext): string {
+                                      ~~~~~~~~~~~~
+    A different type reference was used here

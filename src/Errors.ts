@@ -161,11 +161,11 @@ export function typeNameDoesNotMatchExpected(expected: string) {
 }
 
 export function argumentParamIsMissingType() {
-  return "Expected GraphQL field arguments to have a TypeScript type. If there are no arguments, you can use `args: never`.";
+  return "Expected GraphQL field arguments to have a TypeScript type. If there are no arguments, you can use `args: unknown`.";
 }
 
 export function argumentParamIsNotObject() {
-  return "Expected GraphQL field arguments to be typed using a literal object: `{someField: string}`.";
+  return "Expected GraphQL field arguments to be typed using a literal object: `{someField: string}`. If there are no arguments, you can use `args: unknown`.";
 }
 
 export function argIsNotProperty() {
@@ -248,7 +248,7 @@ export function pluralTypeMissingParameter() {
   return `Expected type reference to have type arguments.`;
 }
 
-export function expectedIdentifer() {
+export function expectedIdentifier() {
   return "Expected an identifier.";
 }
 
@@ -322,4 +322,30 @@ export function invalidTypePassedToFieldFunction() {
 
 export function unresolvedTypeReference() {
   return "This type is not a valid GraphQL type. Did you mean to annotate it's definition with a `/** @gql */` tag such as `/** @gqlType */` or `/** @gqlInput **/`?";
+}
+
+export function expectedTypeAnnotationOnContext() {
+  return "Expected context parameter to have a type annotation. Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration.";
+}
+
+export function expectedTypeAnnotationOfReferenceOnContext() {
+  return "Expected context parameter's type to be a type reference Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration.";
+}
+
+export function expectedTypeAnnotationOnContextToBeResolvable() {
+  // TODO: Provide guidance?
+  // TODO: I don't think we have a test case that triggers this error.
+  return "Unable to resolve context parameter type. Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration.";
+}
+
+export function expectedTypeAnnotationOnContextToHaveDeclaration() {
+  return "Unable to locate the declaration of the context parameter's type. Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration. Did you forget to import or define this type?";
+}
+
+export function unexpectedParamSpreadForContextParam() {
+  return "Unexpected spread parameter in context parameter position. Grats expects the context parameter to be a single, explicitly typed, argument.";
+}
+
+export function multipleContextTypes() {
+  return "Context argument's type does not match. Grats expects all resolvers that read the context argument to use the same type for that argument. Did you use the incorrect type in one of your resolvers?";
 }

@@ -1,0 +1,25 @@
+-----------------
+INPUT
+----------------- 
+type GratsContext = {
+  greeting: string;
+};
+
+/** @gqlType */
+export class User {}
+
+/** @gqlField */
+export function greeting(_: User, args: unknown, ctx: GratsContext): string {
+  return ctx.greeting;
+}
+
+-----------------
+OUTPUT
+-----------------
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+
+type User {
+  greeting: String @exported(filename: "tests/fixtures/resolver_context/FunctionWithContextValue.js", functionName: "greeting")
+}

@@ -1,0 +1,18 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export class Query {
+  /** @gqlField */
+  greeting(args: unknown, ctx: never): string {
+    return ctx.greeting;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/resolver_context/ContextValueTypedAsNever.ts:4:32 - error: Expected context parameter's type to be a type reference Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration.
+
+4   greeting(args: unknown, ctx: never): string {
+                                 ~~~~~

@@ -1,0 +1,18 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export class Query {
+  /** @gqlField */
+  greeting(args: unknown, ctx): string {
+    return ctx.greeting;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/resolver_context/ContextValueMissingTypeAnnotation.invalid.ts:4:27 - error: Expected context parameter to have a type annotation. Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration.
+
+4   greeting(args: unknown, ctx): string {
+                            ~~~

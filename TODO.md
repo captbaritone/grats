@@ -50,7 +50,6 @@
 - [ ] Improve playground
   - Could we actually evaluate the resolvers? Maybe in a worker?
   - Could we hook up GraphiQL 2?
-- [ ] Can we ensure the context and ast arguments of resolvers are correct?
 - [ ] Can we use TypeScript's inference to infer types?
   - [ ] For example, a method which returns a string, or a property that has a default value.
 - [ ] Define resolvers?

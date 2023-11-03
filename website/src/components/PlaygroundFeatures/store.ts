@@ -76,8 +76,9 @@ function reducer(state: State = stateFromUrl(), action: Action) {
         doc: action.value,
       };
     }
-    default:
+    default: {
       const _: never = action;
+    }
   }
 
   return state;

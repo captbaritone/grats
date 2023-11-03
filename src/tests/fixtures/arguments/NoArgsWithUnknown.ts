@@ -1,7 +1,7 @@
 /** @gqlType */
 export default class Query {
   /** @gqlField */
-  hello(args: never): string {
+  hello(args: unknown): string {
     console.log("hello");
     return "Hello world!";
   }

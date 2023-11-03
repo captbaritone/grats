@@ -12,7 +12,7 @@ export default class Query {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/arguments/NoTypeAnnotation.invalid.ts:4:9 - error: Expected GraphQL field arguments to have a TypeScript type. If there are no arguments, you can use `args: never`.
+src/tests/fixtures/arguments/NoTypeAnnotation.invalid.ts:4:9 - error: Expected GraphQL field arguments to have a TypeScript type. If there are no arguments, you can use `args: unknown`.
 
 4   hello(args): string {
           ~~~~
