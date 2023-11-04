@@ -23,14 +23,37 @@ jobs:
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install
-      - name: Build
+      - name: Build Grats
         run: pnpm run build
       - name: Install dependencies
-        run: pnpm install -r
-      - name: Build Other Packages
-        run: pnpm run -r build
+        run: pnpm --filter="\!website" install -r
+      - name: Build Other Packages (excluding website)
+        run: pnpm --filter="\!website" run -r build
       - name: Integration Tests
         run: pnpm run integration-tests
+  build-docs:
+    name: "Build the docs"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Docs don't build on Node 16
+        node-version: [18.x, 19.x, 20.x, 21.x]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install
+      - name: Build Grats
+        run: pnpm run build
+      - name: Install website dependencies
+        run: pnpm --filter="website" install
+      - name: Build Website Packages
+        run: pnpm --filter="website" run build
   test:
     name: "JS Tests"
     runs-on: ubuntu-latest
