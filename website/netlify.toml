@@ -21,6 +21,10 @@ command = "./scripts/build.sh"
 # https://docs.netlify.com/configure-builds/ignore-builds/#mimic-default-behavior
 ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF"
 
+[build.environment]
+# Environment variables are set here
+NODE_VERSION = "18.x"
+
 # Redirect all requests to grats.netlify.app to grats.capt.dev
 # Written by our good friend ChatGPT (after a few false starts)
 [[redirects]]
