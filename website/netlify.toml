@@ -23,7 +23,7 @@ ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF"
 
 [build.environment]
 # Environment variables are set here
-NODE_VERSION = "18.x"
+NODE_VERSION = "v18.18.2"
 
 # Redirect all requests to grats.netlify.app to grats.capt.dev
 # Written by our good friend ChatGPT (after a few false starts)
