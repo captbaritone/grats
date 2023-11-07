@@ -90,5 +90,5 @@ You probably also want to update the docs:
 ```bash
 cd website
 pnpm i
-pnpm run deploy
+pnpm run deploy --prod # This automatically runs a build first
 ```
