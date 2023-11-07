@@ -2,7 +2,7 @@
 INPUT
 ----------------- 
 /** @gqlType */
-export default class Query {
+export default class SomeType {
   /** @gqlField */
   someField1({ hello = null }: { hello: string | null }): string {
     if (hello === null) return "hello";
@@ -18,15 +18,11 @@ export default class Query {
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
+type SomeType {
   someField1(hello: String = null): String
   someField2(hello: String = null): String
 }

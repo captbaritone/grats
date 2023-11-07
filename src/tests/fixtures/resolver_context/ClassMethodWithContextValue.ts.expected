@@ -6,7 +6,7 @@ type GratsContext = {
 };
 
 /** @gqlType */
-export class Query {
+export class SomeType {
   /** @gqlField */
   greeting(args: unknown, ctx: GratsContext): string {
     return ctx.greeting;
@@ -16,14 +16,10 @@ export class Query {
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
+type SomeType {
   greeting: String
 }

@@ -2,7 +2,7 @@
 INPUT
 ----------------- 
 /** @gqlType */
-export default class Query {
+export default class SomeType {
   /** @gqlField */
   hello(args: { greeting: string }): string {
     return `${args.greeting ?? "Hello"} world!`;
@@ -61,15 +61,11 @@ class Group {
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
+type SomeType {
   hello(greeting: String!): String
   greetings(greeting: String!): [String!]
   greetings1(greeting: String!): [String!]

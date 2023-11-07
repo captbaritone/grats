@@ -2,7 +2,7 @@
 INPUT
 ----------------- 
 /** @gqlType */
-export default interface Query {
+export default interface SomeType {
   /** @gqlField */
   hello: string;
 }
@@ -10,14 +10,10 @@ export default interface Query {
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
+type SomeType {
   hello: String
 }

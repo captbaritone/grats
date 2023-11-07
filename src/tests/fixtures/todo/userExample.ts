@@ -1,8 +1,8 @@
 /** @gqlType */
-type Query = {};
+type SomeType = {};
 
 /** @gqlField */
-export function me(_: Query): User {
+export function me(_: SomeType): User {
   return { firstName: "John", lastName: "Doe" };
 }
 

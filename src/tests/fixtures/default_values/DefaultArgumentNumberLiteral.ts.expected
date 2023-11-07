@@ -4,7 +4,7 @@ INPUT
 import { Float, Int } from "../../../Types";
 
 /** @gqlType */
-export default class Query {
+export default class SomeType {
   /** @gqlField */
   intField({ count = 10 }: { count: Int }): string {
     return `${count} world!`;
@@ -18,15 +18,11 @@ export default class Query {
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
+type SomeType {
   intField(count: Int! = 10): String
   floatField(scale: Float! = 10): String
 }

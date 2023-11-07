@@ -1,5 +1,5 @@
 /** @gqlType */
-class Query {
+class SomeType {
   /**
    * Number 1 greeting.
    *

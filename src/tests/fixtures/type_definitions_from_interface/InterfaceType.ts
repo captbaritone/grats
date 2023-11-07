@@ -1,5 +1,5 @@
 /** @gqlType */
-export default interface Query {
+export default interface SomeType {
   /** @gqlField */
   hello: string;
 }

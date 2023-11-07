@@ -1,7 +1,7 @@
 type SomeUndefienedType = string;
 
 /** @gqlType */
-class Query {
+class SomeType {
   /** @gqlField */
   somePropertyField: SomeUndefienedType;
 }

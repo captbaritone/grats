@@ -1,5 +1,5 @@
 /** @gqlType */
-export class Query {
+export class SomeType {
   /** @gqlField */
   greeting(args: unknown, ctx?: SomeType): string {
     // This is fine since Grats will always pass ctx. It's fine for

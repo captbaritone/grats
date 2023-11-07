@@ -8,7 +8,7 @@ class UserResolver {
 }
 
 /** @gqlType */
-class Query {
+class SomeType {
   /** @gqlField */
   me: UserResolver;
 }
@@ -16,10 +16,6 @@ class Query {
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
@@ -28,6 +24,6 @@ type User {
   name: String
 }
 
-type Query {
+type SomeType {
   me: User
 }

@@ -1,7 +1,7 @@
 import { Float, Int } from "../../../Types";
 
 /** @gqlType */
-export default class Query {
+export default class SomeType {
   /** @gqlField */
   intField({ count = 10 }: { count: Int }): string {
     return `${count} world!`;

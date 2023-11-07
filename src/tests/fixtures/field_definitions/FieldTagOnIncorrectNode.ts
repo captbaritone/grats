@@ -1,4 +1,4 @@
-class Query {
+class SomeType {
   /** @gqlField */
   constructor() {
     //

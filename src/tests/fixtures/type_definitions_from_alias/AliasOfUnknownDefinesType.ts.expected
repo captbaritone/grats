@@ -2,24 +2,20 @@
 INPUT
 ----------------- 
 /** @gqlType */
-export type Query = unknown;
+export type SomeType = unknown;
 
 /** @gqlField */
-export function greeting(_: Query): string {
+export function greeting(_: SomeType): string {
   return "Hello world";
 }
 
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
+type SomeType {
   greeting: String @exported(filename: "tests/fixtures/type_definitions_from_alias/AliasOfUnknownDefinesType.js", functionName: "greeting")
 }

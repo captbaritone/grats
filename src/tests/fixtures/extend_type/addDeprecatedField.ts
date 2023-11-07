@@ -1,5 +1,5 @@
 /** @gqlType */
-class Query {
+class SomeType {
   // No fields
 }
 
@@ -7,6 +7,6 @@ class Query {
  * @gqlField
  * @deprecated Because reasons
  */
-export function greeting(query: Query): string {
+export function greeting(query: SomeType): string {
   return "Hello world!";
 }

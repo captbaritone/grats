@@ -2,7 +2,7 @@
 INPUT
 ----------------- 
 /** @gqlType */
-class Query {
+class SomeType {
   /** @gqlField greeting */
   somePropertyField: string;
 
@@ -15,15 +15,11 @@ class Query {
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
+type SomeType {
   greeting: String @methodName(name: "somePropertyField")
   salutaion: String @methodName(name: "someMethodField")
 }

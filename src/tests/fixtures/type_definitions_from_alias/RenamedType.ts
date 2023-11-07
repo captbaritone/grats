@@ -1,5 +1,5 @@
 /**
- * @gqlType Query
+ * @gqlType SomeType
  */
 type MyAlias = {
   /** @gqlField */

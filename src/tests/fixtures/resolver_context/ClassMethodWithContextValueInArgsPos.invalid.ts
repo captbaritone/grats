@@ -3,7 +3,7 @@ type GratsContext = {
 };
 
 /** @gqlType */
-export class Query {
+export class SomeType {
   /** @gqlField */
   greeting(ctx: GratsContext): string {
     return ctx.greeting;

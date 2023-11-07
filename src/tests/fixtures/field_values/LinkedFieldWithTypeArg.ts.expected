@@ -2,7 +2,7 @@
 INPUT
 ----------------- 
 /** @gqlType */
-class Query {
+class SomeType {
   /** @gqlField */
   async me(): Promise<User<string>> {
     return new User();
@@ -26,15 +26,11 @@ class User<T> {
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
+type SomeType {
   me: User
 }
 

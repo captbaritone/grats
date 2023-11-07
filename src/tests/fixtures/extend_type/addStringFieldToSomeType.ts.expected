@@ -2,26 +2,22 @@
 INPUT
 ----------------- 
 /** @gqlType */
-class Query {
+class SomeType {
   // No fields
 }
 
 /** @gqlField */
-export function greeting(_: Query): string {
+export function greeting(_: SomeType): string {
   return "Hello world!";
 }
 
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
-  greeting: String @exported(filename: "tests/fixtures/extend_type/addStringFieldToQuery.js", functionName: "greeting")
+type SomeType {
+  greeting: String @exported(filename: "tests/fixtures/extend_type/addStringFieldToSomeType.js", functionName: "greeting")
 }

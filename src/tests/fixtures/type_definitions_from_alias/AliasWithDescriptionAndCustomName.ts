@@ -1,7 +1,7 @@
 /**
  * The root of all evil.
  *
- * @gqlType Query
+ * @gqlType SomeType
  */
 export type NotQuery = {
   /** @gqlField */

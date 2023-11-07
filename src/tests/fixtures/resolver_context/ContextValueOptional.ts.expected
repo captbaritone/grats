@@ -2,7 +2,7 @@
 INPUT
 ----------------- 
 /** @gqlType */
-export class Query {
+export class SomeType {
   /** @gqlField */
   greeting(args: unknown, ctx?: SomeType): string {
     // This is fine since Grats will always pass ctx. It's fine for
@@ -17,14 +17,10 @@ type SomeType = { greeting: string };
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
+type SomeType {
   greeting: String
 }

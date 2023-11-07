@@ -1,7 +1,7 @@
 import { ID } from "../../../types";
 
 /** @gqlType */
-export default class Query {
+export default class SomeType {
   /** @gqlField */
   me(): Node {
     throw new Error("Not implemented");

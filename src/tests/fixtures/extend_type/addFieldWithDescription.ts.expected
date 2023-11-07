@@ -2,7 +2,7 @@
 INPUT
 ----------------- 
 /** @gqlType */
-class Query {
+class SomeType {
   // No fields
 }
 
@@ -10,22 +10,18 @@ class Query {
  * Best field ever!
  * @gqlField
  */
-export function greeting(_: Query): string {
+export function greeting(_: SomeType): string {
   return "Hello world!";
 }
 
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
+type SomeType {
   """Best field ever!"""
   greeting: String @exported(filename: "tests/fixtures/extend_type/addFieldWithDescription.js", functionName: "greeting")
 }

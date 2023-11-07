@@ -1,9 +1,9 @@
 /** @gqlType */
-class Query {
+class SomeType {
   // No fields
 }
 
 /** @gqlField */
-export function greeting(_: Query, args: { name: string }): string {
+export function greeting(_: SomeType, args: { name: string }): string {
   return `Hello ${args.name}!`;
 }

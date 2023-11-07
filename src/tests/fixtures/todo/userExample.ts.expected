@@ -2,10 +2,10 @@
 INPUT
 ----------------- 
 /** @gqlType */
-type Query = {};
+type SomeType = {};
 
 /** @gqlField */
-export function me(_: Query): User {
+export function me(_: SomeType): User {
   return { firstName: "John", lastName: "Doe" };
 }
 
@@ -25,15 +25,11 @@ export function fullName(user: User): string {
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
+type SomeType {
   me: User @exported(filename: "tests/fixtures/todo/userExample.js", functionName: "me")
 }
 

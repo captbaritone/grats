@@ -2,7 +2,7 @@
 INPUT
 ----------------- 
 /** @gqlType */
-export default class Query {
+export default class SomeType {
   /** @gqlField */
   hello({
     greeting,
@@ -17,7 +17,7 @@ export default class Query {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/arguments/DeprecatedRequiredArgument.invalid.ts:7:10 - error: Required argument Query.hello(greeting:) cannot be deprecated.
+src/tests/fixtures/arguments/DeprecatedRequiredArgument.invalid.ts:7:10 - error: Required argument SomeType.hello(greeting:) cannot be deprecated.
 
 7     /** @deprecated Not used anymore */
            ~~~~~~~~~~
