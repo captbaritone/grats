@@ -4,7 +4,7 @@ INPUT
 /**
  * The root of all evil.
  *
- * @gqlType Query
+ * @gqlType SomeType
  */
 export default interface NotQuery {
   /** @gqlField */
@@ -14,15 +14,11 @@ export default interface NotQuery {
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
 """The root of all evil."""
-type Query {
+type SomeType {
   hello: String
 }

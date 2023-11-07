@@ -1,5 +1,5 @@
 /** @gqlType */
-export default class Query {
+export default class SomeType {
   /** @gqlField */
   someField1({ inputs = [func(), func()] }: { inputs?: string[] }): string {
     return inputs.join("|");

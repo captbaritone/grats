@@ -1,6 +1,6 @@
 // { "nullableByDefault": false }
 /** @gqlType */
-export default class Query {
+export default class SomeType {
   /**
    * @gqlField
    * @killsParentOnException

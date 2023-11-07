@@ -3,7 +3,7 @@
  *
  * @gqlType
  */
-export type Query = {
+export type SomeType = {
   /** @gqlField */
   hello: string;
 };

@@ -1,5 +1,5 @@
 /** @gqlType */
-export default class Query {
+export default class SomeType {
   /** @gqlField */
   someField1({ hello = null }: { hello: string | null }): string {
     if (hello === null) return "hello";

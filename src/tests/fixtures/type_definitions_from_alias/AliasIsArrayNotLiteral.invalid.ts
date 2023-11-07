@@ -1,4 +1,4 @@
 /** @gqlType */
-export type Query = {
+export type SomeType = {
   hello: string;
 }[];

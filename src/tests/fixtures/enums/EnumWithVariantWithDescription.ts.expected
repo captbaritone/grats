@@ -2,7 +2,7 @@
 INPUT
 ----------------- 
 /** @gqlType */
-class Query {
+class SomeType {
   /** @gqlField */
   hello: string;
 }
@@ -18,15 +18,11 @@ enum Enum {
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
+type SomeType {
   hello: String
 }
 

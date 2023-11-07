@@ -4,7 +4,7 @@ INPUT
 import { Int } from "../../../Types";
 
 /** @gqlType */
-export default class Query {
+export default class SomeType {
   /** @gqlField */
   age(): Int {
     return 10;
@@ -14,14 +14,10 @@ export default class Query {
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
+type SomeType {
   age: Int
 }

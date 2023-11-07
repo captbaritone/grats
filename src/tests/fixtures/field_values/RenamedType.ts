@@ -5,7 +5,7 @@ class UserResolver {
 }
 
 /** @gqlType */
-class Query {
+class SomeType {
   /** @gqlField */
   me: UserResolver;
 }

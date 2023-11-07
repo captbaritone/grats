@@ -1,2 +1,2 @@
 /** @gqlType */
-export type Query = 10;
+export type SomeType = 10;

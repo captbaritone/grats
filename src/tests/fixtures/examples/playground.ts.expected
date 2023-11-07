@@ -2,7 +2,7 @@
 INPUT
 ----------------- 
 /** @gqlType */
-export default class Query {
+export default class SomeType {
   /** @gqlField */
   me(): UserResolver {
     return new UserResolver();
@@ -31,22 +31,18 @@ class UserResolver {
 }
 
 /** @gqlField */
-export function getUser(_: Query): UserResolver {
+export function getUser(_: SomeType): UserResolver {
   return new UserResolver();
 }
 
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
+type SomeType {
   me: User
   viewer: User @deprecated(reason: "Please use `me` instead.")
   getUser: User @exported(filename: "tests/fixtures/examples/playground.js", functionName: "getUser")

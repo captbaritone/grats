@@ -1,5 +1,5 @@
 /** @gqlType */
-class Query {
+class SomeType {
   /** @gqlField */
   hello: MyEnum;
 }

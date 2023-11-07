@@ -2,7 +2,7 @@
 INPUT
 ----------------- 
 /** @gqlType */
-export class Query {
+export class SomeType {
   /** @gqlField */
   hello: MyEnum;
 }
@@ -18,15 +18,11 @@ type MyEnum = Valid | Invalid;
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
+type SomeType {
   hello: MyEnum
 }
 

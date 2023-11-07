@@ -2,7 +2,7 @@
 INPUT
 ----------------- 
 /** @gqlType */
-export default class Query {
+export default class SomeType {
   /** @gqlField */
   someField1({ greet = false }: { greet?: boolean }): string {
     if (!greet) return "";
@@ -19,15 +19,11 @@ export default class Query {
 -----------------
 OUTPUT
 -----------------
-schema {
-  query: Query
-}
-
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
-type Query {
+type SomeType {
   someField1(greet: Boolean = false): String
   someField2(greet: Boolean = true): String
 }

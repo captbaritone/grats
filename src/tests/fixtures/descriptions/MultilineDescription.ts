@@ -6,7 +6,7 @@
  *
  * @gqlType
  */
-class Query {
+class SomeType {
   /** @gqlField */
   name: string;
 }

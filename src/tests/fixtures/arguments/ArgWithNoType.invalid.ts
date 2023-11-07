@@ -1,5 +1,5 @@
 /** @gqlType */
-export default class Query {
+export default class SomeType {
   /** @gqlField */
   hello({ greeting }: { greeting }): string {
     return "Hello world!";

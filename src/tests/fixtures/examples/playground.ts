@@ -1,5 +1,5 @@
 /** @gqlType */
-export default class Query {
+export default class SomeType {
   /** @gqlField */
   me(): UserResolver {
     return new UserResolver();
@@ -28,6 +28,6 @@ class UserResolver {
 }
 
 /** @gqlField */
-export function getUser(_: Query): UserResolver {
+export function getUser(_: SomeType): UserResolver {
   return new UserResolver();
 }
