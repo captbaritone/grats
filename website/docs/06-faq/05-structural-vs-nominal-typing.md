@@ -31,6 +31,8 @@ In TypeScript, `Post.author` is a valid `User` since the type literal `{ name: s
 
 In grats we get around this by enforcing that any type annotation that Grats needs to infer as a GraphQL type _must be a direct reference to a declaration_. That declaration can be a type alias, interface, or class, but it must be a declaration. If you don't do this, Grats will report a, hopefully helpful, error.
 
+To correct the above error, we might write:
+
 ```typescript
 /** @gqlType */
 type User = {
@@ -55,7 +57,7 @@ Coincidentally, this ends up working out well, since the TypeScript library does
 
 As a user of Grats, this means there are some things which might feel intuitive to write in TypeScript which Grats will not be able to understand. **Grats knows about these cases and tries to report helpful errors when it encounters them.**
 
-For example, this means you cannot use intermediate type aliases, since the _definition_ of the used type is not annotated as a GraphQL type.
+For example, this means you cannot use intermediate type aliases, since the _definition_ of the `Admin` type is not annotated as a GraphQL type.
 
 ```typescript
 /** @gqlType */
