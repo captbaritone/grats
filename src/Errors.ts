@@ -128,8 +128,8 @@ export function typeTagOnUnnamedClass() {
   return `Unexpected \`@${TYPE_TAG}\` annotation on unnamed class declaration.`;
 }
 
-export function typeTagOnAliasOfNonObject() {
-  return `Expected \`@${TYPE_TAG}\` type to be a type literal. For example: \`type Foo = { bar: string }\``;
+export function typeTagOnAliasOfNonObjectOrUnknown() {
+  return `Expected \`@${TYPE_TAG}\` type to be a type literal or \`unknown\`. For example: \`type Foo = { bar: string }\` or \`type Query = unknown\`.`;
 }
 
 export function typeNameNotDeclaration() {

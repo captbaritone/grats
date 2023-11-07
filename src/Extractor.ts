@@ -575,17 +575,23 @@ export class Extractor {
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
-    if (!ts.isTypeLiteralNode(node.type)) {
-      this.reportUnhandled(node.type, "type", E.typeTagOnAliasOfNonObject());
-      return;
+    let fields: FieldDefinitionNode[] = [];
+    let interfaces: NamedTypeNode[] | null = null;
+
+    if (ts.isTypeLiteralNode(node.type)) {
+      fields = this.collectFields(node.type);
+      interfaces = this.collectInterfaces(node);
+      this.checkForTypenameProperty(node.type, name.value);
+    } else if (node.type.kind === ts.SyntaxKind.UnknownKeyword) {
+      // This is fine, we just don't know what it is. This should be the expected
+      // case for operation types such as `Query`, `Mutation`, and `Subscription`
+      // where there is not strong convention around.
+    } else {
+      return this.report(node.type, E.typeTagOnAliasOfNonObjectOrUnknown());
     }
 
     const description = this.collectDescription(node.name);
-    const fields = this.collectFields(node.type);
-    const interfaces = this.collectInterfaces(node);
     this.ctx.recordTypeName(node.name, name, "TYPE");
-
-    this.checkForTypenameProperty(node.type, name.value);
 
     this.definitions.push(
       this.gql.objectTypeDefinition(

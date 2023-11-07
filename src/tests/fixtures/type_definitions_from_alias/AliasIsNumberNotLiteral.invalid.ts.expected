@@ -7,9 +7,7 @@ export type Query = 10;
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/type_definitions_from_alias/AliasIsNumberNotLiteral.invalid.ts:2:21 - error: Expected `@gqlType` type to be a type literal. For example: `type Foo = { bar: string }`
-
-If you think Grats should be able to infer this type, please report an issue at https://github.com/captbaritone/grats/issues.
+src/tests/fixtures/type_definitions_from_alias/AliasIsNumberNotLiteral.invalid.ts:2:21 - error: Expected `@gqlType` type to be a type literal or `unknown`. For example: `type Foo = { bar: string }` or `type Query = unknown`.
 
 2 export type Query = 10;
                       ~~
