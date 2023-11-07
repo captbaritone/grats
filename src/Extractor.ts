@@ -525,7 +525,7 @@ export class Extractor {
 
   typeClassDeclaration(node: ts.ClassDeclaration, tag: ts.JSDocTag) {
     if (node.name == null) {
-      return this.report(node, E.typeTagOnUnamedClass());
+      return this.report(node, E.typeTagOnUnnamedClass());
     }
 
     const name = this.entityName(node, tag);

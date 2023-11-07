@@ -124,7 +124,7 @@ export function inputFieldUntyped() {
   return "Input field must have a type annotation.";
 }
 
-export function typeTagOnUnamedClass() {
+export function typeTagOnUnnamedClass() {
   return `Unexpected \`@${TYPE_TAG}\` annotation on unnamed class declaration.`;
 }
 
