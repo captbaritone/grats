@@ -1,10 +1,10 @@
 # Design Principles
 
-This document describes the design principles of Grats. These are not hard and fast rules, but rather a set of principals to I'm trying to consider when making design decisions and tradeoffs. For a concrete descripiton of how Grats _actually_ works, see [How Grats Works](./03-how-grats-works.md).
+This document describes the design principles of Grats. These are not hard and fast rules, but rather a set of principals to I'm trying to consider when making design decisions and tradeoffs. For a concrete description of how Grats _actually_ works, see [How Grats Works](./03-how-grats-works.md).
 
 ## Progressive disclosure
 
-Grats should have a small user-facing API that is intuitive to use. Users should feel empowered to apply docblock tags to their code confident that the library will either do the obvious right thing, or fail at build time with a clear error message informing the user of both _why_ what they tried cannot or does not work, and what they should do instead. This should allow us to keep documentation breif and focused on the happy path, while providing guidance about complex cases only as the user encounters them. In other words, we should consider our error messages to be a part of our documentation that is disclosed to users at exactly the moment they need it.
+Grats should have a small user-facing API that is intuitive to use. Users should feel empowered to apply docblock tags to their code confident that the library will either do the obvious right thing, or fail at build time with a clear error message informing the user of both _why_ what they tried cannot or does not work, and what they should do instead. This should allow us to keep documentation brief and focused on the happy path, while providing guidance about complex cases only as the user encounters them. In other words, we should consider our error messages to be a part of our documentation that is disclosed to users at exactly the moment they need it.
 
 ## Internal complexity is okay
 
@@ -20,11 +20,11 @@ Aside from the `@gql` docblock tag, Grats should try to avoid introducing new co
 
 ## A few dependencies well leveraged
 
-Grats should have a small number of dependencies, and should leverage those dependencies to their fullest extent. For example, Grats uses the `graphql-js` for constructing, serializing, and validating GraphQL schemas, rather than implementing its own schema construction and validation logic. Similarly, Grats uses TypeScript's own AST parsing and type inference logic, rather than implementing its own.
+Grats should have a small number of dependencies, and should leverage those dependencies to their fullest extent. For example, Grats uses [`graphql-js`](https://graphql.org/graphql-js/) for constructing, serializing, and validating GraphQL schemas, rather than implementing its own schema construction and validation logic. Similarly, Grats uses TypeScript's own AST parsing and type inference logic, rather than implementing its own.
 
 In it's public APIs, Grats should expose the same types and concepts that are used by the underlying dependencies, rather than introducing new concepts that are redundant or confusing.
 
-Where other utility tools are needed, Grats should consider mainting/forking/vendoring its own implememtatation of exactly the functionality it needs, rather than taking on a dependency on a larger library that provides more functionality than is needed.
+Where other utility tools are needed, Grats should consider maintaining/forking/vendoring its own implementation of exactly the functionality it needs, rather than taking on a dependency on a larger library that provides more functionality than is needed.
 
 ## Test-validated behavior
 

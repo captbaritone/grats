@@ -30,7 +30,7 @@ class Query {
 const app = express();
 
 const sdl = fs.readFileSync("./schema.graphql", "utf8");
-const schema = buildSchemaFromSDL(sdl)
+const schema = buildSchemaFromSDL(sdl);
 
 app.use(
   "/graphql",
@@ -44,7 +44,7 @@ For complete documentation of Grat's runtime APIs see the [API Reference](./01-r
 
 ## Extract your schema
 
-Use the Grats CLI to extract your schema from your TypeScript code. You'll need to run this step afer every change to your TypeScript code that affects your schema.
+Use the Grats CLI to extract your schema from your TypeScript code. You'll need to run this step after every change to your TypeScript code that affects your schema.
 
 :::caution
 Grats uses your TypeScript config to for its [configuration](./02-configuration.md) and to know which files to scan, so ensure your project has a `tsconfig.json` file defined.
