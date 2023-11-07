@@ -14,7 +14,7 @@ type annotations to automatically extract an executable GraphQL schema from your
 generic TypeScript resolver code._
 
 By making your TypeScript implementation the source of truth, you never have to
-worry about valuating that your implementation matches your schema. Your
+worry about validating that your implementation matches your schema. Your
 implementation _is_ your schema!
 
 ## Read the docs: https://grats.capt.dev/
