@@ -11,7 +11,7 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 export default function Playground(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   return (
-    <Layout title={`Playground | ${siteConfig.title}`}>
+    <Layout title={`Playground | ${siteConfig.title}`} noFooter>
       <BrowserOnly>
         {() => (
           <FillRemainingHeight minHeight={300}>
@@ -33,6 +33,7 @@ export default function Playground(): JSX.Element {
                     right: 0,
                     display: "flex",
                     flexDirection: "row",
+                    overflow: "scroll",
                   }}
                 >
                   <InputView />
@@ -59,11 +60,11 @@ function FillRemainingHeight({ children, minHeight }) {
 
     function updateSize() {
       const verticalOffset = containerRef.getBoundingClientRect().y;
-      const avaliable = Math.max(
+      const available = Math.max(
         window.innerHeight - verticalOffset,
         minHeight,
       );
-      setHeight(avaliable);
+      setHeight(available);
     }
 
     updateSize();
