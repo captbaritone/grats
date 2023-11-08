@@ -27,10 +27,13 @@ jobs:
         run: pnpm run build
       - name: Install dependencies
         run: pnpm install -r
-      - name: Build Other Packages
-        run: pnpm run -r build
-      - name: Integration Tests
+      - name: Build Other Packages (excluding docs website)
+        run: pnpm run --filter="\!website" -r build
+      - name: Run Integration Tests
         run: pnpm run integration-tests
+      - name: Build Docs Website
+        working-directory: ./website
+        run: ./scripts/build.sh
   test:
     name: "JS Tests"
     runs-on: ubuntu-latest
