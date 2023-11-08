@@ -1,5 +1,5 @@
 /** @gqlType */
-class Query {
+class User {
   /**
    * @gqlField
    * @deprecated Please use myNewField instead.

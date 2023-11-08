@@ -3,18 +3,18 @@ import { State } from "./store";
 export const URL_VERSION = 1;
 
 const CONTENT = `/** @gqlType */
-export default class Query {
-  /** @gqlField */
-  me(): UserResolver {
-    return new UserResolver();
-  }
-  /**
-   * @gqlField
-   * @deprecated Please use \`me\` instead.
-   */
-  viewer(): UserResolver {
-    return new UserResolver();
-  }
+type Query = unknown; 
+
+/** @gqlField */
+export function me(_: Query): UserResolver {
+  return new UserResolver();
+}
+/**
+ * @gqlField
+ * @deprecated Please use \`me\` instead.
+ */
+viewer(_: Query): UserResolver {
+  return new UserResolver();
 }
 
 /**

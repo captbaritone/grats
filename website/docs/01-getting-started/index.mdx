@@ -1,7 +1,7 @@
 # Welcome to Grats
 
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
+import GratsCode from "@site/src/components/GratsCode";
+import Example from "!!raw-loader!./snippets/example.out";
 
 **What if building a GraphQL server were as simple as just writing functions?**
 
@@ -31,94 +31,15 @@ In some cases Grats may prompt you to use more explicit type annotations to
 ensure that it can "see" all the relevent type information.
 :::
 
-## Examples
+## Example
 
 Grats is flexible enough to work with both class-based and functional
-approaches to authoring GraphQL types and resolvers.
+approaches to authoring GraphQL types and resolvers. You can find a mix of both i
 
-<Tabs>
-  <TabItem value="oop" label="Classes" default>
-
-```ts
-/** @gqlType */
-export default class Query {
-  /** @gqlField */
-  me(): User {
-    return new User();
-  }
-  /**
-   * @gqlField
-   * @deprecated Please use `me` instead. */
-  viewer(): User {
-    return new User();
-  }
-}
-
-/**
- * A user in our kick-ass system!
- * @gqlType */
-class User {
-  /** @gqlField */
-  name: string = "Alice";
-
-  /** @gqlField */
-  greeting(args: { salutation: string }): string {
-    return `${args.salutation}, ${this.name}`;
-  }
-}
-```
-
-  </TabItem>
-  <TabItem value="fp" label="Functional">
-
-```ts
-/** @gqlType */
-export type Query = {};
-
-/** @gqlField */
-export function me(_: Query): User {
-  return { name: "Alice" };
-}
-
-/**
- * @gqlField
- * @deprecated Please use `me` instead.  */
-export function viewer(_: Query): User {
-  return { name: "Alice" };
-}
-
-/**
- * A user in our kick-ass system!
- * @gqlType */
-type User = {
-  /** @gqlField */
-  name: string;
-};
-
-/** @gqlField */
-export function greeting(user: User, args: { salutation: string }): string {
-  return `${args.salutation}, ${user.name}`;
-}
-```
-
-  </TabItem>
-</Tabs>
+<GratsCode mode="ts" out={Example} />
 
 ## Output
 
-Both of the above examples define the following GraphQL schema:
+The above example define the following GraphQL schema:
 
-```graphql
-type Query {
-  me: User
-  viewer: User @deprecated(reason: "Please use `me` instead.")
-}
-
-"""
-A user in our kick-ass system!
-"""
-type User {
-  name: String
-  greeting(salutation: String!): String
-}
-```
+<GratsCode mode="gql" out={Examples} />

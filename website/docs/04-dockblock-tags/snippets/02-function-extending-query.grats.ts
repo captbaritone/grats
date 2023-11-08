@@ -2,7 +2,7 @@
 const DB: any = {};
 
 /** @gqlType */
-type Query = {};
+type Query = unknown;
 
 /** @gqlType */
 type User = {

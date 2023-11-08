@@ -20,11 +20,11 @@ import { graphqlHTTP } from "express-graphql";
 import { buildSchemaFromSDL } from "grats";
 
 /** @gqlType */
-class Query {
-  /** @gqlField */
-  hello(): string {
-    return "Hello world!";
-  }
+type Query = unknown;
+
+/** @gqlField */
+export function hello(_: Query): string {
+  return "Hello world!";
 }
 
 const app = express();

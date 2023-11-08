@@ -78,3 +78,7 @@ type Post = {
   // highlight-end
 };
 ```
+
+## Capabilities enabled
+
+While this approach does impose some limitations, it also enables some other patterns. For example,

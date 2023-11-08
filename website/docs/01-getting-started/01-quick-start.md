@@ -48,11 +48,11 @@ import { graphqlHTTP } from "express-graphql";
 import { extractGratsSchemaAtRuntime } from "grats";
 
 /** @gqlType */
-class Query {
-  /** @gqlField */
-  hello(): string {
-    return "Hello world!";
-  }
+type Query = unknown;
+
+/** @gqlField */
+export function hello(_: Query): string {
+  return "Hello world!";
 }
 
 const app = express();
@@ -71,7 +71,6 @@ console.log("Running a GraphQL API server at http://localhost:4000/graphql");
 ```
 
 ## Start your server
-
 
 ```bash
 # Build your projects
