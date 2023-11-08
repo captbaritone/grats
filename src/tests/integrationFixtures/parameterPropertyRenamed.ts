@@ -1,9 +1,9 @@
 /** @gqlType */
-export class Query {
-  constructor(
-    /** @gqlField hello */
-    public NOT_THIS: string = "world",
-  ) {}
+type Query = unknown;
+
+/** @gqlField hello */
+export function NOT_THIS(_: Query): string {
+  return "world";
 }
 
 export const query = `

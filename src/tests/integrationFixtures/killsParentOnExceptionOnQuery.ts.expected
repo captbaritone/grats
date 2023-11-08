@@ -2,17 +2,19 @@
 INPUT
 ----------------- 
 /** @gqlType */
-export class Query {
-  /**
-   * @gqlField
-   * @killsParentOnException
-   */
-  alwaysThrowsKillsParentOnException(): string {
-    throw new Error("This error should kill Query");
-  }
+type Query = unknown;
 
-  /** @gqlField */
-  hello: string = "Hello Worl";
+/**
+ * @gqlField
+ * @killsParentOnException
+ */
+export function alwaysThrowsKillsParentOnException(_: Query): string {
+  throw new Error("This error should kill Query");
+}
+
+/** @gqlField */
+export function hello(_: Query): string {
+  return "Hello Worl";
 }
 
 export const query = `
