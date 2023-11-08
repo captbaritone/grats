@@ -349,3 +349,12 @@ export function unexpectedParamSpreadForContextParam() {
 export function multipleContextTypes() {
   return "Context argument's type does not match. Grats expects all resolvers that read the context argument to use the same type for that argument. Did you use the incorrect type in one of your resolvers?";
 }
+
+export function expectedOperationTypeToBeAliasOfUnknown(operationName: string) {
+  return [
+    `Expected operation type \`${operationName}\` to be defined using a type alias of \`unknown\`. e.g. \`type ${operationName} = unknown\`.`,
+    `graphql-js does not offer a way to have per-operation parent types. To avoid any confusion, Grats requires that all operation types be defined as a type alias of \`unknown\`.`,
+    `If you have a use case where having a concrete root value is necessary, please let us know about it by commenting on: https://github.com/captbaritone/grats/issues/123.`,
+    `Learn more: https://grats.capt.dev/docs/operation-types`,
+  ].join("\n\n");
+}

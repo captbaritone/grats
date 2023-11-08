@@ -19,6 +19,7 @@ import {
   err,
   FAKE_ERROR_CODE,
   ok,
+  Result,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import {
@@ -65,6 +66,8 @@ export const ALL_TAGS = [
 ];
 
 const DEPRECATED_TAG = "deprecated";
+
+const OPERATION_TYPE_NAMES = new Set(["Query", "Mutation", "Subscription"]);
 
 type ArgDefaults = Map<string, ts.Expression>;
 
@@ -530,6 +533,9 @@ export class Extractor {
 
     const name = this.entityName(node, tag);
     if (name == null) return null;
+    if (this.foo(node, name)) {
+      return;
+    }
 
     const description = this.collectDescription(node.name);
     const fields = this.collectFields(node);
@@ -552,6 +558,9 @@ export class Extractor {
   typeInterfaceDeclaration(node: ts.InterfaceDeclaration, tag: ts.JSDocTag) {
     const name = this.entityName(node, tag);
     if (name == null) return null;
+    if (this.foo(node, name)) {
+      return;
+    }
 
     const description = this.collectDescription(node.name);
     const fields = this.collectFields(node);
@@ -579,6 +588,9 @@ export class Extractor {
     let interfaces: NamedTypeNode[] | null = null;
 
     if (ts.isTypeLiteralNode(node.type)) {
+      if (this.foo(node, name)) {
+        return;
+      }
       fields = this.collectFields(node.type);
       interfaces = this.collectInterfaces(node);
       this.checkForTypenameProperty(node.type, name.value);
@@ -602,6 +614,14 @@ export class Extractor {
         description,
       ),
     );
+  }
+
+  foo(node: ts.Node, name: NameNode): boolean {
+    if (OPERATION_TYPE_NAMES.has(name.value)) {
+      this.report(node, E.expectedOperationTypeToBeAliasOfUnknown(name.value));
+      return true;
+    }
+    return false;
   }
 
   checkForTypenameProperty(
