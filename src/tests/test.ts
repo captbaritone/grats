@@ -45,6 +45,7 @@ program
     }
   });
 
+const gratsDir = path.join(__dirname, "../..");
 const fixturesDir = path.join(__dirname, "fixtures");
 const integrationFixturesDir = path.join(__dirname, "integrationFixtures");
 
@@ -114,18 +115,18 @@ const testDirs = [
           `Expected \`${filePath}\` to export a query text as \`query\``,
         );
       }
-      if (server.Query == null || typeof server.Query !== "function") {
-        throw new Error(
-          `Expected \`${filePath}\` to export a Query type as \`Query\``,
-        );
-      }
 
       const options: ConfigOptions = {
         nullableByDefault: true,
       };
       const files = [filePath, `src/Types.ts`];
       const parsedOptions: ts.ParsedCommandLine = {
-        options: {},
+        options: {
+          // Required to enable ts-node to locate function exports
+          rootDir: gratsDir,
+          outDir: "dist",
+          configFilePath: "tsconfig.json",
+        },
         raw: {
           grats: options,
         },
@@ -141,7 +142,7 @@ const testDirs = [
       const data = await graphql({
         schema,
         source: server.query,
-        rootValue: new server.Query(),
+        rootValue: server.Query != null ? new server.Query() : null,
       });
 
       return JSON.stringify(data, null, 2);
