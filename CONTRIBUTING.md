@@ -85,6 +85,10 @@ pnpm publish
 git push --tags
 ```
 
+You probably want to upgrade Grats in the Code Sandbox example:
+
+https://capt.dev/grats-sandbox
+
 You probably also want to update the docs:
 
 ```bash
