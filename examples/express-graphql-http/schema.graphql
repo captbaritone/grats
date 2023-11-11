@@ -17,7 +17,7 @@ interface IPerson {
 }
 
 type Query {
-  allUsers: [User!]! @exported(filename: "../../../../models/User.js", functionName: "allUsers")
+  allUsers: [User!]! @exported(filename: "../../examples/express-graphql-http/dist/models/User.js", functionName: "allUsers")
   me: User!
   person: IPerson!
 }
