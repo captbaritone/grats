@@ -63,6 +63,16 @@ async function withExampleServer(exampleDir, cb) {
     cwd: exampleDir,
     stdio: "pipe",
   });
+  child.stderr.on("data", (data) => {
+    console.error(`${exampleDir} stderr: ${data}`);
+  });
+  child.on("exit", (code) => {
+    // Code can be `null` sometimes
+    if (code) {
+      console.error(`${exampleDir}: Child process exited with code ${code}`);
+      process.exit(code);
+    }
+  });
   try {
     // HACK: Wait for the server to start
     // Not clear why we need two
