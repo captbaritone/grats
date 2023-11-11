@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install -r
       - name: Build Other Packages (excluding docs website)
-        run: pnpm run --filter="\!website" -r build
+        run: pnpm run --filter="!website" -r build
       - name: Run Integration Tests
         run: pnpm run integration-tests
       - name: Build Docs Website
