@@ -48,5 +48,9 @@ export async function searchItems(
       items: response.items.slice(0, first),
     };
   }
-  return ItemsConnection.fromScapeApiResponse(response);
+  const itemsConnection = ItemsConnection.fromScapeApiResponse(response);
+
+  console.log({ itemsConnection });
+
+  return itemsConnection;
 }

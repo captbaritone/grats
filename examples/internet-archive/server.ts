@@ -1,7 +1,18 @@
-import { extractGratsSchemaAtRuntime, buildSchemaFromSDL } from "grats";
+import { extractGratsSchemaAtRuntime, applyServerDirectives } from "grats";
+import { createHandler } from "graphql-http/lib/use/express";
 import { readFileSync } from "fs";
-import { createServer } from "node:http";
-import { createYoga } from "graphql-yoga";
+import {
+  execute,
+  lambda,
+  makeGrafastSchema,
+  GrafastPlans,
+  ExecutableStep,
+  FieldArgs,
+} from "grafast";
+import * as express from "express";
+
+const expressPlayground =
+  require("graphql-playground-middleware-express").default;
 
 const DEFAULT_QUERY = `
 # Welcome to the Internet Archive GraphQL API!
@@ -21,39 +32,61 @@ query {
 `;
 
 async function main() {
-  // FIXME: This is relative to the current working directory, not the file, or
-  // something more sensible.
+  const app = express();
 
-  const schema = getSchema();
-  // Create a Yoga instance with a GraphQL schema.
-  const yoga = createYoga({
-    logging: true,
-    graphiql: {
-      defaultQuery: DEFAULT_QUERY,
-      title: "Internet Archive GraphQL API (unofficial)",
-    },
-    schema,
-  });
-
-  // Pass it into a server to hook into request handlers.
-  const server = createServer(yoga);
-
-  // Start the server and you're done!
-  server.listen(4000, () => {
-    console.info("Server is running on http://localhost:4000/graphql");
-  });
-}
-
-function getSchema() {
-  if (process.env.FROM_SDL) {
-    console.log("Building schema from SDL...");
-    const sdl = readFileSync("./schema.graphql", "utf8");
-    return buildSchemaFromSDL(sdl);
-  }
-  console.log("Building schema from source...");
-  return extractGratsSchemaAtRuntime({
+  // Force rebuilding the schema at runtime for now.
+  const schema = extractGratsSchemaAtRuntime({
     emitSchemaFile: "./schema.graphql",
   });
+
+  console.log("Building schema from SDL...");
+  /*
+  let sdl = readFileSync("./schema.graphql", "utf8");
+
+  // Add Grafast plan fields
+  sdl += `
+  extend type Query {
+    add(a: Int!, b: Int!): Int!
+  }
+  `;
+
+  // Grafast plans
+  const plans: GrafastPlans = {
+    Query: {
+      add(_, fieldArgs: FieldArgs): ExecutableStep<number> {
+        const $a = fieldArgs.get("a");
+        const $b = fieldArgs.get("b");
+        return lambda([$a, $b], ([a, b]) => a + b);
+      },
+    },
+  };
+  const rawSchema = makeGrafastSchema({ typeDefs: sdl, plans });
+
+  // Apply Grats directives (insert resolver functions/methods)
+  // const schema = applyServerDirectives(rawSchema);
+  */
+
+  app.post(
+    "/graphql",
+    createHandler({
+      schema: schema,
+      rootValue: {},
+      // @ts-ignore
+      // execute: execute,
+    })
+  );
+
+  app.get(
+    "/graphql",
+    expressPlayground({
+      endpoint: "/graphql",
+      defaultQuery: DEFAULT_QUERY,
+      title: "Internet Archive GraphQL API (unofficial)",
+    })
+  );
+
+  app.listen(4000);
+  console.log("Running a GraphQL API server at http://localhost:4000/graphql");
 }
 
 main();

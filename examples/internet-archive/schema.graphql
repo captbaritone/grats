@@ -2,10 +2,7 @@ schema {
   query: Query
 }
 
-directive @exported(
-  filename: String!
-  functionName: String!
-) on FIELD_DEFINITION
+directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
 
 directive @methodName(name: String!) on FIELD_DEFINITION
 
@@ -16,14 +13,10 @@ An item can belong to more than one collection. See [Internet Archive
 Items](https://archive.org/developers/items.html).
 """
 type Collection {
-  """
-  Unique identifier for this collection.
-  """
+  """Unique identifier for this collection."""
   identifier: String
   items(
-    """
-    Max 10,000
-    """
+    """Max 10,000"""
     first: Int = 100
   ): ItemsConnection
   url: String
@@ -42,13 +35,9 @@ https://archive.org/developers/items.html
 type Item {
   collections: [Collection!]
   creator_name: String
-  """
-  HTML string of the item's description.
-  """
+  """HTML string of the item's description."""
   description: String
-  """
-  The Internet Archive's unique identifier for this item.
-  """
+  """The Internet Archive's unique identifier for this item."""
   identifier: String
   mediaType: String
   stars: Float
@@ -58,23 +47,18 @@ type Item {
 }
 
 """
-A connection to a list of items.
+A connection modeling a list of items.
+
+In the future this could be extended to support cursor-based pagination.
 """
 type ItemsConnection {
-  """
-  A list of edges.
-  """
+  """A list of edges."""
   edges: [ItemsEdge!]
+  """Convenience field for getting the nodes of the edges."""
   nodes: [Item!]
 }
 
-"""
-An edge in a connection of Search Items.
-"""
 type ItemsEdge {
-  """
-  The item at the end of the edge
-  """
   node: Item
 }
 
@@ -94,18 +78,10 @@ In the future it might also:
 - Provide a proof of concept to motivate the Internet Archive to build a GraphQL API.
 """
 type Query {
-  """
-  Search the Internet Archive for books, movies, and more.
-  """
+  """Search the Internet Archive for books, movies, and more."""
   searchItems(
-    """
-    Max 10,000
-    """
+    """Max 10,000"""
     first: Int = 100
     query: String!
-  ): ItemsConnection
-    @exported(
-      filename: "../../examples/internet-archive/dist/schema/Query.js"
-      functionName: "searchItems"
-    )
+  ): ItemsConnection @exported(filename: "../../examples/internet-archive/dist/schema/Query.js", functionName: "searchItems")
 }

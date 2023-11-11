@@ -3,20 +3,19 @@
   "ts-node": {
     // It is faster to skip typechecking.
     // Remove if you want ts-node to do typechecking.
-    "files": true,
-    "transpileOnly": true
+    "files": true
   },
   "grats": {
     "nullableByDefault": true
   },
   "compilerOptions": {
     "skipLibCheck": true,
-    "lib": ["es2017"],
+    "lib": ["es2021", "ESNext"],
     // typescript options here
     "outDir": "dist",
     "downlevelIteration": true,
     "strictNullChecks": true,
     "declaration": true
   },
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "../../node_modules/"]
 }

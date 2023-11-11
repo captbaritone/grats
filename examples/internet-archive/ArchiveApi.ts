@@ -29,6 +29,7 @@ export async function scrapeApi(
   searchUrl.searchParams.set("count", count.toString());
   searchUrl.searchParams.set("fields", ITEM_FIELDS);
   // TODO: If only `count` is being read, we could use the `totals_only` param as an optimization.
+  // @ts-ignore
   const response = await fetch(searchUrl);
   if (!response.ok) {
     throw new Error(`Failed to search for ${query}: ${response.statusText}`);
@@ -79,6 +80,7 @@ export async function metadataApi(
 ): Promise<MetadataApiResponse> {
   // FIXME: Is there a safer way to do this that prevents injection attacks?
   const url = new URL(`http://archive.org/metadata/${identifier}`);
+  // @ts-ignore
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to search for ${url}: ${response.statusText}`);
