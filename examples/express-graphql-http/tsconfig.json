@@ -10,7 +10,8 @@
     "nullableByDefault": false
   },
   "compilerOptions": {
+    "outDir": "dist",
     "lib": ["esnext"],
-    "strict": true,
-  },
+    "strict": true
+  }
 }
