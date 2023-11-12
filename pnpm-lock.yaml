@@ -103,6 +103,33 @@ importers:
         specifier: ^10.9.1
         version: 10.9.1(@types/node@20.8.10)(typescript@5.2.2)
 
+  examples/express-graphql-http-functions:
+    dependencies:
+      '@types/express':
+        specifier: ^4.17.20
+        version: 4.17.20
+      '@types/node':
+        specifier: ^20.8.10
+        version: 20.8.10
+      '@types/uuid':
+        specifier: ^9.0.7
+        version: 9.0.7
+      express:
+        specifier: ^4.18.2
+        version: 4.18.2
+      graphql-http:
+        specifier: ^1.22.0
+        version: 1.22.0(graphql@16.6.0)
+      grats:
+        specifier: workspace:*
+        version: link:../..
+      ts-node:
+        specifier: ^10.9.1
+        version: 10.9.1(@types/node@20.8.10)(typescript@5.2.2)
+      uuid:
+        specifier: ^9.0.1
+        version: 9.0.1
+
   examples/yoga:
     dependencies:
       '@types/node':
@@ -3801,7 +3828,7 @@ packages:
       terminal-link: 3.0.0
       ts-node: 10.9.1(@types/node@18.15.0)(typescript@5.2.2)
       typescript: 5.2.2
-      uuid: 9.0.0
+      uuid: 9.0.1
       yargs: 17.7.2
     transitivePeerDependencies:
       - '@swc/core'
@@ -3884,7 +3911,7 @@ packages:
       semver: 7.5.4
       tmp-promise: 3.0.3
       urlpattern-polyfill: 8.0.2
-      uuid: 9.0.0
+      uuid: 9.0.1
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -3917,7 +3944,7 @@ packages:
       semver: 7.5.4
       tmp-promise: 3.0.3
       urlpattern-polyfill: 8.0.2
-      uuid: 9.0.0
+      uuid: 9.0.1
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -5471,6 +5498,10 @@ packages:
 
   /@types/use-sync-external-store@0.0.3:
     resolution: {integrity: sha512-EwmlvuaxPNej9+T4v5AuBPJa2x2UOJVdjCtDHgcDqitUeOtjnJKJ+apYjVcAoBEMjKW1VVFGZLUb5+qqa09XFA==}
+    dev: false
+
+  /@types/uuid@9.0.7:
+    resolution: {integrity: sha512-WUtIVRUZ9i5dYXefDEAI7sh9/O7jGvHg7Df/5O/gtH3Yabe5odI3UWopVR1qbPXQtvOxWu3mM4XxlYeZtMWF4g==}
     dev: false
 
   /@types/ws@8.5.4:
@@ -15715,6 +15746,11 @@ packages:
 
   /uuid@9.0.0:
     resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
+    hasBin: true
+    dev: false
+
+  /uuid@9.0.1:
+    resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
     hasBin: true
     dev: false
 
