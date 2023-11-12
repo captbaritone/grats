@@ -2,7 +2,7 @@
 
 A very minimal example of using Grats with `express-graphql`.
 
-_Note_: `express-graphql` is deprecated in favor of `graphql-http`. See [GraphQL HTTP with Express](./02-graphql-http.md) for an example using `graphql-http`.
+_Note_: `express-graphql` is deprecated in favor of `graphql-http`. See [GraphQL HTTP with Express](./03-graphql-http.md) for an example using `graphql-http`.
 
 ## Libraries used
 
