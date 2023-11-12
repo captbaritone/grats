@@ -1,7 +1,7 @@
 {
-  "name": "grats-example-yoga",
+  "name": "grats-example-apollo-server",
   "version": "0.0.0",
-  "description": "Example server showcasing Grats used with Yoga",
+  "description": "Example server showcasing Grats used with Apollo Server",
   "main": "index.js",
   "scripts": {
     "start": "tsc && node dist/server.js",
@@ -14,7 +14,7 @@
   "keywords": [
     "graphql",
     "grats",
-    "yoga",
+    "Apollo Server",
     "javascript",
     "typescript"
   ],
@@ -25,8 +25,8 @@
   },
   "homepage": "https://github.com/captbaritone/grats#readme",
   "dependencies": {
+    "@apollo/server": "^4.9.5",
     "@types/node": "^20.8.10",
-    "graphql-yoga": "^5.0.0",
     "grats": "workspace:*"
   }
 }
