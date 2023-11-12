@@ -25,8 +25,8 @@
   },
   "homepage": "https://github.com/captbaritone/grats#readme",
   "dependencies": {
+    "@apollo/server": "^4.9.5",
     "@types/node": "^20.8.10",
-    "graphql-yoga": "^5.0.0",
     "grats": "workspace:*",
     "ts-node": "^10.9.1"
   }
