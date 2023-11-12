@@ -163,6 +163,7 @@ export class TypeContext {
     return ok(newDoc);
   }
 
+  // TODO: Is this still used?
   handleAbstractDefinitions(
     docs: GratsDefinitionNode[],
   ): DiagnosticsResult<DefinitionNode[]> {

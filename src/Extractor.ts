@@ -351,8 +351,9 @@ export class Extractor {
       return this.report(funcName, E.invalidReturnTypeForFunctionField());
     }
 
-    const type = this.collectMethodType(node.type);
-    if (type == null) return null;
+    const returnType = this.collectReturnType(node.type);
+    if (returnType == null) return null;
+    const { type, isStream } = returnType;
 
     let args: readonly InputValueDefinitionNode[] | null = null;
     const argsParam = node.parameters[1];
@@ -379,6 +380,16 @@ export class Extractor {
     const directives = [
       this.exportDirective(funcName, jsModulePath, tsModulePath, funcName.text),
     ];
+
+    if (isStream) {
+      directives.push(
+        this.gql.constDirective(
+          tag,
+          this.gql.name(node.type, "asyncIterable"),
+          [],
+        ),
+      );
+    }
 
     const deprecated = this.collectDeprecated(node);
     if (deprecated != null) {
@@ -1416,7 +1427,9 @@ export class Extractor {
       return this.report(node.name, E.methodMissingType());
     }
 
-    const type = this.collectMethodType(node.type);
+    const returnType = this.collectReturnType(node.type);
+    if (returnType == null) return null;
+    const { type, isStream } = returnType;
 
     // We already reported an error
     if (type == null) return null;
@@ -1440,6 +1453,15 @@ export class Extractor {
     if (id.text !== name.value) {
       directives = [this.fieldNameDirective(node.name, id.text)];
     }
+    if (isStream) {
+      directives.push(
+        this.gql.constDirective(
+          tag,
+          this.gql.name(node.type, "asyncIterable"),
+          [],
+        ),
+      );
+    }
 
     const deprecated = this.collectDeprecated(node);
     if (deprecated != null) {
@@ -1456,10 +1478,27 @@ export class Extractor {
     );
   }
 
-  collectMethodType(node: ts.TypeNode): TypeNode | null {
+  collectReturnType(
+    node: ts.TypeNode,
+  ): { type: TypeNode; isStream: boolean } | null {
+    if (ts.isTypeReferenceNode(node)) {
+      const identifier = this.expectIdentifier(node.typeName);
+      if (identifier == null) return null;
+      if (identifier.text == "AsyncGenerator") {
+        if (node.typeArguments == null || node.typeArguments.length === 0) {
+          // TODO: Better error?
+          return this.report(node, E.promiseMissingTypeArg());
+        }
+        const t = this.collectType(node.typeArguments[0]);
+        if (t == null) return null;
+        return { type: t, isStream: true };
+      }
+    }
     const inner = this.maybeUnwrapPromise(node);
     if (inner == null) return null;
-    return this.collectType(inner);
+    const t = this.collectType(inner);
+    if (t == null) return null;
+    return { type: t, isStream: false };
   }
 
   collectPropertyType(node: ts.TypeNode): TypeNode | null {
@@ -1475,7 +1514,7 @@ export class Extractor {
       if (identifier == null) return null;
 
       if (identifier.text === "Promise") {
-        if (node.typeArguments == null) {
+        if (node.typeArguments == null || node.typeArguments.length === 0) {
           return this.report(node, E.promiseMissingTypeArg());
         }
         return node.typeArguments[0];

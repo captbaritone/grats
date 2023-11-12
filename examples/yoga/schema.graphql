@@ -1,6 +1,9 @@
 schema {
   query: Query
+  subscription: Subscription
 }
+
+directive @asyncIterable on FIELD_DEFINITION
 
 directive @exported(functionName: String!, jsModulePath: String!, tsModulePath: String!) on FIELD_DEFINITION
 
@@ -20,6 +23,10 @@ type Query {
   allUsers: [User!]! @exported(jsModulePath: "examples/yoga/dist/models/User.js", tsModulePath: "examples/yoga/models/User.ts", functionName: "allUsers")
   me: User! @exported(jsModulePath: "examples/yoga/dist/Query.js", tsModulePath: "examples/yoga/Query.ts", functionName: "me")
   person: IPerson! @exported(jsModulePath: "examples/yoga/dist/Query.js", tsModulePath: "examples/yoga/Query.ts", functionName: "person")
+}
+
+type Subscription {
+  countdown(from: Int!): Int! @exported(jsModulePath: "examples/yoga/dist/Subscription.js", tsModulePath: "examples/yoga/Subscription.ts", functionName: "countdown") @asyncIterable
 }
 
 type User implements IPerson {
