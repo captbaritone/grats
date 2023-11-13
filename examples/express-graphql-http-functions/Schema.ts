@@ -35,18 +35,6 @@ export async function byId(_: UserQueries, { id }: { id: string }, { userService
 export type Mutation = unknown;
 
 /**
- * @gqlField users
- */
-export function usersMutations(_: Mutation): UserMutations {
-  return {}
-}
-
-/**
- * @gqlType
- */
-export type UserMutations = {};
-
-/**
  * @gqlInput
  */
 export type UserDataInput = { name: string };
@@ -54,20 +42,20 @@ export type UserDataInput = { name: string };
 /**
  * @gqlField
  */
-export async function add(_: UserMutations, { userData }: { userData: UserDataInput }, { userService }: Context): Promise<User> {
+export async function addUser(_: Mutation, { userData }: { userData: UserDataInput }, { userService }: Context): Promise<User> {
   return userService.addUser(userData).then(user => new User(user.id, user))
 }
 
 /**
  * @gqlField
  */
-export async function update(_: UserMutations, { id, userData }: { id: string; userData: UserDataInput }, { userService }: Context): Promise<User> {
+export async function updateUser(_: Mutation, { id, userData }: { id: string; userData: UserDataInput }, { userService }: Context): Promise<User> {
   return userService.updateUser(id, userData).then(user => new User(user.id, user))
 }
 
 /**
  * @gqlField
  */
-export async function remove(_: UserMutations, { id }: { id: string; }, { userService }: Context): Promise<string> {
+export async function removeUser(_: Mutation, { id }: { id: string; }, { userService }: Context): Promise<string> {
   return userService.removeUser(id).then(() => id);
 }

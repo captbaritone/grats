@@ -12,11 +12,13 @@ interface IPerson {
 }
 
 type Mutation {
-  users: UserMutations! @exported(filename: "../../examples/express-graphql-http-functions/Query.js", functionName: "usersMutations") @methodName(name: "usersMutations")
+  addUser(userData: UserDataInput!): User! @exported(filename: "../../examples/express-graphql-http-functions/Schema.js", functionName: "addUser")
+  removeUser(id: String!): String! @exported(filename: "../../examples/express-graphql-http-functions/Schema.js", functionName: "removeUser")
+  updateUser(id: String!, userData: UserDataInput!): User! @exported(filename: "../../examples/express-graphql-http-functions/Schema.js", functionName: "updateUser")
 }
 
 type Query {
-  users: UserQueries! @exported(filename: "../../examples/express-graphql-http-functions/Query.js", functionName: "usersQueries") @methodName(name: "usersQueries")
+  users: UserQueries! @exported(filename: "../../examples/express-graphql-http-functions/Schema.js", functionName: "usersQueries") @methodName(name: "usersQueries")
 }
 
 type User implements IPerson {
@@ -28,13 +30,7 @@ input UserDataInput {
   name: String!
 }
 
-type UserMutations {
-  add(userData: UserDataInput!): User! @exported(filename: "../../examples/express-graphql-http-functions/Query.js", functionName: "add")
-  remove(id: String!): String! @exported(filename: "../../examples/express-graphql-http-functions/Query.js", functionName: "remove")
-  update(id: String!, userData: UserDataInput!): User! @exported(filename: "../../examples/express-graphql-http-functions/Query.js", functionName: "update")
-}
-
 type UserQueries {
-  byId(id: String!): User! @exported(filename: "../../examples/express-graphql-http-functions/Query.js", functionName: "byId")
-  list: [User!]! @exported(filename: "../../examples/express-graphql-http-functions/Query.js", functionName: "list")
+  byId(id: String!): User! @exported(filename: "../../examples/express-graphql-http-functions/Schema.js", functionName: "byId")
+  list: [User!]! @exported(filename: "../../examples/express-graphql-http-functions/Schema.js", functionName: "list")
 }
