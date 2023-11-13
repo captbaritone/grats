@@ -11,6 +11,7 @@
   },
   "compilerOptions": {
     "lib": ["esnext"],
+    "outDir": "dist",
     "strict": true,
     "esModuleInterop": true
   },
