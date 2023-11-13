@@ -7,6 +7,12 @@ directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITIO
 
 directive @methodName(name: String!) on FIELD_DEFINITION
 
+type Group {
+  id: String!
+  members: [User!]!
+  name: String!
+}
+
 interface IPerson {
   name: String!
 }
@@ -18,19 +24,19 @@ type Mutation {
 }
 
 type Query {
-  users: UserQueries! @exported(filename: "../../examples/express-graphql-http-functions/dist/Schema.js", functionName: "usersQueries") @methodName(name: "usersQueries")
+  allUsers: [User!]! @exported(filename: "../../examples/express-graphql-http-functions/dist/Schema.js", functionName: "allUsers")
+  me: User! @exported(filename: "../../examples/express-graphql-http-functions/dist/Schema.js", functionName: "me")
+  person: IPerson! @exported(filename: "../../examples/express-graphql-http-functions/dist/Schema.js", functionName: "person")
+  userById(id: String!): User! @exported(filename: "../../examples/express-graphql-http-functions/dist/Schema.js", functionName: "userById")
 }
 
 type User implements IPerson {
+  groups: [Group!]!
   id: String!
   name: String!
 }
 
 input UserDataInput {
+  groupIDs: [String!]
   name: String!
-}
-
-type UserQueries {
-  byId(id: String!): User! @exported(filename: "../../examples/express-graphql-http-functions/dist/Schema.js", functionName: "byId")
-  list: [User!]! @exported(filename: "../../examples/express-graphql-http-functions/dist/Schema.js", functionName: "list")
 }

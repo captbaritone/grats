@@ -5,7 +5,7 @@ import express from "express";
 import { createHandler } from 'graphql-http/lib/use/express';
 
 import { extractGratsSchemaAtRuntime, buildSchemaFromSDL } from "grats";
-import { Context, UserService } from "./context";
+import { Context, GroupService, UserService } from "./context";
 
 async function main() {
   const app = express();
@@ -19,7 +19,8 @@ async function main() {
       rootValue: null,
       context() {
         return {
-          userService: new UserService()
+          userService: new UserService(),
+          groupService: new GroupService(),
         } satisfies Context;
       }
     }),
