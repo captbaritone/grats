@@ -4,7 +4,7 @@
   "description": "Example server showcasing Grats used with Express and graphql-http ",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node --esm server.ts",
+    "start": "tsc && node dist/server.js",
     "build": "tsc"
   },
   "repository": {

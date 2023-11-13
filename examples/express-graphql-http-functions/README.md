@@ -11,5 +11,4 @@ Simple demo project integrating [Grats](https://grats.capt.dev/), [Express](http
 
 ## Running the demo
 * `$ pnpm install`
-* `$ pnpm run build`
 * `$ pnpm run start`
