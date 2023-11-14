@@ -19,7 +19,7 @@ export default class UserResolver implements IPerson {
   }
 
   /** @gqlField */
-  async name(_: {}, { userService }: Context): Promise<string> {
+  async name(_: unknown, { userService }: Context): Promise<string> {
     if (this._data === undefined) {
       this._data = await userService.getUser(this._id)
     }
@@ -27,7 +27,7 @@ export default class UserResolver implements IPerson {
   }
 
   /** @gqlField */
-  async groups(_: {}, { userService }: Context): Promise<GroupResolver[]> {
+  async groups(_: unknown, { userService }: Context): Promise<GroupResolver[]> {
     if (this._data === undefined) {
       this._data = await userService.getUser(this._id)
     }

@@ -18,7 +18,7 @@ export default class GroupResolver {
   }
 
   /** @gqlField */
-  async name(_: {}, { groupService }: Context): Promise<string> {
+  async name(_: unknown, { groupService }: Context): Promise<string> {
     if (this._data === undefined) {
       this._data = await groupService.getGroup(this._id);
     }
@@ -26,7 +26,7 @@ export default class GroupResolver {
   }
 
   /** @gqlField */
-  async members(_: {}, { userService }: Context): Promise<UserResolver[]> {
+  async members(_: unknown, { userService }: Context): Promise<UserResolver[]> {
     const currentGroupId = this._id;
     return userService.listUsers().then(users => users.filter(({ groupIDs }) => groupIDs.includes(currentGroupId)).map(user => new UserResolver(user.id, user)) );
   }

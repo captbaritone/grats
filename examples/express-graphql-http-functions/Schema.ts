@@ -8,7 +8,7 @@ import User from "./models/User";
 export type Query = unknown;
 
 /** @gqlField */
-export async function allUsers(_: Query, _args: {}, { userService }: Context): Promise<User[]> {
+export async function allUsers(_: Query, _args: unknown, { userService }: Context): Promise<User[]> {
   return userService
     .listUsers()
     .then(users => users.map(user => new User(user.id, user)));
@@ -22,14 +22,14 @@ export async function userById(_: Query, { id }: { id: string }, { userService }
 }
 
 /** @gqlField */
-export async function me(_: Query, _args: {}, { userService }: Context): Promise<User> {
+export async function me(_: Query, _args: unknown, { userService }: Context): Promise<User> {
   return userService
     .listUsers()
     .then(users => users.slice(0, 1).map(user => new User(user.id, user))[0]);
 }
 
 /** @gqlField */
-export async function person(_: Query, _args: {}, { userService }: Context): Promise<IPerson> {
+export async function person(_: Query, _args: unknown, { userService }: Context): Promise<IPerson> {
   return userService
     .listUsers()
     .then(users => users.slice(0, 1).map(user => new User(user.id, user))[0]);
