@@ -1,0 +1,18 @@
+{
+  // Most ts-node options can be specified here using their programmatic names.
+  "ts-node": {
+    "files": true,
+    // It is faster to skip typechecking.
+    // Remove if you want ts-node to do typechecking.
+    "transpileOnly": false
+  },
+  "grats": {
+    "nullableByDefault": false
+  },
+  "compilerOptions": {
+    "lib": ["esnext"],
+    "outDir": "dist",
+    "strict": true,
+    "esModuleInterop": true
+  },
+}

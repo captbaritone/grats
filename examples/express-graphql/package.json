@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node --esm server.ts",
+    "start": "tsc && node dist/server.js",
     "build": "tsc"
   },
   "dependencies": {
@@ -15,8 +15,7 @@
     "express-graphql": "^0.12.0"
   },
   "devDependencies": {
-    "@types/node": "^18.14.6",
-    "ts-node": "^10.9.1"
+    "@types/node": "^18.14.6"
   },
   "keywords": [],
   "author": ""
