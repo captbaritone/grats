@@ -1,6 +1,6 @@
 # -=[ ALPHA SOFTWARE ]=-
 
-**Grats is still experimental. Feel free to try it out and give feedback, but they api is still in flux**
+**Grats is still experimental. Feel free to try it out and give feedback, but the api is still in flux**
 
 # Grats: Implementation-First GraphQL for TypeScript
 
