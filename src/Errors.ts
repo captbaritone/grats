@@ -349,3 +349,14 @@ export function unexpectedParamSpreadForContextParam() {
 export function multipleContextTypes() {
   return "Context argument's type does not match. Grats expects all resolvers that read the context argument to use the same type for that argument. Did you use the incorrect type in one of your resolvers?";
 }
+
+export function graphQLNameHasLeadingNewlines(
+  name: string,
+  tagName: string,
+): string {
+  return `Expected the GraphQL name \`${name}\` to be on the same line as it's \`@${tagName}\` tag.`;
+}
+
+export function graphQLTagNameHasWhitespace(tagName: string): string {
+  return `Expected text following a \`@${tagName}\` tag to be a GraphQL name. If you intended this text to be a description, place it at the top of the docblock before any \`@tags\`.`;
+}
