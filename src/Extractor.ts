@@ -13,6 +13,7 @@ import {
   ConstObjectFieldNode,
   ConstObjectValueNode,
   ConstListValueNode,
+  assertName,
 } from "graphql";
 import {
   DiagnosticsResult,
@@ -1300,7 +1301,38 @@ export class Extractor {
       const commentName = ts.getTextOfJSDocComment(tag.comment);
       if (commentName != null) {
         // FIXME: Use the _value_'s location not the tag's
-        return this.gql.name(tag, commentName);
+        const locNode = tag;
+
+        // Test for leading newlines using the raw text
+        const hasLeadingNewlines = /\n/.test(tag.getText().trimEnd());
+        const hasInternalWhitespace = /\s/.test(commentName);
+        const validationMessage = graphQLNameValidationMessage(commentName);
+
+        if (hasLeadingNewlines && validationMessage == null) {
+          // TODO: Offer quick fix.
+          return this.report(
+            locNode,
+            E.graphQLNameHasLeadingNewlines(commentName, tag.tagName.text),
+          );
+        }
+
+        if (hasLeadingNewlines || hasInternalWhitespace) {
+          return this.report(
+            locNode,
+            E.graphQLTagNameHasWhitespace(tag.tagName.text),
+          );
+        }
+
+        // No whitespace, but still invalid. We will assume they meant this to
+        // be a GraphQL name but didn't provide a valid identifier.
+        //
+        // NOTE: We can't let GraphQL validation handle this, because it throws rather
+        // than returning a validation message. Presumably because it expects token
+        // validation to be done during lexing/parsing.
+        if (validationMessage !== null) {
+          return this.report(locNode, validationMessage);
+        }
+        return this.gql.name(locNode, commentName);
       }
     }
 
@@ -1426,19 +1458,19 @@ export class Extractor {
   }
 
   collectMethodType(node: ts.TypeNode): TypeNode | null {
-    const inner = this.maybeUnwrapePromise(node);
+    const inner = this.maybeUnwrapPromise(node);
     if (inner == null) return null;
     return this.collectType(inner);
   }
 
   collectPropertyType(node: ts.TypeNode): TypeNode | null {
     // TODO: Handle function types here.
-    const inner = this.maybeUnwrapePromise(node);
+    const inner = this.maybeUnwrapPromise(node);
     if (inner == null) return null;
     return this.collectType(inner);
   }
 
-  maybeUnwrapePromise(node: ts.TypeNode): ts.TypeNode | null {
+  maybeUnwrapPromise(node: ts.TypeNode): ts.TypeNode | null {
     if (ts.isTypeReferenceNode(node)) {
       const identifier = this.expectIdentifier(node.typeName);
       if (identifier == null) return null;
@@ -1461,7 +1493,7 @@ export class Extractor {
     const doc = symbol.getDocumentationComment(this.ctx.checker);
     const description = ts.displayPartsToString(doc);
     if (description) {
-      return this.gql.string(node, description, true);
+      return this.gql.string(node, description.trim(), true);
     }
     return null;
   }
@@ -1726,5 +1758,14 @@ export class Extractor {
         ),
       ],
     );
+  }
+}
+
+function graphQLNameValidationMessage(name: string): string | null {
+  try {
+    assertName(name);
+    return null;
+  } catch (e) {
+    return e.message;
   }
 }
