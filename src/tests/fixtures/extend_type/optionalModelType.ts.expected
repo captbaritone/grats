@@ -23,8 +23,8 @@ OUTPUT
 -----------------
 directive @methodName(name: String!) on FIELD_DEFINITION
 
-directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: String!) on FIELD_DEFINITION
 
 type SomeType {
-  greeting: String @exported(filename: "tests/fixtures/extend_type/optionalModelType.js", functionName: "greeting")
+  greeting: String @exported(jsModulePath: "tests/fixtures/extend_type/optionalModelType.js", tsModulePath: "tests/fixtures/extend_type/optionalModelType.ts", functionName: "greeting")
 }
