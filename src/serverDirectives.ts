@@ -144,9 +144,12 @@ function importWithFallback(
   tsModulePath: string,
 ): Promise<Record<string, any>> {
   try {
-    return import(jsModulePath);
-  } catch (e) {
+    // We start with the .ts version because if both exist, and can be loaded, the .ts version is
+    // going to be more up to date. The downside is that this causes some extra work to be done in
+    // in prod. This should be manageable since we cache the loaded module for each field.
     return import(tsModulePath);
+  } catch (e) {
+    return import(jsModulePath);
   }
 }
 
