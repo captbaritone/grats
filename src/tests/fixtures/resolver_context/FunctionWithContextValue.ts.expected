@@ -21,5 +21,5 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: String!) on FIELD_DEFINITION
 
 type User {
-  greeting: String @exported(jsModulePath: "tests/fixtures/resolver_context/FunctionWithContextValue.js", tsModulePath: "tests/fixtures/resolver_context/FunctionWithContextValue.ts", functionName: "greeting")
+  greeting: String @exported(jsModulePath: "grats/src/tests/fixtures/resolver_context/FunctionWithContextValue.js", tsModulePath: "grats/src/tests/fixtures/resolver_context/FunctionWithContextValue.ts", functionName: "greeting")
 }

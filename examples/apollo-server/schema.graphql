@@ -17,9 +17,9 @@ interface IPerson {
 }
 
 type Query {
-  allUsers: [User!]! @exported(jsModulePath: "../../examples/apollo-server/dist/models/User.js", tsModulePath: "../../examples/apollo-server/models/User.ts", functionName: "allUsers")
-  me: User! @exported(jsModulePath: "../../examples/apollo-server/dist/Query.js", tsModulePath: "../../examples/apollo-server/Query.ts", functionName: "me")
-  person: IPerson! @exported(jsModulePath: "../../examples/apollo-server/dist/Query.js", tsModulePath: "../../examples/apollo-server/Query.ts", functionName: "person")
+  allUsers: [User!]! @exported(jsModulePath: "examples/apollo-server/dist/models/User.js", tsModulePath: "examples/apollo-server/models/User.ts", functionName: "allUsers")
+  me: User! @exported(jsModulePath: "examples/apollo-server/dist/Query.js", tsModulePath: "examples/apollo-server/Query.ts", functionName: "me")
+  person: IPerson! @exported(jsModulePath: "examples/apollo-server/dist/Query.js", tsModulePath: "examples/apollo-server/Query.ts", functionName: "person")
 }
 
 type User implements IPerson {

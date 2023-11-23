@@ -1,4 +1,4 @@
-import { relative, resolve } from "path";
+import { relative, resolve, join } from "path";
 import * as ts from "typescript";
 
 // Grats parses TypeScript files and finds resolvers. If the field resolver is a
@@ -9,7 +9,7 @@ import * as ts from "typescript";
 // paths to be relative, they must be relative to something that both the build
 
 // step and the runtime can agree on. This path is that thing.
-const gratsRoot = __dirname;
+const gratsRoot = join(__dirname, "../..");
 
 export function getRelativeOutputPath(
   options: ts.ParsedCommandLine,

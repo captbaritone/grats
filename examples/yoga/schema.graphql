@@ -17,9 +17,9 @@ interface IPerson {
 }
 
 type Query {
-  allUsers: [User!]! @exported(jsModulePath: "../../examples/yoga/dist/models/User.js", tsModulePath: "../../examples/yoga/models/User.ts", functionName: "allUsers")
-  me: User! @exported(jsModulePath: "../../examples/yoga/dist/Query.js", tsModulePath: "../../examples/yoga/Query.ts", functionName: "me")
-  person: IPerson! @exported(jsModulePath: "../../examples/yoga/dist/Query.js", tsModulePath: "../../examples/yoga/Query.ts", functionName: "person")
+  allUsers: [User!]! @exported(jsModulePath: "examples/yoga/dist/models/User.js", tsModulePath: "examples/yoga/models/User.ts", functionName: "allUsers")
+  me: User! @exported(jsModulePath: "examples/yoga/dist/Query.js", tsModulePath: "examples/yoga/Query.ts", functionName: "me")
+  person: IPerson! @exported(jsModulePath: "examples/yoga/dist/Query.js", tsModulePath: "examples/yoga/Query.ts", functionName: "person")
 }
 
 type User implements IPerson {

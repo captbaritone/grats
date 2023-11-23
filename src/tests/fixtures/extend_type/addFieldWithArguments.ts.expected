@@ -19,5 +19,5 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: String!) on FIELD_DEFINITION
 
 type SomeType {
-  greeting(name: String!): String @exported(jsModulePath: "tests/fixtures/extend_type/addFieldWithArguments.js", tsModulePath: "tests/fixtures/extend_type/addFieldWithArguments.ts", functionName: "greeting")
+  greeting(name: String!): String @exported(jsModulePath: "grats/src/tests/fixtures/extend_type/addFieldWithArguments.js", tsModulePath: "grats/src/tests/fixtures/extend_type/addFieldWithArguments.ts", functionName: "greeting")
 }

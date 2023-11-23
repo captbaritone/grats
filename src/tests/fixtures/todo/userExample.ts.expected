@@ -30,11 +30,11 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: String!) on FIELD_DEFINITION
 
 type SomeType {
-  me: User @exported(jsModulePath: "tests/fixtures/todo/userExample.js", tsModulePath: "tests/fixtures/todo/userExample.ts", functionName: "me")
+  me: User @exported(jsModulePath: "grats/src/tests/fixtures/todo/userExample.js", tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts", functionName: "me")
 }
 
 type User {
   firstName: String
   lastName: String
-  fullName: String @exported(jsModulePath: "tests/fixtures/todo/userExample.js", tsModulePath: "tests/fixtures/todo/userExample.ts", functionName: "fullName")
+  fullName: String @exported(jsModulePath: "grats/src/tests/fixtures/todo/userExample.js", tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts", functionName: "fullName")
 }

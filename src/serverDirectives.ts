@@ -139,7 +139,7 @@ function applyExportDirective(
 // compiled JavaScript version of the file may not exist on disk. In these specific
 // cases, esbuild or ts-node can load the file via its TypeScript source, so we try
 // falling back to that.
-function importWithFallback(
+async function importWithFallback(
   jsModulePath: string,
   tsModulePath: string,
 ): Promise<Record<string, any>> {
@@ -147,9 +147,12 @@ function importWithFallback(
     // We start with the .ts version because if both exist, and can be loaded, the .ts version is
     // going to be more up to date. The downside is that this causes some extra work to be done in
     // in prod. This should be manageable since we cache the loaded module for each field.
-    return import(tsModulePath);
+
+    // It's important that we await here so that we catch the error if the module doesn't exist or
+    // cannot be parsed.
+    return await import(tsModulePath);
   } catch (e) {
-    return import(jsModulePath);
+    return await import(jsModulePath);
   }
 }
 

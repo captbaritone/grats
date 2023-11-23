@@ -23,5 +23,5 @@ directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: 
 
 type SomeType {
   """Best field ever!"""
-  greeting: String @exported(jsModulePath: "tests/fixtures/extend_type/addFieldWithDescription.js", tsModulePath: "tests/fixtures/extend_type/addFieldWithDescription.ts", functionName: "greeting")
+  greeting: String @exported(jsModulePath: "grats/src/tests/fixtures/extend_type/addFieldWithDescription.js", tsModulePath: "grats/src/tests/fixtures/extend_type/addFieldWithDescription.ts", functionName: "greeting")
 }

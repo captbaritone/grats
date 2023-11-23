@@ -18,16 +18,16 @@ interface IPerson {
 }
 
 type Mutation {
-  addUser(userData: UserDataInput!): User! @exported(jsModulePath: "../../examples/express-graphql-http-functions/dist/Schema.js", tsModulePath: "../../examples/express-graphql-http-functions/Schema.ts", functionName: "addUser")
-  removeUser(id: String!): String! @exported(jsModulePath: "../../examples/express-graphql-http-functions/dist/Schema.js", tsModulePath: "../../examples/express-graphql-http-functions/Schema.ts", functionName: "removeUser")
-  updateUser(id: String!, userData: UserDataInput!): User! @exported(jsModulePath: "../../examples/express-graphql-http-functions/dist/Schema.js", tsModulePath: "../../examples/express-graphql-http-functions/Schema.ts", functionName: "updateUser")
+  addUser(userData: UserDataInput!): User! @exported(jsModulePath: "examples/express-graphql-http-functions/dist/Schema.js", tsModulePath: "examples/express-graphql-http-functions/Schema.ts", functionName: "addUser")
+  removeUser(id: String!): String! @exported(jsModulePath: "examples/express-graphql-http-functions/dist/Schema.js", tsModulePath: "examples/express-graphql-http-functions/Schema.ts", functionName: "removeUser")
+  updateUser(id: String!, userData: UserDataInput!): User! @exported(jsModulePath: "examples/express-graphql-http-functions/dist/Schema.js", tsModulePath: "examples/express-graphql-http-functions/Schema.ts", functionName: "updateUser")
 }
 
 type Query {
-  allUsers: [User!]! @exported(jsModulePath: "../../examples/express-graphql-http-functions/dist/Schema.js", tsModulePath: "../../examples/express-graphql-http-functions/Schema.ts", functionName: "allUsers")
-  me: User! @exported(jsModulePath: "../../examples/express-graphql-http-functions/dist/Schema.js", tsModulePath: "../../examples/express-graphql-http-functions/Schema.ts", functionName: "me")
-  person: IPerson! @exported(jsModulePath: "../../examples/express-graphql-http-functions/dist/Schema.js", tsModulePath: "../../examples/express-graphql-http-functions/Schema.ts", functionName: "person")
-  userById(id: String!): User! @exported(jsModulePath: "../../examples/express-graphql-http-functions/dist/Schema.js", tsModulePath: "../../examples/express-graphql-http-functions/Schema.ts", functionName: "userById")
+  allUsers: [User!]! @exported(jsModulePath: "examples/express-graphql-http-functions/dist/Schema.js", tsModulePath: "examples/express-graphql-http-functions/Schema.ts", functionName: "allUsers")
+  me: User! @exported(jsModulePath: "examples/express-graphql-http-functions/dist/Schema.js", tsModulePath: "examples/express-graphql-http-functions/Schema.ts", functionName: "me")
+  person: IPerson! @exported(jsModulePath: "examples/express-graphql-http-functions/dist/Schema.js", tsModulePath: "examples/express-graphql-http-functions/Schema.ts", functionName: "person")
+  userById(id: String!): User! @exported(jsModulePath: "examples/express-graphql-http-functions/dist/Schema.js", tsModulePath: "examples/express-graphql-http-functions/Schema.ts", functionName: "userById")
 }
 
 type User implements IPerson {

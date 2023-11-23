@@ -45,7 +45,7 @@ directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: 
 type SomeType {
   me: User
   viewer: User @deprecated(reason: "Please use `me` instead.")
-  getUser: User @exported(jsModulePath: "tests/fixtures/examples/playground.js", tsModulePath: "tests/fixtures/examples/playground.ts", functionName: "getUser")
+  getUser: User @exported(jsModulePath: "grats/src/tests/fixtures/examples/playground.js", tsModulePath: "grats/src/tests/fixtures/examples/playground.ts", functionName: "getUser")
 }
 
 """A user in our kick-ass system!"""
