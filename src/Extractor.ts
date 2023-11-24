@@ -380,11 +380,6 @@ export class Extractor {
       this.exportDirective(funcName, jsModulePath, tsModulePath, funcName.text),
     ];
 
-    if (funcName.text !== name.value) {
-      // TODO: Do we even need this?
-      directives.push(this.fieldNameDirective(funcName, funcName.text));
-    }
-
     const deprecated = this.collectDeprecated(node);
     if (deprecated != null) {
       directives.push(deprecated);
