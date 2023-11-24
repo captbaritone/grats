@@ -7,9 +7,6 @@ import { readFileSync } from "fs";
 async function main() {
   const app = express();
 
-  // FIXME: This is relative to the current working directory, not the file, or
-  // something more sensible.
-
   const schema = getSchema();
 
   app.use(

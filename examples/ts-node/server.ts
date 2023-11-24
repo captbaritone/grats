@@ -5,8 +5,6 @@ import { createYoga } from "graphql-yoga";
 import { extractGratsSchemaAtRuntime, buildSchemaFromSDL } from "grats";
 
 async function main() {
-  // FIXME: This is relative to the current working directory, not the file, or
-  // something more sensible.
   const schema = getSchema();
 
   const yoga = createYoga({

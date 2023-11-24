@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 
 import * as express from "express";
-import { createHandler } from 'graphql-http/lib/use/express';
+import { createHandler } from "graphql-http/lib/use/express";
 
 import { extractGratsSchemaAtRuntime, buildSchemaFromSDL } from "grats";
 import Query from "./Query";
@@ -9,8 +9,6 @@ import Query from "./Query";
 async function main() {
   const app = express();
 
-  // FIXME: This is relative to the current working directory, not the file, or
-  // something more sensible.
   const schema = getSchema();
 
   app.post(
