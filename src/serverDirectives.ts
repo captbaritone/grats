@@ -26,6 +26,8 @@ export const DIRECTIVES_AST: DocumentNode = parse(`
 `);
 
 export function applyServerDirectives(schema: GraphQLSchema): GraphQLSchema {
+  // TODO: Throw if the schema is missing our directives!
+
   // TODO: Do we really need all of mapSchema here or can we create our own
   // thing that's simpler.
   return mapSchema(schema, {
