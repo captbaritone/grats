@@ -1,0 +1,37 @@
+{
+  "name": "grats-example-esbuild-register",
+  "version": "0.0.0",
+  "description": "Example server showcasing Grats used with esbuild-register",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node server.ts",
+    "build": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/captbaritone/grats.git"
+  },
+  "keywords": [
+    "graphql",
+    "grats",
+    "yoga",
+    "javascript",
+    "typescript",
+    "esbuild",
+    "esbuild-register"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/captbaritone/grats/issues"
+  },
+  "homepage": "https://github.com/captbaritone/grats#readme",
+  "dependencies": {
+    "@types/node": "^20.8.10",
+    "graphql-yoga": "^5.0.0",
+    "grats": "workspace:*"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1"
+  }
+}

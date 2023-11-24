@@ -1,0 +1,28 @@
+schema {
+  query: Query
+}
+
+directive @exported(functionName: String!, jsModulePath: String!, tsModulePath: String!) on FIELD_DEFINITION
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+type Group {
+  description: String!
+  members: [User!]!
+  name: String!
+}
+
+interface IPerson {
+  name: String!
+}
+
+type Query {
+  allUsers: [User!]! @exported(jsModulePath: "examples/ts-node/dist/models/User.js", tsModulePath: "examples/ts-node/models/User.ts", functionName: "allUsers")
+  me: User! @exported(jsModulePath: "examples/ts-node/dist/Query.js", tsModulePath: "examples/ts-node/Query.ts", functionName: "me")
+  person: IPerson! @exported(jsModulePath: "examples/ts-node/dist/Query.js", tsModulePath: "examples/ts-node/Query.ts", functionName: "person")
+}
+
+type User implements IPerson {
+  groups: [Group!]!
+  name: String!
+}
