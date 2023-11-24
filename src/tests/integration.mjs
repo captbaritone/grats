@@ -1,4 +1,4 @@
-import { fork } from "child_process";
+import { spawn } from "child_process";
 import fetch from "node-fetch";
 import assert from "assert";
 import fs from "fs";
@@ -59,9 +59,10 @@ async function fetchQuery(query, variables) {
 }
 
 async function withExampleServer(exampleDir, cb) {
-  const child = fork("./dist/server.js", {
+  const child = spawn("pnpm", ["run", "--silent", "start"], {
     cwd: exampleDir,
     stdio: "pipe",
+    detached: true,
   });
   child.stderr.on("data", (data) => {
     console.error(`${exampleDir} stderr: ${data}`);
@@ -80,7 +81,7 @@ async function withExampleServer(exampleDir, cb) {
     await awaitProcessData(child);
     await cb();
   } finally {
-    child.kill("SIGINT");
+    process.kill(-child.pid, "SIGTERM"); // Negative PID kills the entire process group
   }
 }
 
