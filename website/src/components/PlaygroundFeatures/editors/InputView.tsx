@@ -69,7 +69,6 @@ function useFsMap() {
 // TODO: Make this into hooks
 async function createInputView(store, fsMap, left) {
   const state = store.getState();
-  console.log(state);
 
   // Create a selector that memoizes the linter and closes over the fsMap
   const getLinter = createSelector(getView, getConfig, (view, config) => {

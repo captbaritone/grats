@@ -34,7 +34,7 @@ OUTPUT
 -----------------
 directive @methodName(name: String!) on FIELD_DEFINITION
 
-directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: String!) on FIELD_DEFINITION
 
 interface IPerson {
   hello: String
@@ -43,10 +43,10 @@ interface IPerson {
 
 type User implements IPerson {
   hello: String
-  greeting: String @exported(filename: "tests/fixtures/extend_interface/addStringFieldToInterface.js", functionName: "greeting")
+  greeting: String @exported(jsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.js", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts", functionName: "greeting")
 }
 
 type Admin implements IPerson {
   hello: String
-  greeting: String @exported(filename: "tests/fixtures/extend_interface/addStringFieldToInterface.js", functionName: "greeting")
+  greeting: String @exported(jsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.js", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts", functionName: "greeting")
 }

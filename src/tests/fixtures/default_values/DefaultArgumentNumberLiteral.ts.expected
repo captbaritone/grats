@@ -20,7 +20,7 @@ OUTPUT
 -----------------
 directive @methodName(name: String!) on FIELD_DEFINITION
 
-directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: String!) on FIELD_DEFINITION
 
 type SomeType {
   intField(count: Int! = 10): String

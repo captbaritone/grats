@@ -19,8 +19,8 @@ OUTPUT
 -----------------
 directive @methodName(name: String!) on FIELD_DEFINITION
 
-directive @exported(filename: String!, functionName: String!) on FIELD_DEFINITION
+directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: String!) on FIELD_DEFINITION
 
 type SomeType {
-  greeting: String @deprecated(reason: "Because reasons") @exported(filename: "tests/fixtures/extend_type/addDeprecatedField.js", functionName: "greeting")
+  greeting: String @deprecated(reason: "Because reasons") @exported(jsModulePath: "grats/src/tests/fixtures/extend_type/addDeprecatedField.js", tsModulePath: "grats/src/tests/fixtures/extend_type/addDeprecatedField.ts", functionName: "greeting")
 }

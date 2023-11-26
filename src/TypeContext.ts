@@ -357,7 +357,10 @@ export class TypeContext {
     return ok(null);
   }
 
-  getDestFilePath(sourceFile: ts.SourceFile): string {
+  getDestFilePath(sourceFile: ts.SourceFile): {
+    jsModulePath: string;
+    tsModulePath: string;
+  } {
     return getRelativeOutputPath(this._options, sourceFile);
   }
 }

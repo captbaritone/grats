@@ -33,10 +33,11 @@ import { traverseJSDocTags } from "./utils/JSDoc";
 import { GraphQLConstructor } from "./GraphQLConstructor";
 import {
   EXPORTED_DIRECTIVE,
-  EXPORTED_FILENAME_ARG,
   EXPORTED_FUNCTION_NAME_ARG,
+  JS_MODULE_PATH_ARG,
   METHOD_NAME_ARG,
   METHOD_NAME_DIRECTIVE,
+  TS_MODULE_PATH_ARG,
 } from "./serverDirectives";
 
 export const LIBRARY_IMPORT_NAME = "grats";
@@ -371,15 +372,13 @@ export class Extractor {
     }
 
     // TODO: Does this work in the browser?
-    const filename = this.ctx.getDestFilePath(node.parent);
+    const { jsModulePath, tsModulePath } = this.ctx.getDestFilePath(
+      node.parent,
+    );
 
     const directives = [
-      this.exportDirective(funcName, filename, funcName.text),
+      this.exportDirective(funcName, jsModulePath, tsModulePath, funcName.text),
     ];
-
-    if (funcName.text !== name.value) {
-      directives.push(this.fieldNameDirective(funcName, funcName.text));
-    }
 
     const deprecated = this.collectDeprecated(node);
     if (deprecated != null) {
@@ -1725,7 +1724,8 @@ export class Extractor {
   /* Grats directives */
   exportDirective(
     nameNode: ts.Node,
-    filename: string,
+    jsModulePath: string,
+    tsModulePath: string,
     functionName: string,
   ): ConstDirectiveNode {
     return this.gql.constDirective(
@@ -1734,8 +1734,13 @@ export class Extractor {
       [
         this.gql.constArgument(
           nameNode,
-          this.gql.name(nameNode, EXPORTED_FILENAME_ARG),
-          this.gql.string(nameNode, filename),
+          this.gql.name(nameNode, JS_MODULE_PATH_ARG),
+          this.gql.string(nameNode, jsModulePath),
+        ),
+        this.gql.constArgument(
+          nameNode,
+          this.gql.name(nameNode, TS_MODULE_PATH_ARG),
+          this.gql.string(nameNode, tsModulePath),
         ),
         this.gql.constArgument(
           nameNode,
