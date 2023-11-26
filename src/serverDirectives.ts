@@ -166,7 +166,7 @@ function loadModuleErrorMessage(jsPath: string, tsPath: string): string {
 This can happen for a few reasons:
 
 * You resolver has moved and you need to rerun Grats to regenerate your schema.
-* Your TypeScript code has changed and you need to run \`tsc\` to generate the JavaScript variant of the file.
+* Your TypeScript code has changed and you need to rerun \`tsc\` to generate the JavaScript variant of the file.
 * You compiled your TypeScript with a different TSConfig than what you ran Grats with.
 * The Grats NPM module moved between when you ran Grats and when you ran your server.`;
 }
