@@ -1,0 +1,14 @@
+import GratsCode from "@site/src/components/GratsCode";
+import SubscriptionExample from "!!raw-loader!./snippets/subscription-example.out";
+
+# Subscriptions
+
+Graphql-js expects subscription fields to return an `AsyncIterable`. Grats enforces this pattern by requiring that subscription fields return an `AsyncIterable<T>`. Beyond that, there is nothing special about subscriptions in Grats.
+
+## Example
+
+<GratsCode mode="both" out={SubscriptionExample} />
+
+## Working Example
+
+See our [Yoga Example Project](../05-examples/04-yoga.md) for a working example of subscriptions in Grats.
