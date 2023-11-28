@@ -1,0 +1,28 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export type Subscription = {};
+
+/** @gqlField */
+export async function* greetings(_: Subscription): AsyncIterable<string> {
+  yield "Hello";
+  yield "World";
+}
+
+-----------------
+OUTPUT
+-----------------
+schema {
+  subscription: Subscription
+}
+
+directive @asyncIterable on FIELD_DEFINITION
+
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: String!) on FIELD_DEFINITION
+
+type Subscription {
+  greetings: String @exported(jsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.js", tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts", functionName: "greetings") @asyncIterable
+}

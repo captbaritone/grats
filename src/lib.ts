@@ -153,6 +153,11 @@ function extractSchema(
 
   const doc = docResult.value;
 
+  const subscriptionsValidationResult = ctx.validateAsyncIterableFields(doc);
+  if (subscriptionsValidationResult.kind === "ERROR") {
+    return subscriptionsValidationResult;
+  }
+
   // TODO: Currently this does not detect definitions that shadow builtins
   // (`String`, `Int`, etc). However, if we pass a second param (extending an
   // existing schema) we do! So, we should find a way to validate that we don't

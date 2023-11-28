@@ -32,6 +32,7 @@ import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
 import { GraphQLConstructor } from "./GraphQLConstructor";
 import {
+  ASYNC_ITERABLE_TYPE_DIRECTIVE,
   EXPORTED_DIRECTIVE,
   EXPORTED_FUNCTION_NAME_ARG,
   JS_MODULE_PATH_ARG,
@@ -384,9 +385,9 @@ export class Extractor {
     if (isStream) {
       directives.push(
         this.gql.constDirective(
-          tag,
-          this.gql.name(node.type, "asyncIterable"),
-          [],
+          node.type,
+          this.gql.name(node.type, ASYNC_ITERABLE_TYPE_DIRECTIVE),
+          null,
         ),
       );
     }
@@ -1456,9 +1457,9 @@ export class Extractor {
     if (isStream) {
       directives.push(
         this.gql.constDirective(
-          tag,
-          this.gql.name(node.type, "asyncIterable"),
-          [],
+          node.type,
+          this.gql.name(node.type, ASYNC_ITERABLE_TYPE_DIRECTIVE),
+          null,
         ),
       );
     }
@@ -1484,7 +1485,7 @@ export class Extractor {
     if (ts.isTypeReferenceNode(node)) {
       const identifier = this.expectIdentifier(node.typeName);
       if (identifier == null) return null;
-      if (identifier.text == "AsyncGenerator") {
+      if (identifier.text == "AsyncIterable") {
         if (node.typeArguments == null || node.typeArguments.length === 0) {
           // TODO: Better error?
           return this.report(node, E.promiseMissingTypeArg());
@@ -1729,7 +1730,7 @@ export class Extractor {
   }
 
   // It is a GraphQL best practice to model all fields as nullable. This allows
-  // the server to handle field level exections by simply returning null for
+  // the server to handle field level executions by simply returning null for
   // that field.
   // https://graphql.org/learn/best-practices/#nullability
   handleErrorBubbling(parentNode: ts.Node, type: TypeNode) {
