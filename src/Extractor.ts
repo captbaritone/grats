@@ -32,6 +32,7 @@ import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
 import { GraphQLConstructor } from "./GraphQLConstructor";
 import {
+  ASYNC_ITERABLE_TYPE_DIRECTIVE,
   EXPORTED_DIRECTIVE,
   EXPORTED_FUNCTION_NAME_ARG,
   JS_MODULE_PATH_ARG,
@@ -351,8 +352,9 @@ export class Extractor {
       return this.report(funcName, E.invalidReturnTypeForFunctionField());
     }
 
-    const type = this.collectMethodType(node.type);
-    if (type == null) return null;
+    const returnType = this.collectReturnType(node.type);
+    if (returnType == null) return null;
+    const { type, isStream } = returnType;
 
     let args: readonly InputValueDefinitionNode[] | null = null;
     const argsParam = node.parameters[1];
@@ -379,6 +381,16 @@ export class Extractor {
     const directives = [
       this.exportDirective(funcName, jsModulePath, tsModulePath, funcName.text),
     ];
+
+    if (isStream) {
+      directives.push(
+        this.gql.constDirective(
+          node.type,
+          this.gql.name(node.type, ASYNC_ITERABLE_TYPE_DIRECTIVE),
+          null,
+        ),
+      );
+    }
 
     const deprecated = this.collectDeprecated(node);
     if (deprecated != null) {
@@ -1416,7 +1428,9 @@ export class Extractor {
       return this.report(node.name, E.methodMissingType());
     }
 
-    const type = this.collectMethodType(node.type);
+    const returnType = this.collectReturnType(node.type);
+    if (returnType == null) return null;
+    const { type, isStream } = returnType;
 
     // We already reported an error
     if (type == null) return null;
@@ -1440,6 +1454,15 @@ export class Extractor {
     if (id.text !== name.value) {
       directives = [this.fieldNameDirective(node.name, id.text)];
     }
+    if (isStream) {
+      directives.push(
+        this.gql.constDirective(
+          node.type,
+          this.gql.name(node.type, ASYNC_ITERABLE_TYPE_DIRECTIVE),
+          null,
+        ),
+      );
+    }
 
     const deprecated = this.collectDeprecated(node);
     if (deprecated != null) {
@@ -1456,10 +1479,27 @@ export class Extractor {
     );
   }
 
-  collectMethodType(node: ts.TypeNode): TypeNode | null {
+  collectReturnType(
+    node: ts.TypeNode,
+  ): { type: TypeNode; isStream: boolean } | null {
+    if (ts.isTypeReferenceNode(node)) {
+      const identifier = this.expectIdentifier(node.typeName);
+      if (identifier == null) return null;
+      if (identifier.text == "AsyncIterable") {
+        if (node.typeArguments == null || node.typeArguments.length === 0) {
+          // TODO: Better error?
+          return this.report(node, E.promiseMissingTypeArg());
+        }
+        const t = this.collectType(node.typeArguments[0]);
+        if (t == null) return null;
+        return { type: t, isStream: true };
+      }
+    }
     const inner = this.maybeUnwrapPromise(node);
     if (inner == null) return null;
-    return this.collectType(inner);
+    const t = this.collectType(inner);
+    if (t == null) return null;
+    return { type: t, isStream: false };
   }
 
   collectPropertyType(node: ts.TypeNode): TypeNode | null {
@@ -1475,7 +1515,7 @@ export class Extractor {
       if (identifier == null) return null;
 
       if (identifier.text === "Promise") {
-        if (node.typeArguments == null) {
+        if (node.typeArguments == null || node.typeArguments.length === 0) {
           return this.report(node, E.promiseMissingTypeArg());
         }
         return node.typeArguments[0];
@@ -1690,7 +1730,7 @@ export class Extractor {
   }
 
   // It is a GraphQL best practice to model all fields as nullable. This allows
-  // the server to handle field level exections by simply returning null for
+  // the server to handle field level executions by simply returning null for
   // that field.
   // https://graphql.org/learn/best-practices/#nullability
   handleErrorBubbling(parentNode: ts.Node, type: TypeNode) {

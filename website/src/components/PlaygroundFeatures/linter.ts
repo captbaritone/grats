@@ -100,7 +100,9 @@ function computeOutput(schemaResult, view) {
     // HACK!
     schema._directives = schema._directives.filter(
       (directive) =>
-        directive.name !== "exported" && directive.name !== "methodName",
+        directive.name !== "exported" &&
+        directive.name !== "methodName" &&
+        directive.name !== "asyncIterable",
     );
     return printSchema(schema);
   }

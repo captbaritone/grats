@@ -360,3 +360,11 @@ export function graphQLNameHasLeadingNewlines(
 export function graphQLTagNameHasWhitespace(tagName: string): string {
   return `Expected text following a \`@${tagName}\` tag to be a GraphQL name. If you intended this text to be a description, place it at the top of the docblock before any \`@tags\`.`;
 }
+
+export function subscriptionFieldNotAsyncIterable() {
+  return "Expected fields on `Subscription` to return an AsyncIterable.";
+}
+
+export function nonSubscriptionFieldAsyncIterable() {
+  return "Unexpected AsyncIterable. Only fields on `Subscription` should return an AsyncIterable.";
+}

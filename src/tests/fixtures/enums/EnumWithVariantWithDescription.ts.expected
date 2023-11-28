@@ -18,6 +18,8 @@ enum Enum {
 -----------------
 OUTPUT
 -----------------
+directive @asyncIterable on FIELD_DEFINITION
+
 directive @methodName(name: String!) on FIELD_DEFINITION
 
 directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: String!) on FIELD_DEFINITION

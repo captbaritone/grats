@@ -1,0 +1,16 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface */
+export interface NotSubscription {
+  /** @gqlField */
+  greetings(): AsyncIterable<string>;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/subscriptions/InterfaceWithAsyncIterable.invalid.ts:4:16 - error: Unexpected AsyncIterable. Only fields on `Subscription` should return an AsyncIterable.
+
+4   greetings(): AsyncIterable<string>;
+                 ~~~~~~~~~~~~~~~~~~~~~
