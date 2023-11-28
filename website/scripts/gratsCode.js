@@ -41,7 +41,9 @@ function processFile(file) {
   const schema = schemaResult.value;
   schema._directives = schema._directives.filter(
     (directive) =>
-      directive.name !== "exported" && directive.name !== "methodName",
+      directive.name !== "exported" &&
+      directive.name !== "methodName" &&
+      directive.name !== "asyncIterable",
   );
   const graphql = printSchema(schema, {
     assumeValid: true,
