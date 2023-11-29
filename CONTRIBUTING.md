@@ -99,4 +99,6 @@ pnpm run deploy --prod # This automatically runs a build first
 
 Note: There seems to be a bug where the `publish` directory in `netlify.toml` is relative to the `base` directory in `netlify.toml` only when deploying via the GitHub integration (on PRs). For manual CLI deploy it seems to be relative to the root of the repo.
 
-So, if you are deploying a PR, you need to change `publish` to `website/build` in `netlify.toml` before deploying. Then change it back before committing.
+I suspect this has something to do with the fact that we are using "Package Directory" in our Netlify settings on the website: https://docs.netlify.com/configure-builds/overview/#set-the-package-directory
+
+So, if you are deploying locally, you need to change `publish` to `website/build` in `netlify.toml` before deploying. Then change it back before committing.
