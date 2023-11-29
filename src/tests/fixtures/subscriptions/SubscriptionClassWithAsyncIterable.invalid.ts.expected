@@ -13,14 +13,7 @@ export class Subscription {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/subscriptions/SubscriptionClassWithAsyncIterable.invalid.ts:2:1 - error: Operation types Query, Mutation, and Subscription must be defined as type aliases of `unknown`.
+src/tests/fixtures/subscriptions/SubscriptionClassWithAsyncIterable.invalid.ts:2:14 - error: Operation types `Query`, `Mutation`, and `Subscription` must be defined as type aliases of `unknown`. E.g. `type Query = unknown`.
 
-  2 export class Subscription {
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  3   /** @gqlField */
-    ~~~~~~~~~~~~~~~~~~
-... 
-  7   }
-    ~~~
-  8 }
-    ~
+2 export class Subscription {
+               ~~~~~~~~~~~~

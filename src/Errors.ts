@@ -128,7 +128,7 @@ export function typeTagOnUnnamedClass() {
 }
 
 export function typeTagOnAliasOfNonObjectOrUnknown() {
-  return `Expected \`@${TYPE_TAG}\` type to be a type literal or \`unknown\`. For example: \`type Foo = { bar: string }\` or \`type Query = unknown\`.`;
+  return `Expected \`@${TYPE_TAG}\` type to be an object type literal (\`{ }\`) or \`unknown\`. For example: \`type Foo = { bar: string }\` or \`type Query = unknown\`.`;
 }
 
 export function typeNameNotDeclaration() {
@@ -366,4 +366,8 @@ export function subscriptionFieldNotAsyncIterable() {
 
 export function nonSubscriptionFieldAsyncIterable() {
   return "Unexpected AsyncIterable. Only fields on `Subscription` should return an AsyncIterable.";
+}
+
+export function operationTypeNotUnknown() {
+  return "Operation types `Query`, `Mutation`, and `Subscription` must be defined as type aliases of `unknown`. E.g. `type Query = unknown`.";
 }

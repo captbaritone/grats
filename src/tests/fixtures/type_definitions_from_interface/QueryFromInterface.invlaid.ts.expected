@@ -1,0 +1,16 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default interface Query {
+  /** @gqlField */
+  hello: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/type_definitions_from_interface/QueryFromInterface.invlaid.ts:2:26 - error: Operation types `Query`, `Mutation`, and `Subscription` must be defined as type aliases of `unknown`. E.g. `type Query = unknown`.
+
+2 export default interface Query {
+                           ~~~~~
