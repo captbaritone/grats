@@ -1,5 +1,5 @@
 /** @gqlType */
-class Query {
+class User {
   /**
    * @gqlField
    * @deprecated Please use myNewField instead.
@@ -11,7 +11,7 @@ class Query {
 }
 
 === SNIP ===
-type Query {
+type User {
   oldField: String @deprecated(reason: "Please use myNewField instead.")
   newField: String
 }

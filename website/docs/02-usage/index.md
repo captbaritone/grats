@@ -20,11 +20,11 @@ import { graphqlHTTP } from "express-graphql";
 import { buildSchemaFromSDL } from "grats";
 
 /** @gqlType */
-class Query {
-  /** @gqlField */
-  hello(): string {
-    return "Hello world!";
-  }
+type Query = unknown;
+
+/** @gqlField */
+export function hello(_: Query): string {
+  return "Hello world!";
 }
 
 const app = express();
@@ -32,10 +32,7 @@ const app = express();
 const sdl = fs.readFileSync("./schema.graphql", "utf8");
 const schema = buildSchemaFromSDL(sdl);
 
-app.use(
-  "/graphql",
-  graphqlHTTP({ schema, rootValue: new Query(), graphiql: true }),
-);
+app.use("/graphql", graphqlHTTP({ schema, graphiql: true }));
 app.listen(4000);
 console.log("Running a GraphQL API server at http://localhost:4000/graphql");
 ```

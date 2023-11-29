@@ -2,7 +2,7 @@
 const DB: any = {};
 
 /** @gqlType */
-type Mutation = {};
+type Mutation = unknown;
 
 /** @gqlType */
 type User = {

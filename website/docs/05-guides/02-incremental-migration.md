@@ -59,7 +59,6 @@ functional field resolvers, you will need to use Grats at runtime. You can get a
 ```typescript
 import * as express from "express";
 import { graphqlHTTP } from "express-graphql";
-import Query from "./Query";
 import { buildSchemaFromSDL } from "grats";
 import { readFileSync } from "fs";
 
@@ -68,11 +67,7 @@ const app = express();
 const sdl = readFileSync("./grats-schema.graphql", "utf8");
 const schema = buildSchemaFromSDL(sdl);
 
-app.use(
-  "/graphql",
-  graphqlHTTP({ schema: schema, rootValue: new Query(), graphiql: true }),
-);
+app.use("/graphql", graphqlHTTP({ schema: schema, graphiql: true }));
 app.listen(4000);
 console.log("Running a GraphQL API server at http://localhost:4000/graphql");
 ```
-

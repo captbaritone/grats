@@ -142,7 +142,6 @@ const testDirs = [
       const data = await graphql({
         schema,
         source: server.query,
-        rootValue: server.Query != null ? new server.Query() : null,
       });
 
       return JSON.stringify(data, null, 2);

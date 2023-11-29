@@ -1,8 +1,8 @@
 import { readFileSync } from "fs";
-import { join as pathJoin } from 'path'
+import { join as pathJoin } from "path";
 
 import express from "express";
-import { createHandler } from 'graphql-http/lib/use/express';
+import { createHandler } from "graphql-http/lib/use/express";
 
 import { extractGratsSchemaAtRuntime, buildSchemaFromSDL } from "grats";
 import { Context, GroupService, UserService } from "./context";
@@ -16,13 +16,12 @@ async function main() {
     "/graphql",
     createHandler<Context>({
       schema: schema,
-      rootValue: null,
       context() {
         return {
           userService: new UserService(),
           groupService: new GroupService(),
         } satisfies Context;
-      }
+      },
     }),
   );
 
@@ -31,7 +30,7 @@ async function main() {
 }
 
 function getSchema() {
-  const schemaFilename = pathJoin(__dirname, './schema.graphql');
+  const schemaFilename = pathJoin(__dirname, "./schema.graphql");
   if (process.env.FROM_SDL) {
     console.log("Building schema from SDL...");
     const sdl = readFileSync(schemaFilename, "utf8");

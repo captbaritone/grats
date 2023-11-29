@@ -1,5 +1,5 @@
 /** @gqlType */
-export type Subscription = {};
+export type Subscription = unknown;
 
 /** @gqlField */
 export async function* greetings(_: Subscription): AsyncIterable<string> {
