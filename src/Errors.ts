@@ -15,10 +15,9 @@ import {
 // TODO: Move these to short URLS that are easier to keep from breaking.
 const DOC_URLS = {
   mergedInterfaces:
-    "https://grats.capt.dev/docs/dockblock-tags/interfaces/#merged-interfaces",
+    "https://grats.capt.dev/docs/docblock-tags/interfaces/#merged-interfaces",
   parameterProperties:
-    "https://grats.capt.dev/docs/dockblock-tags/fields#class-based-fields",
-  typeImplementsInterface: "TODO",
+    "https://grats.capt.dev/docs/docblock-tags/fields#class-based-fields",
 };
 
 /**
@@ -287,7 +286,7 @@ export function implementsTagOnInterface() {
 }
 
 export function implementsTagOnTypeAlias() {
-  return `\`@${IMPLEMENTS_TAG_DEPRECATED}\` has been deprecated. Types which implement GraphQL interfaces should be defined using TypeScript class or interface declarations. Learn more: ${DOC_URLS.typeImplementsInterface}.`;
+  return `\`@${IMPLEMENTS_TAG_DEPRECATED}\` has been deprecated. Types which implement GraphQL interfaces should be defined using TypeScript class or interface declarations.`;
 }
 
 export function duplicateTag(tagName: string) {

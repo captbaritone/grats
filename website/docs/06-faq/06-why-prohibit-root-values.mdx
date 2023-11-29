@@ -1,0 +1,9 @@
+# Why Prohibit Concrete Root Values?
+
+Grats _does not allow_ any of the operation types, (`Query`, `Mutation`, `Subscription`) to have a concrete value. Instead it requires that they be defined as a type alias of unknown: `type OperationType = unknown`.
+
+Fields must be declared on these types using the [functional style fields](../04-docblock-tags/02-fields.mdx#function-style-fields) syntax.
+
+Grats forces this constraint because the semantics of the root value is not well defined across GraphQL server implementations. For example, Yoga does not allow you to define a root value, where as other server implementations use a single root value that is shared by all resolvers. Additionally, it's not specified if the root value should be shared by all requests or regenerated for each request.
+
+There are some valid uses for a concrete root value, such as dependency injection, but in general depedency injection can be more easily achieved by using [context](../04-docblock-tags/04-context.mdx). If you believe you have a valid use case for a concrete root value, please [open an issue](https://github.com/captbaritone/grats/issues).

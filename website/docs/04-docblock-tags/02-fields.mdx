@@ -55,6 +55,17 @@ In addition to adding derived fields to type literals, functionl fields are also
 useful to define root fields on `Query` or `Mutation` next to the type they return or mofidy.
 :::
 
+Even if you don't need access to any values on the parent object, you must type your first argument using the parent type so that Grats knows which type your field is on. So you might have a field that looks like this:
+
+```typescript
+/** @gqlType */
+type Query = unknown;
+
+export function hello(_: Query): string {
+  return "Hello World!";
+}
+```
+
 #### Extending Query:
 
 <GratsCode out={FunctionExtendQuery} mode="ts" />
