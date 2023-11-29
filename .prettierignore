@@ -1,0 +1,12 @@
+node_modules/
+pnpm-lock.yaml
+pnpm-workspace.yaml
+dist/
+.parcel-cache
+.vercel
+website/.docusaurus
+website/build
+src/tests/fixtures/user_error/InvalidSyntax.invalid.ts
+
+# Local Netlify folder
+.netlify
