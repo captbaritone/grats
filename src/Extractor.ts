@@ -68,6 +68,7 @@ export const ALL_TAGS = [
 ];
 
 const DEPRECATED_TAG = "deprecated";
+const OPERATION_TYPES = new Set(["Query", "Mutation", "Subscription"]);
 
 type ArgDefaults = Map<string, ts.Expression>;
 
@@ -564,7 +565,9 @@ export class Extractor {
   }
 
   validateOperationTypes(node: ts.Node, name: string) {
-    if (new Set(["Query", "Mutation", "Subscription"]).has(name)) {
+    // TODO: If we start supporting defining operation types using
+    // non-standard names, we will need to update this logic.
+    if (OPERATION_TYPES.has(name)) {
       this.report(node, E.operationTypeNotUnknown());
     }
   }
