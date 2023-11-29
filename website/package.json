@@ -13,7 +13,8 @@
     "write-heading-ids": "docusaurus write-heading-ids",
     "typecheck": "tsc",
     "grats": "node ./scripts/gratsCode.js",
-    "deploy": "pnpm build && netlify deploy --prod"
+    "deploy": "pnpm build && netlify deploy --prod",
+    "word-count": "find . -type f \\( -name \\*.md -o -name \\*.mdx \\) -exec wc -w {} + | awk '{total += $1} END {print total}'"
   },
   "dependencies": {
     "@algolia/client-search": "^4.17.0",
