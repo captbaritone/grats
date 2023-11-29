@@ -1,0 +1,26 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export class Subscription {
+  /** @gqlField */
+  async *greetings(): AsyncIterable<string> {
+    yield "Hello";
+    yield "World";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/subscriptions/SubscriptionClassWithAsyncIterable.invalid.ts:2:1 - error: Operation types Query, Mutation, and Subscription must be defined as type aliases of `unknown`.
+
+  2 export class Subscription {
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  3   /** @gqlField */
+    ~~~~~~~~~~~~~~~~~~
+... 
+  7   }
+    ~~~
+  8 }
+    ~

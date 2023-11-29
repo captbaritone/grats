@@ -543,6 +543,8 @@ export class Extractor {
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
+    this.validateKnownTypeDeclaration__TOOD_RENAME(node, name.value);
+
     const description = this.collectDescription(node.name);
     const fields = this.collectFields(node);
     const interfaces = this.collectInterfaces(node);
@@ -561,9 +563,20 @@ export class Extractor {
     );
   }
 
+  validateKnownTypeDeclaration__TOOD_RENAME(node: ts.Node, name: string) {
+    if (new Set(["Query", "Mutation", "Subscription"]).has(name)) {
+      this.report(
+        node,
+        "Operation types Query, Mutation, and Subscription must be defined as type aliases of `unknown`.",
+      );
+    }
+  }
+
   typeInterfaceDeclaration(node: ts.InterfaceDeclaration, tag: ts.JSDocTag) {
     const name = this.entityName(node, tag);
     if (name == null) return null;
+
+    this.validateKnownTypeDeclaration__TOOD_RENAME(node, name.value);
 
     const description = this.collectDescription(node.name);
     const fields = this.collectFields(node);
@@ -591,6 +604,7 @@ export class Extractor {
     let interfaces: NamedTypeNode[] | null = null;
 
     if (ts.isTypeLiteralNode(node.type)) {
+      this.validateKnownTypeDeclaration__TOOD_RENAME(node, name.value);
       fields = this.collectFields(node.type);
       interfaces = this.collectInterfaces(node);
       this.checkForTypenameProperty(node.type, name.value);
