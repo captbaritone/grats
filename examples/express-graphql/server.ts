@@ -1,6 +1,5 @@
 import * as express from "express";
 import { graphqlHTTP } from "express-graphql";
-import Query from "./Query";
 import { extractGratsSchemaAtRuntime, buildSchemaFromSDL } from "grats";
 import { readFileSync } from "fs";
 
@@ -13,7 +12,6 @@ async function main() {
     "/graphql",
     graphqlHTTP({
       schema: schema,
-      rootValue: new Query(),
       graphiql: true,
     }),
   );

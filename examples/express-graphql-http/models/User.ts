@@ -1,5 +1,5 @@
 import IPerson from "../interfaces/IPerson";
-import Query from "../Query";
+import { Query } from "../Query";
 import Group from "./Group";
 
 /** @gqlType User */

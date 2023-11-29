@@ -20,8 +20,8 @@ interface IPerson {
 
 type Query {
   allUsers: [User!]! @exported(jsModulePath: "examples/express-graphql-http/dist/models/User.js", tsModulePath: "examples/express-graphql-http/models/User.ts", functionName: "allUsers")
-  me: User!
-  person: IPerson!
+  me: User! @exported(jsModulePath: "examples/express-graphql-http/dist/Query.js", tsModulePath: "examples/express-graphql-http/Query.ts", functionName: "me")
+  person: IPerson! @exported(jsModulePath: "examples/express-graphql-http/dist/Query.js", tsModulePath: "examples/express-graphql-http/Query.ts", functionName: "person")
 }
 
 type User implements IPerson {

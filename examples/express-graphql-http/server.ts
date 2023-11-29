@@ -4,7 +4,6 @@ import * as express from "express";
 import { createHandler } from "graphql-http/lib/use/express";
 
 import { extractGratsSchemaAtRuntime, buildSchemaFromSDL } from "grats";
-import Query from "./Query";
 
 async function main() {
   const app = express();
@@ -15,7 +14,6 @@ async function main() {
     "/graphql",
     createHandler({
       schema: schema,
-      rootValue: new Query(),
     }),
   );
 

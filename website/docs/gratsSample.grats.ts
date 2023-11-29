@@ -1,15 +1,16 @@
 /** @gqlType */
-export default class Query {
-  /** @gqlField */
-  me(): User {
-    return new User();
-  }
-  /**
-   * @gqlField
-   * @deprecated Please use `me` instead. */
-  viewer(): User {
-    return new User();
-  }
+type Query = unknown;
+
+/** @gqlField */
+export function me(_: Query): User {
+  return new User();
+}
+
+/**
+ * @gqlField
+ * @deprecated Please use `me` instead. */
+export function viewer(_: Query): User {
+  return new User();
 }
 
 /**

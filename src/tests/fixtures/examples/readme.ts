@@ -1,16 +1,16 @@
 /** @gqlType */
-export default class Query {
-  /** @gqlField */
-  me(): UserResolver {
-    return new UserResolver();
-  }
-  /**
-   * @gqlField
-   * @deprecated Please use `me` instead.
-   */
-  viewer(): UserResolver {
-    return new UserResolver();
-  }
+type Query = unknown;
+
+/** @gqlField */
+export function me(_: Query): UserResolver {
+  return new UserResolver();
+}
+/**
+ * @gqlField
+ * @deprecated Please use `me` instead.
+ */
+export function viewer(_: Query): UserResolver {
+  return new UserResolver();
 }
 
 /**

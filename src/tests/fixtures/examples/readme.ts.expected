@@ -2,18 +2,18 @@
 INPUT
 ----------------- 
 /** @gqlType */
-export default class Query {
-  /** @gqlField */
-  me(): UserResolver {
-    return new UserResolver();
-  }
-  /**
-   * @gqlField
-   * @deprecated Please use `me` instead.
-   */
-  viewer(): UserResolver {
-    return new UserResolver();
-  }
+type Query = unknown;
+
+/** @gqlField */
+export function me(_: Query): UserResolver {
+  return new UserResolver();
+}
+/**
+ * @gqlField
+ * @deprecated Please use `me` instead.
+ */
+export function viewer(_: Query): UserResolver {
+  return new UserResolver();
 }
 
 /**
@@ -44,8 +44,8 @@ directive @methodName(name: String!) on FIELD_DEFINITION
 directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: String!) on FIELD_DEFINITION
 
 type Query {
-  me: User
-  viewer: User @deprecated(reason: "Please use `me` instead.")
+  me: User @exported(jsModulePath: "grats/src/tests/fixtures/examples/readme.js", tsModulePath: "grats/src/tests/fixtures/examples/readme.ts", functionName: "me")
+  viewer: User @deprecated(reason: "Please use `me` instead.") @exported(jsModulePath: "grats/src/tests/fixtures/examples/readme.js", tsModulePath: "grats/src/tests/fixtures/examples/readme.ts", functionName: "viewer")
 }
 
 """A user in our kick-ass system!"""
