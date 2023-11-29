@@ -38,6 +38,9 @@ importers:
       path-browserify:
         specifier: ^1.0.1
         version: 1.0.1
+      prettier:
+        specifier: ^2.8.7
+        version: 2.8.7
       process:
         specifier: ^0.11.10
         version: 0.11.10
@@ -13370,7 +13373,6 @@ packages:
     resolution: {integrity: sha512-yPngTo3aXUUmyuTjeTUT75txrf+aMh9FiD7q9ZE/i6r0bPb22g4FsE6Y338PQX1bmfy08i9QQCB7/rcUAVntfw==}
     engines: {node: '>=10.13.0'}
     hasBin: true
-    dev: false
 
   /pretty-error@4.0.0:
     resolution: {integrity: sha512-AoJ5YMAcXKYxKhuJGdcvse+Voc6v1RgnsR3nWcYU7q4t6z0Q6T86sv5Zq8VIRbOWWFpvdGE83LtdSMNd+6Y0xw==}
