@@ -5,5 +5,6 @@ Simple demo project integrating [Grats](https://grats.capt.dev/), [Express](http
 [express-graphql](https://www.npmjs.com/package/express-graphql) is deprecated and no longer maintained. [Migrating to graphql-http](https://github.com/graphql/graphql-http#migrating-express-grpahql) is strongly recommended.
 
 ## Running the demo
-* `$ pnpm install`
-* `$ pnpm run start`
+
+- `$ pnpm install`
+- `$ pnpm run start`

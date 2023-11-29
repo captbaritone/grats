@@ -14,7 +14,7 @@ export default class GroupResolver {
 
   /** @gqlField */
   id(): string {
-    return this._id
+    return this._id;
   }
 
   /** @gqlField */
@@ -28,6 +28,12 @@ export default class GroupResolver {
   /** @gqlField */
   async members(_: unknown, { userService }: Context): Promise<UserResolver[]> {
     const currentGroupId = this._id;
-    return userService.listUsers().then(users => users.filter(({ groupIDs }) => groupIDs.includes(currentGroupId)).map(user => new UserResolver(user.id, user)) );
+    return userService
+      .listUsers()
+      .then((users) =>
+        users
+          .filter(({ groupIDs }) => groupIDs.includes(currentGroupId))
+          .map((user) => new UserResolver(user.id, user)),
+      );
   }
 }

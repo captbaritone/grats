@@ -2,10 +2,10 @@
 
 GraphQL custom sclars can be defined by placing a `@gqlScalar` docblock directly before a:
 
-* Type alias declaration
+- Type alias declaration
 
 ```ts
-/** 
+/**
  * A description of my custom scalar.
  * @gqlScalar <optional name of the scalar, if different from type name>
  */
@@ -27,7 +27,7 @@ import { Float, Int, ID } from "grats";
 class Math {
   id: ID;
   /** @gqlField */
-  round(args: {float: Float}): Int {
+  round(args: { float: Float }): Int {
     return Math.round(args.float);
   }
 }

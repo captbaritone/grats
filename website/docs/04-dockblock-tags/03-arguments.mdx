@@ -40,7 +40,11 @@ Deeply nested default values can also be defined:
 ```ts
 class MyClass {
   /** @gqlField */
-  myField({ greeting = { salutation: "Sup" } }: { greeting: GreetingConfig }): string {
+  myField({
+    greeting = { salutation: "Sup" },
+  }: {
+    greeting: GreetingConfig;
+  }): string {
     return `${greeting.salutation} World`;
   }
 }
@@ -58,9 +62,9 @@ Optional arguments can be marked as `@deprecated` by using the `@deprecated` JSD
 ```ts
 class MyClass {
   /** @gqlField */
-  myField(_: { 
+  myField(_: {
     /** @deprecated Unused! */
-    greeting?: string
+    greeting?: string;
   }): string {
     return `Hello World`;
   }

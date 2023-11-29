@@ -7,6 +7,8 @@ dist/
 website/.docusaurus
 website/build
 src/tests/fixtures/user_error/InvalidSyntax.invalid.ts
+# Ideally we can remove these once they are annotated as @generated
+**/schema.graphql
 
 # Local Netlify folder
 .netlify
