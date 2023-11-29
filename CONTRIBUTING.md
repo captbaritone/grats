@@ -55,18 +55,16 @@ fixes, should include at least one new or changed fixture file.
 
 ## Manual Tests
 
-The code base includes an example server that can be used to manually test
+The code base includes a number of example servers that can be used to manually test
 features of the tool. To start the server, run the following command:
 
-```
-
+```bash
 # Ensure you build grats first!
 
 pnpm build
-cd examples/express-graphql
+cd examples/yoga
 pnpm install
 pnpm run start
-
 ```
 
 This will start a web server running GraphiQL which you can use to try out the server.
