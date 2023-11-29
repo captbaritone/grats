@@ -2,21 +2,18 @@
 
 For dev mode or small projects, Grats offers a runtime extraction mode. This is
 the easiest way to get started with Grats, although you may find that it causes
-a slow startup times. For larger projects, you probably want to use the build
-mode (documentation to come).
+a slow startup times. For larger projects, you probably want to extract your schema at build time. See [Usage](../02-usage/index.md) for more details.
 
 ## Install dependencies
 
-Grats can be used with many different GraphQL servers, but this example uses `graphql-express`.
+Grats can be used with many different GraphQL servers, but this example uses `graphql-yoga`.
 
 ```bash https://docusaurus.io/docs/markdown-features/code-blocks#npm2yarn-remark-plugin
-npm install express express-graphql typescript graphql@^16.6.0 grats
+npm install express graphql-yoga grats
 ```
 
-:::
-
 ```bash
-npm install --dev @types/express @types/express-graphql
+npm install --dev typescript
 ```
 
 ## Initialize TypeScript
@@ -29,7 +26,7 @@ Grats uses your TypeScript config to for its [configuration](../02-usage/02-conf
 
 Create a `tsconfig.json` in your project root:
 
-```title="/tsconfig.json"
+```json title="/tsconfig.json"
 {
   "compilerOptions": {
     "moduleResolution": "node",
@@ -43,8 +40,8 @@ Create a `tsconfig.json` in your project root:
 For this quick start example, we'll use `extractGratsSchemaAtRuntime` which will extract your schema at runtime. This is the easiest way to get started with Grats, but it can cause a slow startup time. **For production, we recommend using the [build mode](../02-usage/index.md).**
 
 ```ts title="/server.ts"
-import * as express from "express";
-import { graphqlHTTP } from "express-graphql";
+import { createServer } from "node:http";
+import { createYoga } from "graphql-yoga";
 import { extractGratsSchemaAtRuntime } from "grats";
 
 /** @gqlType */
@@ -55,16 +52,17 @@ export function hello(_: Query): string {
   return "Hello world!";
 }
 
-const app = express();
-
 // TODO: Switch to buildSchemaFromSDL before using in production
 const schema = extractGratsSchemaAtRuntime({
   emitSchemaFile: "./schema.graphql",
 });
 
-app.use("/graphql", graphqlHTTP({ schema, graphiql: true }));
-app.listen(4000);
-console.log("Running a GraphQL API server at http://localhost:4000/graphql");
+const yoga = createYoga({ schema });
+const server = createServer(yoga);
+
+server.listen(4000, () => {
+  console.log("Running a GraphQL API server at http://localhost:4000/graphql");
+});
 ```
 
 ## Start your server
