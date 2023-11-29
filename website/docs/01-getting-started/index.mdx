@@ -43,8 +43,8 @@ approaches to authoring GraphQL types and resolvers.
 /** @gqlType */
 type Query = unknown;
 
-  /** @gqlField */
-export function  me(_: Query): User {
+/** @gqlField */
+export function me(_: Query): User {
   return new User();
 }
 

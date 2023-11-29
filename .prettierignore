@@ -1,0 +1,14 @@
+node_modules/
+pnpm-lock.yaml
+pnpm-workspace.yaml
+dist/
+.parcel-cache
+.vercel
+website/.docusaurus
+website/build
+src/tests/fixtures/user_error/InvalidSyntax.invalid.ts
+# Ideally we can remove these once they are annotated as @generated
+**/schema.graphql
+
+# Local Netlify folder
+.netlify

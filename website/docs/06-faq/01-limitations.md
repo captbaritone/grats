@@ -46,11 +46,11 @@ values when the enum is defined as a TypeScript union.
 
 ```typescript
 /** @gqlEnum */
-type MyEnum = 
+type MyEnum =
   /** This gets ignored */
-  "A" | 
+  | "A"
   /** So does this */
-  "B";
+  | "B";
 ```
 
 This is because we rely on the TypeScript compiler to tell us which docblocsk
@@ -61,13 +61,10 @@ comment attachment, but it is a difficult problem.
 ## Alternate comment types
 
 It would be nice if Grats supported other comment types, such as regular block
-comments (with one *) or inline comments (starting with two slashes). However we
+comments (with one \*) or inline comments (starting with two slashes). However we
 can't currently.
 
 This is because we rely on the TypeScript compiler to tell us which docblocsk
 are "attached" to a given AST node, and TypeScript doesn't see those comments as
 attached to anything. In the future we could explore implementing our own
 comment attachment, but it is a difficult problem.
-
-
-

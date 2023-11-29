@@ -12,7 +12,8 @@
     "test": "ts-node src/tests/test.ts",
     "integration-tests": "node src/tests/integration.mjs",
     "build": "tsc --build",
-    "lint": "eslint src/**/*.ts"
+    "format": "prettier . --write",
+    "lint": "eslint src/**/*.ts && prettier . --check"
   },
   "dependencies": {
     "@graphql-tools/utils": "^9.2.1",
@@ -29,7 +30,8 @@
     "node-fetch": "^3.3.1",
     "path-browserify": "^1.0.1",
     "process": "^0.11.10",
-    "ts-node": "^10.9.1"
+    "ts-node": "^10.9.1",
+    "prettier": "^2.8.7"
   },
   "prettier": {
     "trailingComma": "all"

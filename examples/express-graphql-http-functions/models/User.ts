@@ -15,13 +15,13 @@ export default class UserResolver implements IPerson {
 
   /** @gqlField */
   id(): string {
-    return this._id
+    return this._id;
   }
 
   /** @gqlField */
   async name(_: unknown, { userService }: Context): Promise<string> {
     if (this._data === undefined) {
-      this._data = await userService.getUser(this._id)
+      this._data = await userService.getUser(this._id);
     }
     return this._data?.name;
   }
@@ -29,8 +29,8 @@ export default class UserResolver implements IPerson {
   /** @gqlField */
   async groups(_: unknown, { userService }: Context): Promise<GroupResolver[]> {
     if (this._data === undefined) {
-      this._data = await userService.getUser(this._id)
+      this._data = await userService.getUser(this._id);
     }
-    return this._data.groupIDs.map(groupId => new GroupResolver(groupId));
+    return this._data.groupIDs.map((groupId) => new GroupResolver(groupId));
   }
 }
