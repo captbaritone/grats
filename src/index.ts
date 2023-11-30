@@ -3,10 +3,15 @@ import {
   lexicographicSortSchema,
   buildSchema as gqlBuildSchema,
 } from "graphql";
-import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import * as fs from "fs";
 import * as ts from "typescript";
-import { applyServerDirectives, buildSchemaResult } from "./lib";
+import {
+  ParsedCommandLineGrats,
+  applyServerDirectives,
+  buildSchemaResult,
+  validateGratsOptions,
+} from "./lib";
+import { printGratsSchema } from "./printSchema";
 
 export * from "./Types";
 export * from "./lib";
@@ -32,7 +37,7 @@ export function extractGratsSchemaAtRuntime(
   let runtimeSchema = schemaResult.value;
   if (runtimeOptions.emitSchemaFile) {
     runtimeSchema = lexicographicSortSchema(runtimeSchema);
-    const sdl = printSchemaWithDirectives(runtimeSchema, { assumeValid: true });
+    const sdl = printGratsSchema(runtimeSchema, parsedTsConfig.raw.grats);
     const filePath = runtimeOptions.emitSchemaFile;
     fs.writeFileSync(filePath, sdl);
   }
@@ -45,7 +50,7 @@ export function buildSchemaFromSDL(sdl: string): GraphQLSchema {
 }
 
 // #FIXME: Report diagnostics instead of throwing!
-export function getParsedTsConfig(configPath?: string): ts.ParsedCommandLine {
+export function getParsedTsConfig(configPath?: string): ParsedCommandLineGrats {
   const configFile =
     configPath || ts.findConfigFile(process.cwd(), ts.sys.fileExists);
 
@@ -65,5 +70,5 @@ export function getParsedTsConfig(configPath?: string): ts.ParsedCommandLine {
     throw new Error("Grats: Could not parse tsconfig.json");
   }
 
-  return parsed;
+  return validateGratsOptions(parsed);
 }

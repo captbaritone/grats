@@ -4,8 +4,9 @@ import {
   buildSchemaResult,
   buildSchemaResultWithHost,
   ConfigOptions,
+  ParsedCommandLineGrats,
+  validateGratsOptions,
 } from "../lib";
-import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import * as ts from "typescript";
 import { graphql } from "graphql";
 import { Command } from "commander";
@@ -14,6 +15,7 @@ import {
   diagnosticAtGraphQLLocation,
   ReportableDiagnostics,
 } from "../utils/DiagnosticError";
+import { printGratsSchema } from "../printSchema";
 
 const program = new Command();
 
@@ -56,6 +58,7 @@ const testDirs = [
       const firstLine = code.split("\n")[0];
       let options: ConfigOptions = {
         nullableByDefault: true,
+        schemaHeader: null,
       };
       if (firstLine.startsWith("// {")) {
         const json = firstLine.slice(3);
@@ -63,14 +66,14 @@ const testDirs = [
         options = { ...options, ...testOptions };
       }
       const files = [`${fixturesDir}/${fileName}`, `src/Types.ts`];
-      const parsedOptions: ts.ParsedCommandLine = {
+      const parsedOptions: ParsedCommandLineGrats = validateGratsOptions({
         options: {},
         raw: {
           grats: options,
         },
         errors: [],
         fileNames: files,
-      };
+      });
 
       // https://stackoverflow.com/a/66604532/1263117
       const compilerHost = ts.createCompilerHost(
@@ -98,9 +101,7 @@ const testDirs = [
           diagnosticAtGraphQLLocation("Located here", locResult.value),
         ]).formatDiagnosticsWithContext();
       } else {
-        return printSchemaWithDirectives(schemaResult.value, {
-          assumeValid: true,
-        });
+        return printGratsSchema(schemaResult.value, options);
       }
     },
   },
@@ -120,7 +121,7 @@ const testDirs = [
         nullableByDefault: true,
       };
       const files = [filePath, `src/Types.ts`];
-      const parsedOptions: ts.ParsedCommandLine = {
+      const parsedOptions: ParsedCommandLineGrats = {
         options: {
           // Required to enable ts-node to locate function exports
           rootDir: gratsDir,

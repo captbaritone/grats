@@ -256,11 +256,11 @@ export function killsParentOnExceptionWithWrongConfig() {
 }
 
 export function killsParentOnExceptionOnNullable() {
-  return `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` tag. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` is unnessesary on fields that are already nullable.`;
+  return `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` tag. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` is unnecessary on fields that are already nullable.`;
 }
 
 export function nonNullTypeCannotBeOptional() {
-  return `Unexpected optional argument that does not also accept \`null\`. Optional arguments in GraphQL may get passed an explict \`null\` value. This means optional arguments must be typed to also accept \`null\`.`;
+  return `Unexpected optional argument that does not also accept \`null\`. Optional arguments in GraphQL may get passed an explicit \`null\` value. This means optional arguments must be typed to also accept \`null\`.`;
 }
 
 export function mergedInterfaces(interfaceName: string) {
