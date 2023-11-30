@@ -68,6 +68,7 @@ export const ALL_TAGS = [
 ];
 
 const DEPRECATED_TAG = "deprecated";
+const OPERATION_TYPES = new Set(["Query", "Mutation", "Subscription"]);
 
 type ArgDefaults = Map<string, ts.Expression>;
 
@@ -543,6 +544,8 @@ export class Extractor {
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
+    this.validateOperationTypes(node.name, name.value);
+
     const description = this.collectDescription(node.name);
     const fields = this.collectFields(node);
     const interfaces = this.collectInterfaces(node);
@@ -561,9 +564,19 @@ export class Extractor {
     );
   }
 
+  validateOperationTypes(node: ts.Node, name: string) {
+    // TODO: If we start supporting defining operation types using
+    // non-standard names, we will need to update this logic.
+    if (OPERATION_TYPES.has(name)) {
+      this.report(node, E.operationTypeNotUnknown());
+    }
+  }
+
   typeInterfaceDeclaration(node: ts.InterfaceDeclaration, tag: ts.JSDocTag) {
     const name = this.entityName(node, tag);
     if (name == null) return null;
+
+    this.validateOperationTypes(node.name, name.value);
 
     const description = this.collectDescription(node.name);
     const fields = this.collectFields(node);
@@ -591,6 +604,7 @@ export class Extractor {
     let interfaces: NamedTypeNode[] | null = null;
 
     if (ts.isTypeLiteralNode(node.type)) {
+      this.validateOperationTypes(node.type, name.value);
       fields = this.collectFields(node.type);
       interfaces = this.collectInterfaces(node);
       this.checkForTypenameProperty(node.type, name.value);

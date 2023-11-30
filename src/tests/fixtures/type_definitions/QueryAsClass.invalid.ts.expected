@@ -1,0 +1,16 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class Query {
+  /** @gqlField */
+  hello: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/type_definitions/QueryAsClass.invalid.ts:2:22 - error: Operation types `Query`, `Mutation`, and `Subscription` must be defined as type aliases of `unknown`. E.g. `type Query = unknown`.
+
+2 export default class Query {
+                       ~~~~~

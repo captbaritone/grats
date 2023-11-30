@@ -1,0 +1,18 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+type Query = {};
+
+/** @gqlField */
+export function foo(_: Query): string {
+  return "foo";
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/type_definitions_from_alias/QueryAsAliasOfObject.invalid.ts:2:14 - error: Operation types `Query`, `Mutation`, and `Subscription` must be defined as type aliases of `unknown`. E.g. `type Query = unknown`.
+
+2 type Query = {};
+               ~~

@@ -17,7 +17,7 @@ OUTPUT
 -----------------
 src/tests/fixtures/field_definitions/ParameterPropertyFieldReadOnlyPrivate.invalid.ts:8:5 - error: Expected `@gqlField` parameter property to be public. Valid modifiers for `@gqlField` parameter properties are  `public` and `readonly`.
 
-Learn more: https://grats.capt.dev/docs/dockblock-tags/fields#class-based-fields
+Learn more: https://grats.capt.dev/docs/docblock-tags/fields#class-based-fields
 
 8     private readonly hello: string,
       ~~~~~~~

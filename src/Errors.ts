@@ -15,10 +15,9 @@ import {
 // TODO: Move these to short URLS that are easier to keep from breaking.
 const DOC_URLS = {
   mergedInterfaces:
-    "https://grats.capt.dev/docs/dockblock-tags/interfaces/#merged-interfaces",
+    "https://grats.capt.dev/docs/docblock-tags/interfaces/#merged-interfaces",
   parameterProperties:
-    "https://grats.capt.dev/docs/dockblock-tags/fields#class-based-fields",
-  typeImplementsInterface: "TODO",
+    "https://grats.capt.dev/docs/docblock-tags/fields#class-based-fields",
 };
 
 /**
@@ -129,7 +128,7 @@ export function typeTagOnUnnamedClass() {
 }
 
 export function typeTagOnAliasOfNonObjectOrUnknown() {
-  return `Expected \`@${TYPE_TAG}\` type to be a type literal or \`unknown\`. For example: \`type Foo = { bar: string }\` or \`type Query = unknown\`.`;
+  return `Expected \`@${TYPE_TAG}\` type to be an object type literal (\`{ }\`) or \`unknown\`. For example: \`type Foo = { bar: string }\` or \`type Query = unknown\`.`;
 }
 
 export function typeNameNotDeclaration() {
@@ -287,7 +286,7 @@ export function implementsTagOnInterface() {
 }
 
 export function implementsTagOnTypeAlias() {
-  return `\`@${IMPLEMENTS_TAG_DEPRECATED}\` has been deprecated. Types which implement GraphQL interfaces should be defined using TypeScript class or interface declarations. Learn more: ${DOC_URLS.typeImplementsInterface}.`;
+  return `\`@${IMPLEMENTS_TAG_DEPRECATED}\` has been deprecated. Types which implement GraphQL interfaces should be defined using TypeScript class or interface declarations.`;
 }
 
 export function duplicateTag(tagName: string) {
@@ -367,4 +366,8 @@ export function subscriptionFieldNotAsyncIterable() {
 
 export function nonSubscriptionFieldAsyncIterable() {
   return "Unexpected AsyncIterable. Only fields on `Subscription` should return an AsyncIterable.";
+}
+
+export function operationTypeNotUnknown() {
+  return "Operation types `Query`, `Mutation`, and `Subscription` must be defined as type aliases of `unknown`. E.g. `type Query = unknown`.";
 }
