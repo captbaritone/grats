@@ -15,7 +15,7 @@ export default class SomeType {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/field_values/OptionalStringFieldKillsParentOnException.invalid.ts:5:7 - error: Unexpected `@killsParentOnException` tag. `@killsParentOnException` is unnessesary on fields that are already nullable.
+src/tests/fixtures/field_values/OptionalStringFieldKillsParentOnException.invalid.ts:5:7 - error: Unexpected `@killsParentOnException` tag. `@killsParentOnException` is unnecessary on fields that are already nullable.
 
 5    * @killsParentOnException
         ~~~~~~~~~~~~~~~~~~~~~~
