@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { EditorState, Compartment } from "@codemirror/state";
 import { EditorView, keymap, lineNumbers } from "@codemirror/view";
-import { defaultKeymap } from "@codemirror/commands";
+import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { typescriptLanguage } from "@codemirror/lang-javascript";
 import * as ts from "typescript";
 import {
@@ -82,7 +82,8 @@ async function createInputView(store, fsMap, left) {
     doc: state.doc,
     extensions: [
       Theme,
-      keymap.of(defaultKeymap),
+      keymap.of(...defaultKeymap, ...historyKeymap),
+      history(),
       linterCompartment.of(linter),
       typescriptLanguage,
       EditorView.lineWrapping,
