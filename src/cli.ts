@@ -9,7 +9,6 @@ import { resolve } from "path";
 import { version } from "../package.json";
 import { locate } from "./Locate";
 import { printGratsSchema } from "./printSchema";
-import { extractGratsMetadataFromSchema } from "./gratsMetadata";
 
 const program = new Command();
 
