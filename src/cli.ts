@@ -2,17 +2,14 @@
 
 import { GraphQLSchema, Location, lexicographicSortSchema } from "graphql";
 import { getParsedTsConfig } from "./";
-import {
-  ParsedCommandLineGrats,
-  buildSchemaResult,
-  validateGratsOptions,
-} from "./lib";
+import { ParsedCommandLineGrats, buildSchemaResult } from "./lib";
 import { Command } from "commander";
-import { writeFileSync, existsSync } from "fs";
+import { writeFileSync } from "fs";
 import { resolve } from "path";
 import { version } from "../package.json";
 import { locate } from "./Locate";
 import { printGratsSchema } from "./printSchema";
+import { extractGratsMetadataFromSchema } from "./gratsMetadata";
 
 const program = new Command();
 
@@ -40,7 +37,12 @@ program
     "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",
   )
   .action((entity, { tsconfig }) => {
-    const options = getParsedTsConfig(tsconfig);
+    const optionsResult = getParsedTsConfig(tsconfig);
+    if (optionsResult.kind === "ERROR") {
+      throw new Error("TODO");
+    }
+    const options = optionsResult.value;
+
     const schema = buildSchema(options);
     const loc = locate(schema, entity);
     if (loc.kind === "ERROR") {
@@ -53,7 +55,12 @@ program
 program.parse();
 
 function build(output: string, tsconfig?: string) {
-  const options = getParsedTsConfig(tsconfig);
+  const optionsResult = getParsedTsConfig(tsconfig);
+  if (optionsResult.kind === "ERROR") {
+    console.error(optionsResult.err.formatDiagnosticsWithColorAndContext());
+    process.exit(1);
+  }
+  const options = optionsResult.value;
   const schema = buildSchema(options);
   const sortedSchema = lexicographicSortSchema(schema);
   const schemaStr = printGratsSchema(sortedSchema, options.raw.grats);
@@ -64,18 +71,6 @@ function build(output: string, tsconfig?: string) {
   } else {
     console.log(schemaStr);
   }
-}
-
-function _buildSchema(tsconfig?: string): GraphQLSchema {
-  if (tsconfig && !existsSync(tsconfig)) {
-    console.error(`Grats: Could not find tsconfig.json at \`${tsconfig}\`.`);
-    process.exit(1);
-  }
-  const parsed = getParsedTsConfig(tsconfig);
-  const options = validateGratsOptions(parsed);
-  // FIXME: Validate config!
-  // https://github.com/tsconfig/bases
-  return buildSchema(options);
 }
 
 function buildSchema(options: ParsedCommandLineGrats): GraphQLSchema {

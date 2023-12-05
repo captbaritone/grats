@@ -12,6 +12,12 @@ import {
   validateGratsOptions,
 } from "./lib";
 import { printGratsSchema } from "./printSchema";
+import {
+  ReportableDiagnostics,
+  Result,
+  err,
+  ok,
+} from "./utils/DiagnosticError";
 
 export * from "./Types";
 export * from "./lib";
@@ -26,7 +32,13 @@ type RuntimeOptions = {
 export function extractGratsSchemaAtRuntime(
   runtimeOptions: RuntimeOptions,
 ): GraphQLSchema {
-  const parsedTsConfig = getParsedTsConfig();
+  const tsConfigResult = getParsedTsConfig();
+  if (tsConfigResult.kind === "ERROR") {
+    console.error(tsConfigResult.err.formatDiagnosticsWithColorAndContext());
+    process.exit(1);
+  }
+
+  const parsedTsConfig = tsConfigResult.value;
 
   const schemaResult = buildSchemaResult(parsedTsConfig);
   if (schemaResult.kind === "ERROR") {
@@ -50,7 +62,9 @@ export function buildSchemaFromSDL(sdl: string): GraphQLSchema {
 }
 
 // #FIXME: Report diagnostics instead of throwing!
-export function getParsedTsConfig(configPath?: string): ParsedCommandLineGrats {
+export function getParsedTsConfig(
+  configPath?: string,
+): Result<ParsedCommandLineGrats, ReportableDiagnostics> {
   const configFile =
     configPath || ts.findConfigFile(process.cwd(), ts.sys.fileExists);
 
@@ -66,9 +80,13 @@ export function getParsedTsConfig(configPath?: string): ParsedCommandLineGrats {
     configFileHost,
   );
 
-  if (!parsed || parsed.errors.length > 0) {
-    throw new Error("Grats: Could not parse tsconfig.json");
+  if (!parsed) {
+    throw new Error("Grats: Could not locate tsconfig.json");
   }
 
-  return validateGratsOptions(parsed);
+  if (parsed.errors.length > 0) {
+    return err(ReportableDiagnostics.fromDiagnostics(parsed.errors));
+  }
+
+  return ok(validateGratsOptions(parsed));
 }

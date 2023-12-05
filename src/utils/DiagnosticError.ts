@@ -15,12 +15,23 @@ export function err<E>(err: E): Err<E> {
 }
 
 export class ReportableDiagnostics {
-  _host: ts.CompilerHost;
+  _host: ts.FormatDiagnosticsHost;
   _diagnostics: ts.Diagnostic[];
 
-  constructor(host: ts.CompilerHost, diagnostics: ts.Diagnostic[]) {
+  constructor(host: ts.FormatDiagnosticsHost, diagnostics: ts.Diagnostic[]) {
     this._host = host;
     this._diagnostics = diagnostics;
+  }
+
+  // If you don't have a host, for example if you error while parsing the
+  // tsconfig, you can use this method and one will be created for you.
+  static fromDiagnostics(diagnostics: ts.Diagnostic[]): ReportableDiagnostics {
+    const formatHost: ts.FormatDiagnosticsHost = {
+      getCanonicalFileName: (path) => path,
+      getCurrentDirectory: ts.sys.getCurrentDirectory,
+      getNewLine: () => ts.sys.newLine,
+    };
+    return new ReportableDiagnostics(formatHost, diagnostics);
   }
 
   formatDiagnosticsWithColorAndContext(): string {
