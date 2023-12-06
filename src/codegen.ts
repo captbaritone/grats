@@ -175,12 +175,8 @@ class Codegen {
       );
       this.import(`./${relative}`, [funcName]);
 
-      return F.createMethodDeclaration(
-        undefined,
-        undefined,
+      return this.method(
         "resolve",
-        undefined,
-        undefined,
         args.map((name) => {
           return F.createParameterDeclaration(
             undefined,
@@ -191,21 +187,17 @@ class Codegen {
             undefined,
           );
         }),
-        undefined,
-        F.createBlock(
-          [
-            F.createReturnStatement(
-              F.createCallExpression(
-                F.createIdentifier(funcName),
-                undefined,
-                args.map((name) => {
-                  return F.createIdentifier(name);
-                }),
-              ),
+        [
+          F.createReturnStatement(
+            F.createCallExpression(
+              F.createIdentifier(funcName),
+              undefined,
+              args.map((name) => {
+                return F.createIdentifier(name);
+              }),
             ),
-          ],
-          true,
-        ),
+          ),
+        ],
       );
     }
     const propertyName = fieldDirective(field, METHOD_NAME_DIRECTIVE);
@@ -235,12 +227,8 @@ class Codegen {
         undefined,
         prop,
       );
-      return F.createMethodDeclaration(
-        undefined,
-        undefined,
+      return this.method(
         "resolve",
-        undefined,
-        undefined,
         args.map((name) => {
           return F.createParameterDeclaration(
             undefined,
@@ -251,8 +239,7 @@ class Codegen {
             undefined,
           );
         }),
-        undefined,
-        F.createBlock([F.createReturnStatement(ternary)], true),
+        [F.createReturnStatement(ternary)],
       );
     }
 
@@ -264,18 +251,10 @@ class Codegen {
       return F.createPropertyAssignment(name, this.fieldConfig(field));
     });
 
-    return F.createMethodDeclaration(
-      undefined,
-      undefined,
+    return this.method(
       "fields",
-      undefined,
-      undefined,
       [],
-      undefined,
-      F.createBlock(
-        [F.createReturnStatement(this.objectLiteral(fields))],
-        true,
-      ),
+      [F.createReturnStatement(this.objectLiteral(fields))],
     );
   }
 
@@ -284,24 +263,16 @@ class Codegen {
   ): ts.MethodDeclaration | null {
     const interfaces = obj.getInterfaces();
     if (!interfaces.length) return null;
-    return F.createMethodDeclaration(
-      undefined,
-      undefined,
+    return this.method(
       "interfaces",
-      undefined,
-      undefined,
       [],
-      undefined,
-      F.createBlock(
-        [
-          F.createReturnStatement(
-            F.createArrayLiteralExpression(
-              interfaces.map((i) => this.interfaceType(i)),
-            ),
+      [
+        F.createReturnStatement(
+          F.createArrayLiteralExpression(
+            interfaces.map((i) => this.interfaceType(i)),
           ),
-        ],
-        true,
-      ),
+        ),
+      ],
     );
   }
 
@@ -356,24 +327,16 @@ class Codegen {
     return this.objectLiteral([
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.description(obj.description),
-      F.createMethodDeclaration(
-        undefined,
-        undefined,
+      this.method(
         "types",
-        undefined,
-        undefined,
         [],
-        undefined,
-        F.createBlock(
-          [
-            F.createReturnStatement(
-              F.createArrayLiteralExpression(
-                obj.getTypes().map((t) => this.typeReference(t)),
-              ),
+        [
+          F.createReturnStatement(
+            F.createArrayLiteralExpression(
+              obj.getTypes().map((t) => this.typeReference(t)),
             ),
-          ],
-          true,
-        ),
+          ),
+        ],
       ),
     ]);
   }
@@ -436,18 +399,10 @@ class Codegen {
       return F.createPropertyAssignment(name, this.inputFieldConfig(field));
     });
 
-    return F.createMethodDeclaration(
-      undefined,
-      undefined,
+    return this.method(
       "fields",
-      undefined,
-      undefined,
       [],
-      undefined,
-      F.createBlock(
-        [F.createReturnStatement(this.objectLiteral(fields))],
-        true,
-      ),
+      [F.createReturnStatement(this.objectLiteral(fields))],
     );
   }
 
@@ -564,6 +519,23 @@ class Codegen {
     properties: Array<ts.ObjectLiteralElementLike | null>,
   ): ts.ObjectLiteralExpression {
     return F.createObjectLiteralExpression(properties.filter(isNonNull), true);
+  }
+
+  method(
+    name: string,
+    params: ts.ParameterDeclaration[],
+    statements: ts.Statement[],
+  ): ts.MethodDeclaration {
+    return F.createMethodDeclaration(
+      undefined,
+      undefined,
+      name,
+      undefined,
+      undefined,
+      params,
+      undefined,
+      F.createBlock(statements, true),
+    );
   }
 
   import(from: string, names: string[]): void {
