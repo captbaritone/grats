@@ -1,0 +1,87 @@
+-----------------
+INPUT
+----------------- 
+type Query {
+  str(name: String): String
+  req_str(salutation: String!): String
+  list_str(name: [String]): String
+  req_list_str(name: [String]!): String
+  list_req_str(name: [String!]): String
+  req_list_req_str(name: [String!]!): String
+}
+
+-----------------
+OUTPUT
+-----------------
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLList } from "graphql";
+const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+        return {
+            str: {
+                name: "str",
+                type: GraphQLString,
+                args: {
+                    name: {
+                        name: "name",
+                        type: GraphQLString
+                    }
+                }
+            },
+            req_str: {
+                name: "req_str",
+                type: GraphQLString,
+                args: {
+                    salutation: {
+                        name: "salutation",
+                        type: new GraphQLNonNull(GraphQLString)
+                    }
+                }
+            },
+            list_str: {
+                name: "list_str",
+                type: GraphQLString,
+                args: {
+                    name: {
+                        name: "name",
+                        type: new GraphQLList(GraphQLString)
+                    }
+                }
+            },
+            req_list_str: {
+                name: "req_list_str",
+                type: GraphQLString,
+                args: {
+                    name: {
+                        name: "name",
+                        type: new GraphQLNonNull(new GraphQLList(GraphQLString))
+                    }
+                }
+            },
+            list_req_str: {
+                name: "list_req_str",
+                type: GraphQLString,
+                args: {
+                    name: {
+                        name: "name",
+                        type: new GraphQLList(new GraphQLNonNull(GraphQLString))
+                    }
+                }
+            },
+            req_list_req_str: {
+                name: "req_list_req_str",
+                type: GraphQLString,
+                args: {
+                    name: {
+                        name: "name",
+                        type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLString)))
+                    }
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    query: QueryType
+});
+export { schema };

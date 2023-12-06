@@ -1,6 +1,9 @@
 import {
   ConstDirectiveNode,
+  GraphQLArgument,
   GraphQLField,
+  GraphQLInputObjectType,
+  GraphQLInputType,
   GraphQLInterfaceType,
   GraphQLObjectType,
   GraphQLOutputType,
@@ -8,10 +11,13 @@ import {
   GraphQLSchema,
   GraphQLUnionType,
   Kind,
+  isInputObjectType,
+  isInputType,
   isInterfaceType,
   isListType,
   isNonNullType,
   isObjectType,
+  isOutputType,
   isScalarType,
   isUnionType,
 } from "graphql";
@@ -85,11 +91,7 @@ class Codegen {
   }
 
   schemaConfig(): ts.ObjectLiteralExpression {
-    const maybeProperties = [this.schemaDescription(), this.query()];
-    const properties: ts.PropertyAssignment[] = maybeProperties.filter(
-      (v): v is ts.PropertyAssignment => v != null,
-    );
-    return F.createObjectLiteralExpression(properties, true);
+    return this.objectLiteral([this.schemaDescription(), this.query()]);
   }
 
   schemaDescription(): ts.PropertyAssignment | null {
@@ -127,15 +129,11 @@ class Codegen {
   }
 
   objectTypeConfig(obj: GraphQLObjectType): ts.ObjectLiteralExpression {
-    const maybeProperties = [
+    return this.objectLiteral([
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.fields(obj),
       this.interfaces(obj),
-    ];
-    const properties: ts.PropertyAssignment[] = maybeProperties.filter(
-      (v): v is ts.PropertyAssignment => v != null,
-    );
-    return F.createObjectLiteralExpression(properties, true);
+    ]);
   }
 
   resolve(field: GraphQLField<unknown, unknown>): ts.MethodDeclaration | null {
@@ -240,11 +238,9 @@ class Codegen {
   }
 
   fields(obj: GraphQLObjectType | GraphQLInterfaceType): ts.MethodDeclaration {
-    const fields = {};
-
-    for (const [name, field] of Object.entries(obj.getFields())) {
-      fields[name] = this.fieldConfig(field);
-    }
+    const fields = Object.entries(obj.getFields()).map(([name, field]) => {
+      return F.createPropertyAssignment(name, this.fieldConfig(field));
+    });
 
     return F.createMethodDeclaration(
       undefined,
@@ -307,15 +303,11 @@ class Codegen {
   }
 
   interfaceTypeConfig(obj: GraphQLInterfaceType): ts.ObjectLiteralExpression {
-    const maybeProperties = [
+    return this.objectLiteral([
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.fields(obj),
       this.interfaces(obj),
-    ];
-    const properties: ts.PropertyAssignment[] = maybeProperties.filter(
-      (v): v is ts.PropertyAssignment => v != null,
-    );
-    return F.createObjectLiteralExpression(properties, true);
+    ]);
   }
 
   unionType(obj: GraphQLUnionType): ts.Expression {
@@ -338,7 +330,7 @@ class Codegen {
   }
 
   unionTypeConfig(obj: GraphQLUnionType): ts.ObjectLiteralExpression {
-    const maybeProperties = [
+    return this.objectLiteral([
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       F.createMethodDeclaration(
         undefined,
@@ -359,11 +351,7 @@ class Codegen {
           true,
         ),
       ),
-    ];
-    const properties: ts.PropertyAssignment[] = maybeProperties.filter(
-      (v): v is ts.PropertyAssignment => v != null,
-    );
-    return F.createObjectLiteralExpression(properties, true);
+    ]);
   }
 
   customScalarType(obj: GraphQLScalarType): ts.Expression {
@@ -386,30 +374,96 @@ class Codegen {
   }
 
   customScalarTypeConfig(obj: GraphQLScalarType): ts.ObjectLiteralExpression {
-    const maybeProperties = [
+    return this.objectLiteral([
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
-    ];
-    const properties: ts.PropertyAssignment[] = maybeProperties.filter(
-      (v): v is ts.PropertyAssignment => v != null,
+    ]);
+  }
+
+  inputType(obj: GraphQLInputObjectType): ts.Expression {
+    const varName = `${obj.name}Type`;
+    if (!this._typeDefinitions.has(varName)) {
+      this._typeDefinitions.add(varName);
+      this.constDeclaration(
+        varName,
+        F.createNewExpression(
+          this.graphQLImport("GraphQLInputObjectType"),
+          [],
+          [this.inputTypeConfig(obj)],
+        ),
+        // We need to explicitly specify the type due to circular references in
+        // the definition.
+        F.createTypeReferenceNode(this.graphQLImport("GraphQLInputObjectType")),
+      );
+    }
+    return F.createIdentifier(varName);
+  }
+
+  inputTypeConfig(obj: GraphQLInputObjectType): ts.ObjectLiteralExpression {
+    return this.objectLiteral([
+      F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
+      this.inputFields(obj),
+    ]);
+  }
+
+  inputFields(obj: GraphQLInputObjectType): ts.MethodDeclaration {
+    const fields = Object.entries(obj.getFields()).map(([name, field]) => {
+      return F.createPropertyAssignment(name, this.inputFieldConfig(field));
+    });
+
+    return F.createMethodDeclaration(
+      undefined,
+      undefined,
+      "fields",
+      undefined,
+      undefined,
+      [],
+      undefined,
+      F.createBlock(
+        [F.createReturnStatement(this.objectLiteral(fields))],
+        true,
+      ),
     );
-    return F.createObjectLiteralExpression(properties, true);
+  }
+
+  inputFieldConfig(field: GraphQLArgument): ts.Expression {
+    return this.objectLiteral([
+      F.createPropertyAssignment("name", F.createStringLiteral(field.name)),
+      F.createPropertyAssignment("type", this.typeReference(field.type)),
+    ]);
   }
 
   fieldConfig(
     field: GraphQLField<unknown, unknown>,
   ): ts.ObjectLiteralExpression {
-    const maybeProperties = [
+    return this.objectLiteral([
       F.createPropertyAssignment("name", F.createStringLiteral(field.name)),
       F.createPropertyAssignment("type", this.typeReference(field.type)),
+      field.args.length
+        ? F.createPropertyAssignment("args", this.argMap(field.args))
+        : null,
       this.resolve(field),
-    ];
-    const properties: ts.PropertyAssignment[] = maybeProperties.filter(
-      (v): v is ts.PropertyAssignment => v != null,
-    );
-    return F.createObjectLiteralExpression(properties, true);
+    ]);
   }
 
-  typeReference(t: GraphQLOutputType): ts.Expression {
+  argMap(args: ReadonlyArray<GraphQLArgument>): ts.ObjectLiteralExpression {
+    return this.objectLiteral(
+      args.map((arg) =>
+        F.createPropertyAssignment(arg.name, this.argConfig(arg)),
+      ),
+    );
+  }
+
+  argConfig(arg: GraphQLArgument): ts.Expression {
+    return this.objectLiteral([
+      F.createPropertyAssignment("name", F.createStringLiteral(arg.name)),
+      F.createPropertyAssignment("type", this.typeReference(arg.type)),
+      // TODO: DefaultValue
+      // TODO: Description
+      // TODO: Deprecated
+    ]);
+  }
+
+  typeReference(t: GraphQLOutputType | GraphQLInputType): ts.Expression {
     if (isNonNullType(t)) {
       return F.createNewExpression(
         this.graphQLImport("GraphQLNonNull"),
@@ -417,6 +471,10 @@ class Codegen {
         [this.typeReference(t.ofType)],
       );
     } else if (isListType(t)) {
+      if (!(isInputType(t.ofType) && isOutputType(t.ofType))) {
+        // I think this is just a TS type and TS can't prove that this never happens.
+        throw new Error(`TODO: unhandled type ${t}`);
+      }
       return F.createNewExpression(
         this.graphQLImport("GraphQLList"),
         [],
@@ -428,6 +486,8 @@ class Codegen {
       return this.objectType(t);
     } else if (isUnionType(t)) {
       return this.unionType(t);
+    } else if (isInputObjectType(t)) {
+      return this.inputType(t);
     } else if (isScalarType(t)) {
       switch (t.name) {
         case "String":
@@ -471,15 +531,10 @@ class Codegen {
     );
   }
 
-  objectLiteral(properties: {
-    [name: string]: ts.Expression;
-  }): ts.ObjectLiteralExpression {
-    return F.createObjectLiteralExpression(
-      Object.entries(properties).map(([name, initializer]) =>
-        F.createPropertyAssignment(name, initializer),
-      ),
-      true,
-    );
+  objectLiteral(
+    properties: Array<ts.ObjectLiteralElementLike | null>,
+  ): ts.ObjectLiteralExpression {
+    return F.createObjectLiteralExpression(properties.filter(isNonNull), true);
   }
 
   import(from: string, names: string[]): void {
@@ -542,4 +597,10 @@ function assertDirectiveStringArg(
 function stripExt(filePath: string): string {
   const ext = path.extname(filePath);
   return filePath.slice(0, -ext.length);
+}
+
+// Predicate function for filtering out null values
+// Includes TypeScript refinement for narrowing the type
+function isNonNull<T>(value: T | null | undefined): value is T {
+  return value != null;
 }

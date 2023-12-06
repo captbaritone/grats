@@ -1,0 +1,8 @@
+type Query {
+  str(name: String): String
+  req_str(salutation: String!): String
+  list_str(name: [String]): String
+  req_list_str(name: [String]!): String
+  list_req_str(name: [String!]): String
+  req_list_req_str(name: [String!]!): String
+}
