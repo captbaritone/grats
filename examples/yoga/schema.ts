@@ -1,4 +1,8 @@
-import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLString, GraphQLInterfaceType } from "graphql";
+import { allUsers } from "./models/User";
+import { me } from "./Query";
+import { person } from "./Query";
+import { countdown } from "./Subscription";
+import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLString, GraphQLInterfaceType, GraphQLInt } from "graphql";
 const GroupType: GraphQLObjectType = new GraphQLObjectType({
     name: "Group",
     fields() {
@@ -53,20 +57,50 @@ const QueryType: GraphQLObjectType = new GraphQLObjectType({
         return {
             allUsers: {
                 name: "allUsers",
-                type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(UserType)))
+                type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(UserType))),
+                resolve(source, args, context, info) {
+                    return allUsers(source, args, context, info);
+                }
             },
             me: {
                 name: "me",
-                type: new GraphQLNonNull(UserType)
+                type: new GraphQLNonNull(UserType),
+                resolve(source, args, context, info) {
+                    return me(source, args, context, info);
+                }
             },
             person: {
                 name: "person",
-                type: new GraphQLNonNull(IPersonType)
+                type: new GraphQLNonNull(IPersonType),
+                resolve(source, args, context, info) {
+                    return person(source, args, context, info);
+                }
+            }
+        };
+    }
+});
+const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Subscription",
+    fields() {
+        return {
+            countdown: {
+                name: "countdown",
+                type: new GraphQLNonNull(GraphQLInt),
+                args: {
+                    from: {
+                        name: "from",
+                        type: new GraphQLNonNull(GraphQLInt)
+                    }
+                },
+                resolve(source, args, context, info) {
+                    return countdown(source, args, context, info);
+                }
             }
         };
     }
 });
 const schema = new GraphQLSchema({
-    query: QueryType
+    query: QueryType,
+    subscription: SubscriptionType
 });
 export { schema };
