@@ -21,6 +21,7 @@ import {
 
 export * from "./Types";
 export * from "./lib";
+export { codegen } from "./codegen";
 
 type RuntimeOptions = {
   emitSchemaFile?: string;

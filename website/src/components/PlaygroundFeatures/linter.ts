@@ -1,6 +1,7 @@
 import { createSystem, createVirtualCompilerHost } from "@typescript/vfs";
 import * as ts from "typescript";
 import { buildSchemaResultWithHost } from "grats/src/lib";
+import { codegen } from "grats/src/codegen";
 import { linter } from "@codemirror/lint";
 import { printSchema } from "graphql";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
@@ -68,9 +69,14 @@ export function createLinter(fsMap, view, config) {
 
     store.dispatch({ type: "NEW_DOCUMENT_TEXT", value: text });
 
+    const codegenOutput = computeCodegenOutput(result);
     const output = computeOutput(result, view);
 
-    store.dispatch({ type: "GRATS_EMITTED_NEW_RESULT", value: output });
+    store.dispatch({
+      type: "GRATS_EMITTED_NEW_RESULT",
+      graphql: output,
+      typescript: codegenOutput,
+    });
     const diagnostics = [];
 
     if (result.kind === "ERROR") {
@@ -107,6 +113,15 @@ function computeOutput(schemaResult, view) {
     return printSchema(schema);
   }
   return printSchemaWithDirectives(schema, { assumeValid: true });
+}
+
+function computeCodegenOutput(schemaResult) {
+  if (schemaResult.kind === "ERROR") {
+    const errorText = schemaResult.err.formatDiagnosticsWithContext();
+    return `# ERROR MESSAGE\n# =============\n\n${commentLines(errorText)}`;
+  }
+
+  return codegen(schemaResult.value, "./schema.ts");
 }
 
 function commentLines(text: string): string {
