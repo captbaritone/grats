@@ -58,22 +58,22 @@ const QueryType: GraphQLObjectType = new GraphQLObjectType({
             allUsers: {
                 name: "allUsers",
                 type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(UserType))),
-                resolve(source, args, context, info) {
-                    return queryAllUsersResolver(source, args, context, info);
+                resolve(source) {
+                    return queryAllUsersResolver(source);
                 }
             },
             me: {
                 name: "me",
                 type: new GraphQLNonNull(UserType),
-                resolve(source, args, context, info) {
-                    return queryMeResolver(source, args, context, info);
+                resolve(source) {
+                    return queryMeResolver(source);
                 }
             },
             person: {
                 name: "person",
                 type: new GraphQLNonNull(IPersonType),
-                resolve(source, args, context, info) {
-                    return queryPersonResolver(source, args, context, info);
+                resolve(source) {
+                    return queryPersonResolver(source);
                 }
             }
         };
@@ -92,8 +92,8 @@ const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
                         type: new GraphQLNonNull(GraphQLInt)
                     }
                 },
-                resolve(source, args, context, info) {
-                    return subscriptionCountdownResolver(source, args, context, info);
+                resolve(source, args) {
+                    return subscriptionCountdownResolver(source, args);
                 }
             }
         };

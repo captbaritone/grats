@@ -29,6 +29,7 @@ import {
   METHOD_NAME_ARG,
   METHOD_NAME_DIRECTIVE,
   TS_MODULE_PATH_ARG,
+  ARG_COUNT,
 } from "./serverDirectives";
 import { resolveRelativePath } from "./gratsRoot";
 
@@ -171,6 +172,7 @@ class Codegen {
         exported,
         EXPORTED_FUNCTION_NAME_ARG,
       );
+      const argCount = assertDirectiveIntArg(exported, ARG_COUNT);
 
       const abs = resolveRelativePath(module);
       const relative = stripExt(
@@ -183,9 +185,11 @@ class Codegen {
       );
       this.import(`./${relative}`, [{ name: funcName, as: resolverName }]);
 
+      const usedArgs = args.slice(0, argCount);
+
       return this.method(
         "resolve",
-        args.map((name) => {
+        usedArgs.map((name) => {
           return F.createParameterDeclaration(
             undefined,
             undefined,
@@ -200,7 +204,7 @@ class Codegen {
             F.createCallExpression(
               F.createIdentifier(resolverName),
               undefined,
-              args.map((name) => {
+              usedArgs.map((name) => {
                 return F.createIdentifier(name);
               }),
             ),
@@ -653,6 +657,19 @@ function assertDirectiveStringArg(
   }
 
   return module.value;
+}
+
+function assertDirectiveIntArg(
+  directive: ConstDirectiveNode,
+  name: string,
+): number {
+  const module = directive.arguments?.find((a) => a.name.value === name)?.value;
+
+  if (module?.kind !== Kind.INT) {
+    throw new Error("Expected int argument");
+  }
+
+  return Number(module.value);
 }
 
 function stripExt(filePath: string): string {
