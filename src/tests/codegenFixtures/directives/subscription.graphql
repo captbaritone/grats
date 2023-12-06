@@ -1,0 +1,5 @@
+directive @asyncIterable on FIELD_DEFINITION
+
+type Subscription {
+  posts: String @asyncIterable
+}

@@ -30,6 +30,7 @@ import {
   METHOD_NAME_DIRECTIVE,
   TS_MODULE_PATH_ARG,
   ARG_COUNT,
+  ASYNC_ITERABLE_TYPE_DIRECTIVE,
 } from "./serverDirectives";
 import { resolveRelativePath } from "./gratsRoot";
 
@@ -159,8 +160,9 @@ class Codegen {
     ]);
   }
 
-  resolve(
+  resolveMethod(
     field: GraphQLField<unknown, unknown>,
+    methodName: string,
     parentTypeName: string,
   ): ts.MethodDeclaration | null {
     const args = ["source", "args", "context", "info"];
@@ -188,16 +190,9 @@ class Codegen {
       const usedArgs = args.slice(0, argCount);
 
       return this.method(
-        "resolve",
+        methodName,
         usedArgs.map((name) => {
-          return F.createParameterDeclaration(
-            undefined,
-            undefined,
-            name,
-            undefined,
-            undefined,
-            undefined,
-          );
+          return this.param(name);
         }),
         [
           F.createReturnStatement(
@@ -240,16 +235,9 @@ class Codegen {
         prop,
       );
       return this.method(
-        "resolve",
+        methodName,
         args.map((name) => {
-          return F.createParameterDeclaration(
-            undefined,
-            undefined,
-            name,
-            undefined,
-            undefined,
-            undefined,
-          );
+          return this.param(name);
         }),
         [F.createReturnStatement(ternary)],
       );
@@ -440,8 +428,27 @@ class Codegen {
       field.args.length
         ? F.createPropertyAssignment("args", this.argMap(field.args))
         : null,
-      this.resolve(field, parentTypeName),
+      ...this.fieldMethods(field, parentTypeName),
     ]);
+  }
+
+  fieldMethods(
+    field: GraphQLField<unknown, unknown>,
+    parentTypeName: string,
+  ): Array<ts.ObjectLiteralElementLike | null> {
+    const asyncIterable = fieldDirective(field, ASYNC_ITERABLE_TYPE_DIRECTIVE);
+    if (asyncIterable == null) {
+      return [this.resolveMethod(field, "resolve", parentTypeName)];
+    }
+    return [
+      this.resolveMethod(field, "subscribe", parentTypeName),
+      // Identity function (method?)
+      this.method(
+        "resolve",
+        [this.param("payload")],
+        [F.createReturnStatement(F.createIdentifier("payload"))],
+      ),
+    ];
   }
 
   argMap(args: ReadonlyArray<GraphQLArgument>): ts.ObjectLiteralExpression {
@@ -564,12 +571,14 @@ class Codegen {
     );
   }
 
+  // Helper to allow for nullable elements.
   objectLiteral(
     properties: Array<ts.ObjectLiteralElementLike | null>,
   ): ts.ObjectLiteralExpression {
     return F.createObjectLiteralExpression(properties.filter(isNonNull), true);
   }
 
+  // Helper for the common case.
   method(
     name: string,
     params: ts.ParameterDeclaration[],
@@ -584,6 +593,18 @@ class Codegen {
       params,
       undefined,
       F.createBlock(statements, true),
+    );
+  }
+
+  // Helper for the common case of a single string argument.
+  param(name: string): ts.ParameterDeclaration {
+    return F.createParameterDeclaration(
+      undefined,
+      undefined,
+      name,
+      undefined,
+      undefined,
+      undefined,
     );
   }
 
