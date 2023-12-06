@@ -401,6 +401,7 @@ class Codegen {
     const maybeProperties = [
       F.createPropertyAssignment("name", F.createStringLiteral(field.name)),
       F.createPropertyAssignment("type", this.typeReference(field.type)),
+      this.resolve(field),
     ];
     const properties: ts.PropertyAssignment[] = maybeProperties.filter(
       (v): v is ts.PropertyAssignment => v != null,
