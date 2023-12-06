@@ -441,10 +441,43 @@ class Codegen {
       this.description(arg.description),
       F.createPropertyAssignment("name", F.createStringLiteral(arg.name)),
       F.createPropertyAssignment("type", this.typeReference(arg.type)),
+      // TODO: arg.defaultValue seems to be missing for complex objects
+      arg.defaultValue !== undefined
+        ? F.createPropertyAssignment(
+            "defaultValue",
+            this.defaultValue(arg.defaultValue),
+          )
+        : null,
       // TODO: DefaultValue
-      // TODO: Description
       // TODO: Deprecated
     ]);
+  }
+
+  defaultValue(value: any) {
+    switch (typeof value) {
+      case "string":
+        return F.createStringLiteral(value);
+      case "number":
+        return F.createNumericLiteral(value);
+      case "boolean":
+        return value ? F.createTrue() : F.createFalse();
+      case "object":
+        if (value === null) {
+          return F.createNull();
+        } else if (Array.isArray(value)) {
+          return F.createArrayLiteralExpression(
+            value.map((v) => this.defaultValue(v)),
+          );
+        } else {
+          return this.objectLiteral(
+            Object.entries(value).map(([k, v]) =>
+              F.createPropertyAssignment(k, this.defaultValue(v)),
+            ),
+          );
+        }
+      default:
+        throw new Error(`TODO: unhandled default value ${value}`);
+    }
   }
 
   typeReference(t: GraphQLOutputType | GraphQLInputType): ts.Expression {
@@ -455,7 +488,7 @@ class Codegen {
         [this.typeReference(t.ofType)],
       );
     } else if (isListType(t)) {
-      if (!(isInputType(t.ofType) && isOutputType(t.ofType))) {
+      if (!(isInputType(t.ofType) || isOutputType(t.ofType))) {
         // I think this is just a TS type and TS can't prove that this never happens.
         throw new Error(`TODO: unhandled type ${t}`);
       }

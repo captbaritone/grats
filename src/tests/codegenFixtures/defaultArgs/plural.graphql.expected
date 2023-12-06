@@ -1,0 +1,32 @@
+-----------------
+INPUT
+----------------- 
+type Query {
+  true(input: [Boolean] = [True]): String!
+}
+
+-----------------
+OUTPUT
+-----------------
+import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString, GraphQLList, GraphQLBoolean } from "graphql";
+const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+        return {
+            true: {
+                name: "true",
+                type: new GraphQLNonNull(GraphQLString),
+                args: {
+                    input: {
+                        name: "input",
+                        type: new GraphQLList(GraphQLBoolean)
+                    }
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    query: QueryType
+});
+export { schema };
