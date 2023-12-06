@@ -7,6 +7,7 @@ async function main() {
 
   const server = createServer(yoga);
 
+  console.log("Using prebuilt schema.");
   server.listen(4000, () => {
     console.log(
       "Running a GraphQL API server at http://localhost:4000/graphql",
