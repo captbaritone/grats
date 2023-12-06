@@ -146,6 +146,9 @@ const testDirs = [
       }
       const schema = schemaResult.value;
 
+      // We run codegen here just ensure that it doesn't throw.
+      codegen(schema, filePath);
+
       const data = await graphql({
         schema,
         source: server.query,
