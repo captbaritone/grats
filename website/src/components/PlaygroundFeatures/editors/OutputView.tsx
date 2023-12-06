@@ -1,5 +1,5 @@
 import React from "react";
-import GraphQLOutputView from "./GraphqlOutputView";
+import GraphQLOutputView from "./GraphQLOutputView";
 import CodegenOutputView from "./CodegenOutputView";
 import { getOutputOption, useAppSelector } from "../store";
 
