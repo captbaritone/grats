@@ -5,8 +5,8 @@ import { ConfigOptions } from "./lib";
 export function printGratsSchema(
   schema: GraphQLSchema,
   config: ConfigOptions,
-  includeDirectives: boolean = true,
 ): string {
+  const includeDirectives = !config.EXPERIMENTAL_codegenPath;
   const sdl = print(schema, includeDirectives);
 
   if (config.schemaHeader) {

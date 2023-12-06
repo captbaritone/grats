@@ -33,7 +33,11 @@ type RuntimeOptions = {
 export function extractGratsSchemaAtRuntime(
   runtimeOptions: RuntimeOptions,
 ): GraphQLSchema {
-  const tsConfigResult = getParsedTsConfig();
+  const configFile = ts.findConfigFile(process.cwd(), ts.sys.fileExists);
+  if (configFile == null) {
+    throw new Error("Grats: Could not find tsconfig.json");
+  }
+  const tsConfigResult = getParsedTsConfig(configFile);
   if (tsConfigResult.kind === "ERROR") {
     console.error(tsConfigResult.err.formatDiagnosticsWithColorAndContext());
     process.exit(1);
@@ -64,11 +68,8 @@ export function buildSchemaFromSDL(sdl: string): GraphQLSchema {
 
 // #FIXME: Report diagnostics instead of throwing!
 export function getParsedTsConfig(
-  configPath?: string,
+  configFile: string,
 ): Result<ParsedCommandLineGrats, ReportableDiagnostics> {
-  const configFile =
-    configPath || ts.findConfigFile(process.cwd(), ts.sys.fileExists);
-
   if (!configFile) {
     throw new Error("Grats: Could not find tsconfig.json");
   }

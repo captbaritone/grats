@@ -1,20 +1,16 @@
 #!/usr/bin/env node
 
-import {
-  GraphQLSchema,
-  Location,
-  lexicographicSortSchema,
-  buildSchema as buildSchemaGraphql,
-} from "graphql";
+import { GraphQLSchema, Location, lexicographicSortSchema } from "graphql";
 import { getParsedTsConfig } from "./";
 import { ParsedCommandLineGrats, buildSchemaResult } from "./lib";
 import { Command } from "commander";
-import { writeFileSync, readFileSync } from "fs";
-import { resolve } from "path";
+import { writeFileSync } from "fs";
+import { resolve, dirname } from "path";
 import { version } from "../package.json";
 import { locate } from "./Locate";
 import { printGratsSchema } from "./printSchema";
 import { codegen } from "./codegen";
+import * as ts from "typescript";
 
 const program = new Command();
 
@@ -34,8 +30,8 @@ program
     "--experimentalCodegen <TS_FILE_PATH>",
     "EXPERIMENTAL: Path at which to generate schema code",
   )
-  .action(async ({ output, tsconfig, experimentalCodegen }) => {
-    build(output, tsconfig, experimentalCodegen);
+  .action(async ({ output, tsconfig }) => {
+    build(output, tsconfig);
   });
 
 program
@@ -63,30 +59,30 @@ program
 
 program.parse();
 
-function build(
-  output: string,
-  tsconfig?: string,
-  experimentalCodegen?: string,
-) {
-  const optionsResult = getParsedTsConfig(tsconfig);
+function build(output: string, tsconfig?: string) {
+  const configFile =
+    tsconfig || ts.findConfigFile(process.cwd(), ts.sys.fileExists);
+  if (configFile == null) {
+    throw new Error("Grats: Could not find tsconfig.json");
+  }
+  const optionsResult = getParsedTsConfig(configFile);
   if (optionsResult.kind === "ERROR") {
     console.error(optionsResult.err.formatDiagnosticsWithColorAndContext());
     process.exit(1);
   }
   const options = optionsResult.value;
   const schema = buildSchema(options);
-  if (experimentalCodegen) {
-    const dest = resolve(experimentalCodegen);
+  if (options.raw.grats.EXPERIMENTAL_codegenPath) {
+    const dest = resolve(
+      dirname(configFile),
+      options.raw.grats.EXPERIMENTAL_codegenPath,
+    );
     const code = codegen(schema, dest);
     writeFileSync(dest, code);
     console.error(`Grats: Wrote TypeScript schema to \`${dest}\`.`);
   }
   const sortedSchema = lexicographicSortSchema(schema);
-  const schemaStr = printGratsSchema(
-    sortedSchema,
-    options.raw.grats,
-    !experimentalCodegen,
-  );
+  const schemaStr = printGratsSchema(sortedSchema, options.raw.grats);
   if (output) {
     const absOutput = resolve(process.cwd(), output);
     writeFileSync(absOutput, schemaStr);

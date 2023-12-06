@@ -37,6 +37,9 @@ export type ConfigOptions = {
   // other information to the generated file. Set to `null` to omit the default
   // header.
   schemaHeader?: string | null;
+
+  // Unstable do not use
+  EXPERIMENTAL_codegenPath?: string;
 };
 
 export type ParsedCommandLineGrats = ts.ParsedCommandLine & {
