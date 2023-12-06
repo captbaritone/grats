@@ -19,7 +19,7 @@ type Query {
 -----------------
 OUTPUT
 -----------------
-import { salutation } from "./../../../../../../foo";
+import { salutation as querySalutationResolver } from "./../../../../../../foo";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 const QueryType: GraphQLObjectType = new GraphQLObjectType({
     name: "Query",
@@ -29,7 +29,7 @@ const QueryType: GraphQLObjectType = new GraphQLObjectType({
                 name: "greeting",
                 type: GraphQLString,
                 resolve(source, args, context, info) {
-                    return salutation(source, args, context, info);
+                    return querySalutationResolver(source, args, context, info);
                 }
             }
         };

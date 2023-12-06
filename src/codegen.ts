@@ -158,7 +158,10 @@ class Codegen {
     ]);
   }
 
-  resolve(field: GraphQLField<unknown, unknown>): ts.MethodDeclaration | null {
+  resolve(
+    field: GraphQLField<unknown, unknown>,
+    parentTypeName: string,
+  ): ts.MethodDeclaration | null {
     const args = ["source", "args", "context", "info"];
 
     const exported = fieldDirective(field, EXPORTED_DIRECTIVE);
@@ -173,7 +176,12 @@ class Codegen {
       const relative = stripExt(
         path.relative(path.dirname(this._destination), abs),
       );
-      this.import(`./${relative}`, [funcName]);
+
+      const resolverName = formatResolverFunctionVarName(
+        parentTypeName,
+        funcName,
+      );
+      this.import(`./${relative}`, [{ name: funcName, as: resolverName }]);
 
       return this.method(
         "resolve",
@@ -190,7 +198,7 @@ class Codegen {
         [
           F.createReturnStatement(
             F.createCallExpression(
-              F.createIdentifier(funcName),
+              F.createIdentifier(resolverName),
               undefined,
               args.map((name) => {
                 return F.createIdentifier(name);
@@ -248,7 +256,10 @@ class Codegen {
 
   fields(obj: GraphQLObjectType | GraphQLInterfaceType): ts.MethodDeclaration {
     const fields = Object.entries(obj.getFields()).map(([name, field]) => {
-      return F.createPropertyAssignment(name, this.fieldConfig(field));
+      return F.createPropertyAssignment(
+        name,
+        this.fieldConfig(field, obj.name),
+      );
     });
 
     return this.method(
@@ -416,6 +427,7 @@ class Codegen {
 
   fieldConfig(
     field: GraphQLField<unknown, unknown>,
+    parentTypeName: string,
   ): ts.ObjectLiteralExpression {
     return this.objectLiteral([
       this.description(field.description),
@@ -424,7 +436,7 @@ class Codegen {
       field.args.length
         ? F.createPropertyAssignment("args", this.argMap(field.args))
         : null,
-      this.resolve(field),
+      this.resolve(field, parentTypeName),
     ]);
   }
 
@@ -571,10 +583,22 @@ class Codegen {
     );
   }
 
-  import(from: string, names: string[]): void {
-    const namedImports = names.map((name) =>
-      F.createImportSpecifier(false, undefined, F.createIdentifier(name)),
-    );
+  import(from: string, names: { name: string; as?: string }[]) {
+    const namedImports = names.map((name) => {
+      if (name.as) {
+        return F.createImportSpecifier(
+          false,
+          F.createIdentifier(name.name),
+          F.createIdentifier(name.as),
+        );
+      } else {
+        return F.createImportSpecifier(
+          false,
+          undefined,
+          F.createIdentifier(name.name),
+        );
+      }
+    });
     this._imports.push(
       F.createImportDeclaration(
         undefined,
@@ -598,7 +622,10 @@ class Codegen {
       ts.ScriptKind.TS,
     );
 
-    this.import("graphql", [...this._graphQLImports]);
+    this.import(
+      "graphql",
+      [...this._graphQLImports].map((name) => ({ name })),
+    );
 
     return printer.printList(
       ts.ListFormat.MultiLine,
@@ -637,4 +664,13 @@ function stripExt(filePath: string): string {
 // Includes TypeScript refinement for narrowing the type
 function isNonNull<T>(value: T | null | undefined): value is T {
   return value != null;
+}
+
+function formatResolverFunctionVarName(
+  parentTypeName: string,
+  fieldName: string,
+): string {
+  const parent = parentTypeName[0].toLowerCase() + parentTypeName.slice(1);
+  const field = fieldName[0].toUpperCase() + fieldName.slice(1);
+  return `${parent}${field}Resolver`;
 }
