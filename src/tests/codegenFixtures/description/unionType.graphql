@@ -1,0 +1,16 @@
+"""
+A description
+"""
+union MyUnion = User | Animal
+
+type User {
+  name: String
+}
+
+type Animal {
+  name: String
+}
+
+type Query {
+  mammal: MyUnion
+}

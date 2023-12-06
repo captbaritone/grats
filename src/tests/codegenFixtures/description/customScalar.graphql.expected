@@ -1,0 +1,35 @@
+-----------------
+INPUT
+----------------- 
+"""
+A description
+"""
+scalar MyScalar
+
+type Query {
+  mammal: MyScalar
+}
+
+-----------------
+OUTPUT
+-----------------
+import { GraphQLSchema, GraphQLObjectType, GraphQLScalarType } from "graphql";
+const MyScalarType: GraphQLScalarType = new GraphQLScalarType({
+    description: "A description",
+    name: "MyScalar"
+});
+const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+        return {
+            mammal: {
+                name: "mammal",
+                type: MyScalarType
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    query: QueryType
+});
+export { schema };

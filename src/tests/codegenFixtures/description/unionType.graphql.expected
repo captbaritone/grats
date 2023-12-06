@@ -1,0 +1,68 @@
+-----------------
+INPUT
+----------------- 
+"""
+A description
+"""
+union MyUnion = User | Animal
+
+type User {
+  name: String
+}
+
+type Animal {
+  name: String
+}
+
+type Query {
+  mammal: MyUnion
+}
+
+-----------------
+OUTPUT
+-----------------
+import { GraphQLSchema, GraphQLObjectType, GraphQLUnionType, GraphQLString, GraphQLInterfaceType } from "graphql";
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const AnimalType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Animal",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const MyUnionType: GraphQLInterfaceType = new GraphQLUnionType({
+    name: "MyUnion",
+    description: "A description",
+    types() {
+        return [UserType, AnimalType];
+    }
+});
+const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+        return {
+            mammal: {
+                name: "mammal",
+                type: MyUnionType
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    query: QueryType
+});
+export { schema };

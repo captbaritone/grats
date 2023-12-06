@@ -1,0 +1,26 @@
+-----------------
+INPUT
+----------------- 
+type Subscription {
+  posts: String
+}
+
+-----------------
+OUTPUT
+-----------------
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Subscription",
+    fields() {
+        return {
+            posts: {
+                name: "posts",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    subscription: SubscriptionType
+});
+export { schema };

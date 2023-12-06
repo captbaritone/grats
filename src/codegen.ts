@@ -91,11 +91,17 @@ class Codegen {
   }
 
   schemaConfig(): ts.ObjectLiteralExpression {
-    return this.objectLiteral([this.schemaDescription(), this.query()]);
+    return this.objectLiteral([
+      this.description(this._schema.description),
+      this.query(),
+      this.mutation(),
+      this.subscription(),
+    ]);
   }
 
-  schemaDescription(): ts.PropertyAssignment | null {
-    const description = this._schema.description;
+  description(
+    description: string | null | undefined,
+  ): ts.PropertyAssignment | null {
     if (!description) return null;
     return F.createPropertyAssignment(
       "description",
@@ -107,6 +113,21 @@ class Codegen {
     const query = this._schema.getQueryType();
     if (!query) return null;
     return F.createPropertyAssignment("query", this.objectType(query));
+  }
+
+  mutation(): ts.PropertyAssignment | null {
+    const mutation = this._schema.getMutationType();
+    if (!mutation) return null;
+    return F.createPropertyAssignment("mutation", this.objectType(mutation));
+  }
+
+  subscription(): ts.PropertyAssignment | null {
+    const subscription = this._schema.getSubscriptionType();
+    if (!subscription) return null;
+    return F.createPropertyAssignment(
+      "subscription",
+      this.objectType(subscription),
+    );
   }
 
   objectType(obj: GraphQLObjectType): ts.Expression {
@@ -131,6 +152,7 @@ class Codegen {
   objectTypeConfig(obj: GraphQLObjectType): ts.ObjectLiteralExpression {
     return this.objectLiteral([
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
+      this.description(obj.description),
       this.fields(obj),
       this.interfaces(obj),
     ]);
@@ -304,6 +326,7 @@ class Codegen {
 
   interfaceTypeConfig(obj: GraphQLInterfaceType): ts.ObjectLiteralExpression {
     return this.objectLiteral([
+      this.description(obj.description),
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.fields(obj),
       this.interfaces(obj),
@@ -332,6 +355,7 @@ class Codegen {
   unionTypeConfig(obj: GraphQLUnionType): ts.ObjectLiteralExpression {
     return this.objectLiteral([
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
+      this.description(obj.description),
       F.createMethodDeclaration(
         undefined,
         undefined,
@@ -375,6 +399,7 @@ class Codegen {
 
   customScalarTypeConfig(obj: GraphQLScalarType): ts.ObjectLiteralExpression {
     return this.objectLiteral([
+      this.description(obj.description),
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
     ]);
   }
@@ -400,6 +425,7 @@ class Codegen {
 
   inputTypeConfig(obj: GraphQLInputObjectType): ts.ObjectLiteralExpression {
     return this.objectLiteral([
+      this.description(obj.description),
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.inputFields(obj),
     ]);
@@ -427,6 +453,7 @@ class Codegen {
 
   inputFieldConfig(field: GraphQLArgument): ts.Expression {
     return this.objectLiteral([
+      this.description(field.description),
       F.createPropertyAssignment("name", F.createStringLiteral(field.name)),
       F.createPropertyAssignment("type", this.typeReference(field.type)),
     ]);
@@ -436,6 +463,7 @@ class Codegen {
     field: GraphQLField<unknown, unknown>,
   ): ts.ObjectLiteralExpression {
     return this.objectLiteral([
+      this.description(field.description),
       F.createPropertyAssignment("name", F.createStringLiteral(field.name)),
       F.createPropertyAssignment("type", this.typeReference(field.type)),
       field.args.length
@@ -455,6 +483,7 @@ class Codegen {
 
   argConfig(arg: GraphQLArgument): ts.Expression {
     return this.objectLiteral([
+      this.description(arg.description),
       F.createPropertyAssignment("name", F.createStringLiteral(arg.name)),
       F.createPropertyAssignment("type", this.typeReference(arg.type)),
       // TODO: DefaultValue
