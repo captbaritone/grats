@@ -1,11 +1,15 @@
+import { readFileSync } from "fs";
 import { createServer } from "node:http";
 import { createYoga } from "graphql-yoga";
-import { readFileSync } from "node:fs";
-import { buildSchemaFromSDL, extractGratsSchemaAtRuntime } from "grats";
+
+import { extractGratsSchemaAtRuntime, buildSchemaFromSDL } from "grats";
 
 async function main() {
   const schema = getSchema();
-  const yoga = createYoga({ schema });
+
+  const yoga = createYoga({
+    schema,
+  });
 
   const server = createServer(yoga);
 
