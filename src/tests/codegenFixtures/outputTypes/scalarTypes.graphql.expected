@@ -1,0 +1,146 @@
+-----------------
+INPUT
+----------------- 
+type Query {
+  str: String
+  int: Int
+  float: Float
+  id: ID
+
+  req_str: String!
+  req_int: Int!
+  req_float: Float!
+  req_id: ID!
+
+  list_str: [String]
+  list_int: [Int]
+  list_float: [Float]
+  list_id: [ID]
+
+  req_list_str: [String]!
+  req_list_int: [Int]!
+  req_list_float: [Float]!
+  req_list_id: [ID]!
+
+  list_req_str: [String!]
+  list_req_int: [Int!]
+  list_req_float: [Float!]
+  list_req_id: [ID!]
+
+  req_list_req_str: [String!]!
+  req_list_req_int: [Int!]!
+  req_list_req_float: [Float!]!
+  req_list_req_id: [ID!]!
+}
+
+-----------------
+OUTPUT
+-----------------
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLFloat, GraphQLID, GraphQLNonNull, GraphQLList } from "graphql";
+const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+        return {
+            str: {
+                name: "str",
+                type: GraphQLString
+            },
+            int: {
+                name: "int",
+                type: GraphQLInt
+            },
+            float: {
+                name: "float",
+                type: GraphQLFloat
+            },
+            id: {
+                name: "id",
+                type: GraphQLID
+            },
+            req_str: {
+                name: "req_str",
+                type: new GraphQLNonNull(GraphQLString)
+            },
+            req_int: {
+                name: "req_int",
+                type: new GraphQLNonNull(GraphQLInt)
+            },
+            req_float: {
+                name: "req_float",
+                type: new GraphQLNonNull(GraphQLFloat)
+            },
+            req_id: {
+                name: "req_id",
+                type: new GraphQLNonNull(GraphQLID)
+            },
+            list_str: {
+                name: "list_str",
+                type: new GraphQLList(GraphQLString)
+            },
+            list_int: {
+                name: "list_int",
+                type: new GraphQLList(GraphQLInt)
+            },
+            list_float: {
+                name: "list_float",
+                type: new GraphQLList(GraphQLFloat)
+            },
+            list_id: {
+                name: "list_id",
+                type: new GraphQLList(GraphQLID)
+            },
+            req_list_str: {
+                name: "req_list_str",
+                type: new GraphQLNonNull(new GraphQLList(GraphQLString))
+            },
+            req_list_int: {
+                name: "req_list_int",
+                type: new GraphQLNonNull(new GraphQLList(GraphQLInt))
+            },
+            req_list_float: {
+                name: "req_list_float",
+                type: new GraphQLNonNull(new GraphQLList(GraphQLFloat))
+            },
+            req_list_id: {
+                name: "req_list_id",
+                type: new GraphQLNonNull(new GraphQLList(GraphQLID))
+            },
+            list_req_str: {
+                name: "list_req_str",
+                type: new GraphQLList(new GraphQLNonNull(GraphQLString))
+            },
+            list_req_int: {
+                name: "list_req_int",
+                type: new GraphQLList(new GraphQLNonNull(GraphQLInt))
+            },
+            list_req_float: {
+                name: "list_req_float",
+                type: new GraphQLList(new GraphQLNonNull(GraphQLFloat))
+            },
+            list_req_id: {
+                name: "list_req_id",
+                type: new GraphQLList(new GraphQLNonNull(GraphQLID))
+            },
+            req_list_req_str: {
+                name: "req_list_req_str",
+                type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLString)))
+            },
+            req_list_req_int: {
+                name: "req_list_req_int",
+                type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLInt)))
+            },
+            req_list_req_float: {
+                name: "req_list_req_float",
+                type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLFloat)))
+            },
+            req_list_req_id: {
+                name: "req_list_req_id",
+                type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLID)))
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    query: QueryType
+});
+export { schema };

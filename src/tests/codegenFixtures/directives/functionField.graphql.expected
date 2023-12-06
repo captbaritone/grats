@@ -1,0 +1,37 @@
+-----------------
+INPUT
+----------------- 
+directive @exported(
+  jsModulePath: String!
+  tsModulePath: String!
+  functionName: String!
+) on FIELD_DEFINITION
+
+type Query {
+  greeting: String
+    @exported(
+      jsModulePath: "../foo.js"
+      tsModulePath: "../foo.ts"
+      functionName: "salutation"
+    )
+}
+
+-----------------
+OUTPUT
+-----------------
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+        return {
+            greeting: {
+                name: "greeting",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    query: QueryType
+});
+export { schema };

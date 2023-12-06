@@ -22,6 +22,7 @@ export default class TestRunner {
     fixturesDir: string,
     write: boolean,
     filter: string | null,
+    extension: string,
     transformer: Transformer,
   ) {
     this._write = write;
@@ -29,7 +30,7 @@ export default class TestRunner {
     this._transformer = transformer;
     const filterRegex = filter != null ? new RegExp(filter) : null;
     for (const fileName of readdirSyncRecursive(fixturesDir)) {
-      if (fileName.endsWith(".ts")) {
+      if (fileName.endsWith(extension)) {
         this._testFixtures.push(fileName);
         const filePath = path.join(fixturesDir, fileName);
         if (filterRegex != null && !filePath.match(filterRegex)) {

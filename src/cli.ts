@@ -1,14 +1,20 @@
 #!/usr/bin/env node
 
-import { GraphQLSchema, Location, lexicographicSortSchema } from "graphql";
+import {
+  GraphQLSchema,
+  Location,
+  lexicographicSortSchema,
+  buildSchema as buildSchemaGraphql,
+} from "graphql";
 import { getParsedTsConfig } from "./";
 import { ParsedCommandLineGrats, buildSchemaResult } from "./lib";
 import { Command } from "commander";
-import { writeFileSync } from "fs";
+import { writeFileSync, readFileSync } from "fs";
 import { resolve } from "path";
 import { version } from "../package.json";
 import { locate } from "./Locate";
 import { printGratsSchema } from "./printSchema";
+import { codegen } from "./codegen";
 
 const program = new Command();
 
@@ -24,8 +30,12 @@ program
     "--tsconfig <TSCONFIG>",
     "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",
   )
-  .action(async ({ output, tsconfig }) => {
-    build(output, tsconfig);
+  .option(
+    "--experimentalCodegen <TS_FILE_PATH>",
+    "EXPERIMENTAL: Path at which to generate schema code",
+  )
+  .action(async ({ output, tsconfig, experimentalCodegen }) => {
+    build(output, tsconfig, experimentalCodegen);
   });
 
 program
@@ -53,7 +63,11 @@ program
 
 program.parse();
 
-function build(output: string, tsconfig?: string) {
+function build(
+  output: string,
+  tsconfig?: string,
+  experimentalCodegen?: string,
+) {
   const optionsResult = getParsedTsConfig(tsconfig);
   if (optionsResult.kind === "ERROR") {
     console.error(optionsResult.err.formatDiagnosticsWithColorAndContext());
@@ -61,8 +75,18 @@ function build(output: string, tsconfig?: string) {
   }
   const options = optionsResult.value;
   const schema = buildSchema(options);
+  if (experimentalCodegen) {
+    const dest = resolve(experimentalCodegen);
+    const code = codegen(schema, dest);
+    writeFileSync(dest, code);
+    console.error(`Grats: Wrote TypeScript schema to \`${dest}\`.`);
+  }
   const sortedSchema = lexicographicSortSchema(schema);
-  const schemaStr = printGratsSchema(sortedSchema, options.raw.grats);
+  const schemaStr = printGratsSchema(
+    sortedSchema,
+    options.raw.grats,
+    !experimentalCodegen,
+  );
   if (output) {
     const absOutput = resolve(process.cwd(), output);
     writeFileSync(absOutput, schemaStr);
