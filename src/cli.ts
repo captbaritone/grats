@@ -29,10 +29,6 @@ program
     "--tsconfig <TSCONFIG>",
     "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",
   )
-  .option(
-    "--experimentalCodegen <TS_FILE_PATH>",
-    "EXPERIMENTAL: Path at which to generate schema code",
-  )
   .action(async ({ output, tsconfig }) => {
     build(output, tsconfig);
   });
