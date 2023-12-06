@@ -1,7 +1,6 @@
 {
   "grats": {
-    "nullableByDefault": false,
-    "EXPERIMENTAL_codegenPath": "./schema.ts"
+    "nullableByDefault": false
   },
   "compilerOptions": {
     "outDir": "dist",
