@@ -15,7 +15,7 @@ import {
   diagnosticAtGraphQLLocation,
   ReportableDiagnostics,
 } from "../utils/DiagnosticError";
-import { printGratsSchema } from "../printSchema";
+import { printGratsSDL } from "../printSchema";
 import { readFileSync } from "fs";
 import { codegen } from "../codegen";
 
@@ -106,7 +106,7 @@ const testDirs = [
           diagnosticAtGraphQLLocation("Located here", locResult.value),
         ]).formatDiagnosticsWithContext();
       } else {
-        return printGratsSchema(schemaResult.value, options);
+        return printGratsSDL(schemaResult.value, options);
       }
     },
   },

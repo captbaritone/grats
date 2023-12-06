@@ -2,14 +2,17 @@
 
 import { GraphQLSchema, Location, lexicographicSortSchema } from "graphql";
 import { getParsedTsConfig } from "./";
-import { ParsedCommandLineGrats, buildSchemaResult } from "./lib";
+import {
+  ConfigOptions,
+  ParsedCommandLineGrats,
+  buildSchemaResult,
+} from "./lib";
 import { Command } from "commander";
 import { writeFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { version } from "../package.json";
 import { locate } from "./Locate";
-import { printGratsSchema } from "./printSchema";
-import { codegen } from "./codegen";
+import { printGratsSDL, printExecutableSchema } from "./printSchema";
 import * as ts from "typescript";
 
 const program = new Command();
@@ -71,18 +74,16 @@ function build(output: string, tsconfig?: string) {
     process.exit(1);
   }
   const options = optionsResult.value;
+  const config: ConfigOptions = options.raw.grats;
   const schema = buildSchema(options);
-  if (options.raw.grats.EXPERIMENTAL_codegenPath) {
-    const dest = resolve(
-      dirname(configFile),
-      options.raw.grats.EXPERIMENTAL_codegenPath,
-    );
-    const code = codegen(schema, dest);
+  if (config.EXPERIMENTAL_codegenPath) {
+    const dest = resolve(dirname(configFile), config.EXPERIMENTAL_codegenPath);
+    const code = printExecutableSchema(schema, config, dest);
     writeFileSync(dest, code);
     console.error(`Grats: Wrote TypeScript schema to \`${dest}\`.`);
   }
   const sortedSchema = lexicographicSortSchema(schema);
-  const schemaStr = printGratsSchema(sortedSchema, options.raw.grats);
+  const schemaStr = printGratsSDL(sortedSchema, config);
   if (output) {
     const absOutput = resolve(process.cwd(), output);
     writeFileSync(absOutput, schemaStr);

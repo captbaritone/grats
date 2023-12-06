@@ -1,13 +1,34 @@
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import { GraphQLSchema, printSchema } from "graphql";
 import { ConfigOptions } from "./lib";
+import { codegen } from "./codegen";
 
-export function printGratsSchema(
+/**
+ * Prints code for a TypeScript module that exports a GraphQLSchema.
+ * Includes the user-defined (or default) header comment if provided.
+ */
+export function printExecutableSchema(
+  schema: GraphQLSchema,
+  config: ConfigOptions,
+  destination: string,
+): string {
+  const code = codegen(schema, destination);
+  if (config.EXPERIMENTAL_codegenHeader) {
+    return `${config.EXPERIMENTAL_codegenHeader}\n${code}`;
+  }
+  return code;
+}
+
+/**
+ * Prints SDL, potentially omitting directives depending upon the config.
+ * Includes the user-defined (or default) header comment if provided.
+ */
+export function printGratsSDL(
   schema: GraphQLSchema,
   config: ConfigOptions,
 ): string {
   const includeDirectives = !config.EXPERIMENTAL_codegenPath;
-  const sdl = print(schema, includeDirectives);
+  const sdl = printSDL(schema, includeDirectives);
 
   if (config.schemaHeader) {
     return `${config.schemaHeader}\n${sdl}`;
@@ -15,7 +36,7 @@ export function printGratsSchema(
   return sdl;
 }
 
-function print(schema: GraphQLSchema, includeDirectives: boolean): string {
+function printSDL(schema: GraphQLSchema, includeDirectives: boolean): string {
   if (includeDirectives) {
     return printSchemaWithDirectives(schema, {
       assumeValid: true,
@@ -24,6 +45,8 @@ function print(schema: GraphQLSchema, includeDirectives: boolean): string {
   return printSchema(
     new GraphQLSchema({
       ...schema.toConfig(),
+      // TODO: Only filter out our directives. Note that
+      // the playground duplicates this logic.
       directives: [],
     }),
   );

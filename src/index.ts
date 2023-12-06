@@ -11,7 +11,7 @@ import {
   buildSchemaResult,
   validateGratsOptions,
 } from "./lib";
-import { printGratsSchema } from "./printSchema";
+import { printGratsSDL } from "./printSchema";
 import {
   ReportableDiagnostics,
   Result,
@@ -54,7 +54,7 @@ export function extractGratsSchemaAtRuntime(
   let runtimeSchema = schemaResult.value;
   if (runtimeOptions.emitSchemaFile) {
     runtimeSchema = lexicographicSortSchema(runtimeSchema);
-    const sdl = printGratsSchema(runtimeSchema, parsedTsConfig.raw.grats);
+    const sdl = printGratsSDL(runtimeSchema, parsedTsConfig.raw.grats);
     const filePath = runtimeOptions.emitSchemaFile;
     fs.writeFileSync(filePath, sdl);
   }
