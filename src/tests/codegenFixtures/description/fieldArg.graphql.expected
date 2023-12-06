@@ -1,0 +1,38 @@
+-----------------
+INPUT
+----------------- 
+type Query {
+  greeting(
+    """
+    A description
+    """
+    name: String
+  ): String
+}
+
+-----------------
+OUTPUT
+-----------------
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+        return {
+            greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                args: {
+                    name: {
+                        description: "A description",
+                        name: "name",
+                        type: GraphQLString
+                    }
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    query: QueryType
+});
+export { schema };

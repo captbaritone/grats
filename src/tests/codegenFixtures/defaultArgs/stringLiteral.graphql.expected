@@ -1,0 +1,33 @@
+-----------------
+INPUT
+----------------- 
+type Query {
+  input(input: String = "hello"): String!
+}
+
+-----------------
+OUTPUT
+-----------------
+import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString } from "graphql";
+const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+        return {
+            input: {
+                name: "input",
+                type: new GraphQLNonNull(GraphQLString),
+                args: {
+                    input: {
+                        name: "input",
+                        type: GraphQLString,
+                        defaultValue: "hello"
+                    }
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    query: QueryType
+});
+export { schema };

@@ -7,7 +7,7 @@ schema {
 
 directive @asyncIterable on FIELD_DEFINITION
 
-directive @exported(functionName: String!, jsModulePath: String!, tsModulePath: String!) on FIELD_DEFINITION
+directive @exported(argCount: Int!, functionName: String!, jsModulePath: String!, tsModulePath: String!) on FIELD_DEFINITION
 
 directive @methodName(name: String!) on FIELD_DEFINITION
 
@@ -22,9 +22,9 @@ interface IPerson {
 }
 
 type Query {
-  allUsers: [User!]! @exported(jsModulePath: "examples/express-graphql/dist/models/User.js", tsModulePath: "examples/express-graphql/models/User.ts", functionName: "allUsers")
-  me: User! @exported(jsModulePath: "examples/express-graphql/dist/Query.js", tsModulePath: "examples/express-graphql/Query.ts", functionName: "me")
-  person: IPerson! @exported(jsModulePath: "examples/express-graphql/dist/Query.js", tsModulePath: "examples/express-graphql/Query.ts", functionName: "person")
+  allUsers: [User!]! @exported(jsModulePath: "examples/express-graphql/dist/models/User.js", tsModulePath: "examples/express-graphql/models/User.ts", functionName: "allUsers", argCount: 1)
+  me: User! @exported(jsModulePath: "examples/express-graphql/dist/Query.js", tsModulePath: "examples/express-graphql/Query.ts", functionName: "me", argCount: 1)
+  person: IPerson! @exported(jsModulePath: "examples/express-graphql/dist/Query.js", tsModulePath: "examples/express-graphql/Query.ts", functionName: "person", argCount: 1)
 }
 
 type User implements IPerson {

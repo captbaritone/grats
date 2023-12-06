@@ -1,0 +1,5 @@
+directive @methodName(name: String!) on FIELD_DEFINITION
+
+type Query {
+  greeting: String @methodName(name: "salutation")
+}

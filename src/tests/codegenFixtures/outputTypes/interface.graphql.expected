@@ -1,0 +1,46 @@
+-----------------
+INPUT
+----------------- 
+interface IPerson {
+  name: String
+}
+
+type User implements IPerson {
+  name: String
+  age: Int
+}
+
+type Query {
+  president: IPerson
+}
+
+-----------------
+OUTPUT
+-----------------
+import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType, GraphQLString } from "graphql";
+const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    name: "IPerson",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+        return {
+            president: {
+                name: "president",
+                type: IPersonType
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    query: QueryType
+});
+export { schema };

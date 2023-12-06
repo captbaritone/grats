@@ -1,0 +1,43 @@
+-----------------
+INPUT
+----------------- 
+directive @exported(
+  jsModulePath: String!
+  tsModulePath: String!
+  functionName: String!
+  argCount: Int!
+) on FIELD_DEFINITION
+
+type Query {
+  greeting: String
+    @exported(
+      jsModulePath: "../foo.js"
+      tsModulePath: "../foo.ts"
+      functionName: "salutation"
+      argCount: 2
+    )
+}
+
+-----------------
+OUTPUT
+-----------------
+import { salutation as querySalutationResolver } from "./../../../../../../foo";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+        return {
+            greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                resolve(source, args) {
+                    return querySalutationResolver(source, args);
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    query: QueryType
+});
+export { schema };

@@ -1,0 +1,8 @@
+input Greeting {
+  salutation: String!
+  name: String!
+}
+
+type Query {
+  greet(greeting: Greeting): String
+}

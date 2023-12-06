@@ -2,13 +2,18 @@
 
 import { GraphQLSchema, Location, lexicographicSortSchema } from "graphql";
 import { getParsedTsConfig } from "./";
-import { ParsedCommandLineGrats, buildSchemaResult } from "./lib";
+import {
+  ConfigOptions,
+  ParsedCommandLineGrats,
+  buildSchemaResult,
+} from "./lib";
 import { Command } from "commander";
 import { writeFileSync } from "fs";
-import { resolve } from "path";
+import { resolve, dirname } from "path";
 import { version } from "../package.json";
 import { locate } from "./Locate";
-import { printGratsSchema } from "./printSchema";
+import { printGratsSDL, printExecutableSchema } from "./printSchema";
+import * as ts from "typescript";
 
 const program = new Command();
 
@@ -23,6 +28,10 @@ program
   .option(
     "--tsconfig <TSCONFIG>",
     "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",
+  )
+  .option(
+    "--experimentalCodegen <TS_FILE_PATH>",
+    "EXPERIMENTAL: Path at which to generate schema code",
   )
   .action(async ({ output, tsconfig }) => {
     build(output, tsconfig);
@@ -54,15 +63,27 @@ program
 program.parse();
 
 function build(output: string, tsconfig?: string) {
-  const optionsResult = getParsedTsConfig(tsconfig);
+  const configFile =
+    tsconfig || ts.findConfigFile(process.cwd(), ts.sys.fileExists);
+  if (configFile == null) {
+    throw new Error("Grats: Could not find tsconfig.json");
+  }
+  const optionsResult = getParsedTsConfig(configFile);
   if (optionsResult.kind === "ERROR") {
     console.error(optionsResult.err.formatDiagnosticsWithColorAndContext());
     process.exit(1);
   }
   const options = optionsResult.value;
+  const config: ConfigOptions = options.raw.grats;
   const schema = buildSchema(options);
+  if (config.EXPERIMENTAL_codegenPath) {
+    const dest = resolve(dirname(configFile), config.EXPERIMENTAL_codegenPath);
+    const code = printExecutableSchema(schema, config, dest);
+    writeFileSync(dest, code);
+    console.error(`Grats: Wrote TypeScript schema to \`${dest}\`.`);
+  }
   const sortedSchema = lexicographicSortSchema(schema);
-  const schemaStr = printGratsSchema(sortedSchema, options.raw.grats);
+  const schemaStr = printGratsSDL(sortedSchema, config);
   if (output) {
     const absOutput = resolve(process.cwd(), output);
     writeFileSync(absOutput, schemaStr);

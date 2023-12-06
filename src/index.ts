@@ -11,7 +11,7 @@ import {
   buildSchemaResult,
   validateGratsOptions,
 } from "./lib";
-import { printGratsSchema } from "./printSchema";
+import { printGratsSDL } from "./printSchema";
 import {
   ReportableDiagnostics,
   Result,
@@ -21,6 +21,7 @@ import {
 
 export * from "./Types";
 export * from "./lib";
+export { codegen } from "./codegen";
 
 type RuntimeOptions = {
   emitSchemaFile?: string;
@@ -32,7 +33,11 @@ type RuntimeOptions = {
 export function extractGratsSchemaAtRuntime(
   runtimeOptions: RuntimeOptions,
 ): GraphQLSchema {
-  const tsConfigResult = getParsedTsConfig();
+  const configFile = ts.findConfigFile(process.cwd(), ts.sys.fileExists);
+  if (configFile == null) {
+    throw new Error("Grats: Could not find tsconfig.json");
+  }
+  const tsConfigResult = getParsedTsConfig(configFile);
   if (tsConfigResult.kind === "ERROR") {
     console.error(tsConfigResult.err.formatDiagnosticsWithColorAndContext());
     process.exit(1);
@@ -49,7 +54,7 @@ export function extractGratsSchemaAtRuntime(
   let runtimeSchema = schemaResult.value;
   if (runtimeOptions.emitSchemaFile) {
     runtimeSchema = lexicographicSortSchema(runtimeSchema);
-    const sdl = printGratsSchema(runtimeSchema, parsedTsConfig.raw.grats);
+    const sdl = printGratsSDL(runtimeSchema, parsedTsConfig.raw.grats);
     const filePath = runtimeOptions.emitSchemaFile;
     fs.writeFileSync(filePath, sdl);
   }
@@ -63,11 +68,8 @@ export function buildSchemaFromSDL(sdl: string): GraphQLSchema {
 
 // #FIXME: Report diagnostics instead of throwing!
 export function getParsedTsConfig(
-  configPath?: string,
+  configFile: string,
 ): Result<ParsedCommandLineGrats, ReportableDiagnostics> {
-  const configFile =
-    configPath || ts.findConfigFile(process.cwd(), ts.sys.fileExists);
-
   if (!configFile) {
     throw new Error("Grats: Could not find tsconfig.json");
   }

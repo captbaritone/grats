@@ -8,14 +8,16 @@ import {
   validateGratsOptions,
 } from "../lib";
 import * as ts from "typescript";
-import { graphql } from "graphql";
+import { buildSchema, graphql } from "graphql";
 import { Command } from "commander";
 import { locate } from "../Locate";
 import {
   diagnosticAtGraphQLLocation,
   ReportableDiagnostics,
 } from "../utils/DiagnosticError";
-import { printGratsSchema } from "../printSchema";
+import { printGratsSDL } from "../printSchema";
+import { readFileSync } from "fs";
+import { codegen } from "../codegen";
 
 const program = new Command();
 
@@ -33,11 +35,12 @@ program
   .action(async ({ filter, write }) => {
     const filterRegex = filter ?? null;
     let failures = false;
-    for (const { fixturesDir, transformer } of testDirs) {
+    for (const { fixturesDir, transformer, extension } of testDirs) {
       const runner = new TestRunner(
         fixturesDir,
         !!write,
         filterRegex,
+        extension,
         transformer,
       );
       failures = !(await runner.run()) || failures;
@@ -50,10 +53,12 @@ program
 const gratsDir = path.join(__dirname, "../..");
 const fixturesDir = path.join(__dirname, "fixtures");
 const integrationFixturesDir = path.join(__dirname, "integrationFixtures");
+const codegenFixturesDir = path.join(__dirname, "codegenFixtures");
 
 const testDirs = [
   {
     fixturesDir,
+    extension: ".ts",
     transformer: (code: string, fileName: string) => {
       const firstLine = code.split("\n")[0];
       let options: ConfigOptions = {
@@ -101,12 +106,13 @@ const testDirs = [
           diagnosticAtGraphQLLocation("Located here", locResult.value),
         ]).formatDiagnosticsWithContext();
       } else {
-        return printGratsSchema(schemaResult.value, options);
+        return printGratsSDL(schemaResult.value, options);
       }
     },
   },
   {
     fixturesDir: integrationFixturesDir,
+    extension: ".ts",
     transformer: async (code: string, fileName: string) => {
       const filePath = `${integrationFixturesDir}/${fileName}`;
       const server = await import(filePath);
@@ -140,12 +146,26 @@ const testDirs = [
       }
       const schema = schemaResult.value;
 
+      // We run codegen here just ensure that it doesn't throw.
+      codegen(schema, filePath);
+
       const data = await graphql({
         schema,
         source: server.query,
       });
 
       return JSON.stringify(data, null, 2);
+    },
+  },
+  {
+    fixturesDir: codegenFixturesDir,
+    extension: ".graphql",
+    transformer: async (code: string, fileName: string) => {
+      const filePath = `${codegenFixturesDir}/${fileName}`;
+      const sdl = readFileSync(filePath, "utf8");
+      const schema = buildSchema(sdl);
+
+      return codegen(schema, filePath);
     },
   },
 ];

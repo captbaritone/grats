@@ -1,0 +1,10 @@
+"""
+A description
+"""
+interface IPerson {
+  name: String
+}
+
+type Query {
+  person: IPerson
+}

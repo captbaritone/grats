@@ -39,6 +39,7 @@ export const DEFAULT_STATE: State = {
     reportTypeScriptTypeErrors: true,
   },
   view: {
+    outputOption: "sdl",
     showGratsDirectives: false,
   },
   gratsResult: null,

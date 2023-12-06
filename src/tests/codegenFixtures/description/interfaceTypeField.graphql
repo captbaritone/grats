@@ -1,0 +1,10 @@
+input MyInput {
+  """
+  A description
+  """
+  myField: String
+}
+
+type Query {
+  greeting(input: MyInput): String
+}

@@ -16,8 +16,8 @@ directive @asyncIterable on FIELD_DEFINITION
 
 directive @methodName(name: String!) on FIELD_DEFINITION
 
-directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: String!) on FIELD_DEFINITION
+directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
 
 type SomeType {
-  greeting: String @exported(jsModulePath: "grats/src/tests/fixtures/type_definitions_from_alias/AliasOfUnknownDefinesType.js", tsModulePath: "grats/src/tests/fixtures/type_definitions_from_alias/AliasOfUnknownDefinesType.ts", functionName: "greeting")
+  greeting: String @exported(jsModulePath: "grats/src/tests/fixtures/type_definitions_from_alias/AliasOfUnknownDefinesType.js", tsModulePath: "grats/src/tests/fixtures/type_definitions_from_alias/AliasOfUnknownDefinesType.ts", functionName: "greeting", argCount: 1)
 }

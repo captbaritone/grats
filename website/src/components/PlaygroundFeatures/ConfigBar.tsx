@@ -1,6 +1,7 @@
 import React from "react";
 import store, {
   getNullableByDefault,
+  getOutputOption,
   getShowGratsDirectives,
   useAppSelector,
 } from "./store";
@@ -10,6 +11,7 @@ import ShareButton from "./ShareButton";
 export default function ConfigBar(): JSX.Element {
   const nullableByDefault = useAppSelector(getNullableByDefault);
   const showGratsDirectives = useAppSelector(getShowGratsDirectives);
+  const outputOption = useAppSelector(getOutputOption);
   return (
     <div
       style={{
@@ -50,19 +52,35 @@ export default function ConfigBar(): JSX.Element {
         <ConfigBlock>
           <ConfigBarHeading>View options:</ConfigBarHeading>
           <Label>
-            <input
-              checked={showGratsDirectives}
-              type="checkbox"
+            <select
+              value={outputOption}
               onChange={(e) => {
-                console.log(e.target.checked);
+                console.log("e.target.value", e.target.value);
                 store.dispatch({
-                  type: "SHOW_GRATS_DIRECTIVE_INPUT_CHANGED",
-                  value: e.target.checked,
+                  type: "OUTPUT_VIEW_SELECTION_CHANGED",
+                  value: e.target.value,
                 });
               }}
-            />
-            Show Grats directives
+            >
+              <option value="sdl">GraphQL Schema</option>
+              <option value="typescript">TypeScript Schema</option>
+            </select>
           </Label>
+          {outputOption === "sdl" && (
+            <Label>
+              <input
+                checked={showGratsDirectives}
+                type="checkbox"
+                onChange={(e) => {
+                  store.dispatch({
+                    type: "SHOW_GRATS_DIRECTIVE_INPUT_CHANGED",
+                    value: e.target.checked,
+                  });
+                }}
+              />
+              Show Grats directives
+            </Label>
+          )}
         </ConfigBlock>
         <div
           style={{
@@ -91,6 +109,7 @@ function ConfigBlock({ children }) {
         flexGrow: 1,
         display: "flex",
         flexDirection: "row",
+        gap: "0.5em",
       }}
     >
       {children}

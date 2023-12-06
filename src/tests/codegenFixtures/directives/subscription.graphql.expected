@@ -1,0 +1,31 @@
+-----------------
+INPUT
+----------------- 
+directive @asyncIterable on FIELD_DEFINITION
+
+type Subscription {
+  posts: String @asyncIterable
+}
+
+-----------------
+OUTPUT
+-----------------
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Subscription",
+    fields() {
+        return {
+            posts: {
+                name: "posts",
+                type: GraphQLString,
+                resolve(payload) {
+                    return payload;
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    subscription: SubscriptionType
+});
+export { schema };

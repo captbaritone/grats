@@ -1,0 +1,31 @@
+-----------------
+INPUT
+----------------- 
+scalar Eon
+
+type Query {
+  currentEon: Eon
+}
+
+-----------------
+OUTPUT
+-----------------
+import { GraphQLSchema, GraphQLObjectType, GraphQLScalarType } from "graphql";
+const EonType: GraphQLScalarType = new GraphQLScalarType({
+    name: "Eon"
+});
+const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+        return {
+            currentEon: {
+                name: "currentEon",
+                type: EonType
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    query: QueryType
+});
+export { schema };

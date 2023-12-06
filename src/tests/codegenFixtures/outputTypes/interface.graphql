@@ -1,0 +1,12 @@
+interface IPerson {
+  name: String
+}
+
+type User implements IPerson {
+  name: String
+  age: Int
+}
+
+type Query {
+  president: IPerson
+}

@@ -1,0 +1,16 @@
+directive @exported(
+  jsModulePath: String!
+  tsModulePath: String!
+  functionName: String!
+  argCount: Int!
+) on FIELD_DEFINITION
+
+type Query {
+  greeting: String
+    @exported(
+      jsModulePath: "../foo.js"
+      tsModulePath: "../foo.ts"
+      functionName: "salutation"
+      argCount: 2
+    )
+}

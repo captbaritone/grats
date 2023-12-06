@@ -39,6 +39,7 @@ import {
   METHOD_NAME_ARG,
   METHOD_NAME_DIRECTIVE,
   TS_MODULE_PATH_ARG,
+  ARG_COUNT,
 } from "./serverDirectives";
 
 export const LIBRARY_IMPORT_NAME = "grats";
@@ -380,7 +381,13 @@ export class Extractor {
     );
 
     const directives = [
-      this.exportDirective(funcName, jsModulePath, tsModulePath, funcName.text),
+      this.exportDirective(
+        funcName,
+        jsModulePath,
+        tsModulePath,
+        funcName.text,
+        node.parameters.length,
+      ),
     ];
 
     if (isStream) {
@@ -1781,6 +1788,7 @@ export class Extractor {
     jsModulePath: string,
     tsModulePath: string,
     functionName: string,
+    argCount: number,
   ): ConstDirectiveNode {
     return this.gql.constDirective(
       nameNode,
@@ -1800,6 +1808,11 @@ export class Extractor {
           nameNode,
           this.gql.name(nameNode, EXPORTED_FUNCTION_NAME_ARG),
           this.gql.string(nameNode, functionName),
+        ),
+        this.gql.constArgument(
+          nameNode,
+          this.gql.name(nameNode, ARG_COUNT),
+          this.gql.int(nameNode, String(argCount)),
         ),
       ],
     );

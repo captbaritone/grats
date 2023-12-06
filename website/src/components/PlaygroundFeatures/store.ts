@@ -13,8 +13,12 @@ export type State = {
   };
   view: {
     showGratsDirectives: boolean;
+    outputOption: "sdl" | "typescript";
   };
-  gratsResult: null | string;
+  gratsResult: null | {
+    graphql: string;
+    typescript: string;
+  };
   VERSION: number;
 };
 
@@ -36,11 +40,16 @@ export type Action =
     }
   | {
       type: "GRATS_EMITTED_NEW_RESULT";
-      value: string;
+      graphql: string;
+      typescript: string;
     }
   | {
       type: "NEW_DOCUMENT_TEXT";
       value: string;
+    }
+  | {
+      type: "OUTPUT_VIEW_SELECTION_CHANGED";
+      value: "sdl" | "typescript";
     };
 
 function reducer(state: State = stateFromUrl(), action: Action) {
@@ -57,6 +66,15 @@ function reducer(state: State = stateFromUrl(), action: Action) {
           showGratsDirectives: action.value,
         },
       };
+
+    case "OUTPUT_VIEW_SELECTION_CHANGED":
+      return {
+        ...state,
+        view: {
+          ...state.view,
+          outputOption: action.value,
+        },
+      };
     case "DEFAULT_NULLABLE_INPUT_CHANGED":
       return {
         ...state,
@@ -68,7 +86,10 @@ function reducer(state: State = stateFromUrl(), action: Action) {
     case "GRATS_EMITTED_NEW_RESULT":
       return {
         ...state,
-        gratsResult: action.value,
+        gratsResult: {
+          graphql: action.graphql,
+          typescript: action.typescript,
+        },
       };
     case "NEW_DOCUMENT_TEXT": {
       return {
@@ -121,8 +142,16 @@ export function getDoc(state: State) {
   return state.doc;
 }
 
-export function getGratsResult(state: State) {
-  return state.gratsResult;
+export function getOutputOption(state: State): "sdl" | "typescript" {
+  return state.view.outputOption;
+}
+
+export function getGratsGraphqlResult(state: State): string | null {
+  return state.gratsResult?.graphql;
+}
+
+export function getGratsTypeScriptResult(state: State): string | null {
+  return state.gratsResult?.typescript;
 }
 
 export function getNullableByDefault(state): boolean {
@@ -133,9 +162,19 @@ export function getShowGratsDirectives(state): boolean {
   return state.view.showGratsDirectives;
 }
 
-export const getOutputString = createSelector(getGratsResult, (gratsResult) => {
-  return gratsResult == null ? "Loading..." : gratsResult;
-});
+export const getGraphQLOutputString = createSelector(
+  getGratsGraphqlResult,
+  (gratsResult) => {
+    return gratsResult == null ? "Loading..." : gratsResult;
+  },
+);
+
+export const getTypeScriptOutputString = createSelector(
+  getGratsTypeScriptResult,
+  (gratsResult) => {
+    return gratsResult == null ? "Loading..." : gratsResult;
+  },
+);
 
 export type SerializableState = {
   doc: string;

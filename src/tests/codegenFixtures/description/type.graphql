@@ -1,0 +1,6 @@
+"""
+A description
+"""
+type Query {
+  greeting: String
+}
