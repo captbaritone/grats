@@ -151,9 +151,6 @@ importers:
       graphql-yoga:
         specifier: ^5.0.0
         version: 5.0.0(graphql@16.6.0)
-      grats:
-        specifier: workspace:*
-        version: link:../..
       next:
         specifier: 14.0.3
         version: 14.0.3(react-dom@18.2.0)(react@18.2.0)
@@ -173,6 +170,9 @@ importers:
       '@types/react-dom':
         specifier: ^18
         version: 18.0.0
+      grats:
+        specifier: workspace:*
+        version: link:../..
       typescript:
         specifier: ^5
         version: 5.0.2
