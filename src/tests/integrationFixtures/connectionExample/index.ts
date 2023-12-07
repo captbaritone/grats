@@ -1,7 +1,4 @@
------------------
-INPUT
------------------ 
-import { Int } from "../../Types";
+import { Int } from "../../../Types";
 
 /** @gqlType */
 type Query = unknown;
@@ -157,65 +154,3 @@ export const query = gql`
     }
   }
 `;
-
------------------
-OUTPUT
------------------
-{
-  "data": {
-    "firstTwo": {
-      "pageInfo": {
-        "hasNextPage": true,
-        "hasPreviousPage": false,
-        "startCursor": "0",
-        "endCursor": "1"
-      },
-      "edges": [
-        {
-          "cursor": "0",
-          "node": 0
-        },
-        {
-          "cursor": "1",
-          "node": 1
-        }
-      ]
-    },
-    "secondTwo": {
-      "pageInfo": {
-        "hasNextPage": true,
-        "hasPreviousPage": true,
-        "startCursor": "2",
-        "endCursor": "3"
-      },
-      "edges": [
-        {
-          "cursor": "2",
-          "node": 2
-        },
-        {
-          "cursor": "3",
-          "node": 3
-        }
-      ]
-    },
-    "lastTwo": {
-      "pageInfo": {
-        "hasNextPage": false,
-        "hasPreviousPage": true,
-        "startCursor": "98",
-        "endCursor": "99"
-      },
-      "edges": [
-        {
-          "cursor": "98",
-          "node": 98
-        },
-        {
-          "cursor": "99",
-          "node": 99
-        }
-      ]
-    }
-  }
-}

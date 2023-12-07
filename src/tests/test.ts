@@ -15,7 +15,7 @@ import {
   diagnosticAtGraphQLLocation,
   ReportableDiagnostics,
 } from "../utils/DiagnosticError";
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { codegen } from "../codegen";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
 
@@ -35,12 +35,18 @@ program
   .action(async ({ filter, write }) => {
     const filterRegex = filter ?? null;
     let failures = false;
-    for (const { fixturesDir, transformer, extension } of testDirs) {
+    for (const {
+      fixturesDir,
+      transformer,
+      testFilePattern,
+      ignoreFilePattern,
+    } of testDirs) {
       const runner = new TestRunner(
         fixturesDir,
         !!write,
         filterRegex,
-        extension,
+        testFilePattern,
+        ignoreFilePattern,
         transformer,
       );
       failures = !(await runner.run()) || failures;
@@ -58,7 +64,8 @@ const codegenFixturesDir = path.join(__dirname, "codegenFixtures");
 const testDirs = [
   {
     fixturesDir,
-    extension: ".ts",
+    testFilePattern: /\.ts$/,
+    ignoreFilePattern: null,
     transformer: (code: string, fileName: string) => {
       const firstLine = code.split("\n")[0];
       let options: Partial<ConfigOptions> = {
@@ -118,16 +125,11 @@ const testDirs = [
   },
   {
     fixturesDir: integrationFixturesDir,
-    extension: ".ts",
+    testFilePattern: /index.ts$/,
+    ignoreFilePattern: /schema.ts$/,
     transformer: async (code: string, fileName: string) => {
       const filePath = `${integrationFixturesDir}/${fileName}`;
-      const server = await import(filePath);
-
-      if (server.query == null || typeof server.query !== "string") {
-        throw new Error(
-          `Expected \`${filePath}\` to export a query text as \`query\``,
-        );
-      }
+      const schemaPath = path.join(path.dirname(filePath), "schema.ts");
 
       const options: Partial<ConfigOptions> = {
         nullableByDefault: true,
@@ -150,13 +152,23 @@ const testDirs = [
       if (schemaResult.kind === "ERROR") {
         throw new Error(schemaResult.err.formatDiagnosticsWithContext());
       }
-      const schema = schemaResult.value;
 
-      // We run codegen here just ensure that it doesn't throw.
-      codegen(schema, filePath);
+      const tsSchema = codegen(schemaResult.value, schemaPath);
+
+      writeFileSync(schemaPath, tsSchema);
+
+      const server = await import(filePath);
+
+      if (server.query == null || typeof server.query !== "string") {
+        throw new Error(
+          `Expected \`${filePath}\` to export a query text as \`query\``,
+        );
+      }
+
+      const schemaModule = await import(schemaPath);
 
       const data = await graphql({
-        schema,
+        schema: schemaModule.schema,
         source: server.query,
       });
 
@@ -165,7 +177,8 @@ const testDirs = [
   },
   {
     fixturesDir: codegenFixturesDir,
-    extension: ".graphql",
+    testFilePattern: /\.graphql$/,
+    ignoreFilePattern: null,
     transformer: async (code: string, fileName: string) => {
       const filePath = `${codegenFixturesDir}/${fileName}`;
       const sdl = readFileSync(filePath, "utf8");

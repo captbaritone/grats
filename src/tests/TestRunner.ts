@@ -22,7 +22,8 @@ export default class TestRunner {
     fixturesDir: string,
     write: boolean,
     filter: string | null,
-    extension: string,
+    testFilePattern: RegExp,
+    ignoreFilePattern: RegExp | null,
     transformer: Transformer,
   ) {
     this._write = write;
@@ -30,13 +31,13 @@ export default class TestRunner {
     this._transformer = transformer;
     const filterRegex = filter != null ? new RegExp(filter) : null;
     for (const fileName of readdirSyncRecursive(fixturesDir)) {
-      if (fileName.endsWith(extension)) {
+      if (testFilePattern.test(fileName)) {
         this._testFixtures.push(fileName);
         const filePath = path.join(fixturesDir, fileName);
         if (filterRegex != null && !filePath.match(filterRegex)) {
           this._skip.add(fileName);
         }
-      } else {
+      } else if (!ignoreFilePattern || !ignoreFilePattern.test(fileName)) {
         this._otherFiles.add(fileName);
       }
     }
