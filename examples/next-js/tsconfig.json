@@ -1,6 +1,6 @@
 {
   "grats": {
-    "EXPERIMENTAL_codegenPath": "./schema.ts"
+    "nullableByDefault": false
   },
   "compilerOptions": {
     "target": "es5",

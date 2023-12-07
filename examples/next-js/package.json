@@ -5,9 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 4000",
     "lint": "next lint",
-    "grats": "grats --output=schema.graphql"
+    "grats": "grats"
   },
   "dependencies": {
     "graphql": "^16.6.0",

@@ -33,18 +33,28 @@ async function main() {
 main();
 
 async function testExample(exampleName, exampleDir) {
+  let testConfig = {
+    port: 4000,
+    route: "graphql",
+  };
+  const testConfigPath = path.join(exampleDir, "testConfig.json");
+  // Check for test config
+  if (fs.existsSync(testConfigPath)) {
+    testConfig = JSON.parse(fs.readFileSync(testConfigPath, "utf-8"));
+  }
+  const url = `http://localhost:${testConfig.port}/${testConfig.route}`;
   await withExampleServer(exampleDir, async () => {
     for (const testCase of testCases) {
       console.log(`  Running test case "${testCase.name}"...`);
-      const actual = await fetchQuery(testCase.query, testCase.variables);
+      const actual = await fetchQuery(url, testCase.query, testCase.variables);
       assert.deepEqual(actual, testCase.expected);
       console.log(`  [OK] ${testCase.name}...`);
     }
   });
 }
 
-async function fetchQuery(query, variables) {
-  const response = await fetch("http://localhost:4000/graphql", {
+async function fetchQuery(url, query, variables) {
+  const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

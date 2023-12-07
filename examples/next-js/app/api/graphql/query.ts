@@ -3,10 +3,17 @@
  * special expectations about the meaning of exports from `route.ts`.
  */
 
+import IPerson from "./interfaces/IPerson";
+import User from "./models/User";
+
 /** @gqlType */
-type Query = unknown;
+export type Query = unknown;
 
 /** @gqlField */
-export function greetings(_: Query): string {
-  return "This is the `greetings` field of the root `Query` type";
+export function me(_: Query): User {
+  return new User();
+}
+/** @gqlField */
+export function person(_: Query): IPerson {
+  return new User();
 }
