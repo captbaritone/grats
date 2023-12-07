@@ -18,19 +18,15 @@ OUTPUT
 import { GraphQLSchema, GraphQLEnumType } from "graphql";
 const EnumType: GraphQLEnumType = new GraphQLEnumType({
     name: "Enum",
-    values() {
-        return {
-            0: {
-                description: "This one is valid",
-                name: "VALID",
-                value: "VALID"
-            },
-            1: {
-                description: "This one is invalid",
-                name: "INVALID",
-                value: "INVALID"
-            }
-        };
+    values: {
+        VALID: {
+            description: "This one is valid",
+            value: "VALID"
+        },
+        INVALID: {
+            description: "This one is invalid",
+            value: "INVALID"
+        }
     }
 });
 const schema = new GraphQLSchema({

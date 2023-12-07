@@ -529,22 +529,17 @@ class Codegen {
     ]);
   }
 
-  enumValues(obj: GraphQLEnumType): ts.MethodDeclaration {
-    const values = Object.entries(obj.getValues()).map(([name, value]) => {
-      return F.createPropertyAssignment(name, this.enumValue(value));
+  enumValues(obj: GraphQLEnumType): ts.PropertyAssignment {
+    const values = obj.getValues().map((value) => {
+      return F.createPropertyAssignment(value.name, this.enumValue(value));
     });
 
-    return this.method(
-      "values",
-      [],
-      [F.createReturnStatement(this.objectLiteral(values))],
-    );
+    return F.createPropertyAssignment("values", this.objectLiteral(values));
   }
 
   enumValue(obj: GraphQLEnumValue): ts.Expression {
     return this.objectLiteral([
       this.description(obj.description),
-      F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       F.createPropertyAssignment("value", F.createStringLiteral(obj.name)),
     ]);
   }
