@@ -38,9 +38,8 @@ export default function HomepageFeatures(): JSX.Element {
           <div className="col">
             <h2>No Library Code</h2>
             <p>
-              Grats determines your schema at <strong>build time</strong> from
-              docblock hints. There is no library code to import or invoke in
-              your resolver code.
+              Grats extracts your schema at <strong>build time</strong> from
+              docblock hints. No Grats code is needed at runtime.
             </p>
           </div>
 

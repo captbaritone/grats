@@ -21,7 +21,7 @@ Create a `tsconfig.json` in your project root. Note that this config file also c
 ```json title="/tsconfig.json"
 {
   "grats": {
-    "EXPERIMENTAL_codegenPath": "./schema.ts"
+    // See Configuration for all available options
   },
   "compilerOptions": {
     "strictNullChecks": true,
