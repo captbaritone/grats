@@ -19,11 +19,10 @@ import * as ts from "typescript";
 import { Extractor } from "./Extractor";
 import { GratsDefinitionNode, TypeContext } from "./TypeContext";
 import { validateSDL } from "graphql/validation/validate";
-import { applyServerDirectives, DIRECTIVES_AST } from "./serverDirectives";
+import { DIRECTIVES_AST } from "./serverDirectives";
 import { extend } from "./utils/helpers";
 import { ParsedCommandLineGrats } from "./gratsConfig";
 
-export { applyServerDirectives } from "./serverDirectives";
 export * from "./gratsConfig";
 
 // Construct a schema, using GraphQL schema language
@@ -50,7 +49,7 @@ export function buildSchemaResultWithHost(
     return err(new ReportableDiagnostics(compilerHost, schemaResult.err));
   }
 
-  return ok(applyServerDirectives(schemaResult.value));
+  return ok(schemaResult.value);
 }
 
 function extractSchema(

@@ -23,8 +23,8 @@ wrapper function will return, or what arguments the returned function will accep
 
 ## Inferred types
 
-In thory Grats could ask TypeScript what type it's inferring for a given
-locaiton. For example, in the following function, TypeScript would _infer_ that
+In thor Grats could ask TypeScript what type it's inferring for a given
+location. For example, in the following function, TypeScript would _infer_ that
 it returns `string`, so we shouldn't need to explicitly annotate the return
 type.
 

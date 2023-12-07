@@ -15,9 +15,9 @@ import {
   diagnosticAtGraphQLLocation,
   ReportableDiagnostics,
 } from "../utils/DiagnosticError";
-import { printGratsSDL } from "../printSchema";
 import { readFileSync } from "fs";
 import { codegen } from "../codegen";
+import { printSchemaWithDirectives } from "@graphql-tools/utils";
 
 const program = new Command();
 
@@ -61,7 +61,7 @@ const testDirs = [
     extension: ".ts",
     transformer: (code: string, fileName: string) => {
       const firstLine = code.split("\n")[0];
-      let options: ConfigOptions = {
+      let options: Partial<ConfigOptions> = {
         nullableByDefault: true,
         schemaHeader: null,
       };
@@ -110,7 +110,9 @@ const testDirs = [
           diagnosticAtGraphQLLocation("Located here", locResult.value),
         ]).formatDiagnosticsWithContext();
       } else {
-        return printGratsSDL(schemaResult.value, options);
+        return printSchemaWithDirectives(schemaResult.value, {
+          assumeValid: true,
+        });
       }
     },
   },
@@ -127,11 +129,11 @@ const testDirs = [
         );
       }
 
-      const options: ConfigOptions = {
+      const options: Partial<ConfigOptions> = {
         nullableByDefault: true,
       };
       const files = [filePath, `src/Types.ts`];
-      const parsedOptions: ParsedCommandLineGrats = {
+      const parsedOptions: ParsedCommandLineGrats = validateGratsOptions({
         options: {
           // Required to enable ts-node to locate function exports
           rootDir: gratsDir,
@@ -143,7 +145,7 @@ const testDirs = [
         },
         errors: [],
         fileNames: files,
-      };
+      });
       const schemaResult = buildSchemaResult(parsedOptions);
       if (schemaResult.kind === "ERROR") {
         throw new Error(schemaResult.err.formatDiagnosticsWithContext());

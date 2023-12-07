@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "tsc && node dist/server.js",
-    "grats": "grats --output=schema.graphql",
+    "grats": "grats",
     "build": "tsc"
   },
   "repository": {

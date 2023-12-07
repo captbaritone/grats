@@ -6,7 +6,7 @@
   "scripts": {
     "start": "ts-node server.ts",
     "build": "",
-    "grats": "grats --output=schema.graphql"
+    "grats": "grats"
   },
   "repository": {
     "type": "git",

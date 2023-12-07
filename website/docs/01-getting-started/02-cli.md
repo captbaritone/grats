@@ -1,8 +1,8 @@
 # CLI
 
-Grats includes a command-line utility for extracting your project's GraphQL schema.
+Grats's interface is a command-line utility for extracting your project's GraphQL schema.
 
-Grats gets both it's [configuration options](02-configuration.md) and the set of TypeScript files to scan from your project's `tsconfig.json` file. By default Grats uses the TypeScript's own algorithm for locating your project's `tsconfig.json`. However, if you wish to use a different `tsconfig.json` file, you can specify it with the `--tsconfig` option.
+Grats gets both it's [configuration options](./03-configuration.md) from your project's `tsconfig.json` file. By default Grats uses the TypeScript's own algorithm for locating your project's `tsconfig.json`. However, if you wish to use a different `tsconfig.json` file, you can specify it with the `--tsconfig` option.
 
 :::tip
 For guidance on how to make Grats easy run in your project see [Workflows](../05-guides/01-workflows.md).
@@ -10,13 +10,13 @@ For guidance on how to make Grats easy run in your project see [Workflows](../05
 
 # Build (default command)
 
-Writes your GraphQL schema in SDL format to stdout, or a file.
+Grats creates a TypeScript module containing an executable GraphQL schema and a `.graphql` file containing the schema text. By default it places these files adjacent to your `tsconfig.json` file. If you wish to place them elsewhere, you can [configure](./03-configuration.md) this in your `tsconfig.json` file.
 
 ```bash
-npx grats --output=./schema.gql
+npx grats
 ```
 
-## Options
+### Options
 
 ```
 Usage: grats [options] [command]
@@ -25,7 +25,6 @@ Extract GraphQL schema from your TypeScript project
 
 Options:
   -V, --version               output the version number
-  -o, --output <SCHEMA_FILE>  Where to write the schema file. Defaults to stdout
   --tsconfig <TSCONFIG>       Path to tsconfig.json. Defaults to auto-detecting based on the current working directory
   -h, --help                  display help for command
 
@@ -35,9 +34,7 @@ Commands:
 
 # Locate
 
-Reports the location at which a given type or field is defined in your code.
-
-Can also be used programmatically by other tools. For example the click-to-definition feature of an GraphQL editor integration could use invoke this command to find the location of a type or field.
+Reports the location at which a given type or field is defined in your code. Can also be used programmatically by other tools. For example the click-to-definition feature of an GraphQL editor integration could use invoke this command to find the location of a type or field.
 
 For example, Relay's VSCode Extension is [exploring](https://github.com/facebook/relay/pull/4434) adding the ability to leverage such a tool.
 
@@ -49,7 +46,7 @@ npx grats locate User.name
 npx grats locate User
 ```
 
-## Options
+### Options
 
 ```
 Usage: grats locate [options] <ENTITY>

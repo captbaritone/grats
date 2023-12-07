@@ -14,23 +14,6 @@ By making your TypeScript implementation the source of truth, you never have to
 worry about valiating that your implementiaton matches your schema. Your
 implementation _is_ your schema!
 
-## How it works
-
-Grats works as a **built step** which statically analyzes your TypeScript code and
-extracts a `.graphql` schema file. This file can be shared with other tools, but
-also used directly by Grats' slim runtime wrapper around `graphql-js` to build a
-GraphQL endpoint.
-
-To tell Grats which parts of your code to expose in the schema, simply annotate
-them with [docblock tags](../04-docblock-tags/index.md) like `/** @gqlField
-*/`. Grats will scan your code for these tags and use them to automatically
-build your schema.
-
-:::note
-In some cases Grats may prompt you to use more explicit type annotations to
-ensure that it can "see" all the relevent type information.
-:::
-
 ## Examples
 
 Grats is flexible enough to work with both class-based and functional
@@ -123,3 +106,27 @@ type User {
   greeting(salutation: String!): String
 }
 ```
+
+## How it works
+
+Grats works as a **build step** which statically analyzes your TypeScript code and
+generates a TypeScript module defining an executable schema. It also creates
+a `.graphql` schema file which can be used by clients and other tools.
+
+To tell Grats which parts of your code to expose in the schema, simply annotate
+them with [docblock tags](../04-docblock-tags/index.md) like `/** @gqlField
+*/`. Grats will scan your code for these tags and use them to automatically
+build your schema.
+
+:::info
+Docblock tags generally correspond one-to-one with GraphQL schema constructs.
+You should be able to intuitively add Grats annotations to your code without
+having to learn a new DSL. If you guess wrong, Grats will let you know with a
+helpful error message.
+
+For example, in some cases Grats may prompt you to use more explicit type annotations to
+ensure that it can "see" all the relevent type information.
+:::
+
+For a deep dive on Grats' implementation, check out [How Grats Works](../06-faq/03-how-grats-works.md) in our FAQ.
+
