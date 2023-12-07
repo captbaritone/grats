@@ -92,12 +92,12 @@ You should see the following response:
 
 ## Success!
 
-If you get stuck while getting started, you can check out our [example projects](../05-examples) for working examples. If that doesn't get you unstuck, stop by our [Discord server](https://capt.dev/grats-chat) to ask for help! We're happy to help you get started.
+If you get stuck while getting started, you can check out our [example projects](../05-examples/index.mdx) for working examples. If that doesn't get you unstuck, stop by our [Discord server](https://capt.dev/grats-chat) to ask for help! We're happy to help you get started.
 
 ## Next steps
 
 Once you have Grats working in your code, you can:
 
-- Learn about all the docblock tags that Grats supports in [Docblock Tags](../04-dockblock-tags).
+- Learn about all the docblock tags that Grats supports in [Docblock Tags](../04-docblock-tags/index.md).
 - Read about [Configuration](./03-configuration.md) to learn about all the configuration options available to you.
 - Read about [Workflows](../05-guides/01-workflows.md) to learn how to integrate Grats into your development workflows.
