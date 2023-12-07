@@ -76,8 +76,7 @@ async function withExampleServer(exampleDir, cb) {
   });
   try {
     // HACK: Wait for the server to start
-    // Not clear why we need two
-    await awaitProcessData(child);
+    // Call once per console.log in the server
     await awaitProcessData(child);
     await cb();
   } finally {

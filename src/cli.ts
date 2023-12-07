@@ -22,15 +22,11 @@ program
   .description("Extract GraphQL schema from your TypeScript project")
   .version(version)
   .option(
-    "-o, --output <SCHEMA_FILE>",
-    "Where to write the schema file. Defaults to stdout",
-  )
-  .option(
     "--tsconfig <TSCONFIG>",
     "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",
   )
-  .action(async ({ output, tsconfig }) => {
-    build(output, tsconfig);
+  .action(async ({ tsconfig }) => {
+    build(tsconfig);
   });
 
 program
@@ -58,7 +54,7 @@ program
 
 program.parse();
 
-function build(output: string, tsconfig?: string) {
+function build(tsconfig?: string) {
   const configFile =
     tsconfig || ts.findConfigFile(process.cwd(), ts.sys.fileExists);
   if (configFile == null) {
@@ -72,21 +68,18 @@ function build(output: string, tsconfig?: string) {
   const options = optionsResult.value;
   const config: ConfigOptions = options.raw.grats;
   const schema = buildSchema(options);
-  if (config.EXPERIMENTAL_codegenPath) {
-    const dest = resolve(dirname(configFile), config.EXPERIMENTAL_codegenPath);
-    const code = printExecutableSchema(schema, config, dest);
-    writeFileSync(dest, code);
-    console.error(`Grats: Wrote TypeScript schema to \`${dest}\`.`);
-  }
+
+  const dest = resolve(dirname(configFile), config.tsSchema);
+  const code = printExecutableSchema(schema, config, dest);
+  writeFileSync(dest, code);
+  console.error(`Grats: Wrote TypeScript schema to \`${dest}\`.`);
+
   const sortedSchema = lexicographicSortSchema(schema);
   const schemaStr = printGratsSDL(sortedSchema, config);
-  if (output) {
-    const absOutput = resolve(process.cwd(), output);
-    writeFileSync(absOutput, schemaStr);
-    console.error(`Grats: Wrote schema to \`${absOutput}\`.`);
-  } else {
-    console.log(schemaStr);
-  }
+
+  const absOutput = resolve(process.cwd(), config.graphqlSchema);
+  writeFileSync(absOutput, schemaStr);
+  console.error(`Grats: Wrote schema to \`${absOutput}\`.`);
 }
 
 function buildSchema(options: ParsedCommandLineGrats): GraphQLSchema {

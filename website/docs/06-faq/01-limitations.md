@@ -23,8 +23,8 @@ wrapper function will return, or what arguments the returned function will accep
 
 ## Inferred types
 
-In thory Grats could ask TypeScript what type it's inferring for a given
-locaiton. For example, in the following function, TypeScript would _infer_ that
+In theory Grats could ask TypeScript what type it's inferring for a given
+location. For example, in the following function, TypeScript would _infer_ that
 it returns `string`, so we shouldn't need to explicitly annotate the return
 type.
 
@@ -35,9 +35,7 @@ export function name(_: User) {
 }
 ```
 
-It's possible that a future version of Grats will explore this.
-Perhaps if [this TypeScript pull
-request](https://github.com/microsoft/TypeScript/issues/9879) is merged.
+However, this ends up not being a good fit for GraphQL's type system, since GraphQL is "nominal" rather than "structural" like TypeScript. See [Structural vs Nominal Typing](./05-structural-vs-nominal-typing.md) for more details.
 
 ## Descriptions and @deprecated on TypeScript union @gqlEnums
 

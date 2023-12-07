@@ -15,9 +15,9 @@ import {
   diagnosticAtGraphQLLocation,
   ReportableDiagnostics,
 } from "../utils/DiagnosticError";
-import { printGratsSDL } from "../printSchema";
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { codegen } from "../codegen";
+import { printSchemaWithDirectives } from "@graphql-tools/utils";
 
 const program = new Command();
 
@@ -35,12 +35,18 @@ program
   .action(async ({ filter, write }) => {
     const filterRegex = filter ?? null;
     let failures = false;
-    for (const { fixturesDir, transformer, extension } of testDirs) {
+    for (const {
+      fixturesDir,
+      transformer,
+      testFilePattern,
+      ignoreFilePattern,
+    } of testDirs) {
       const runner = new TestRunner(
         fixturesDir,
         !!write,
         filterRegex,
-        extension,
+        testFilePattern,
+        ignoreFilePattern,
         transformer,
       );
       failures = !(await runner.run()) || failures;
@@ -58,10 +64,11 @@ const codegenFixturesDir = path.join(__dirname, "codegenFixtures");
 const testDirs = [
   {
     fixturesDir,
-    extension: ".ts",
+    testFilePattern: /\.ts$/,
+    ignoreFilePattern: null,
     transformer: (code: string, fileName: string) => {
       const firstLine = code.split("\n")[0];
-      let options: ConfigOptions = {
+      let options: Partial<ConfigOptions> = {
         nullableByDefault: true,
         schemaHeader: null,
       };
@@ -110,28 +117,25 @@ const testDirs = [
           diagnosticAtGraphQLLocation("Located here", locResult.value),
         ]).formatDiagnosticsWithContext();
       } else {
-        return printGratsSDL(schemaResult.value, options);
+        return printSchemaWithDirectives(schemaResult.value, {
+          assumeValid: true,
+        });
       }
     },
   },
   {
     fixturesDir: integrationFixturesDir,
-    extension: ".ts",
+    testFilePattern: /index.ts$/,
+    ignoreFilePattern: /schema.ts$/,
     transformer: async (code: string, fileName: string) => {
       const filePath = `${integrationFixturesDir}/${fileName}`;
-      const server = await import(filePath);
+      const schemaPath = path.join(path.dirname(filePath), "schema.ts");
 
-      if (server.query == null || typeof server.query !== "string") {
-        throw new Error(
-          `Expected \`${filePath}\` to export a query text as \`query\``,
-        );
-      }
-
-      const options: ConfigOptions = {
+      const options: Partial<ConfigOptions> = {
         nullableByDefault: true,
       };
       const files = [filePath, `src/Types.ts`];
-      const parsedOptions: ParsedCommandLineGrats = {
+      const parsedOptions: ParsedCommandLineGrats = validateGratsOptions({
         options: {
           // Required to enable ts-node to locate function exports
           rootDir: gratsDir,
@@ -143,18 +147,28 @@ const testDirs = [
         },
         errors: [],
         fileNames: files,
-      };
+      });
       const schemaResult = buildSchemaResult(parsedOptions);
       if (schemaResult.kind === "ERROR") {
         throw new Error(schemaResult.err.formatDiagnosticsWithContext());
       }
-      const schema = schemaResult.value;
 
-      // We run codegen here just ensure that it doesn't throw.
-      codegen(schema, filePath);
+      const tsSchema = codegen(schemaResult.value, schemaPath);
+
+      writeFileSync(schemaPath, tsSchema);
+
+      const server = await import(filePath);
+
+      if (server.query == null || typeof server.query !== "string") {
+        throw new Error(
+          `Expected \`${filePath}\` to export a query text as \`query\``,
+        );
+      }
+
+      const schemaModule = await import(schemaPath);
 
       const data = await graphql({
-        schema,
+        schema: schemaModule.schema,
         source: server.query,
       });
 
@@ -163,7 +177,8 @@ const testDirs = [
   },
   {
     fixturesDir: codegenFixturesDir,
-    extension: ".graphql",
+    testFilePattern: /\.graphql$/,
+    ignoreFilePattern: null,
     transformer: async (code: string, fileName: string) => {
       const filePath = `${codegenFixturesDir}/${fileName}`;
       const sdl = readFileSync(filePath, "utf8");

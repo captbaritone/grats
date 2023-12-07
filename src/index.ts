@@ -1,17 +1,5 @@
-import {
-  GraphQLSchema,
-  lexicographicSortSchema,
-  buildSchema as gqlBuildSchema,
-} from "graphql";
-import * as fs from "fs";
 import * as ts from "typescript";
-import {
-  ParsedCommandLineGrats,
-  applyServerDirectives,
-  buildSchemaResult,
-  validateGratsOptions,
-} from "./lib";
-import { printGratsSDL } from "./printSchema";
+import { ParsedCommandLineGrats, validateGratsOptions } from "./lib";
 import {
   ReportableDiagnostics,
   Result,
@@ -22,49 +10,6 @@ import {
 export * from "./Types";
 export * from "./lib";
 export { codegen } from "./codegen";
-
-type RuntimeOptions = {
-  emitSchemaFile?: string;
-};
-
-// Build an executable schema from a set of files. Note that if extraction
-// fails, this function will exit the process and print a helpful error
-// message.
-export function extractGratsSchemaAtRuntime(
-  runtimeOptions: RuntimeOptions,
-): GraphQLSchema {
-  const configFile = ts.findConfigFile(process.cwd(), ts.sys.fileExists);
-  if (configFile == null) {
-    throw new Error("Grats: Could not find tsconfig.json");
-  }
-  const tsConfigResult = getParsedTsConfig(configFile);
-  if (tsConfigResult.kind === "ERROR") {
-    console.error(tsConfigResult.err.formatDiagnosticsWithColorAndContext());
-    process.exit(1);
-  }
-
-  const parsedTsConfig = tsConfigResult.value;
-
-  const schemaResult = buildSchemaResult(parsedTsConfig);
-  if (schemaResult.kind === "ERROR") {
-    console.error(schemaResult.err.formatDiagnosticsWithColorAndContext());
-    process.exit(1);
-  }
-
-  let runtimeSchema = schemaResult.value;
-  if (runtimeOptions.emitSchemaFile) {
-    runtimeSchema = lexicographicSortSchema(runtimeSchema);
-    const sdl = printGratsSDL(runtimeSchema, parsedTsConfig.raw.grats);
-    const filePath = runtimeOptions.emitSchemaFile;
-    fs.writeFileSync(filePath, sdl);
-  }
-  return runtimeSchema;
-}
-
-export function buildSchemaFromSDL(sdl: string): GraphQLSchema {
-  const schema = gqlBuildSchema(sdl);
-  return applyServerDirectives(schema);
-}
 
 // #FIXME: Report diagnostics instead of throwing!
 export function getParsedTsConfig(

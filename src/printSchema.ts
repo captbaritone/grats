@@ -13,8 +13,8 @@ export function printExecutableSchema(
   destination: string,
 ): string {
   const code = codegen(schema, destination);
-  if (config.EXPERIMENTAL_codegenHeader) {
-    return `${config.EXPERIMENTAL_codegenHeader}\n${code}`;
+  if (config.tsSchemaHeader) {
+    return `${config.tsSchemaHeader}\n${code}`;
   }
   return code;
 }
@@ -27,7 +27,7 @@ export function printGratsSDL(
   schema: GraphQLSchema,
   config: ConfigOptions,
 ): string {
-  const includeDirectives = !config.EXPERIMENTAL_codegenPath;
+  const includeDirectives = !config.graphqlSchema;
   const sdl = printSDL(schema, includeDirectives);
 
   if (config.schemaHeader) {
