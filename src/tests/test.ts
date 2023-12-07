@@ -94,6 +94,10 @@ const testDirs = [
       if (schemaResult.kind === "ERROR") {
         return schemaResult.err.formatDiagnosticsWithContext();
       }
+
+      // We run codegen here just ensure that it doesn't throw.
+      codegen(schemaResult.value, `${fixturesDir}/${fileName}`);
+
       const LOCATION_REGEX = /^\/\/ Locate: (.*)/;
       const locationMatch = code.match(LOCATION_REGEX);
       if (locationMatch != null) {

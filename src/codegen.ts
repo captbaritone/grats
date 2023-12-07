@@ -1,6 +1,8 @@
 import {
   ConstDirectiveNode,
   GraphQLArgument,
+  GraphQLEnumType,
+  GraphQLEnumValue,
   GraphQLField,
   GraphQLInputObjectType,
   GraphQLInputType,
@@ -11,6 +13,7 @@ import {
   GraphQLSchema,
   GraphQLUnionType,
   Kind,
+  isEnumType,
   isInputObjectType,
   isInputType,
   isInterfaceType,
@@ -98,7 +101,30 @@ class Codegen {
       this.query(),
       this.mutation(),
       this.subscription(),
+      this.types(),
     ]);
+  }
+
+  types(): ts.PropertyAssignment {
+    const types = Object.values(this._schema.getTypeMap())
+      .filter((type) => {
+        return !(
+          type.name.startsWith("__") ||
+          type.name.startsWith("Introspection") ||
+          type.name.startsWith("Schema") ||
+          // Built in primitives
+          type.name === "String" ||
+          type.name === "Int" ||
+          type.name === "Float" ||
+          type.name === "Boolean" ||
+          type.name === "ID"
+        );
+      })
+      .map((type) => this.typeReference(type));
+    return F.createPropertyAssignment(
+      "types",
+      F.createArrayLiteralExpression(types),
+    );
   }
 
   description(
@@ -476,6 +502,53 @@ class Codegen {
     ]);
   }
 
+  enumType(obj: GraphQLEnumType): ts.Expression {
+    const varName = `${obj.name}Type`;
+    if (!this._typeDefinitions.has(varName)) {
+      this._typeDefinitions.add(varName);
+      this.constDeclaration(
+        varName,
+        F.createNewExpression(
+          this.graphQLImport("GraphQLEnumType"),
+          [],
+          [this.enumTypeConfig(obj)],
+        ),
+        // We need to explicitly specify the type due to circular references in
+        // the definition.
+        F.createTypeReferenceNode(this.graphQLImport("GraphQLEnumType")),
+      );
+    }
+    return F.createIdentifier(varName);
+  }
+
+  enumTypeConfig(obj: GraphQLEnumType): ts.ObjectLiteralExpression {
+    return this.objectLiteral([
+      this.description(obj.description),
+      F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
+      this.enumValues(obj),
+    ]);
+  }
+
+  enumValues(obj: GraphQLEnumType): ts.MethodDeclaration {
+    const values = Object.entries(obj.getValues()).map(([name, value]) => {
+      return F.createPropertyAssignment(name, this.enumValue(value));
+    });
+
+    return this.method(
+      "values",
+      [],
+      [F.createReturnStatement(this.objectLiteral(values))],
+    );
+  }
+
+  enumValue(obj: GraphQLEnumValue): ts.Expression {
+    return this.objectLiteral([
+      this.description(obj.description),
+      F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
+      F.createPropertyAssignment("value", F.createStringLiteral(obj.name)),
+    ]);
+  }
+
   defaultValue(value: any) {
     switch (typeof value) {
       case "string":
@@ -528,6 +601,8 @@ class Codegen {
       return this.unionType(t);
     } else if (isInputObjectType(t)) {
       return this.inputType(t);
+    } else if (isEnumType(t)) {
+      return this.enumType(t);
     } else if (isScalarType(t)) {
       switch (t.name) {
         case "String":
