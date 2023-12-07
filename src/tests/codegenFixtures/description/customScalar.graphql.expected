@@ -30,6 +30,7 @@ const QueryType: GraphQLObjectType = new GraphQLObjectType({
     }
 });
 const schema = new GraphQLSchema({
-    query: QueryType
+    query: QueryType,
+    types: [MyScalarType, QueryType]
 });
 export { schema };

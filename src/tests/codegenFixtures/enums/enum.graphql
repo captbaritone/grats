@@ -1,0 +1,4 @@
+enum Enum {
+  VALID
+  INVALID
+}

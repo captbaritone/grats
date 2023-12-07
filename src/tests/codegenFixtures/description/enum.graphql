@@ -1,0 +1,7 @@
+"""
+Enum for the status of a request.
+"""
+enum Enum {
+  VALID
+  INVALID
+}

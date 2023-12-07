@@ -44,6 +44,7 @@ const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
     }
 });
 const schema = new GraphQLSchema({
-    subscription: SubscriptionType
+    subscription: SubscriptionType,
+    types: [SubscriptionType]
 });
 export { schema };

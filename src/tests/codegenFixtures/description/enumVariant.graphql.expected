@@ -1,0 +1,39 @@
+-----------------
+INPUT
+----------------- 
+enum Enum {
+  """
+  This one is valid
+  """
+  VALID
+  """
+  This one is invalid
+  """
+  INVALID
+}
+
+-----------------
+OUTPUT
+-----------------
+import { GraphQLSchema, GraphQLEnumType } from "graphql";
+const EnumType: GraphQLEnumType = new GraphQLEnumType({
+    name: "Enum",
+    values() {
+        return {
+            0: {
+                description: "This one is valid",
+                name: "VALID",
+                value: "VALID"
+            },
+            1: {
+                description: "This one is invalid",
+                name: "INVALID",
+                value: "INVALID"
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [EnumType]
+});
+export { schema };

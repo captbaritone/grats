@@ -17,7 +17,7 @@ type Query {
 -----------------
 OUTPUT
 -----------------
-import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType, GraphQLString } from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType, GraphQLString, GraphQLInt } from "graphql";
 const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
     name: "IPerson",
     fields() {
@@ -40,7 +40,26 @@ const QueryType: GraphQLObjectType = new GraphQLObjectType({
         };
     }
 });
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            },
+            age: {
+                name: "age",
+                type: GraphQLInt
+            }
+        };
+    },
+    interfaces() {
+        return [IPersonType];
+    }
+});
 const schema = new GraphQLSchema({
-    query: QueryType
+    query: QueryType,
+    types: [IPersonType, UserType, QueryType]
 });
 export { schema };

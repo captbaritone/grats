@@ -63,6 +63,7 @@ const QueryType: GraphQLObjectType = new GraphQLObjectType({
     }
 });
 const schema = new GraphQLSchema({
-    query: QueryType
+    query: QueryType,
+    types: [MyUnionType, UserType, AnimalType, QueryType]
 });
 export { schema };

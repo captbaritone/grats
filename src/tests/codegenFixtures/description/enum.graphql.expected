@@ -1,0 +1,35 @@
+-----------------
+INPUT
+----------------- 
+"""
+Enum for the status of a request.
+"""
+enum Enum {
+  VALID
+  INVALID
+}
+
+-----------------
+OUTPUT
+-----------------
+import { GraphQLSchema, GraphQLEnumType } from "graphql";
+const EnumType: GraphQLEnumType = new GraphQLEnumType({
+    description: "Enum for the status of a request.",
+    name: "Enum",
+    values() {
+        return {
+            0: {
+                name: "VALID",
+                value: "VALID"
+            },
+            1: {
+                name: "INVALID",
+                value: "INVALID"
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [EnumType]
+});
+export { schema };

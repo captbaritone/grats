@@ -1,0 +1,10 @@
+enum Enum {
+  """
+  This one is valid
+  """
+  VALID
+  """
+  This one is invalid
+  """
+  INVALID
+}
