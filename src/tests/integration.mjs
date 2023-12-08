@@ -4,7 +4,6 @@ import assert from "assert";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import semver from "semver";
 
 /**
  * Runs each of our example projects as an integration test.
