@@ -4,6 +4,7 @@ import {
   GraphQLEnumType,
   GraphQLEnumValue,
   GraphQLField,
+  GraphQLInputField,
   GraphQLInputObjectType,
   GraphQLInputType,
   GraphQLInterfaceType,
@@ -128,7 +129,11 @@ class Codegen {
   }
 
   deprecated(
-    obj: GraphQLField<unknown, unknown> | GraphQLEnumValue | GraphQLArgument,
+    obj:
+      | GraphQLField<unknown, unknown>
+      | GraphQLEnumValue
+      | GraphQLArgument
+      | GraphQLInputField,
   ): ts.PropertyAssignment | null {
     if (!obj.deprecationReason) return null;
     return F.createPropertyAssignment(
@@ -445,7 +450,7 @@ class Codegen {
     );
   }
 
-  inputFieldConfig(field: GraphQLArgument): ts.Expression {
+  inputFieldConfig(field: GraphQLInputField): ts.Expression {
     return this.objectLiteral([
       this.description(field.description),
       this.deprecated(field),
