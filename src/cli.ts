@@ -77,7 +77,7 @@ function build(tsconfig?: string) {
   const sortedSchema = lexicographicSortSchema(schema);
   const schemaStr = printGratsSDL(sortedSchema, config);
 
-  const absOutput = resolve(process.cwd(), config.graphqlSchema);
+  const absOutput = resolve(dirname(configFile), config.graphqlSchema);
   writeFileSync(absOutput, schemaStr);
   console.error(`Grats: Wrote schema to \`${absOutput}\`.`);
 }
