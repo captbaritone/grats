@@ -31,8 +31,11 @@
     "@types/node": "^20.8.10",
     "express": "^4.18.2",
     "graphql-http": "^1.22.0",
-    "grats": "workspace:*",
     "uuid": "^9.0.1",
     "@types/uuid": "^9.0.7"
+  },
+  "devDependencies": {
+    "grats": "workspace:*",
+    "typescript": "^5.0.2"
   }
 }

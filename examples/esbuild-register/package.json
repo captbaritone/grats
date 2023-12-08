@@ -29,11 +29,12 @@
   "homepage": "https://github.com/captbaritone/grats#readme",
   "dependencies": {
     "@types/node": "^20.8.10",
-    "graphql-yoga": "^5.0.0",
-    "grats": "workspace:*"
+    "graphql-yoga": "^5.0.0"
   },
   "devDependencies": {
     "esbuild": "^0.19.7",
-    "esbuild-register": "^3.5.0"
+    "esbuild-register": "^3.5.0",
+    "grats": "workspace:*",
+    "typescript": "^5.0.2"
   }
 }
