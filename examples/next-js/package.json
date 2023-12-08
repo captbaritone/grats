@@ -1,0 +1,46 @@
+{
+  "name": "grats-example-next-js",
+  "version": "0.0.0",
+  "description": "Example server showcasing Grats used with Next.js and Yoga",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start -p 4000",
+    "lint": "next lint",
+    "grats": "grats"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/captbaritone/grats.git"
+  },
+  "keywords": [
+    "graphql",
+    "grats",
+    "yoga",
+    "next",
+    "next.js",
+    "javascript",
+    "typescript"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/captbaritone/grats/issues"
+  },
+  "homepage": "https://github.com/captbaritone/grats#readme",
+  "dependencies": {
+    "graphql": "^16.6.0",
+    "graphql-yoga": "^5.0.0",
+    "next": "14.0.3",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5.0.2",
+    "grats": "workspace:*"
+  }
+}

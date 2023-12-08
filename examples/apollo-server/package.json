@@ -27,7 +27,10 @@
   "homepage": "https://github.com/captbaritone/grats#readme",
   "dependencies": {
     "@apollo/server": "^4.9.5",
-    "@types/node": "^20.8.10",
-    "grats": "workspace:*"
+    "@types/node": "^20.8.10"
+  },
+  "devDependencies": {
+    "grats": "workspace:*",
+    "typescript": "^5.0.2"
   }
 }
