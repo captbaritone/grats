@@ -1,0 +1,39 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class SomeType {
+  /** @gqlField */
+  hello1({ greeting }: { greeting: string | null }): string {
+    return "Hello world!";
+  }
+  /** @gqlField */
+  hello2({ greeting }: { greeting: string | void }): string {
+    return "Hello world!";
+  }
+  /** @gqlField */
+  hello3({ greeting }: { greeting: string | undefined }): string {
+    return "Hello world!";
+  }
+  // TODO: This should be an error, but it's not.
+  /** @gqlField */
+  hello5({ greeting }: { greeting?: string | undefined }): string {
+    return "Hello world!";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/arguments/NullableArgumentErrors.invalid.ts:4:26 - error: Expected nullable argument to be optional. graphql-js may not define properties where an undefined argument is passed. To guard against this add a `?` to the end of the argument name to make it optional.
+
+4   hello1({ greeting }: { greeting: string | null }): string {
+                           ~~~~~~~~
+src/tests/fixtures/arguments/NullableArgumentErrors.invalid.ts:8:26 - error: Expected nullable argument to be optional. graphql-js may not define properties where an undefined argument is passed. To guard against this add a `?` to the end of the argument name to make it optional.
+
+8   hello2({ greeting }: { greeting: string | void }): string {
+                           ~~~~~~~~
+src/tests/fixtures/arguments/NullableArgumentErrors.invalid.ts:12:26 - error: Expected nullable argument to be optional. graphql-js may not define properties where an undefined argument is passed. To guard against this add a `?` to the end of the argument name to make it optional.
+
+12   hello3({ greeting }: { greeting: string | undefined }): string {
+                            ~~~~~~~~

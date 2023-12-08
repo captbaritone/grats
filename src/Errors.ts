@@ -371,3 +371,7 @@ export function nonSubscriptionFieldAsyncIterable() {
 export function operationTypeNotUnknown() {
   return "Operation types `Query`, `Mutation`, and `Subscription` must be defined as type aliases of `unknown`. E.g. `type Query = unknown`.";
 }
+
+export function expectedNullableArgumentToBeOptional() {
+  return "Expected nullable argument to be optional. graphql-js may not define properties where an undefined argument is passed. To guard against this add a `?` to the end of the argument name to make it optional.";
+}

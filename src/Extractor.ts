@@ -1125,13 +1125,22 @@ export class Extractor {
     let type = this.collectType(node.type);
     if (type == null) return null;
 
+    if (type.kind !== Kind.NON_NULL_TYPE && !node.questionToken) {
+      // If a field is passed an argument value, and that argument is not defined in the request,
+      // `graphql-js` will not define the argument property. Therefore we must ensure the argument
+      // is not just nullable, but optional.
+      return this.report(node.name, E.expectedNullableArgumentToBeOptional());
+    }
+
     if (node.questionToken) {
-      /*
-      // TODO: Don't allow args that are optional but don't accept null
+      // Question mark means we can handle the argument being undefined in the
+      // object literal, but if we are going to type the GraphQL arg as
+      // optional, the code must also be able to handle an explicit null.
+      //
+      // TODO: This will catch { a?: string } but not { a?: string | undefined }.
       if (type.kind === Kind.NON_NULL_TYPE) {
         return this.report(node.questionToken, E.nonNullTypeCannotBeOptional());
       }
-      */
       type = this.gql.nullableType(type);
     }
 

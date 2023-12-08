@@ -4,23 +4,11 @@ INPUT
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
-  hello1({ greeting }: { greeting: string | null }): string {
+  hello1({ greeting }: { greeting?: string | null }): string {
     return "Hello world!";
   }
   /** @gqlField */
-  hello2({ greeting }: { greeting?: string | null }): string {
-    return "Hello world!";
-  }
-  /** @gqlField */
-  hello3({ greeting }: { greeting: string | void }): string {
-    return "Hello world!";
-  }
-  /** @gqlField */
-  hello4({ greeting }: { greeting: string | undefined }): string {
-    return "Hello world!";
-  }
-  /** @gqlField */
-  hello5({
+  hello2({
     greeting,
   }: {
     greeting?: string | undefined | void | undefined;
@@ -41,7 +29,4 @@ directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: 
 type SomeType {
   hello1(greeting: String): String
   hello2(greeting: String): String
-  hello3(greeting: String): String
-  hello4(greeting: String): String
-  hello5(greeting: String): String
 }

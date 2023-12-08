@@ -4,7 +4,14 @@ INPUT
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
-  someField1({ inputs = [func(), func()] }: { inputs?: string[] }): string {
+  someField1({
+    inputs = [func(), func()],
+  }: {
+    inputs?: string[] | null;
+  }): string {
+    if (inputs === null) {
+      return "got null";
+    }
     return inputs.join("|");
   }
 }
@@ -16,15 +23,15 @@ function func(): string {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/default_values/DefaultArgumentArrayValuesInvalid.invalid.ts:4:26 - error: Expected GraphQL field argument default values to be a literal.
+src/tests/fixtures/default_values/DefaultArgumentArrayValuesInvalid.invalid.ts:5:15 - error: Expected GraphQL field argument default values to be a literal.
 
 If you think Grats should be able to infer this constant value, please report an issue at https://github.com/captbaritone/grats/issues.
 
-4   someField1({ inputs = [func(), func()] }: { inputs?: string[] }): string {
-                           ~~~~~~
-src/tests/fixtures/default_values/DefaultArgumentArrayValuesInvalid.invalid.ts:4:34 - error: Expected GraphQL field argument default values to be a literal.
+5     inputs = [func(), func()],
+                ~~~~~~
+src/tests/fixtures/default_values/DefaultArgumentArrayValuesInvalid.invalid.ts:5:23 - error: Expected GraphQL field argument default values to be a literal.
 
 If you think Grats should be able to infer this constant value, please report an issue at https://github.com/captbaritone/grats/issues.
 
-4   someField1({ inputs = [func(), func()] }: { inputs?: string[] }): string {
-                                   ~~~~~~
+5     inputs = [func(), func()],
+                        ~~~~~~
