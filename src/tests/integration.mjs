@@ -33,29 +33,23 @@ const testCases = [
 async function main() {
   const EXAMPLES_DIR = path.join(__dirname, "../../examples");
   for (const example of fs.readdirSync(EXAMPLES_DIR)) {
+    const examplePath = path.join(EXAMPLES_DIR, example);
+    if (!fs.lstatSync(examplePath).isDirectory()) {
+      // Skip README.md and any other files
+      continue;
+    }
     console.log(`Testing example "${example}"...`);
-    await testExample(example, path.join(EXAMPLES_DIR, example));
+    await testExample(example, examplePath);
     console.log(`[OK!] ${example}`);
   }
 }
 main();
 
 async function testExample(exampleName, exampleDir) {
-  const packageJsonPath = path.join(exampleDir, "package.json");
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
-
-  const nodeVersion = packageJson.engines?.node;
-
-  if (nodeVersion && !semver.satisfies(process.version, nodeVersion)) {
-    console.log(
-      `[SKIP!] Skipping "${exampleName}". Requires Node ${nodeVersion}`,
-    );
-    return;
-  }
-
   let testConfig = {
     port: 4000,
     route: "graphql",
+    nodeVersion: "*",
   };
   const testConfigPath = path.join(exampleDir, "testConfig.json");
   // Check for test config
@@ -64,6 +58,12 @@ async function testExample(exampleName, exampleDir) {
       testConfig,
       ...JSON.parse(fs.readFileSync(testConfigPath, "utf-8")),
     };
+  }
+  if (!semver.satisfies(process.version, testConfig.nodeVersion)) {
+    console.log(
+      `[SKIP!] Skipping "${exampleName}". Requires Node ${testConfig.nodeVersion}`,
+    );
+    return;
   }
   const url = `http://localhost:${testConfig.port}/${testConfig.route}`;
   await withExampleServer(exampleDir, async () => {

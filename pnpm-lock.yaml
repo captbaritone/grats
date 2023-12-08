@@ -44,6 +44,9 @@ importers:
       process:
         specifier: ^0.11.10
         version: 0.11.10
+      semver:
+        specifier: ^7.5.4
+        version: 7.5.4
       ts-node:
         specifier: ^10.9.1
         version: 10.9.1(@types/node@18.15.0)(typescript@5.0.2)

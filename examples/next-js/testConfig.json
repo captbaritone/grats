@@ -1,3 +1,4 @@
 {
-  "route": "api/graphql"
+  "route": "api/graphql",
+  "nodeVersion": ">=18.0.0"
 }
