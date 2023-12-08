@@ -28,7 +28,9 @@ export function printGratsSDL(
   config: ConfigOptions,
 ): string {
   const includeDirectives = !config.graphqlSchema;
-  const sdl = printSDL(schema, includeDirectives);
+  const sdl = includeDirectives
+    ? printSchemaWithDirectives(schema, { assumeValid: true })
+    : printSDLWithoutDirectives(schema);
 
   if (config.schemaHeader) {
     return `${config.schemaHeader}\n${sdl}`;
@@ -36,12 +38,7 @@ export function printGratsSDL(
   return sdl;
 }
 
-function printSDL(schema: GraphQLSchema, includeDirectives: boolean): string {
-  if (includeDirectives) {
-    return printSchemaWithDirectives(schema, {
-      assumeValid: true,
-    });
-  }
+export function printSDLWithoutDirectives(schema: GraphQLSchema): string {
   return printSchema(
     new GraphQLSchema({
       ...schema.toConfig(),
