@@ -19,7 +19,7 @@ type Query {
 -----------------
 OUTPUT
 -----------------
-import { GraphQLSchema, GraphQLObjectType, GraphQLUnionType, GraphQLString, GraphQLInt, GraphQLInterfaceType } from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLUnionType, GraphQLString, GraphQLInt } from "graphql";
 const RegularPersonType: GraphQLObjectType = new GraphQLObjectType({
     name: "RegularPerson",
     fields() {
@@ -46,7 +46,7 @@ const UserType: GraphQLObjectType = new GraphQLObjectType({
         };
     }
 });
-const PersonType: GraphQLInterfaceType = new GraphQLUnionType({
+const PersonType: GraphQLUnionType = new GraphQLUnionType({
     name: "Person",
     types() {
         return [RegularPersonType, UserType];

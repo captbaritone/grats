@@ -346,7 +346,7 @@ class Codegen {
         ),
         // We need to explicitly specify the type due to circular references in
         // the definition.
-        F.createTypeReferenceNode(this.graphQLImport("GraphQLInterfaceType")),
+        F.createTypeReferenceNode(this.graphQLImport("GraphQLUnionType")),
       );
     }
     return F.createIdentifier(varName);

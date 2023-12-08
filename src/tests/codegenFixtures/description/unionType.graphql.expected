@@ -21,7 +21,7 @@ type Query {
 -----------------
 OUTPUT
 -----------------
-import { GraphQLSchema, GraphQLObjectType, GraphQLUnionType, GraphQLString, GraphQLInterfaceType } from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLUnionType, GraphQLString } from "graphql";
 const UserType: GraphQLObjectType = new GraphQLObjectType({
     name: "User",
     fields() {
@@ -44,7 +44,7 @@ const AnimalType: GraphQLObjectType = new GraphQLObjectType({
         };
     }
 });
-const MyUnionType: GraphQLInterfaceType = new GraphQLUnionType({
+const MyUnionType: GraphQLUnionType = new GraphQLUnionType({
     name: "MyUnion",
     description: "A description",
     types() {
