@@ -4,6 +4,7 @@ import {
   GraphQLEnumType,
   GraphQLEnumValue,
   GraphQLField,
+  GraphQLInputField,
   GraphQLInputObjectType,
   GraphQLInputType,
   GraphQLInterfaceType,
@@ -124,6 +125,20 @@ class Codegen {
     return F.createPropertyAssignment(
       "types",
       F.createArrayLiteralExpression(types),
+    );
+  }
+
+  deprecated(
+    obj:
+      | GraphQLField<unknown, unknown>
+      | GraphQLEnumValue
+      | GraphQLArgument
+      | GraphQLInputField,
+  ): ts.PropertyAssignment | null {
+    if (!obj.deprecationReason) return null;
+    return F.createPropertyAssignment(
+      "deprecationReason",
+      F.createStringLiteral(obj.deprecationReason),
     );
   }
 
@@ -435,9 +450,10 @@ class Codegen {
     );
   }
 
-  inputFieldConfig(field: GraphQLArgument): ts.Expression {
+  inputFieldConfig(field: GraphQLInputField): ts.Expression {
     return this.objectLiteral([
       this.description(field.description),
+      this.deprecated(field),
       F.createPropertyAssignment("name", F.createStringLiteral(field.name)),
       F.createPropertyAssignment("type", this.typeReference(field.type)),
     ]);
@@ -449,6 +465,7 @@ class Codegen {
   ): ts.ObjectLiteralExpression {
     return this.objectLiteral([
       this.description(field.description),
+      this.deprecated(field),
       F.createPropertyAssignment("name", F.createStringLiteral(field.name)),
       F.createPropertyAssignment("type", this.typeReference(field.type)),
       field.args.length
@@ -488,6 +505,7 @@ class Codegen {
   argConfig(arg: GraphQLArgument): ts.Expression {
     return this.objectLiteral([
       this.description(arg.description),
+      this.deprecated(arg),
       F.createPropertyAssignment("name", F.createStringLiteral(arg.name)),
       F.createPropertyAssignment("type", this.typeReference(arg.type)),
       // TODO: arg.defaultValue seems to be missing for complex objects
@@ -540,6 +558,7 @@ class Codegen {
   enumValue(obj: GraphQLEnumValue): ts.Expression {
     return this.objectLiteral([
       this.description(obj.description),
+      this.deprecated(obj),
       F.createPropertyAssignment("value", F.createStringLiteral(obj.name)),
     ]);
   }

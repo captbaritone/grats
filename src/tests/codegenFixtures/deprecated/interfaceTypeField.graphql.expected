@@ -2,10 +2,7 @@
 INPUT
 ----------------- 
 interface MyInterface {
-  """
-  A description
-  """
-  myField: String
+  myField: String @deprecated(reason: "Reason")
 }
 
 type Query {
@@ -21,7 +18,7 @@ const MyInterfaceType: GraphQLInterfaceType = new GraphQLInterfaceType({
     fields() {
         return {
             myField: {
-                description: "A description",
+                deprecationReason: "Reason",
                 name: "myField",
                 type: GraphQLString
             }

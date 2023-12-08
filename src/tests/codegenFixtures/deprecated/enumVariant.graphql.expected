@@ -1,0 +1,28 @@
+-----------------
+INPUT
+----------------- 
+enum Enum {
+  VALID @deprecated(reason: "Removed")
+  INVALID
+}
+
+-----------------
+OUTPUT
+-----------------
+import { GraphQLSchema, GraphQLEnumType } from "graphql";
+const EnumType: GraphQLEnumType = new GraphQLEnumType({
+    name: "Enum",
+    values: {
+        VALID: {
+            deprecationReason: "Removed",
+            value: "VALID"
+        },
+        INVALID: {
+            value: "INVALID"
+        }
+    }
+});
+const schema = new GraphQLSchema({
+    types: [EnumType]
+});
+export { schema };

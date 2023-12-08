@@ -8,7 +8,7 @@ import {
   validateGratsOptions,
 } from "../lib";
 import * as ts from "typescript";
-import { buildSchema, graphql } from "graphql";
+import { buildSchema, graphql, GraphQLSchema } from "graphql";
 import { Command } from "commander";
 import { locate } from "../Locate";
 import {
@@ -18,6 +18,8 @@ import {
 import { readFileSync, writeFileSync } from "fs";
 import { codegen } from "../codegen";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
+import { diff } from "jest-diff";
+import { printSDLWithoutDirectives } from "../printSchema";
 
 const program = new Command();
 
@@ -167,9 +169,21 @@ const testDirs = [
 
       const schemaModule = await import(schemaPath);
 
+      const schemaDiff = compareSchemas(
+        schemaModule.schema,
+        schemaResult.value,
+      );
+
+      if (schemaDiff) {
+        console.log(schemaDiff);
+        // TODO: Make this an actual test failure, not an error
+        throw new Error("The codegen schema does not match the SDL schema.");
+      }
+
       const data = await graphql({
         schema: schemaModule.schema,
         source: server.query,
+        variableValues: server.variables,
       });
 
       return JSON.stringify(data, null, 2);
@@ -188,5 +202,20 @@ const testDirs = [
     },
   },
 ];
+
+// Returns null if the schemas are equal, otherwise returns a string diff.
+function compareSchemas(
+  actual: GraphQLSchema,
+  expected: GraphQLSchema,
+): string | null {
+  const actualSDL = printSDLWithoutDirectives(actual);
+  const expectedSDL = printSDLWithoutDirectives(expected);
+
+  if (actualSDL === expectedSDL) {
+    return null;
+  }
+
+  return diff(expectedSDL, actualSDL);
+}
 
 program.parse();

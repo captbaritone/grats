@@ -1,7 +1,7 @@
 -----------------
 INPUT
 ----------------- 
-interface MyInterface {
+input MyInput {
   """
   A description
   """
@@ -9,15 +9,15 @@ interface MyInterface {
 }
 
 type Query {
-  greeting: MyInterface
+  greeting(input: MyInput): String
 }
 
 -----------------
 OUTPUT
 -----------------
-import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType, GraphQLString } from "graphql";
-const MyInterfaceType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "MyInterface",
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInputObjectType } from "graphql";
+const MyInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
+    name: "MyInput",
     fields() {
         return {
             myField: {
@@ -34,13 +34,19 @@ const QueryType: GraphQLObjectType = new GraphQLObjectType({
         return {
             greeting: {
                 name: "greeting",
-                type: MyInterfaceType
+                type: GraphQLString,
+                args: {
+                    input: {
+                        name: "input",
+                        type: MyInputType
+                    }
+                }
             }
         };
     }
 });
 const schema = new GraphQLSchema({
     query: QueryType,
-    types: [MyInterfaceType, QueryType]
+    types: [MyInputType, QueryType]
 });
 export { schema };
