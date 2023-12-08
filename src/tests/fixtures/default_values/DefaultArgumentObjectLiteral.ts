@@ -6,7 +6,7 @@ export default class SomeType {
   someField1({
     input = { first: 10, offset: 100 },
   }: {
-    input?: ConnectionInput;
+    input?: ConnectionInput | null;
   }): string {
     return "hello";
   }
