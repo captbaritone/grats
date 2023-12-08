@@ -4,6 +4,14 @@ import assert from "assert";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import semver from "semver";
+
+/**
+ * Runs each of our example projects as an integration test.
+ *
+ * See /examples/README.md for more information about how
+ * these tests work.
+ */
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -33,6 +41,18 @@ async function main() {
 main();
 
 async function testExample(exampleName, exampleDir) {
+  const packageJsonPath = path.join(exampleDir, "package.json");
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+
+  const nodeVersion = packageJson.engines?.node;
+
+  if (nodeVersion && !semver.satisfies(process.version, nodeVersion)) {
+    console.log(
+      `[SKIP!] Skipping "${exampleName}". Requires Node ${nodeVersion}`,
+    );
+    return;
+  }
+
   let testConfig = {
     port: 4000,
     route: "graphql",
@@ -40,7 +60,10 @@ async function testExample(exampleName, exampleDir) {
   const testConfigPath = path.join(exampleDir, "testConfig.json");
   // Check for test config
   if (fs.existsSync(testConfigPath)) {
-    testConfig = JSON.parse(fs.readFileSync(testConfigPath, "utf-8"));
+    testConfig = {
+      testConfig,
+      ...JSON.parse(fs.readFileSync(testConfigPath, "utf-8")),
+    };
   }
   const url = `http://localhost:${testConfig.port}/${testConfig.route}`;
   await withExampleServer(exampleDir, async () => {
@@ -95,8 +118,8 @@ async function withExampleServer(exampleDir, cb) {
 }
 
 function awaitProcessData(child) {
-  return new Promise((resolve, reject) => {
-    child.stdout.on("data", (data) => {
+  return new Promise((resolve) => {
+    child.stdout.on("data", () => {
       resolve();
     });
   });

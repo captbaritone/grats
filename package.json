@@ -31,6 +31,7 @@
     "path-browserify": "^1.0.1",
     "prettier": "^2.8.7",
     "process": "^0.11.10",
+    "semver": "^7.5.4",
     "ts-node": "^10.9.1"
   },
   "prettier": {

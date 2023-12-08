@@ -14,6 +14,9 @@
     "type": "git",
     "url": "git+https://github.com/captbaritone/grats.git"
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "keywords": [
     "graphql",
     "grats",
