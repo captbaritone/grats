@@ -1,8 +1,5 @@
 interface MyInterface {
-  """
-  A description
-  """
-  myField: String
+  myField: String @deprecated(reason: "Reason")
 }
 
 type Query {

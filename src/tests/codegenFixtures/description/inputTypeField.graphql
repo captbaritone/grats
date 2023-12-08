@@ -1,4 +1,4 @@
-interface MyInterface {
+input MyInput {
   """
   A description
   """
@@ -6,5 +6,5 @@ interface MyInterface {
 }
 
 type Query {
-  greeting: MyInterface
+  greeting(input: MyInput): String
 }
