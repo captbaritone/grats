@@ -1,0 +1,7 @@
+input MyInput {
+  myField: String @deprecated(reason: "No longer supported")
+}
+
+type Query {
+  greeting(input: MyInput): String
+}

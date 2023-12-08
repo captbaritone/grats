@@ -1,0 +1,3 @@
+type Query {
+  greeting: String @deprecated(reason: "Use 'hello' instead")
+}

@@ -1,0 +1,4 @@
+enum Enum {
+  VALID @deprecated(reason: "This one is invalid")
+  INVALID @deprecated(reason: "This one is also invalid")
+}

@@ -1,0 +1,28 @@
+-----------------
+INPUT
+----------------- 
+type Query {
+  greeting: String @deprecated(reason: "Use 'hello' instead")
+}
+
+-----------------
+OUTPUT
+-----------------
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+        return {
+            greeting: {
+                deprecationReason: "Use 'hello' instead",
+                name: "greeting",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    query: QueryType,
+    types: [QueryType]
+});
+export { schema };
