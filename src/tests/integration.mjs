@@ -53,7 +53,7 @@ async function testExample(exampleName, exampleDir) {
   // Check for test config
   if (fs.existsSync(testConfigPath)) {
     testConfig = {
-      testConfig,
+      ...testConfig,
       ...JSON.parse(fs.readFileSync(testConfigPath, "utf-8")),
     };
   }
