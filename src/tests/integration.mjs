@@ -49,7 +49,6 @@ async function testExample(exampleName, exampleDir) {
   let testConfig = {
     port: 4000,
     route: "graphql",
-    nodeVersion: "*",
   };
   const testConfigPath = path.join(exampleDir, "testConfig.json");
   // Check for test config
@@ -59,12 +58,7 @@ async function testExample(exampleName, exampleDir) {
       ...JSON.parse(fs.readFileSync(testConfigPath, "utf-8")),
     };
   }
-  if (!semver.satisfies(process.version, testConfig.nodeVersion)) {
-    console.log(
-      `[SKIP!] Skipping "${exampleName}". Requires Node ${testConfig.nodeVersion}`,
-    );
-    return;
-  }
+
   const url = `http://localhost:${testConfig.port}/${testConfig.route}`;
   await withExampleServer(exampleDir, async () => {
     for (const testCase of testCases) {

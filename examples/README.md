@@ -26,6 +26,5 @@ Projects may define a `testConfig.json` file in their root directory. This file 
 
 - `port`: The port the project should be run on. Defaults to `4000`.
 - `route`: The endpoint the project should be run on. Defaults to `/graphql`.
-- `nodeVersion`: The version of Node the project should be run on. Tests will be skipped when run on other versions of Node, for example in CI where we run multiple versions of node.
 
 I could imagine us expanding this to include other configuration options and even additional query/response pairs to test, but for now this is all we need.
