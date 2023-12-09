@@ -1,10 +1,8 @@
-# -=[ ALPHA SOFTWARE ]=-
-
-**Grats is still experimental. Feel free to try it out and give feedback, but the api is still in flux**
-
 # Grats: Implementation-First GraphQL for TypeScript
 
 [![Join our Discord!](https://img.shields.io/discord/1089650710796320868?logo=discord)](https://capt.dev/grats-chat)
+
+_Beta Software: Grats is largely stable and being used in production in multiple places. If you encounter any issues, dont hesitate to let us know._
 
 **What if building a GraphQL server were as simple as just writing functions?**
 
