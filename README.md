@@ -15,7 +15,33 @@ By making your TypeScript implementation the source of truth, you never have to
 worry about validating that your implementation matches your schema. Your
 implementation _is_ your schema!
 
-## Read the docs: https://grats.capt.dev/
+## Example
+
+Here's what it looks like to define a User type with a greeting field using Grats:
+
+```ts
+/** @gqlType */
+class User {
+  /** @gqlField */
+  name: string;
+
+  /** @gqlField */
+  greet(args: { greeting: string }): string {
+    return `${args.greeting}, ${this.name}`;
+  }
+}
+```
+
+After running `npx grats`, you'll find a `schema.ts` module that exports an executable schema, and a `schema.graphql` file contins your GraphQL schema definition:
+
+```graphql
+type User {
+  name: String
+  greet(greeting: String!): String
+}
+```
+
+That's just the begining! To learn more, **Read the docs: https://grats.capt.dev/**
 
 ## Contributing
 
