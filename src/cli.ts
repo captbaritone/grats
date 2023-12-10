@@ -37,13 +37,9 @@ program
     "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",
   )
   .action((entity, { tsconfig }) => {
-    const optionsResult = getParsedTsConfig(tsconfig);
-    if (optionsResult.kind === "ERROR") {
-      throw new Error("TODO");
-    }
-    const options = optionsResult.value;
+    const { config } = getTsConfig(tsconfig);
 
-    const schema = buildSchema(options);
+    const schema = buildSchema(config);
     const loc = locate(schema, entity);
     if (loc.kind === "ERROR") {
       console.error(loc.err);
@@ -55,31 +51,40 @@ program
 program.parse();
 
 function build(tsconfig?: string) {
-  const configFile =
-    tsconfig || ts.findConfigFile(process.cwd(), ts.sys.fileExists);
-  if (configFile == null) {
-    throw new Error("Grats: Could not find tsconfig.json");
-  }
-  const optionsResult = getParsedTsConfig(configFile);
-  if (optionsResult.kind === "ERROR") {
-    console.error(optionsResult.err.formatDiagnosticsWithColorAndContext());
-    process.exit(1);
-  }
-  const options = optionsResult.value;
-  const config: ConfigOptions = options.raw.grats;
-  const schema = buildSchema(options);
+  const { config, configPath } = getTsConfig(tsconfig);
+  const schema = buildSchema(config);
 
-  const dest = resolve(dirname(configFile), config.tsSchema);
-  const code = printExecutableSchema(schema, config, dest);
+  const gratsOptions: ConfigOptions = config.raw.grats;
+
+  const dest = resolve(dirname(configPath), gratsOptions.tsSchema);
+  const code = printExecutableSchema(schema, gratsOptions, dest);
   writeFileSync(dest, code);
   console.error(`Grats: Wrote TypeScript schema to \`${dest}\`.`);
 
   const sortedSchema = lexicographicSortSchema(schema);
-  const schemaStr = printGratsSDL(sortedSchema, config);
+  const schemaStr = printGratsSDL(sortedSchema, gratsOptions);
 
-  const absOutput = resolve(dirname(configFile), config.graphqlSchema);
+  const absOutput = resolve(dirname(configPath), gratsOptions.graphqlSchema);
   writeFileSync(absOutput, schemaStr);
   console.error(`Grats: Wrote schema to \`${absOutput}\`.`);
+}
+
+// Locate and read the tsconfig.json file
+function getTsConfig(tsconfig?: string): {
+  configPath: string;
+  config: ParsedCommandLineGrats;
+} {
+  const configPath =
+    tsconfig || ts.findConfigFile(process.cwd(), ts.sys.fileExists);
+  if (configPath == null) {
+    throw new Error("Grats: Could not find tsconfig.json");
+  }
+  const optionsResult = getParsedTsConfig(configPath);
+  if (optionsResult.kind === "ERROR") {
+    console.error(optionsResult.err.formatDiagnosticsWithColorAndContext());
+    process.exit(1);
+  }
+  return { configPath, config: optionsResult.value };
 }
 
 function buildSchema(options: ParsedCommandLineGrats): GraphQLSchema {
