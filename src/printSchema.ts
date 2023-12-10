@@ -1,4 +1,3 @@
-import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import { GraphQLSchema, printSchema } from "graphql";
 import { ConfigOptions } from "./lib";
 import { codegen } from "./codegen";
@@ -27,10 +26,7 @@ export function printGratsSDL(
   schema: GraphQLSchema,
   config: ConfigOptions,
 ): string {
-  const includeDirectives = !config.graphqlSchema;
-  const sdl = includeDirectives
-    ? printSchemaWithDirectives(schema, { assumeValid: true })
-    : printSDLWithoutDirectives(schema);
+  const sdl = printSDLWithoutDirectives(schema);
 
   if (config.schemaHeader) {
     return `${config.schemaHeader}\n${sdl}`;
