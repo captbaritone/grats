@@ -1,6 +1,6 @@
 # Design Principles
 
-This document describes the design principles of Grats. These are not hard and fast rules, but rather a set of principals to I'm trying to consider when making design decisions and tradeoffs. For a concrete description of how Grats _actually_ works, see [How Grats Works](./03-how-grats-works.md).
+This document describes the design principles of Grats. These are not hard and fast rules, but rather a set of principals I'm trying to consider when making design decisions and tradeoffs. For a concrete description of how Grats _actually_ works, see [How Grats Works](./03-how-grats-works.md).
 
 ## Progressive disclosure
 
@@ -9,6 +9,8 @@ Grats should have a small user-facing API that is intuitive to use. Users should
 ## Internal complexity is okay
 
 Grats should be willing to take on additional internal complexity if it means being able to do the obviously right thing in more cases. Alternatively, features that add external complexity or API surface area should be avoided where possible.
+
+That said, internal complexity should taken on with caution. Grats should be willing to wait to add add features/improvements which require intenral complexity until we see an architectural design that will make the complexity maintainable.
 
 ## Incremental improvements
 
