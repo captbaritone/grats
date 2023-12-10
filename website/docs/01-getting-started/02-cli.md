@@ -8,7 +8,7 @@ Grats gets it's [configuration options](./03-configuration.md) from your project
 For guidance on how to make Grats easy run in your project see [Workflows](../05-guides/01-workflows.md).
 :::
 
-# Build (default command)
+## Build (default command)
 
 Grats' default command (build) creates a TypeScript module containing an executable GraphQL schema _and_ a `.graphql` file containing the schema text. By default it places these files adjacent to your `tsconfig.json` file. If you wish to place them elsewhere, you can [configure](./03-configuration.md) this in your `tsconfig.json` file.
 
@@ -32,7 +32,7 @@ Commands:
   locate [options] <ENTITY>
 ```
 
-# Locate
+## Locate
 
 The `locate` command reports the location (file, line, column) at which a given type or field is defined in your code. `grats locate` can also be invoked by other tools. For example the click-to-definition feature of an GraphQL editor integration could use invoke this command to find the location of a type or field.
 
