@@ -1,5 +1,5 @@
-"use client";
-import { useState, useEffect } from "react";
+'use client';
+import { useState, useEffect } from 'react';
 
 export default function Home() {
   const data = useQuery(/* GraphQL */ `
@@ -11,7 +11,7 @@ export default function Home() {
   return (
     <>
       <h1>GraphQL Data:</h1>
-      <pre>{data == null ? "Loading..." : JSON.stringify(data, null, 2)}</pre>
+      <pre>{data == null ? 'Loading...' : JSON.stringify(data, null, 2)}</pre>
     </>
   );
 }
@@ -37,10 +37,10 @@ async function fetchQuery(
   query: string,
   variables?: Record<string, any>,
 ): Promise<any> {
-  const url = "/api/graphql";
+  const url = '/api/graphql';
   const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query, variables }),
   });
 

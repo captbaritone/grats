@@ -41,7 +41,10 @@ class FirstHundredIntegersConnection {
   /** @gqlField */
   edges: FirstHundredIntegersEdge[];
 
-  constructor(public first?: number | null, public after?: string | null) {
+  constructor(
+    public first?: number | null,
+    public after?: string | null,
+  ) {
     const start = parseInt(after || "0", 10);
     const end = first ? start + first : this._max;
 

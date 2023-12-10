@@ -1,4 +1,4 @@
-import User from "./User";
+import User from './User';
 
 /** @gqlType */
 export default class Group {
@@ -6,7 +6,7 @@ export default class Group {
   description: string;
 
   constructor() {
-    this.description = "A group of people";
+    this.description = 'A group of people';
   }
 
   /** @gqlField */

@@ -1,13 +1,13 @@
-import IPerson from "../interfaces/IPerson";
-import { Query } from "../Query";
-import Group from "./Group";
+import IPerson from '../interfaces/IPerson';
+import { Query } from '../Query';
+import Group from './Group';
 
 /** @gqlType User */
 export default class UserResolver implements IPerson {
-  __typename = "User";
+  __typename = 'User';
   /** @gqlField */
   name(): string {
-    return "Alice";
+    return 'Alice';
   }
   /** @gqlField */
   groups(): Group[] {

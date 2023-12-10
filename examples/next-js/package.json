@@ -41,6 +41,13 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "typescript": "^5.0.2",
-    "grats": "workspace:*"
+    "grats": "workspace:*",
+    "prettier": "^3"
+  },
+  "prettier": {
+    "trailingComma": "all",
+    "tabWidth": 2,
+    "semi": true,
+    "singleQuote": true
   }
 }
