@@ -53,15 +53,15 @@ program.parse();
 function build(tsconfig?: string) {
   const { config, configPath } = getTsConfig(tsconfig);
   const schema = buildSchema(config);
+  const sortedSchema = lexicographicSortSchema(schema);
 
   const gratsOptions: ConfigOptions = config.raw.grats;
 
   const dest = resolve(dirname(configPath), gratsOptions.tsSchema);
-  const code = printExecutableSchema(schema, gratsOptions, dest);
+  const code = printExecutableSchema(sortedSchema, gratsOptions, dest);
   writeFileSync(dest, code);
   console.error(`Grats: Wrote TypeScript schema to \`${dest}\`.`);
 
-  const sortedSchema = lexicographicSortSchema(schema);
   const schemaStr = printGratsSDL(sortedSchema, gratsOptions);
 
   const absOutput = resolve(dirname(configPath), gratsOptions.graphqlSchema);
