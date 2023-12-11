@@ -15,13 +15,13 @@ const GroupType: GraphQLObjectType = new GraphQLObjectType({
                 name: "description",
                 type: new GraphQLNonNull(GraphQLString)
             },
-            name: {
-                name: "name",
-                type: new GraphQLNonNull(GraphQLString)
-            },
             members: {
                 name: "members",
                 type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(UserType)))
+            },
+            name: {
+                name: "name",
+                type: new GraphQLNonNull(GraphQLString)
             }
         };
     }
@@ -41,13 +41,13 @@ const UserType: GraphQLObjectType = new GraphQLObjectType({
     name: "User",
     fields() {
         return {
-            name: {
-                name: "name",
-                type: new GraphQLNonNull(GraphQLString)
-            },
             groups: {
                 name: "groups",
                 type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GroupType)))
+            },
+            name: {
+                name: "name",
+                type: new GraphQLNonNull(GraphQLString)
             }
         };
     },
@@ -109,6 +109,6 @@ const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
 const schema = new GraphQLSchema({
     query: QueryType,
     subscription: SubscriptionType,
-    types: [IPersonType, GroupType, UserType, QueryType, SubscriptionType]
+    types: [GroupType, IPersonType, QueryType, SubscriptionType, UserType]
 });
 export { schema };
