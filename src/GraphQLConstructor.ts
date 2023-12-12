@@ -41,12 +41,6 @@ import {
 } from "./metadataDirectives";
 
 export class GraphQLConstructor {
-  sourceFile: ts.SourceFile;
-
-  constructor(sourceFile: ts.SourceFile) {
-    this.sourceFile = sourceFile;
-  }
-
   /* Metadata Directives */
   exportedDirective(
     node: ts.Node,
@@ -335,15 +329,15 @@ export class GraphQLConstructor {
   // an error at one of these locations. We could consider some trick to return a
   // proxy object that would lazily compute the line/column info.
   _loc(node: ts.Node): GraphQLLocation {
-    const source = new Source(this.sourceFile.text, this.sourceFile.fileName);
-    const startToken = this._dummyToken(node.getStart());
-    const endToken = this._dummyToken(node.getEnd());
+    const sourceFile = node.getSourceFile();
+    const source = new Source(sourceFile.text, sourceFile.fileName);
+    const startToken = this._dummyToken(sourceFile, node.getStart());
+    const endToken = this._dummyToken(sourceFile, node.getEnd());
     return new GraphQLLocation(startToken, endToken, source);
   }
 
-  _dummyToken(pos: number): Token {
-    const { line, character } =
-      this.sourceFile.getLineAndCharacterOfPosition(pos);
+  _dummyToken(sourceFile: ts.SourceFile, pos: number): Token {
+    const { line, character } = sourceFile.getLineAndCharacterOfPosition(pos);
     return new Token(TokenKind.SOF, pos, pos, line, character, undefined);
   }
 }

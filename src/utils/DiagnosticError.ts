@@ -129,6 +129,39 @@ export function diagnosticAtGraphQLLocation(
   };
 }
 
+export function diagnosticAtTsNode(
+  node: ts.Node,
+  message: string,
+  relatedInformation?: ts.DiagnosticRelatedInformation[],
+): ts.Diagnostic {
+  const start = node.getStart();
+  const length = node.getEnd() - start;
+  const sourceFile = node.getSourceFile();
+  return {
+    messageText: message,
+    file: sourceFile,
+    code: FAKE_ERROR_CODE,
+    category: ts.DiagnosticCategory.Error,
+    start,
+    length,
+    relatedInformation,
+  };
+}
+
+export function relatedInfoAtTsNode(
+  node: ts.Node,
+  message: string,
+): ts.DiagnosticRelatedInformation {
+  return {
+    category: ts.DiagnosticCategory.Message,
+    code: 0,
+    file: node.getSourceFile(),
+    start: node.getStart(),
+    length: node.getWidth(),
+    messageText: message,
+  };
+}
+
 export function graphqlSourceToSourceFile(source: Source): ts.SourceFile {
   return ts.createSourceFile(source.name, source.body, ts.ScriptTarget.Latest);
 }

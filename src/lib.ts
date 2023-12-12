@@ -14,6 +14,8 @@ import {
   Result,
   ReportableDiagnostics,
   diagnosticAtGraphQLLocation,
+  diagnosticAtTsNode,
+  relatedInfoAtTsNode,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { Extractor } from "./Extractor";
@@ -22,6 +24,7 @@ import { validateSDL } from "graphql/validation/validate";
 import { DIRECTIVES_AST } from "./metadataDirectives";
 import { extend } from "./utils/helpers";
 import { ParsedCommandLineGrats } from "./gratsConfig";
+import * as E from "./Errors";
 
 export * from "./gratsConfig";
 
@@ -64,6 +67,8 @@ function extractSchema(
     DIRECTIVES_AST.definitions,
   );
 
+  const contextReferences: ts.Node[] = [];
+
   const errors: ts.Diagnostic[] = [];
   for (const sourceFile of program.getSourceFiles()) {
     // If the file doesn't contain any GraphQL definitions, skip it.
@@ -90,8 +95,8 @@ function extractSchema(
       }
     }
 
-    const extractor = new Extractor(sourceFile, ctx, options.raw.grats);
-    const extractedResult = extractor.extract();
+    const extractor = new Extractor(ctx, options.raw.grats);
+    const extractedResult = extractor.extract(sourceFile);
     if (extractedResult.kind === "ERROR") {
       extend(errors, extractedResult.err);
       continue;
@@ -108,10 +113,19 @@ function extractSchema(
       ctx.recordTypeName(node, definition.name, definition.kind);
     }
 
+    for (const contextReference of snapshot.contextReferences) {
+      contextReferences.push(contextReference);
+    }
+
     // Record extracted GraphQL definitions
     for (const definition of snapshot.definitions) {
       definitions.push(definition);
     }
+  }
+
+  const validationResult = validateContextReferences(ctx, contextReferences);
+  if (validationResult.kind === "ERROR") {
+    errors.push(validationResult.err);
   }
 
   if (errors.length > 0) {
@@ -196,4 +210,55 @@ function validateTypename(
     }
   }
   return typenameDiagnostics;
+}
+
+/**
+ * Ensure that all context type references resolve to the same
+ * type declaration.
+ */
+function validateContextReferences(
+  ctx: TypeContext,
+  references: ts.Node[],
+): Result<void, ts.Diagnostic> {
+  let gqlContext: { declaration: ts.Node; firstReference: ts.Node } | null =
+    null;
+  for (const typeName of references) {
+    const symbol = ctx.checker.getSymbolAtLocation(typeName);
+    if (symbol == null) {
+      return err(
+        diagnosticAtTsNode(
+          typeName,
+          E.expectedTypeAnnotationOnContextToBeResolvable(),
+        ),
+      );
+    }
+
+    const declaration = ctx.findSymbolDeclaration(symbol);
+    if (declaration == null) {
+      return err(
+        diagnosticAtTsNode(
+          typeName,
+          E.expectedTypeAnnotationOnContextToHaveDeclaration(),
+        ),
+      );
+    }
+
+    if (gqlContext == null) {
+      // This is the first typed context value we've seen...
+      gqlContext = {
+        declaration: declaration,
+        firstReference: typeName,
+      };
+    } else if (gqlContext.declaration !== declaration) {
+      return err(
+        diagnosticAtTsNode(typeName, E.multipleContextTypes(), [
+          relatedInfoAtTsNode(
+            gqlContext.firstReference,
+            "A different type reference was used here",
+          ),
+        ]),
+      );
+    }
+  }
+  return ok(undefined);
 }

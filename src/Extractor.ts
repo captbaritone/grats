@@ -16,14 +16,14 @@ import {
   assertName,
 } from "graphql";
 import {
+  diagnosticAtTsNode,
   DiagnosticsResult,
   err,
-  FAKE_ERROR_CODE,
   ok,
+  relatedInfoAtTsNode,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import {
-  GqlContext,
   GratsDefinitionNode,
   NameDefinition,
   TypeContext,
@@ -70,6 +70,7 @@ type ExtractionSnapshot = {
   readonly definitions: GratsDefinitionNode[];
   readonly unresolvedNames: Map<ts.Node, NameNode>;
   readonly nameDefinitions: Map<ts.Node, NameDefinition>;
+  readonly contextReferences: Array<ts.Node>;
 };
 
 // Describes the subset of TypeContext that Extractor still needs.
@@ -77,10 +78,8 @@ type ExtractionSnapshot = {
 interface TypeContextProxy {
   getDestFilePath(sourceFile: ts.SourceFile): string;
   checker: ts.TypeChecker;
-  gqlContext: GqlContext | null;
   findSymbolDeclaration(symbol: ts.Symbol): ts.Node | null;
   recordHasTypenameField(typeName: string): void;
-  //
 }
 
 /**
@@ -95,23 +94,22 @@ interface TypeContextProxy {
  */
 export class Extractor {
   definitions: GratsDefinitionNode[] = [];
+
+  // Snapshot data
   unresolvedNames: Map<ts.Node, NameNode> = new Map();
   nameDefinitions: Map<ts.Node, NameDefinition> = new Map();
+  contextReferences: Array<ts.Node> = [];
+
   sourceFile: ts.SourceFile;
   ctx: TypeContextProxy;
   configOptions: ConfigOptions;
   errors: ts.Diagnostic[] = [];
   gql: GraphQLConstructor;
 
-  constructor(
-    sourceFile: ts.SourceFile,
-    ctx: TypeContext,
-    buildOptions: ConfigOptions,
-  ) {
-    this.sourceFile = sourceFile;
+  constructor(ctx: TypeContext, buildOptions: ConfigOptions) {
     this.ctx = ctx;
     this.configOptions = buildOptions;
-    this.gql = new GraphQLConstructor(sourceFile);
+    this.gql = new GraphQLConstructor();
   }
 
   markUnresolvedType(node: ts.Node, name: NameNode) {
@@ -130,8 +128,8 @@ export class Extractor {
   // If we find a tag we recognize, we extract the relevant information,
   // reporting an error if it is attached to a node where that tag is not
   // supported.
-  extract(): DiagnosticsResult<ExtractionSnapshot> {
-    traverseJSDocTags(this.sourceFile, (node, tag) => {
+  extract(sourceFile: ts.SourceFile): DiagnosticsResult<ExtractionSnapshot> {
+    traverseJSDocTags(sourceFile, (node, tag) => {
       switch (tag.tagName.text) {
         case TYPE_TAG:
           this.extractType(node, tag);
@@ -203,6 +201,7 @@ export class Extractor {
       definitions: this.definitions,
       unresolvedNames: this.unresolvedNames,
       nameDefinitions: this.nameDefinitions,
+      contextReferences: this.contextReferences,
     });
   }
 
@@ -267,17 +266,7 @@ export class Extractor {
     message: string,
     relatedInformation?: ts.DiagnosticRelatedInformation[],
   ): null {
-    const start = node.getStart();
-    const length = node.getEnd() - start;
-    this.errors.push({
-      messageText: message,
-      file: this.sourceFile,
-      code: FAKE_ERROR_CODE,
-      category: ts.DiagnosticCategory.Error,
-      start,
-      length,
-      relatedInformation,
-    });
+    this.errors.push(diagnosticAtTsNode(node, message, relatedInformation));
     return null;
   }
 
@@ -301,27 +290,6 @@ export class Extractor {
     const suggestion = `If you think ${LIBRARY_NAME} should be able to infer this ${positionKind}, please report an issue at ${ISSUE_URL}.`;
     const completedMessage = `${message}\n\n${suggestion}`;
     return this.report(node, completedMessage, relatedInformation);
-  }
-
-  related(node: ts.Node, message: string): ts.DiagnosticRelatedInformation {
-    return {
-      category: ts.DiagnosticCategory.Message,
-      code: 0,
-      file: node.getSourceFile(),
-      start: node.getStart(),
-      length: node.getWidth(),
-      messageText: message,
-    };
-  }
-
-  diagnosticAnnotatedLocation(node: ts.Node): {
-    start: number;
-    length: number;
-    filepath: ts.SourceFile;
-  } {
-    const start = node.getStart();
-    const end = node.getEnd();
-    return { start, length: end - start, filepath: this.sourceFile };
   }
 
   /** TypeScript traversals */
@@ -852,7 +820,7 @@ export class Extractor {
         .filter((d) => d !== node && ts.isInterfaceDeclaration(d))
         .map((d) => {
           const locNode = ts.getNameOfDeclaration(d) ?? d;
-          return this.related(locNode, "Other declaration");
+          return relatedInfoAtTsNode(locNode, "Other declaration");
         });
 
       if (otherLocations.length > 0) {
@@ -1433,36 +1401,7 @@ export class Extractor {
       );
     }
 
-    const symbol = this.ctx.checker.getSymbolAtLocation(node.type.typeName);
-    if (symbol == null) {
-      return this.report(
-        node.type.typeName,
-        E.expectedTypeAnnotationOnContextToBeResolvable(),
-      );
-    }
-
-    const declaration = this.ctx.findSymbolDeclaration(symbol);
-    if (declaration == null) {
-      return this.report(
-        node.type.typeName,
-        E.expectedTypeAnnotationOnContextToHaveDeclaration(),
-      );
-    }
-
-    if (this.ctx.gqlContext == null) {
-      // This is the first typed context value we've seen...
-      this.ctx.gqlContext = {
-        declaration: declaration,
-        firstReference: node.type.typeName,
-      };
-    } else if (this.ctx.gqlContext.declaration !== declaration) {
-      return this.report(node.type.typeName, E.multipleContextTypes(), [
-        this.related(
-          this.ctx.gqlContext.firstReference,
-          "A different type reference was used here",
-        ),
-      ]);
-    }
+    this.contextReferences.push(node.type.typeName);
   }
 
   methodDeclaration(
@@ -1677,7 +1616,7 @@ export class Extractor {
         const [first, ...rest] = types;
         // FIXME: If each of `rest` matches `first` this should be okay.
         const incompatibleVariants = rest.map((tsType) => {
-          return this.related(tsType, "Other non-nullish type");
+          return relatedInfoAtTsNode(tsType, "Other non-nullish type");
         });
         this.report(first, E.expectedOneNonNullishType(), incompatibleVariants);
         return null;
@@ -1764,7 +1703,7 @@ export class Extractor {
     }
     if (tags.length > 1) {
       const additionalTags = tags.slice(1).map((tag) => {
-        return this.related(tag, "Additional tag");
+        return relatedInfoAtTsNode(tag, "Additional tag");
       });
 
       const message =

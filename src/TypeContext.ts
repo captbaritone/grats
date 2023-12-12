@@ -51,20 +51,6 @@ export type AbstractFieldDefinitionNode = {
 };
 
 /**
- * Information about the GraphQL context type. We track the first value we see,
- * and then validate that any other values we see are the same.
- */
-export type GqlContext = {
-  // If we follow the context type back to its source, this is the declaration
-  // we find.
-  declaration: ts.Node;
-
-  // The first reference to the context type that we encountered. Used for
-  // reporting errors if a different context type is encountered.
-  firstReference: ts.Node;
-};
-
-/**
  * Used to track TypeScript references.
  *
  * If a TS method is typed as returning `MyType`, we need to look at that type's
@@ -83,9 +69,6 @@ export class TypeContext {
   _options: ts.ParsedCommandLine;
   _symbolToName: Map<ts.Symbol, NameDefinition> = new Map();
   _unresolvedTypes: Map<NameNode, ts.Symbol> = new Map();
-  // The resolver context declaration, if it has been encountered.
-  // Gets mutated by Extractor.
-  gqlContext: GqlContext | null = null;
   hasTypename: Set<string> = new Set();
 
   constructor(
