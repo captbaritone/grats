@@ -13,6 +13,7 @@ export async function* greetings(_: Subscription): AsyncIterable<string> {
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 schema {
   subscription: Subscription
 }
@@ -26,3 +27,28 @@ directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!
 type Subscription {
   greetings: String @exported(tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts", functionName: "greetings", argCount: 1) @asyncIterable
 }
+-- TypeScript --
+import { greetings as subscriptionGreetingsResolver } from "./SubscriptionFunctionFieldWithAsyncIterable";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Subscription",
+    fields() {
+        return {
+            greetings: {
+                name: "greetings",
+                type: GraphQLString,
+                subscribe(source) {
+                    return subscriptionGreetingsResolver(source);
+                },
+                resolve(payload) {
+                    return payload;
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    subscription: SubscriptionType,
+    types: [SubscriptionType]
+});
+export { schema };

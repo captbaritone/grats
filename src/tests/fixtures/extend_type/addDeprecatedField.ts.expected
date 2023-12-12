@@ -17,6 +17,7 @@ export function greeting(query: SomeType): string {
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 directive @asyncIterable on FIELD_DEFINITION
 
 directive @propertyName(name: String!) on FIELD_DEFINITION
@@ -26,3 +27,25 @@ directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!
 type SomeType {
   greeting: String @deprecated(reason: "Because reasons") @exported(tsModulePath: "grats/src/tests/fixtures/extend_type/addDeprecatedField.ts", functionName: "greeting", argCount: 1)
 }
+-- TypeScript --
+import { greeting as someTypeGreetingResolver } from "./addDeprecatedField";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "SomeType",
+    fields() {
+        return {
+            greeting: {
+                deprecationReason: "Because reasons",
+                name: "greeting",
+                type: GraphQLString,
+                resolve(source) {
+                    return someTypeGreetingResolver(source);
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [SomeTypeType]
+});
+export { schema };

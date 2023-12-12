@@ -18,6 +18,7 @@ export default class SomeType {
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 directive @asyncIterable on FIELD_DEFINITION
 
 directive @propertyName(name: String!) on FIELD_DEFINITION
@@ -28,3 +29,38 @@ type SomeType {
   intField(count: Int! = 10): String
   floatField(scale: Float! = 10): String
 }
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLInt, GraphQLFloat } from "graphql";
+const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "SomeType",
+    fields() {
+        return {
+            intField: {
+                name: "intField",
+                type: GraphQLString,
+                args: {
+                    count: {
+                        name: "count",
+                        type: new GraphQLNonNull(GraphQLInt),
+                        defaultValue: 10
+                    }
+                }
+            },
+            floatField: {
+                name: "floatField",
+                type: GraphQLString,
+                args: {
+                    scale: {
+                        name: "scale",
+                        type: new GraphQLNonNull(GraphQLFloat),
+                        defaultValue: 10
+                    }
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [SomeTypeType]
+});
+export { schema };

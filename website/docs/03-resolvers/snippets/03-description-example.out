@@ -40,3 +40,29 @@ type User {
     greeting: String!
   ): String
 }
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    description: "// highlight-start\n A registered user of the system.\n// highlight-end",
+    fields() {
+        return {
+            hello: {
+                description: "// highlight-start\n  A friendly greeting for the user, intended for \n  their first visit.\n// highlight-end",
+                name: "hello",
+                type: GraphQLString,
+                args: {
+                    greeting: {
+                        description: "The salutation to use",
+                        name: "greeting",
+                        type: new GraphQLNonNull(GraphQLString)
+                    }
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [UserType]
+});
+export { schema };

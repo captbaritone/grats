@@ -61,7 +61,6 @@ program
 const gratsDir = path.join(__dirname, "../..");
 const fixturesDir = path.join(__dirname, "fixtures");
 const integrationFixturesDir = path.join(__dirname, "integrationFixtures");
-const codegenFixturesDir = path.join(__dirname, "codegenFixtures");
 
 const testDirs = [
   {
@@ -105,7 +104,10 @@ const testDirs = [
       }
 
       // We run codegen here just ensure that it doesn't throw.
-      codegen(schemaResult.value, `${fixturesDir}/${fileName}`);
+      const executableSchema = codegen(
+        schemaResult.value,
+        `${fixturesDir}/${fileName}`,
+      );
 
       const LOCATION_REGEX = /^\/\/ Locate: (.*)/;
       const locationMatch = code.match(LOCATION_REGEX);
@@ -119,9 +121,11 @@ const testDirs = [
           diagnosticAtGraphQLLocation("Located here", locResult.value),
         ]).formatDiagnosticsWithContext();
       } else {
-        return printSchemaWithDirectives(schemaResult.value, {
+        const sdl = printSchemaWithDirectives(schemaResult.value, {
           assumeValid: true,
         });
+
+        return `-- SDL --\n${sdl}\n-- TypeScript --\n${executableSchema}`;
       }
     },
   },
@@ -187,18 +191,6 @@ const testDirs = [
       });
 
       return JSON.stringify(data, null, 2);
-    },
-  },
-  {
-    fixturesDir: codegenFixturesDir,
-    testFilePattern: /\.graphql$/,
-    ignoreFilePattern: null,
-    transformer: async (code: string, fileName: string) => {
-      const filePath = `${codegenFixturesDir}/${fileName}`;
-      const sdl = readFileSync(filePath, "utf8");
-      const schema = buildSchema(sdl);
-
-      return codegen(schema, filePath);
     },
   },
 ];

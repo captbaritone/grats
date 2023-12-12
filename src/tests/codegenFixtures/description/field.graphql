@@ -1,6 +1,0 @@
-type Query {
-  """
-  A description
-  """
-  greeting: String
-}

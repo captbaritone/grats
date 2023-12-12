@@ -20,6 +20,7 @@ interface HasName {
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 directive @asyncIterable on FIELD_DEFINITION
 
 directive @propertyName(name: String!) on FIELD_DEFINITION
@@ -34,3 +35,38 @@ type User implements HasName {
 interface HasName {
   name: String
 }
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInterfaceType } from "graphql";
+const HasNameType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    name: "HasName",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+        return {
+            hello: {
+                name: "hello",
+                type: GraphQLString
+            },
+            name: {
+                name: "name",
+                type: GraphQLString
+            }
+        };
+    },
+    interfaces() {
+        return [HasNameType];
+    }
+});
+const schema = new GraphQLSchema({
+    types: [UserType, HasNameType]
+});
+export { schema };

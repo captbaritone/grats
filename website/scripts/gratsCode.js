@@ -1,5 +1,5 @@
 const fs = require("fs");
-const { buildSchemaResult } = require("grats");
+const { buildSchemaResult, codegen } = require("grats");
 const { printSDLWithoutDirectives } = require("grats");
 const glob = require("glob");
 
@@ -37,11 +37,12 @@ function processFile(file) {
   }
 
   const schema = schemaResult.value;
+  const typeScript = codegen(schema, file, options);
   const graphql = printSDLWithoutDirectives(schema);
 
   const fileContent = fs.readFileSync(file, "utf8");
 
-  const output = `${fileContent}\n=== SNIP ===\n${graphql}`;
+  const output = `${fileContent}\n=== SNIP ===\n${graphql}\n=== SNIP ===\n${typeScript}`;
 
   const destFilename = `${file.replace(/\.grats\.ts$/, ".out")}`;
 

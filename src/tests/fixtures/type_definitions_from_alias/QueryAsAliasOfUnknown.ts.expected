@@ -12,6 +12,7 @@ export function foo(_: Query): string {
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 schema {
   query: Query
 }
@@ -25,3 +26,25 @@ directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!
 type Query {
   foo: String @exported(tsModulePath: "grats/src/tests/fixtures/type_definitions_from_alias/QueryAsAliasOfUnknown.ts", functionName: "foo", argCount: 1)
 }
+-- TypeScript --
+import { foo as queryFooResolver } from "./QueryAsAliasOfUnknown";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+        return {
+            foo: {
+                name: "foo",
+                type: GraphQLString,
+                resolve(source) {
+                    return queryFooResolver(source);
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    query: QueryType,
+    types: [QueryType]
+});
+export { schema };

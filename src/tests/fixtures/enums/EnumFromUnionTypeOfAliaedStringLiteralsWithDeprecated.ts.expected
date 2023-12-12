@@ -18,6 +18,7 @@ type MyEnum = Valid | Invalid;
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 directive @asyncIterable on FIELD_DEFINITION
 
 directive @propertyName(name: String!) on FIELD_DEFINITION
@@ -32,3 +33,33 @@ enum MyEnum {
   VALID @deprecated(reason: "Don't use this")
   INVALID @deprecated(reason: "Don't use this either")
 }
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLEnumType } from "graphql";
+const MyEnumType: GraphQLEnumType = new GraphQLEnumType({
+    name: "MyEnum",
+    values: {
+        VALID: {
+            deprecationReason: "Don't use this",
+            value: "VALID"
+        },
+        INVALID: {
+            deprecationReason: "Don't use this either",
+            value: "INVALID"
+        }
+    }
+});
+const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "SomeType",
+    fields() {
+        return {
+            hello: {
+                name: "hello",
+                type: MyEnumType
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [SomeTypeType, MyEnumType]
+});
+export { schema };

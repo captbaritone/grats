@@ -16,6 +16,7 @@ export class SomeType {
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 directive @asyncIterable on FIELD_DEFINITION
 
 directive @propertyName(name: String!) on FIELD_DEFINITION
@@ -25,3 +26,20 @@ directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!
 type SomeType {
   greeting: String
 }
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "SomeType",
+    fields() {
+        return {
+            greeting: {
+                name: "greeting",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [SomeTypeType]
+});
+export { schema };

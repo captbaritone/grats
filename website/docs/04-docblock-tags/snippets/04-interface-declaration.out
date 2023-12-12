@@ -12,3 +12,21 @@ interface MyClass {
 interface MyInterfaceName {
   someField: String
 }
+=== SNIP ===
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
+const MyInterfaceNameType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    description: "A description of my interface.",
+    name: "MyInterfaceName",
+    fields() {
+        return {
+            someField: {
+                name: "someField",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [MyInterfaceNameType]
+});
+export { schema };

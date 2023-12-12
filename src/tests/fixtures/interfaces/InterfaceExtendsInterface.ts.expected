@@ -24,6 +24,7 @@ interface Actor extends GqlNode, Person {
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 directive @asyncIterable on FIELD_DEFINITION
 
 directive @propertyName(name: String!) on FIELD_DEFINITION
@@ -42,3 +43,49 @@ interface Actor implements Node & Person {
   id: String
   name: String
 }
+-- TypeScript --
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
+const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    name: "Node",
+    fields() {
+        return {
+            id: {
+                name: "id",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    name: "Person",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const ActorType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    name: "Actor",
+    fields() {
+        return {
+            id: {
+                name: "id",
+                type: GraphQLString
+            },
+            name: {
+                name: "name",
+                type: GraphQLString
+            }
+        };
+    },
+    interfaces() {
+        return [NodeType, PersonType];
+    }
+});
+const schema = new GraphQLSchema({
+    types: [NodeType, PersonType, ActorType]
+});
+export { schema };

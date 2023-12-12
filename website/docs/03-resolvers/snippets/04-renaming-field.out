@@ -14,3 +14,23 @@ export class User {
 type User {
   greeting: String
 }
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+        return {
+            greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                resolve(source, args, context, info) {
+                    return typeof source.getGreeting === "function" ? source.getGreeting(source, args, context, info) : source.getGreeting;
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [UserType]
+});
+export { schema };

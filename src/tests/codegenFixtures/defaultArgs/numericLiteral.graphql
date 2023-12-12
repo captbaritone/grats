@@ -1,4 +1,0 @@
-type Query {
-  int(input: Int = 10): String!
-  float(input: Float = 10): String!
-}

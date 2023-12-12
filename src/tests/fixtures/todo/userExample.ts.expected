@@ -25,6 +25,7 @@ export function fullName(user: User): string {
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 directive @asyncIterable on FIELD_DEFINITION
 
 directive @propertyName(name: String!) on FIELD_DEFINITION
@@ -40,3 +41,47 @@ type User {
   lastName: String
   fullName: String @exported(tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts", functionName: "fullName", argCount: 1)
 }
+-- TypeScript --
+import { fullName as userFullNameResolver } from "./userExample";
+import { me as someTypeMeResolver } from "./userExample";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+        return {
+            firstName: {
+                name: "firstName",
+                type: GraphQLString
+            },
+            lastName: {
+                name: "lastName",
+                type: GraphQLString
+            },
+            fullName: {
+                name: "fullName",
+                type: GraphQLString,
+                resolve(source) {
+                    return userFullNameResolver(source);
+                }
+            }
+        };
+    }
+});
+const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "SomeType",
+    fields() {
+        return {
+            me: {
+                name: "me",
+                type: UserType,
+                resolve(source) {
+                    return someTypeMeResolver(source);
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [SomeTypeType, UserType]
+});
+export { schema };

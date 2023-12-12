@@ -20,3 +20,30 @@ type GqlContext = {
 type User {
   friends(order: String!): User
 }
+=== SNIP ===
+import { friends as userFriendsResolver } from "./02-resolver-signature-function.grats";
+import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString } from "graphql";
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+        return {
+            friends: {
+                name: "friends",
+                type: UserType,
+                args: {
+                    order: {
+                        name: "order",
+                        type: new GraphQLNonNull(GraphQLString)
+                    }
+                },
+                resolve(source, args, context) {
+                    return userFriendsResolver(source, args, context);
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [UserType]
+});
+export { schema };

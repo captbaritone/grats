@@ -37,6 +37,7 @@ class Admin implements IPerson, IThing {
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 directive @asyncIterable on FIELD_DEFINITION
 
 directive @propertyName(name: String!) on FIELD_DEFINITION
@@ -58,3 +59,70 @@ type User implements IPerson & IThing {
 type Admin implements IPerson & IThing {
   greeting: String @exported(tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts", functionName: "greeting", argCount: 1)
 }
+-- TypeScript --
+import { greeting as userGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";
+import { greeting as adminGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+const IThingType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    name: "IThing",
+    fields() {
+        return {
+            greeting: {
+                name: "greeting",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    name: "IPerson",
+    fields() {
+        return {
+            greeting: {
+                name: "greeting",
+                type: GraphQLString
+            }
+        };
+    },
+    interfaces() {
+        return [IThingType];
+    }
+});
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+        return {
+            greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                resolve(source) {
+                    return userGreetingResolver(source);
+                }
+            }
+        };
+    },
+    interfaces() {
+        return [IPersonType, IThingType];
+    }
+});
+const AdminType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Admin",
+    fields() {
+        return {
+            greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                resolve(source) {
+                    return adminGreetingResolver(source);
+                }
+            }
+        };
+    },
+    interfaces() {
+        return [IPersonType, IThingType];
+    }
+});
+const schema = new GraphQLSchema({
+    types: [IThingType, IPersonType, UserType, AdminType]
+});
+export { schema };

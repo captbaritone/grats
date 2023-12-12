@@ -17,6 +17,7 @@ class User implements DONT_USE_THIS {
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 directive @asyncIterable on FIELD_DEFINITION
 
 directive @propertyName(name: String!) on FIELD_DEFINITION
@@ -30,3 +31,34 @@ interface Person {
 type User implements Person {
   name: String
 }
+-- TypeScript --
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    name: "Person",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            }
+        };
+    },
+    interfaces() {
+        return [PersonType];
+    }
+});
+const schema = new GraphQLSchema({
+    types: [PersonType, UserType]
+});
+export { schema };

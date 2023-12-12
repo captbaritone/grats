@@ -1,7 +1,0 @@
-interface MyInterface {
-  myField: String @deprecated(reason: "Reason")
-}
-
-type Query {
-  greeting: MyInterface
-}

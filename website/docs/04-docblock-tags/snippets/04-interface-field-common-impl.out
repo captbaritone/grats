@@ -42,3 +42,68 @@ type Pet implements Greetable {
   name: String
   greeting: String
 }
+=== SNIP ===
+import { greeting as userGreetingResolver } from "./04-interface-field-common-impl.grats";
+import { greeting as petGreetingResolver } from "./04-interface-field-common-impl.grats";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+const GreetableType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    name: "Greetable",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            },
+            greeting: {
+                name: "greeting",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            },
+            greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                resolve(source) {
+                    return userGreetingResolver(source);
+                }
+            }
+        };
+    },
+    interfaces() {
+        return [GreetableType];
+    }
+});
+const PetType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Pet",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            },
+            greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                resolve(source) {
+                    return petGreetingResolver(source);
+                }
+            }
+        };
+    },
+    interfaces() {
+        return [GreetableType];
+    }
+});
+const schema = new GraphQLSchema({
+    types: [GreetableType, UserType, PetType]
+});
+export { schema };

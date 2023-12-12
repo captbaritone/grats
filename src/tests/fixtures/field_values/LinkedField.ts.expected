@@ -24,6 +24,7 @@ class User {
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 directive @asyncIterable on FIELD_DEFINITION
 
 directive @propertyName(name: String!) on FIELD_DEFINITION
@@ -38,3 +39,35 @@ type User {
   name: String
   friends: [User!]
 }
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull } from "graphql";
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            },
+            friends: {
+                name: "friends",
+                type: new GraphQLList(new GraphQLNonNull(UserType))
+            }
+        };
+    }
+});
+const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "SomeType",
+    fields() {
+        return {
+            me: {
+                name: "me",
+                type: UserType
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [SomeTypeType, UserType]
+});
+export { schema };

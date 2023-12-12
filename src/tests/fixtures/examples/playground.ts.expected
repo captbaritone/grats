@@ -38,6 +38,7 @@ export function getUser(_: SomeType): UserResolver {
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 directive @asyncIterable on FIELD_DEFINITION
 
 directive @propertyName(name: String!) on FIELD_DEFINITION
@@ -55,3 +56,55 @@ type User {
   name: String
   greeting(salutation: String!): String
 }
+-- TypeScript --
+import { getUser as someTypeGetUserResolver } from "./playground";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    description: "A user in our kick-ass system!",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            },
+            greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                args: {
+                    salutation: {
+                        name: "salutation",
+                        type: new GraphQLNonNull(GraphQLString)
+                    }
+                }
+            }
+        };
+    }
+});
+const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "SomeType",
+    fields() {
+        return {
+            me: {
+                name: "me",
+                type: UserType
+            },
+            viewer: {
+                deprecationReason: "Please use `me` instead.",
+                name: "viewer",
+                type: UserType
+            },
+            getUser: {
+                name: "getUser",
+                type: UserType,
+                resolve(source) {
+                    return someTypeGetUserResolver(source);
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [SomeTypeType, UserType]
+});
+export { schema };

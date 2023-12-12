@@ -15,3 +15,25 @@ type User {
   oldField: String @deprecated(reason: "Please use myNewField instead.")
   newField: String
 }
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+        return {
+            oldField: {
+                deprecationReason: "Please use myNewField instead.",
+                name: "oldField",
+                type: GraphQLString
+            },
+            newField: {
+                name: "newField",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [UserType]
+});
+export { schema };

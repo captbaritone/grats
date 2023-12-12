@@ -1,8 +1,0 @@
-"""
-A description
-"""
-scalar MyScalar
-
-type Query {
-  mammal: MyScalar
-}

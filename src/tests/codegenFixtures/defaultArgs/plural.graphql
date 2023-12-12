@@ -1,3 +1,0 @@
-type Query {
-  true(input: [Boolean] = [True]): String!
-}

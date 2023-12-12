@@ -15,3 +15,26 @@ type GqlContext = {
 type User {
   bestFriend(order: String!): User
 }
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString } from "graphql";
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+        return {
+            bestFriend: {
+                name: "bestFriend",
+                type: UserType,
+                args: {
+                    order: {
+                        name: "order",
+                        type: new GraphQLNonNull(GraphQLString)
+                    }
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [UserType]
+});
+export { schema };

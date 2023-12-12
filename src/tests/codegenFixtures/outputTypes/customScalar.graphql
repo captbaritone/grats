@@ -1,5 +1,0 @@
-scalar Eon
-
-type Query {
-  currentEon: Eon
-}

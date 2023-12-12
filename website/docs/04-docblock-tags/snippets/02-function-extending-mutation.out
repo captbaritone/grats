@@ -24,3 +24,42 @@ type Mutation {
 type User {
   name: String
 }
+=== SNIP ===
+import { deleteUser as mutationDeleteUserResolver } from "./02-function-extending-mutation.grats";
+import { GraphQLSchema, GraphQLObjectType, GraphQLBoolean, GraphQLNonNull, GraphQLString } from "graphql";
+const MutationType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Mutation",
+    fields() {
+        return {
+            deleteUser: {
+                name: "deleteUser",
+                type: GraphQLBoolean,
+                args: {
+                    id: {
+                        name: "id",
+                        type: new GraphQLNonNull(GraphQLString)
+                    }
+                },
+                resolve(source, args) {
+                    return mutationDeleteUserResolver(source, args);
+                }
+            }
+        };
+    }
+});
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    mutation: MutationType,
+    types: [MutationType, UserType]
+});
+export { schema };

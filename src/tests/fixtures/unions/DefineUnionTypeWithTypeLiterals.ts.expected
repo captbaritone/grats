@@ -27,6 +27,7 @@ type Actor = User | Entity;
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 directive @asyncIterable on FIELD_DEFINITION
 
 directive @propertyName(name: String!) on FIELD_DEFINITION
@@ -46,3 +47,48 @@ type Entity {
 }
 
 union Actor = User | Entity
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLUnionType, GraphQLString } from "graphql";
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const EntityType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Entity",
+    fields() {
+        return {
+            description: {
+                name: "description",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const ActorType: GraphQLUnionType = new GraphQLUnionType({
+    name: "Actor",
+    types() {
+        return [UserType, EntityType];
+    }
+});
+const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "SomeType",
+    fields() {
+        return {
+            me: {
+                name: "me",
+                type: ActorType
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [SomeTypeType, UserType, EntityType, ActorType]
+});
+export { schema };

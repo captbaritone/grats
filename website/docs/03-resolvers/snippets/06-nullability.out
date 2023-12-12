@@ -16,3 +16,20 @@ class MyType {
 type MyType {
   myField: String!
 }
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString } from "graphql";
+const MyTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "MyType",
+    fields() {
+        return {
+            myField: {
+                name: "myField",
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [MyTypeType]
+});
+export { schema };

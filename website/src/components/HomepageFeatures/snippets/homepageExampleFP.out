@@ -17,3 +17,35 @@ type User {
   name: String
   greet(greeting: String!): String
 }
+=== SNIP ===
+import { greet as userGreetResolver } from "./homepageExampleFP.grats";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    description: "A user in our kick-ass system!",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            },
+            greet: {
+                name: "greet",
+                type: GraphQLString,
+                args: {
+                    greeting: {
+                        name: "greeting",
+                        type: new GraphQLNonNull(GraphQLString)
+                    }
+                },
+                resolve(source, args) {
+                    return userGreetResolver(source, args);
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [UserType]
+});
+export { schema };

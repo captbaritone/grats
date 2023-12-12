@@ -9,17 +9,17 @@ import { parseLines, useThemeConfig } from "@docusaurus/theme-common/internal";
 
 type Props = {
   out: string;
-  mode: "ts" | "gql" | "both";
+  mode: "ts" | "gql" | "codegen" | "both";
 };
 
 export default function GratsCode({ out, mode }: Props) {
-  const [ts, gql] = useMemo(() => {
+  const [ts, gql, codegen] = useMemo(() => {
     if (typeof out !== "string") {
       throw new Error("Expected out prop to be string");
     }
     const chunks = out.split("=== SNIP ===").map((str) => str.trim());
-    if (chunks.length !== 2) {
-      throw new Error("Expceted children to be special grats code");
+    if (chunks.length !== 3) {
+      throw new Error("Expected children to be special grats code");
     }
     return chunks;
   });
@@ -33,11 +33,9 @@ export default function GratsCode({ out, mode }: Props) {
         </div>
       );
     case "gql":
-      return (
-        <>
-          <CodeBlock language="graphql">{gql}</CodeBlock>
-        </>
-      );
+      return <CodeBlock language="graphql">{gql}</CodeBlock>;
+    case "codegen":
+      return <CodeBlock language="tsx">{codegen}</CodeBlock>;
     case "both":
       return (
         <Tabs>

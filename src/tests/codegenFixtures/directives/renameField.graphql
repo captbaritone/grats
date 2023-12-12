@@ -1,5 +1,0 @@
-directive @propertyName(name: String!) on FIELD_DEFINITION
-
-type Query {
-  greeting: String @propertyName(name: "salutation")
-}

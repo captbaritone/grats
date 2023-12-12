@@ -8,3 +8,20 @@ export type MyType = {
 type MyType {
   someField: String
 }
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+const MyTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "MyType",
+    fields() {
+        return {
+            someField: {
+                name: "someField",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [MyTypeType]
+});
+export { schema };

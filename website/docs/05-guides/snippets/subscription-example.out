@@ -19,3 +19,28 @@ function sleep(s: number) {
 type Subscription {
   countdown: Int
 }
+=== SNIP ===
+import { countdown as subscriptionCountdownResolver } from "./subscription-example.grats";
+import { GraphQLSchema, GraphQLObjectType, GraphQLInt } from "graphql";
+const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Subscription",
+    fields() {
+        return {
+            countdown: {
+                name: "countdown",
+                type: GraphQLInt,
+                subscribe(source) {
+                    return subscriptionCountdownResolver(source);
+                },
+                resolve(payload) {
+                    return payload;
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    subscription: SubscriptionType,
+    types: [SubscriptionType]
+});
+export { schema };

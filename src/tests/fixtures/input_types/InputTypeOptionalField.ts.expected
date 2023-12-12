@@ -15,6 +15,7 @@ type MyInputType = {
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 directive @asyncIterable on FIELD_DEFINITION
 
 directive @propertyName(name: String!) on FIELD_DEFINITION
@@ -28,3 +29,31 @@ type SomeType {
 input MyInputType {
   someField: String
 }
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInputObjectType } from "graphql";
+const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "SomeType",
+    fields() {
+        return {
+            hello: {
+                name: "hello",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const MyInputTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({
+    name: "MyInputType",
+    fields() {
+        return {
+            someField: {
+                name: "someField",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [SomeTypeType, MyInputTypeType]
+});
+export { schema };

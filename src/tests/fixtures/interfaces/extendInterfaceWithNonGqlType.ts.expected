@@ -16,6 +16,7 @@ export interface IPerson extends IThing {
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 directive @asyncIterable on FIELD_DEFINITION
 
 directive @propertyName(name: String!) on FIELD_DEFINITION
@@ -25,3 +26,20 @@ directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!
 interface IPerson {
   name: String
 }
+-- TypeScript --
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
+const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    name: "IPerson",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [IPersonType]
+});
+export { schema };

@@ -16,6 +16,7 @@ export function greeting(_: User, args: unknown, ctx: GratsContext): string {
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 directive @asyncIterable on FIELD_DEFINITION
 
 directive @propertyName(name: String!) on FIELD_DEFINITION
@@ -25,3 +26,24 @@ directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!
 type User {
   greeting: String @exported(tsModulePath: "grats/src/tests/fixtures/resolver_context/FunctionWithContextValue.ts", functionName: "greeting", argCount: 3)
 }
+-- TypeScript --
+import { greeting as userGreetingResolver } from "./FunctionWithContextValue";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+        return {
+            greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                resolve(source, args, context) {
+                    return userGreetingResolver(source, args, context);
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [UserType]
+});
+export { schema };

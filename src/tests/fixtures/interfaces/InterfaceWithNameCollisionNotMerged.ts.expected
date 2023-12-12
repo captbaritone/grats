@@ -24,6 +24,7 @@ interface Node {
 -----------------
 OUTPUT
 -----------------
+-- SDL --
 directive @asyncIterable on FIELD_DEFINITION
 
 directive @propertyName(name: String!) on FIELD_DEFINITION
@@ -37,3 +38,31 @@ type SomeType {
 interface Node {
   id: String
 }
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType, GraphQLString } from "graphql";
+const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    name: "Node",
+    fields() {
+        return {
+            id: {
+                name: "id",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "SomeType",
+    fields() {
+        return {
+            me: {
+                name: "me",
+                type: NodeType
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [SomeTypeType, NodeType]
+});
+export { schema };
