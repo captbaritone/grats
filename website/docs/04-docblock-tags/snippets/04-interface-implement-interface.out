@@ -7,7 +7,7 @@ interface Person {
 /** @gqlInterface */
 // highlight-start
 interface User extends Person {
-// highlight-end
+  // highlight-end
   /** @gqlField */
   name: string;
 
@@ -24,3 +24,38 @@ interface User implements Person {
   name: String
   username: String
 }
+=== SNIP ===
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
+const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    name: "Person",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            }
+        };
+    }
+});
+const UserType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    name: "User",
+    fields() {
+        return {
+            name: {
+                name: "name",
+                type: GraphQLString
+            },
+            username: {
+                name: "username",
+                type: GraphQLString
+            }
+        };
+    },
+    interfaces() {
+        return [PersonType];
+    }
+});
+const schema = new GraphQLSchema({
+    types: [PersonType, UserType]
+});
+export { schema };
