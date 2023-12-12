@@ -8,14 +8,14 @@ import {
   validateGratsOptions,
 } from "../lib";
 import * as ts from "typescript";
-import { buildSchema, graphql, GraphQLSchema } from "graphql";
+import { graphql, GraphQLSchema } from "graphql";
 import { Command } from "commander";
 import { locate } from "../Locate";
 import {
   diagnosticAtGraphQLLocation,
   ReportableDiagnostics,
 } from "../utils/DiagnosticError";
-import { readFileSync, writeFileSync } from "fs";
+import { writeFileSync } from "fs";
 import { codegen } from "../codegen";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import { diff } from "jest-diff";
