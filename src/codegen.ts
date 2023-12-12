@@ -39,6 +39,9 @@ import {
 import { resolveRelativePath } from "./gratsRoot";
 
 const F = ts.factory;
+const EXPORT_NAME = "getSchema";
+const SCHEMA_CONFIG_TYPE_NAME = "SchemaConfig";
+const SCHEMA_CONFIG_VARIABLES = "config";
 
 // Given a GraphQL SDL, returns the a string of TypeScript code that generates a
 // GraphQLSchema implementing that schema.
@@ -58,6 +61,7 @@ class Codegen {
   _typeDefinitions: Set<string> = new Set();
   _graphQLImports: Set<string> = new Set();
   _statements: ts.Statement[] = [];
+  _scalarConfigs: Map<string, string> = new Map();
 
   constructor(schema: GraphQLSchema, destination: string) {
     this._schema = schema;
@@ -70,30 +74,99 @@ class Codegen {
   }
 
   schemaDeclaration(): void {
-    this.constDeclaration(
-      "schema",
-      F.createNewExpression(
-        this.graphQLImport("GraphQLSchema"),
-        [],
-        [this.schemaConfig()],
+    this._statements.push(
+      F.createReturnStatement(
+        F.createNewExpression(
+          this.graphQLImport("GraphQLSchema"),
+          [],
+          [this.schemaConfig()],
+        ),
+      ),
+    );
+
+    const functionStatements = this._statements;
+
+    this._statements = [];
+
+    this._statements.push(this.configDeclaration());
+
+    const param = F.createParameterDeclaration(
+      undefined,
+      undefined,
+      SCHEMA_CONFIG_VARIABLES,
+      undefined,
+      F.createTypeReferenceNode(SCHEMA_CONFIG_TYPE_NAME),
+    );
+
+    this._statements.push(
+      F.createFunctionDeclaration(
+        [F.createToken(ts.SyntaxKind.ExportKeyword)], // Modifiers
+        undefined, // AsteriskToken
+        EXPORT_NAME, // Name
+        undefined, // TypeParameters
+        [param], // Parameters
+        undefined, // ReturnType
+        F.createBlock(functionStatements, true),
       ),
     );
   }
 
-  schemaExport(): void {
-    this._statements.push(
-      F.createExportDeclaration(
-        undefined, // [F.createModifier(ts.SyntaxKind.DefaultKeyword)],
-        false,
-        F.createNamedExports([
-          F.createExportSpecifier(
-            false,
+  configDeclaration(): ts.TypeAliasDeclaration {
+    function mapMethod(
+      name: string,
+      input: string,
+      output: string,
+    ): ts.MethodSignature {
+      return F.createMethodSignature(
+        undefined,
+        name,
+        undefined,
+        [],
+        [
+          F.createParameterDeclaration(
             undefined,
-            F.createIdentifier("schema"),
+            undefined,
+            F.createIdentifier("input"),
+            undefined,
+            F.createTypeReferenceNode(input),
           ),
-        ]),
-      ),
+        ],
+        F.createTypeReferenceNode(output),
+      );
+    }
+
+    const scalarConfigOptions = Array.from(this._scalarConfigs.entries()).map(
+      ([name, type]) => {
+        return F.createPropertySignature(
+          undefined,
+          name,
+          undefined,
+          F.createTypeLiteralNode([
+            mapMethod("serialize", type, "unknown"),
+            mapMethod("parseValue", "unknown", type),
+          ]),
+        );
+      },
     );
+
+    const scalarConfig = F.createTypeLiteralNode(scalarConfigOptions);
+    return F.createTypeAliasDeclaration(
+      [F.createToken(ts.SyntaxKind.ExportKeyword)],
+      F.createIdentifier(SCHEMA_CONFIG_TYPE_NAME), // Name
+      [], // TypeParameters
+      F.createTypeLiteralNode([
+        F.createPropertySignature(
+          undefined,
+          "scalars",
+          undefined,
+          scalarConfig,
+        ),
+      ]),
+    );
+  }
+
+  schemaExport(): void {
+    return undefined;
   }
 
   schemaConfig(): ts.ObjectLiteralExpression {
@@ -389,6 +462,9 @@ class Codegen {
     const varName = `${obj.name}Type`;
     if (!this._typeDefinitions.has(varName)) {
       this._typeDefinitions.add(varName);
+      const scalarTypeName = `${obj.name}RuntimeType`;
+      this.import("./path/to/scalar", [{ name: obj.name, as: scalarTypeName }]);
+      this._scalarConfigs.set(obj.name, scalarTypeName);
       this.constDeclaration(
         varName,
         F.createNewExpression(
@@ -408,6 +484,32 @@ class Codegen {
     return this.objectLiteral([
       this.description(obj.description),
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
+      F.createPropertyAssignment(
+        "serialize",
+        F.createPropertyAccessExpression(
+          F.createPropertyAccessExpression(
+            F.createPropertyAccessExpression(
+              F.createIdentifier(SCHEMA_CONFIG_VARIABLES),
+              F.createIdentifier("scalars"),
+            ),
+            obj.name,
+          ),
+          "serialize",
+        ),
+      ),
+      F.createPropertyAssignment(
+        "parseValue",
+        F.createPropertyAccessExpression(
+          F.createPropertyAccessExpression(
+            F.createPropertyAccessExpression(
+              F.createIdentifier(SCHEMA_CONFIG_VARIABLES),
+              F.createIdentifier("scalars"),
+            ),
+            obj.name,
+          ),
+          "parseValue",
+        ),
+      ),
     ]);
   }
 

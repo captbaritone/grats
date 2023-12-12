@@ -188,6 +188,7 @@ export class GraphQLConstructor {
   scalarTypeDefinition(
     node: ts.Node,
     name: NameNode,
+    directives: readonly ConstDirectiveNode[] | null,
     description: StringValueNode | null,
   ): ScalarTypeDefinitionNode {
     return {
@@ -195,7 +196,7 @@ export class GraphQLConstructor {
       loc: this._loc(node),
       description: description ?? undefined,
       name,
-      directives: undefined,
+      directives: this._optionalList(directives),
     };
   }
 

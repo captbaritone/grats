@@ -40,7 +40,10 @@ import {
   METHOD_NAME_DIRECTIVE,
   TS_MODULE_PATH_ARG,
   ARG_COUNT,
+  EXPORTED_SCALAR_DIRECTIVE,
+  EXPORTED_NAME,
 } from "./serverDirectives";
+import { dir } from "console";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -458,11 +461,33 @@ export class Extractor {
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
+    if (
+      !node.modifiers?.some((modifier) => {
+        return modifier.kind === ts.SyntaxKind.ExportKeyword;
+      })
+    ) {
+      return this.report(node, "Scalar type definitions must be exported.");
+    }
+
+    if (!ts.isSourceFile(node.parent)) {
+      return this.report(node, "Type definitions must be top level.");
+    }
+
+    const { tsModulePath } = this.ctx.getDestFilePath(node.parent);
+
+    const directive = this.exportScalarDirective(
+      node,
+      tsModulePath,
+      node.name!.text,
+    );
+
+    console.log(directive);
+
     const description = this.collectDescription(node.name);
     this.ctx.recordTypeName(node.name, name, "SCALAR");
 
     this.definitions.push(
-      this.gql.scalarTypeDefinition(node, name, description),
+      this.gql.scalarTypeDefinition(node, name, [directive], description),
     );
   }
 
@@ -1822,6 +1847,29 @@ export class Extractor {
           nameNode,
           this.gql.name(nameNode, ARG_COUNT),
           this.gql.int(nameNode, String(argCount)),
+        ),
+      ],
+    );
+  }
+
+  exportScalarDirective(
+    nameNode: ts.Node,
+    tsModulePath: string,
+    exportName: string,
+  ): ConstDirectiveNode {
+    return this.gql.constDirective(
+      nameNode,
+      this.gql.name(nameNode, EXPORTED_SCALAR_DIRECTIVE),
+      [
+        this.gql.constArgument(
+          nameNode,
+          this.gql.name(nameNode, TS_MODULE_PATH_ARG),
+          this.gql.string(nameNode, tsModulePath),
+        ),
+        this.gql.constArgument(
+          nameNode,
+          this.gql.name(nameNode, EXPORTED_NAME),
+          this.gql.string(nameNode, exportName),
         ),
       ],
     );

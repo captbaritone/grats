@@ -1,5 +1,8 @@
 import { DocumentNode, parse } from "graphql";
 
+// TODO: Rename file to "metadataDirectives.ts"?
+// TODO: Helper functions to parse/read directives?
+
 // TODO: Rename to be generic since it can apply to properties as well as methods.
 export const METHOD_NAME_DIRECTIVE = "methodName";
 export const METHOD_NAME_ARG = "name";
@@ -8,6 +11,10 @@ export const JS_MODULE_PATH_ARG = "jsModulePath";
 export const TS_MODULE_PATH_ARG = "tsModulePath";
 export const ARG_COUNT = "argCount";
 export const EXPORTED_FUNCTION_NAME_ARG = "functionName";
+
+export const EXPORTED_SCALAR_DIRECTIVE = "exportedScalar";
+export const EXPORTED_NAME = "exportName";
+
 export const ASYNC_ITERABLE_TYPE_DIRECTIVE = "asyncIterable";
 
 export const DIRECTIVES_AST: DocumentNode = parse(`
@@ -19,4 +26,8 @@ export const DIRECTIVES_AST: DocumentNode = parse(`
       ${EXPORTED_FUNCTION_NAME_ARG}: String!
       ${ARG_COUNT}: Int!
     ) on FIELD_DEFINITION
+    directive @${EXPORTED_SCALAR_DIRECTIVE}(
+      ${TS_MODULE_PATH_ARG}: String!,
+      ${EXPORTED_NAME}: String!
+    ) on SCALAR
 `);

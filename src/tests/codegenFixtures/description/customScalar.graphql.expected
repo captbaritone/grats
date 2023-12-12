@@ -13,24 +13,36 @@ type Query {
 -----------------
 OUTPUT
 -----------------
+import { MyScalar as MyScalarRuntimeType } from "./path/to/scalar";
 import { GraphQLSchema, GraphQLObjectType, GraphQLScalarType } from "graphql";
-const MyScalarType: GraphQLScalarType = new GraphQLScalarType({
-    description: "A description",
-    name: "MyScalar"
-});
-const QueryType: GraphQLObjectType = new GraphQLObjectType({
-    name: "Query",
-    fields() {
-        return {
-            mammal: {
-                name: "mammal",
-                type: MyScalarType
-            }
+export type SchemaConfig = {
+    scalars: {
+        MyScalar: {
+            serialize(input: MyScalarRuntimeType): unknown;
+            parseValue(input: unknown): MyScalarRuntimeType;
         };
-    }
-});
-const schema = new GraphQLSchema({
-    query: QueryType,
-    types: [MyScalarType, QueryType]
-});
-export { schema };
+    };
+};
+export function getSchema(config: SchemaConfig) {
+    const MyScalarType: GraphQLScalarType = new GraphQLScalarType({
+        description: "A description",
+        name: "MyScalar",
+        serialize: config.scalars.MyScalar.serialize,
+        parseValue: config.scalars.MyScalar.parseValue
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                mammal: {
+                    name: "mammal",
+                    type: MyScalarType
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [MyScalarType, QueryType]
+    });
+}
