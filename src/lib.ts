@@ -96,7 +96,10 @@ function extractSchema(
       extend(errors, extractedResult.err);
       continue;
     }
-    for (const definition of extractedResult.value) {
+    for (const [node, typeName] of extractedResult.value.unresolvedNames) {
+      ctx.markUnresolvedType(node, typeName);
+    }
+    for (const definition of extractedResult.value.definitions) {
       definitions.push(definition);
     }
   }

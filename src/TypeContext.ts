@@ -31,7 +31,7 @@ import { extend } from "./utils/helpers";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
-type NameDefinition = {
+export type NameDefinition = {
   name: NameNode;
   kind: "TYPE" | "INTERFACE" | "UNION" | "SCALAR" | "INPUT_OBJECT" | "ENUM";
 };
@@ -54,7 +54,7 @@ export type AbstractFieldDefinitionNode = {
  * Information about the GraphQL context type. We track the first value we see,
  * and then validate that any other values we see are the same.
  */
-type GqlContext = {
+export type GqlContext = {
   // If we follow the context type back to its source, this is the declaration
   // we find.
   declaration: ts.Node;

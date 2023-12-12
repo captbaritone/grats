@@ -23,7 +23,9 @@ import {
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import {
+  GqlContext,
   GratsDefinitionNode,
+  NameDefinition,
   TypeContext,
   UNRESOLVED_REFERENCE_NAME,
 } from "./TypeContext";
@@ -64,6 +66,26 @@ const OPERATION_TYPES = new Set(["Query", "Mutation", "Subscription"]);
 
 type ArgDefaults = Map<string, ts.Expression>;
 
+type ExtractionSnapshot = {
+  readonly definitions: GratsDefinitionNode[];
+  readonly unresolvedNames: Map<ts.Node, NameNode>;
+};
+
+// Describes the subset of TypeContext that Extractor still needs.
+// Our goal is to incrementally remove all of these dependencies.
+interface TypeContextProxy {
+  recordTypeName(
+    node: ts.Node,
+    name: NameNode,
+    kind: NameDefinition["kind"],
+  ): void;
+  getDestFilePath(sourceFile: ts.SourceFile): string;
+  checker: ts.TypeChecker;
+  gqlContext: GqlContext | null;
+  findSymbolDeclaration(symbol: ts.Symbol): ts.Node | null;
+  //
+}
+
 /**
  * Extracts GraphQL definitions from TypeScript source code.
  *
@@ -76,8 +98,9 @@ type ArgDefaults = Map<string, ts.Expression>;
  */
 export class Extractor {
   definitions: GratsDefinitionNode[] = [];
+  unresolvedNames: Map<ts.Node, NameNode> = new Map();
   sourceFile: ts.SourceFile;
-  ctx: TypeContext;
+  ctx: TypeContextProxy;
   configOptions: ConfigOptions;
   errors: ts.Diagnostic[] = [];
   gql: GraphQLConstructor;
@@ -93,11 +116,15 @@ export class Extractor {
     this.gql = new GraphQLConstructor(sourceFile);
   }
 
+  markUnresolvedType(node: ts.Node, name: NameNode) {
+    this.unresolvedNames.set(node, name);
+  }
+
   // Traverse all nodes, checking each one for its JSDoc tags.
   // If we find a tag we recognize, we extract the relevant information,
   // reporting an error if it is attached to a node where that tag is not
   // supported.
-  extract(): DiagnosticsResult<GratsDefinitionNode[]> {
+  extract(): DiagnosticsResult<ExtractionSnapshot> {
     traverseJSDocTags(this.sourceFile, (node, tag) => {
       switch (tag.tagName.text) {
         case TYPE_TAG:
@@ -166,7 +193,10 @@ export class Extractor {
     if (this.errors.length > 0) {
       return err(this.errors);
     }
-    return ok(this.definitions);
+    return ok({
+      definitions: this.definitions,
+      unresolvedNames: this.unresolvedNames,
+    });
   }
 
   extractType(node: ts.Node, tag: ts.JSDocTag) {
@@ -312,7 +342,7 @@ export class Extractor {
         member.typeName,
         UNRESOLVED_REFERENCE_NAME,
       );
-      this.ctx.markUnresolvedType(member.typeName, namedType.name);
+      this.markUnresolvedType(member.typeName, namedType.name);
       types.push(namedType);
     }
 
@@ -409,7 +439,7 @@ export class Extractor {
 
     const nameNode = typeParam.type.typeName;
     const typeName = this.gql.name(nameNode, UNRESOLVED_REFERENCE_NAME);
-    this.ctx.markUnresolvedType(nameNode, typeName);
+    this.markUnresolvedType(nameNode, typeName);
     return typeName;
   }
 
@@ -763,7 +793,7 @@ export class Extractor {
               expression,
               UNRESOLVED_REFERENCE_NAME,
             );
-            this.ctx.markUnresolvedType(expression, namedType.name);
+            this.markUnresolvedType(expression, namedType.name);
             return namedType;
           });
       });
@@ -1687,7 +1717,7 @@ export class Extractor {
         //
         // A later pass will resolve the type.
         const namedType = this.gql.namedType(node, UNRESOLVED_REFERENCE_NAME);
-        this.ctx.markUnresolvedType(node.typeName, namedType.name);
+        this.markUnresolvedType(node.typeName, namedType.name);
         return this.gql.nonNullType(node, namedType);
       }
     }
