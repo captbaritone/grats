@@ -69,20 +69,17 @@ type ArgDefaults = Map<string, ts.Expression>;
 type ExtractionSnapshot = {
   readonly definitions: GratsDefinitionNode[];
   readonly unresolvedNames: Map<ts.Node, NameNode>;
+  readonly nameDefinitions: Map<ts.Node, NameDefinition>;
 };
 
 // Describes the subset of TypeContext that Extractor still needs.
 // Our goal is to incrementally remove all of these dependencies.
 interface TypeContextProxy {
-  recordTypeName(
-    node: ts.Node,
-    name: NameNode,
-    kind: NameDefinition["kind"],
-  ): void;
   getDestFilePath(sourceFile: ts.SourceFile): string;
   checker: ts.TypeChecker;
   gqlContext: GqlContext | null;
   findSymbolDeclaration(symbol: ts.Symbol): ts.Node | null;
+  recordHasTypenameField(typeName: string): void;
   //
 }
 
@@ -99,6 +96,7 @@ interface TypeContextProxy {
 export class Extractor {
   definitions: GratsDefinitionNode[] = [];
   unresolvedNames: Map<ts.Node, NameNode> = new Map();
+  nameDefinitions: Map<ts.Node, NameDefinition> = new Map();
   sourceFile: ts.SourceFile;
   ctx: TypeContextProxy;
   configOptions: ConfigOptions;
@@ -118,6 +116,14 @@ export class Extractor {
 
   markUnresolvedType(node: ts.Node, name: NameNode) {
     this.unresolvedNames.set(node, name);
+  }
+
+  recordTypeName(
+    node: ts.Node,
+    name: NameNode,
+    kind: NameDefinition["kind"],
+  ): void {
+    this.nameDefinitions.set(node, { name, kind });
   }
 
   // Traverse all nodes, checking each one for its JSDoc tags.
@@ -196,6 +202,7 @@ export class Extractor {
     return ok({
       definitions: this.definitions,
       unresolvedNames: this.unresolvedNames,
+      nameDefinitions: this.nameDefinitions,
     });
   }
 
@@ -346,7 +353,7 @@ export class Extractor {
       types.push(namedType);
     }
 
-    this.ctx.recordTypeName(node.name, name, "UNION");
+    this.recordTypeName(node.name, name, "UNION");
 
     this.definitions.push(
       this.gql.unionTypeDefinition(node, name, types, description),
@@ -470,7 +477,7 @@ export class Extractor {
     if (name == null) return null;
 
     const description = this.collectDescription(node.name);
-    this.ctx.recordTypeName(node.name, name, "SCALAR");
+    this.recordTypeName(node.name, name, "SCALAR");
 
     this.definitions.push(
       this.gql.scalarTypeDefinition(node, name, description),
@@ -482,7 +489,7 @@ export class Extractor {
     if (name == null) return null;
 
     const description = this.collectDescription(node.name);
-    this.ctx.recordTypeName(node.name, name, "INPUT_OBJECT");
+    this.recordTypeName(node.name, name, "INPUT_OBJECT");
 
     const fields = this.collectInputFields(node);
 
@@ -567,7 +574,7 @@ export class Extractor {
     const description = this.collectDescription(node.name);
     const fields = this.collectFields(node);
     const interfaces = this.collectInterfaces(node);
-    this.ctx.recordTypeName(node.name, name, "TYPE");
+    this.recordTypeName(node.name, name, "TYPE");
 
     this.checkForTypenameProperty(node, name.value);
 
@@ -599,7 +606,7 @@ export class Extractor {
     const description = this.collectDescription(node.name);
     const fields = this.collectFields(node);
     const interfaces = this.collectInterfaces(node);
-    this.ctx.recordTypeName(node.name, name, "INTERFACE");
+    this.recordTypeName(node.name, name, "INTERFACE");
 
     this.checkForTypenameProperty(node, name.value);
 
@@ -635,7 +642,7 @@ export class Extractor {
     }
 
     const description = this.collectDescription(node.name);
-    this.ctx.recordTypeName(node.name, name, "TYPE");
+    this.recordTypeName(node.name, name, "TYPE");
 
     this.definitions.push(
       this.gql.objectTypeDefinition(
@@ -862,7 +869,7 @@ export class Extractor {
 
     const fields = this.collectFields(node);
 
-    this.ctx.recordTypeName(node.name, name, "INTERFACE");
+    this.recordTypeName(node.name, name, "INTERFACE");
 
     this.definitions.push(
       this.gql.interfaceTypeDefinition(
@@ -1188,7 +1195,7 @@ export class Extractor {
 
     const values = this.collectEnumValues(node);
 
-    this.ctx.recordTypeName(node.name, name, "ENUM");
+    this.recordTypeName(node.name, name, "ENUM");
 
     this.definitions.push(
       this.gql.enumTypeDefinition(node, name, values, description),
@@ -1208,7 +1215,7 @@ export class Extractor {
     if (values == null) return;
 
     const description = this.collectDescription(node.name);
-    this.ctx.recordTypeName(node.name, name, "ENUM");
+    this.recordTypeName(node.name, name, "ENUM");
 
     this.definitions.push(
       this.gql.enumTypeDefinition(node, name, values, description),

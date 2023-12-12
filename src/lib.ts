@@ -96,10 +96,20 @@ function extractSchema(
       extend(errors, extractedResult.err);
       continue;
     }
-    for (const [node, typeName] of extractedResult.value.unresolvedNames) {
+
+    const snapshot = extractedResult.value;
+
+    // Propagate snapshot data to type context
+    for (const [node, typeName] of snapshot.unresolvedNames) {
       ctx.markUnresolvedType(node, typeName);
     }
-    for (const definition of extractedResult.value.definitions) {
+
+    for (const [node, definition] of snapshot.nameDefinitions) {
+      ctx.recordTypeName(node, definition.name, definition.kind);
+    }
+
+    // Record extracted GraphQL definitions
+    for (const definition of snapshot.definitions) {
       definitions.push(definition);
     }
   }
