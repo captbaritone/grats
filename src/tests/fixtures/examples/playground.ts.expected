@@ -40,14 +40,14 @@ OUTPUT
 -----------------
 directive @asyncIterable on FIELD_DEFINITION
 
-directive @methodName(name: String!) on FIELD_DEFINITION
+directive @propertyName(name: String!) on FIELD_DEFINITION
 
-directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
+directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
 
 type SomeType {
   me: User
   viewer: User @deprecated(reason: "Please use `me` instead.")
-  getUser: User @exported(jsModulePath: "grats/src/tests/fixtures/examples/playground.js", tsModulePath: "grats/src/tests/fixtures/examples/playground.ts", functionName: "getUser", argCount: 1)
+  getUser: User @exported(tsModulePath: "grats/src/tests/fixtures/examples/playground.ts", functionName: "getUser", argCount: 1)
 }
 
 """A user in our kick-ass system!"""

@@ -19,7 +19,7 @@ import * as ts from "typescript";
 import { Extractor } from "./Extractor";
 import { GratsDefinitionNode, TypeContext } from "./TypeContext";
 import { validateSDL } from "graphql/validation/validate";
-import { DIRECTIVES_AST } from "./serverDirectives";
+import { DIRECTIVES_AST } from "./metadataDirectives";
 import { extend } from "./utils/helpers";
 import { ParsedCommandLineGrats } from "./gratsConfig";
 

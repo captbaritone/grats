@@ -1,5 +1,5 @@
-directive @methodName(name: String!) on FIELD_DEFINITION
+directive @propertyName(name: String!) on FIELD_DEFINITION
 
 type Query {
-  greeting: String @methodName(name: "salutation")
+  greeting: String @propertyName(name: "salutation")
 }

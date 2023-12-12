@@ -18,10 +18,10 @@ OUTPUT
 -----------------
 directive @asyncIterable on FIELD_DEFINITION
 
-directive @methodName(name: String!) on FIELD_DEFINITION
+directive @propertyName(name: String!) on FIELD_DEFINITION
 
-directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
+directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
 
 type User {
-  greeting: String @exported(jsModulePath: "grats/src/tests/fixtures/resolver_context/FunctionWithContextValue.js", tsModulePath: "grats/src/tests/fixtures/resolver_context/FunctionWithContextValue.ts", functionName: "greeting", argCount: 3)
+  greeting: String @exported(tsModulePath: "grats/src/tests/fixtures/resolver_context/FunctionWithContextValue.ts", functionName: "greeting", argCount: 3)
 }

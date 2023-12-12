@@ -31,16 +31,7 @@ import { ConfigOptions } from "./lib";
 import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
 import { GraphQLConstructor } from "./GraphQLConstructor";
-import {
-  ASYNC_ITERABLE_TYPE_DIRECTIVE,
-  EXPORTED_DIRECTIVE,
-  EXPORTED_FUNCTION_NAME_ARG,
-  JS_MODULE_PATH_ARG,
-  METHOD_NAME_ARG,
-  METHOD_NAME_DIRECTIVE,
-  TS_MODULE_PATH_ARG,
-  ARG_COUNT,
-} from "./serverDirectives";
+import {} from "./metadataDirectives";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -376,28 +367,18 @@ export class Extractor {
     }
 
     // TODO: Does this work in the browser?
-    const { jsModulePath, tsModulePath } = this.ctx.getDestFilePath(
-      node.parent,
-    );
+    const tsModulePath = this.ctx.getDestFilePath(node.parent);
 
     const directives = [
-      this.exportDirective(
-        funcName,
-        jsModulePath,
+      this.gql.exportedDirective(funcName, {
         tsModulePath,
-        funcName.text,
-        node.parameters.length,
-      ),
+        exportedFunctionName: funcName.text,
+        argCount: node.parameters.length,
+      }),
     ];
 
     if (isStream) {
-      directives.push(
-        this.gql.constDirective(
-          node.type,
-          this.gql.name(node.type, ASYNC_ITERABLE_TYPE_DIRECTIVE),
-          null,
-        ),
-      );
+      directives.push(this.gql.asyncIterableDirective(node.type));
     }
 
     const deprecated = this.collectDeprecated(node);
@@ -943,7 +924,9 @@ export class Extractor {
 
     let directives: ConstDirectiveNode[] = [];
     if (id.text !== name.value) {
-      directives = [this.fieldNameDirective(node.name, id.text)];
+      directives = [
+        this.gql.propertyNameDirective(node.name, { name: id.text }),
+      ];
     }
 
     const type = this.collectType(node.type);
@@ -1482,16 +1465,12 @@ export class Extractor {
     if (id == null) return null;
     let directives: ConstDirectiveNode[] = [];
     if (id.text !== name.value) {
-      directives = [this.fieldNameDirective(node.name, id.text)];
+      directives = [
+        this.gql.propertyNameDirective(node.name, { name: id.text }),
+      ];
     }
     if (isStream) {
-      directives.push(
-        this.gql.constDirective(
-          node.type,
-          this.gql.name(node.type, ASYNC_ITERABLE_TYPE_DIRECTIVE),
-          null,
-        ),
-      );
+      directives.push(this.gql.asyncIterableDirective(node.type));
     }
 
     const deprecated = this.collectDeprecated(node);
@@ -1622,7 +1601,9 @@ export class Extractor {
     }
 
     if (id.text !== name.value) {
-      directives = [this.fieldNameDirective(node.name, id.text)];
+      directives = [
+        this.gql.propertyNameDirective(node.name, { name: id.text }),
+      ];
     }
 
     return this.gql.fieldDefinition(
@@ -1789,56 +1770,6 @@ export class Extractor {
       return this.gql.nullableType(type);
     }
     return type;
-  }
-
-  /* Grats directives */
-  exportDirective(
-    nameNode: ts.Node,
-    jsModulePath: string,
-    tsModulePath: string,
-    functionName: string,
-    argCount: number,
-  ): ConstDirectiveNode {
-    return this.gql.constDirective(
-      nameNode,
-      this.gql.name(nameNode, EXPORTED_DIRECTIVE),
-      [
-        this.gql.constArgument(
-          nameNode,
-          this.gql.name(nameNode, JS_MODULE_PATH_ARG),
-          this.gql.string(nameNode, jsModulePath),
-        ),
-        this.gql.constArgument(
-          nameNode,
-          this.gql.name(nameNode, TS_MODULE_PATH_ARG),
-          this.gql.string(nameNode, tsModulePath),
-        ),
-        this.gql.constArgument(
-          nameNode,
-          this.gql.name(nameNode, EXPORTED_FUNCTION_NAME_ARG),
-          this.gql.string(nameNode, functionName),
-        ),
-        this.gql.constArgument(
-          nameNode,
-          this.gql.name(nameNode, ARG_COUNT),
-          this.gql.int(nameNode, String(argCount)),
-        ),
-      ],
-    );
-  }
-
-  fieldNameDirective(nameNode: ts.Node, name: string): ConstDirectiveNode {
-    return this.gql.constDirective(
-      nameNode,
-      this.gql.name(nameNode, METHOD_NAME_DIRECTIVE),
-      [
-        this.gql.constArgument(
-          nameNode,
-          this.gql.name(nameNode, METHOD_NAME_ARG),
-          this.gql.string(nameNode, name),
-        ),
-      ],
-    );
   }
 }
 

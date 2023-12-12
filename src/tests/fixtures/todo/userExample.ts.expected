@@ -27,16 +27,16 @@ OUTPUT
 -----------------
 directive @asyncIterable on FIELD_DEFINITION
 
-directive @methodName(name: String!) on FIELD_DEFINITION
+directive @propertyName(name: String!) on FIELD_DEFINITION
 
-directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
+directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
 
 type SomeType {
-  me: User @exported(jsModulePath: "grats/src/tests/fixtures/todo/userExample.js", tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts", functionName: "me", argCount: 1)
+  me: User @exported(tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts", functionName: "me", argCount: 1)
 }
 
 type User {
   firstName: String
   lastName: String
-  fullName: String @exported(jsModulePath: "grats/src/tests/fixtures/todo/userExample.js", tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts", functionName: "fullName", argCount: 1)
+  fullName: String @exported(tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts", functionName: "fullName", argCount: 1)
 }

@@ -13,7 +13,6 @@ import {
   GraphQLScalarType,
   GraphQLSchema,
   GraphQLUnionType,
-  Kind,
   isEnumType,
   isInputObjectType,
   isInputType,
@@ -29,13 +28,11 @@ import * as ts from "typescript";
 import * as path from "path";
 import {
   EXPORTED_DIRECTIVE,
-  EXPORTED_FUNCTION_NAME_ARG,
-  METHOD_NAME_ARG,
-  METHOD_NAME_DIRECTIVE,
-  TS_MODULE_PATH_ARG,
-  ARG_COUNT,
+  FIELD_NAME_DIRECTIVE,
   ASYNC_ITERABLE_TYPE_DIRECTIVE,
-} from "./serverDirectives";
+  parseExportedDirective,
+  parsePropertyNameDirective,
+} from "./metadataDirectives";
 import { resolveRelativePath } from "./gratsRoot";
 
 const F = ts.factory;
@@ -210,12 +207,10 @@ class Codegen {
 
     const exported = fieldDirective(field, EXPORTED_DIRECTIVE);
     if (exported != null) {
-      const module = assertDirectiveStringArg(exported, TS_MODULE_PATH_ARG);
-      const funcName = assertDirectiveStringArg(
-        exported,
-        EXPORTED_FUNCTION_NAME_ARG,
-      );
-      const argCount = assertDirectiveIntArg(exported, ARG_COUNT);
+      const exportedMetadata = parseExportedDirective(exported);
+      const module = exportedMetadata.tsModulePath;
+      const funcName = exportedMetadata.exportedFunctionName;
+      const argCount = exportedMetadata.argCount;
 
       const abs = resolveRelativePath(module);
       const relative = stripExt(
@@ -248,9 +243,9 @@ class Codegen {
         ],
       );
     }
-    const propertyName = fieldDirective(field, METHOD_NAME_DIRECTIVE);
+    const propertyName = fieldDirective(field, FIELD_NAME_DIRECTIVE);
     if (propertyName != null) {
-      const name = assertDirectiveStringArg(propertyName, METHOD_NAME_ARG);
+      const { name } = parsePropertyNameDirective(propertyName);
       const prop = F.createPropertyAccessExpression(
         F.createIdentifier("source"),
         F.createIdentifier(name),
@@ -754,32 +749,6 @@ function fieldDirective(
   name: string,
 ): ConstDirectiveNode | null {
   return field.astNode?.directives?.find((d) => d.name.value === name) ?? null;
-}
-
-function assertDirectiveStringArg(
-  directive: ConstDirectiveNode,
-  name: string,
-): string {
-  const module = directive.arguments?.find((a) => a.name.value === name)?.value;
-
-  if (module?.kind !== Kind.STRING) {
-    throw new Error("Expected string argument");
-  }
-
-  return module.value;
-}
-
-function assertDirectiveIntArg(
-  directive: ConstDirectiveNode,
-  name: string,
-): number {
-  const module = directive.arguments?.find((a) => a.name.value === name)?.value;
-
-  if (module?.kind !== Kind.INT) {
-    throw new Error("Expected int argument");
-  }
-
-  return Number(module.value);
 }
 
 function stripExt(filePath: string): string {

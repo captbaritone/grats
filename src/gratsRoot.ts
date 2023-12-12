@@ -14,10 +14,7 @@ const gratsRoot = join(__dirname, "../..");
 export function getRelativeOutputPath(
   options: ts.ParsedCommandLine,
   sourceFile: ts.SourceFile,
-): {
-  jsModulePath: string;
-  tsModulePath: string;
-} {
+): string {
   const fileNames = ts.getOutputFileNames(options, sourceFile.fileName, true);
 
   // ts.getOutputFileNames returns a list of files that includes both the .d.ts
@@ -32,9 +29,7 @@ export function getRelativeOutputPath(
     );
   }
 
-  const jsModulePath = relative(gratsRoot, fileNames[0]);
-  const tsModulePath = relative(gratsRoot, sourceFile.fileName);
-  return { jsModulePath, tsModulePath };
+  return relative(gratsRoot, sourceFile.fileName);
 }
 
 export function resolveRelativePath(relativePath: string): string {

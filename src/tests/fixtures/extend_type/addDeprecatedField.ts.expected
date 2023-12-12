@@ -19,10 +19,10 @@ OUTPUT
 -----------------
 directive @asyncIterable on FIELD_DEFINITION
 
-directive @methodName(name: String!) on FIELD_DEFINITION
+directive @propertyName(name: String!) on FIELD_DEFINITION
 
-directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
+directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
 
 type SomeType {
-  greeting: String @deprecated(reason: "Because reasons") @exported(jsModulePath: "grats/src/tests/fixtures/extend_type/addDeprecatedField.js", tsModulePath: "grats/src/tests/fixtures/extend_type/addDeprecatedField.ts", functionName: "greeting", argCount: 1)
+  greeting: String @deprecated(reason: "Because reasons") @exported(tsModulePath: "grats/src/tests/fixtures/extend_type/addDeprecatedField.ts", functionName: "greeting", argCount: 1)
 }

@@ -17,10 +17,7 @@ const QueryType: GraphQLObjectType = new GraphQLObjectType({
         return {
             greeting: {
                 name: "greeting",
-                type: GraphQLString,
-                resolve(source, args, context, info) {
-                    return typeof source.salutation === "function" ? source.salutation(source, args, context, info) : source.salutation;
-                }
+                type: GraphQLString
             }
         };
     }

@@ -25,13 +25,13 @@ OUTPUT
 -----------------
 directive @asyncIterable on FIELD_DEFINITION
 
-directive @methodName(name: String!) on FIELD_DEFINITION
+directive @propertyName(name: String!) on FIELD_DEFINITION
 
-directive @exported(jsModulePath: String!, tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
+directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
 
 type SomeType {
   """Number 1 greeting."""
-  greeting: String @methodName(name: "somePropertyField")
+  greeting: String @propertyName(name: "somePropertyField")
   """Number 1 salutation."""
-  salutaion: String @methodName(name: "someMethodField")
+  salutaion: String @propertyName(name: "someMethodField")
 }

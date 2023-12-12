@@ -2,8 +2,8 @@ import { createSystem, createVirtualCompilerHost } from "@typescript/vfs";
 import * as ts from "typescript";
 import { buildSchemaResultWithHost } from "grats/src/lib";
 import { codegen } from "grats/src/codegen";
+import { printSDLWithoutDirectives } from "grats/src/printSchema";
 import { linter } from "@codemirror/lint";
-import { printSchema } from "graphql";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import GRATS_TYPE_DECLARATIONS from "!!raw-loader!grats/src/Types.ts";
 import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
@@ -103,14 +103,7 @@ function computeOutput(schemaResult, view) {
 
   const schema = schemaResult.value;
   if (!view.showGratsDirectives) {
-    // HACK!
-    schema._directives = schema._directives.filter(
-      (directive) =>
-        directive.name !== "exported" &&
-        directive.name !== "methodName" &&
-        directive.name !== "asyncIterable",
-    );
-    return printSchema(schema);
+    return printSDLWithoutDirectives(schema);
   }
   return printSchemaWithDirectives(schema, { assumeValid: true });
 }

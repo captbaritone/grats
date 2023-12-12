@@ -1,9 +1,7 @@
-const path = require("path");
 const fs = require("fs");
 const { buildSchemaResult } = require("grats");
-const { printSchemaWithDirectives } = require("@graphql-tools/utils");
+const { printSDLWithoutDirectives } = require("grats");
 const glob = require("glob");
-const { printSchema } = require("graphql");
 
 async function main() {
   const gratsFiles = glob.sync("**/*.grats.ts");
@@ -39,15 +37,7 @@ function processFile(file) {
   }
 
   const schema = schemaResult.value;
-  schema._directives = schema._directives.filter(
-    (directive) =>
-      directive.name !== "exported" &&
-      directive.name !== "methodName" &&
-      directive.name !== "asyncIterable",
-  );
-  const graphql = printSchema(schema, {
-    assumeValid: true,
-  });
+  const graphql = printSDLWithoutDirectives(schema);
 
   const fileContent = fs.readFileSync(file, "utf8");
 

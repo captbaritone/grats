@@ -1,6 +1,7 @@
 import { GraphQLSchema, printSchema } from "graphql";
 import { ConfigOptions } from "./lib";
 import { codegen } from "./codegen";
+import { METADATA_DIRECTIVE_NAMES } from "./metadataDirectives";
 
 /**
  * Prints code for a TypeScript module that exports a GraphQLSchema.
@@ -38,9 +39,9 @@ export function printSDLWithoutDirectives(schema: GraphQLSchema): string {
   return printSchema(
     new GraphQLSchema({
       ...schema.toConfig(),
-      // TODO: Only filter out our directives. Note that
-      // the playground duplicates this logic.
-      directives: [],
+      directives: schema.getDirectives().filter((directive) => {
+        return !METADATA_DIRECTIVE_NAMES.has(directive.name);
+      }),
     }),
   );
 }

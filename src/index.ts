@@ -7,6 +7,7 @@ import {
   ok,
 } from "./utils/DiagnosticError";
 
+export { printSDLWithoutDirectives } from "./printSchema";
 export * from "./Types";
 export * from "./lib";
 export { codegen } from "./codegen";

@@ -23,7 +23,7 @@ import { getRelativeOutputPath } from "./gratsRoot";
 import {
   ASYNC_ITERABLE_TYPE_DIRECTIVE as ASYNC_GENERATOR_DIRECTIVE,
   EXPORTED_DIRECTIVE,
-} from "./serverDirectives";
+} from "./metadataDirectives";
 import { FIELD_TAG } from "./Extractor";
 import * as E from "./Errors";
 import { InterfaceMap, computeInterfaceMap } from "./InterfaceGraph";
@@ -428,10 +428,7 @@ export class TypeContext {
     };
   }
 
-  getDestFilePath(sourceFile: ts.SourceFile): {
-    jsModulePath: string;
-    tsModulePath: string;
-  } {
+  getDestFilePath(sourceFile: ts.SourceFile): string {
     return getRelativeOutputPath(this._options, sourceFile);
   }
 }

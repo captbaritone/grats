@@ -32,12 +32,38 @@ import {
 } from "graphql";
 import * as ts from "typescript";
 import { AbstractFieldDefinitionNode } from "./TypeContext";
+import {
+  ExportedMetadata,
+  PropertyNameMetadata,
+  makeAsyncIterableDirective,
+  makeExportedDirective,
+  makePropertyNameDirective,
+} from "./metadataDirectives";
 
 export class GraphQLConstructor {
   sourceFile: ts.SourceFile;
 
   constructor(sourceFile: ts.SourceFile) {
     this.sourceFile = sourceFile;
+  }
+
+  /* Metadata Directives */
+  exportedDirective(
+    node: ts.Node,
+    exported: ExportedMetadata,
+  ): ConstDirectiveNode {
+    return makeExportedDirective(this._loc(node), exported);
+  }
+
+  propertyNameDirective(
+    node: ts.Node,
+    propertyName: PropertyNameMetadata,
+  ): ConstDirectiveNode {
+    return makePropertyNameDirective(this._loc(node), propertyName);
+  }
+
+  asyncIterableDirective(node: ts.Node): ConstDirectiveNode {
+    return makeAsyncIterableDirective(this._loc(node));
   }
 
   /* Top Level Types */
