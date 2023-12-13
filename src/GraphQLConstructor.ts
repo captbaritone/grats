@@ -29,9 +29,10 @@ import {
   InputObjectTypeDefinitionNode,
   EnumTypeDefinitionNode,
   InterfaceTypeDefinitionNode,
+  DefinitionNode,
+  Location,
 } from "graphql";
 import * as ts from "typescript";
-import { AbstractFieldDefinitionNode } from "./TypeContext";
 import {
   ExportedMetadata,
   PropertyNameMetadata,
@@ -39,6 +40,20 @@ import {
   makeExportedDirective,
   makePropertyNameDirective,
 } from "./metadataDirectives";
+
+// Grats can't always extract an SDL AST node right away. In some cases, it
+// needs to extract something abstract which can only be converted into an SDL
+// AST after the whole program has been analyzed.
+export type GratsDefinitionNode = DefinitionNode | AbstractFieldDefinitionNode;
+
+// A field definition that applies to some construct. We don't yet know if it applies to
+// a concrete type, or an interface.
+export type AbstractFieldDefinitionNode = {
+  readonly kind: "AbstractFieldDefinition";
+  readonly loc: Location;
+  readonly onType: NameNode;
+  readonly field: FieldDefinitionNode;
+};
 
 export class GraphQLConstructor {
   /* Metadata Directives */

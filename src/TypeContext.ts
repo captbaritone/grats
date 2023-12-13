@@ -1,60 +1,19 @@
-import {
-  DefinitionNode,
-  DocumentNode,
-  FieldDefinitionNode,
-  InterfaceTypeDefinitionNode,
-  InterfaceTypeExtensionNode,
-  Kind,
-  Location,
-  NameNode,
-  NamedTypeNode,
-  ObjectTypeDefinitionNode,
-  ObjectTypeExtensionNode,
-  visit,
-} from "graphql";
+import { NameNode } from "graphql";
 import * as ts from "typescript";
 import {
   gqlErr,
   DiagnosticResult,
-  DiagnosticsResult,
   err,
   ok,
-  gqlRelated,
-  tsErr,
-  tsRelated,
+  DiagnosticsResult,
 } from "./utils/DiagnosticError";
-import {
-  ASYNC_ITERABLE_TYPE_DIRECTIVE as ASYNC_GENERATOR_DIRECTIVE,
-  EXPORTED_DIRECTIVE,
-} from "./metadataDirectives";
-import { FIELD_TAG } from "./Extractor";
 import * as E from "./Errors";
-import { InterfaceMap, computeInterfaceMap } from "./InterfaceGraph";
-import { extend } from "./utils/helpers";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
 export type NameDefinition = {
   name: NameNode;
   kind: "TYPE" | "INTERFACE" | "UNION" | "SCALAR" | "INPUT_OBJECT" | "ENUM";
-};
-
-// Grats can't always extract an SDL AST node right away. In some cases, it
-// needs to extract something abstract which can only be converted into an SDL
-// AST after the whole program has been analyzed.
-export type GratsDefinitionNode = DefinitionNode | AbstractFieldDefinitionNode;
-
-// A field definition that applies to some construct. We don't yet know if it applies to
-// a concrete type, or an interface.
-export type AbstractFieldDefinitionNode = {
-  readonly kind: "AbstractFieldDefinition";
-  readonly loc: Location;
-  readonly onType: NameNode;
-  readonly field: FieldDefinitionNode;
-};
-
-type InterfaceHaver = {
-  readonly interfaces?: ReadonlyArray<NamedTypeNode>;
 };
 
 /**
@@ -73,16 +32,10 @@ export class TypeContext {
   checker: ts.TypeChecker;
   host: ts.CompilerHost;
 
-  _options: ts.ParsedCommandLine;
   _symbolToName: Map<ts.Symbol, NameDefinition> = new Map();
   _unresolvedTypes: Map<NameNode, ts.Symbol> = new Map();
 
-  constructor(
-    options: ts.ParsedCommandLine,
-    checker: ts.TypeChecker,
-    host: ts.CompilerHost,
-  ) {
-    this._options = options;
+  constructor(checker: ts.TypeChecker, host: ts.CompilerHost) {
     this.checker = checker;
     this.host = host;
   }
@@ -140,320 +93,6 @@ export class TypeContext {
     return symbol;
   }
 
-  filterNonGqlInterfaces(t: InterfaceHaver): InterfaceHaver {
-    if (t.interfaces == null || t.interfaces.length === 0) {
-      return t;
-    }
-    const gqlInterfaces = t.interfaces.filter((i) => {
-      return this.unresolvedNameIsGraphQL(i.name);
-    });
-    if (t.interfaces.length === gqlInterfaces.length) {
-      return t;
-    }
-    return { ...t, interfaces: gqlInterfaces };
-  }
-
-  resolveTypes(doc: DocumentNode): DiagnosticsResult<DocumentNode> {
-    const errors: ts.Diagnostic[] = [];
-    const newDoc = visit(doc, {
-      // Filter out `implements` declarations that don't refer to a GraphQL interface.
-      // Note: We depend upon traversal order here to ensure that we remove all non-GraphQL
-      // interfaces before we try to resolve the names of the GraphQL interfaces.
-      [Kind.INTERFACE_TYPE_DEFINITION]: (t) => this.filterNonGqlInterfaces(t),
-      [Kind.OBJECT_TYPE_DEFINITION]: (t) => this.filterNonGqlInterfaces(t),
-      [Kind.OBJECT_TYPE_EXTENSION]: (t) => this.filterNonGqlInterfaces(t),
-      [Kind.INTERFACE_TYPE_EXTENSION]: (t) => this.filterNonGqlInterfaces(t),
-      [Kind.NAME]: (t) => {
-        const namedTypeResult = this.resolveNamedType(t);
-        if (namedTypeResult.kind === "ERROR") {
-          errors.push(namedTypeResult.err);
-          return t;
-        }
-        return namedTypeResult.value;
-      },
-    });
-    if (errors.length > 0) {
-      return err(errors);
-    }
-    return ok(newDoc);
-  }
-
-  // Ensure that all fields on `Subscription` return an AsyncIterable, and that no other
-  // fields do.
-  validateAsyncIterableFields(doc: DocumentNode): DiagnosticsResult<void> {
-    const errors: ts.Diagnostic[] = [];
-
-    const visitNode = (
-      t:
-        | ObjectTypeDefinitionNode
-        | ObjectTypeExtensionNode
-        | InterfaceTypeDefinitionNode
-        | InterfaceTypeExtensionNode,
-    ) => {
-      const validateFieldsResult = this.validateField(t);
-      if (validateFieldsResult != null) {
-        errors.push(validateFieldsResult);
-      }
-    };
-
-    visit(doc, {
-      [Kind.INTERFACE_TYPE_DEFINITION]: visitNode,
-      [Kind.INTERFACE_TYPE_EXTENSION]: visitNode,
-      [Kind.OBJECT_TYPE_DEFINITION]: visitNode,
-      [Kind.OBJECT_TYPE_EXTENSION]: visitNode,
-    });
-    if (errors.length > 0) {
-      return err(errors);
-    }
-    return ok(undefined);
-  }
-  validateField(
-    t:
-      | ObjectTypeDefinitionNode
-      | ObjectTypeExtensionNode
-      | InterfaceTypeDefinitionNode
-      | InterfaceTypeExtensionNode,
-  ): ts.Diagnostic | void {
-    if (t.fields == null) return;
-    // Note: We assume the default name is used here. When custom operation types are supported
-    // we'll need to update this.
-    const isSubscription =
-      t.name.value === "Subscription" &&
-      (t.kind === Kind.OBJECT_TYPE_DEFINITION ||
-        t.kind === Kind.OBJECT_TYPE_EXTENSION);
-    for (const field of t.fields) {
-      const asyncDirective = field.directives?.find(
-        (directive) => directive.name.value === ASYNC_GENERATOR_DIRECTIVE,
-      );
-
-      if (isSubscription && asyncDirective == null) {
-        if (field.type.loc == null) {
-          throw new Error("Expected field type to have a location.");
-        }
-        return gqlErr(field.type.loc, E.subscriptionFieldNotAsyncIterable());
-      }
-
-      if (!isSubscription && asyncDirective != null) {
-        if (asyncDirective.loc == null) {
-          throw new Error("Expected asyncDirective to have a location.");
-        }
-        return gqlErr(
-          asyncDirective.loc, // Directive location is the AsyncIterable type.
-          E.nonSubscriptionFieldAsyncIterable(),
-        );
-      }
-    }
-  }
-
-  // Prevent using merged interfaces as GraphQL interfaces.
-  // https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces
-  validateMergedInterfaces(
-    interfaces: ts.InterfaceDeclaration[],
-  ): DiagnosticsResult<void> {
-    const errors: ts.Diagnostic[] = [];
-
-    for (const node of interfaces) {
-      const symbol = this.checker.getSymbolAtLocation(node.name);
-      if (
-        symbol != null &&
-        symbol.declarations != null &&
-        symbol.declarations.length > 1
-      ) {
-        const otherLocations = symbol.declarations
-          .filter((d) => d !== node && ts.isInterfaceDeclaration(d))
-          .map((d) => {
-            const locNode = ts.getNameOfDeclaration(d) ?? d;
-            return tsRelated(locNode, "Other declaration");
-          });
-
-        if (otherLocations.length > 0) {
-          errors.push(tsErr(node.name, E.mergedInterfaces(), otherLocations));
-        }
-      }
-    }
-
-    if (errors.length > 0) {
-      return err(errors);
-    }
-    return ok(undefined);
-  }
-
-  /**
-   * Ensure that all context type references resolve to the same
-   * type declaration.
-   */
-  validateContextReferences(references: ts.Node[]): DiagnosticsResult<void> {
-    let gqlContext: { declaration: ts.Node; firstReference: ts.Node } | null =
-      null;
-    for (const typeName of references) {
-      const symbol = this.checker.getSymbolAtLocation(typeName);
-      if (symbol == null) {
-        return err([
-          tsErr(typeName, E.expectedTypeAnnotationOnContextToBeResolvable()),
-        ]);
-      }
-
-      const declaration = this.findSymbolDeclaration(symbol);
-      if (declaration == null) {
-        return err([
-          tsErr(typeName, E.expectedTypeAnnotationOnContextToHaveDeclaration()),
-        ]);
-      }
-
-      if (gqlContext == null) {
-        // This is the first typed context value we've seen...
-        gqlContext = {
-          declaration: declaration,
-          firstReference: typeName,
-        };
-      } else if (gqlContext.declaration !== declaration) {
-        return err([
-          tsErr(typeName, E.multipleContextTypes(), [
-            tsRelated(
-              gqlContext.firstReference,
-              "A different type reference was used here",
-            ),
-          ]),
-        ]);
-      }
-    }
-    return ok(undefined);
-  }
-
-  // TODO: Is this still used?
-  handleAbstractDefinitions(
-    docs: GratsDefinitionNode[],
-  ): DiagnosticsResult<DefinitionNode[]> {
-    const newDocs: DefinitionNode[] = [];
-    const errors: ts.Diagnostic[] = [];
-
-    const interfaceGraphResult = computeInterfaceMap(this, docs);
-    if (interfaceGraphResult.kind === "ERROR") {
-      return interfaceGraphResult;
-    }
-    const interfaceGraph = interfaceGraphResult.value;
-
-    for (const doc of docs) {
-      if (doc.kind === "AbstractFieldDefinition") {
-        const abstractDocResults = this.addAbstractFieldDefinition(
-          doc,
-          interfaceGraph,
-        );
-        if (abstractDocResults.kind === "ERROR") {
-          extend(errors, abstractDocResults.err);
-        } else {
-          extend(newDocs, abstractDocResults.value);
-        }
-      } else {
-        newDocs.push(doc);
-      }
-    }
-    if (errors.length > 0) {
-      return err(errors);
-    }
-    return ok(newDocs);
-  }
-
-  // A field definition may be on a concrete type, or on an interface. If it's on an interface,
-  // we need to add it to each concrete type that implements the interface.
-  addAbstractFieldDefinition(
-    doc: AbstractFieldDefinitionNode,
-    interfaceGraph: InterfaceMap,
-  ): DiagnosticsResult<DefinitionNode[]> {
-    const newDocs: DefinitionNode[] = [];
-    const typeNameResult = this.resolveNamedType(doc.onType);
-    if (typeNameResult.kind === "ERROR") {
-      return err([typeNameResult.err]);
-    }
-    const symbol = this._unresolvedTypes.get(doc.onType);
-    if (symbol == null) {
-      // This should have already been handled by resolveNamedType
-      throw new Error("Expected to find unresolved type.");
-    }
-    const nameDefinition = this._symbolToName.get(symbol);
-    if (nameDefinition == null) {
-      // This should have already been handled by resolveNamedType
-      throw new Error("Expected to find name definition.");
-    }
-
-    switch (nameDefinition.kind) {
-      case "TYPE":
-        // Extending a type, is just adding a field to it.
-        newDocs.push({
-          kind: Kind.OBJECT_TYPE_EXTENSION,
-          name: doc.onType,
-          fields: [doc.field],
-          loc: doc.loc,
-        });
-        break;
-      case "INTERFACE": {
-        // Extending an interface is a bit more complicated. We need to add the field
-        // to the interface, and to each type that implements the interface.
-
-        // The interface field definition is not executable, so we don't
-        // need to annotate it with the details of the implementation.
-        const directives = doc.field.directives?.filter((directive) => {
-          return directive.name.value !== EXPORTED_DIRECTIVE;
-        });
-        newDocs.push({
-          kind: Kind.INTERFACE_TYPE_EXTENSION,
-          name: doc.onType,
-          fields: [{ ...doc.field, directives }],
-        });
-
-        for (const implementor of interfaceGraph.get(
-          nameDefinition.name.value,
-        )) {
-          const name = {
-            kind: Kind.NAME,
-            value: implementor.name,
-            loc: doc.loc, // Bit of a lie, but I don't see a better option.
-          } as const;
-          switch (implementor.kind) {
-            case "TYPE":
-              newDocs.push({
-                kind: Kind.OBJECT_TYPE_EXTENSION,
-                name,
-                fields: [doc.field],
-                loc: doc.loc,
-              });
-              break;
-            case "INTERFACE":
-              newDocs.push({
-                kind: Kind.INTERFACE_TYPE_EXTENSION,
-                name,
-                fields: [{ ...doc.field, directives }],
-                loc: doc.loc,
-              });
-              break;
-          }
-        }
-        break;
-      }
-      default: {
-        // Extending any other type of definition is not supported.
-        const loc = doc.onType.loc;
-        if (loc == null) {
-          throw new Error("Expected onType to have a location.");
-        }
-        const relatedLoc = nameDefinition.name.loc;
-        if (relatedLoc == null) {
-          throw new Error("Expected nameDefinition to have a location.");
-        }
-
-        return err([
-          gqlErr(loc, E.invalidTypePassedToFieldFunction(), [
-            gqlRelated(
-              relatedLoc,
-              `This is the type that was passed to \`@${FIELD_TAG}\`.`,
-            ),
-          ]),
-        ]);
-      }
-    }
-    return ok(newDocs);
-  }
-
   resolveNamedType(unresolved: NameNode): DiagnosticResult<NameNode> {
     const symbol = this._unresolvedTypes.get(unresolved);
     if (symbol == null) {
@@ -476,5 +115,24 @@ export class TypeContext {
   unresolvedNameIsGraphQL(unresolved: NameNode): boolean {
     const symbol = this._unresolvedTypes.get(unresolved);
     return symbol != null && this._symbolToName.has(symbol);
+  }
+
+  // TODO: Merge this with resolveNamedType
+  getNameDefinition(nameNode: NameNode): DiagnosticsResult<NameDefinition> {
+    const typeNameResult = this.resolveNamedType(nameNode);
+    if (typeNameResult.kind === "ERROR") {
+      return err([typeNameResult.err]);
+    }
+    const symbol = this._unresolvedTypes.get(nameNode);
+    if (symbol == null) {
+      // This should have already been handled by resolveNamedType
+      throw new Error("Expected to find unresolved type.");
+    }
+    const nameDefinition = this._symbolToName.get(symbol);
+    if (nameDefinition == null) {
+      // This should have already been handled by resolveNamedType
+      throw new Error("Expected to find name definition.");
+    }
+    return ok(nameDefinition);
   }
 }

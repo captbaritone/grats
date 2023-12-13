@@ -23,15 +23,11 @@ import {
   tsRelated,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
-import {
-  GratsDefinitionNode,
-  NameDefinition,
-  UNRESOLVED_REFERENCE_NAME,
-} from "./TypeContext";
+import { NameDefinition, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
 import { ConfigOptions } from "./lib";
 import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
-import { GraphQLConstructor } from "./GraphQLConstructor";
+import { GraphQLConstructor, GratsDefinitionNode } from "./GraphQLConstructor";
 import {} from "./metadataDirectives";
 import { relativePath } from "./gratsRoot";
 
