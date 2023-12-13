@@ -18,7 +18,7 @@ import {
   relatedInfoAtTsNode,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
-import { Extractor } from "./Extractor";
+import { ExtractionSnapshot, Extractor } from "./Extractor";
 import { GratsDefinitionNode, TypeContext } from "./TypeContext";
 import { validateSDL } from "graphql/validation/validate";
 import { DIRECTIVES_AST } from "./metadataDirectives";
@@ -61,13 +61,8 @@ function extractSchema(
 ): DiagnosticsResult<GraphQLSchema> {
   const program = ts.createProgram(options.fileNames, options.options, host);
   const checker = program.getTypeChecker();
-  const ctx = new TypeContext(options, checker, host);
 
-  const definitions: GratsDefinitionNode[] = Array.from(
-    DIRECTIVES_AST.definitions,
-  );
-
-  const contextReferences: ts.Node[] = [];
+  const snapshots: ExtractionSnapshot[] = [];
 
   const errors: ts.Diagnostic[] = [];
   for (const sourceFile of program.getSourceFiles()) {
@@ -95,41 +90,53 @@ function extractSchema(
       }
     }
 
-    const extractor = new Extractor(ctx, options.raw.grats);
+    const extractor = new Extractor(checker, options.raw.grats);
     const extractedResult = extractor.extract(sourceFile);
     if (extractedResult.kind === "ERROR") {
       extend(errors, extractedResult.err);
       continue;
     }
 
-    const snapshot = extractedResult.value;
-
-    // Propagate snapshot data to type context
-    for (const [node, typeName] of snapshot.unresolvedNames) {
-      ctx.markUnresolvedType(node, typeName);
-    }
-
-    for (const [node, definition] of snapshot.nameDefinitions) {
-      ctx.recordTypeName(node, definition.name, definition.kind);
-    }
-
-    for (const contextReference of snapshot.contextReferences) {
-      contextReferences.push(contextReference);
-    }
-
-    for (const typeName of snapshot.typesWithTypenameField) {
-      ctx.hasTypename.add(typeName);
-    }
-
-    // Record extracted GraphQL definitions
-    for (const definition of snapshot.definitions) {
-      definitions.push(definition);
-    }
+    snapshots.push(extractedResult.value);
   }
 
-  const validationResult = validateContextReferences(ctx, contextReferences);
-  if (validationResult.kind === "ERROR") {
-    errors.push(validationResult.err);
+  {
+    // TODO: Extract this block
+    const ctx = new TypeContext(options, checker, host);
+    const definitions: GratsDefinitionNode[] = Array.from(
+      DIRECTIVES_AST.definitions,
+    );
+
+    const contextReferences: ts.Node[] = [];
+
+    for (const snapshot of snapshots) {
+      // Propagate snapshot data to type context
+      for (const [node, typeName] of snapshot.unresolvedNames) {
+        ctx.markUnresolvedType(node, typeName);
+      }
+
+      for (const [node, definition] of snapshot.nameDefinitions) {
+        ctx.recordTypeName(node, definition.name, definition.kind);
+      }
+
+      for (const contextReference of snapshot.contextReferences) {
+        contextReferences.push(contextReference);
+      }
+
+      for (const typeName of snapshot.typesWithTypenameField) {
+        ctx.hasTypename.add(typeName);
+      }
+
+      // Record extracted GraphQL definitions
+      for (const definition of snapshot.definitions) {
+        definitions.push(definition);
+      }
+    }
+
+    const validationResult = validateContextReferences(ctx, contextReferences);
+    if (validationResult.kind === "ERROR") {
+      errors.push(validationResult.err);
+    }
   }
 
   if (errors.length > 0) {

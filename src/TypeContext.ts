@@ -7,6 +7,7 @@ import {
   Kind,
   Location,
   NameNode,
+  NamedTypeNode,
   ObjectTypeDefinitionNode,
   ObjectTypeExtensionNode,
   visit,
@@ -47,6 +48,10 @@ export type AbstractFieldDefinitionNode = {
   readonly loc: Location;
   readonly onType: NameNode;
   readonly field: FieldDefinitionNode;
+};
+
+type InterfaceHaver = {
+  readonly interfaces?: ReadonlyArray<NamedTypeNode>;
 };
 
 /**
@@ -134,9 +139,29 @@ export class TypeContext {
     return symbol;
   }
 
+  filterNonGqlInterfaces(t: InterfaceHaver): InterfaceHaver {
+    if (t.interfaces == null || t.interfaces.length === 0) {
+      return t;
+    }
+    const gqlInterfaces = t.interfaces.filter((i) => {
+      return this.unresolvedNameIsGraphQL(i.name);
+    });
+    if (t.interfaces.length === gqlInterfaces.length) {
+      return t;
+    }
+    return { ...t, interfaces: gqlInterfaces };
+  }
+
   resolveTypes(doc: DocumentNode): DiagnosticsResult<DocumentNode> {
     const errors: ts.Diagnostic[] = [];
     const newDoc = visit(doc, {
+      // Filter out `implements` declarations that don't refer to a GraphQL interface.
+      // Note: We depend upon traversal order here to ensure that we remove all non-GraphQL
+      // interfaces before we try to resolve the names of the GraphQL interfaces.
+      [Kind.INTERFACE_TYPE_DEFINITION]: (t) => this.filterNonGqlInterfaces(t),
+      [Kind.OBJECT_TYPE_DEFINITION]: (t) => this.filterNonGqlInterfaces(t),
+      [Kind.OBJECT_TYPE_EXTENSION]: (t) => this.filterNonGqlInterfaces(t),
+      [Kind.INTERFACE_TYPE_EXTENSION]: (t) => this.filterNonGqlInterfaces(t),
       [Kind.NAME]: (t) => {
         const namedTypeResult = this.resolveNamedType(t);
         if (namedTypeResult.kind === "ERROR") {
@@ -370,6 +395,11 @@ export class TypeContext {
       return err(this.err(unresolved.loc, E.unresolvedTypeReference()));
     }
     return ok({ ...unresolved, value: nameDefinition.name.value });
+  }
+
+  unresolvedNameIsGraphQL(unresolved: NameNode): boolean {
+    const symbol = this._unresolvedTypes.get(unresolved);
+    return symbol != null && this._symbolToName.has(symbol);
   }
 
   // TODO: Move to DiagnosticError

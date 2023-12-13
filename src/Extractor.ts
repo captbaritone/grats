@@ -26,7 +26,6 @@ import * as ts from "typescript";
 import {
   GratsDefinitionNode,
   NameDefinition,
-  TypeContext,
   UNRESOLVED_REFERENCE_NAME,
 } from "./TypeContext";
 import { ConfigOptions } from "./lib";
@@ -67,20 +66,13 @@ const OPERATION_TYPES = new Set(["Query", "Mutation", "Subscription"]);
 
 type ArgDefaults = Map<string, ts.Expression>;
 
-type ExtractionSnapshot = {
+export type ExtractionSnapshot = {
   readonly definitions: GratsDefinitionNode[];
   readonly unresolvedNames: Map<ts.Node, NameNode>;
   readonly nameDefinitions: Map<ts.Node, NameDefinition>;
   readonly contextReferences: Array<ts.Node>;
   readonly typesWithTypenameField: Set<string>;
 };
-
-// Describes the subset of TypeContext that Extractor still needs.
-// Our goal is to incrementally remove all of these dependencies.
-interface TypeContextProxy {
-  checker: ts.TypeChecker;
-  findSymbolDeclaration(symbol: ts.Symbol): ts.Node | null;
-}
 
 /**
  * Extracts GraphQL definitions from TypeScript source code.
@@ -101,14 +93,13 @@ export class Extractor {
   contextReferences: Array<ts.Node> = [];
   typesWithTypenameField: Set<string> = new Set();
 
-  sourceFile: ts.SourceFile;
-  ctx: TypeContextProxy;
+  checker: ts.TypeChecker; // TODO: Remove this
   configOptions: ConfigOptions;
   errors: ts.Diagnostic[] = [];
   gql: GraphQLConstructor;
 
-  constructor(ctx: TypeContext, buildOptions: ConfigOptions) {
-    this.ctx = ctx;
+  constructor(checker: ts.TypeChecker, buildOptions: ConfigOptions) {
+    this.checker = checker;
     this.configOptions = buildOptions;
     this.gql = new GraphQLConstructor();
   }
@@ -764,7 +755,6 @@ export class Extractor {
         return clause.types
           .map((type) => type.expression)
           .filter((expression) => ts.isIdentifier(expression))
-          .filter((expression) => this.symbolHasGqlTag(expression))
           .map((expression) => {
             const namedType = this.gql.namedType(
               expression,
@@ -786,15 +776,6 @@ export class Extractor {
     return interfaces;
   }
 
-  symbolHasGqlTag(node: ts.Node): boolean {
-    const symbol = this.ctx.checker.getSymbolAtLocation(node);
-    if (symbol == null) return false;
-
-    const declaration = this.ctx.findSymbolDeclaration(symbol);
-    if (declaration == null) return false;
-    return this.hasGqlTag(declaration);
-  }
-
   hasGqlTag(node: ts.Node): boolean {
     return ts.getJSDocTags(node).some((tag) => {
       return ALL_TAGS.includes(tag.tagName.text);
@@ -812,7 +793,7 @@ export class Extractor {
 
     // Prevent using merged interfaces as GraphQL interfaces.
     // https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces
-    const symbol = this.ctx.checker.getSymbolAtLocation(node.name);
+    const symbol = this.checker.getSymbolAtLocation(node.name);
     if (
       symbol != null &&
       symbol.declarations != null &&
@@ -1224,7 +1205,7 @@ export class Extractor {
       // TODO: Complete this feature
       if (ts.isTypeReferenceNode(member)) {
         if (member.typeName.kind === ts.SyntaxKind.Identifier) {
-          const symbol = this.ctx.checker.getSymbolAtLocation(member.typeName);
+          const symbol = this.checker.getSymbolAtLocation(member.typeName);
           if (symbol?.declarations?.length === 1) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const declaration = symbol.declarations[0]!;
@@ -1512,11 +1493,11 @@ export class Extractor {
   }
 
   collectDescription(node: ts.Node): StringValueNode | null {
-    const symbol = this.ctx.checker.getSymbolAtLocation(node);
+    const symbol = this.checker.getSymbolAtLocation(node);
     if (symbol == null) {
       return this.report(node, E.cannotResolveSymbolForDescription());
     }
-    const doc = symbol.getDocumentationComment(this.ctx.checker);
+    const doc = symbol.getDocumentationComment(this.checker);
     const description = ts.displayPartsToString(doc);
     if (description) {
       return this.gql.string(node, description.trim(), true);
