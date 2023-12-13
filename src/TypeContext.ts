@@ -19,7 +19,6 @@ import {
   FAKE_ERROR_CODE,
   ok,
 } from "./utils/DiagnosticError";
-import { getRelativeOutputPath } from "./gratsRoot";
 import {
   ASYNC_ITERABLE_TYPE_DIRECTIVE as ASYNC_GENERATOR_DIRECTIVE,
   EXPORTED_DIRECTIVE,
@@ -373,6 +372,7 @@ export class TypeContext {
     return ok({ ...unresolved, value: nameDefinition.name.value });
   }
 
+  // TODO: Move to DiagnosticError
   err(
     loc: Location,
     message: string,
@@ -393,6 +393,7 @@ export class TypeContext {
     };
   }
 
+  // TODO: Move to DiagnosticError
   relatedInformation(
     loc: Location,
     message: string,
@@ -409,9 +410,5 @@ export class TypeContext {
       start: loc.start,
       length: loc.end - loc.start,
     };
-  }
-
-  getDestFilePath(sourceFile: ts.SourceFile): string {
-    return getRelativeOutputPath(this._options, sourceFile);
   }
 }

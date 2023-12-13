@@ -34,6 +34,7 @@ import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
 import { GraphQLConstructor } from "./GraphQLConstructor";
 import {} from "./metadataDirectives";
+import { relativePath } from "./gratsRoot";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -76,7 +77,6 @@ type ExtractionSnapshot = {
 // Describes the subset of TypeContext that Extractor still needs.
 // Our goal is to incrementally remove all of these dependencies.
 interface TypeContextProxy {
-  getDestFilePath(sourceFile: ts.SourceFile): string;
   checker: ts.TypeChecker;
   findSymbolDeclaration(symbol: ts.Symbol): ts.Node | null;
   recordHasTypenameField(typeName: string): void;
@@ -372,7 +372,7 @@ export class Extractor {
     }
 
     // TODO: Does this work in the browser?
-    const tsModulePath = this.ctx.getDestFilePath(node.parent);
+    const tsModulePath = relativePath(node.getSourceFile().fileName);
 
     const directives = [
       this.gql.exportedDirective(funcName, {

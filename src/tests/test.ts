@@ -78,7 +78,10 @@ const testDirs = [
         const testOptions = JSON.parse(json);
         options = { ...options, ...testOptions };
       }
-      const files = [`${fixturesDir}/${fileName}`, `src/Types.ts`];
+      const files = [
+        `${fixturesDir}/${fileName}`,
+        path.join(__dirname, `../Types.ts`),
+      ];
       const parsedOptions: ParsedCommandLineGrats = validateGratsOptions({
         options: {},
         raw: {
@@ -140,7 +143,7 @@ const testDirs = [
       const options: Partial<ConfigOptions> = {
         nullableByDefault: true,
       };
-      const files = [filePath, `src/Types.ts`];
+      const files = [filePath, path.join(__dirname, `../Types.ts`)];
       const parsedOptions: ParsedCommandLineGrats = validateGratsOptions({
         options: {
           // Required to enable ts-node to locate function exports
