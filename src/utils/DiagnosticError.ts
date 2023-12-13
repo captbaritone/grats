@@ -14,6 +14,40 @@ export function err<E>(err: E): Err<E> {
   return { kind: "ERROR", err };
 }
 
+export function collectResults<T>(
+  results: DiagnosticsResult<T>[],
+): DiagnosticsResult<T[]> {
+  const errors: ts.Diagnostic[] = [];
+  const values: T[] = [];
+  for (const result of results) {
+    if (result.kind === "ERROR") {
+      errors.push(...result.err);
+    } else {
+      values.push(result.value);
+    }
+  }
+  if (errors.length > 0) {
+    return err(errors);
+  }
+  return ok(values);
+}
+
+export function combineResults<T, U>(
+  result1: DiagnosticsResult<T>,
+  result2: DiagnosticsResult<U>,
+): DiagnosticsResult<[T, U]> {
+  if (result1.kind === "ERROR" && result2.kind === "ERROR") {
+    return err([...result1.err, ...result2.err]);
+  }
+  if (result1.kind === "ERROR") {
+    return result1;
+  }
+  if (result2.kind === "ERROR") {
+    return result2;
+  }
+  return ok([result1.value, result2.value]);
+}
+
 export class ReportableDiagnostics {
   _host: ts.FormatDiagnosticsHost;
   _diagnostics: ts.Diagnostic[];

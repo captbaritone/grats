@@ -1,5 +1,6 @@
 import {
   buildASTSchema,
+  DocumentNode,
   GraphQLSchema,
   isAbstractType,
   isType,
@@ -14,15 +15,16 @@ import {
   Result,
   ReportableDiagnostics,
   gqlErr,
+  combineResults,
+  collectResults,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
-import { ExtractionSnapshot, Extractor } from "./Extractor";
+import { ExtractionSnapshot, extract } from "./Extractor";
 import { GratsDefinitionNode, TypeContext } from "./TypeContext";
 import { validateSDL } from "graphql/validation/validate";
 import { DIRECTIVES_AST } from "./metadataDirectives";
 import { extend } from "./utils/helpers";
 import { ParsedCommandLineGrats } from "./gratsConfig";
-import * as E from "./Errors";
 
 export * from "./gratsConfig";
 
@@ -59,13 +61,11 @@ function extractSchema(
 ): DiagnosticsResult<GraphQLSchema> {
   const program = ts.createProgram(options.fileNames, options.options, host);
 
-  const snapshots: ExtractionSnapshot[] = [];
-
   const errors: ts.Diagnostic[] = [];
-  for (const sourceFile of program.getSourceFiles()) {
+  const gratsSourceFiles = program.getSourceFiles().filter((sourceFile) => {
     // If the file doesn't contain any GraphQL definitions, skip it.
     if (!/@gql/i.test(sourceFile.text)) {
-      continue;
+      return false;
     }
 
     if (options.raw.grats.reportTypeScriptTypeErrors) {
@@ -73,7 +73,7 @@ function extractSchema(
       const typeErrors = ts.getPreEmitDiagnostics(program, sourceFile);
       if (typeErrors.length > 0) {
         extend(errors, typeErrors);
-        continue;
+        return false;
       }
     } else {
       // Otherwise, we will only report syntax errors, since they will prevent us from
@@ -83,80 +83,37 @@ function extractSchema(
         // It's not very helpful to report multiple syntax errors, so just report
         // the first one.
         errors.push(syntaxErrors[0]);
-        continue;
+        return false;
       }
     }
+    return true;
+  });
 
-    const extractor = new Extractor(options.raw.grats);
-    const extractedResult = extractor.extract(sourceFile);
-    if (extractedResult.kind === "ERROR") {
-      extend(errors, extractedResult.err);
-      continue;
-    }
+  const extractResults = gratsSourceFiles.map((sourceFile) => {
+    return extract(options.raw.grats, sourceFile);
+  });
 
-    snapshots.push(extractedResult.value);
-  }
-
-  const snapshot = reduceSnapshots(snapshots);
-
-  const checker = program.getTypeChecker();
-  const ctx = new TypeContext(options, checker, host);
-
-  extend(
-    errors,
-    ctx.validateMergedInterfaceDeclarations(snapshot.interfaceDeclarationNodes),
-  );
-
-  const validationError = ctx.validateContextReferences(
-    snapshot.contextReferences,
-  );
-  if (validationError != null) {
-    errors.push(validationError);
+  const snapshotResults = collectResults(extractResults);
+  if (snapshotResults.kind === "ERROR") {
+    extend(errors, snapshotResults.err);
+    return err(errors); // Needed to satisfy type checker
   }
 
   if (errors.length > 0) {
     return err(errors);
   }
 
-  const definitions: GratsDefinitionNode[] = Array.from(
-    DIRECTIVES_AST.definitions,
-  );
+  const snapshot = reduceSnapshots(snapshotResults.value);
 
-  extend(definitions, snapshot.definitions);
+  const checker = program.getTypeChecker();
 
-  // Propagate snapshot data to type context
-  for (const [node, typeName] of snapshot.unresolvedNames) {
-    ctx.markUnresolvedType(node, typeName);
+  const docResult = docFromSnapshot(options, checker, host, snapshot);
+
+  if (docResult.kind === "ERROR") {
+    return err(docResult.err);
   }
-
-  for (const [node, definition] of snapshot.nameDefinitions) {
-    ctx.recordTypeName(node, definition.name, definition.kind);
-  }
-
-  for (const typeName of snapshot.typesWithTypenameField) {
-    ctx.hasTypename.add(typeName);
-  }
-
-  // If you define a field on an interface using the functional style, we need to add
-  // that field to each concrete type as well. This must be done after all types are created,
-  // but before we validate the schema.
-  const definitionsResult = ctx.handleAbstractDefinitions(definitions);
-  if (definitionsResult.kind === "ERROR") {
-    return definitionsResult;
-  }
-
-  const docResult = ctx.resolveTypes({
-    kind: Kind.DOCUMENT,
-    definitions: definitionsResult.value,
-  });
-  if (docResult.kind === "ERROR") return docResult;
 
   const doc = docResult.value;
-
-  const subscriptionsValidationResult = ctx.validateAsyncIterableFields(doc);
-  if (subscriptionsValidationResult.kind === "ERROR") {
-    return subscriptionsValidationResult;
-  }
 
   // TODO: Currently this does not detect definitions that shadow builtins
   // (`String`, `Int`, etc). However, if we pass a second param (extending an
@@ -179,7 +136,10 @@ function extractSchema(
     return err(diagnostics);
   }
 
-  const typenameDiagnostics = validateTypename(schema, ctx);
+  const typenameDiagnostics = validateTypename(
+    schema,
+    snapshot.typesWithTypenameField,
+  );
   if (typenameDiagnostics.length > 0) return err(typenameDiagnostics);
 
   return ok(schema);
@@ -187,7 +147,7 @@ function extractSchema(
 
 function validateTypename(
   schema: GraphQLSchema,
-  ctx: TypeContext,
+  hasTypename: Set<string>,
 ): ts.Diagnostic[] {
   const typenameDiagnostics: ts.Diagnostic[] = [];
   const abstractTypes = Object.values(schema.getTypeMap()).filter(
@@ -198,7 +158,7 @@ function validateTypename(
 
     const typeImplementors = schema.getPossibleTypes(type).filter(isType);
     for (const implementor of typeImplementors) {
-      if (!ctx.hasTypename.has(implementor.name)) {
+      if (!hasTypename.has(implementor.name)) {
         const loc = implementor.astNode?.name?.loc;
         if (loc == null) {
           throw new Error(
@@ -217,6 +177,65 @@ function validateTypename(
   return typenameDiagnostics;
 }
 
+export function docFromSnapshot(
+  options: ts.ParsedCommandLine,
+  checker: ts.TypeChecker,
+  host: ts.CompilerHost,
+  snapshot: ExtractionSnapshot,
+): DiagnosticsResult<DocumentNode> {
+  const ctx = new TypeContext(options, checker, host);
+
+  // Phase 1: Validate the snapshot
+  const mergedResult = combineResults(
+    ctx.validateMergedInterfaces(snapshot.interfaceDeclarations),
+    ctx.validateContextReferences(snapshot.contextReferences),
+  );
+  if (mergedResult.kind === "ERROR") {
+    return mergedResult;
+  }
+
+  // Phase 2: Propagate snapshot data to type context
+
+  for (const [node, typeName] of snapshot.unresolvedNames) {
+    ctx.markUnresolvedType(node, typeName);
+  }
+
+  for (const [node, definition] of snapshot.nameDefinitions) {
+    ctx.recordTypeName(node, definition.name, definition.kind);
+  }
+
+  // Phase 3: Fixup the schema SDL
+
+  const definitions: GratsDefinitionNode[] = Array.from(
+    DIRECTIVES_AST.definitions,
+  );
+
+  extend(definitions, snapshot.definitions);
+
+  // If you define a field on an interface using the functional style, we need to add
+  // that field to each concrete type as well. This must be done after all types are created,
+  // but before we validate the schema.
+  const definitionsResult = ctx.handleAbstractDefinitions(definitions);
+  if (definitionsResult.kind === "ERROR") {
+    return definitionsResult;
+  }
+
+  const docResult = ctx.resolveTypes({
+    kind: Kind.DOCUMENT,
+    definitions: definitionsResult.value,
+  });
+  if (docResult.kind === "ERROR") return docResult;
+
+  const doc = docResult.value;
+
+  const subscriptionsValidationResult = ctx.validateAsyncIterableFields(doc);
+  if (subscriptionsValidationResult.kind === "ERROR") {
+    return subscriptionsValidationResult;
+  }
+
+  return ok(doc);
+}
+
 // Given a list of snapshots, merge them into a single snapshot.
 function reduceSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
   const result: ExtractionSnapshot = {
@@ -225,7 +244,7 @@ function reduceSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
     unresolvedNames: new Map(),
     contextReferences: [],
     typesWithTypenameField: new Set(),
-    interfaceDeclarationNodes: [],
+    interfaceDeclarations: [],
   };
 
   for (const snapshot of snapshots) {
@@ -249,8 +268,8 @@ function reduceSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
       result.typesWithTypenameField.add(typeName);
     }
 
-    for (const interfaceDeclaration of snapshot.interfaceDeclarationNodes) {
-      result.interfaceDeclarationNodes.push(interfaceDeclaration);
+    for (const interfaceDeclaration of snapshot.interfaceDeclarations) {
+      result.interfaceDeclarations.push(interfaceDeclaration);
     }
   }
 

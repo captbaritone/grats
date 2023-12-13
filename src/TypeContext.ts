@@ -76,7 +76,6 @@ export class TypeContext {
   _options: ts.ParsedCommandLine;
   _symbolToName: Map<ts.Symbol, NameDefinition> = new Map();
   _unresolvedTypes: Map<NameNode, ts.Symbol> = new Map();
-  hasTypename: Set<string> = new Set();
 
   constructor(
     options: ts.ParsedCommandLine,
@@ -103,13 +102,6 @@ export class TypeContext {
       throw new Error("Unexpected double recording of typename.");
     }
     this._symbolToName.set(symbol, { name, kind });
-  }
-
-  // Record that a given output type has defined an `__typename` field.
-  // Needed to validate that all variants of an abstract type have a
-  // `__typename` field.
-  recordHasTypenameField(name: string) {
-    this.hasTypename.add(name);
   }
 
   // Record that a type reference `node`
@@ -255,9 +247,9 @@ export class TypeContext {
 
   // Prevent using merged interfaces as GraphQL interfaces.
   // https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces
-  validateMergedInterfaceDeclarations(
+  validateMergedInterfaces(
     interfaces: ts.InterfaceDeclaration[],
-  ): ts.Diagnostic[] {
+  ): DiagnosticsResult<void> {
     const errors: ts.Diagnostic[] = [];
 
     for (const node of interfaces) {
@@ -280,31 +272,32 @@ export class TypeContext {
       }
     }
 
-    return errors;
+    if (errors.length > 0) {
+      return err(errors);
+    }
+    return ok(undefined);
   }
 
   /**
    * Ensure that all context type references resolve to the same
    * type declaration.
    */
-  validateContextReferences(references: ts.Node[]): ts.Diagnostic | null {
+  validateContextReferences(references: ts.Node[]): DiagnosticsResult<void> {
     let gqlContext: { declaration: ts.Node; firstReference: ts.Node } | null =
       null;
     for (const typeName of references) {
       const symbol = this.checker.getSymbolAtLocation(typeName);
       if (symbol == null) {
-        return tsErr(
-          typeName,
-          E.expectedTypeAnnotationOnContextToBeResolvable(),
-        );
+        return err([
+          tsErr(typeName, E.expectedTypeAnnotationOnContextToBeResolvable()),
+        ]);
       }
 
       const declaration = this.findSymbolDeclaration(symbol);
       if (declaration == null) {
-        return tsErr(
-          typeName,
-          E.expectedTypeAnnotationOnContextToHaveDeclaration(),
-        );
+        return err([
+          tsErr(typeName, E.expectedTypeAnnotationOnContextToHaveDeclaration()),
+        ]);
       }
 
       if (gqlContext == null) {
@@ -314,15 +307,17 @@ export class TypeContext {
           firstReference: typeName,
         };
       } else if (gqlContext.declaration !== declaration) {
-        return tsErr(typeName, E.multipleContextTypes(), [
-          tsRelated(
-            gqlContext.firstReference,
-            "A different type reference was used here",
-          ),
+        return err([
+          tsErr(typeName, E.multipleContextTypes(), [
+            tsRelated(
+              gqlContext.firstReference,
+              "A different type reference was used here",
+            ),
+          ]),
         ]);
       }
     }
-    return null;
+    return ok(undefined);
   }
 
   // TODO: Is this still used?

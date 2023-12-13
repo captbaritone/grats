@@ -72,7 +72,7 @@ export type ExtractionSnapshot = {
   readonly nameDefinitions: Map<ts.Node, NameDefinition>;
   readonly contextReferences: Array<ts.Node>;
   readonly typesWithTypenameField: Set<string>;
-  readonly interfaceDeclarationNodes: Array<ts.InterfaceDeclaration>;
+  readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
 };
 
 /**
@@ -85,7 +85,15 @@ export type ExtractionSnapshot = {
  * This ensures that we can apply GraphQL schema validation rules, and any reported
  * errors will point to the correct location in the TypeScript source code.
  */
-export class Extractor {
+export function extract(
+  options: ConfigOptions,
+  sourceFile: ts.SourceFile,
+): DiagnosticsResult<ExtractionSnapshot> {
+  const extractor = new Extractor(options);
+  return extractor.extract(sourceFile);
+}
+
+class Extractor {
   definitions: GratsDefinitionNode[] = [];
 
   // Snapshot data
@@ -93,7 +101,7 @@ export class Extractor {
   nameDefinitions: Map<ts.Node, NameDefinition> = new Map();
   contextReferences: Array<ts.Node> = [];
   typesWithTypenameField: Set<string> = new Set();
-  interfaceDeclarationNodes: Array<ts.InterfaceDeclaration> = [];
+  interfaceDeclarations: Array<ts.InterfaceDeclaration> = [];
 
   configOptions: ConfigOptions;
   errors: ts.Diagnostic[] = [];
@@ -195,7 +203,7 @@ export class Extractor {
       nameDefinitions: this.nameDefinitions,
       contextReferences: this.contextReferences,
       typesWithTypenameField: this.typesWithTypenameField,
-      interfaceDeclarationNodes: this.interfaceDeclarationNodes,
+      interfaceDeclarations: this.interfaceDeclarations,
     });
   }
 
@@ -792,7 +800,7 @@ export class Extractor {
       return;
     }
 
-    this.interfaceDeclarationNodes.push(node);
+    this.interfaceDeclarations.push(node);
 
     const description = this.collectDescription(node);
     const interfaces = this.collectInterfaces(node);
