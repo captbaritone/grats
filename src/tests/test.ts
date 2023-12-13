@@ -11,10 +11,7 @@ import * as ts from "typescript";
 import { graphql, GraphQLSchema } from "graphql";
 import { Command } from "commander";
 import { locate } from "../Locate";
-import {
-  diagnosticAtGraphQLLocation,
-  ReportableDiagnostics,
-} from "../utils/DiagnosticError";
+import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError";
 import { writeFileSync } from "fs";
 import { codegen } from "../codegen";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
@@ -121,7 +118,7 @@ const testDirs = [
         }
 
         return new ReportableDiagnostics(compilerHost, [
-          diagnosticAtGraphQLLocation("Located here", locResult.value),
+          gqlErr(locResult.value, "Located here"),
         ]).formatDiagnosticsWithContext();
       } else {
         const sdl = printSchemaWithDirectives(schemaResult.value, {

@@ -14,11 +14,14 @@ import {
 } from "graphql";
 import * as ts from "typescript";
 import {
+  gqlErr,
   DiagnosticResult,
   DiagnosticsResult,
   err,
-  FAKE_ERROR_CODE,
   ok,
+  gqlRelated,
+  tsErr,
+  tsRelated,
 } from "./utils/DiagnosticError";
 import {
   ASYNC_ITERABLE_TYPE_DIRECTIVE as ASYNC_GENERATOR_DIRECTIVE,
@@ -85,6 +88,8 @@ export class TypeContext {
     this.host = host;
   }
 
+  // Record that a GraphQL construct of type `kind` with the name `name` is
+  // declared at `node`.
   recordTypeName(node: ts.Node, name: NameNode, kind: NameDefinition["kind"]) {
     const symbol = this.checker.getSymbolAtLocation(node);
     if (symbol == null) {
@@ -100,10 +105,14 @@ export class TypeContext {
     this._symbolToName.set(symbol, { name, kind });
   }
 
+  // Record that a given output type has defined an `__typename` field.
+  // Needed to validate that all variants of an abstract type have a
+  // `__typename` field.
   recordHasTypenameField(name: string) {
     this.hasTypename.add(name);
   }
 
+  // Record that a type reference `node`
   markUnresolvedType(node: ts.Node, name: NameNode) {
     const symbol = this.checker.getSymbolAtLocation(node);
     if (symbol == null) {
@@ -229,19 +238,91 @@ export class TypeContext {
         if (field.type.loc == null) {
           throw new Error("Expected field type to have a location.");
         }
-        return this.err(field.type.loc, E.subscriptionFieldNotAsyncIterable());
+        return gqlErr(field.type.loc, E.subscriptionFieldNotAsyncIterable());
       }
 
       if (!isSubscription && asyncDirective != null) {
         if (asyncDirective.loc == null) {
           throw new Error("Expected asyncDirective to have a location.");
         }
-        return this.err(
+        return gqlErr(
           asyncDirective.loc, // Directive location is the AsyncIterable type.
           E.nonSubscriptionFieldAsyncIterable(),
         );
       }
     }
+  }
+
+  // Prevent using merged interfaces as GraphQL interfaces.
+  // https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces
+  validateMergedInterfaceDeclarations(
+    interfaces: ts.InterfaceDeclaration[],
+  ): ts.Diagnostic[] {
+    const errors: ts.Diagnostic[] = [];
+
+    for (const node of interfaces) {
+      const symbol = this.checker.getSymbolAtLocation(node.name);
+      if (
+        symbol != null &&
+        symbol.declarations != null &&
+        symbol.declarations.length > 1
+      ) {
+        const otherLocations = symbol.declarations
+          .filter((d) => d !== node && ts.isInterfaceDeclaration(d))
+          .map((d) => {
+            const locNode = ts.getNameOfDeclaration(d) ?? d;
+            return tsRelated(locNode, "Other declaration");
+          });
+
+        if (otherLocations.length > 0) {
+          errors.push(tsErr(node.name, E.mergedInterfaces(), otherLocations));
+        }
+      }
+    }
+
+    return errors;
+  }
+
+  /**
+   * Ensure that all context type references resolve to the same
+   * type declaration.
+   */
+  validateContextReferences(references: ts.Node[]): ts.Diagnostic | null {
+    let gqlContext: { declaration: ts.Node; firstReference: ts.Node } | null =
+      null;
+    for (const typeName of references) {
+      const symbol = this.checker.getSymbolAtLocation(typeName);
+      if (symbol == null) {
+        return tsErr(
+          typeName,
+          E.expectedTypeAnnotationOnContextToBeResolvable(),
+        );
+      }
+
+      const declaration = this.findSymbolDeclaration(symbol);
+      if (declaration == null) {
+        return tsErr(
+          typeName,
+          E.expectedTypeAnnotationOnContextToHaveDeclaration(),
+        );
+      }
+
+      if (gqlContext == null) {
+        // This is the first typed context value we've seen...
+        gqlContext = {
+          declaration: declaration,
+          firstReference: typeName,
+        };
+      } else if (gqlContext.declaration !== declaration) {
+        return tsErr(typeName, E.multipleContextTypes(), [
+          tsRelated(
+            gqlContext.firstReference,
+            "A different type reference was used here",
+          ),
+        ]);
+      }
+    }
+    return null;
   }
 
   // TODO: Is this still used?
@@ -366,8 +447,8 @@ export class TypeContext {
         }
 
         return err([
-          this.err(loc, E.invalidTypePassedToFieldFunction(), [
-            this.relatedInformation(
+          gqlErr(loc, E.invalidTypePassedToFieldFunction(), [
+            gqlRelated(
               relatedLoc,
               `This is the type that was passed to \`@${FIELD_TAG}\`.`,
             ),
@@ -392,7 +473,7 @@ export class TypeContext {
       if (unresolved.loc == null) {
         throw new Error("Expected namedType to have a location.");
       }
-      return err(this.err(unresolved.loc, E.unresolvedTypeReference()));
+      return err(gqlErr(unresolved.loc, E.unresolvedTypeReference()));
     }
     return ok({ ...unresolved, value: nameDefinition.name.value });
   }
@@ -400,45 +481,5 @@ export class TypeContext {
   unresolvedNameIsGraphQL(unresolved: NameNode): boolean {
     const symbol = this._unresolvedTypes.get(unresolved);
     return symbol != null && this._symbolToName.has(symbol);
-  }
-
-  // TODO: Move to DiagnosticError
-  err(
-    loc: Location,
-    message: string,
-    relatedInformation?: ts.DiagnosticRelatedInformation[],
-  ): ts.Diagnostic {
-    return {
-      messageText: message,
-      start: loc.start,
-      length: loc.end - loc.start,
-      category: ts.DiagnosticCategory.Error,
-      code: FAKE_ERROR_CODE,
-      file: ts.createSourceFile(
-        loc.source.name,
-        loc.source.body,
-        ts.ScriptTarget.Latest,
-      ),
-      relatedInformation,
-    };
-  }
-
-  // TODO: Move to DiagnosticError
-  relatedInformation(
-    loc: Location,
-    message: string,
-  ): ts.DiagnosticRelatedInformation {
-    return {
-      category: ts.DiagnosticCategory.Message,
-      code: FAKE_ERROR_CODE,
-      messageText: message,
-      file: ts.createSourceFile(
-        loc.source.name,
-        loc.source.body,
-        ts.ScriptTarget.Latest,
-      ),
-      start: loc.start,
-      length: loc.end - loc.start,
-    };
   }
 }

@@ -13,9 +13,7 @@ import {
   DiagnosticsResult,
   Result,
   ReportableDiagnostics,
-  diagnosticAtGraphQLLocation,
-  diagnosticAtTsNode,
-  relatedInfoAtTsNode,
+  gqlErr,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { ExtractionSnapshot, Extractor } from "./Extractor";
@@ -99,59 +97,44 @@ function extractSchema(
     snapshots.push(extractedResult.value);
   }
 
+  const snapshot = reduceSnapshots(snapshots);
+
   const checker = program.getTypeChecker();
   const ctx = new TypeContext(options, checker, host);
-  const definitions: GratsDefinitionNode[] = Array.from(
-    DIRECTIVES_AST.definitions,
+
+  extend(
+    errors,
+    ctx.validateMergedInterfaceDeclarations(snapshot.interfaceDeclarationNodes),
   );
 
-  {
-    // TODO: Extract this block
-
-    const contextReferences: ts.Node[] = [];
-    const interfaceDeclarationNodes: ts.InterfaceDeclaration[] = [];
-
-    for (const snapshot of snapshots) {
-      // Propagate snapshot data to type context
-      for (const [node, typeName] of snapshot.unresolvedNames) {
-        ctx.markUnresolvedType(node, typeName);
-      }
-
-      for (const [node, definition] of snapshot.nameDefinitions) {
-        ctx.recordTypeName(node, definition.name, definition.kind);
-      }
-
-      for (const contextReference of snapshot.contextReferences) {
-        contextReferences.push(contextReference);
-      }
-
-      for (const typeName of snapshot.typesWithTypenameField) {
-        ctx.hasTypename.add(typeName);
-      }
-
-      // Record extracted GraphQL definitions
-      for (const definition of snapshot.definitions) {
-        definitions.push(definition);
-      }
-
-      for (const interfaceDeclaration of snapshot.interfaceDeclarationNodes) {
-        interfaceDeclarationNodes.push(interfaceDeclaration);
-      }
-    }
-
-    extend(
-      errors,
-      validateInterfaceDeclarations(checker, interfaceDeclarationNodes),
-    );
-
-    const validationError = validateContextReferences(ctx, contextReferences);
-    if (validationError != null) {
-      errors.push(validationError);
-    }
+  const validationError = ctx.validateContextReferences(
+    snapshot.contextReferences,
+  );
+  if (validationError != null) {
+    errors.push(validationError);
   }
 
   if (errors.length > 0) {
     return err(errors);
+  }
+
+  const definitions: GratsDefinitionNode[] = Array.from(
+    DIRECTIVES_AST.definitions,
+  );
+
+  extend(definitions, snapshot.definitions);
+
+  // Propagate snapshot data to type context
+  for (const [node, typeName] of snapshot.unresolvedNames) {
+    ctx.markUnresolvedType(node, typeName);
+  }
+
+  for (const [node, definition] of snapshot.nameDefinitions) {
+    ctx.recordTypeName(node, definition.name, definition.kind);
+  }
+
+  for (const typeName of snapshot.typesWithTypenameField) {
+    ctx.hasTypename.add(typeName);
   }
 
   // If you define a field on an interface using the functional style, we need to add
@@ -223,9 +206,9 @@ function validateTypename(
           );
         }
         typenameDiagnostics.push(
-          diagnosticAtGraphQLLocation(
-            `Missing __typename on \`${implementor.name}\`. The type \`${type.name}\` is used in a union or interface, so it must have a \`__typename\` field.`,
+          gqlErr(
             loc,
+            `Missing __typename on \`${implementor.name}\`. The type \`${type.name}\` is used in a union or interface, so it must have a \`__typename\` field.`,
           ),
         );
       }
@@ -234,80 +217,42 @@ function validateTypename(
   return typenameDiagnostics;
 }
 
-/**
- * Ensure that all context type references resolve to the same
- * type declaration.
- */
-function validateContextReferences(
-  ctx: TypeContext,
-  references: ts.Node[],
-): ts.Diagnostic | null {
-  let gqlContext: { declaration: ts.Node; firstReference: ts.Node } | null =
-    null;
-  for (const typeName of references) {
-    const symbol = ctx.checker.getSymbolAtLocation(typeName);
-    if (symbol == null) {
-      return diagnosticAtTsNode(
-        typeName,
-        E.expectedTypeAnnotationOnContextToBeResolvable(),
-      );
+// Given a list of snapshots, merge them into a single snapshot.
+function reduceSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
+  const result: ExtractionSnapshot = {
+    definitions: [],
+    nameDefinitions: new Map(),
+    unresolvedNames: new Map(),
+    contextReferences: [],
+    typesWithTypenameField: new Set(),
+    interfaceDeclarationNodes: [],
+  };
+
+  for (const snapshot of snapshots) {
+    for (const definition of snapshot.definitions) {
+      result.definitions.push(definition);
     }
 
-    const declaration = ctx.findSymbolDeclaration(symbol);
-    if (declaration == null) {
-      return diagnosticAtTsNode(
-        typeName,
-        E.expectedTypeAnnotationOnContextToHaveDeclaration(),
-      );
+    for (const [node, definition] of snapshot.nameDefinitions) {
+      result.nameDefinitions.set(node, definition);
     }
 
-    if (gqlContext == null) {
-      // This is the first typed context value we've seen...
-      gqlContext = {
-        declaration: declaration,
-        firstReference: typeName,
-      };
-    } else if (gqlContext.declaration !== declaration) {
-      return diagnosticAtTsNode(typeName, E.multipleContextTypes(), [
-        relatedInfoAtTsNode(
-          gqlContext.firstReference,
-          "A different type reference was used here",
-        ),
-      ]);
+    for (const [node, typeName] of snapshot.unresolvedNames) {
+      result.unresolvedNames.set(node, typeName);
     }
-  }
-  return null;
-}
 
-// Prevent using merged interfaces as GraphQL interfaces.
-// https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces
-function validateInterfaceDeclarations(
-  checker: ts.TypeChecker,
-  interfaces: ts.InterfaceDeclaration[],
-): ts.Diagnostic[] {
-  const errors: ts.Diagnostic[] = [];
+    for (const contextReference of snapshot.contextReferences) {
+      result.contextReferences.push(contextReference);
+    }
 
-  for (const node of interfaces) {
-    const symbol = checker.getSymbolAtLocation(node.name);
-    if (
-      symbol != null &&
-      symbol.declarations != null &&
-      symbol.declarations.length > 1
-    ) {
-      const otherLocations = symbol.declarations
-        .filter((d) => d !== node && ts.isInterfaceDeclaration(d))
-        .map((d) => {
-          const locNode = ts.getNameOfDeclaration(d) ?? d;
-          return relatedInfoAtTsNode(locNode, "Other declaration");
-        });
+    for (const typeName of snapshot.typesWithTypenameField) {
+      result.typesWithTypenameField.add(typeName);
+    }
 
-      if (otherLocations.length > 0) {
-        errors.push(
-          diagnosticAtTsNode(node.name, E.mergedInterfaces(), otherLocations),
-        );
-      }
+    for (const interfaceDeclaration of snapshot.interfaceDeclarationNodes) {
+      result.interfaceDeclarationNodes.push(interfaceDeclaration);
     }
   }
 
-  return errors;
+  return result;
 }

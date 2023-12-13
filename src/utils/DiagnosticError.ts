@@ -50,7 +50,7 @@ export class ReportableDiagnostics {
   }
 }
 
-// A madeup error code that we use to fake a TypeScript error code.
+// A made-up error code that we use to fake a TypeScript error code.
 // We pick a very random number to avoid collisions with real error messages.
 export const FAKE_ERROR_CODE = 349389149282;
 
@@ -68,7 +68,7 @@ export function graphQlErrorToDiagnostic(error: GraphQLError): ts.Diagnostic {
     throw new Error("Expected error to have a position");
   }
 
-  // Start with baseline location infromation
+  // Start with baseline location information
   let start = position;
   let length = 1;
   let relatedInformation: ts.DiagnosticRelatedInformation[] | undefined;
@@ -86,14 +86,9 @@ export function graphQlErrorToDiagnostic(error: GraphQLError): ts.Diagnostic {
           if (relatedNode.loc == null) {
             continue;
           }
-          relatedInformation.push({
-            category: ts.DiagnosticCategory.Message,
-            code: FAKE_ERROR_CODE,
-            messageText: "Related location",
-            file: graphqlSourceToSourceFile(relatedNode.loc.source),
-            start: relatedNode.loc.start,
-            length: relatedNode.loc.end - relatedNode.loc.start,
-          });
+          relatedInformation.push(
+            gqlRelated(relatedNode.loc, "Related location"),
+          );
         }
       }
     }
@@ -115,9 +110,10 @@ export function graphQlErrorToDiagnostic(error: GraphQLError): ts.Diagnostic {
   };
 }
 
-export function diagnosticAtGraphQLLocation(
-  message: string,
+export function gqlErr(
   loc: Location,
+  message: string,
+  relatedInformation?: ts.DiagnosticRelatedInformation[],
 ): ts.Diagnostic {
   return {
     messageText: message,
@@ -126,10 +122,25 @@ export function diagnosticAtGraphQLLocation(
     category: ts.DiagnosticCategory.Error,
     start: loc.start,
     length: loc.end - loc.start,
+    relatedInformation,
   };
 }
 
-export function diagnosticAtTsNode(
+export function gqlRelated(
+  loc: Location,
+  message: string,
+): ts.DiagnosticRelatedInformation {
+  return {
+    category: ts.DiagnosticCategory.Message,
+    code: FAKE_ERROR_CODE,
+    messageText: message,
+    file: graphqlSourceToSourceFile(loc.source),
+    start: loc.start,
+    length: loc.end - loc.start,
+  };
+}
+
+export function tsErr(
   node: ts.Node,
   message: string,
   relatedInformation?: ts.DiagnosticRelatedInformation[],
@@ -148,7 +159,7 @@ export function diagnosticAtTsNode(
   };
 }
 
-export function relatedInfoAtTsNode(
+export function tsRelated(
   node: ts.Node,
   message: string,
 ): ts.DiagnosticRelatedInformation {

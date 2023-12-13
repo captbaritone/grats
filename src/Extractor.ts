@@ -16,11 +16,11 @@ import {
   assertName,
 } from "graphql";
 import {
-  diagnosticAtTsNode,
+  tsErr,
   DiagnosticsResult,
   err,
   ok,
-  relatedInfoAtTsNode,
+  tsRelated,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import {
@@ -260,7 +260,7 @@ export class Extractor {
     message: string,
     relatedInformation?: ts.DiagnosticRelatedInformation[],
   ): null {
-    this.errors.push(diagnosticAtTsNode(node, message, relatedInformation));
+    this.errors.push(tsErr(node, message, relatedInformation));
     return null;
   }
 
@@ -1548,7 +1548,7 @@ export class Extractor {
         const [first, ...rest] = types;
         // FIXME: If each of `rest` matches `first` this should be okay.
         const incompatibleVariants = rest.map((tsType) => {
-          return relatedInfoAtTsNode(tsType, "Other non-nullish type");
+          return tsRelated(tsType, "Other non-nullish type");
         });
         this.report(first, E.expectedOneNonNullishType(), incompatibleVariants);
         return null;
@@ -1635,7 +1635,7 @@ export class Extractor {
     }
     if (tags.length > 1) {
       const additionalTags = tags.slice(1).map((tag) => {
-        return relatedInfoAtTsNode(tag, "Additional tag");
+        return tsRelated(tag, "Additional tag");
       });
 
       const message =
