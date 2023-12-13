@@ -16,22 +16,20 @@ import {
   assertName,
 } from "graphql";
 import {
+  tsErr,
   DiagnosticsResult,
   err,
-  FAKE_ERROR_CODE,
   ok,
+  tsRelated,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
-import {
-  GratsDefinitionNode,
-  TypeContext,
-  UNRESOLVED_REFERENCE_NAME,
-} from "./TypeContext";
+import { NameDefinition, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
 import { ConfigOptions } from "./lib";
 import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
-import { GraphQLConstructor } from "./GraphQLConstructor";
+import { GraphQLConstructor, GratsDefinitionNode } from "./GraphQLConstructor";
 import {} from "./metadataDirectives";
+import { relativePath } from "./gratsRoot";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -64,6 +62,15 @@ const OPERATION_TYPES = new Set(["Query", "Mutation", "Subscription"]);
 
 type ArgDefaults = Map<string, ts.Expression>;
 
+export type ExtractionSnapshot = {
+  readonly definitions: GratsDefinitionNode[];
+  readonly unresolvedNames: Map<ts.Node, NameNode>;
+  readonly nameDefinitions: Map<ts.Node, NameDefinition>;
+  readonly contextReferences: Array<ts.Node>;
+  readonly typesWithTypenameField: Set<string>;
+  readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
+};
+
 /**
  * Extracts GraphQL definitions from TypeScript source code.
  *
@@ -74,31 +81,51 @@ type ArgDefaults = Map<string, ts.Expression>;
  * This ensures that we can apply GraphQL schema validation rules, and any reported
  * errors will point to the correct location in the TypeScript source code.
  */
-export class Extractor {
+export function extract(
+  options: ConfigOptions,
+  sourceFile: ts.SourceFile,
+): DiagnosticsResult<ExtractionSnapshot> {
+  const extractor = new Extractor(options);
+  return extractor.extract(sourceFile);
+}
+
+class Extractor {
   definitions: GratsDefinitionNode[] = [];
-  sourceFile: ts.SourceFile;
-  ctx: TypeContext;
+
+  // Snapshot data
+  unresolvedNames: Map<ts.Node, NameNode> = new Map();
+  nameDefinitions: Map<ts.Node, NameDefinition> = new Map();
+  contextReferences: Array<ts.Node> = [];
+  typesWithTypenameField: Set<string> = new Set();
+  interfaceDeclarations: Array<ts.InterfaceDeclaration> = [];
+
   configOptions: ConfigOptions;
   errors: ts.Diagnostic[] = [];
   gql: GraphQLConstructor;
 
-  constructor(
-    sourceFile: ts.SourceFile,
-    ctx: TypeContext,
-    buildOptions: ConfigOptions,
-  ) {
-    this.sourceFile = sourceFile;
-    this.ctx = ctx;
+  constructor(buildOptions: ConfigOptions) {
     this.configOptions = buildOptions;
-    this.gql = new GraphQLConstructor(sourceFile);
+    this.gql = new GraphQLConstructor();
+  }
+
+  markUnresolvedType(node: ts.Node, name: NameNode) {
+    this.unresolvedNames.set(node, name);
+  }
+
+  recordTypeName(
+    node: ts.Node,
+    name: NameNode,
+    kind: NameDefinition["kind"],
+  ): void {
+    this.nameDefinitions.set(node, { name, kind });
   }
 
   // Traverse all nodes, checking each one for its JSDoc tags.
   // If we find a tag we recognize, we extract the relevant information,
   // reporting an error if it is attached to a node where that tag is not
   // supported.
-  extract(): DiagnosticsResult<GratsDefinitionNode[]> {
-    traverseJSDocTags(this.sourceFile, (node, tag) => {
+  extract(sourceFile: ts.SourceFile): DiagnosticsResult<ExtractionSnapshot> {
+    traverseJSDocTags(sourceFile, (node, tag) => {
       switch (tag.tagName.text) {
         case TYPE_TAG:
           this.extractType(node, tag);
@@ -166,7 +193,14 @@ export class Extractor {
     if (this.errors.length > 0) {
       return err(this.errors);
     }
-    return ok(this.definitions);
+    return ok({
+      definitions: this.definitions,
+      unresolvedNames: this.unresolvedNames,
+      nameDefinitions: this.nameDefinitions,
+      contextReferences: this.contextReferences,
+      typesWithTypenameField: this.typesWithTypenameField,
+      interfaceDeclarations: this.interfaceDeclarations,
+    });
   }
 
   extractType(node: ts.Node, tag: ts.JSDocTag) {
@@ -230,17 +264,7 @@ export class Extractor {
     message: string,
     relatedInformation?: ts.DiagnosticRelatedInformation[],
   ): null {
-    const start = node.getStart();
-    const length = node.getEnd() - start;
-    this.errors.push({
-      messageText: message,
-      file: this.sourceFile,
-      code: FAKE_ERROR_CODE,
-      category: ts.DiagnosticCategory.Error,
-      start,
-      length,
-      relatedInformation,
-    });
+    this.errors.push(tsErr(node, message, relatedInformation));
     return null;
   }
 
@@ -266,27 +290,6 @@ export class Extractor {
     return this.report(node, completedMessage, relatedInformation);
   }
 
-  related(node: ts.Node, message: string): ts.DiagnosticRelatedInformation {
-    return {
-      category: ts.DiagnosticCategory.Message,
-      code: 0,
-      file: node.getSourceFile(),
-      start: node.getStart(),
-      length: node.getWidth(),
-      messageText: message,
-    };
-  }
-
-  diagnosticAnnotatedLocation(node: ts.Node): {
-    start: number;
-    length: number;
-    filepath: ts.SourceFile;
-  } {
-    const start = node.getStart();
-    const end = node.getEnd();
-    return { start, length: end - start, filepath: this.sourceFile };
-  }
-
   /** TypeScript traversals */
 
   unionTypeAliasDeclaration(node: ts.TypeAliasDeclaration, tag: ts.JSDocTag) {
@@ -297,7 +300,7 @@ export class Extractor {
       return this.report(node, E.expectedUnionTypeNode());
     }
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
 
     const types: NamedTypeNode[] = [];
     for (const member of node.type.types) {
@@ -312,11 +315,11 @@ export class Extractor {
         member.typeName,
         UNRESOLVED_REFERENCE_NAME,
       );
-      this.ctx.markUnresolvedType(member.typeName, namedType.name);
+      this.markUnresolvedType(member.typeName, namedType.name);
       types.push(namedType);
     }
 
-    this.ctx.recordTypeName(node.name, name, "UNION");
+    this.recordTypeName(node.name, name, "UNION");
 
     this.definitions.push(
       this.gql.unionTypeDefinition(node, name, types, description),
@@ -360,14 +363,14 @@ export class Extractor {
       this.validateContextParameter(context);
     }
 
-    const description = this.collectDescription(funcName);
+    const description = this.collectDescription(node);
 
     if (!ts.isSourceFile(node.parent)) {
       return this.report(node, E.functionFieldNotTopLevel());
     }
 
     // TODO: Does this work in the browser?
-    const tsModulePath = this.ctx.getDestFilePath(node.parent);
+    const tsModulePath = relativePath(node.getSourceFile().fileName);
 
     const directives = [
       this.gql.exportedDirective(funcName, {
@@ -409,7 +412,7 @@ export class Extractor {
 
     const nameNode = typeParam.type.typeName;
     const typeName = this.gql.name(nameNode, UNRESOLVED_REFERENCE_NAME);
-    this.ctx.markUnresolvedType(nameNode, typeName);
+    this.markUnresolvedType(nameNode, typeName);
     return typeName;
   }
 
@@ -439,8 +442,8 @@ export class Extractor {
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
-    const description = this.collectDescription(node.name);
-    this.ctx.recordTypeName(node.name, name, "SCALAR");
+    const description = this.collectDescription(node);
+    this.recordTypeName(node.name, name, "SCALAR");
 
     this.definitions.push(
       this.gql.scalarTypeDefinition(node, name, description),
@@ -451,8 +454,8 @@ export class Extractor {
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
-    const description = this.collectDescription(node.name);
-    this.ctx.recordTypeName(node.name, name, "INPUT_OBJECT");
+    const description = this.collectDescription(node);
+    this.recordTypeName(node.name, name, "INPUT_OBJECT");
 
     const fields = this.collectInputFields(node);
 
@@ -510,7 +513,7 @@ export class Extractor {
     const type =
       node.questionToken == null ? inner : this.gql.nullableType(inner);
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
 
     const deprecatedDirective = this.collectDeprecated(node);
 
@@ -534,10 +537,10 @@ export class Extractor {
 
     this.validateOperationTypes(node.name, name.value);
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
     const fields = this.collectFields(node);
     const interfaces = this.collectInterfaces(node);
-    this.ctx.recordTypeName(node.name, name, "TYPE");
+    this.recordTypeName(node.name, name, "TYPE");
 
     this.checkForTypenameProperty(node, name.value);
 
@@ -566,10 +569,10 @@ export class Extractor {
 
     this.validateOperationTypes(node.name, name.value);
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
     const fields = this.collectFields(node);
     const interfaces = this.collectInterfaces(node);
-    this.ctx.recordTypeName(node.name, name, "INTERFACE");
+    this.recordTypeName(node.name, name, "INTERFACE");
 
     this.checkForTypenameProperty(node, name.value);
 
@@ -604,8 +607,8 @@ export class Extractor {
       return this.report(node.type, E.typeTagOnAliasOfNonObjectOrUnknown());
     }
 
-    const description = this.collectDescription(node.name);
-    this.ctx.recordTypeName(node.name, name, "TYPE");
+    const description = this.collectDescription(node);
+    this.recordTypeName(node.name, name, "TYPE");
 
     this.definitions.push(
       this.gql.objectTypeDefinition(
@@ -626,7 +629,7 @@ export class Extractor {
       return this.isValidTypeNameProperty(member, expectedName);
     });
     if (hasTypename) {
-      this.ctx.recordHasTypenameField(expectedName);
+      this.typesWithTypenameField.add(expectedName);
     }
   }
 
@@ -757,13 +760,12 @@ export class Extractor {
         return clause.types
           .map((type) => type.expression)
           .filter((expression) => ts.isIdentifier(expression))
-          .filter((expression) => this.symbolHasGqlTag(expression))
           .map((expression) => {
             const namedType = this.gql.namedType(
               expression,
               UNRESOLVED_REFERENCE_NAME,
             );
-            this.ctx.markUnresolvedType(expression, namedType.name);
+            this.markUnresolvedType(expression, namedType.name);
             return namedType;
           });
       });
@@ -777,15 +779,6 @@ export class Extractor {
     }
 
     return interfaces;
-  }
-
-  symbolHasGqlTag(node: ts.Node): boolean {
-    const symbol = this.ctx.checker.getSymbolAtLocation(node);
-    if (symbol == null) return false;
-
-    const declaration = this.ctx.findSymbolDeclaration(symbol);
-    if (declaration == null) return false;
-    return this.hasGqlTag(declaration);
   }
 
   hasGqlTag(node: ts.Node): boolean {
@@ -803,36 +796,14 @@ export class Extractor {
       return;
     }
 
-    // Prevent using merged interfaces as GraphQL interfaces.
-    // https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces
-    const symbol = this.ctx.checker.getSymbolAtLocation(node.name);
-    if (
-      symbol != null &&
-      symbol.declarations != null &&
-      symbol.declarations.length > 1
-    ) {
-      const otherLocations = symbol.declarations
-        .filter((d) => d !== node && ts.isInterfaceDeclaration(d))
-        .map((d) => {
-          const locNode = ts.getNameOfDeclaration(d) ?? d;
-          return this.related(locNode, "Other declaration");
-        });
+    this.interfaceDeclarations.push(node);
 
-      if (otherLocations.length > 0) {
-        return this.report(
-          node.name,
-          E.mergedInterfaces(name.value),
-          otherLocations,
-        );
-      }
-    }
-
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
     const interfaces = this.collectInterfaces(node);
 
     const fields = this.collectFields(node);
 
-    this.ctx.recordTypeName(node.name, name, "INTERFACE");
+    this.recordTypeName(node.name, name, "INTERFACE");
 
     this.definitions.push(
       this.gql.interfaceTypeDefinition(
@@ -936,7 +907,7 @@ export class Extractor {
     if (deprecated != null) {
       directives.push(deprecated);
     }
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
 
     return this.gql.fieldDefinition(
       node,
@@ -1127,7 +1098,7 @@ export class Extractor {
       type = this.gql.nullableType(type);
     }
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
 
     let defaultValue: ConstValueNode | null = null;
     if (defaults != null) {
@@ -1154,11 +1125,11 @@ export class Extractor {
     if (name == null || name.value == null) {
       return;
     }
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
 
     const values = this.collectEnumValues(node);
 
-    this.ctx.recordTypeName(node.name, name, "ENUM");
+    this.recordTypeName(node.name, name, "ENUM");
 
     this.definitions.push(
       this.gql.enumTypeDefinition(node, name, values, description),
@@ -1177,8 +1148,8 @@ export class Extractor {
     const values = this.enumTypeAliasVariants(node);
     if (values == null) return;
 
-    const description = this.collectDescription(node.name);
-    this.ctx.recordTypeName(node.name, name, "ENUM");
+    const description = this.collectDescription(node);
+    this.recordTypeName(node.name, name, "ENUM");
 
     this.definitions.push(
       this.gql.enumTypeDefinition(node, name, values, description),
@@ -1214,39 +1185,6 @@ export class Extractor {
 
     const values: EnumValueDefinitionNode[] = [];
     for (const member of node.type.types) {
-      // TODO: Complete this feature
-      if (ts.isTypeReferenceNode(member)) {
-        if (member.typeName.kind === ts.SyntaxKind.Identifier) {
-          const symbol = this.ctx.checker.getSymbolAtLocation(member.typeName);
-          if (symbol?.declarations?.length === 1) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const declaration = symbol.declarations[0]!;
-            if (ts.isTypeAliasDeclaration(declaration)) {
-              if (
-                ts.isLiteralTypeNode(declaration.type) &&
-                ts.isStringLiteral(declaration.type.literal)
-              ) {
-                const deprecatedDirective = this.collectDeprecated(declaration);
-                const memberDescription = this.collectDescription(
-                  declaration.name,
-                );
-                values.push(
-                  this.gql.enumValueDefinition(
-                    node,
-                    this.gql.name(
-                      declaration.type.literal,
-                      declaration.type.literal.text,
-                    ),
-                    deprecatedDirective ? [deprecatedDirective] : [],
-                    memberDescription,
-                  ),
-                );
-                continue;
-              }
-            }
-          }
-        }
-      }
       if (
         !ts.isLiteralTypeNode(member) ||
         !ts.isStringLiteral(member.literal)
@@ -1292,7 +1230,7 @@ export class Extractor {
         continue;
       }
 
-      const description = this.collectDescription(member.name);
+      const description = this.collectDescription(member);
       const deprecated = this.collectDeprecated(member);
       values.push(
         this.gql.enumValueDefinition(
@@ -1396,36 +1334,7 @@ export class Extractor {
       );
     }
 
-    const symbol = this.ctx.checker.getSymbolAtLocation(node.type.typeName);
-    if (symbol == null) {
-      return this.report(
-        node.type.typeName,
-        E.expectedTypeAnnotationOnContextToBeResolvable(),
-      );
-    }
-
-    const declaration = this.ctx.findSymbolDeclaration(symbol);
-    if (declaration == null) {
-      return this.report(
-        node.type.typeName,
-        E.expectedTypeAnnotationOnContextToHaveDeclaration(),
-      );
-    }
-
-    if (this.ctx.gqlContext == null) {
-      // This is the first typed context value we've seen...
-      this.ctx.gqlContext = {
-        declaration: declaration,
-        firstReference: node.type.typeName,
-      };
-    } else if (this.ctx.gqlContext.declaration !== declaration) {
-      return this.report(node.type.typeName, E.multipleContextTypes(), [
-        this.related(
-          this.ctx.gqlContext.firstReference,
-          "A different type reference was used here",
-        ),
-      ]);
-    }
+    this.contextReferences.push(node.type.typeName);
   }
 
   methodDeclaration(
@@ -1459,7 +1368,7 @@ export class Extractor {
       this.validateContextParameter(context);
     }
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
 
     const id = this.expectIdentifier(node.name);
     if (id == null) return null;
@@ -1534,14 +1443,17 @@ export class Extractor {
   }
 
   collectDescription(node: ts.Node): StringValueNode | null {
-    const symbol = this.ctx.checker.getSymbolAtLocation(node);
-    if (symbol == null) {
-      return this.report(node, E.cannotResolveSymbolForDescription());
-    }
-    const doc = symbol.getDocumentationComment(this.ctx.checker);
-    const description = ts.displayPartsToString(doc);
-    if (description) {
-      return this.gql.string(node, description.trim(), true);
+    const docs: readonly (ts.JSDoc | ts.JSDocTag)[] =
+      // @ts-ignore Exposed as stable in https://github.com/microsoft/TypeScript/pull/53627
+      ts.getJSDocCommentsAndTags(node);
+
+    const comment = docs
+      .filter((doc) => doc.kind === ts.SyntaxKind.JSDoc)
+      .map((doc) => doc.comment)
+      .join("");
+
+    if (comment) {
+      return this.gql.string(node, comment.trim(), true);
     }
     return null;
   }
@@ -1589,7 +1501,7 @@ export class Extractor {
     const type =
       node.questionToken == null ? inner : this.gql.nullableType(inner);
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
 
     let directives: ConstDirectiveNode[] = [];
     const id = this.expectIdentifier(node.name);
@@ -1640,7 +1552,7 @@ export class Extractor {
         const [first, ...rest] = types;
         // FIXME: If each of `rest` matches `first` this should be okay.
         const incompatibleVariants = rest.map((tsType) => {
-          return this.related(tsType, "Other non-nullish type");
+          return tsRelated(tsType, "Other non-nullish type");
         });
         this.report(first, E.expectedOneNonNullishType(), incompatibleVariants);
         return null;
@@ -1687,7 +1599,7 @@ export class Extractor {
         //
         // A later pass will resolve the type.
         const namedType = this.gql.namedType(node, UNRESOLVED_REFERENCE_NAME);
-        this.ctx.markUnresolvedType(node.typeName, namedType.name);
+        this.markUnresolvedType(node.typeName, namedType.name);
         return this.gql.nonNullType(node, namedType);
       }
     }
@@ -1727,7 +1639,7 @@ export class Extractor {
     }
     if (tags.length > 1) {
       const additionalTags = tags.slice(1).map((tag) => {
-        return this.related(tag, "Additional tag");
+        return tsRelated(tag, "Additional tag");
       });
 
       const message =

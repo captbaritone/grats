@@ -1,5 +1,4 @@
 import { relative, resolve, join } from "path";
-import * as ts from "typescript";
 
 // Grats parses TypeScript files and finds resolvers. If the field resolver is a
 // named export, Grats needs to be able to import that file during execution.
@@ -11,27 +10,9 @@ import * as ts from "typescript";
 // step and the runtime can agree on. This path is that thing.
 const gratsRoot = join(__dirname, "../..");
 
-export function getRelativeOutputPath(
-  options: ts.ParsedCommandLine,
-  sourceFile: ts.SourceFile,
-): string {
-  const fileNames = ts.getOutputFileNames(options, sourceFile.fileName, true);
-
-  // ts.getOutputFileNames returns a list of files that includes both the .d.ts
-  // and .js files.
-  const jsFileNames = fileNames.filter((fileName) => fileName.endsWith(".js"));
-
-  if (jsFileNames.length !== 1) {
-    throw new Error(
-      `Grats: Expected ts.getOutputFileNames to return exactly one \`.js\` file. ` +
-        `Found ${jsFileNames.length}}. This is a bug in Grats. I'd appreciate it if ` +
-        `you could open an issue.`,
-    );
-  }
-
-  return relative(gratsRoot, sourceFile.fileName);
+export function relativePath(absolute: string): string {
+  return relative(gratsRoot, absolute);
 }
-
 export function resolveRelativePath(relativePath: string): string {
   return resolve(gratsRoot, relativePath);
 }

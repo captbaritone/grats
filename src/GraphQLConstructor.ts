@@ -29,9 +29,10 @@ import {
   InputObjectTypeDefinitionNode,
   EnumTypeDefinitionNode,
   InterfaceTypeDefinitionNode,
+  DefinitionNode,
+  Location,
 } from "graphql";
 import * as ts from "typescript";
-import { AbstractFieldDefinitionNode } from "./TypeContext";
 import {
   ExportedMetadata,
   PropertyNameMetadata,
@@ -40,13 +41,21 @@ import {
   makePropertyNameDirective,
 } from "./metadataDirectives";
 
+// Grats can't always extract an SDL AST node right away. In some cases, it
+// needs to extract something abstract which can only be converted into an SDL
+// AST after the whole program has been analyzed.
+export type GratsDefinitionNode = DefinitionNode | AbstractFieldDefinitionNode;
+
+// A field definition that applies to some construct. We don't yet know if it applies to
+// a concrete type, or an interface.
+export type AbstractFieldDefinitionNode = {
+  readonly kind: "AbstractFieldDefinition";
+  readonly loc: Location;
+  readonly onType: NameNode;
+  readonly field: FieldDefinitionNode;
+};
+
 export class GraphQLConstructor {
-  sourceFile: ts.SourceFile;
-
-  constructor(sourceFile: ts.SourceFile) {
-    this.sourceFile = sourceFile;
-  }
-
   /* Metadata Directives */
   exportedDirective(
     node: ts.Node,
@@ -335,15 +344,15 @@ export class GraphQLConstructor {
   // an error at one of these locations. We could consider some trick to return a
   // proxy object that would lazily compute the line/column info.
   _loc(node: ts.Node): GraphQLLocation {
-    const source = new Source(this.sourceFile.text, this.sourceFile.fileName);
-    const startToken = this._dummyToken(node.getStart());
-    const endToken = this._dummyToken(node.getEnd());
+    const sourceFile = node.getSourceFile();
+    const source = new Source(sourceFile.text, sourceFile.fileName);
+    const startToken = this._dummyToken(sourceFile, node.getStart());
+    const endToken = this._dummyToken(sourceFile, node.getEnd());
     return new GraphQLLocation(startToken, endToken, source);
   }
 
-  _dummyToken(pos: number): Token {
-    const { line, character } =
-      this.sourceFile.getLineAndCharacterOfPosition(pos);
+  _dummyToken(sourceFile: ts.SourceFile, pos: number): Token {
+    const { line, character } = sourceFile.getLineAndCharacterOfPosition(pos);
     return new Token(TokenKind.SOF, pos, pos, line, character, undefined);
   }
 }

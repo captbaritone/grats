@@ -11,10 +11,7 @@ import * as ts from "typescript";
 import { graphql, GraphQLSchema } from "graphql";
 import { Command } from "commander";
 import { locate } from "../Locate";
-import {
-  diagnosticAtGraphQLLocation,
-  ReportableDiagnostics,
-} from "../utils/DiagnosticError";
+import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError";
 import { writeFileSync } from "fs";
 import { codegen } from "../codegen";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
@@ -78,7 +75,10 @@ const testDirs = [
         const testOptions = JSON.parse(json);
         options = { ...options, ...testOptions };
       }
-      const files = [`${fixturesDir}/${fileName}`, `src/Types.ts`];
+      const files = [
+        `${fixturesDir}/${fileName}`,
+        path.join(__dirname, `../Types.ts`),
+      ];
       const parsedOptions: ParsedCommandLineGrats = validateGratsOptions({
         options: {},
         raw: {
@@ -118,7 +118,7 @@ const testDirs = [
         }
 
         return new ReportableDiagnostics(compilerHost, [
-          diagnosticAtGraphQLLocation("Located here", locResult.value),
+          gqlErr(locResult.value, "Located here"),
         ]).formatDiagnosticsWithContext();
       } else {
         const sdl = printSchemaWithDirectives(schemaResult.value, {
@@ -140,7 +140,7 @@ const testDirs = [
       const options: Partial<ConfigOptions> = {
         nullableByDefault: true,
       };
-      const files = [filePath, `src/Types.ts`];
+      const files = [filePath, path.join(__dirname, `../Types.ts`)];
       const parsedOptions: ParsedCommandLineGrats = validateGratsOptions({
         options: {
           // Required to enable ts-node to locate function exports

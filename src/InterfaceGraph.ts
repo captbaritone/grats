@@ -1,6 +1,5 @@
-import * as ts from "typescript";
-import { GratsDefinitionNode, TypeContext } from "./TypeContext";
-import { DiagnosticsResult, err, ok } from "./utils/DiagnosticError";
+import { GratsDefinitionNode } from "./GraphQLConstructor";
+import { TypeContext } from "./TypeContext";
 import { DefaultMap } from "./utils/helpers";
 import { Kind } from "graphql";
 
@@ -13,7 +12,7 @@ export type InterfaceMap = DefaultMap<string, Set<InterfaceImplementor>>;
 export function computeInterfaceMap(
   typeContext: TypeContext,
   docs: GratsDefinitionNode[],
-): DiagnosticsResult<InterfaceMap> {
+): InterfaceMap {
   // For each interface definition, we need to know which types and interfaces implement it.
   const graph = new DefaultMap<string, Set<InterfaceImplementor>>(
     () => new Set(),
@@ -22,8 +21,6 @@ export function computeInterfaceMap(
   const add = (interfaceName: string, implementor: InterfaceImplementor) => {
     graph.get(interfaceName).add(implementor);
   };
-
-  const errors: ts.Diagnostic[] = [];
 
   for (const doc of docs) {
     switch (doc.kind) {
@@ -55,9 +52,5 @@ export function computeInterfaceMap(
     }
   }
 
-  if (errors.length > 0) {
-    return err(errors);
-  }
-
-  return ok(graph);
+  return graph;
 }
