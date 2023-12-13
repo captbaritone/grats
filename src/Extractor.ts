@@ -298,7 +298,7 @@ export class Extractor {
       return this.report(node, E.expectedUnionTypeNode());
     }
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
 
     const types: NamedTypeNode[] = [];
     for (const member of node.type.types) {
@@ -361,7 +361,7 @@ export class Extractor {
       this.validateContextParameter(context);
     }
 
-    const description = this.collectDescription(funcName);
+    const description = this.collectDescription(node);
 
     if (!ts.isSourceFile(node.parent)) {
       return this.report(node, E.functionFieldNotTopLevel());
@@ -440,7 +440,7 @@ export class Extractor {
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
     this.recordTypeName(node.name, name, "SCALAR");
 
     this.definitions.push(
@@ -452,7 +452,7 @@ export class Extractor {
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
     this.recordTypeName(node.name, name, "INPUT_OBJECT");
 
     const fields = this.collectInputFields(node);
@@ -511,7 +511,7 @@ export class Extractor {
     const type =
       node.questionToken == null ? inner : this.gql.nullableType(inner);
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
 
     const deprecatedDirective = this.collectDeprecated(node);
 
@@ -535,7 +535,7 @@ export class Extractor {
 
     this.validateOperationTypes(node.name, name.value);
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
     const fields = this.collectFields(node);
     const interfaces = this.collectInterfaces(node);
     this.recordTypeName(node.name, name, "TYPE");
@@ -567,7 +567,7 @@ export class Extractor {
 
     this.validateOperationTypes(node.name, name.value);
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
     const fields = this.collectFields(node);
     const interfaces = this.collectInterfaces(node);
     this.recordTypeName(node.name, name, "INTERFACE");
@@ -605,7 +605,7 @@ export class Extractor {
       return this.report(node.type, E.typeTagOnAliasOfNonObjectOrUnknown());
     }
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
     this.recordTypeName(node.name, name, "TYPE");
 
     this.definitions.push(
@@ -796,7 +796,7 @@ export class Extractor {
 
     this.interfaceDeclarationNodes.push(node);
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
     const interfaces = this.collectInterfaces(node);
 
     const fields = this.collectFields(node);
@@ -905,7 +905,7 @@ export class Extractor {
     if (deprecated != null) {
       directives.push(deprecated);
     }
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
 
     return this.gql.fieldDefinition(
       node,
@@ -1096,7 +1096,7 @@ export class Extractor {
       type = this.gql.nullableType(type);
     }
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
 
     let defaultValue: ConstValueNode | null = null;
     if (defaults != null) {
@@ -1123,7 +1123,7 @@ export class Extractor {
     if (name == null || name.value == null) {
       return;
     }
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
 
     const values = this.collectEnumValues(node);
 
@@ -1146,7 +1146,7 @@ export class Extractor {
     const values = this.enumTypeAliasVariants(node);
     if (values == null) return;
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
     this.recordTypeName(node.name, name, "ENUM");
 
     this.definitions.push(
@@ -1196,9 +1196,7 @@ export class Extractor {
                 ts.isStringLiteral(declaration.type.literal)
               ) {
                 const deprecatedDirective = this.collectDeprecated(declaration);
-                const memberDescription = this.collectDescription(
-                  declaration.name,
-                );
+                const memberDescription = this.collectDescription(declaration);
                 values.push(
                   this.gql.enumValueDefinition(
                     node,
@@ -1261,7 +1259,7 @@ export class Extractor {
         continue;
       }
 
-      const description = this.collectDescription(member.name);
+      const description = this.collectDescription(member);
       const deprecated = this.collectDeprecated(member);
       values.push(
         this.gql.enumValueDefinition(
@@ -1399,7 +1397,7 @@ export class Extractor {
       this.validateContextParameter(context);
     }
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
 
     const id = this.expectIdentifier(node.name);
     if (id == null) return null;
@@ -1474,14 +1472,17 @@ export class Extractor {
   }
 
   collectDescription(node: ts.Node): StringValueNode | null {
-    const symbol = this.checker.getSymbolAtLocation(node);
-    if (symbol == null) {
-      return this.report(node, E.cannotResolveSymbolForDescription());
-    }
-    const doc = symbol.getDocumentationComment(this.checker);
-    const description = ts.displayPartsToString(doc);
-    if (description) {
-      return this.gql.string(node, description.trim(), true);
+    const docs: readonly (ts.JSDoc | ts.JSDocTag)[] =
+      // @ts-ignore Exposed as stable in https://github.com/microsoft/TypeScript/pull/53627
+      ts.getJSDocCommentsAndTags(node);
+
+    const comment = docs
+      .filter((doc) => doc.kind === ts.SyntaxKind.JSDoc)
+      .map((doc) => doc.comment)
+      .join("");
+
+    if (comment) {
+      return this.gql.string(node, comment.trim(), true);
     }
     return null;
   }
@@ -1529,7 +1530,7 @@ export class Extractor {
     const type =
       node.questionToken == null ? inner : this.gql.nullableType(inner);
 
-    const description = this.collectDescription(node.name);
+    const description = this.collectDescription(node);
 
     let directives: ConstDirectiveNode[] = [];
     const id = this.expectIdentifier(node.name);
