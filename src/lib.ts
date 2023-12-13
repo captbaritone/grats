@@ -117,6 +117,10 @@ function extractSchema(
       contextReferences.push(contextReference);
     }
 
+    for (const typeName of snapshot.typesWithTypenameField) {
+      ctx.hasTypename.add(typeName);
+    }
+
     // Record extracted GraphQL definitions
     for (const definition of snapshot.definitions) {
       definitions.push(definition);

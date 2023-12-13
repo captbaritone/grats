@@ -72,6 +72,7 @@ type ExtractionSnapshot = {
   readonly unresolvedNames: Map<ts.Node, NameNode>;
   readonly nameDefinitions: Map<ts.Node, NameDefinition>;
   readonly contextReferences: Array<ts.Node>;
+  readonly typesWithTypenameField: Set<string>;
 };
 
 // Describes the subset of TypeContext that Extractor still needs.
@@ -79,7 +80,6 @@ type ExtractionSnapshot = {
 interface TypeContextProxy {
   checker: ts.TypeChecker;
   findSymbolDeclaration(symbol: ts.Symbol): ts.Node | null;
-  recordHasTypenameField(typeName: string): void;
 }
 
 /**
@@ -99,6 +99,7 @@ export class Extractor {
   unresolvedNames: Map<ts.Node, NameNode> = new Map();
   nameDefinitions: Map<ts.Node, NameDefinition> = new Map();
   contextReferences: Array<ts.Node> = [];
+  typesWithTypenameField: Set<string> = new Set();
 
   sourceFile: ts.SourceFile;
   ctx: TypeContextProxy;
@@ -202,6 +203,7 @@ export class Extractor {
       unresolvedNames: this.unresolvedNames,
       nameDefinitions: this.nameDefinitions,
       contextReferences: this.contextReferences,
+      typesWithTypenameField: this.typesWithTypenameField,
     });
   }
 
@@ -631,7 +633,7 @@ export class Extractor {
       return this.isValidTypeNameProperty(member, expectedName);
     });
     if (hasTypename) {
-      this.ctx.recordHasTypenameField(expectedName);
+      this.typesWithTypenameField.add(expectedName);
     }
   }
 
