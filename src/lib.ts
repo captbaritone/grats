@@ -100,14 +100,16 @@ function extractSchema(
     snapshots.push(extractedResult.value);
   }
 
+  const ctx = new TypeContext(options, checker, host);
+  const definitions: GratsDefinitionNode[] = Array.from(
+    DIRECTIVES_AST.definitions,
+  );
+
   {
     // TODO: Extract this block
-    const ctx = new TypeContext(options, checker, host);
-    const definitions: GratsDefinitionNode[] = Array.from(
-      DIRECTIVES_AST.definitions,
-    );
 
     const contextReferences: ts.Node[] = [];
+    const interfaceDeclarationNodes: ts.InterfaceDeclaration[] = [];
 
     for (const snapshot of snapshots) {
       // Propagate snapshot data to type context
@@ -131,11 +133,20 @@ function extractSchema(
       for (const definition of snapshot.definitions) {
         definitions.push(definition);
       }
+
+      for (const interfaceDeclaration of snapshot.interfaceDeclarationNodes) {
+        interfaceDeclarationNodes.push(interfaceDeclaration);
+      }
     }
 
-    const validationResult = validateContextReferences(ctx, contextReferences);
-    if (validationResult.kind === "ERROR") {
-      errors.push(validationResult.err);
+    extend(
+      errors,
+      validateInterfaceDeclarations(checker, interfaceDeclarationNodes),
+    );
+
+    const validationError = validateContextReferences(ctx, contextReferences);
+    if (validationError != null) {
+      errors.push(validationError);
     }
   }
 
@@ -230,27 +241,23 @@ function validateTypename(
 function validateContextReferences(
   ctx: TypeContext,
   references: ts.Node[],
-): Result<void, ts.Diagnostic> {
+): ts.Diagnostic | null {
   let gqlContext: { declaration: ts.Node; firstReference: ts.Node } | null =
     null;
   for (const typeName of references) {
     const symbol = ctx.checker.getSymbolAtLocation(typeName);
     if (symbol == null) {
-      return err(
-        diagnosticAtTsNode(
-          typeName,
-          E.expectedTypeAnnotationOnContextToBeResolvable(),
-        ),
+      return diagnosticAtTsNode(
+        typeName,
+        E.expectedTypeAnnotationOnContextToBeResolvable(),
       );
     }
 
     const declaration = ctx.findSymbolDeclaration(symbol);
     if (declaration == null) {
-      return err(
-        diagnosticAtTsNode(
-          typeName,
-          E.expectedTypeAnnotationOnContextToHaveDeclaration(),
-        ),
+      return diagnosticAtTsNode(
+        typeName,
+        E.expectedTypeAnnotationOnContextToHaveDeclaration(),
       );
     }
 
@@ -261,15 +268,46 @@ function validateContextReferences(
         firstReference: typeName,
       };
     } else if (gqlContext.declaration !== declaration) {
-      return err(
-        diagnosticAtTsNode(typeName, E.multipleContextTypes(), [
-          relatedInfoAtTsNode(
-            gqlContext.firstReference,
-            "A different type reference was used here",
-          ),
-        ]),
-      );
+      return diagnosticAtTsNode(typeName, E.multipleContextTypes(), [
+        relatedInfoAtTsNode(
+          gqlContext.firstReference,
+          "A different type reference was used here",
+        ),
+      ]);
     }
   }
-  return ok(undefined);
+  return null;
+}
+
+// Prevent using merged interfaces as GraphQL interfaces.
+// https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces
+function validateInterfaceDeclarations(
+  checker: ts.TypeChecker,
+  interfaces: ts.InterfaceDeclaration[],
+): ts.Diagnostic[] {
+  const errors: ts.Diagnostic[] = [];
+
+  for (const node of interfaces) {
+    const symbol = checker.getSymbolAtLocation(node.name);
+    if (
+      symbol != null &&
+      symbol.declarations != null &&
+      symbol.declarations.length > 1
+    ) {
+      const otherLocations = symbol.declarations
+        .filter((d) => d !== node && ts.isInterfaceDeclaration(d))
+        .map((d) => {
+          const locNode = ts.getNameOfDeclaration(d) ?? d;
+          return relatedInfoAtTsNode(locNode, "Other declaration");
+        });
+
+      if (otherLocations.length > 0) {
+        errors.push(
+          diagnosticAtTsNode(node.name, E.mergedInterfaces(), otherLocations),
+        );
+      }
+    }
+  }
+
+  return errors;
 }

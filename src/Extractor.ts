@@ -72,6 +72,7 @@ export type ExtractionSnapshot = {
   readonly nameDefinitions: Map<ts.Node, NameDefinition>;
   readonly contextReferences: Array<ts.Node>;
   readonly typesWithTypenameField: Set<string>;
+  readonly interfaceDeclarationNodes: Array<ts.InterfaceDeclaration>;
 };
 
 /**
@@ -92,6 +93,7 @@ export class Extractor {
   nameDefinitions: Map<ts.Node, NameDefinition> = new Map();
   contextReferences: Array<ts.Node> = [];
   typesWithTypenameField: Set<string> = new Set();
+  interfaceDeclarationNodes: Array<ts.InterfaceDeclaration> = [];
 
   checker: ts.TypeChecker; // TODO: Remove this
   configOptions: ConfigOptions;
@@ -195,6 +197,7 @@ export class Extractor {
       nameDefinitions: this.nameDefinitions,
       contextReferences: this.contextReferences,
       typesWithTypenameField: this.typesWithTypenameField,
+      interfaceDeclarationNodes: this.interfaceDeclarationNodes,
     });
   }
 
@@ -791,29 +794,7 @@ export class Extractor {
       return;
     }
 
-    // Prevent using merged interfaces as GraphQL interfaces.
-    // https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces
-    const symbol = this.checker.getSymbolAtLocation(node.name);
-    if (
-      symbol != null &&
-      symbol.declarations != null &&
-      symbol.declarations.length > 1
-    ) {
-      const otherLocations = symbol.declarations
-        .filter((d) => d !== node && ts.isInterfaceDeclaration(d))
-        .map((d) => {
-          const locNode = ts.getNameOfDeclaration(d) ?? d;
-          return relatedInfoAtTsNode(locNode, "Other declaration");
-        });
-
-      if (otherLocations.length > 0) {
-        return this.report(
-          node.name,
-          E.mergedInterfaces(name.value),
-          otherLocations,
-        );
-      }
-    }
+    this.interfaceDeclarationNodes.push(node);
 
     const description = this.collectDescription(node.name);
     const interfaces = this.collectInterfaces(node);

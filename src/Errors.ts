@@ -263,9 +263,9 @@ export function nonNullTypeCannotBeOptional() {
   return `Unexpected optional argument that does not also accept \`null\`. Optional arguments in GraphQL may get passed an explicit \`null\` value. This means optional arguments must be typed to also accept \`null\`.`;
 }
 
-export function mergedInterfaces(interfaceName: string) {
+export function mergedInterfaces() {
   return [
-    `Unexpected merged interface \`${interfaceName}\`.`,
+    `Unexpected merged interface.`,
     `If an interface is declared multiple times in a scope, TypeScript merges them.`,
     `To avoid ambiguity Grats does not support using merged interfaces as GraphQL interfaces.`,
     `Consider using a unique name for your TypeScript interface and renaming it.\n\n`,
