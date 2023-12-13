@@ -95,13 +95,11 @@ export class Extractor {
   typesWithTypenameField: Set<string> = new Set();
   interfaceDeclarationNodes: Array<ts.InterfaceDeclaration> = [];
 
-  checker: ts.TypeChecker; // TODO: Remove this
   configOptions: ConfigOptions;
   errors: ts.Diagnostic[] = [];
   gql: GraphQLConstructor;
 
-  constructor(checker: ts.TypeChecker, buildOptions: ConfigOptions) {
-    this.checker = checker;
+  constructor(buildOptions: ConfigOptions) {
     this.configOptions = buildOptions;
     this.gql = new GraphQLConstructor();
   }
@@ -1183,37 +1181,6 @@ export class Extractor {
 
     const values: EnumValueDefinitionNode[] = [];
     for (const member of node.type.types) {
-      // TODO: Complete this feature
-      if (ts.isTypeReferenceNode(member)) {
-        if (member.typeName.kind === ts.SyntaxKind.Identifier) {
-          const symbol = this.checker.getSymbolAtLocation(member.typeName);
-          if (symbol?.declarations?.length === 1) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const declaration = symbol.declarations[0]!;
-            if (ts.isTypeAliasDeclaration(declaration)) {
-              if (
-                ts.isLiteralTypeNode(declaration.type) &&
-                ts.isStringLiteral(declaration.type.literal)
-              ) {
-                const deprecatedDirective = this.collectDeprecated(declaration);
-                const memberDescription = this.collectDescription(declaration);
-                values.push(
-                  this.gql.enumValueDefinition(
-                    node,
-                    this.gql.name(
-                      declaration.type.literal,
-                      declaration.type.literal.text,
-                    ),
-                    deprecatedDirective ? [deprecatedDirective] : [],
-                    memberDescription,
-                  ),
-                );
-                continue;
-              }
-            }
-          }
-        }
-      }
       if (
         !ts.isLiteralTypeNode(member) ||
         !ts.isStringLiteral(member.literal)

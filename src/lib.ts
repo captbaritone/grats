@@ -60,7 +60,6 @@ function extractSchema(
   host: ts.CompilerHost,
 ): DiagnosticsResult<GraphQLSchema> {
   const program = ts.createProgram(options.fileNames, options.options, host);
-  const checker = program.getTypeChecker();
 
   const snapshots: ExtractionSnapshot[] = [];
 
@@ -90,7 +89,7 @@ function extractSchema(
       }
     }
 
-    const extractor = new Extractor(checker, options.raw.grats);
+    const extractor = new Extractor(options.raw.grats);
     const extractedResult = extractor.extract(sourceFile);
     if (extractedResult.kind === "ERROR") {
       extend(errors, extractedResult.err);
@@ -100,6 +99,7 @@ function extractSchema(
     snapshots.push(extractedResult.value);
   }
 
+  const checker = program.getTypeChecker();
   const ctx = new TypeContext(options, checker, host);
   const definitions: GratsDefinitionNode[] = Array.from(
     DIRECTIVES_AST.definitions,
