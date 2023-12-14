@@ -1,21 +1,15 @@
-/** 
-// highlight-start
+/**
  * A registered user of the system.
-// highlight-end
  * @gqlType
  */
 class User {
-  /** 
-  // highlight-start
-   * A friendly greeting for the user, intended for 
+  /**
+   * A friendly greeting for the user, intended for
    * their first visit.
-  // highlight-end
    * @gqlField
    */
   hello(args: {
-    // highlight-start
     /** The salutation to use */
-    // highlight-end
     greeting: string;
   }): string {
     return `${args.greeting} World`;
@@ -23,17 +17,11 @@ class User {
 }
 
 === SNIP ===
-"""
-// highlight-start
- A registered user of the system.
-// highlight-end
-"""
+"""A registered user of the system."""
 type User {
   """
-  // highlight-start
-    A friendly greeting for the user, intended for 
-    their first visit.
-  // highlight-end
+  A friendly greeting for the user, intended for
+  their first visit.
   """
   hello(
     """The salutation to use"""
@@ -44,11 +32,11 @@ type User {
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 const UserType: GraphQLObjectType = new GraphQLObjectType({
     name: "User",
-    description: "// highlight-start\n A registered user of the system.\n// highlight-end",
+    description: "A registered user of the system.",
     fields() {
         return {
             hello: {
-                description: "// highlight-start\n  A friendly greeting for the user, intended for \n  their first visit.\n// highlight-end",
+                description: "A friendly greeting for the user, intended for\ntheir first visit.",
                 name: "hello",
                 type: GraphQLString,
                 args: {
