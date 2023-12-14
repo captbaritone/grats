@@ -173,10 +173,9 @@ const testDirs = [
 
       const schemaModule = await import(schemaPath);
 
-      const schemaDiff = compareSchemas(
-        schemaModule.schema,
-        schemaResult.value,
-      );
+      const actualSchema = schemaModule.getSchema();
+
+      const schemaDiff = compareSchemas(actualSchema, schemaResult.value);
 
       if (schemaDiff) {
         console.log(schemaDiff);
@@ -185,7 +184,7 @@ const testDirs = [
       }
 
       const data = await graphql({
-        schema: schemaModule.schema,
+        schema: actualSchema,
         source: server.query,
         variableValues: server.variables,
       });

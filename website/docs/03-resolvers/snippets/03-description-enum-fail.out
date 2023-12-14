@@ -16,18 +16,20 @@ enum GreetingStyle {
 }
 === SNIP ===
 import { GraphQLSchema, GraphQLEnumType } from "graphql";
-const GreetingStyleType: GraphQLEnumType = new GraphQLEnumType({
-    name: "GreetingStyle",
-    values: {
-        formal: {
-            value: "formal"
-        },
-        casual: {
-            value: "casual"
+function getSchema(): GraphQLSchema {
+    const GreetingStyleType: GraphQLEnumType = new GraphQLEnumType({
+        name: "GreetingStyle",
+        values: {
+            formal: {
+                value: "formal"
+            },
+            casual: {
+                value: "casual"
+            }
         }
-    }
-});
-const schema = new GraphQLSchema({
-    types: [GreetingStyleType]
-});
-export { schema };
+    });
+    return new GraphQLSchema({
+        types: [GreetingStyleType]
+    });
+}
+export { getSchema };

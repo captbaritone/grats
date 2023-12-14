@@ -54,54 +54,56 @@ interface User implements Mammal & Person {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLInt, GraphQLString } from "graphql";
-const MammalType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "Mammal",
-    fields() {
-        return {
-            legs: {
-                name: "legs",
-                type: GraphQLInt
-            }
-        };
-    }
-});
-const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "Person",
-    fields() {
-        return {
-            name: {
-                name: "name",
-                type: GraphQLString
-            },
-            legs: {
-                name: "legs",
-                type: GraphQLInt
-            }
-        };
-    },
-    interfaces() {
-        return [MammalType];
-    }
-});
-const UserType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "User",
-    fields() {
-        return {
-            name: {
-                name: "name",
-                type: GraphQLString
-            },
-            legs: {
-                name: "legs",
-                type: GraphQLInt
-            }
-        };
-    },
-    interfaces() {
-        return [MammalType, PersonType];
-    }
-});
-const schema = new GraphQLSchema({
-    types: [MammalType, PersonType, UserType]
-});
-export { schema };
+function getSchema(): GraphQLSchema {
+    const MammalType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Mammal",
+        fields() {
+            return {
+                legs: {
+                    name: "legs",
+                    type: GraphQLInt
+                }
+            };
+        }
+    });
+    const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Person",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                },
+                legs: {
+                    name: "legs",
+                    type: GraphQLInt
+                }
+            };
+        },
+        interfaces() {
+            return [MammalType];
+        }
+    });
+    const UserType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                },
+                legs: {
+                    name: "legs",
+                    type: GraphQLInt
+                }
+            };
+        },
+        interfaces() {
+            return [MammalType, PersonType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [MammalType, PersonType, UserType]
+    });
+}
+export { getSchema };

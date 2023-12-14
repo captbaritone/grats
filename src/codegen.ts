@@ -61,19 +61,40 @@ class Codegen {
     this._destination = destination;
   }
 
+  createBlockWithScope(closure: () => void): ts.Block {
+    const initialStatements = this._statements;
+    this._statements = [];
+    closure();
+    const block = F.createBlock(this._statements, true);
+    this._statements = initialStatements;
+    return block;
+  }
+
   graphQLImport(name: string): ts.Identifier {
     this._graphQLImports.add(name);
     return F.createIdentifier(name);
   }
 
+  graphQLTypeImport(name: string): ts.TypeReferenceNode {
+    this._graphQLImports.add(name);
+    return F.createTypeReferenceNode(name);
+  }
+
   schemaDeclaration(): void {
-    this.constDeclaration(
-      "schema",
-      F.createNewExpression(
-        this.graphQLImport("GraphQLSchema"),
-        [],
-        [this.schemaConfig()],
-      ),
+    this.functionDeclaration(
+      "getSchema",
+      this.graphQLTypeImport("GraphQLSchema"),
+      this.createBlockWithScope(() => {
+        this._statements.push(
+          F.createReturnStatement(
+            F.createNewExpression(
+              this.graphQLImport("GraphQLSchema"),
+              [],
+              [this.schemaConfig()],
+            ),
+          ),
+        );
+      }),
     );
   }
 
@@ -86,7 +107,7 @@ class Codegen {
           F.createExportSpecifier(
             false,
             undefined,
-            F.createIdentifier("schema"),
+            F.createIdentifier("getSchema"),
           ),
         ]),
       ),
@@ -651,6 +672,24 @@ class Codegen {
           ],
           ts.NodeFlags.Const,
         ),
+      ),
+    );
+  }
+
+  functionDeclaration(
+    name: string,
+    type: ts.TypeNode | undefined,
+    body: ts.Block,
+  ): void {
+    this._statements.push(
+      F.createFunctionDeclaration(
+        undefined,
+        undefined,
+        name,
+        undefined,
+        [],
+        type,
+        body,
       ),
     );
   }

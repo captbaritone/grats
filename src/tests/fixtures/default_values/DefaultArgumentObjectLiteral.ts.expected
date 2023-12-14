@@ -41,43 +41,45 @@ input ConnectionInput {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInputObjectType, GraphQLNonNull, GraphQLInt } from "graphql";
-const ConnectionInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
-    name: "ConnectionInput",
-    fields() {
-        return {
-            first: {
-                name: "first",
-                type: new GraphQLNonNull(GraphQLInt)
-            },
-            offset: {
-                name: "offset",
-                type: new GraphQLNonNull(GraphQLInt)
-            }
-        };
-    }
-});
-const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-        return {
-            someField1: {
-                name: "someField1",
-                type: GraphQLString,
-                args: {
-                    input: {
-                        name: "input",
-                        type: ConnectionInputType,
-                        defaultValue: {
-                            first: 10,
-                            offset: 100
+function getSchema(): GraphQLSchema {
+    const ConnectionInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        name: "ConnectionInput",
+        fields() {
+            return {
+                first: {
+                    name: "first",
+                    type: new GraphQLNonNull(GraphQLInt)
+                },
+                offset: {
+                    name: "offset",
+                    type: new GraphQLNonNull(GraphQLInt)
+                }
+            };
+        }
+    });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                someField1: {
+                    name: "someField1",
+                    type: GraphQLString,
+                    args: {
+                        input: {
+                            name: "input",
+                            type: ConnectionInputType,
+                            defaultValue: {
+                                first: 10,
+                                offset: 100
+                            }
                         }
                     }
                 }
-            }
-        };
-    }
-});
-const schema = new GraphQLSchema({
-    types: [SomeTypeType, ConnectionInputType]
-});
-export { schema };
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType, ConnectionInputType]
+    });
+}
+export { getSchema };

@@ -26,18 +26,20 @@ type SomeType {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLInt } from "graphql";
-const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-        return {
-            age: {
-                name: "age",
-                type: GraphQLInt
-            }
-        };
-    }
-});
-const schema = new GraphQLSchema({
-    types: [SomeTypeType]
-});
-export { schema };
+function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                age: {
+                    name: "age",
+                    type: GraphQLInt
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType]
+    });
+}
+export { getSchema };

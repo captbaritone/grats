@@ -34,21 +34,23 @@ type SomeType {
 -- TypeScript --
 import { greeting as someTypeGreetingResolver } from "./optionalModelType";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-        return {
-            greeting: {
-                name: "greeting",
-                type: GraphQLString,
-                resolve(source) {
-                    return someTypeGreetingResolver(source);
+function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return someTypeGreetingResolver(source);
+                    }
                 }
-            }
-        };
-    }
-});
-const schema = new GraphQLSchema({
-    types: [SomeTypeType]
-});
-export { schema };
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType]
+    });
+}
+export { getSchema };

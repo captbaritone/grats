@@ -1,7 +1,7 @@
 import express from "express";
 import { createHandler } from "graphql-http/lib/use/express";
 import { Context, GroupService, UserService } from "./context";
-import { schema } from "./schema";
+import { getSchema } from "./schema";
 
 async function main() {
   const app = express();
@@ -9,7 +9,7 @@ async function main() {
   app.post(
     "/graphql",
     createHandler<Context>({
-      schema: schema,
+      schema: getSchema(),
       context() {
         return {
           userService: new UserService(),

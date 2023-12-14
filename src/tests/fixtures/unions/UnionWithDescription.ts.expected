@@ -53,47 +53,49 @@ type Entity {
 union Actor = User | Entity
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLUnionType, GraphQLString } from "graphql";
-const UserType: GraphQLObjectType = new GraphQLObjectType({
-    name: "User",
-    fields() {
-        return {
-            name: {
-                name: "name",
-                type: GraphQLString
-            }
-        };
-    }
-});
-const EntityType: GraphQLObjectType = new GraphQLObjectType({
-    name: "Entity",
-    fields() {
-        return {
-            description: {
-                name: "description",
-                type: GraphQLString
-            }
-        };
-    }
-});
-const ActorType: GraphQLUnionType = new GraphQLUnionType({
-    name: "Actor",
-    description: "One type to rule them all, and in a union bind them.",
-    types() {
-        return [UserType, EntityType];
-    }
-});
-const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-        return {
-            me: {
-                name: "me",
-                type: ActorType
-            }
-        };
-    }
-});
-const schema = new GraphQLSchema({
-    types: [SomeTypeType, UserType, EntityType, ActorType]
-});
-export { schema };
+function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const EntityType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Entity",
+        fields() {
+            return {
+                description: {
+                    name: "description",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const ActorType: GraphQLUnionType = new GraphQLUnionType({
+        name: "Actor",
+        description: "One type to rule them all, and in a union bind them.",
+        types() {
+            return [UserType, EntityType];
+        }
+    });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                me: {
+                    name: "me",
+                    type: ActorType
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType, UserType, EntityType, ActorType]
+    });
+}
+export { getSchema };

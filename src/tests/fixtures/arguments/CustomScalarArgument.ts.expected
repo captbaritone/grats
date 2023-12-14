@@ -29,27 +29,29 @@ type SomeType {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
-const MyStringType: GraphQLScalarType = new GraphQLScalarType({
-    name: "MyString"
-});
-const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-        return {
-            hello: {
-                name: "hello",
-                type: GraphQLString,
-                args: {
-                    greeting: {
-                        name: "greeting",
-                        type: new GraphQLNonNull(MyStringType)
+function getSchema(): GraphQLSchema {
+    const MyStringType: GraphQLScalarType = new GraphQLScalarType({
+        name: "MyString"
+    });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                hello: {
+                    name: "hello",
+                    type: GraphQLString,
+                    args: {
+                        greeting: {
+                            name: "greeting",
+                            type: new GraphQLNonNull(MyStringType)
+                        }
                     }
                 }
-            }
-        };
-    }
-});
-const schema = new GraphQLSchema({
-    types: [MyStringType, SomeTypeType]
-});
-export { schema };
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [MyStringType, SomeTypeType]
+    });
+}
+export { getSchema };

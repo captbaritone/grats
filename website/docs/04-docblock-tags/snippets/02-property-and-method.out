@@ -20,23 +20,25 @@ type User {
 }
 === SNIP ===
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-const UserType: GraphQLObjectType = new GraphQLObjectType({
-    name: "User",
-    fields() {
-        return {
-            someField: {
-                description: "A description of some field.",
-                name: "someField",
-                type: GraphQLString
-            },
-            myField: {
-                name: "myField",
-                type: GraphQLString
-            }
-        };
-    }
-});
-const schema = new GraphQLSchema({
-    types: [UserType]
-});
-export { schema };
+function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                someField: {
+                    description: "A description of some field.",
+                    name: "someField",
+                    type: GraphQLString
+                },
+                myField: {
+                    name: "myField",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [UserType]
+    });
+}
+export { getSchema };

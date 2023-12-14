@@ -31,36 +31,38 @@ type SomeType {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLInt, GraphQLFloat } from "graphql";
-const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-        return {
-            intField: {
-                name: "intField",
-                type: GraphQLString,
-                args: {
-                    count: {
-                        name: "count",
-                        type: new GraphQLNonNull(GraphQLInt),
-                        defaultValue: 10
+function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                intField: {
+                    name: "intField",
+                    type: GraphQLString,
+                    args: {
+                        count: {
+                            name: "count",
+                            type: new GraphQLNonNull(GraphQLInt),
+                            defaultValue: 10
+                        }
+                    }
+                },
+                floatField: {
+                    name: "floatField",
+                    type: GraphQLString,
+                    args: {
+                        scale: {
+                            name: "scale",
+                            type: new GraphQLNonNull(GraphQLFloat),
+                            defaultValue: 10
+                        }
                     }
                 }
-            },
-            floatField: {
-                name: "floatField",
-                type: GraphQLString,
-                args: {
-                    scale: {
-                        name: "scale",
-                        type: new GraphQLNonNull(GraphQLFloat),
-                        defaultValue: 10
-                    }
-                }
-            }
-        };
-    }
-});
-const schema = new GraphQLSchema({
-    types: [SomeTypeType]
-});
-export { schema };
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType]
+    });
+}
+export { getSchema };

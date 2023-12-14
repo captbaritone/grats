@@ -31,22 +31,24 @@ type SomeType {
 scalar MyUrl
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLScalarType } from "graphql";
-const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-        return {
-            hello: {
-                name: "hello",
-                type: GraphQLString
-            }
-        };
-    }
-});
-const MyUrlType: GraphQLScalarType = new GraphQLScalarType({
-    description: "Use this for URLs.",
-    name: "MyUrl"
-});
-const schema = new GraphQLSchema({
-    types: [SomeTypeType, MyUrlType]
-});
-export { schema };
+function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                hello: {
+                    name: "hello",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const MyUrlType: GraphQLScalarType = new GraphQLScalarType({
+        description: "Use this for URLs.",
+        name: "MyUrl"
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType, MyUrlType]
+    });
+}
+export { getSchema };

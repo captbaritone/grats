@@ -40,32 +40,34 @@ enum Enum {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLEnumType } from "graphql";
-const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-        return {
-            hello: {
-                name: "hello",
-                type: GraphQLString
-            }
-        };
-    }
-});
-const EnumType: GraphQLEnumType = new GraphQLEnumType({
-    name: "Enum",
-    values: {
-        VALID: {
-            description: "Valid enum value.",
-            deprecationReason: "Use something else.",
-            value: "VALID"
-        },
-        INVALID: {
-            description: "Invalid enum value.",
-            value: "INVALID"
+function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                hello: {
+                    name: "hello",
+                    type: GraphQLString
+                }
+            };
         }
-    }
-});
-const schema = new GraphQLSchema({
-    types: [SomeTypeType, EnumType]
-});
-export { schema };
+    });
+    const EnumType: GraphQLEnumType = new GraphQLEnumType({
+        name: "Enum",
+        values: {
+            VALID: {
+                description: "Valid enum value.",
+                deprecationReason: "Use something else.",
+                value: "VALID"
+            },
+            INVALID: {
+                description: "Invalid enum value.",
+                value: "INVALID"
+            }
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType, EnumType]
+    });
+}
+export { getSchema };

@@ -31,36 +31,38 @@ type SomeType {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-        return {
-            someField1: {
-                name: "someField1",
-                type: GraphQLString,
-                args: {
-                    hello: {
-                        name: "hello",
-                        type: GraphQLString,
-                        defaultValue: null
+function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                someField1: {
+                    name: "someField1",
+                    type: GraphQLString,
+                    args: {
+                        hello: {
+                            name: "hello",
+                            type: GraphQLString,
+                            defaultValue: null
+                        }
+                    }
+                },
+                someField2: {
+                    name: "someField2",
+                    type: GraphQLString,
+                    args: {
+                        hello: {
+                            name: "hello",
+                            type: GraphQLString,
+                            defaultValue: null
+                        }
                     }
                 }
-            },
-            someField2: {
-                name: "someField2",
-                type: GraphQLString,
-                args: {
-                    hello: {
-                        name: "hello",
-                        type: GraphQLString,
-                        defaultValue: null
-                    }
-                }
-            }
-        };
-    }
-});
-const schema = new GraphQLSchema({
-    types: [SomeTypeType]
-});
-export { schema };
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType]
+    });
+}
+export { getSchema };

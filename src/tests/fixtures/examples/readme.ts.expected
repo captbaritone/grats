@@ -58,52 +58,54 @@ type User {
 import { me as queryMeResolver } from "./readme";
 import { viewer as queryViewerResolver } from "./readme";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
-const UserType: GraphQLObjectType = new GraphQLObjectType({
-    name: "User",
-    description: "A user in our kick-ass system!",
-    fields() {
-        return {
-            name: {
-                name: "name",
-                type: GraphQLString
-            },
-            greeting: {
-                name: "greeting",
-                type: GraphQLString,
-                args: {
-                    salutation: {
-                        name: "salutation",
-                        type: new GraphQLNonNull(GraphQLString)
+function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        description: "A user in our kick-ass system!",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                },
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    args: {
+                        salutation: {
+                            name: "salutation",
+                            type: new GraphQLNonNull(GraphQLString)
+                        }
                     }
                 }
-            }
-        };
-    }
-});
-const QueryType: GraphQLObjectType = new GraphQLObjectType({
-    name: "Query",
-    fields() {
-        return {
-            me: {
-                name: "me",
-                type: UserType,
-                resolve(source) {
-                    return queryMeResolver(source);
+            };
+        }
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                me: {
+                    name: "me",
+                    type: UserType,
+                    resolve(source) {
+                        return queryMeResolver(source);
+                    }
+                },
+                viewer: {
+                    deprecationReason: "Please use `me` instead.",
+                    name: "viewer",
+                    type: UserType,
+                    resolve(source) {
+                        return queryViewerResolver(source);
+                    }
                 }
-            },
-            viewer: {
-                deprecationReason: "Please use `me` instead.",
-                name: "viewer",
-                type: UserType,
-                resolve(source) {
-                    return queryViewerResolver(source);
-                }
-            }
-        };
-    }
-});
-const schema = new GraphQLSchema({
-    query: QueryType,
-    types: [QueryType, UserType]
-});
-export { schema };
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType, UserType]
+    });
+}
+export { getSchema };

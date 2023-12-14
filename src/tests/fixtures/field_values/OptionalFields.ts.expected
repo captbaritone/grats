@@ -39,30 +39,32 @@ type SomeType {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-        return {
-            hello: {
-                name: "hello",
-                type: GraphQLString
-            },
-            goodbye: {
-                name: "goodbye",
-                type: GraphQLString
-            },
-            farewell: {
-                name: "farewell",
-                type: GraphQLString
-            },
-            adieu: {
-                name: "adieu",
-                type: GraphQLString
-            }
-        };
-    }
-});
-const schema = new GraphQLSchema({
-    types: [SomeTypeType]
-});
-export { schema };
+function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                hello: {
+                    name: "hello",
+                    type: GraphQLString
+                },
+                goodbye: {
+                    name: "goodbye",
+                    type: GraphQLString
+                },
+                farewell: {
+                    name: "farewell",
+                    type: GraphQLString
+                },
+                adieu: {
+                    name: "adieu",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType]
+    });
+}
+export { getSchema };

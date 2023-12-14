@@ -30,25 +30,27 @@ type Subscription {
 -- TypeScript --
 import { greetings as subscriptionGreetingsResolver } from "./SubscriptionFunctionFieldWithAsyncIterable";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
-    name: "Subscription",
-    fields() {
-        return {
-            greetings: {
-                name: "greetings",
-                type: GraphQLString,
-                subscribe(source) {
-                    return subscriptionGreetingsResolver(source);
-                },
-                resolve(payload) {
-                    return payload;
+function getSchema(): GraphQLSchema {
+    const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Subscription",
+        fields() {
+            return {
+                greetings: {
+                    name: "greetings",
+                    type: GraphQLString,
+                    subscribe(source) {
+                        return subscriptionGreetingsResolver(source);
+                    },
+                    resolve(payload) {
+                        return payload;
+                    }
                 }
-            }
-        };
-    }
-});
-const schema = new GraphQLSchema({
-    subscription: SubscriptionType,
-    types: [SubscriptionType]
-});
-export { schema };
+            };
+        }
+    });
+    return new GraphQLSchema({
+        subscription: SubscriptionType,
+        types: [SubscriptionType]
+    });
+}
+export { getSchema };
