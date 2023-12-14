@@ -1,2 +1,2 @@
 /** @gqlScalar Matrix */
-function Foo() {}
+export function Foo() {}

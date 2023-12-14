@@ -1,0 +1,19 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class SomeType {
+  /** @gqlField */
+  hello: string;
+}
+
+/** @gqlScalar */
+type MyUrl = string;
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/custom_scalars/DefineCustomScalarNotExported.invalid.ts:8:6 - error: Scalar type definitions must be exported.
+
+8 type MyUrl = string;
+       ~~~~~

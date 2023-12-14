@@ -8,7 +8,7 @@ class SomeType {
 }
 
 /** @gqlScalar CustomName */
-type MyUrl = string;
+export type MyUrl = string;
 
 -----------------
 OUTPUT
@@ -20,11 +20,13 @@ directive @propertyName(name: String!) on FIELD_DEFINITION
 
 directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
 
+directive @exportedScalar(tsModulePath: String!, exportName: String!) on SCALAR
+
 type SomeType {
   hello: String
 }
 
-scalar CustomName
+scalar CustomName @exportedScalar(tsModulePath: "grats/src/tests/fixtures/custom_scalars/DefineRenamedCustomScalar.ts", exportName: "MyUrl")
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLScalarType } from "graphql";
 function getSchema(): GraphQLSchema {

@@ -28,7 +28,6 @@ import { ConfigOptions } from "./lib";
 import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
 import { GraphQLConstructor, GratsDefinitionNode } from "./GraphQLConstructor";
-import {} from "./metadataDirectives";
 import { relativePath } from "./gratsRoot";
 
 export const LIBRARY_IMPORT_NAME = "grats";
@@ -369,7 +368,6 @@ class Extractor {
       return this.report(node, E.functionFieldNotTopLevel());
     }
 
-    // TODO: Does this work in the browser?
     const tsModulePath = relativePath(node.getSourceFile().fileName);
 
     const directives = [
@@ -442,11 +440,32 @@ class Extractor {
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
+    const isExported = node.modifiers?.some((modifier) => {
+      return modifier.kind === ts.SyntaxKind.ExportKeyword;
+    });
+    if (!isExported) {
+      return this.report(
+        node.name,
+        "Scalar type definitions must be exported.",
+      );
+    }
+
+    if (!ts.isSourceFile(node.parent)) {
+      return this.report(node.name, "Type definitions must be top level.");
+    }
+
+    const tsModulePath = relativePath(node.getSourceFile().fileName);
+
+    const directive = this.gql.exportedScalarDirective(node, {
+      tsModulePath,
+      exportName: node.name.text,
+    });
+
     const description = this.collectDescription(node);
     this.recordTypeName(node.name, name, "SCALAR");
 
     this.definitions.push(
-      this.gql.scalarTypeDefinition(node, name, description),
+      this.gql.scalarTypeDefinition(node, name, [directive], description),
     );
   }
 

@@ -15,12 +15,16 @@ const TS_MODULE_PATH_ARG = "tsModulePath";
 const ARG_COUNT = "argCount";
 const EXPORTED_FUNCTION_NAME_ARG = "functionName";
 
+export const EXPORTED_SCALAR_DIRECTIVE = "exportedScalar";
+export const EXPORTED_NAME = "exportName";
+
 export const ASYNC_ITERABLE_TYPE_DIRECTIVE = "asyncIterable";
 
 export const METADATA_DIRECTIVE_NAMES = new Set([
   FIELD_NAME_DIRECTIVE,
   EXPORTED_DIRECTIVE,
   ASYNC_ITERABLE_TYPE_DIRECTIVE,
+  EXPORTED_SCALAR_DIRECTIVE,
 ]);
 
 export const DIRECTIVES_AST: DocumentNode = parse(`
@@ -31,6 +35,10 @@ export const DIRECTIVES_AST: DocumentNode = parse(`
       ${EXPORTED_FUNCTION_NAME_ARG}: String!
       ${ARG_COUNT}: Int!
     ) on FIELD_DEFINITION
+    directive @${EXPORTED_SCALAR_DIRECTIVE}(
+      ${TS_MODULE_PATH_ARG}: String!,
+      ${EXPORTED_NAME}: String!
+    ) on SCALAR
 `);
 
 export type AsyncIterableTypeMetadata = true;
@@ -43,6 +51,11 @@ export type ExportedMetadata = {
   tsModulePath: string;
   exportedFunctionName: string;
   argCount: number;
+};
+
+export type ExportedScalarMetadata = {
+  tsModulePath: string;
+  exportName: string;
 };
 
 export function makePropertyNameDirective(
@@ -86,6 +99,21 @@ export function makeAsyncIterableDirective(loc: Location): ConstDirectiveNode {
   };
 }
 
+export function makeExportedScalarDirective(
+  loc: Location,
+  exported: ExportedScalarMetadata,
+): ConstDirectiveNode {
+  return {
+    kind: Kind.DIRECTIVE,
+    loc,
+    name: { kind: Kind.NAME, loc, value: EXPORTED_SCALAR_DIRECTIVE },
+    arguments: [
+      makeStringArg(loc, TS_MODULE_PATH_ARG, exported.tsModulePath),
+      makeStringArg(loc, EXPORTED_NAME, exported.exportName),
+    ],
+  };
+}
+
 export function parseAsyncIterableTypeDirective(
   directive: ConstDirectiveNode,
 ): AsyncIterableTypeMetadata {
@@ -117,6 +145,18 @@ export function parseExportedDirective(
     tsModulePath: getStringArg(directive, TS_MODULE_PATH_ARG),
     exportedFunctionName: getStringArg(directive, EXPORTED_FUNCTION_NAME_ARG),
     argCount: getIntArg(directive, ARG_COUNT),
+  };
+}
+
+export function parseExportedScalarDirective(
+  directive: ConstDirectiveNode,
+): ExportedScalarMetadata {
+  if (directive.name.value !== EXPORTED_SCALAR_DIRECTIVE) {
+    throw new Error(`Expected directive to be ${EXPORTED_SCALAR_DIRECTIVE}`);
+  }
+  return {
+    tsModulePath: getStringArg(directive, TS_MODULE_PATH_ARG),
+    exportName: getStringArg(directive, EXPORTED_NAME),
   };
 }
 

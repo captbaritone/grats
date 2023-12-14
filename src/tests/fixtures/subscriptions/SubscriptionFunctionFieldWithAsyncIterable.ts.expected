@@ -24,6 +24,8 @@ directive @propertyName(name: String!) on FIELD_DEFINITION
 
 directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
 
+directive @exportedScalar(tsModulePath: String!, exportName: String!) on SCALAR
+
 type Subscription {
   greetings: String @exported(tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts", functionName: "greetings", argCount: 1) @asyncIterable
 }

@@ -25,6 +25,8 @@ directive @propertyName(name: String!) on FIELD_DEFINITION
 
 directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
 
+directive @exportedScalar(tsModulePath: String!, exportName: String!) on SCALAR
+
 interface Person {
   name: String
 }

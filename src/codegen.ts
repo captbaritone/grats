@@ -32,6 +32,8 @@ import {
   ASYNC_ITERABLE_TYPE_DIRECTIVE,
   parseExportedDirective,
   parsePropertyNameDirective,
+  EXPORTED_SCALAR_DIRECTIVE,
+  parseExportedScalarDirective,
 } from "./metadataDirectives";
 import { resolveRelativePath } from "./gratsRoot";
 
@@ -42,7 +44,7 @@ const F = ts.factory;
 export function codegen(schema: GraphQLSchema, destination: string): string {
   const codegen = new Codegen(schema, destination);
 
-  codegen.schemaDeclaration();
+  codegen.schemaGetter();
   codegen.schemaExport();
 
   return codegen.print();
@@ -80,9 +82,71 @@ class Codegen {
     return F.createTypeReferenceNode(name);
   }
 
-  schemaDeclaration(): void {
+  schemaConfigType(): ts.TypeAliasDeclaration | null {
+    const scalars = this.schemaConfigScalarsType();
+    if (scalars == null) return null;
+    return F.createTypeAliasDeclaration(
+      undefined,
+      "SchemaConfig",
+      undefined,
+      F.createTypeLiteralNode([
+        F.createPropertySignature(undefined, "scalars", undefined, scalars),
+      ]),
+    );
+  }
+
+  schemaConfigScalarsType(): ts.TypeLiteralNode | null {
+    const scalars = Object.values(this._schema.getTypeMap())
+      .filter(isScalarType)
+      .map((scalar) => {
+        const exported = fieldDirective(scalar, EXPORTED_SCALAR_DIRECTIVE);
+        if (exported == null) return null;
+        const exportedMetadata = parseExportedScalarDirective(exported);
+        return F.createPropertySignature(
+          undefined,
+          scalar.name,
+          undefined,
+          F.createTypeLiteralNode([
+            F.createPropertySignature(
+              undefined,
+              "parse",
+              undefined,
+              F.createTypeReferenceNode("Foo"),
+            ),
+          ]),
+        );
+      })
+      .filter(Boolean);
+
+    if (scalars.length === 0) return null;
+    return F.createTypeLiteralNode([
+      F.createPropertySignature(
+        undefined,
+        "scalars",
+        undefined,
+        F.createTypeLiteralNode(scalars),
+      ),
+    ]);
+  }
+
+  schemaGetter(): void {
+    const configType = null && this.schemaConfigType();
+    const parameters: ts.ParameterDeclaration[] = [];
+    if (configType != null) {
+      this._statements.push(configType);
+      parameters.push(
+        F.createParameterDeclaration(
+          undefined,
+          undefined,
+          "config",
+          undefined,
+          F.createTypeReferenceNode(configType.name),
+        ),
+      );
+    }
     this.functionDeclaration(
       "getSchema",
+      parameters,
       this.graphQLTypeImport("GraphQLSchema"),
       this.createBlockWithScope(() => {
         this._statements.push(
@@ -678,6 +742,7 @@ class Codegen {
 
   functionDeclaration(
     name: string,
+    parameters: ts.ParameterDeclaration[],
     type: ts.TypeNode | undefined,
     body: ts.Block,
   ): void {
@@ -687,7 +752,7 @@ class Codegen {
         undefined,
         name,
         undefined,
-        [],
+        parameters,
         type,
         body,
       ),
@@ -784,7 +849,7 @@ class Codegen {
 }
 
 function fieldDirective(
-  field: GraphQLField<unknown, unknown>,
+  field: GraphQLField<unknown, unknown> | GraphQLScalarType,
   name: string,
 ): ConstDirectiveNode | null {
   return field.astNode?.directives?.find((d) => d.name.value === name) ?? null;

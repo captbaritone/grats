@@ -44,6 +44,8 @@ directive @propertyName(name: String!) on FIELD_DEFINITION
 
 directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
 
+directive @exportedScalar(tsModulePath: String!, exportName: String!) on SCALAR
+
 type Query {
   me: User @exported(tsModulePath: "grats/src/tests/fixtures/examples/readme.ts", functionName: "me", argCount: 1)
   viewer: User @deprecated(reason: "Please use `me` instead.") @exported(tsModulePath: "grats/src/tests/fixtures/examples/readme.ts", functionName: "viewer", argCount: 1)

@@ -5,4 +5,4 @@ class SomeType {
 }
 
 /** @gqlScalar */
-export type MyUrl = string;
+type MyUrl = string;

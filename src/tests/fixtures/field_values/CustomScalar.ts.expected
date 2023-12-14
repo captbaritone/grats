@@ -2,7 +2,7 @@
 INPUT
 ----------------- 
 /** @gqlScalar */
-type MyString = string;
+export type MyString = string;
 
 /** @gqlType */
 export default class SomeType {
@@ -22,7 +22,9 @@ directive @propertyName(name: String!) on FIELD_DEFINITION
 
 directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
 
-scalar MyString
+directive @exportedScalar(tsModulePath: String!, exportName: String!) on SCALAR
+
+scalar MyString @exportedScalar(tsModulePath: "grats/src/tests/fixtures/field_values/CustomScalar.ts", exportName: "MyString")
 
 type SomeType {
   hello: MyString

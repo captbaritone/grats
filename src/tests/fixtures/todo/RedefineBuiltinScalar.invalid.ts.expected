@@ -2,7 +2,7 @@
 INPUT
 ----------------- 
 /** @gqlScalar String */
-type MyUrl = string;
+export type MyUrl = string;
 
 -----------------
 OUTPUT
@@ -13,6 +13,8 @@ directive @asyncIterable on FIELD_DEFINITION
 directive @propertyName(name: String!) on FIELD_DEFINITION
 
 directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
+
+directive @exportedScalar(tsModulePath: String!, exportName: String!) on SCALAR
 -- TypeScript --
 import { GraphQLSchema } from "graphql";
 function getSchema(): GraphQLSchema {

@@ -24,6 +24,8 @@ directive @propertyName(name: String!) on FIELD_DEFINITION
 
 directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
 
+directive @exportedScalar(tsModulePath: String!, exportName: String!) on SCALAR
+
 type SomeType {
   greeting: String @deprecated(reason: "Because reasons") @exported(tsModulePath: "grats/src/tests/fixtures/extend_type/addDeprecatedField.ts", functionName: "greeting", argCount: 1)
 }

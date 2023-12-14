@@ -30,6 +30,8 @@ directive @propertyName(name: String!) on FIELD_DEFINITION
 
 directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
 
+directive @exportedScalar(tsModulePath: String!, exportName: String!) on SCALAR
+
 type SomeType {
   """Number 1 greeting."""
   greeting: String @propertyName(name: "somePropertyField")

@@ -1,5 +1,5 @@
 /** @gqlScalar */
-type MyString = string;
+export type MyString = string;
 
 /** @gqlType */
 export default class SomeType {

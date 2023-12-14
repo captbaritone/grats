@@ -35,9 +35,11 @@ import {
 import * as ts from "typescript";
 import {
   ExportedMetadata,
+  ExportedScalarMetadata,
   PropertyNameMetadata,
   makeAsyncIterableDirective,
   makeExportedDirective,
+  makeExportedScalarDirective,
   makePropertyNameDirective,
 } from "./metadataDirectives";
 
@@ -73,6 +75,13 @@ export class GraphQLConstructor {
 
   asyncIterableDirective(node: ts.Node): ConstDirectiveNode {
     return makeAsyncIterableDirective(this._loc(node));
+  }
+
+  exportedScalarDirective(
+    node: ts.Node,
+    exported: ExportedScalarMetadata,
+  ): ConstDirectiveNode {
+    return makeExportedScalarDirective(this._loc(node), exported);
   }
 
   /* Top Level Types */
@@ -223,6 +232,7 @@ export class GraphQLConstructor {
   scalarTypeDefinition(
     node: ts.Node,
     name: NameNode,
+    directives: readonly ConstDirectiveNode[] | null,
     description: StringValueNode | null,
   ): ScalarTypeDefinitionNode {
     return {
@@ -230,7 +240,7 @@ export class GraphQLConstructor {
       loc: this._loc(node),
       description: description ?? undefined,
       name,
-      directives: undefined,
+      directives: this._optionalList(directives),
     };
   }
 
