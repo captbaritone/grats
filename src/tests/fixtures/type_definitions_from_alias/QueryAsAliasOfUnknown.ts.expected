@@ -29,22 +29,24 @@ type Query {
 -- TypeScript --
 import { foo as queryFooResolver } from "./QueryAsAliasOfUnknown";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-const QueryType: GraphQLObjectType = new GraphQLObjectType({
-    name: "Query",
-    fields() {
-        return {
-            foo: {
-                name: "foo",
-                type: GraphQLString,
-                resolve(source) {
-                    return queryFooResolver(source);
+function getSchema(): GraphQLSchema {
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                foo: {
+                    name: "foo",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return queryFooResolver(source);
+                    }
                 }
-            }
-        };
-    }
-});
-const schema = new GraphQLSchema({
-    query: QueryType,
-    types: [QueryType]
-});
-export { schema };
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType]
+    });
+}
+export { getSchema };

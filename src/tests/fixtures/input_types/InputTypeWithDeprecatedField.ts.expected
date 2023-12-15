@@ -35,31 +35,33 @@ input MyInputType {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInputObjectType } from "graphql";
-const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-        return {
-            hello: {
-                name: "hello",
-                type: GraphQLString
-            }
-        };
-    }
-});
-const MyInputTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({
-    name: "MyInputType",
-    fields() {
-        return {
-            someField: {
-                description: "Sweet field!",
-                deprecationReason: "Sweet, but stale",
-                name: "someField",
-                type: GraphQLString
-            }
-        };
-    }
-});
-const schema = new GraphQLSchema({
-    types: [SomeTypeType, MyInputTypeType]
-});
-export { schema };
+function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                hello: {
+                    name: "hello",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const MyInputTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        name: "MyInputType",
+        fields() {
+            return {
+                someField: {
+                    description: "Sweet field!",
+                    deprecationReason: "Sweet, but stale",
+                    name: "someField",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType, MyInputTypeType]
+    });
+}
+export { getSchema };

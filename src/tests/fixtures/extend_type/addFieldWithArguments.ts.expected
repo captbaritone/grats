@@ -27,27 +27,29 @@ type SomeType {
 -- TypeScript --
 import { greeting as someTypeGreetingResolver } from "./addFieldWithArguments";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
-const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-        return {
-            greeting: {
-                name: "greeting",
-                type: GraphQLString,
-                args: {
-                    name: {
-                        name: "name",
-                        type: new GraphQLNonNull(GraphQLString)
+function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    args: {
+                        name: {
+                            name: "name",
+                            type: new GraphQLNonNull(GraphQLString)
+                        }
+                    },
+                    resolve(source, args) {
+                        return someTypeGreetingResolver(source, args);
                     }
-                },
-                resolve(source, args) {
-                    return someTypeGreetingResolver(source, args);
                 }
-            }
-        };
-    }
-});
-const schema = new GraphQLSchema({
-    types: [SomeTypeType]
-});
-export { schema };
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType]
+    });
+}
+export { getSchema };

@@ -1,6 +1,6 @@
 import * as express from "express";
 import { graphqlHTTP } from "express-graphql";
-import { schema } from "./schema";
+import { getSchema } from "./schema";
 
 async function main() {
   const app = express();
@@ -8,7 +8,7 @@ async function main() {
   app.use(
     "/graphql",
     graphqlHTTP({
-      schema: schema,
+      schema: getSchema(),
       graphiql: true,
     }),
   );

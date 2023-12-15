@@ -15,7 +15,9 @@ directive @propertyName(name: String!) on FIELD_DEFINITION
 directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
 -- TypeScript --
 import { GraphQLSchema } from "graphql";
-const schema = new GraphQLSchema({
-    types: []
-});
-export { schema };
+function getSchema(): GraphQLSchema {
+    return new GraphQLSchema({
+        types: []
+    });
+}
+export { getSchema };

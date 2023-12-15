@@ -45,43 +45,45 @@ type User {
 import { fullName as userFullNameResolver } from "./userExample";
 import { me as someTypeMeResolver } from "./userExample";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-const UserType: GraphQLObjectType = new GraphQLObjectType({
-    name: "User",
-    fields() {
-        return {
-            firstName: {
-                name: "firstName",
-                type: GraphQLString
-            },
-            lastName: {
-                name: "lastName",
-                type: GraphQLString
-            },
-            fullName: {
-                name: "fullName",
-                type: GraphQLString,
-                resolve(source) {
-                    return userFullNameResolver(source);
+function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                firstName: {
+                    name: "firstName",
+                    type: GraphQLString
+                },
+                lastName: {
+                    name: "lastName",
+                    type: GraphQLString
+                },
+                fullName: {
+                    name: "fullName",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return userFullNameResolver(source);
+                    }
                 }
-            }
-        };
-    }
-});
-const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-        return {
-            me: {
-                name: "me",
-                type: UserType,
-                resolve(source) {
-                    return someTypeMeResolver(source);
+            };
+        }
+    });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                me: {
+                    name: "me",
+                    type: UserType,
+                    resolve(source) {
+                        return someTypeMeResolver(source);
+                    }
                 }
-            }
-        };
-    }
-});
-const schema = new GraphQLSchema({
-    types: [SomeTypeType, UserType]
-});
-export { schema };
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType, UserType]
+    });
+}
+export { getSchema };

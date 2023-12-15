@@ -1,9 +1,9 @@
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
-import { schema } from "./schema";
+import { getSchema } from "./schema";
 
 async function main() {
-  const server = new ApolloServer({ schema });
+  const server = new ApolloServer({ schema: getSchema() });
 
   // Passing an ApolloServer instance to the `startStandaloneServer` function:
   //  1. creates an Express app

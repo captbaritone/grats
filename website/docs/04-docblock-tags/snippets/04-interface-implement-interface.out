@@ -26,36 +26,38 @@ interface User implements Person {
 }
 === SNIP ===
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
-const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "Person",
-    fields() {
-        return {
-            name: {
-                name: "name",
-                type: GraphQLString
-            }
-        };
-    }
-});
-const UserType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "User",
-    fields() {
-        return {
-            name: {
-                name: "name",
-                type: GraphQLString
-            },
-            username: {
-                name: "username",
-                type: GraphQLString
-            }
-        };
-    },
-    interfaces() {
-        return [PersonType];
-    }
-});
-const schema = new GraphQLSchema({
-    types: [PersonType, UserType]
-});
-export { schema };
+function getSchema(): GraphQLSchema {
+    const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Person",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const UserType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                },
+                username: {
+                    name: "username",
+                    type: GraphQLString
+                }
+            };
+        },
+        interfaces() {
+            return [PersonType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [PersonType, UserType]
+    });
+}
+export { getSchema };

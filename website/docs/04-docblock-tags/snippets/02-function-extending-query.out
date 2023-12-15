@@ -27,39 +27,41 @@ type User {
 === SNIP ===
 import { userById as queryUserByIdResolver } from "./02-function-extending-query.grats";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
-const UserType: GraphQLObjectType = new GraphQLObjectType({
-    name: "User",
-    fields() {
-        return {
-            name: {
-                name: "name",
-                type: GraphQLString
-            }
-        };
-    }
-});
-const QueryType: GraphQLObjectType = new GraphQLObjectType({
-    name: "Query",
-    fields() {
-        return {
-            userById: {
-                name: "userById",
-                type: UserType,
-                args: {
-                    id: {
-                        name: "id",
-                        type: new GraphQLNonNull(GraphQLString)
-                    }
-                },
-                resolve(source, args) {
-                    return queryUserByIdResolver(source, args);
+function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
                 }
-            }
-        };
-    }
-});
-const schema = new GraphQLSchema({
-    query: QueryType,
-    types: [QueryType, UserType]
-});
-export { schema };
+            };
+        }
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                userById: {
+                    name: "userById",
+                    type: UserType,
+                    args: {
+                        id: {
+                            name: "id",
+                            type: new GraphQLNonNull(GraphQLString)
+                        }
+                    },
+                    resolve(source, args) {
+                        return queryUserByIdResolver(source, args);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType, UserType]
+    });
+}
+export { getSchema };
