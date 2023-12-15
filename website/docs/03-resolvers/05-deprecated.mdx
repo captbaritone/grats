@@ -20,5 +20,4 @@ Would extract:
 
 TypeScript also has special treatment of constructs with the `@deprecated` in their JSDoc docblock. Specifically, it will render uses of them as ~~struckthrough~~ and greyed out in the editor. In general this overlap is a feature, since deprecated fields should also generally not be used internally. However, if you wish to deprecate a field/argument/etc. in you schema, but not in your code, you can define a new method/function specifically for GraphQL which wraps the non-deprecated version. For example:
 
-
 <GratsCode out={DeprecatedWorkaround} mode="ts" />
