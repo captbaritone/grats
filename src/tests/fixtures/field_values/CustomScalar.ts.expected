@@ -30,9 +30,22 @@ type SomeType {
   hello: MyString
 }
 -- TypeScript --
-import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType } from "graphql";
-function getSchema(): GraphQLSchema {
+import { MyString as MyStringScalarType } from "./CustomScalar";
+import { GraphQLScalarSerializer, GraphQLScalarValueParser, GraphQLScalarLiteralParser, GraphQLSchema, GraphQLScalarType, GraphQLObjectType } from "graphql";
+type SchemaConfig = {
+    scalars: {
+        MyString: {
+            serialize: GraphQLScalarSerializer<MyStringScalarType>;
+            parseValue: GraphQLScalarValueParser<MyStringScalarType>;
+            parseLiteral: GraphQLScalarLiteralParser<MyStringScalarType>;
+        };
+    };
+};
+function getSchema(config: SchemaConfig): GraphQLSchema {
     const MyStringType: GraphQLScalarType = new GraphQLScalarType({
+        serialize: config.scalars.MyString.serialize,
+        parseValue: config.scalars.MyString.parseValue,
+        parseLiteral: config.scalars.MyString.parseLiteral,
         name: "MyString"
     });
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

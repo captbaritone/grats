@@ -36,8 +36,18 @@ import {
   parseExportedScalarDirective,
 } from "./metadataDirectives";
 import { resolveRelativePath } from "./gratsRoot";
+import { notEmpty } from "./utils/helpers";
 
 const F = ts.factory;
+
+const CONFIG_VARIABLE_NAME = "config";
+const SCALARS_CONFIG_PROPERTY = "scalars";
+const GET_SCHEMA = "getSchema";
+const SCALAR_SERIALIZATION_FUNCTIONS = {
+  serialize: "GraphQLScalarSerializer",
+  parseValue: "GraphQLScalarValueParser",
+  parseLiteral: "GraphQLScalarLiteralParser",
+};
 
 // Given a GraphQL SDL, returns the a string of TypeScript code that generates a
 // GraphQLSchema implementing that schema.
@@ -77,12 +87,15 @@ class Codegen {
     return F.createIdentifier(name);
   }
 
-  graphQLTypeImport(name: string): ts.TypeReferenceNode {
+  graphQLTypeImport(
+    name: string,
+    typeArguments?: ts.TypeNode[],
+  ): ts.TypeReferenceNode {
     this._graphQLImports.add(name);
-    return F.createTypeReferenceNode(name);
+    return F.createTypeReferenceNode(name, typeArguments);
   }
 
-  schemaConfigType(): ts.TypeAliasDeclaration | null {
+  schemaConfigTypeDeclaration(): ts.TypeAliasDeclaration | null {
     const scalars = this.schemaConfigScalarsType();
     if (scalars == null) return null;
     return F.createTypeAliasDeclaration(
@@ -90,7 +103,12 @@ class Codegen {
       "SchemaConfig",
       undefined,
       F.createTypeLiteralNode([
-        F.createPropertySignature(undefined, "scalars", undefined, scalars),
+        F.createPropertySignature(
+          undefined,
+          SCALARS_CONFIG_PROPERTY,
+          undefined,
+          scalars,
+        ),
       ]),
     );
   }
@@ -102,35 +120,46 @@ class Codegen {
         const exported = fieldDirective(scalar, EXPORTED_SCALAR_DIRECTIVE);
         if (exported == null) return null;
         const exportedMetadata = parseExportedScalarDirective(exported);
+
+        const module = exportedMetadata.tsModulePath;
+        const exportName = exportedMetadata.exportName;
+
+        const abs = resolveRelativePath(module);
+        const relative = stripExt(
+          path.relative(path.dirname(this._destination), abs),
+        );
+
+        const typeName = formatCustomScalarTypeName(scalar.name);
+        this.import(`./${relative}`, [{ name: exportName, as: typeName }]);
+
+        const transformers = Object.entries(SCALAR_SERIALIZATION_FUNCTIONS).map(
+          ([name, type]) => {
+            return F.createPropertySignature(
+              undefined,
+              name,
+              undefined,
+              this.graphQLTypeImport(type, [
+                F.createTypeReferenceNode(typeName),
+              ]),
+            );
+          },
+        );
+
         return F.createPropertySignature(
           undefined,
           scalar.name,
           undefined,
-          F.createTypeLiteralNode([
-            F.createPropertySignature(
-              undefined,
-              "parse",
-              undefined,
-              F.createTypeReferenceNode("Foo"),
-            ),
-          ]),
+          F.createTypeLiteralNode(transformers),
         );
       })
-      .filter(Boolean);
+      .filter(notEmpty);
 
     if (scalars.length === 0) return null;
-    return F.createTypeLiteralNode([
-      F.createPropertySignature(
-        undefined,
-        "scalars",
-        undefined,
-        F.createTypeLiteralNode(scalars),
-      ),
-    ]);
+    return F.createTypeLiteralNode(scalars);
   }
 
   schemaGetter(): void {
-    const configType = null && this.schemaConfigType();
+    const configType = this.schemaConfigTypeDeclaration();
     const parameters: ts.ParameterDeclaration[] = [];
     if (configType != null) {
       this._statements.push(configType);
@@ -138,14 +167,14 @@ class Codegen {
         F.createParameterDeclaration(
           undefined,
           undefined,
-          "config",
+          CONFIG_VARIABLE_NAME,
           undefined,
           F.createTypeReferenceNode(configType.name),
         ),
       );
     }
     this.functionDeclaration(
-      "getSchema",
+      GET_SCHEMA,
       parameters,
       this.graphQLTypeImport("GraphQLSchema"),
       this.createBlockWithScope(() => {
@@ -171,7 +200,7 @@ class Codegen {
           F.createExportSpecifier(
             false,
             undefined,
-            F.createIdentifier("getSchema"),
+            F.createIdentifier(GET_SCHEMA),
           ),
         ]),
       ),
@@ -487,8 +516,30 @@ class Codegen {
   customScalarTypeConfig(obj: GraphQLScalarType): ts.ObjectLiteralExpression {
     return this.objectLiteral([
       this.description(obj.description),
+      ...Object.keys(SCALAR_SERIALIZATION_FUNCTIONS).map((funcName) => {
+        return F.createPropertyAssignment(
+          funcName,
+          this.propertyAccessChain(
+            F.createIdentifier(CONFIG_VARIABLE_NAME),
+            SCALARS_CONFIG_PROPERTY,
+            obj.name,
+            funcName,
+          ),
+        );
+      }),
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
     ]);
+  }
+
+  // Helper for the common case.
+  propertyAccessChain(
+    obj: ts.Expression,
+    ...properties: string[]
+  ): ts.Expression {
+    return properties.reduce(
+      (acc, prop) => F.createPropertyAccessExpression(acc, prop),
+      obj,
+    );
   }
 
   inputType(obj: GraphQLInputObjectType): ts.Expression {
@@ -873,4 +924,8 @@ function formatResolverFunctionVarName(
   const parent = parentTypeName[0].toLowerCase() + parentTypeName.slice(1);
   const field = fieldName[0].toUpperCase() + fieldName.slice(1);
   return `${parent}${field}Resolver`;
+}
+
+function formatCustomScalarTypeName(typeName: string): string {
+  return `${typeName}ScalarType`;
 }

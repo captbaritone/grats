@@ -29,6 +29,7 @@ import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
 import { GraphQLConstructor, GratsDefinitionNode } from "./GraphQLConstructor";
 import { relativePath } from "./gratsRoot";
+import { notEmpty } from "./utils/helpers";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -789,9 +790,7 @@ class Extractor {
           });
       });
 
-    const interfaces = maybeInterfaces.filter(
-      (i): i is NamedTypeNode => i != null,
-    );
+    const interfaces = maybeInterfaces.filter(notEmpty);
 
     if (interfaces.length === 0) {
       return null;

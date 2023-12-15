@@ -17,3 +17,8 @@ export function extend<T>(a: T[], b: readonly T[]) {
     a.push(item);
   }
 }
+
+// Typesafe filter predicate to filter out null and undefined.
+export function notEmpty<T>(value: T | null | undefined): value is T {
+  return value !== null && value !== undefined;
+}

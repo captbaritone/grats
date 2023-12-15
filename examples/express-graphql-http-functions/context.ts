@@ -62,9 +62,7 @@ export class UserService {
       user,
       // Remove nullish entries
       Object.fromEntries(
-        Object.entries(userData).filter(
-          ([_, v]) => v !== null && v !== undefined,
-        ),
+        Object.entries(userData).filter(([_, v]) => notEmpty(v)),
       ),
     );
   }
@@ -114,3 +112,6 @@ export type Context = {
   userService: UserService;
   groupService: GroupService;
 };
+function notEmpty(v: string | string[]): unknown {
+  throw new Error("Function not implemented.");
+}
