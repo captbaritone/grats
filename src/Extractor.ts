@@ -1266,7 +1266,9 @@ class Extractor {
         const locNode = tag;
 
         // Test for leading newlines using the raw text
-        const hasLeadingNewlines = /\n/.test(tag.getText().trimEnd());
+        const hasLeadingNewlines = /\n/.test(
+          trimTrailingCommentLines(tag.getText()),
+        );
         const hasInternalWhitespace = /\s/.test(commentName);
         const validationMessage = graphQLNameValidationMessage(commentName);
 
@@ -1692,4 +1694,10 @@ function graphQLNameValidationMessage(name: string): string | null {
   } catch (e) {
     return e.message;
   }
+}
+
+// Trims any number of whitespace-only lines including any lines that simply
+// contain a `*` surrounded by whitespace.
+function trimTrailingCommentLines(text: string) {
+  return text.replace(/(\s*\n\s*\*?\s*)+$/, "");
 }

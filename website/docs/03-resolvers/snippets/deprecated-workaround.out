@@ -1,0 +1,39 @@
+/** @gqlType */
+class User {
+  // Not deprecated!
+  name: string;
+
+  /**
+   * @gqlField name
+   * @deprecated Not supported externally any more
+   */
+  graphQLName(): string {
+    return this.name;
+  }
+}
+
+=== SNIP ===
+type User {
+  name: String @deprecated(reason: "Not supported externally any more")
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+        return {
+            name: {
+                deprecationReason: "Not supported externally any more",
+                name: "name",
+                type: GraphQLString,
+                resolve(source, args, context, info) {
+                    return typeof source.graphQLName === "function" ? source.graphQLName(source, args, context, info) : source.graphQLName;
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [UserType]
+});
+export { schema };

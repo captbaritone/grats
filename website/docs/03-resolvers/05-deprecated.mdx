@@ -1,5 +1,6 @@
 import GratsCode from "@site/src/components/GratsCode";
 import DeprecatedExample from "!!raw-loader!./snippets/05-deprecated-example.out";
+import DeprecatedWorkaround from "!!raw-loader!./snippets/deprecated-workaround.out";
 
 # Deprecated
 
@@ -14,3 +15,10 @@ Grats supports this feature by using the `@deprecated` JSDoc tag. This tag can b
 Would extract:
 
 <GratsCode out={DeprecatedExample} mode="gql" />
+
+## Overlap with TypeScript's `@deprecated`
+
+TypeScript also has special treatment of constructs with the `@deprecated` in their JSDoc docblock. Specifically, it will render uses of them as ~~struckthrough~~ and greyed out in the editor. In general this overlap is a feature, since deprecated fields should also generally not be used internally. However, if you wish to deprecate a field/argument/etc. in you schema, but not in your code, you can define a new method/function specifically for GraphQL which wraps the non-deprecated version. For example:
+
+
+<GratsCode out={DeprecatedWorkaround} mode="ts" />

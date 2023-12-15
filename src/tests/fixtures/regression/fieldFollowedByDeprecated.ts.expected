@@ -1,0 +1,48 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class User {
+  /**
+   * @gqlField name
+   * @deprecated
+   */
+  graphQLName(): string {
+    return "Sup";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+directive @asyncIterable on FIELD_DEFINITION
+
+directive @propertyName(name: String!) on FIELD_DEFINITION
+
+directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
+
+type User {
+  name: String @deprecated @propertyName(name: "graphQLName")
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+        return {
+            name: {
+                deprecationReason: "No longer supported",
+                name: "name",
+                type: GraphQLString,
+                resolve(source, args, context, info) {
+                    return typeof source.graphQLName === "function" ? source.graphQLName(source, args, context, info) : source.graphQLName;
+                }
+            }
+        };
+    }
+});
+const schema = new GraphQLSchema({
+    types: [UserType]
+});
+export { schema };
