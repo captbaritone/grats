@@ -18,22 +18,24 @@ type User {
 }
 === SNIP ===
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-const UserType: GraphQLObjectType = new GraphQLObjectType({
-    name: "User",
-    fields() {
-        return {
-            name: {
-                deprecationReason: "Not supported externally any more",
-                name: "name",
-                type: GraphQLString,
-                resolve(source, args, context, info) {
-                    return typeof source.graphQLName === "function" ? source.graphQLName(source, args, context, info) : source.graphQLName;
+function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    deprecationReason: "Not supported externally any more",
+                    name: "name",
+                    type: GraphQLString,
+                    resolve(source, args, context, info) {
+                        return typeof source.graphQLName === "function" ? source.graphQLName(source, args, context, info) : source.graphQLName;
+                    }
                 }
-            }
-        };
-    }
-});
-const schema = new GraphQLSchema({
-    types: [UserType]
-});
-export { schema };
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [UserType]
+    });
+}
+export { getSchema };
