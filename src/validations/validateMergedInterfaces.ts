@@ -26,7 +26,11 @@ export function validateMergedInterfaces(
       symbol.declarations.length > 1
     ) {
       const otherLocations = symbol.declarations
-        .filter((d) => d !== node && ts.isInterfaceDeclaration(d))
+        .filter(
+          (d) =>
+            d !== node &&
+            (ts.isInterfaceDeclaration(d) || ts.isClassDeclaration(d)),
+        )
         .map((d) => {
           const locNode = ts.getNameOfDeclaration(d) ?? d;
           return tsRelated(locNode, "Other declaration");
