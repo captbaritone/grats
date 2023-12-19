@@ -1,0 +1,46 @@
+-----------------
+INPUT
+----------------- 
+declare const Foo: {
+  prototype: Foo;
+  new (): Foo;
+};
+
+/** @gqlInterface */
+interface Foo {
+  /** @gqlField */
+  id: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+directive @asyncIterable on FIELD_DEFINITION
+
+directive @propertyName(name: String!) on FIELD_DEFINITION
+
+directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
+
+interface Foo {
+  id: String
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
+function getSchema(): GraphQLSchema {
+    const FooType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Foo",
+        fields() {
+            return {
+                id: {
+                    name: "id",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [FooType]
+    });
+}
+export { getSchema };

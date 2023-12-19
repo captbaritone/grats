@@ -20,25 +20,31 @@ export function validateMergedInterfaces(
 
   for (const node of interfaces) {
     const symbol = checker.getSymbolAtLocation(node.name);
+    if (symbol == null) {
+      continue;
+    }
+    // @ts-ignore Exposed as public in https://github.com/microsoft/TypeScript/pull/56193
+    const mergedSymbol: ts.Symbol = checker.getMergedSymbol(symbol);
     if (
-      symbol != null &&
-      symbol.declarations != null &&
-      symbol.declarations.length > 1
+      mergedSymbol.declarations == null ||
+      mergedSymbol.declarations.length < 2
     ) {
-      const otherLocations = symbol.declarations
-        .filter(
-          (d) =>
-            d !== node &&
-            (ts.isInterfaceDeclaration(d) || ts.isClassDeclaration(d)),
-        )
-        .map((d) => {
-          const locNode = ts.getNameOfDeclaration(d) ?? d;
-          return tsRelated(locNode, "Other declaration");
-        });
+      continue;
+    }
 
-      if (otherLocations.length > 0) {
-        errors.push(tsErr(node.name, E.mergedInterfaces(), otherLocations));
-      }
+    const otherLocations = mergedSymbol.declarations
+      .filter(
+        (d) =>
+          d !== node &&
+          (ts.isInterfaceDeclaration(d) || ts.isClassDeclaration(d)),
+      )
+      .map((d) => {
+        const locNode = ts.getNameOfDeclaration(d) ?? d;
+        return tsRelated(locNode, "Other declaration");
+      });
+
+    if (otherLocations.length > 0) {
+      errors.push(tsErr(node.name, E.mergedInterfaces(), otherLocations));
     }
   }
 
