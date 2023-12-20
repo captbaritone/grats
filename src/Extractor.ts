@@ -30,10 +30,10 @@ import { traverseJSDocTags } from "./utils/JSDoc";
 import { GraphQLConstructor, GratsDefinitionNode } from "./GraphQLConstructor";
 import {} from "./metadataDirectives";
 import { relativePath } from "./gratsRoot";
+import { ISSUE_URL } from "./Errors";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
-export const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
 
 export const TYPE_TAG = "gqlType";
 export const FIELD_TAG = "gqlField";

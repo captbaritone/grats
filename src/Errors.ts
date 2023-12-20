@@ -12,6 +12,8 @@ import {
   UNION_TAG,
 } from "./Extractor";
 
+export const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
+
 // TODO: Move these to short URLS that are easier to keep from breaking.
 const DOC_URLS = {
   mergedInterfaces:
@@ -160,11 +162,11 @@ export function typeNameDoesNotMatchExpected(expected: string) {
 }
 
 export function argumentParamIsMissingType() {
-  return "Expected GraphQL field arguments to specify an explicit TypeScript type. If there are no arguments, you can use `args: unknown`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
+  return "Expected GraphQL field arguments to have an explicit type annotation. If there are no arguments, you can use `args: unknown`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
 }
 
 export function argumentParamIsNotObject() {
-  return "Expected GraphQL field arguments to be typed using a literal object: `{someField: string}`. If there are no arguments, you can use `args: unknown`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
+  return "Expected GraphQL field arguments to be typed using an inline literal object: `{someField: string}`. If there are no arguments, you can use `args: unknown`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
 }
 
 export function argIsNotProperty() {
@@ -176,7 +178,7 @@ export function argNameNotLiteral() {
 }
 
 export function argNotTyped() {
-  return "Expected GraphQL field argument to have a type. For example: `{ someField: string }`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
+  return "Expected GraphQL field argument to have an explicit type annotation. For example: `{ someField: string }`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
 }
 
 export function enumTagOnInvalidNode() {
@@ -184,11 +186,11 @@ export function enumTagOnInvalidNode() {
 }
 
 export function enumVariantNotStringLiteral() {
-  return `Expected \`@${ENUM_TAG}\` enum members to be string literal types. For example: \`'foo'\`. Grats needs to be able to see the explicit value of the enum member to generate the GraphQL schema.`;
+  return `Expected \`@${ENUM_TAG}\` enum members to be string literal types. For example: \`'foo'\`. Grats needs to be able to see the concrete value of the enum member to generate the GraphQL schema.`;
 }
 
 export function enumVariantMissingInitializer() {
-  return `Expected \`@${ENUM_TAG}\` enum members to have string literal initializers. For example: \`FOO = 'foo'\`. Grats needs to be able to see the explicit value of the enum member to generate the GraphQL schema.`;
+  return `Expected \`@${ENUM_TAG}\` enum members to have string literal initializers. For example: \`FOO = 'foo'\`. In GraphQL enum values are strings, and Grats needs to be able to see the concrete value of the enum member to generate the GraphQL schema.`;
 }
 
 export function gqlEntityMissingName() {
@@ -224,19 +226,19 @@ export function defaultValueIsNotLiteral() {
 }
 
 export function defaultArgElementIsNotAssignment() {
-  return "Expected object literal property to be a property assignment. For example: `{ first = 10}`.";
+  return "Expected property to be a default assignment. For example: `{ first = 10}`. Grats needs to extract a literal GraphQL value here, and that requires Grats being able to see the literal value in the source code.";
 }
 
 export function defaultArgPropertyMissingName() {
-  return "Expected object literal property to have a name. Grats needs to be able to see the name of the property in order to include it in the GraphQL schema.";
+  return "Expected object literal property to have a name. Grats needs to extract a literal value here, and that requires Grats being able to see the literal value and its field name in the source code.";
 }
 
 export function defaultArgPropertyMissingInitializer() {
-  return "Expected object literal property to have an initializer. For example: `{ offset = 10}`.";
+  return "Expected object literal property to have an initializer. For example: `{ offset = 10}`. Grats needs to extract a literal GraphQL value here, and that requires Grats being able to see the literal value in the source code.";
 }
 
 export function unsupportedTypeLiteral() {
-  return `Unexpected type literal. Grats does not support this specific type literal. Likely because it does not map to a valid GraphQL literal or built in scalar type. You may want to define a named GraphQL type elsewhere and reference it here.`;
+  return `Unexpected type literal. Grats expects types in GraphQL positions to be scalar types, or reference a named GraphQL type directly. You may want to define a named GraphQL type elsewhere and reference it here.`;
 }
 
 export function unknownGraphQLType() {
@@ -369,5 +371,5 @@ export function operationTypeNotUnknown() {
 }
 
 export function expectedNullableArgumentToBeOptional() {
-  return "Expected nullable argument to be optional (`?`). graphql-js may not define properties on the argument value where an undefined variable is passed, or the argument is omitted in the operation text. To ensure your resolver is capable of handing this scenario, add a `?` to the end of the argument name to make it optional. e.g. `{greeting?: string | null}`";
+  return "Expected nullable argument to _also_ be optional (`?`). graphql-js may omit properties on the argument object where an undefined GraphQL variable is passed, or if the argument is omitted in the operation text. To ensure your resolver is capable of handing this scenario, add a `?` to the end of the argument name to make it optional. e.g. `{greeting?: string | null}`";
 }
