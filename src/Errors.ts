@@ -93,12 +93,14 @@ export function functionFieldNotTopLevel() {
   return `Expected \`@${FIELD_TAG}\` function to be a top-level declaration. Grats needs to import resolver functions into it's generated schema module, so the resolver function must be an exported.`;
 }
 
+const FUNCTION_PARENT_TYPE_CONTEXT = `Grats treats the first argument as the parent object of the field. Therefore Grats needs to see the _type_ of the first argument in order to know to which type/interface this field should be added.`;
+
 export function functionFieldParentTypeMissing() {
-  return `Expected first argument of a \`@${FIELD_TAG}\` function to have an explicit type annotation. Grats treats the first argument the parent object of the field. Therefore Grats needs to see the type of the parent object to generate a GraphQL schema.`;
+  return `Expected first argument of a \`@${FIELD_TAG}\` function to have an explicit type annotation. ${FUNCTION_PARENT_TYPE_CONTEXT}`;
 }
 
 export function functionFieldParentTypeNotValid() {
-  return `Expected first argument of a \`@${FIELD_TAG}\` function to be typed as a type reference. Grats treats the first argument the parent object of the field. Therefore Grats needs to see the type of the parent object to generate a GraphQL schema.`;
+  return `Expected first argument of a \`@${FIELD_TAG}\` function to be typed as a type reference. ${FUNCTION_PARENT_TYPE_CONTEXT}`;
 }
 
 export function functionFieldNotNamed() {
@@ -198,7 +200,7 @@ export function gqlEntityMissingName() {
 }
 
 export function methodMissingType() {
-  return "Expected GraphQL field to have an explicitly defined type. Grats needs to be able to see the type of the field to generate a GraphQL schema.";
+  return "Expected GraphQL field methods to have an explicitly defined return type. Grats needs to be able to see the type of the field to generate its type in the GraphQL schema.";
 }
 
 export function wrapperMissingTypeArg() {
@@ -210,11 +212,11 @@ export function cannotResolveSymbolForDescription() {
 }
 
 export function propertyFieldMissingType() {
-  return "Expected GraphQL field to have an explicitly defined type. Grats needs to be able to see the type of the field to generate a GraphQL schema.";
+  return "Expected GraphQL field to have an explicitly defined type annotation. Grats needs to be able to see the type of the field to generate a field's type in the GraphQL schema.";
 }
 
 export function expectedOneNonNullishType() {
-  return `Expected exactly one non-nullish type. GraphQL does not support multiple types for a single field. Consider defining an explicit \`@${UNION_TAG}\` union type and returning that.`;
+  return `Expected exactly one non-nullish type. GraphQL does not support fields returning an arbitrary union of types. Consider defining an explicit \`@${UNION_TAG}\` union type and returning that.`;
 }
 
 export function ambiguousNumberType() {
@@ -318,7 +320,7 @@ export function invalidTypePassedToFieldFunction() {
 }
 
 export function unresolvedTypeReference() {
-  return "Unable to resolve type reference. In order to generate a GraphQL schema, Grats needs to be able to resolve all type references to their declaration. However this reference could not be resolved. Is it possible that this type is not defined in this file?";
+  return "Unable to resolve type reference. In order to generate a GraphQL schema, Grats needs to determine which GraphQL type is being referenced. This requires being able to resolve type references to their `@gql` annotated declaration. However this reference could not be resolved. Is it possible that this type is not defined in this file?";
 }
 
 export function expectedTypeAnnotationOnContext() {
