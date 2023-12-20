@@ -31,7 +31,7 @@ export default function OutputView() {
 }
 
 export function createOutputView(store, right: HTMLDivElement) {
-  let outputState = EditorState.create({
+  const outputState = EditorState.create({
     doc: getTypeScriptOutputString(store.getState()),
     extensions: [
       Theme,
@@ -44,7 +44,7 @@ export function createOutputView(store, right: HTMLDivElement) {
     ],
   });
 
-  let rightView = new EditorView({
+  const rightView = new EditorView({
     state: outputState,
     parent: right,
   });

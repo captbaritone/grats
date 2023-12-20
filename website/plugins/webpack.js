@@ -1,7 +1,7 @@
-module.exports = function (context, options) {
+module.exports = function (_context, _options) {
   return {
     name: "custom-docusaurus-plugin",
-    configureWebpack(config, isServer, utils) {
+    configureWebpack(_config, _isServer, _utils) {
       return {
         resolve: {
           fallback: {

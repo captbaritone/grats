@@ -13,7 +13,7 @@
     "integration-tests": "node src/tests/integration.mjs",
     "build": "tsc --build",
     "format": "prettier . --write",
-    "lint": "eslint src/**/*.ts && prettier . --check"
+    "lint": "eslint . && prettier . --check"
   },
   "dependencies": {
     "commander": "^10.0.0",
