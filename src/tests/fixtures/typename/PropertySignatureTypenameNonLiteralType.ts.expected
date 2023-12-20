@@ -17,7 +17,7 @@ export interface IPerson {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/typename/PropertySignatureTypenameNonLiteralType.ts:3:15 - error: Expected `__typename` property signature to specify the typename as a string literal string type. For example `__typename: "User";`
+src/tests/fixtures/typename/PropertySignatureTypenameNonLiteralType.ts:3:15 - error: Expected `__typename` property signature to specify the typename as a string literal string type. For example `__typename: "User";`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.
 
 3   __typename: string;
                 ~~~~~~

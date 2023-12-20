@@ -12,7 +12,7 @@ export class SomeType {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/resolver_context/ContextValueTypedAsNever.ts:4:32 - error: Expected context parameter's type to be a type reference Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration.
+src/tests/fixtures/resolver_context/ContextValueTypedAsNever.ts:4:32 - error: Expected context parameter's type to be a type reference. Grats validates that your context parameter is type-safe by checking that all context values reference the same type declaration.
 
 4   greeting(args: unknown, ctx: never): string {
                                  ~~~~~

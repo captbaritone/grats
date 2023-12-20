@@ -13,7 +13,7 @@ export default class SomeType {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/arguments/NoArgsWithNever.ts:4:15 - error: Expected GraphQL field arguments to be typed using a literal object: `{someField: string}`. If there are no arguments, you can use `args: unknown`.
+src/tests/fixtures/arguments/NoArgsWithNever.ts:4:15 - error: Expected GraphQL field arguments to be typed using an inline literal object: `{someField: string}`. If there are no arguments, you can use `args: unknown`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.
 
 4   hello(args: never): string {
                 ~~~~~

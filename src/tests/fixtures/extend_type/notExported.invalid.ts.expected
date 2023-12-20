@@ -14,7 +14,7 @@ function greeting(_: Query): string {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/extend_type/notExported.invalid.ts:7:10 - error: Expected a `@gqlField` function to be a named export.
+src/tests/fixtures/extend_type/notExported.invalid.ts:7:10 - error: Expected a `@gqlField` function to be a named export. Grats needs to import resolver functions into it's generated schema module, so the resolver function must be a named export.
 
 7 function greeting(_: Query): string {
            ~~~~~~~~
