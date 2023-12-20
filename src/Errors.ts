@@ -139,28 +139,31 @@ export function typeNameNotDeclaration() {
   return `Expected \`__typename\` to be a property declaration. For example: \`__typename: "MyType"\`.`;
 }
 
+const TYPENAME_CONTEXT =
+  "This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.";
+
 export function typeNameMissingInitializer() {
-  return `Expected \`__typename\` property to have an initializer or a string literal type. For example: \`__typename = "MyType"\` or \`__typename: "MyType";\`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.`;
+  return `Expected \`__typename\` property to have an initializer or a string literal type. For example: \`__typename = "MyType"\` or \`__typename: "MyType";\`. ${TYPENAME_CONTEXT}`;
 }
 
 export function typeNameInitializeNotString() {
-  return `Expected \`__typename\` property initializer to be a string literal. For example: \`__typename = "MyType"\` or \`__typename: "MyType";\`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.`;
+  return `Expected \`__typename\` property initializer to be a string literal. For example: \`__typename = "MyType"\` or \`__typename: "MyType";\`. ${TYPENAME_CONTEXT}`;
 }
 
 export function typeNameInitializerWrong(expected: string, actual: string) {
-  return `Expected \`__typename\` property initializer to be \`"${expected}"\`, found \`"${actual}"\`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.`;
+  return `Expected \`__typename\` property initializer to be \`"${expected}"\`, found \`"${actual}"\`. ${TYPENAME_CONTEXT}`;
 }
 
 export function typeNameMissingTypeAnnotation(expected: string) {
-  return `Expected \`__typename\` property signature to specify the typename as a string literal string type. For example \`__typename: "${expected}";\`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.`;
+  return `Expected \`__typename\` property signature to specify the typename as a string literal string type. For example \`__typename: "${expected}";\`. ${TYPENAME_CONTEXT}`;
 }
 
 export function typeNameTypeNotStringLiteral(expected: string) {
-  return `Expected \`__typename\` property signature to specify the typename as a string literal string type. For example \`__typename: "${expected}";\`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.`;
+  return `Expected \`__typename\` property signature to specify the typename as a string literal string type. For example \`__typename: "${expected}";\`. ${TYPENAME_CONTEXT}`;
 }
 
 export function typeNameDoesNotMatchExpected(expected: string) {
-  return `Expected \`__typename\` property to be \`"${expected}"\`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.`;
+  return `Expected \`__typename\` property to be \`"${expected}"\`. ${TYPENAME_CONTEXT}`;
 }
 
 export function argumentParamIsMissingType() {
