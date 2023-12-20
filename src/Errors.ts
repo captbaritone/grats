@@ -48,35 +48,35 @@ export function invalidGratsTag(actual: string) {
 }
 
 export function invalidTypeTagUsage() {
-  return `\`@${TYPE_TAG}\` can only be used on class or interface declarations.`;
+  return `\`@${TYPE_TAG}\` can only be used on class, interface or type declarations. e.g. \`class MyType {}\``;
 }
 
 export function invalidScalarTagUsage() {
-  return `\`@${SCALAR_TAG}\` can only be used on type alias declarations.`;
+  return `\`@${SCALAR_TAG}\` can only be used on type alias declarations. e.g. \`type MyScalar = string\``;
 }
 
 export function invalidInterfaceTagUsage() {
-  return `\`@${INTERFACE_TAG}\` can only be used on interface declarations.`;
+  return `\`@${INTERFACE_TAG}\` can only be used on interface declarations. e.g. \`interface MyInterface {}\``;
 }
 
 export function invalidEnumTagUsage() {
-  return `\`@${ENUM_TAG}\` can only be used on enum declarations or TypeScript unions.`;
+  return `\`@${ENUM_TAG}\` can only be used on enum declarations or TypeScript unions. e.g. \`enum MyEnum {}\` or \`type MyEnum = "foo" | "bar"\``;
 }
 
 export function invalidInputTagUsage() {
-  return `\`@${INPUT_TAG}\` can only be used on type alias declarations.`;
+  return `\`@${INPUT_TAG}\` can only be used on type alias declarations. e.g. \`type MyInput = { foo: string }\``;
 }
 
 export function invalidUnionTagUsage() {
-  return `\`@${UNION_TAG}\` can only be used on type alias declarations.`;
+  return `\`@${UNION_TAG}\` can only be used on type alias declarations. e.g. \`type MyUnion = TypeA | TypeB\``;
 }
 
 export function expectedUnionTypeNode() {
-  return `Expected a TypeScript union. \`@${UNION_TAG}\` can only be used on TypeScript unions.`;
+  return `Expected a TypeScript union. \`@${UNION_TAG}\` can only be used on TypeScript unions. e.g. \`type MyUnion = TypeA | TypeB\``;
 }
 
 export function expectedUnionTypeReference() {
-  return `Expected \`@${UNION_TAG}\` union members to be type references.`;
+  return `Expected \`@${UNION_TAG}\` union members to be type references. Grats expects union members to be references to something annotated with \`@gqlType\`.`;
 }
 
 export function invalidParentArgForFunctionField() {
@@ -84,47 +84,47 @@ export function invalidParentArgForFunctionField() {
 }
 
 export function invalidReturnTypeForFunctionField() {
-  return "Expected GraphQL field to have an explicit return type.";
+  return 'Expected GraphQL field to have an explicit return type. This is needed to allow Grats to "see" the type of the field.';
 }
 
 export function functionFieldNotTopLevel() {
-  return `Expected \`@${FIELD_TAG}\` function to be a top-level declaration.`;
+  return `Expected \`@${FIELD_TAG}\` function to be a top-level declaration. Grats needs to import resolver functions into it's generated schema module, so the resolver function must be an exported.`;
 }
 
 export function functionFieldParentTypeMissing() {
-  return `Expected first argument of a \`@${FIELD_TAG}\` function to have an explicit type annotation.`;
+  return `Expected first argument of a \`@${FIELD_TAG}\` function to have an explicit type annotation. Grats treats the first argument the parent object of the field. Therefore Grats needs to see the type of the parent object to generate a GraphQL schema.`;
 }
 
 export function functionFieldParentTypeNotValid() {
-  return `Expected first argument of a \`@${FIELD_TAG}\` function to be typed as a \`@${TYPE_TAG}\` type.`;
+  return `Expected first argument of a \`@${FIELD_TAG}\` function to be typed as a type reference. Grats treats the first argument the parent object of the field. Therefore Grats needs to see the type of the parent object to generate a GraphQL schema.`;
 }
 
 export function functionFieldNotNamed() {
-  return `Expected \`@${FIELD_TAG}\` function to be named.`;
+  return `Expected \`@${FIELD_TAG}\` function to be named. Grats uses the name of the function to derive the name of the GraphQL field. Additionally, Grats needs to import resolver functions into it's generated schema module, so the resolver function must be a named export.`;
 }
 
 export function functionFieldDefaultExport() {
-  return `Expected a \`@${FIELD_TAG}\` function to be a named export, not a default export.`;
+  return `Expected a \`@${FIELD_TAG}\` function to be a named export, not a default export. Grats needs to import resolver functions into it's generated schema module, so the resolver function must be a named export.`;
 }
 
 export function functionFieldNotNamedExport() {
-  return `Expected a \`@${FIELD_TAG}\` function to be a named export.`;
+  return `Expected a \`@${FIELD_TAG}\` function to be a named export. Grats needs to import resolver functions into it's generated schema module, so the resolver function must be a named export.`;
 }
 
 export function inputTypeNotLiteral() {
-  return `\`@${INPUT_TAG}\` can only be used on type literals.`;
+  return `\`@${INPUT_TAG}\` can only be used on type literals. e.g. \`type MyInput = { foo: string }\``;
 }
 
 export function inputTypeFieldNotProperty() {
-  return `\`@${INPUT_TAG}\` types only support property signature members.`;
+  return `\`@${INPUT_TAG}\` types only support property signature members. e.g. \`type MyInput = { foo: string }\``;
 }
 
 export function inputFieldUntyped() {
-  return "Input field must have a type annotation.";
+  return 'Input field must have an explicit type annotation. Grats uses the type annotation to determine the type of the field, so it must be explicit in order for Grats to "see" the type.';
 }
 
 export function typeTagOnUnnamedClass() {
-  return `Unexpected \`@${TYPE_TAG}\` annotation on unnamed class declaration.`;
+  return `Unexpected \`@${TYPE_TAG}\` annotation on unnamed class declaration. Grats uses the name of the class to derive the name of the GraphQL type. Consider naming the class.`;
 }
 
 export function typeTagOnAliasOfNonObjectOrUnknown() {
@@ -132,87 +132,87 @@ export function typeTagOnAliasOfNonObjectOrUnknown() {
 }
 
 export function typeNameNotDeclaration() {
-  return `Expected \`__typename\` to be a property declaration.`;
+  return `Expected \`__typename\` to be a property declaration. For example: \`__typename: "MyType"\`.`;
 }
 
 export function typeNameMissingInitializer() {
-  return `Expected \`__typename\` property to have an initializer or a string literal type. For example: \`__typename = "MyType"\` or \`__typename: "MyType";\`.`;
+  return `Expected \`__typename\` property to have an initializer or a string literal type. For example: \`__typename = "MyType"\` or \`__typename: "MyType";\`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.`;
 }
 
 export function typeNameInitializeNotString() {
-  return `Expected \`__typename\` property initializer to be a string literal. For example: \`__typename = "MyType"\` or \`__typename: "MyType";\`.`;
+  return `Expected \`__typename\` property initializer to be a string literal. For example: \`__typename = "MyType"\` or \`__typename: "MyType";\`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.`;
 }
 
 export function typeNameInitializerWrong(expected: string, actual: string) {
-  return `Expected \`__typename\` property initializer to be \`"${expected}"\`, found \`"${actual}"\`.`;
+  return `Expected \`__typename\` property initializer to be \`"${expected}"\`, found \`"${actual}"\`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.`;
 }
 
 export function typeNameMissingTypeAnnotation(expected: string) {
-  return `Expected \`__typename\` property signature to specify the typename as a string literal string type. For example \`__typename: "${expected}";\``;
+  return `Expected \`__typename\` property signature to specify the typename as a string literal string type. For example \`__typename: "${expected}";\`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.`;
 }
 
 export function typeNameTypeNotStringLiteral(expected: string) {
-  return `Expected \`__typename\` property signature to specify the typename as a string literal string type. For example \`__typename: "${expected}";\``;
+  return `Expected \`__typename\` property signature to specify the typename as a string literal string type. For example \`__typename: "${expected}";\`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.`;
 }
 
 export function typeNameDoesNotMatchExpected(expected: string) {
-  return `Expected \`__typename\` property to be \`"${expected}"\``;
+  return `Expected \`__typename\` property to be \`"${expected}"\`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.`;
 }
 
 export function argumentParamIsMissingType() {
-  return "Expected GraphQL field arguments to have a TypeScript type. If there are no arguments, you can use `args: unknown`.";
+  return "Expected GraphQL field arguments to specify an explicit TypeScript type. If there are no arguments, you can use `args: unknown`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
 }
 
 export function argumentParamIsNotObject() {
-  return "Expected GraphQL field arguments to be typed using a literal object: `{someField: string}`. If there are no arguments, you can use `args: unknown`.";
+  return "Expected GraphQL field arguments to be typed using a literal object: `{someField: string}`. If there are no arguments, you can use `args: unknown`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
 }
 
 export function argIsNotProperty() {
-  return "Expected GraphQL field argument type to be a property signature.";
+  return "Expected GraphQL field argument type to be a property signature. For example: `{ someField: string }`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
 }
 
 export function argNameNotLiteral() {
-  return "Expected GraphQL field argument names to be a literal.";
+  return "Expected GraphQL field argument names to be a literal. For example: `{ someField: string }`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
 }
 
 export function argNotTyped() {
-  return "Expected GraphQL field argument to have a type.";
+  return "Expected GraphQL field argument to have a type. For example: `{ someField: string }`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
 }
 
 export function enumTagOnInvalidNode() {
-  return `Expected \`@${ENUM_TAG}\` to be a union type, or a string literal in the edge case of a single value enum.`;
+  return `Expected \`@${ENUM_TAG}\` to be a union type, or a string literal in the edge case of a single value enum. For example: \`type MyEnum = "foo" | "bar"\` or \`type MyEnum = "foo"\`.`;
 }
 
 export function enumVariantNotStringLiteral() {
-  return `Expected \`@${ENUM_TAG}\` enum members to be string literal types. For example: \`'foo'\`.`;
+  return `Expected \`@${ENUM_TAG}\` enum members to be string literal types. For example: \`'foo'\`. Grats needs to be able to see the explicit value of the enum member to generate the GraphQL schema.`;
 }
 
 export function enumVariantMissingInitializer() {
-  return `Expected \`@${ENUM_TAG}\` enum members to have string literal initializers. For example: \`FOO = 'foo'\`.`;
+  return `Expected \`@${ENUM_TAG}\` enum members to have string literal initializers. For example: \`FOO = 'foo'\`. Grats needs to be able to see the explicit value of the enum member to generate the GraphQL schema.`;
 }
 
 export function gqlEntityMissingName() {
-  return "Expected GraphQL entity to have a name.";
+  return "Expected GraphQL entity to have a name. Grats uses the name of the entity to derive the name of the GraphQL construct.";
 }
 
 export function methodMissingType() {
-  return "Expected GraphQL field to have a type.";
+  return "Expected GraphQL field to have an explicitly defined type. Grats needs to be able to see the type of the field to generate a GraphQL schema.";
 }
 
-export function promiseMissingTypeArg() {
-  return `Expected type reference to have type arguments.`;
+export function wrapperMissingTypeArg() {
+  return `Expected wrapper type reference to have type arguments. Grats needs to be able to see the return type in order to generate a GraphQL schema.`;
 }
 
 export function cannotResolveSymbolForDescription() {
-  return "Expected TypeScript to be able to resolve this GraphQL entity to a symbol.";
+  return "Expected TypeScript to be able to resolve this GraphQL entity to a symbol. Is it possible that this type is not defined in this file? Grats needs to follow type references to their declaration in order to determine which GraphQL name is being referenced.";
 }
 
 export function propertyFieldMissingType() {
-  return "Expected GraphQL field to have a type.";
+  return "Expected GraphQL field to have an explicitly defined type. Grats needs to be able to see the type of the field to generate a GraphQL schema.";
 }
 
 export function expectedOneNonNullishType() {
-  return `Expected exactly one non-nullish type.`;
+  return `Expected exactly one non-nullish type. GraphQL does not support multiple types for a single field. Consider defining an explicit \`@${UNION_TAG}\` union type and returning that.`;
 }
 
 export function ambiguousNumberType() {
@@ -220,15 +220,15 @@ export function ambiguousNumberType() {
 }
 
 export function defaultValueIsNotLiteral() {
-  return "Expected GraphQL field argument default values to be a literal.";
+  return 'Expected GraphQL field argument default values to be a literal. Grats interprets argument defaults as GraphQL default values, which must be literals. For example: `10` or `"foo"`.';
 }
 
 export function defaultArgElementIsNotAssignment() {
-  return "Expected object literal property to be a property assignment.";
+  return "Expected object literal property to be a property assignment. For example: `{ first = 10}`.";
 }
 
 export function defaultArgPropertyMissingName() {
-  return "Expected object literal property to have a name.";
+  return "Expected object literal property to have a name. Grats needs to be able to see the name of the property in order to include it in the GraphQL schema.";
 }
 
 export function defaultArgPropertyMissingInitializer() {
@@ -236,23 +236,23 @@ export function defaultArgPropertyMissingInitializer() {
 }
 
 export function unsupportedTypeLiteral() {
-  return `Unexpected type literal. You may want to define a named GraphQL type elsewhere and reference it here.`;
+  return `Unexpected type literal. Grats does not support this specific type literal. Likely because it does not map to a valid GraphQL literal or built in scalar type. You may want to define a named GraphQL type elsewhere and reference it here.`;
 }
 
 export function unknownGraphQLType() {
-  return `Unknown GraphQL type.`;
+  return `Unknown GraphQL type. Grats doe not know how to map this type to a GraphQL type. You may want to define a named GraphQL type elsewhere and reference it here. If you think Grats should be able to infer a GraphQL type from this type, please file an issue.`;
 }
 
 export function pluralTypeMissingParameter() {
-  return `Expected type reference to have type arguments.`;
+  return `Expected wrapper type reference to have type arguments. Grats needs to be able to see the return type in order to generate a GraphQL schema.`;
 }
 
-export function expectedIdentifier() {
-  return "Expected an identifier.";
+export function expectedNameIdentifier() {
+  return "Expected an name identifier. Grats expected to find a name here which it could use to derive the GraphQL name.";
 }
 
 export function killsParentOnExceptionWithWrongConfig() {
-  return `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` tag. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` is only supported when the Grats config \`nullableByDefault\` is enabled.`;
+  return `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` tag. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` is only supported when the Grats config option \`nullableByDefault\` is enabled in your \`tsconfig.json\`.`;
 }
 
 export function killsParentOnExceptionOnNullable() {
@@ -260,7 +260,7 @@ export function killsParentOnExceptionOnNullable() {
 }
 
 export function nonNullTypeCannotBeOptional() {
-  return `Unexpected optional argument that does not also accept \`null\`. Optional arguments in GraphQL may get passed an explicit \`null\` value. This means optional arguments must be typed to also accept \`null\`.`;
+  return `Unexpected optional argument that does not also accept \`null\`. Optional arguments in GraphQL may get passed an explicit \`null\` value by the GraphQL executor. This means optional arguments must be typed to also accept \`null\`. Consider adding \`| null\` to the end of the argument type.`;
 }
 
 export function mergedInterfaces() {
@@ -271,10 +271,6 @@ export function mergedInterfaces() {
     `Consider using a unique name for your TypeScript interface and renaming it.\n\n`,
     `Learn more: ${DOC_URLS.mergedInterfaces}`,
   ].join(" ");
-}
-
-export function implementsTagMissingValue() {
-  return `Expected \`@${IMPLEMENTS_TAG_DEPRECATED}\` to be followed by one or more interface names.`;
 }
 
 export function implementsTagOnClass() {
@@ -312,7 +308,7 @@ export function parameterPropertyNotPublic() {
 }
 
 export function parameterPropertyMissingType() {
-  return `Expected \`@${FIELD_TAG}\` parameter property to have a type annotation.`;
+  return `Expected \`@${FIELD_TAG}\` parameter property to have an explicit type annotation. Grats needs to be able to see the type of the parameter property to generate a GraphQL schema.`;
 }
 
 export function invalidTypePassedToFieldFunction() {
@@ -320,21 +316,21 @@ export function invalidTypePassedToFieldFunction() {
 }
 
 export function unresolvedTypeReference() {
-  return "This type is not a valid GraphQL type. Did you mean to annotate it's definition with a `/** @gql */` tag such as `/** @gqlType */` or `/** @gqlInput **/`?";
+  return "Unable to resolve type reference. In order to generate a GraphQL schema, Grats needs to be able to resolve all type references to their declaration. However this reference could not be resolved. Is it possible that this type is not defined in this file?";
 }
 
 export function expectedTypeAnnotationOnContext() {
-  return "Expected context parameter to have a type annotation. Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration.";
+  return "Expected context parameter to have an explicit type annotation. Grats validates that your context parameter is type-safe by checking that all context values reference the same type declaration.";
 }
 
 export function expectedTypeAnnotationOfReferenceOnContext() {
-  return "Expected context parameter's type to be a type reference Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration.";
+  return "Expected context parameter's type to be a type reference. Grats validates that your context parameter is type-safe by checking that all context values reference the same type declaration.";
 }
 
 export function expectedTypeAnnotationOnContextToBeResolvable() {
   // TODO: Provide guidance?
   // TODO: I don't think we have a test case that triggers this error.
-  return "Unable to resolve context parameter type. Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration.";
+  return "Unable to resolve context parameter type. Grats validates that your context parameter is type-safe by checking that all context values reference the same type declaration.";
 }
 
 export function expectedTypeAnnotationOnContextToHaveDeclaration() {
@@ -342,7 +338,7 @@ export function expectedTypeAnnotationOnContextToHaveDeclaration() {
 }
 
 export function unexpectedParamSpreadForContextParam() {
-  return "Unexpected spread parameter in context parameter position. Grats expects the context parameter to be a single, explicitly typed, argument.";
+  return "Unexpected spread parameter in context parameter position. Grats expects the context parameter to be a single, explicitly-typed argument.";
 }
 
 export function multipleContextTypes() {
@@ -361,17 +357,17 @@ export function graphQLTagNameHasWhitespace(tagName: string): string {
 }
 
 export function subscriptionFieldNotAsyncIterable() {
-  return "Expected fields on `Subscription` to return an AsyncIterable.";
+  return "Expected fields on `Subscription` to return an `AsyncIterable`. Fields on `Subscription` model a subscription, which is a stream of events. Grats expects fields on `Subscription` to return an `AsyncIterable` which can be used to model this stream.";
 }
 
 export function nonSubscriptionFieldAsyncIterable() {
-  return "Unexpected AsyncIterable. Only fields on `Subscription` should return an AsyncIterable.";
+  return "Unexpected AsyncIterable. Only fields on `Subscription` should return an `AsyncIterable`. Non-subscription fields are only expected to return a single value.";
 }
 
 export function operationTypeNotUnknown() {
-  return "Operation types `Query`, `Mutation`, and `Subscription` must be defined as type aliases of `unknown`. E.g. `type Query = unknown`.";
+  return "Operation types `Query`, `Mutation`, and `Subscription` must be defined as type aliases of `unknown`. E.g. `type Query = unknown`. This is because GraphQL servers do not have an agreed upon way to produce root values, and Grats errs on the side of safety. If you are trying to implement dependency injection, consider using the `context` argument passed to each resolver instead. If you have a strong use case for a concrete root value, please file an issue.";
 }
 
 export function expectedNullableArgumentToBeOptional() {
-  return "Expected nullable argument to be optional. graphql-js may not define properties where an undefined argument is passed. To guard against this add a `?` to the end of the argument name to make it optional.";
+  return "Expected nullable argument to be optional (`?`). graphql-js may not define properties on the argument value where an undefined variable is passed, or the argument is omitted in the operation text. To ensure your resolver is capable of handing this scenario, add a `?` to the end of the argument name to make it optional. e.g. `{greeting?: string | null}`";
 }

@@ -14,7 +14,7 @@ type SomeType = { greeting: string };
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/resolver_context/ContextValueSpread.invalid.ts:4:27 - error: Unexpected spread parameter in context parameter position. Grats expects the context parameter to be a single, explicitly typed, argument.
+src/tests/fixtures/resolver_context/ContextValueSpread.invalid.ts:4:27 - error: Unexpected spread parameter in context parameter position. Grats expects the context parameter to be a single, explicitly-typed argument.
 
 4   greeting(args: unknown, ...ctx: SomeType): string {
                             ~~~

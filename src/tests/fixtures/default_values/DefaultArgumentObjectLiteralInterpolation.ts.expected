@@ -26,13 +26,13 @@ type ConnectionInput = {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/default_values/DefaultArgumentObjectLiteralInterpolation.ts:9:15 - error: Expected object literal property to be a property assignment.
+src/tests/fixtures/default_values/DefaultArgumentObjectLiteralInterpolation.ts:9:15 - error: Expected object literal property to be a property assignment. For example: `{ first = 10}`.
 
 If you think Grats should be able to infer this constant value, please report an issue at https://github.com/captbaritone/grats/issues.
 
 9     input = { first, offset },
                 ~~~~~
-src/tests/fixtures/default_values/DefaultArgumentObjectLiteralInterpolation.ts:9:22 - error: Expected object literal property to be a property assignment.
+src/tests/fixtures/default_values/DefaultArgumentObjectLiteralInterpolation.ts:9:22 - error: Expected object literal property to be a property assignment. For example: `{ first = 10}`.
 
 If you think Grats should be able to infer this constant value, please report an issue at https://github.com/captbaritone/grats/issues.
 

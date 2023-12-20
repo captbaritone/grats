@@ -17,7 +17,7 @@ export interface IPerson {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/typename/PropertySignatureTypenameIncorrectName.ts:3:15 - error: Expected `__typename` property to be `"User"`
+src/tests/fixtures/typename/PropertySignatureTypenameIncorrectName.ts:3:15 - error: Expected `__typename` property to be `"User"`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.
 
 3   __typename: "Group";
                 ~~~~~~~

@@ -12,7 +12,7 @@ export default class SomeType {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/arguments/PromiseArgument.invalid.ts:4:27 - error: This type is not a valid GraphQL type. Did you mean to annotate it's definition with a `/** @gql */` tag such as `/** @gqlType */` or `/** @gqlInput **/`?
+src/tests/fixtures/arguments/PromiseArgument.invalid.ts:4:27 - error: Unable to resolve type reference. In order to generate a GraphQL schema, Grats needs to be able to resolve all type references to their declaration. However this reference could not be resolved. Is it possible that this type is not defined in this file?
 
 4   hello(args: { greeting: Promise<string> }): string {
                             ~~~~~~~~~~~~~~~

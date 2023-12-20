@@ -500,7 +500,7 @@ class Extractor {
   collectInputField(
     node: ts.PropertySignature,
   ): InputValueDefinitionNode | null {
-    const id = this.expectIdentifier(node.name);
+    const id = this.expectNameIdentifier(node.name);
     if (id == null) return null;
 
     if (node.type == null) {
@@ -1044,7 +1044,7 @@ class Extractor {
         E.defaultArgPropertyMissingName(),
       );
     }
-    const name = this.expectIdentifier(node.name);
+    const name = this.expectNameIdentifier(node.name);
     if (name == null) return null;
     const initialize = node.initializer;
     if (initialize == null) {
@@ -1303,7 +1303,7 @@ class Extractor {
     if (node.name == null) {
       return this.report(node, E.gqlEntityMissingName());
     }
-    const id = this.expectIdentifier(node.name);
+    const id = this.expectNameIdentifier(node.name);
     if (id == null) return null;
     return this.gql.name(id, id.text);
   }
@@ -1372,7 +1372,7 @@ class Extractor {
 
     const description = this.collectDescription(node);
 
-    const id = this.expectIdentifier(node.name);
+    const id = this.expectNameIdentifier(node.name);
     if (id == null) return null;
     let directives: ConstDirectiveNode[] = [];
     if (id.text !== name.value) {
@@ -1403,12 +1403,12 @@ class Extractor {
     node: ts.TypeNode,
   ): { type: TypeNode; isStream: boolean } | null {
     if (ts.isTypeReferenceNode(node)) {
-      const identifier = this.expectIdentifier(node.typeName);
+      const identifier = this.expectNameIdentifier(node.typeName);
       if (identifier == null) return null;
       if (identifier.text == "AsyncIterable") {
         if (node.typeArguments == null || node.typeArguments.length === 0) {
           // TODO: Better error?
-          return this.report(node, E.promiseMissingTypeArg());
+          return this.report(node, E.wrapperMissingTypeArg());
         }
         const t = this.collectType(node.typeArguments[0]);
         if (t == null) return null;
@@ -1431,12 +1431,12 @@ class Extractor {
 
   maybeUnwrapPromise(node: ts.TypeNode): ts.TypeNode | null {
     if (ts.isTypeReferenceNode(node)) {
-      const identifier = this.expectIdentifier(node.typeName);
+      const identifier = this.expectNameIdentifier(node.typeName);
       if (identifier == null) return null;
 
       if (identifier.text === "Promise") {
         if (node.typeArguments == null || node.typeArguments.length === 0) {
-          return this.report(node, E.promiseMissingTypeArg());
+          return this.report(node, E.wrapperMissingTypeArg());
         }
         return node.typeArguments[0];
       }
@@ -1506,7 +1506,7 @@ class Extractor {
     const description = this.collectDescription(node);
 
     let directives: ConstDirectiveNode[] = [];
-    const id = this.expectIdentifier(node.name);
+    const id = this.expectNameIdentifier(node.name);
     if (id == null) return null;
 
     const deprecated = this.collectDeprecated(node);
@@ -1580,7 +1580,7 @@ class Extractor {
   }
 
   typeReference(node: ts.TypeReferenceNode): TypeNode | null {
-    const identifier = this.expectIdentifier(node.typeName);
+    const identifier = this.expectNameIdentifier(node.typeName);
     if (identifier == null) return null;
 
     const typeName = identifier.text;
@@ -1624,11 +1624,11 @@ class Extractor {
     );
   }
 
-  expectIdentifier(node: ts.Node): ts.Identifier | null {
+  expectNameIdentifier(node: ts.Node): ts.Identifier | null {
     if (ts.isIdentifier(node)) {
       return node;
     }
-    return this.report(node, E.expectedIdentifier());
+    return this.report(node, E.expectedNameIdentifier());
   }
 
   findTag(node: ts.Node, tagName: string): ts.JSDocTag | null {
@@ -1644,12 +1644,7 @@ class Extractor {
         return tsRelated(tag, "Additional tag");
       });
 
-      const message =
-        tagName === IMPLEMENTS_TAG_DEPRECATED
-          ? E.duplicateInterfaceTag()
-          : E.duplicateTag(tagName);
-
-      return this.report(tags[0], message, additionalTags);
+      return this.report(tags[0], E.duplicateTag(tagName), additionalTags);
     }
     return tags[0];
   }

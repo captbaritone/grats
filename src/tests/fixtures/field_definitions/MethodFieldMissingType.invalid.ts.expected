@@ -12,7 +12,7 @@ class SomeType {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/field_definitions/MethodFieldMissingType.invalid.ts:4:3 - error: Expected GraphQL field to have a type.
+src/tests/fixtures/field_definitions/MethodFieldMissingType.invalid.ts:4:3 - error: Expected GraphQL field to have an explicitly defined type. Grats needs to be able to see the type of the field to generate a GraphQL schema.
 
 4   someMethodField() {
     ~~~~~~~~~~~~~~~

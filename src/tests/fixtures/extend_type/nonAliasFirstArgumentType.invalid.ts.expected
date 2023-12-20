@@ -14,7 +14,7 @@ export function greeting(query: { name: string }): string {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/extend_type/nonAliasFirstArgumentType.invalid.ts:7:33 - error: Expected first argument of a `@gqlField` function to be typed as a `@gqlType` type.
+src/tests/fixtures/extend_type/nonAliasFirstArgumentType.invalid.ts:7:33 - error: Expected first argument of a `@gqlField` function to be typed as a type reference. Grats treats the first argument the parent object of the field. Therefore Grats needs to see the type of the parent object to generate a GraphQL schema.
 
 7 export function greeting(query: { name: string }): string {
                                   ~~~~~~~~~~~~~~~~

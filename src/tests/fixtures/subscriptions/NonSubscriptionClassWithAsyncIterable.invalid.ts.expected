@@ -13,7 +13,7 @@ export class User {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/subscriptions/NonSubscriptionClassWithAsyncIterable.invalid.ts:4:23 - error: Unexpected AsyncIterable. Only fields on `Subscription` should return an AsyncIterable.
+src/tests/fixtures/subscriptions/NonSubscriptionClassWithAsyncIterable.invalid.ts:4:23 - error: Unexpected AsyncIterable. Only fields on `Subscription` should return an `AsyncIterable`. Non-subscription fields are only expected to return a single value.
 
 4   async *greetings(): AsyncIterable<string> {
                         ~~~~~~~~~~~~~~~~~~~~~
