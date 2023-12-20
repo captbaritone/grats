@@ -1,22 +1,5 @@
 # How Grats Works
 
-```mermaid
-sequenceDiagram
-    participant u as User accesses service
-    participant rp as Reverse proxy
-    participant ak as authentik
-    participant s as Service
-    u->>rp: Initial request
-    rp->>ak: Checks authentication
-    alt User is authenticated
-        ak ->> rp: Successful response
-        rp ->> s: Initial request is forwarded
-    else User needs to be authenticated
-        ak ->> rp: Redirect to the login page
-        rp ->> u: Redirect is passed to enduser
-    end
-```
-
 _This is a technical deep dive for those who are curious about how Grats works under the hood. You do not need to read this document in order to use Grats. For a user-centric description of how Grats works see [How it works](../01-getting-started/index.mdx#how-it-works) in our welcome doc._
 
 ---
