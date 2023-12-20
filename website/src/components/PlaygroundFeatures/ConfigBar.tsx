@@ -7,11 +7,15 @@ import store, {
 } from "./store";
 import FormatButton from "./FormatButton";
 import ShareButton from "./ShareButton";
+import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 
 export default function ConfigBar(): JSX.Element {
   const nullableByDefault = useAppSelector(getNullableByDefault);
   const showGratsDirectives = useAppSelector(getShowGratsDirectives);
   const outputOption = useAppSelector(getOutputOption);
+  const { gitHash } = useDocusaurusContext().siteConfig.customFields as {
+    gitHash: string;
+  };
   return (
     <div
       style={{
@@ -88,7 +92,14 @@ export default function ConfigBar(): JSX.Element {
             whiteSpace: "nowrap",
           }}
         >
-          Version: Pre-release Alpha
+          Version:{" "}
+          <a
+            href={`https://github.com/captbaritone/grats/tree/${gitHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {gitHash.slice(0, 7)}
+          </a>
         </div>
       </ConfigBarSide>
     </div>

@@ -32,6 +32,11 @@ const config = {
     locales: ["en"],
   },
 
+  customFields: {
+    // Put your custom environment here
+    gitHash: process.env.REACT_APP_GIT_HASH,
+  },
+
   plugins: [require.resolve("./plugins/webpack.js")],
 
   presets: [
