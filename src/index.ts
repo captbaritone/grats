@@ -10,6 +10,8 @@ import {
 export { printSDLWithoutDirectives } from "./printSchema";
 export * from "./Types";
 export * from "./lib";
+// Used by the experimental TypeScript plugin
+export { extract } from "./Extractor";
 export { codegen } from "./codegen";
 
 // #FIXME: Report diagnostics instead of throwing!
