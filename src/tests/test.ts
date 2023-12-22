@@ -17,6 +17,7 @@ import { codegen } from "../codegen";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import { diff } from "jest-diff";
 import { printSDLWithoutDirectives } from "../printSchema";
+import { METADATA_DIRECTIVE_NAMES } from "../metadataDirectives";
 
 const program = new Command();
 
@@ -121,7 +122,13 @@ const testDirs = [
           gqlErr(locResult.value, "Located here"),
         ]).formatDiagnosticsWithContext();
       } else {
-        const sdl = printSchemaWithDirectives(schemaResult.value, {
+        const sansDirectives = new GraphQLSchema({
+          ...schemaResult.value.toConfig(),
+          directives: schemaResult.value.getDirectives().filter((directive) => {
+            return !METADATA_DIRECTIVE_NAMES.has(directive.name);
+          }),
+        });
+        const sdl = printSchemaWithDirectives(sansDirectives, {
           assumeValid: true,
         });
 

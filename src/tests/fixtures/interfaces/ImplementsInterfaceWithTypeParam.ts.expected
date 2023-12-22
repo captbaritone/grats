@@ -30,12 +30,6 @@ class User implements Person<string> {
 OUTPUT
 -----------------
 -- SDL --
-directive @asyncIterable on FIELD_DEFINITION
-
-directive @propertyName(name: String!) on FIELD_DEFINITION
-
-directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
-
 type SomeType {
   me: User
 }

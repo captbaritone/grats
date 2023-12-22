@@ -14,12 +14,6 @@ class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-directive @asyncIterable on FIELD_DEFINITION
-
-directive @propertyName(name: String!) on FIELD_DEFINITION
-
-directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
-
 """This type was added by @captbaritone!"""
 type SomeType {
   name: String

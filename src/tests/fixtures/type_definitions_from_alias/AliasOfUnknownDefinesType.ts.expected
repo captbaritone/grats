@@ -13,12 +13,6 @@ export function greeting(_: SomeType): string {
 OUTPUT
 -----------------
 -- SDL --
-directive @asyncIterable on FIELD_DEFINITION
-
-directive @propertyName(name: String!) on FIELD_DEFINITION
-
-directive @exported(tsModulePath: String!, functionName: String!, argCount: Int!) on FIELD_DEFINITION
-
 type SomeType {
   greeting: String @exported(tsModulePath: "grats/src/tests/fixtures/type_definitions_from_alias/AliasOfUnknownDefinesType.ts", functionName: "greeting", argCount: 1)
 }
