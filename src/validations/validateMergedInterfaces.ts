@@ -16,7 +16,7 @@ export function validateMergedInterfaces(
   checker: ts.TypeChecker,
   interfaces: ts.InterfaceDeclaration[],
 ): DiagnosticsResult<void> {
-  const errors: ts.Diagnostic[] = [];
+  const errors: ts.DiagnosticWithLocation[] = [];
 
   for (const node of interfaces) {
     const symbol = checker.getSymbolAtLocation(node.name);

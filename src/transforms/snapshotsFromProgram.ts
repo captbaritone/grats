@@ -2,7 +2,7 @@ import * as ts from "typescript";
 import { ParsedCommandLineGrats } from "../gratsConfig";
 import { ExtractionSnapshot, extract } from "../Extractor";
 import {
-  DiagnosticsResult,
+  DiagnosticsWithoutLocationResult,
   collectResults,
   err,
 } from "../utils/DiagnosticError";
@@ -14,8 +14,8 @@ import { extend } from "../utils/helpers";
 export function snapshotsFromProgram(
   program: ts.Program,
   options: ParsedCommandLineGrats,
-): DiagnosticsResult<ExtractionSnapshot[]> {
-  const errors: ts.Diagnostic[] = [];
+): DiagnosticsWithoutLocationResult<ExtractionSnapshot[]> {
+  const errors: ts.DiagnosticWithLocation[] = [];
   const gratsSourceFiles = program.getSourceFiles().filter((sourceFile) => {
     // If the file doesn't contain any GraphQL definitions, skip it.
     if (!/@gql/i.test(sourceFile.text)) {

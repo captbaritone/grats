@@ -31,7 +31,7 @@ export function addInterfaceFields(
   docs: GratsDefinitionNode[],
 ): DiagnosticsResult<DefinitionNode[]> {
   const newDocs: DefinitionNode[] = [];
-  const errors: ts.Diagnostic[] = [];
+  const errors: ts.DiagnosticWithLocation[] = [];
 
   const interfaceGraph = computeInterfaceMap(ctx, docs);
 

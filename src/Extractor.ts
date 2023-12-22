@@ -17,10 +17,10 @@ import {
 } from "graphql";
 import {
   tsErr,
-  DiagnosticsResult,
   err,
   ok,
   tsRelated,
+  DiagnosticsResult,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { NameDefinition, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
@@ -100,7 +100,7 @@ class Extractor {
   interfaceDeclarations: Array<ts.InterfaceDeclaration> = [];
 
   configOptions: ConfigOptions;
-  errors: ts.Diagnostic[] = [];
+  errors: ts.DiagnosticWithLocation[] = [];
   gql: GraphQLConstructor;
 
   constructor(buildOptions: ConfigOptions) {

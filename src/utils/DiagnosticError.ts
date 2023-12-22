@@ -4,8 +4,11 @@ import * as ts from "typescript";
 type Ok<T> = { kind: "OK"; value: T };
 type Err<E> = { kind: "ERROR"; err: E };
 export type Result<T, E> = Ok<T> | Err<E>;
-export type DiagnosticResult<T> = Result<T, ts.Diagnostic>;
-export type DiagnosticsResult<T> = Result<T, ts.Diagnostic[]>;
+export type DiagnosticResult<T> = Result<T, ts.DiagnosticWithLocation>;
+export type DiagnosticsResult<T> = Result<T, ts.DiagnosticWithLocation[]>;
+
+// GraphQL errors might not have a location, so we have to handle that case
+export type DiagnosticsWithoutLocationResult<T> = Result<T, ts.Diagnostic[]>;
 
 export function ok<T>(value: T): Ok<T> {
   return { kind: "OK", value };
@@ -17,7 +20,7 @@ export function err<E>(err: E): Err<E> {
 export function collectResults<T>(
   results: DiagnosticsResult<T>[],
 ): DiagnosticsResult<T[]> {
-  const errors: ts.Diagnostic[] = [];
+  const errors: ts.DiagnosticWithLocation[] = [];
   const values: T[] = [];
   for (const result of results) {
     if (result.kind === "ERROR") {
@@ -148,7 +151,7 @@ export function gqlErr(
   loc: Location,
   message: string,
   relatedInformation?: ts.DiagnosticRelatedInformation[],
-): ts.Diagnostic {
+): ts.DiagnosticWithLocation {
   return {
     messageText: message,
     file: graphqlSourceToSourceFile(loc.source),
@@ -178,7 +181,7 @@ export function tsErr(
   node: ts.Node,
   message: string,
   relatedInformation?: ts.DiagnosticRelatedInformation[],
-): ts.Diagnostic {
+): ts.DiagnosticWithLocation {
   const start = node.getStart();
   const length = node.getEnd() - start;
   const sourceFile = node.getSourceFile();

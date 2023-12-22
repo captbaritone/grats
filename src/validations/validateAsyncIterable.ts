@@ -19,7 +19,7 @@ import { ASYNC_ITERABLE_TYPE_DIRECTIVE } from "../metadataDirectives";
 export function validateAsyncIterable(
   doc: DocumentNode,
 ): DiagnosticsResult<void> {
-  const errors: ts.Diagnostic[] = [];
+  const errors: ts.DiagnosticWithLocation[] = [];
 
   const visitNode = (
     t:
@@ -52,7 +52,7 @@ function validateField(
     | ObjectTypeExtensionNode
     | InterfaceTypeDefinitionNode
     | InterfaceTypeExtensionNode,
-): ts.Diagnostic | void {
+): ts.DiagnosticWithLocation | void {
   if (t.fields == null) return;
   // Note: We assume the default name is used here. When custom operation types are supported
   // we'll need to update this.

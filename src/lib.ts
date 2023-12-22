@@ -9,10 +9,11 @@ import {
   ok,
   err,
   graphQlErrorToDiagnostic,
-  DiagnosticsResult,
+  DiagnosticsWithoutLocationResult,
   Result,
   ReportableDiagnostics,
   combineResults,
+  DiagnosticsResult,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { ExtractionSnapshot } from "./Extractor";
@@ -63,7 +64,7 @@ export function buildSchemaResultWithHost(
 function extractSchema(
   options: ParsedCommandLineGrats,
   host: ts.CompilerHost,
-): DiagnosticsResult<GraphQLSchema> {
+): DiagnosticsWithoutLocationResult<GraphQLSchema> {
   const program = ts.createProgram(options.fileNames, options.options, host);
 
   const snapshotsResult = snapshotsFromProgram(program, options);
@@ -89,7 +90,7 @@ function extractSchema(
 function buildSchemaFromDocumentNode(
   doc: DocumentNode,
   typesWithTypenameField: Set<string>,
-): DiagnosticsResult<GraphQLSchema> {
+): DiagnosticsWithoutLocationResult<GraphQLSchema> {
   // TODO: Currently this does not detect definitions that shadow builtins
   // (`String`, `Int`, etc). However, if we pass a second param (extending an
   // existing schema) we do! So, we should find a way to validate that we don't

@@ -13,7 +13,7 @@ export function resolveTypes(
   ctx: TypeContext,
   doc: DocumentNode,
 ): DiagnosticsResult<DocumentNode> {
-  const errors: ts.Diagnostic[] = [];
+  const errors: ts.DiagnosticWithLocation[] = [];
   const newDoc = visit(doc, {
     [Kind.NAME]: (t) => {
       const namedTypeResult = ctx.resolveNamedType(t);
