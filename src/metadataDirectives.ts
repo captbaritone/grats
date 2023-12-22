@@ -17,10 +17,13 @@ const EXPORTED_FUNCTION_NAME_ARG = "functionName";
 
 export const ASYNC_ITERABLE_TYPE_DIRECTIVE = "asyncIterable";
 
+export const KILLS_PARENT_ON_EXCEPTION_DIRECTIVE = "killsParentOnException";
+
 export const METADATA_DIRECTIVE_NAMES = new Set([
   FIELD_NAME_DIRECTIVE,
   EXPORTED_DIRECTIVE,
   ASYNC_ITERABLE_TYPE_DIRECTIVE,
+  KILLS_PARENT_ON_EXCEPTION_DIRECTIVE,
 ]);
 
 export const DIRECTIVES_AST: DocumentNode = parse(`
@@ -31,6 +34,7 @@ export const DIRECTIVES_AST: DocumentNode = parse(`
       ${EXPORTED_FUNCTION_NAME_ARG}: String!
       ${ARG_COUNT}: Int!
     ) on FIELD_DEFINITION
+    directive @${KILLS_PARENT_ON_EXCEPTION_DIRECTIVE} on FIELD_DEFINITION
 `);
 
 export type AsyncIterableTypeMetadata = true;
@@ -82,6 +86,17 @@ export function makeAsyncIterableDirective(loc: Location): ConstDirectiveNode {
     kind: Kind.DIRECTIVE,
     loc,
     name: { kind: Kind.NAME, loc, value: ASYNC_ITERABLE_TYPE_DIRECTIVE },
+    arguments: [],
+  };
+}
+
+export function makeKillsParentOnExceptionDirective(
+  loc: Location,
+): ConstDirectiveNode {
+  return {
+    kind: Kind.DIRECTIVE,
+    loc,
+    name: { kind: Kind.NAME, loc, value: KILLS_PARENT_ON_EXCEPTION_DIRECTIVE },
     arguments: [],
   };
 }

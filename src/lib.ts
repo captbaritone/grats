@@ -31,6 +31,7 @@ import { addInterfaceFields } from "./transforms/addInterfaceFields";
 import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces";
 import { resolveTypes } from "./transforms/resolveTypes";
 import { validateAsyncIterable } from "./validations/validateAsyncIterable";
+import { applyDefaultNullability } from "./transforms/applyDefaultNullability";
 
 export * from "./gratsConfig";
 
@@ -74,7 +75,7 @@ function extractSchema(
 
   const snapshot = reduceSnapshots(snapshotsResult.value);
 
-  const docResult = docFromSnapshot(program, host, snapshot);
+  const docResult = docFromSnapshot(program, host, snapshot, options);
 
   if (docResult.kind === "ERROR") {
     return docResult;
@@ -126,6 +127,7 @@ export function docFromSnapshot(
   program: ts.Program,
   host: ts.CompilerHost,
   snapshot: ExtractionSnapshot,
+  options: ParsedCommandLineGrats,
 ): DiagnosticsResult<DocumentNode> {
   const checker = program.getTypeChecker();
   const ctx = new TypeContext(checker, host);
@@ -170,7 +172,16 @@ export function docFromSnapshot(
     definitions: definitionsResult.value,
   });
 
-  const docResult = resolveTypes(ctx, filteredDoc);
+  const docWithNullabilityResults = applyDefaultNullability(
+    filteredDoc,
+    options.raw.grats.nullableByDefault,
+  );
+
+  if (docWithNullabilityResults.kind === "ERROR") {
+    return docWithNullabilityResults;
+  }
+
+  const docResult = resolveTypes(ctx, docWithNullabilityResults.value);
   if (docResult.kind === "ERROR") return docResult;
 
   const doc = docResult.value;

@@ -38,6 +38,7 @@ import {
   PropertyNameMetadata,
   makeAsyncIterableDirective,
   makeExportedDirective,
+  makeKillsParentOnExceptionDirective,
   makePropertyNameDirective,
 } from "./metadataDirectives";
 
@@ -73,6 +74,10 @@ export class GraphQLConstructor {
 
   asyncIterableDirective(node: ts.Node): ConstDirectiveNode {
     return makeAsyncIterableDirective(this._loc(node));
+  }
+
+  killsParentOnExceptionDirective(node: ts.Node): ConstDirectiveNode {
+    return makeKillsParentOnExceptionDirective(this._loc(node));
   }
 
   /* Top Level Types */

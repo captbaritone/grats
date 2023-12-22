@@ -263,7 +263,7 @@ export function killsParentOnExceptionWithWrongConfig() {
 }
 
 export function killsParentOnExceptionOnNullable() {
-  return `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` tag. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` is unnecessary on fields that are already nullable.`;
+  return `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` tag on field typed as nullable. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` will force a field to appear as non-nullable in the schema, so it's implementation must also be non-nullable. .`;
 }
 
 export function nonNullTypeCannotBeOptional() {

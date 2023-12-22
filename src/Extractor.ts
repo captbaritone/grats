@@ -24,11 +24,9 @@ import {
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { NameDefinition, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
-import { ConfigOptions } from "./lib";
 import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
 import { GraphQLConstructor, GratsDefinitionNode } from "./GraphQLConstructor";
-import {} from "./metadataDirectives";
 import { relativePath } from "./gratsRoot";
 import { ISSUE_URL } from "./Errors";
 
@@ -82,10 +80,9 @@ export type ExtractionSnapshot = {
  * errors will point to the correct location in the TypeScript source code.
  */
 export function extract(
-  options: ConfigOptions,
   sourceFile: ts.SourceFile,
 ): DiagnosticsResult<ExtractionSnapshot> {
-  const extractor = new Extractor(options);
+  const extractor = new Extractor();
   return extractor.extract(sourceFile);
 }
 
@@ -99,12 +96,10 @@ class Extractor {
   typesWithTypenameField: Set<string> = new Set();
   interfaceDeclarations: Array<ts.InterfaceDeclaration> = [];
 
-  configOptions: ConfigOptions;
   errors: ts.DiagnosticWithLocation[] = [];
   gql: GraphQLConstructor;
 
-  constructor(buildOptions: ConfigOptions) {
-    this.configOptions = buildOptions;
+  constructor() {
     this.gql = new GraphQLConstructor();
   }
 
@@ -389,10 +384,17 @@ class Extractor {
       directives.push(deprecated);
     }
 
+    const killsParentOnExceptionDirective =
+      this.killsParentOnExceptionDirective(node);
+
+    if (killsParentOnExceptionDirective != null) {
+      directives.push(killsParentOnExceptionDirective);
+    }
+
     const field = this.gql.fieldDefinition(
       node,
       name,
-      this.handleErrorBubbling(node, type),
+      type,
       args,
       directives,
       description,
@@ -909,11 +911,17 @@ class Extractor {
     }
     const description = this.collectDescription(node);
 
+    const killsParentOnExceptionDirective =
+      this.killsParentOnExceptionDirective(node);
+
+    if (killsParentOnExceptionDirective != null) {
+      directives.push(killsParentOnExceptionDirective);
+    }
+
     return this.gql.fieldDefinition(
       node,
       name,
-
-      this.handleErrorBubbling(node, type),
+      type,
       null,
       directives,
       description,
@@ -1389,10 +1397,17 @@ class Extractor {
       directives.push(deprecated);
     }
 
+    const killsParentOnExceptionDirective =
+      this.killsParentOnExceptionDirective(node);
+
+    if (killsParentOnExceptionDirective != null) {
+      directives.push(killsParentOnExceptionDirective);
+    }
+
     return this.gql.fieldDefinition(
       node,
       name,
-      this.handleErrorBubbling(node, type),
+      type,
       args,
       directives,
       description,
@@ -1520,10 +1535,17 @@ class Extractor {
       ];
     }
 
+    const killsParentOnExceptionDirective =
+      this.killsParentOnExceptionDirective(node);
+
+    if (killsParentOnExceptionDirective != null) {
+      directives.push(killsParentOnExceptionDirective);
+    }
+
     return this.gql.fieldDefinition(
       node,
       name,
-      this.handleErrorBubbling(node, type),
+      type,
       null,
       directives,
       description,
@@ -1653,32 +1675,17 @@ class Extractor {
   // the server to handle field level executions by simply returning null for
   // that field.
   // https://graphql.org/learn/best-practices/#nullability
-  handleErrorBubbling(parentNode: ts.Node, type: TypeNode) {
+  killsParentOnExceptionDirective(
+    parentNode: ts.Node,
+  ): ConstDirectiveNode | null {
     const tags = ts.getJSDocTags(parentNode);
     const killsParentOnExceptions = tags.find(
       (tag) => tag.tagName.text === KILLS_PARENT_ON_EXCEPTION_TAG,
     );
-
     if (killsParentOnExceptions) {
-      if (!this.configOptions.nullableByDefault) {
-        this.report(
-          killsParentOnExceptions.tagName,
-          E.killsParentOnExceptionWithWrongConfig(),
-        );
-      }
-      if (type.kind !== Kind.NON_NULL_TYPE) {
-        this.report(
-          killsParentOnExceptions.tagName,
-          E.killsParentOnExceptionOnNullable(),
-        );
-      }
-      return type;
+      return this.gql.killsParentOnExceptionDirective(killsParentOnExceptions);
     }
-
-    if (this.configOptions.nullableByDefault) {
-      return this.gql.nullableType(type);
-    }
-    return type;
+    return null;
   }
 }
 
