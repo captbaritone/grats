@@ -16,6 +16,12 @@ Grats' default command (build) creates a TypeScript module containing an executa
 npx grats
 ```
 
+Or, if you want to leave Grats running while you work, you can use the `--watch` option.
+
+```bash
+npx grats --watch
+```
+
 ### Options
 
 ```
@@ -24,9 +30,10 @@ Usage: grats [options] [command]
 Extract GraphQL schema from your TypeScript project
 
 Options:
-  -V, --version               output the version number
-  --tsconfig <TSCONFIG>       Path to tsconfig.json. Defaults to auto-detecting based on the current working directory
-  -h, --help                  display help for command
+  -V, --version              output the version number
+  --tsconfig <TSCONFIG>      Path to tsconfig.json. Defaults to auto-detecting based on the current working directory
+  --watch                    Watch for changes and rebuild schema files as needed
+  -h, --help                 display help for command
 
 Commands:
   locate [options] <ENTITY>

@@ -27,7 +27,7 @@ program
     "--tsconfig <TSCONFIG>",
     "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",
   )
-  .option("--watch", "Watch for changes and rebuild the schema when they occur")
+  .option("--watch", "Watch for changes and rebuild schema files as needed")
   .action(async ({ tsconfig, watch }) => {
     if (watch) {
       startWatchMode(tsconfig);
