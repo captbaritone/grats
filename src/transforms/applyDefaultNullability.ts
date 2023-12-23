@@ -23,9 +23,8 @@ export function applyDefaultNullability(
         }
         // You can only use @killsParentOnException if nullableByDefault is on.
         if (!nullableByDefault) {
-          this.report(
-            killsParent.loc,
-            E.killsParentOnExceptionWithWrongConfig(),
+          errors.push(
+            gqlErr(killsParent.loc, E.killsParentOnExceptionWithWrongConfig()),
           );
         }
         // You can't use @killsParentOnException if it's been typed as nullable
