@@ -54,7 +54,12 @@ export function buildSchemaResultWithHost(
   options: ParsedCommandLineGrats,
   compilerHost: ts.CompilerHost,
 ): Result<GraphQLSchema, ReportableDiagnostics> {
-  const schemaResult = extractSchema(options, compilerHost);
+  const program = ts.createProgram(
+    options.fileNames,
+    options.options,
+    compilerHost,
+  );
+  const schemaResult = extractSchema(options, program);
   if (schemaResult.kind === "ERROR") {
     return err(new ReportableDiagnostics(compilerHost, schemaResult.err));
   }
@@ -62,12 +67,10 @@ export function buildSchemaResultWithHost(
   return ok(schemaResult.value);
 }
 
-function extractSchema(
+export function extractSchema(
   options: ParsedCommandLineGrats,
-  host: ts.CompilerHost,
+  program: ts.Program,
 ): DiagnosticsWithoutLocationResult<GraphQLSchema> {
-  const program = ts.createProgram(options.fileNames, options.options, host);
-
   const snapshotsResult = snapshotsFromProgram(program, options);
   if (snapshotsResult.kind === "ERROR") {
     return snapshotsResult;
@@ -75,7 +78,7 @@ function extractSchema(
 
   const snapshot = reduceSnapshots(snapshotsResult.value);
 
-  const docResult = docFromSnapshot(program, host, snapshot, options);
+  const docResult = docFromSnapshot(program, snapshot, options);
 
   if (docResult.kind === "ERROR") {
     return docResult;
@@ -125,12 +128,11 @@ function buildSchemaFromDocumentNode(
  */
 export function docFromSnapshot(
   program: ts.Program,
-  host: ts.CompilerHost,
   snapshot: ExtractionSnapshot,
   options: ParsedCommandLineGrats,
 ): DiagnosticsResult<DocumentNode> {
   const checker = program.getTypeChecker();
-  const ctx = new TypeContext(checker, host);
+  const ctx = new TypeContext(checker);
 
   // Validate the snapshot
   const mergedResult = combineResults(

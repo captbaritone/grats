@@ -30,14 +30,12 @@ export type NameDefinition = {
  */
 export class TypeContext {
   checker: ts.TypeChecker;
-  host: ts.CompilerHost;
 
   _symbolToName: Map<ts.Symbol, NameDefinition> = new Map();
   _unresolvedTypes: Map<NameNode, ts.Symbol> = new Map();
 
-  constructor(checker: ts.TypeChecker, host: ts.CompilerHost) {
+  constructor(checker: ts.TypeChecker) {
     this.checker = checker;
-    this.host = host;
   }
 
   // Record that a GraphQL construct of type `kind` with the name `name` is

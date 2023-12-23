@@ -17,6 +17,15 @@ We recommend that you add a `grats` script to your project's `package.json`.
 
 This way any contributor can regenerate the schema by running `npm run grats`.
 
+:::info
+You can pass additional arguments to Grats by adding them after `--`. For example:
+
+```bash
+npm run grats -- --watch
+```
+
+:::
+
 ## Check in your schema
 
 We recommend that you include Grats' generated GraphQL and TypeScript schemas in
