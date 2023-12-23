@@ -18,7 +18,7 @@ import { ASYNC_ITERABLE_TYPE_DIRECTIVE } from "../metadataDirectives";
  */
 export function validateAsyncIterable(
   doc: DocumentNode,
-): DiagnosticsResult<void> {
+): DiagnosticsResult<DocumentNode> {
   const errors: ts.DiagnosticWithLocation[] = [];
 
   const visitNode = (
@@ -43,7 +43,7 @@ export function validateAsyncIterable(
   if (errors.length > 0) {
     return err(errors);
   }
-  return ok(undefined);
+  return ok(doc);
 }
 
 function validateField(

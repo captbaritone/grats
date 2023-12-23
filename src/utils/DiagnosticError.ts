@@ -17,6 +17,42 @@ export function err<E>(err: E): Err<E> {
   return { kind: "ERROR", err };
 }
 
+export class ResultPipeline<T, U, E> {
+  result: Result<T, E>;
+
+  constructor(result: Result<T, E>) {
+    this.result = result;
+  }
+
+  map<V>(fn: (t: T) => V): ResultPipeline<V, U, E> {
+    return new ResultPipeline(mapResult(this.result, fn));
+  }
+
+  andThen<V>(fn: (t: T) => Result<V, E>): ResultPipeline<V, U, E> {
+    return new ResultPipeline(andThenResult(this.result, fn));
+  }
+}
+
+function mapResult<T, U, E>(
+  result: Result<T, E>,
+  fn: (t: T) => U,
+): Result<U, E> {
+  if (result.kind === "ERROR") {
+    return result;
+  }
+  return ok(fn(result.value));
+}
+
+function andThenResult<T, U, E>(
+  result: Result<T, E>,
+  fn: (t: T) => Result<U, E>,
+): Result<U, E> {
+  if (result.kind === "ERROR") {
+    return result;
+  }
+  return fn(result.value);
+}
+
 export function collectResults<T>(
   results: DiagnosticsResult<T>[],
 ): DiagnosticsResult<T[]> {
@@ -35,10 +71,10 @@ export function collectResults<T>(
   return ok(values);
 }
 
-export function combineResults<T, U>(
-  result1: DiagnosticsResult<T>,
-  result2: DiagnosticsResult<U>,
-): DiagnosticsResult<[T, U]> {
+export function combineResults<T, U, E>(
+  result1: Result<T, E[]>,
+  result2: Result<U, E[]>,
+): Result<[T, U], E[]> {
   if (result1.kind === "ERROR" && result2.kind === "ERROR") {
     return err([...result1.err, ...result2.err]);
   }

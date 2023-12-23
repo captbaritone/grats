@@ -1,7 +1,7 @@
 import * as ts from "typescript";
 import * as E from "../Errors";
 import {
-  DiagnosticsResult,
+  DiagnosticsWithoutLocationResult,
   err,
   ok,
   tsErr,
@@ -15,7 +15,7 @@ import {
 export function validateMergedInterfaces(
   checker: ts.TypeChecker,
   interfaces: ts.InterfaceDeclaration[],
-): DiagnosticsResult<void> {
+): DiagnosticsWithoutLocationResult<void> {
   const errors: ts.DiagnosticWithLocation[] = [];
 
   for (const node of interfaces) {

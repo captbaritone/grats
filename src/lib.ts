@@ -13,7 +13,7 @@ import {
   Result,
   ReportableDiagnostics,
   combineResults,
-  DiagnosticsResult,
+  ResultPipeline,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { ExtractionSnapshot } from "./Extractor";
@@ -76,17 +76,10 @@ export function extractSchema(
     return snapshotsResult;
   }
 
-  const snapshot = reduceSnapshots(snapshotsResult.value);
-
-  const docResult = docFromSnapshot(program, snapshot, options);
-
-  if (docResult.kind === "ERROR") {
-    return docResult;
-  }
-
-  return buildSchemaFromDocumentNode(
-    docResult.value,
-    snapshot.typesWithTypenameField,
+  return graphQLSchemaFromSnapshot(
+    program,
+    reduceSnapshots(snapshotsResult.value),
+    options.raw.grats.nullableByDefault,
   );
 }
 
@@ -126,63 +119,43 @@ function buildSchemaFromDocumentNode(
  * Given a merged snapshot representing the whole program, construct a GraphQL
  * schema document with metadata directives attached.
  */
-export function docFromSnapshot(
+export function graphQLSchemaFromSnapshot(
   program: ts.Program,
   snapshot: ExtractionSnapshot,
-  options: ParsedCommandLineGrats,
-): DiagnosticsResult<DocumentNode> {
+  nullableByDefault: boolean,
+): DiagnosticsWithoutLocationResult<GraphQLSchema> {
+  const {
+    typesWithTypename: typesWithTypename,
+    interfaceDeclarations,
+    contextReferences,
+  } = snapshot;
   const checker = program.getTypeChecker();
   const ctx = TypeContext.fromSnapshot(checker, snapshot);
 
   // Validate the snapshot
   const mergedResult = combineResults(
-    validateMergedInterfaces(checker, snapshot.interfaceDeclarations),
-    validateContextReferences(ctx, snapshot.contextReferences),
+    validateMergedInterfaces(checker, interfaceDeclarations),
+    validateContextReferences(ctx, contextReferences),
   );
-  if (mergedResult.kind === "ERROR") {
-    return mergedResult;
-  }
-
-  // Fixup the schema SDL
   const definitions: GratsDefinitionNode[] = Array.from(
     DIRECTIVES_AST.definitions,
   );
-
   extend(definitions, snapshot.definitions);
 
-  // If you define a field on an interface using the functional style, we need to add
-  // that field to each concrete type as well. This must be done after all types are created,
-  // but before we validate the schema.
-  const definitionsResult = addInterfaceFields(ctx, definitions);
-  if (definitionsResult.kind === "ERROR") {
-    return definitionsResult;
-  }
-
-  const filteredDoc = filterNonGqlInterfaces(ctx, {
-    kind: Kind.DOCUMENT,
-    definitions: definitionsResult.value,
-  });
-
-  const docWithNullabilityResults = applyDefaultNullability(
-    filteredDoc,
-    options.raw.grats.nullableByDefault,
+  return (
+    new ResultPipeline(mergedResult)
+      .andThen(() => addInterfaceFields(ctx, definitions))
+      .map((definitions) => ({ kind: Kind.DOCUMENT, definitions } as const))
+      // If you define a field on an interface using the functional style, we need to add
+      // that field to each concrete type as well. This must be done after all types are created,
+      // but before we validate the schema.
+      .map((doc) => filterNonGqlInterfaces(ctx, doc))
+      .andThen((doc) => applyDefaultNullability(doc, nullableByDefault))
+      .andThen((doc) => resolveTypes(ctx, doc))
+      .andThen((doc) => validateAsyncIterable(doc))
+      .andThen((doc) => buildSchemaFromDocumentNode(doc, typesWithTypename))
+      .result
   );
-
-  if (docWithNullabilityResults.kind === "ERROR") {
-    return docWithNullabilityResults;
-  }
-
-  const docResult = resolveTypes(ctx, docWithNullabilityResults.value);
-  if (docResult.kind === "ERROR") return docResult;
-
-  const doc = docResult.value;
-
-  const subscriptionsValidationResult = validateAsyncIterable(doc);
-  if (subscriptionsValidationResult.kind === "ERROR") {
-    return subscriptionsValidationResult;
-  }
-
-  return ok(doc);
 }
 
 // Given a list of snapshots, merge them into a single snapshot.
@@ -192,7 +165,7 @@ function reduceSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
     nameDefinitions: new Map(),
     unresolvedNames: new Map(),
     contextReferences: [],
-    typesWithTypenameField: new Set(),
+    typesWithTypename: new Set(),
     interfaceDeclarations: [],
   };
 
@@ -213,8 +186,8 @@ function reduceSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
       result.contextReferences.push(contextReference);
     }
 
-    for (const typeName of snapshot.typesWithTypenameField) {
-      result.typesWithTypenameField.add(typeName);
+    for (const typeName of snapshot.typesWithTypename) {
+      result.typesWithTypename.add(typeName);
     }
 
     for (const interfaceDeclaration of snapshot.interfaceDeclarations) {

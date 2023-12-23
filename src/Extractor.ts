@@ -65,7 +65,7 @@ export type ExtractionSnapshot = {
   readonly unresolvedNames: Map<ts.Node, NameNode>;
   readonly nameDefinitions: Map<ts.Node, NameDefinition>;
   readonly contextReferences: Array<ts.Node>;
-  readonly typesWithTypenameField: Set<string>;
+  readonly typesWithTypename: Set<string>;
   readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
 };
 
@@ -93,7 +93,7 @@ class Extractor {
   unresolvedNames: Map<ts.Node, NameNode> = new Map();
   nameDefinitions: Map<ts.Node, NameDefinition> = new Map();
   contextReferences: Array<ts.Node> = [];
-  typesWithTypenameField: Set<string> = new Set();
+  typesWithTypename: Set<string> = new Set();
   interfaceDeclarations: Array<ts.InterfaceDeclaration> = [];
 
   errors: ts.DiagnosticWithLocation[] = [];
@@ -193,7 +193,7 @@ class Extractor {
       unresolvedNames: this.unresolvedNames,
       nameDefinitions: this.nameDefinitions,
       contextReferences: this.contextReferences,
-      typesWithTypenameField: this.typesWithTypenameField,
+      typesWithTypename: this.typesWithTypename,
       interfaceDeclarations: this.interfaceDeclarations,
     });
   }
@@ -631,7 +631,7 @@ class Extractor {
       return this.isValidTypeNameProperty(member, expectedName);
     });
     if (hasTypename) {
-      this.typesWithTypenameField.add(expectedName);
+      this.typesWithTypename.add(expectedName);
     }
   }
 

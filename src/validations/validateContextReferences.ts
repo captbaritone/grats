@@ -1,7 +1,7 @@
 import * as ts from "typescript";
 import * as E from "../Errors";
 import {
-  DiagnosticsResult,
+  DiagnosticsWithoutLocationResult,
   err,
   ok,
   tsErr,
@@ -16,7 +16,7 @@ import { TypeContext } from "../TypeContext";
 export function validateContextReferences(
   ctx: TypeContext,
   references: ts.Node[],
-): DiagnosticsResult<void> {
+): DiagnosticsWithoutLocationResult<void> {
   let gqlContext: { declaration: ts.Node; firstReference: ts.Node } | null =
     null;
   for (const typeName of references) {
