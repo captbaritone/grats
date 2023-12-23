@@ -132,7 +132,7 @@ export function docFromSnapshot(
   options: ParsedCommandLineGrats,
 ): DiagnosticsResult<DocumentNode> {
   const checker = program.getTypeChecker();
-  const ctx = new TypeContext(checker);
+  const ctx = TypeContext.fromSnapshot(checker, snapshot);
 
   // Validate the snapshot
   const mergedResult = combineResults(
@@ -143,18 +143,7 @@ export function docFromSnapshot(
     return mergedResult;
   }
 
-  // Propagate snapshot data to type context
-
-  for (const [node, typeName] of snapshot.unresolvedNames) {
-    ctx.markUnresolvedType(node, typeName);
-  }
-
-  for (const [node, definition] of snapshot.nameDefinitions) {
-    ctx.recordTypeName(node, definition.name, definition.kind);
-  }
-
   // Fixup the schema SDL
-
   const definitions: GratsDefinitionNode[] = Array.from(
     DIRECTIVES_AST.definitions,
   );

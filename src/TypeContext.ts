@@ -8,6 +8,7 @@ import {
   DiagnosticsResult,
 } from "./utils/DiagnosticError";
 import * as E from "./Errors";
+import { ExtractionSnapshot } from "./Extractor";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
@@ -34,13 +35,27 @@ export class TypeContext {
   _symbolToName: Map<ts.Symbol, NameDefinition> = new Map();
   _unresolvedTypes: Map<NameNode, ts.Symbol> = new Map();
 
+  static fromSnapshot(
+    checker: ts.TypeChecker,
+    snapshot: ExtractionSnapshot,
+  ): TypeContext {
+    const self = new TypeContext(checker);
+    for (const [node, typeName] of snapshot.unresolvedNames) {
+      self._markUnresolvedType(node, typeName);
+    }
+    for (const [node, definition] of snapshot.nameDefinitions) {
+      self._recordTypeName(node, definition.name, definition.kind);
+    }
+    return self;
+  }
+
   constructor(checker: ts.TypeChecker) {
     this.checker = checker;
   }
 
   // Record that a GraphQL construct of type `kind` with the name `name` is
   // declared at `node`.
-  recordTypeName(node: ts.Node, name: NameNode, kind: NameDefinition["kind"]) {
+  _recordTypeName(node: ts.Node, name: NameNode, kind: NameDefinition["kind"]) {
     const symbol = this.checker.getSymbolAtLocation(node);
     if (symbol == null) {
       // FIXME: Make this a diagnostic
@@ -56,7 +71,7 @@ export class TypeContext {
   }
 
   // Record that a type reference `node`
-  markUnresolvedType(node: ts.Node, name: NameNode) {
+  _markUnresolvedType(node: ts.Node, name: NameNode) {
     const symbol = this.checker.getSymbolAtLocation(node);
     if (symbol == null) {
       //
@@ -68,7 +83,7 @@ export class TypeContext {
     this._unresolvedTypes.set(name, this.resolveSymbol(symbol));
   }
 
-  findSymbolDeclaration(startSymbol: ts.Symbol): ts.Declaration | null {
+  public findSymbolDeclaration(startSymbol: ts.Symbol): ts.Declaration | null {
     const symbol = this.resolveSymbol(startSymbol);
     const declaration = symbol.declarations?.[0];
     return declaration ?? null;
