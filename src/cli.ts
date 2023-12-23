@@ -6,6 +6,7 @@ import {
   ConfigOptions,
   ParsedCommandLineGrats,
   buildSchemaResult,
+  extractSchema,
 } from "./lib";
 import { Command } from "commander";
 import { writeFileSync } from "fs";
@@ -14,6 +15,7 @@ import { version } from "../package.json";
 import { locate } from "./Locate";
 import { printGratsSDL, printExecutableSchema } from "./printSchema";
 import * as ts from "typescript";
+import { ReportableDiagnostics } from "./utils/DiagnosticError";
 
 const program = new Command();
 
@@ -25,8 +27,13 @@ program
     "--tsconfig <TSCONFIG>",
     "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",
   )
-  .action(async ({ tsconfig }) => {
-    build(tsconfig);
+  .option("--watch", "Watch for changes and rebuild the schema when they occur")
+  .action(async ({ tsconfig, watch }) => {
+    if (watch) {
+      startWatchMode(tsconfig);
+    } else {
+      runBuild(tsconfig);
+    }
   });
 
 program
@@ -37,10 +44,15 @@ program
     "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",
   )
   .action((entity, { tsconfig }) => {
-    const { config } = getTsConfig(tsconfig);
+    const { config } = getTsConfigOrReportAndExit(tsconfig);
 
-    const schema = buildSchema(config);
-    const loc = locate(schema, entity);
+    const schemaResult = buildSchemaResult(config);
+    if (schemaResult.kind === "ERROR") {
+      console.error(schemaResult.err.formatDiagnosticsWithColorAndContext());
+      process.exit(1);
+    }
+
+    const loc = locate(schemaResult.value, entity);
     if (loc.kind === "ERROR") {
       console.error(loc.err);
       process.exit(1);
@@ -50,9 +62,54 @@ program
 
 program.parse();
 
-function build(tsconfig?: string) {
-  const { config, configPath } = getTsConfig(tsconfig);
-  const schema = buildSchema(config);
+/**
+ * Run the compiler in watch mode.
+ */
+function startWatchMode(tsconfig: string) {
+  const { config, configPath } = getTsConfigOrReportAndExit(tsconfig);
+  const watchHost = ts.createWatchCompilerHost(
+    configPath,
+    {},
+    ts.sys,
+    ts.createSemanticDiagnosticsBuilderProgram,
+    (diagnostic) => reportDiagnostics([diagnostic]),
+    (diagnostic) => reportDiagnostics([diagnostic]),
+  );
+  watchHost.afterProgramCreate = (program) => {
+    // For now we just rebuild the schema on every change.
+    const schemaResult = extractSchema(config, program.getProgram());
+    if (schemaResult.kind === "ERROR") {
+      reportDiagnostics(schemaResult.err);
+      return;
+    }
+    writeSchemaFilesAndReport(schemaResult.value, config, configPath);
+  };
+  ts.createWatchProgram(watchHost);
+}
+
+/**
+ * Run the compiler performing a single build.
+ */
+function runBuild(tsconfig: string) {
+  const { config, configPath } = getTsConfigOrReportAndExit(tsconfig);
+  const schemaResult = buildSchemaResult(config);
+  if (schemaResult.kind === "ERROR") {
+    console.error(schemaResult.err.formatDiagnosticsWithColorAndContext());
+    process.exit(1);
+  }
+  const sortedSchema = lexicographicSortSchema(schemaResult.value);
+
+  writeSchemaFilesAndReport(sortedSchema, config, configPath);
+}
+
+/**
+ * Serializes the SDL and TypeScript schema to disk and reports to the console.
+ */
+function writeSchemaFilesAndReport(
+  schema: GraphQLSchema,
+  config: ParsedCommandLineGrats,
+  configPath: string,
+) {
   const sortedSchema = lexicographicSortSchema(schema);
 
   const gratsOptions: ConfigOptions = config.raw.grats;
@@ -69,8 +126,16 @@ function build(tsconfig?: string) {
   console.error(`Grats: Wrote schema to \`${absOutput}\`.`);
 }
 
+/**
+ * Utility function to report diagnostics to the console.
+ */
+function reportDiagnostics(diagnostics: ts.Diagnostic[]) {
+  const reportable = ReportableDiagnostics.fromDiagnostics(diagnostics);
+  console.error(reportable.formatDiagnosticsWithColorAndContext());
+}
+
 // Locate and read the tsconfig.json file
-function getTsConfig(tsconfig?: string): {
+function getTsConfigOrReportAndExit(tsconfig?: string): {
   configPath: string;
   config: ParsedCommandLineGrats;
 } {
@@ -85,16 +150,6 @@ function getTsConfig(tsconfig?: string): {
     process.exit(1);
   }
   return { configPath, config: optionsResult.value };
-}
-
-function buildSchema(options: ParsedCommandLineGrats): GraphQLSchema {
-  const schemaResult = buildSchemaResult(options);
-  if (schemaResult.kind === "ERROR") {
-    console.error(schemaResult.err.formatDiagnosticsWithColorAndContext());
-    process.exit(1);
-  }
-
-  return schemaResult.value;
 }
 
 // Format a location for printing to the console. Tools like VS Code and iTerm
