@@ -1683,7 +1683,9 @@ class Extractor {
       (tag) => tag.tagName.text === KILLS_PARENT_ON_EXCEPTION_TAG,
     );
     if (killsParentOnExceptions) {
-      return this.gql.killsParentOnExceptionDirective(killsParentOnExceptions);
+      return this.gql.killsParentOnExceptionDirective(
+        killsParentOnExceptions.tagName,
+      );
     }
     return null;
   }
