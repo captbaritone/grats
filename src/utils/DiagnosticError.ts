@@ -144,6 +144,7 @@ export function graphQlErrorToDiagnostic(error: GraphQLError): ts.Diagnostic {
     start,
     length,
     relatedInformation,
+    source: "Grats",
   };
 }
 
@@ -160,6 +161,7 @@ export function gqlErr(
     start: loc.start,
     length: loc.end - loc.start,
     relatedInformation,
+    source: "Grats",
   };
 }
 
@@ -193,6 +195,7 @@ export function tsErr(
     start,
     length,
     relatedInformation,
+    source: "Grats",
   };
 }
 
