@@ -24,9 +24,7 @@ import { validateTypenames } from "./validations/validateTypenames";
 import { snapshotsFromProgram } from "./transforms/snapshotsFromProgram";
 import { validateMergedInterfaces } from "./validations/validateMergedInterfaces";
 import { validateContextReferences } from "./validations/validateContextReferences";
-import { GratsDefinitionNode } from "./GraphQLConstructor";
-import { DIRECTIVES_AST } from "./metadataDirectives";
-import { extend } from "./utils/helpers";
+import { withDirectives } from "./metadataDirectives";
 import { addInterfaceFields } from "./transforms/addInterfaceFields";
 import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces";
 import { resolveTypes } from "./transforms/resolveTypes";
@@ -76,10 +74,32 @@ export function extractSchema(
     return snapshotsResult;
   }
 
-  return graphQLSchemaFromSnapshot(
-    program,
-    reduceSnapshots(snapshotsResult.value),
-    options.raw.grats.nullableByDefault,
+  const snapshot = reduceSnapshots(snapshotsResult.value);
+
+  const { typesWithTypename } = snapshot;
+  const { nullableByDefault } = options.raw.grats;
+  const checker = program.getTypeChecker();
+  const ctx = TypeContext.fromSnapshot(checker, snapshot);
+
+  const validationResult = combineResults(
+    validateMergedInterfaces(checker, snapshot.interfaceDeclarations),
+    validateContextReferences(ctx, snapshot.contextReferences),
+  );
+
+  return (
+    new ResultPipeline(validationResult)
+      .map(() => withDirectives(snapshot.definitions))
+      .andThen((definitions) => addInterfaceFields(ctx, definitions))
+      .map((definitions) => ({ kind: Kind.DOCUMENT, definitions } as const))
+      // If you define a field on an interface using the functional style, we need to add
+      // that field to each concrete type as well. This must be done after all types are created,
+      // but before we validate the schema.
+      .map((doc) => filterNonGqlInterfaces(ctx, doc))
+      .andThen((doc) => applyDefaultNullability(doc, nullableByDefault))
+      .andThen((doc) => resolveTypes(ctx, doc))
+      .andThen((doc) => validateAsyncIterable(doc))
+      .andThen((doc) => buildSchemaFromDocumentNode(doc, typesWithTypename))
+      .result
   );
 }
 
@@ -113,49 +133,6 @@ function buildSchemaFromDocumentNode(
   if (typenameDiagnostics.length > 0) return err(typenameDiagnostics);
 
   return ok(schema);
-}
-
-/**
- * Given a merged snapshot representing the whole program, construct a GraphQL
- * schema document with metadata directives attached.
- */
-export function graphQLSchemaFromSnapshot(
-  program: ts.Program,
-  snapshot: ExtractionSnapshot,
-  nullableByDefault: boolean,
-): DiagnosticsWithoutLocationResult<GraphQLSchema> {
-  const {
-    typesWithTypename: typesWithTypename,
-    interfaceDeclarations,
-    contextReferences,
-  } = snapshot;
-  const checker = program.getTypeChecker();
-  const ctx = TypeContext.fromSnapshot(checker, snapshot);
-
-  // Validate the snapshot
-  const mergedResult = combineResults(
-    validateMergedInterfaces(checker, interfaceDeclarations),
-    validateContextReferences(ctx, contextReferences),
-  );
-  const definitions: GratsDefinitionNode[] = Array.from(
-    DIRECTIVES_AST.definitions,
-  );
-  extend(definitions, snapshot.definitions);
-
-  return (
-    new ResultPipeline(mergedResult)
-      .andThen(() => addInterfaceFields(ctx, definitions))
-      .map((definitions) => ({ kind: Kind.DOCUMENT, definitions } as const))
-      // If you define a field on an interface using the functional style, we need to add
-      // that field to each concrete type as well. This must be done after all types are created,
-      // but before we validate the schema.
-      .map((doc) => filterNonGqlInterfaces(ctx, doc))
-      .andThen((doc) => applyDefaultNullability(doc, nullableByDefault))
-      .andThen((doc) => resolveTypes(ctx, doc))
-      .andThen((doc) => validateAsyncIterable(doc))
-      .andThen((doc) => buildSchemaFromDocumentNode(doc, typesWithTypename))
-      .result
-  );
 }
 
 // Given a list of snapshots, merge them into a single snapshot.

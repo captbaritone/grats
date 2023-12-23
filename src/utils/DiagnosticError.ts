@@ -25,32 +25,18 @@ export class ResultPipeline<T, U, E> {
   }
 
   map<V>(fn: (t: T) => V): ResultPipeline<V, U, E> {
-    return new ResultPipeline(mapResult(this.result, fn));
+    if (this.result.kind === "ERROR") {
+      return new ResultPipeline(this.result);
+    }
+    return new ResultPipeline(ok(fn(this.result.value)));
   }
 
   andThen<V>(fn: (t: T) => Result<V, E>): ResultPipeline<V, U, E> {
-    return new ResultPipeline(andThenResult(this.result, fn));
+    if (this.result.kind === "ERROR") {
+      return new ResultPipeline(this.result);
+    }
+    return new ResultPipeline(fn(this.result.value));
   }
-}
-
-function mapResult<T, U, E>(
-  result: Result<T, E>,
-  fn: (t: T) => U,
-): Result<U, E> {
-  if (result.kind === "ERROR") {
-    return result;
-  }
-  return ok(fn(result.value));
-}
-
-function andThenResult<T, U, E>(
-  result: Result<T, E>,
-  fn: (t: T) => Result<U, E>,
-): Result<U, E> {
-  if (result.kind === "ERROR") {
-    return result;
-  }
-  return fn(result.value);
 }
 
 export function collectResults<T>(
