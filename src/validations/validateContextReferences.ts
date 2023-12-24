@@ -2,11 +2,10 @@ import * as ts from "typescript";
 import * as E from "../Errors";
 import {
   DiagnosticsWithoutLocationResult,
-  err,
-  ok,
   tsErr,
   tsRelated,
 } from "../utils/DiagnosticError";
+import { err, ok } from "../utils/Result";
 import { TypeContext } from "../TypeContext";
 
 /**

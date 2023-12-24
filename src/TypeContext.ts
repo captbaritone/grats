@@ -3,10 +3,9 @@ import * as ts from "typescript";
 import {
   gqlErr,
   DiagnosticResult,
-  err,
-  ok,
   DiagnosticsResult,
 } from "./utils/DiagnosticError";
+import { err, ok } from "./utils/Result";
 import * as E from "./Errors";
 import { ExtractionSnapshot } from "./Extractor";
 

@@ -1,93 +1,12 @@
 import { GraphQLError, Location, Source } from "graphql";
 import * as ts from "typescript";
+import { Result } from "./Result";
 
-interface IResult<T, E> {
-  map<T2>(fn: (t: T) => T2): IResult<T2, E>;
-  andThen<U, E2>(fn: (t: T) => IResult<U, E2>): IResult<U, E | E2>;
-  mapErr<E2>(fn: (e: E) => E2): IResult<T, E2>;
-}
-
-class Ok<T> implements IResult<T, never> {
-  kind: "OK";
-  value: T;
-  constructor(value: T) {
-    this.kind = "OK";
-    this.value = value;
-  }
-  map<T2>(fn: (t: T) => T2): Ok<T2> {
-    return new Ok(fn(this.value));
-  }
-  andThen<U, E>(fn: (t: T) => Result<U, E>): Result<U, E> {
-    return fn(this.value);
-  }
-  mapErr(): Ok<T> {
-    return this;
-  }
-}
-class Err<E> implements IResult<never, E> {
-  kind: "ERROR";
-  err: E;
-  constructor(err: E) {
-    this.kind = "ERROR";
-    this.err = err;
-  }
-  map(): Err<E> {
-    return this;
-  }
-  andThen(): Err<E> {
-    return this;
-  }
-  mapErr<E2>(fn: (e: E) => E2): Err<E2> {
-    return new Err(fn(this.err));
-  }
-}
-export type Result<T, E> = Ok<T> | Err<E>;
 export type DiagnosticResult<T> = Result<T, ts.DiagnosticWithLocation>;
 export type DiagnosticsResult<T> = Result<T, ts.DiagnosticWithLocation[]>;
 
 // GraphQL errors might not have a location, so we have to handle that case
 export type DiagnosticsWithoutLocationResult<T> = Result<T, ts.Diagnostic[]>;
-
-export function ok<T>(value: T): Ok<T> {
-  return new Ok(value);
-}
-export function err<E>(err: E): Err<E> {
-  return new Err(err);
-}
-
-export function collectResults<T>(
-  results: DiagnosticsResult<T>[],
-): DiagnosticsResult<T[]> {
-  const errors: ts.DiagnosticWithLocation[] = [];
-  const values: T[] = [];
-  for (const result of results) {
-    if (result.kind === "ERROR") {
-      errors.push(...result.err);
-    } else {
-      values.push(result.value);
-    }
-  }
-  if (errors.length > 0) {
-    return err(errors);
-  }
-  return ok(values);
-}
-
-export function combineResults<T, U, E>(
-  result1: Result<T, E[]>,
-  result2: Result<U, E[]>,
-): Result<[T, U], E[]> {
-  if (result1.kind === "ERROR" && result2.kind === "ERROR") {
-    return err([...result1.err, ...result2.err]);
-  }
-  if (result1.kind === "ERROR") {
-    return result1;
-  }
-  if (result2.kind === "ERROR") {
-    return result2;
-  }
-  return ok([result1.value, result2.value]);
-}
 
 export class ReportableDiagnostics {
   _host: ts.FormatDiagnosticsHost;

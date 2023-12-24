@@ -1,11 +1,8 @@
 import * as ts from "typescript";
 import { ParsedCommandLineGrats, validateGratsOptions } from "./lib";
-import {
-  ReportableDiagnostics,
-  Result,
-  err,
-  ok,
-} from "./utils/DiagnosticError";
+import { ReportableDiagnostics } from "./utils/DiagnosticError";
+import { err, ok } from "./utils/Result";
+import { Result } from "./utils/Result";
 
 export { printSDLWithoutDirectives } from "./printSchema";
 export * from "./Types";

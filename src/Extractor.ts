@@ -15,13 +15,8 @@ import {
   ConstListValueNode,
   assertName,
 } from "graphql";
-import {
-  tsErr,
-  err,
-  ok,
-  tsRelated,
-  DiagnosticsResult,
-} from "./utils/DiagnosticError";
+import { tsErr, tsRelated, DiagnosticsResult } from "./utils/DiagnosticError";
+import { err, ok } from "./utils/Result";
 import * as ts from "typescript";
 import { NameDefinition, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
 import * as E from "./Errors";

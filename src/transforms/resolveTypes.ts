@@ -1,6 +1,7 @@
 import * as ts from "typescript";
 import { DocumentNode, Kind, visit } from "graphql";
-import { DiagnosticsResult, err, ok } from "../utils/DiagnosticError";
+import { DiagnosticsResult } from "../utils/DiagnosticError";
+import { err, ok } from "../utils/Result";
 import { TypeContext } from "../TypeContext";
 
 /**

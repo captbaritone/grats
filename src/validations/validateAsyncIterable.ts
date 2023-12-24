@@ -8,7 +8,8 @@ import {
   ObjectTypeExtensionNode,
   visit,
 } from "graphql";
-import { DiagnosticsResult, err, gqlErr, ok } from "../utils/DiagnosticError";
+import { DiagnosticsResult, gqlErr } from "../utils/DiagnosticError";
+import { err, ok } from "../utils/Result";
 import * as E from "../Errors";
 import { ASYNC_ITERABLE_TYPE_DIRECTIVE } from "../metadataDirectives";
 

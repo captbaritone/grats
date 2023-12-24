@@ -6,24 +6,23 @@ import {
   validateSchema,
 } from "graphql";
 import {
-  ok,
-  err,
   graphQlErrorToDiagnostic,
   DiagnosticsWithoutLocationResult,
-  Result,
   ReportableDiagnostics,
-  combineResults,
 } from "./utils/DiagnosticError";
+import { concatResults } from "./utils/Result";
+import { ok, err } from "./utils/Result";
+import { Result } from "./utils/Result";
 import * as ts from "typescript";
 import { ExtractionSnapshot } from "./Extractor";
 import { TypeContext } from "./TypeContext";
 import { validateSDL } from "graphql/validation/validate";
 import { ParsedCommandLineGrats } from "./gratsConfig";
 import { validateTypenames } from "./validations/validateTypenames";
-import { snapshotsFromProgram } from "./transforms/snapshotsFromProgram";
+import { snapshotsFromProgram as extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram";
 import { validateMergedInterfaces } from "./validations/validateMergedInterfaces";
 import { validateContextReferences } from "./validations/validateContextReferences";
-import { withDirectives } from "./metadataDirectives";
+import { withDirectives as addMetadataDirectives } from "./metadataDirectives";
 import { addInterfaceFields } from "./transforms/addInterfaceFields";
 import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces";
 import { resolveTypes } from "./transforms/resolveTypes";
@@ -61,35 +60,48 @@ export function buildSchemaResultWithHost(
   );
 }
 
+/**
+ * The core transformation pipeline of Grats.
+ */
 export function extractSchema(
   options: ParsedCommandLineGrats,
   program: ts.Program,
 ): DiagnosticsWithoutLocationResult<GraphQLSchema> {
-  return snapshotsFromProgram(program, options)
-    .map((snapshots) => reduceSnapshots(snapshots))
+  return extractSnapshotsFromProgram(program, options)
+    .map((snapshots) => combineSnapshots(snapshots))
     .andThen((snapshot) => {
       const { typesWithTypename } = snapshot;
       const { nullableByDefault } = options.raw.grats;
       const checker = program.getTypeChecker();
       const ctx = TypeContext.fromSnapshot(checker, snapshot);
 
-      const validationResult = combineResults(
+      // Collect validation errors
+      const validationResult = concatResults(
         validateMergedInterfaces(checker, snapshot.interfaceDeclarations),
         validateContextReferences(ctx, snapshot.contextReferences),
       );
 
       return (
         validationResult
-          .map(() => withDirectives(snapshot.definitions))
-          .andThen((definitions) => addInterfaceFields(ctx, definitions))
-          .map((definitions) => ({ kind: Kind.DOCUMENT, definitions } as const))
+          // Add the metadata directive definitions to definitions
+          // found in the snapshot.
+          .map(() => addMetadataDirectives(snapshot.definitions))
           // If you define a field on an interface using the functional style, we need to add
           // that field to each concrete type as well. This must be done after all types are created,
           // but before we validate the schema.
+          .andThen((definitions) => addInterfaceFields(ctx, definitions))
+          // Convert the definitions into a DocumentNode
+          .map((definitions) => ({ kind: Kind.DOCUMENT, definitions } as const))
+          // Filter out any `implements` clauses that are not GraphQL interfaces.
           .map((doc) => filterNonGqlInterfaces(ctx, doc))
+          // Apply default nullability to fields and arguments, and detect any misuse of
+          // `@killsParentOnException`.
           .andThen((doc) => applyDefaultNullability(doc, nullableByDefault))
+          // Resolve TypeScript type references to the GraphQL types they represent (or error).
           .andThen((doc) => resolveTypes(ctx, doc))
+          // Ensure all subscription fields, and _only_ subscription fields, return an AsyncIterable.
           .andThen((doc) => validateAsyncIterable(doc))
+          // Build and validate the schema with regards to the GraphQL spec.
           .andThen((doc) => buildSchemaFromDocumentNode(doc, typesWithTypename))
       );
     });
@@ -128,7 +140,7 @@ function buildSchemaFromDocumentNode(
 }
 
 // Given a list of snapshots, merge them into a single snapshot.
-function reduceSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
+function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
   const result: ExtractionSnapshot = {
     definitions: [],
     nameDefinitions: new Map(),

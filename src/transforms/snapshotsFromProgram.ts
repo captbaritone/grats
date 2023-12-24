@@ -1,11 +1,9 @@
 import * as ts from "typescript";
 import { ParsedCommandLineGrats } from "../gratsConfig";
 import { ExtractionSnapshot, extract } from "../Extractor";
-import {
-  DiagnosticsWithoutLocationResult,
-  collectResults,
-  err,
-} from "../utils/DiagnosticError";
+import { DiagnosticsWithoutLocationResult } from "../utils/DiagnosticError";
+import { collectResults } from "../utils/Result";
+import { err } from "../utils/Result";
 import { extend } from "../utils/helpers";
 
 // Given a ts.Program, extract a set of ExtractionSnapshots from it.
