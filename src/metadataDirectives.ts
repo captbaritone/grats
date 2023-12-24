@@ -38,7 +38,7 @@ export const DIRECTIVES_AST: DocumentNode = parse(`
     directive @${KILLS_PARENT_ON_EXCEPTION_DIRECTIVE} on FIELD_DEFINITION
 `);
 
-export function withDirectives(
+export function addMetadataDirectives(
   definitions: Array<GratsDefinitionNode>,
 ): Array<GratsDefinitionNode> {
   return [...DIRECTIVES_AST.definitions, ...definitions];
