@@ -13,7 +13,6 @@ import {
   Result,
   ReportableDiagnostics,
   combineResults,
-  ResultPipeline,
 } from "./utils/DiagnosticError";
 import * as ts from "typescript";
 import { ExtractionSnapshot } from "./Extractor";
@@ -57,19 +56,16 @@ export function buildSchemaResultWithHost(
     options.options,
     compilerHost,
   );
-  const schemaResult = extractSchema(options, program);
-  if (schemaResult.kind === "ERROR") {
-    return err(new ReportableDiagnostics(compilerHost, schemaResult.err));
-  }
-
-  return ok(schemaResult.value);
+  return extractSchema(options, program).mapErr(
+    (e) => new ReportableDiagnostics(compilerHost, e),
+  );
 }
 
 export function extractSchema(
   options: ParsedCommandLineGrats,
   program: ts.Program,
 ): DiagnosticsWithoutLocationResult<GraphQLSchema> {
-  return new ResultPipeline(snapshotsFromProgram(program, options))
+  return snapshotsFromProgram(program, options)
     .map((snapshots) => reduceSnapshots(snapshots))
     .andThen((snapshot) => {
       const { typesWithTypename } = snapshot;
@@ -83,7 +79,7 @@ export function extractSchema(
       );
 
       return (
-        new ResultPipeline(validationResult)
+        validationResult
           .map(() => withDirectives(snapshot.definitions))
           .andThen((definitions) => addInterfaceFields(ctx, definitions))
           .map((definitions) => ({ kind: Kind.DOCUMENT, definitions } as const))
@@ -95,9 +91,8 @@ export function extractSchema(
           .andThen((doc) => resolveTypes(ctx, doc))
           .andThen((doc) => validateAsyncIterable(doc))
           .andThen((doc) => buildSchemaFromDocumentNode(doc, typesWithTypename))
-          .result
       );
-    }).result;
+    });
 }
 
 // Given a SDL AST, build and validate a GraphQLSchema.

@@ -1,8 +1,46 @@
 import { GraphQLError, Location, Source } from "graphql";
 import * as ts from "typescript";
 
-type Ok<T> = { kind: "OK"; value: T };
-type Err<E> = { kind: "ERROR"; err: E };
+interface IResult<T, E> {
+  map<T2>(fn: (t: T) => T2): IResult<T2, E>;
+  andThen<U, E2>(fn: (t: T) => IResult<U, E2>): IResult<U, E | E2>;
+  mapErr<E2>(fn: (e: E) => E2): IResult<T, E2>;
+}
+
+class Ok<T> implements IResult<T, never> {
+  kind: "OK";
+  value: T;
+  constructor(value: T) {
+    this.kind = "OK";
+    this.value = value;
+  }
+  map<T2>(fn: (t: T) => T2): Ok<T2> {
+    return new Ok(fn(this.value));
+  }
+  andThen<U, E>(fn: (t: T) => Result<U, E>): Result<U, E> {
+    return fn(this.value);
+  }
+  mapErr(): Ok<T> {
+    return this;
+  }
+}
+class Err<E> implements IResult<never, E> {
+  kind: "ERROR";
+  err: E;
+  constructor(err: E) {
+    this.kind = "ERROR";
+    this.err = err;
+  }
+  map(): Err<E> {
+    return this;
+  }
+  andThen(): Err<E> {
+    return this;
+  }
+  mapErr<E2>(fn: (e: E) => E2): Err<E2> {
+    return new Err(fn(this.err));
+  }
+}
 export type Result<T, E> = Ok<T> | Err<E>;
 export type DiagnosticResult<T> = Result<T, ts.DiagnosticWithLocation>;
 export type DiagnosticsResult<T> = Result<T, ts.DiagnosticWithLocation[]>;
@@ -11,32 +49,10 @@ export type DiagnosticsResult<T> = Result<T, ts.DiagnosticWithLocation[]>;
 export type DiagnosticsWithoutLocationResult<T> = Result<T, ts.Diagnostic[]>;
 
 export function ok<T>(value: T): Ok<T> {
-  return { kind: "OK", value };
+  return new Ok(value);
 }
 export function err<E>(err: E): Err<E> {
-  return { kind: "ERROR", err };
-}
-
-export class ResultPipeline<T, U, E> {
-  result: Result<T, E>;
-
-  constructor(result: Result<T, E>) {
-    this.result = result;
-  }
-
-  map<V>(fn: (t: T) => V): ResultPipeline<V, U, E> {
-    if (this.result.kind === "ERROR") {
-      return new ResultPipeline(this.result);
-    }
-    return new ResultPipeline(ok(fn(this.result.value)));
-  }
-
-  andThen<V>(fn: (t: T) => Result<V, E>): ResultPipeline<V, U, E> {
-    if (this.result.kind === "ERROR") {
-      return new ResultPipeline(this.result);
-    }
-    return new ResultPipeline(fn(this.result.value));
-  }
+  return new Err(err);
 }
 
 export function collectResults<T>(
