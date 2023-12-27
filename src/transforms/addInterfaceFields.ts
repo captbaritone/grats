@@ -4,11 +4,10 @@ import { DefinitionNode, Kind } from "graphql";
 import { TypeContext } from "../TypeContext";
 import {
   DiagnosticsResult,
-  err,
   gqlErr,
   gqlRelated,
-  ok,
 } from "../utils/DiagnosticError";
+import { err, ok } from "../utils/Result";
 import { InterfaceMap, computeInterfaceMap } from "../InterfaceGraph";
 import { extend } from "../utils/helpers";
 import { EXPORTED_DIRECTIVE } from "../metadataDirectives";

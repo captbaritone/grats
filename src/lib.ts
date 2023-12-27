@@ -6,27 +6,23 @@ import {
   validateSchema,
 } from "graphql";
 import {
-  ok,
-  err,
-  graphQlErrorToDiagnostic,
   DiagnosticsWithoutLocationResult,
-  Result,
   ReportableDiagnostics,
-  combineResults,
-  DiagnosticsResult,
+  graphQlErrorToDiagnostic,
 } from "./utils/DiagnosticError";
+import { concatResults, ResultPipe } from "./utils/Result";
+import { ok, err } from "./utils/Result";
+import { Result } from "./utils/Result";
 import * as ts from "typescript";
 import { ExtractionSnapshot } from "./Extractor";
 import { TypeContext } from "./TypeContext";
 import { validateSDL } from "graphql/validation/validate";
 import { ParsedCommandLineGrats } from "./gratsConfig";
 import { validateTypenames } from "./validations/validateTypenames";
-import { snapshotsFromProgram } from "./transforms/snapshotsFromProgram";
+import { extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram";
 import { validateMergedInterfaces } from "./validations/validateMergedInterfaces";
 import { validateContextReferences } from "./validations/validateContextReferences";
-import { GratsDefinitionNode } from "./GraphQLConstructor";
-import { DIRECTIVES_AST } from "./metadataDirectives";
-import { extend } from "./utils/helpers";
+import { addMetadataDirectives } from "./metadataDirectives";
 import { addInterfaceFields } from "./transforms/addInterfaceFields";
 import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces";
 import { resolveTypes } from "./transforms/resolveTypes";
@@ -59,140 +55,97 @@ export function buildSchemaResultWithHost(
     options.options,
     compilerHost,
   );
-  const schemaResult = extractSchema(options, program);
-  if (schemaResult.kind === "ERROR") {
-    return err(new ReportableDiagnostics(compilerHost, schemaResult.err));
-  }
-
-  return ok(schemaResult.value);
+  return new ResultPipe(extractSchema(options, program))
+    .mapErr((e) => new ReportableDiagnostics(compilerHost, e))
+    .result();
 }
 
+/**
+ * The core transformation pipeline of Grats.
+ */
 export function extractSchema(
   options: ParsedCommandLineGrats,
   program: ts.Program,
 ): DiagnosticsWithoutLocationResult<GraphQLSchema> {
-  const snapshotsResult = snapshotsFromProgram(program, options);
-  if (snapshotsResult.kind === "ERROR") {
-    return snapshotsResult;
-  }
+  return new ResultPipe(extractSnapshotsFromProgram(program, options))
+    .map((snapshots) => combineSnapshots(snapshots))
+    .andThen((snapshot) => {
+      const { typesWithTypename } = snapshot;
+      const { nullableByDefault } = options.raw.grats;
+      const checker = program.getTypeChecker();
+      const ctx = TypeContext.fromSnapshot(checker, snapshot);
 
-  const snapshot = reduceSnapshots(snapshotsResult.value);
+      // Collect validation errors
+      const validationResult = concatResults(
+        validateMergedInterfaces(checker, snapshot.interfaceDeclarations),
+        validateContextReferences(ctx, snapshot.contextReferences),
+      );
 
-  const docResult = docFromSnapshot(program, snapshot, options);
-
-  if (docResult.kind === "ERROR") {
-    return docResult;
-  }
-
-  return buildSchemaFromDocumentNode(
-    docResult.value,
-    snapshot.typesWithTypenameField,
-  );
+      return (
+        new ResultPipe(validationResult)
+          // Add the metadata directive definitions to definitions
+          // found in the snapshot.
+          .map(() => addMetadataDirectives(snapshot.definitions))
+          // If you define a field on an interface using the functional style, we need to add
+          // that field to each concrete type as well. This must be done after all types are created,
+          // but before we validate the schema.
+          .andThen((definitions) => addInterfaceFields(ctx, definitions))
+          // Convert the definitions into a DocumentNode
+          .map((definitions) => ({ kind: Kind.DOCUMENT, definitions } as const))
+          // Filter out any `implements` clauses that are not GraphQL interfaces.
+          .map((doc) => filterNonGqlInterfaces(ctx, doc))
+          // Apply default nullability to fields and arguments, and detect any misuse of
+          // `@killsParentOnException`.
+          .andThen((doc) => applyDefaultNullability(doc, nullableByDefault))
+          // Resolve TypeScript type references to the GraphQL types they represent (or error).
+          .andThen((doc) => resolveTypes(ctx, doc))
+          // Ensure all subscription fields, and _only_ subscription fields, return an AsyncIterable.
+          .andThen((doc) => validateAsyncIterable(doc))
+          // Validate the document node against the GraphQL spec.
+          // Build and validate the schema with regards to the GraphQL spec.
+          .andThen((doc) => buildSchemaFromDoc(doc))
+          // Ensure that every type which implements an interface or is a member of a
+          // union has a __typename field.
+          .andThen((schema) => validateTypenames(schema, typesWithTypename))
+          .result()
+      );
+    })
+    .result();
 }
 
 // Given a SDL AST, build and validate a GraphQLSchema.
-function buildSchemaFromDocumentNode(
+function buildSchemaFromDoc(
   doc: DocumentNode,
-  typesWithTypenameField: Set<string>,
 ): DiagnosticsWithoutLocationResult<GraphQLSchema> {
   // TODO: Currently this does not detect definitions that shadow builtins
   // (`String`, `Int`, etc). However, if we pass a second param (extending an
   // existing schema) we do! So, we should find a way to validate that we don't
   // shadow builtins.
-  const validationErrors = validateSDL(doc).map((e) => {
-    return graphQlErrorToDiagnostic(e);
-  });
+  const validationErrors = validateSDL(doc);
   if (validationErrors.length > 0) {
-    return err(validationErrors);
+    return err(validationErrors.map(graphQlErrorToDiagnostic));
   }
   const schema = buildASTSchema(doc, { assumeValidSDL: true });
 
   const diagnostics = validateSchema(schema)
     // FIXME: Handle case where query is not defined (no location)
-    .filter((e) => e.source && e.locations && e.positions)
-    .map((e) => graphQlErrorToDiagnostic(e));
+    .filter((e) => e.source && e.locations && e.positions);
 
   if (diagnostics.length > 0) {
-    return err(diagnostics);
+    return err(diagnostics.map(graphQlErrorToDiagnostic));
   }
-
-  const typenameDiagnostics = validateTypenames(schema, typesWithTypenameField);
-  if (typenameDiagnostics.length > 0) return err(typenameDiagnostics);
 
   return ok(schema);
 }
 
-/**
- * Given a merged snapshot representing the whole program, construct a GraphQL
- * schema document with metadata directives attached.
- */
-export function docFromSnapshot(
-  program: ts.Program,
-  snapshot: ExtractionSnapshot,
-  options: ParsedCommandLineGrats,
-): DiagnosticsResult<DocumentNode> {
-  const checker = program.getTypeChecker();
-  const ctx = TypeContext.fromSnapshot(checker, snapshot);
-
-  // Validate the snapshot
-  const mergedResult = combineResults(
-    validateMergedInterfaces(checker, snapshot.interfaceDeclarations),
-    validateContextReferences(ctx, snapshot.contextReferences),
-  );
-  if (mergedResult.kind === "ERROR") {
-    return mergedResult;
-  }
-
-  // Fixup the schema SDL
-  const definitions: GratsDefinitionNode[] = Array.from(
-    DIRECTIVES_AST.definitions,
-  );
-
-  extend(definitions, snapshot.definitions);
-
-  // If you define a field on an interface using the functional style, we need to add
-  // that field to each concrete type as well. This must be done after all types are created,
-  // but before we validate the schema.
-  const definitionsResult = addInterfaceFields(ctx, definitions);
-  if (definitionsResult.kind === "ERROR") {
-    return definitionsResult;
-  }
-
-  const filteredDoc = filterNonGqlInterfaces(ctx, {
-    kind: Kind.DOCUMENT,
-    definitions: definitionsResult.value,
-  });
-
-  const docWithNullabilityResults = applyDefaultNullability(
-    filteredDoc,
-    options.raw.grats.nullableByDefault,
-  );
-
-  if (docWithNullabilityResults.kind === "ERROR") {
-    return docWithNullabilityResults;
-  }
-
-  const docResult = resolveTypes(ctx, docWithNullabilityResults.value);
-  if (docResult.kind === "ERROR") return docResult;
-
-  const doc = docResult.value;
-
-  const subscriptionsValidationResult = validateAsyncIterable(doc);
-  if (subscriptionsValidationResult.kind === "ERROR") {
-    return subscriptionsValidationResult;
-  }
-
-  return ok(doc);
-}
-
 // Given a list of snapshots, merge them into a single snapshot.
-function reduceSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
+function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
   const result: ExtractionSnapshot = {
     definitions: [],
     nameDefinitions: new Map(),
     unresolvedNames: new Map(),
     contextReferences: [],
-    typesWithTypenameField: new Set(),
+    typesWithTypename: new Set(),
     interfaceDeclarations: [],
   };
 
@@ -213,8 +166,8 @@ function reduceSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
       result.contextReferences.push(contextReference);
     }
 
-    for (const typeName of snapshot.typesWithTypenameField) {
-      result.typesWithTypenameField.add(typeName);
+    for (const typeName of snapshot.typesWithTypename) {
+      result.typesWithTypename.add(typeName);
     }
 
     for (const interfaceDeclaration of snapshot.interfaceDeclarations) {

@@ -5,7 +5,7 @@ import {
   GraphQLSchema,
   Location,
 } from "graphql";
-import { Result, err, ok } from "./utils/DiagnosticError";
+import { Result, err, ok } from "./utils/Result";
 
 type EntityName = {
   parent: string;

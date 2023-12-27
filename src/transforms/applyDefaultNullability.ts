@@ -1,5 +1,6 @@
 import { DocumentNode, Kind, visit } from "graphql";
-import { DiagnosticsResult, err, gqlErr, ok } from "../utils/DiagnosticError";
+import { DiagnosticsResult, gqlErr } from "../utils/DiagnosticError";
+import { err, ok } from "../utils/Result";
 import * as ts from "typescript";
 import * as E from "../Errors";
 import { KILLS_PARENT_ON_EXCEPTION_DIRECTIVE } from "../metadataDirectives";

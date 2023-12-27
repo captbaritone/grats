@@ -1,12 +1,11 @@
 import * as ts from "typescript";
 import * as E from "../Errors";
 import {
-  DiagnosticsResult,
-  err,
-  ok,
+  DiagnosticsWithoutLocationResult,
   tsErr,
   tsRelated,
 } from "../utils/DiagnosticError";
+import { err, ok } from "../utils/Result";
 
 /**
  * Prevent using merged interfaces as GraphQL interfaces.
@@ -15,7 +14,7 @@ import {
 export function validateMergedInterfaces(
   checker: ts.TypeChecker,
   interfaces: ts.InterfaceDeclaration[],
-): DiagnosticsResult<void> {
+): DiagnosticsWithoutLocationResult<void> {
   const errors: ts.DiagnosticWithLocation[] = [];
 
   for (const node of interfaces) {

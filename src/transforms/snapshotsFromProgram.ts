@@ -1,17 +1,15 @@
 import * as ts from "typescript";
 import { ParsedCommandLineGrats } from "../gratsConfig";
 import { ExtractionSnapshot, extract } from "../Extractor";
-import {
-  DiagnosticsWithoutLocationResult,
-  collectResults,
-  err,
-} from "../utils/DiagnosticError";
+import { DiagnosticsWithoutLocationResult } from "../utils/DiagnosticError";
+import { collectResults } from "../utils/Result";
+import { err } from "../utils/Result";
 import { extend } from "../utils/helpers";
 
 // Given a ts.Program, extract a set of ExtractionSnapshots from it.
 // In the future this part might be able to be incremental, were we only run extraction
 // on changed files.
-export function snapshotsFromProgram(
+export function extractSnapshotsFromProgram(
   program: ts.Program,
   options: ParsedCommandLineGrats,
 ): DiagnosticsWithoutLocationResult<ExtractionSnapshot[]> {

@@ -1,55 +1,12 @@
 import { GraphQLError, Location, Source } from "graphql";
 import * as ts from "typescript";
+import { Result } from "./Result";
 
-type Ok<T> = { kind: "OK"; value: T };
-type Err<E> = { kind: "ERROR"; err: E };
-export type Result<T, E> = Ok<T> | Err<E>;
 export type DiagnosticResult<T> = Result<T, ts.DiagnosticWithLocation>;
 export type DiagnosticsResult<T> = Result<T, ts.DiagnosticWithLocation[]>;
 
 // GraphQL errors might not have a location, so we have to handle that case
 export type DiagnosticsWithoutLocationResult<T> = Result<T, ts.Diagnostic[]>;
-
-export function ok<T>(value: T): Ok<T> {
-  return { kind: "OK", value };
-}
-export function err<E>(err: E): Err<E> {
-  return { kind: "ERROR", err };
-}
-
-export function collectResults<T>(
-  results: DiagnosticsResult<T>[],
-): DiagnosticsResult<T[]> {
-  const errors: ts.DiagnosticWithLocation[] = [];
-  const values: T[] = [];
-  for (const result of results) {
-    if (result.kind === "ERROR") {
-      errors.push(...result.err);
-    } else {
-      values.push(result.value);
-    }
-  }
-  if (errors.length > 0) {
-    return err(errors);
-  }
-  return ok(values);
-}
-
-export function combineResults<T, U>(
-  result1: DiagnosticsResult<T>,
-  result2: DiagnosticsResult<U>,
-): DiagnosticsResult<[T, U]> {
-  if (result1.kind === "ERROR" && result2.kind === "ERROR") {
-    return err([...result1.err, ...result2.err]);
-  }
-  if (result1.kind === "ERROR") {
-    return result1;
-  }
-  if (result2.kind === "ERROR") {
-    return result2;
-  }
-  return ok([result1.value, result2.value]);
-}
 
 export class ReportableDiagnostics {
   _host: ts.FormatDiagnosticsHost;

@@ -1,6 +1,10 @@
 import * as ts from "typescript";
 import { GraphQLSchema, isAbstractType, isType } from "graphql";
-import { gqlErr } from "../utils/DiagnosticError";
+import {
+  DiagnosticsWithoutLocationResult,
+  gqlErr,
+} from "../utils/DiagnosticError";
+import { err, ok } from "../utils/Result";
 
 /**
  * Ensure that every type which implements an interface or is a member of a
@@ -9,7 +13,7 @@ import { gqlErr } from "../utils/DiagnosticError";
 export function validateTypenames(
   schema: GraphQLSchema,
   hasTypename: Set<string>,
-): ts.Diagnostic[] {
+): DiagnosticsWithoutLocationResult<GraphQLSchema> {
   const typenameDiagnostics: ts.Diagnostic[] = [];
   const abstractTypes = Object.values(schema.getTypeMap()).filter(
     isAbstractType,
@@ -35,5 +39,8 @@ export function validateTypenames(
       }
     }
   }
-  return typenameDiagnostics;
+  if (typenameDiagnostics.length > 0) {
+    return err(typenameDiagnostics);
+  }
+  return ok(schema);
 }

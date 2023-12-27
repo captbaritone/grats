@@ -6,6 +6,7 @@ import {
   Location,
   parse,
 } from "graphql";
+import { GratsDefinitionNode } from "./GraphQLConstructor";
 
 export const FIELD_NAME_DIRECTIVE = "propertyName";
 const FIELD_NAME_ARG = "name";
@@ -36,6 +37,12 @@ export const DIRECTIVES_AST: DocumentNode = parse(`
     ) on FIELD_DEFINITION
     directive @${KILLS_PARENT_ON_EXCEPTION_DIRECTIVE} on FIELD_DEFINITION
 `);
+
+export function addMetadataDirectives(
+  definitions: Array<GratsDefinitionNode>,
+): Array<GratsDefinitionNode> {
+  return [...DIRECTIVES_AST.definitions, ...definitions];
+}
 
 export type AsyncIterableTypeMetadata = true;
 
