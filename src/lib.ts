@@ -8,9 +8,9 @@ import {
 import {
   DiagnosticsWithoutLocationResult,
   ReportableDiagnostics,
-  graphQLErrorsToDiagnostics,
+  graphQlErrorToDiagnostic,
 } from "./utils/DiagnosticError";
-import { concatResults } from "./utils/Result";
+import { concatResults, ResultPipe } from "./utils/Result";
 import { ok, err } from "./utils/Result";
 import { Result } from "./utils/Result";
 import * as ts from "typescript";
@@ -55,9 +55,9 @@ export function buildSchemaResultWithHost(
     options.options,
     compilerHost,
   );
-  return extractSchema(options, program).mapErr(
-    (e) => new ReportableDiagnostics(compilerHost, e),
-  );
+  return new ResultPipe(extractSchema(options, program))
+    .mapErr((e) => new ReportableDiagnostics(compilerHost, e))
+    .result();
 }
 
 /**
@@ -67,7 +67,7 @@ export function extractSchema(
   options: ParsedCommandLineGrats,
   program: ts.Program,
 ): DiagnosticsWithoutLocationResult<GraphQLSchema> {
-  return extractSnapshotsFromProgram(program, options)
+  return new ResultPipe(extractSnapshotsFromProgram(program, options))
     .map((snapshots) => combineSnapshots(snapshots))
     .andThen((snapshot) => {
       const { typesWithTypename } = snapshot;
@@ -82,7 +82,7 @@ export function extractSchema(
       );
 
       return (
-        validationResult
+        new ResultPipe(validationResult)
           // Add the metadata directive definitions to definitions
           // found in the snapshot.
           .map(() => addMetadataDirectives(snapshot.definitions))
@@ -107,8 +107,10 @@ export function extractSchema(
           // Ensure that every type which implements an interface or is a member of a
           // union has a __typename field.
           .andThen((schema) => validateTypenames(schema, typesWithTypename))
+          .result()
       );
-    });
+    })
+    .result();
 }
 
 // Given a SDL AST, build and validate a GraphQLSchema.
@@ -121,7 +123,7 @@ function buildSchemaFromDoc(
   // shadow builtins.
   const validationErrors = validateSDL(doc);
   if (validationErrors.length > 0) {
-    return err(validationErrors).mapErr(graphQLErrorsToDiagnostics);
+    return err(validationErrors.map(graphQlErrorToDiagnostic));
   }
   const schema = buildASTSchema(doc, { assumeValidSDL: true });
 
@@ -130,7 +132,7 @@ function buildSchemaFromDoc(
     .filter((e) => e.source && e.locations && e.positions);
 
   if (diagnostics.length > 0) {
-    return err(diagnostics).mapErr(graphQLErrorsToDiagnostics);
+    return err(diagnostics.map(graphQlErrorToDiagnostic));
   }
 
   return ok(schema);

@@ -1,62 +1,51 @@
 import * as ts from "typescript";
 import { DiagnosticsResult } from "./DiagnosticError";
 
-/**
- * Result provides an interface for the result of fallible operations.
- *
- * It is similar to Rust's Result type in that it supports monadic chaining
- * (mapping).
- *
- * Practically speaking, it's modeled to the type system as a union in order to
- * allow for discrimination of the result type. However, to the user it presents as
- * a single class with a state ("OK" or "ERROR") and mapper methods.
- */
 export type Result<T, E> = Ok<T> | Err<E>;
+
+type Ok<T> = { kind: "OK"; value: T };
+type Err<E> = { kind: "ERROR"; err: E };
 
 // Create a new `Result` in an OK state.
 export function ok<T>(value: T): Ok<T> {
-  return new Ok(value);
+  return { kind: "OK", value };
 }
 // Create a new `Result` in an ERROR state.
 export function err<E>(err: E): Err<E> {
-  return new Err(err);
+  return { kind: "ERROR", err };
 }
 
-// Private interface just to ensure both variants
-// implement the same methods. Outside of this module the `Result` type should
-// be used.
-interface IResult<T, E> {
-  kind: "OK" | "ERROR";
-  map<T2>(fn: (t: T) => T2): Result<T2, E>;
-  andThen<U, E2>(fn: (t: T) => Result<U, E2>): Result<U, E | E2>;
-  mapErr<E2>(fn: (e: E) => E2): Result<T, E2>;
-}
-
-class Ok<T> implements IResult<T, unknown> {
-  kind = "OK" as const;
-  constructor(public value: T) {}
-  map<T2>(fn: (t: T) => T2): Ok<T2> {
-    return new Ok(fn(this.value));
+/**
+ * Helper class for chaining together a series of `Result` operations.
+ */
+export class ResultPipe<T, E> {
+  constructor(private readonly _result: Result<T, E>) {}
+  // Transform the value if OK, otherwise return the error.
+  map<T2>(fn: (value: T) => T2): ResultPipe<T2, E> {
+    if (this._result.kind === "OK") {
+      return new ResultPipe(ok(fn(this._result.value)));
+    }
+    return new ResultPipe(this._result);
   }
-  andThen<U, E>(fn: (t: T) => Result<U, E>): Result<U, E> {
-    return fn(this.value);
+  // Transform the error if ERROR, otherwise return the value.
+  mapErr<E2>(fn: (e: E) => E2): ResultPipe<T, E2> {
+    if (this._result.kind === "ERROR") {
+      return new ResultPipe(err(fn(this._result.err)));
+    }
+    return new ResultPipe(this._result);
   }
-  mapErr(): Ok<T> {
-    return this;
+  // Transform the value into a new result if OK, otherwise return the error.
+  // The new result may have a new value type, but must have the same error
+  // type.
+  andThen<U>(fn: (value: T) => Result<U, E>): ResultPipe<U, E> {
+    if (this._result.kind === "OK") {
+      return new ResultPipe(fn(this._result.value));
+    }
+    return new ResultPipe(this._result);
   }
-}
-
-class Err<E> implements IResult<unknown, E> {
-  kind = "ERROR" as const;
-  constructor(public err: E) {}
-  map(): Err<E> {
-    return this;
-  }
-  andThen(): Err<E> {
-    return this;
-  }
-  mapErr<E2>(fn: (e: E) => E2): Err<E2> {
-    return new Err(fn(this.err));
+  // Return the result
+  result(): Result<T, E> {
+    return this._result;
   }
 }
 
