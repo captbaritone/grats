@@ -53,6 +53,10 @@ function stripColor(str: string): string {
   return str.replace(/\x1B[[(?);]{0,2}(;?\d)*./g, "");
 }
 
+export function graphQLErrorsToDiagnostics(errors: readonly GraphQLError[]) {
+  return errors.map(graphQlErrorToDiagnostic);
+}
+
 // TODO: This is just a hack. Improve handling of multiple locations.
 // TODO: Turn this back on
 /* eslint-disable @typescript-eslint/no-non-null-assertion */

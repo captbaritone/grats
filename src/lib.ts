@@ -6,9 +6,9 @@ import {
   validateSchema,
 } from "graphql";
 import {
-  graphQlErrorToDiagnostic,
   DiagnosticsWithoutLocationResult,
   ReportableDiagnostics,
+  graphQLErrorsToDiagnostics,
 } from "./utils/DiagnosticError";
 import { concatResults } from "./utils/Result";
 import { ok, err } from "./utils/Result";
@@ -101,40 +101,37 @@ export function extractSchema(
           .andThen((doc) => resolveTypes(ctx, doc))
           // Ensure all subscription fields, and _only_ subscription fields, return an AsyncIterable.
           .andThen((doc) => validateAsyncIterable(doc))
+          // Validate the document node against the GraphQL spec.
           // Build and validate the schema with regards to the GraphQL spec.
-          .andThen((doc) => buildSchemaFromDocumentNode(doc, typesWithTypename))
+          .andThen((doc) => buildSchemaFromDoc(doc))
+          // Ensure that every type which implements an interface or is a member of a
+          // union has a __typename field.
+          .andThen((schema) => validateTypenames(schema, typesWithTypename))
       );
     });
 }
 
 // Given a SDL AST, build and validate a GraphQLSchema.
-function buildSchemaFromDocumentNode(
+function buildSchemaFromDoc(
   doc: DocumentNode,
-  typesWithTypenameField: Set<string>,
 ): DiagnosticsWithoutLocationResult<GraphQLSchema> {
   // TODO: Currently this does not detect definitions that shadow builtins
   // (`String`, `Int`, etc). However, if we pass a second param (extending an
   // existing schema) we do! So, we should find a way to validate that we don't
   // shadow builtins.
-  const validationErrors = validateSDL(doc).map((e) => {
-    return graphQlErrorToDiagnostic(e);
-  });
+  const validationErrors = validateSDL(doc);
   if (validationErrors.length > 0) {
-    return err(validationErrors);
+    return err(validationErrors).mapErr(graphQLErrorsToDiagnostics);
   }
   const schema = buildASTSchema(doc, { assumeValidSDL: true });
 
   const diagnostics = validateSchema(schema)
     // FIXME: Handle case where query is not defined (no location)
-    .filter((e) => e.source && e.locations && e.positions)
-    .map((e) => graphQlErrorToDiagnostic(e));
+    .filter((e) => e.source && e.locations && e.positions);
 
   if (diagnostics.length > 0) {
-    return err(diagnostics);
+    return err(diagnostics).mapErr(graphQLErrorsToDiagnostics);
   }
-
-  const typenameDiagnostics = validateTypenames(schema, typesWithTypenameField);
-  if (typenameDiagnostics.length > 0) return err(typenameDiagnostics);
 
   return ok(schema);
 }
