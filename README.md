@@ -2,7 +2,7 @@
 
 [![Join our Discord!](https://img.shields.io/discord/1089650710796320868?logo=discord)](https://capt.dev/grats-chat)
 
-_Beta Software: Grats is largely stable and being used in production in multiple places. If you encounter any issues, dont hesitate to let us know._
+_Beta Software: Grats is largely stable and being used in production in multiple places. If you encounter any issues, don't hesitate to let us know._
 
 **What if building a GraphQL server were as simple as just writing functions?**
 
@@ -32,7 +32,7 @@ class User {
 }
 ```
 
-After running `npx grats`, you'll find a `schema.ts` module that exports an executable schema, and a `schema.graphql` file contins your GraphQL schema definition:
+After running `npx grats`, you'll find a `schema.ts` module that exports an executable schema, and a `schema.graphql` file contains your GraphQL schema definition:
 
 ```graphql
 type User {
@@ -41,7 +41,7 @@ type User {
 }
 ```
 
-That's just the begining! To learn more, **Read the docs: https://grats.capt.dev/**
+That's just the beginning! To learn more, **Read the docs: https://grats.capt.dev/**
 
 ## Contributing
 
@@ -52,7 +52,7 @@ See [`CONTRIBUTING.md`](./CONTRIBUTING.md) in the repo root for details on how t
 - [@mofeiZ](https://github.com/mofeiZ) and [@alunyov](https://github/alunyov) for their Relay hack-week project exploring a similar idea.
 - [@josephsavona](https://github.com/josephsavona) for input on the design of [Relay Resolvers](https://relay.dev/docs/guides/relay-resolvers/) which inspired this project.
 - [@bradzacher](https://github.com/bradzacher) for tips on how to handle TypeScript ASTs.
-- Everyone who worked on Meta's Hack GraphQL server, the developer experince of which inspired this project.
+- Everyone who worked on Meta's Hack GraphQL server, the developer experience of which inspired this project.
 - A number of other projects which seem to have explored similar ideas in the past:
   - [ts2gql](https://github.com/convoyinc/ts2gql)
   - [ts2graphql](https://github.com/cevek/ts2graphql)
