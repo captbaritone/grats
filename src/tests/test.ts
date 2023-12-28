@@ -18,6 +18,9 @@ import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import { diff } from "jest-diff";
 import { printSDLWithoutDirectives } from "../printSchema";
 import { METADATA_DIRECTIVE_NAMES } from "../metadataDirectives";
+import * as semver from "semver";
+
+const TS_VERSION = ts.version;
 
 const program = new Command();
 
@@ -65,7 +68,7 @@ const testDirs = [
     fixturesDir,
     testFilePattern: /\.ts$/,
     ignoreFilePattern: null,
-    transformer: (code: string, fileName: string) => {
+    transformer: (code: string, fileName: string): string | false => {
       const firstLine = code.split("\n")[0];
       let options: Partial<ConfigOptions> = {
         nullableByDefault: true,
@@ -73,9 +76,19 @@ const testDirs = [
       };
       if (firstLine.startsWith("// {")) {
         const json = firstLine.slice(3);
-        const testOptions = JSON.parse(json);
+        const { tsVersion, ...testOptions } = JSON.parse(json);
+        if (tsVersion != null && !semver.satisfies(TS_VERSION, tsVersion)) {
+          console.log(
+            "Skipping test because TS version doesn't match",
+            tsVersion,
+            "does not match",
+            TS_VERSION,
+          );
+          return false;
+        }
         options = { ...options, ...testOptions };
       }
+
       const files = [
         `${fixturesDir}/${fileName}`,
         path.join(__dirname, `../Types.ts`),
@@ -140,7 +153,10 @@ const testDirs = [
     fixturesDir: integrationFixturesDir,
     testFilePattern: /index.ts$/,
     ignoreFilePattern: /schema.ts$/,
-    transformer: async (code: string, fileName: string) => {
+    transformer: async (
+      code: string,
+      fileName: string,
+    ): Promise<string | false> => {
       const filePath = `${integrationFixturesDir}/${fileName}`;
       const schemaPath = path.join(path.dirname(filePath), "schema.ts");
 

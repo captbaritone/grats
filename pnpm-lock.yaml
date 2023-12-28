@@ -20,6 +20,9 @@ importers:
       '@types/node':
         specifier: ^18.14.6
         version: 18.15.0
+      '@types/semver':
+        specifier: ^7.5.6
+        version: 7.5.6
       '@typescript-eslint/eslint-plugin':
         specifier: ^5.55.0
         version: 5.55.0(@typescript-eslint/parser@5.55.0)(eslint@8.36.0)(typescript@5.0.2)
@@ -44,6 +47,9 @@ importers:
       process:
         specifier: ^0.11.10
         version: 0.11.10
+      semver:
+        specifier: ^7.5.4
+        version: 7.5.4
       ts-node:
         specifier: ^10.9.1
         version: 10.9.1(@types/node@18.15.0)(typescript@5.0.2)
@@ -5927,8 +5933,8 @@ packages:
   /@types/scheduler@0.16.3:
     resolution: {integrity: sha512-5cJ8CB4yAx7BH1oMvdU0Jh9lrEXyPkar6F9G/ERswkCuvP4KQZfZkSjcMbAICCpQTN4OuZn8tz0HiKv9TGZgrQ==}
 
-  /@types/semver@7.3.13:
-    resolution: {integrity: sha512-21cFJr9z3g5dW8B0CVI9g2O9beqaThGQ6ZFBqHfwhzLDKUxaqTIy3vnfah/UPkfOiF2pLq+tGz+W8RyCskuslw==}
+  /@types/semver@7.5.6:
+    resolution: {integrity: sha512-dn1l8LaMea/IjDoHNd9J52uBbInB796CDffS6VdIxvqYCPSG0V0DzHp76GpaWnlhg88uYyPbXCDIowa86ybd5A==}
     dev: true
 
   /@types/serve-index@1.9.1:
@@ -6132,7 +6138,7 @@ packages:
     dependencies:
       '@eslint-community/eslint-utils': 4.2.0(eslint@8.36.0)
       '@types/json-schema': 7.0.11
-      '@types/semver': 7.3.13
+      '@types/semver': 7.5.6
       '@typescript-eslint/scope-manager': 5.55.0
       '@typescript-eslint/types': 5.55.0
       '@typescript-eslint/typescript-estree': 5.55.0(typescript@5.0.2)

@@ -2,7 +2,10 @@ import * as fs from "fs";
 import * as path from "path";
 import { diff } from "jest-diff";
 
-type Transformer = (code: string, filename: string) => Promise<string> | string;
+type Transformer = (
+  code: string,
+  filename: string,
+) => Promise<string | false> | (string | false);
 
 /**
  * Looks in a fixtures dir for .ts files, transforms them according to the
@@ -96,6 +99,11 @@ export default class TestRunner {
     const fixtureContent = fs.readFileSync(fixturePath, "utf-8");
 
     const actual = await this.transform(fixtureContent, fixture);
+    if (actual === false) {
+      console.error("SKIPPING: " + displayName);
+      this._skip.add(fixture);
+      return;
+    }
 
     const actualOutput = `-----------------
 INPUT
@@ -120,7 +128,7 @@ ${actual}`;
     }
   }
 
-  async transform(code: string, filename: string): Promise<string> {
+  async transform(code: string, filename: string): Promise<string | false> {
     try {
       return await this._transformer(code, filename);
     } catch (e) {
