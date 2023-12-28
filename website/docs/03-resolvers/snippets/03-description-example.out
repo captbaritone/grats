@@ -30,7 +30,7 @@ type User {
 }
 === SNIP ===
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         description: "A registered user of the system.",
@@ -55,4 +55,3 @@ function getSchema(): GraphQLSchema {
         types: [UserType]
     });
 }
-export { getSchema };

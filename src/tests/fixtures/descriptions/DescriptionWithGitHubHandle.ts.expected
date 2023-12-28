@@ -14,16 +14,16 @@ class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-"""This type was added by @captbaritone!"""
+"""This type was added by"""
 type SomeType {
   name: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
-        description: "This type was added by @captbaritone!",
+        description: "This type was added by",
         fields() {
             return {
                 name: {
@@ -37,4 +37,3 @@ function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
-export { getSchema };

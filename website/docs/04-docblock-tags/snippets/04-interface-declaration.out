@@ -14,7 +14,7 @@ interface MyInterfaceName {
 }
 === SNIP ===
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const MyInterfaceNameType: GraphQLInterfaceType = new GraphQLInterfaceType({
         description: "A description of my interface.",
         name: "MyInterfaceName",
@@ -31,4 +31,3 @@ function getSchema(): GraphQLSchema {
         types: [MyInterfaceNameType]
     });
 }
-export { getSchema };

@@ -20,7 +20,7 @@ type SomeType {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLInt } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
@@ -36,4 +36,3 @@ function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
-export { getSchema };

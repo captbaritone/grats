@@ -32,7 +32,7 @@ interface IFoo {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInterfaceType } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
@@ -63,4 +63,3 @@ function getSchema(): GraphQLSchema {
         types: [SomeTypeType, IFooType]
     });
 }
-export { getSchema };

@@ -42,8 +42,7 @@ const F = ts.factory;
 export function codegen(schema: GraphQLSchema, destination: string): string {
   const codegen = new Codegen(schema, destination);
 
-  codegen.schemaDeclaration();
-  codegen.schemaExport();
+  codegen.schemaDeclarationExport();
 
   return codegen.print();
 }
@@ -80,9 +79,10 @@ class Codegen {
     return F.createTypeReferenceNode(name);
   }
 
-  schemaDeclaration(): void {
+  schemaDeclarationExport(): void {
     this.functionDeclaration(
       "getSchema",
+      [F.createModifier(ts.SyntaxKind.ExportKeyword)],
       this.graphQLTypeImport("GraphQLSchema"),
       this.createBlockWithScope(() => {
         this._statements.push(
@@ -95,22 +95,6 @@ class Codegen {
           ),
         );
       }),
-    );
-  }
-
-  schemaExport(): void {
-    this._statements.push(
-      F.createExportDeclaration(
-        undefined, // [F.createModifier(ts.SyntaxKind.DefaultKeyword)],
-        false,
-        F.createNamedExports([
-          F.createExportSpecifier(
-            false,
-            undefined,
-            F.createIdentifier("getSchema"),
-          ),
-        ]),
-      ),
     );
   }
 
@@ -678,12 +662,13 @@ class Codegen {
 
   functionDeclaration(
     name: string,
+    modifiers: ts.Modifier[] | undefined,
     type: ts.TypeNode | undefined,
     body: ts.Block,
   ): void {
     this._statements.push(
       F.createFunctionDeclaration(
-        undefined,
+        modifiers,
         undefined,
         name,
         undefined,

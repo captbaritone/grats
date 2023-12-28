@@ -11,9 +11,8 @@ OUTPUT
 
 -- TypeScript --
 import { GraphQLSchema } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         types: []
     });
 }
-export { getSchema };

@@ -39,7 +39,7 @@ interface Actor implements Node & Person {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Node",
         fields() {
@@ -84,4 +84,3 @@ function getSchema(): GraphQLSchema {
         types: [NodeType, PersonType, ActorType]
     });
 }
-export { getSchema };

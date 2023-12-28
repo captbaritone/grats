@@ -18,7 +18,7 @@ src/tests/fixtures/interfaces/InterfaceMergedIntoNode.invalid.ts:3:11 - error: U
 3 interface Node {
             ~~~~
 
-  node_modules/.pnpm/typescript@5.0.2/node_modules/typescript/lib/lib.dom.d.ts:10247:11
-    10247 interface Node extends EventTarget {
+  node_modules/.pnpm/typescript@5.2.2/node_modules/typescript/lib/lib.dom.d.ts:16066:11
+    16066 interface Node extends EventTarget {
                     ~~~~
     Other declaration

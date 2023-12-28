@@ -35,7 +35,7 @@ type User {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
@@ -66,4 +66,3 @@ function getSchema(): GraphQLSchema {
         types: [SomeTypeType, UserType]
     });
 }
-export { getSchema };

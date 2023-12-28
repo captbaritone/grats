@@ -31,7 +31,7 @@ interface HasName {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInterfaceType } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const HasNameType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "HasName",
         fields() {
@@ -65,4 +65,3 @@ function getSchema(): GraphQLSchema {
         types: [UserType, HasNameType]
     });
 }
-export { getSchema };

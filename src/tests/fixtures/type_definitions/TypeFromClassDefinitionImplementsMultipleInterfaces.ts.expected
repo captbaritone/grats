@@ -41,7 +41,7 @@ type User implements Person & Node {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Node",
         fields() {
@@ -86,4 +86,3 @@ function getSchema(): GraphQLSchema {
         types: [NodeType, PersonType, UserType]
     });
 }
-export { getSchema };

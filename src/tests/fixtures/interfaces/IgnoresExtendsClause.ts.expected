@@ -43,7 +43,7 @@ type User implements Actor {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInterfaceType } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const ActorType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Actor",
         fields() {
@@ -84,4 +84,3 @@ function getSchema(): GraphQLSchema {
         types: [SomeTypeType, ActorType, UserType]
     });
 }
-export { getSchema };

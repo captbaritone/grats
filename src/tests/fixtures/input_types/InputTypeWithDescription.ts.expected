@@ -29,7 +29,7 @@ input MyInputType {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInputObjectType, GraphQLNonNull } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
@@ -57,4 +57,3 @@ function getSchema(): GraphQLSchema {
         types: [SomeTypeType, MyInputTypeType]
     });
 }
-export { getSchema };

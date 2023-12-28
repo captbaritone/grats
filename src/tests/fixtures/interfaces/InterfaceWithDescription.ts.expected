@@ -44,7 +44,7 @@ type User implements IPerson {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInterfaceType } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         description: "An interface describing the common elements of all people types.",
         name: "IPerson",
@@ -86,4 +86,3 @@ function getSchema(): GraphQLSchema {
         types: [SomeTypeType, IPersonType, UserType]
     });
 }
-export { getSchema };

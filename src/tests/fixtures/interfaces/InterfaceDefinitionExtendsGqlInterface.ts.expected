@@ -48,7 +48,7 @@ interface User implements Mammal & Person {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLInt, GraphQLString } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const MammalType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Mammal",
         fields() {
@@ -100,4 +100,3 @@ function getSchema(): GraphQLSchema {
         types: [MammalType, PersonType, UserType]
     });
 }
-export { getSchema };

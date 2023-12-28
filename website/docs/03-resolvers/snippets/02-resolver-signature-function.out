@@ -23,7 +23,7 @@ type User {
 === SNIP ===
 import { friends as userFriendsResolver } from "./02-resolver-signature-function.grats";
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
@@ -48,4 +48,3 @@ function getSchema(): GraphQLSchema {
         types: [UserType]
     });
 }
-export { getSchema };

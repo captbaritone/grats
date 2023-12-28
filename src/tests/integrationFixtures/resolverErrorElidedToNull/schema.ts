@@ -1,6 +1,6 @@
 import { alwaysThrows as queryAlwaysThrowsResolver } from "./index";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
@@ -20,4 +20,3 @@ function getSchema(): GraphQLSchema {
         types: [QueryType]
     });
 }
-export { getSchema };

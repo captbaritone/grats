@@ -39,7 +39,7 @@ type User {
 import { fullName as userFullNameResolver } from "./userExample";
 import { me as someTypeMeResolver } from "./userExample";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
@@ -80,4 +80,3 @@ function getSchema(): GraphQLSchema {
         types: [SomeTypeType, UserType]
     });
 }
-export { getSchema };

@@ -82,7 +82,7 @@ type Group {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLList } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const GroupType: GraphQLObjectType = new GraphQLObjectType({
         name: "Group",
         fields() {
@@ -172,4 +172,3 @@ function getSchema(): GraphQLSchema {
         types: [SomeTypeType, UserType, GroupType]
     });
 }
-export { getSchema };

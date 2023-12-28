@@ -16,7 +16,7 @@ interface ICarly {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const ICarlyType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "ICarly",
         fields() {
@@ -32,4 +32,3 @@ function getSchema(): GraphQLSchema {
         types: [ICarlyType]
     });
 }
-export { getSchema };

@@ -1,6 +1,6 @@
 import { me as queryMeResolver } from "./index";
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
@@ -31,4 +31,3 @@ function getSchema(): GraphQLSchema {
         types: [QueryType, UserType]
     });
 }
-export { getSchema };

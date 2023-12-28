@@ -35,7 +35,7 @@ input ConnectionInput {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInputObjectType, GraphQLNonNull, GraphQLInt } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const ConnectionInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
         name: "ConnectionInput",
         fields() {
@@ -76,4 +76,3 @@ function getSchema(): GraphQLSchema {
         types: [SomeTypeType, ConnectionInputType]
     });
 }
-export { getSchema };

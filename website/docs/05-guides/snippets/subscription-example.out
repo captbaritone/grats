@@ -22,7 +22,7 @@ type Subscription {
 === SNIP ===
 import { countdown as subscriptionCountdownResolver } from "./subscription-example.grats";
 import { GraphQLSchema, GraphQLObjectType, GraphQLInt } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
         name: "Subscription",
         fields() {
@@ -45,4 +45,3 @@ function getSchema(): GraphQLSchema {
         types: [SubscriptionType]
     });
 }
-export { getSchema };

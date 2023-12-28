@@ -24,7 +24,7 @@ type Subscription {
 -- TypeScript --
 import { greetings as subscriptionGreetingsResolver } from "./SubscriptionFunctionFieldWithAsyncIterable";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
         name: "Subscription",
         fields() {
@@ -47,4 +47,3 @@ function getSchema(): GraphQLSchema {
         types: [SubscriptionType]
     });
 }
-export { getSchema };
