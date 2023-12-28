@@ -12,7 +12,7 @@ type Node {
 }
 === SNIP ===
 import { GraphQLSchema, GraphQLObjectType, GraphQLID } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const NodeType: GraphQLObjectType = new GraphQLObjectType({
         name: "Node",
         fields() {
@@ -28,4 +28,3 @@ function getSchema(): GraphQLSchema {
         types: [NodeType]
     });
 }
-export { getSchema };

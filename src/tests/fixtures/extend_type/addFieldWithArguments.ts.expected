@@ -21,7 +21,7 @@ type SomeType {
 -- TypeScript --
 import { greeting as someTypeGreetingResolver } from "./addFieldWithArguments";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
@@ -46,4 +46,3 @@ function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
-export { getSchema };

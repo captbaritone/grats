@@ -28,7 +28,7 @@ enum MyEnum {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLEnumType } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const MyEnumType: GraphQLEnumType = new GraphQLEnumType({
         description: "Hello!",
         name: "MyEnum",
@@ -56,4 +56,3 @@ function getSchema(): GraphQLSchema {
         types: [SomeTypeType, MyEnumType]
     });
 }
-export { getSchema };

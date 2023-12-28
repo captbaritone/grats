@@ -57,7 +57,7 @@ type Admin implements IPerson & IThing {
 import { greeting as userGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";
 import { greeting as adminGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const IThingType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IThing",
         fields() {
@@ -121,4 +121,3 @@ function getSchema(): GraphQLSchema {
         types: [IThingType, IPersonType, UserType, AdminType]
     });
 }
-export { getSchema };

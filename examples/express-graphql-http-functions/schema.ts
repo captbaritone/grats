@@ -10,7 +10,7 @@ import { addUser as mutationAddUserResolver } from "./SchemaImpl";
 import { removeUser as mutationRemoveUserResolver } from "./SchemaImpl";
 import { updateUser as mutationUpdateUserResolver } from "./SchemaImpl";
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLString, GraphQLInterfaceType, GraphQLInputObjectType } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const GroupType: GraphQLObjectType = new GraphQLObjectType({
         name: "Group",
         fields() {
@@ -175,4 +175,3 @@ function getSchema(): GraphQLSchema {
         types: [GroupType, IPersonType, MutationType, QueryType, UserType, UserDataInputType]
     });
 }
-export { getSchema };

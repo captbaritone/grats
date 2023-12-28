@@ -27,7 +27,7 @@ type User {
 === SNIP ===
 import { userById as queryUserByIdResolver } from "./02-function-extending-query.grats";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
@@ -64,4 +64,3 @@ function getSchema(): GraphQLSchema {
         types: [QueryType, UserType]
     });
 }
-export { getSchema };

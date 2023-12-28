@@ -23,7 +23,7 @@ type SomeType {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const MyStringType: GraphQLScalarType = new GraphQLScalarType({
         name: "MyString"
     });
@@ -42,4 +42,3 @@ function getSchema(): GraphQLSchema {
         types: [MyStringType, SomeTypeType]
     });
 }
-export { getSchema };

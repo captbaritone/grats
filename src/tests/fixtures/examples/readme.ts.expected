@@ -52,7 +52,7 @@ type User {
 import { me as queryMeResolver } from "./readme";
 import { viewer as queryViewerResolver } from "./readme";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         description: "A user in our kick-ass system!",
@@ -102,4 +102,3 @@ function getSchema(): GraphQLSchema {
         types: [QueryType, UserType]
     });
 }
-export { getSchema };

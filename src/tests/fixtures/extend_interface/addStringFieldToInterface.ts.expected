@@ -51,7 +51,7 @@ type Admin implements IPerson {
 import { greeting as userGreetingResolver } from "./addStringFieldToInterface";
 import { greeting as adminGreetingResolver } from "./addStringFieldToInterface";
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IPerson",
         fields() {
@@ -113,4 +113,3 @@ function getSchema(): GraphQLSchema {
         types: [IPersonType, UserType, AdminType]
     });
 }
-export { getSchema };

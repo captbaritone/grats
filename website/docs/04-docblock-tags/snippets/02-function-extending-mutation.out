@@ -27,7 +27,7 @@ type User {
 === SNIP ===
 import { deleteUser as mutationDeleteUserResolver } from "./02-function-extending-mutation.grats";
 import { GraphQLSchema, GraphQLObjectType, GraphQLBoolean, GraphQLNonNull, GraphQLString } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const MutationType: GraphQLObjectType = new GraphQLObjectType({
         name: "Mutation",
         fields() {
@@ -64,4 +64,3 @@ function getSchema(): GraphQLSchema {
         types: [MutationType, UserType]
     });
 }
-export { getSchema };

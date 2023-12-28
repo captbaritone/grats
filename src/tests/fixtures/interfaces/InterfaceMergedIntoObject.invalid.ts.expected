@@ -21,7 +21,7 @@ interface Foo {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const FooType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Foo",
         fields() {
@@ -37,4 +37,3 @@ function getSchema(): GraphQLSchema {
         types: [FooType]
     });
 }
-export { getSchema };

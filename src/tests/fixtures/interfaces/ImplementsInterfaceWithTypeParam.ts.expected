@@ -43,7 +43,7 @@ type User implements Person {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInterfaceType } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Person",
         fields() {
@@ -84,4 +84,3 @@ function getSchema(): GraphQLSchema {
         types: [SomeTypeType, PersonType, UserType]
     });
 }
-export { getSchema };

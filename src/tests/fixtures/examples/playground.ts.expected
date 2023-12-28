@@ -53,7 +53,7 @@ type User {
 -- TypeScript --
 import { getUser as someTypeGetUserResolver } from "./playground";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         description: "A user in our kick-ass system!",
@@ -103,4 +103,3 @@ function getSchema(): GraphQLSchema {
         types: [SomeTypeType, UserType]
     });
 }
-export { getSchema };

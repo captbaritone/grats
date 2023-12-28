@@ -18,7 +18,7 @@ type MyType {
 }
 === SNIP ===
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const MyTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "MyType",
         fields() {
@@ -34,4 +34,3 @@ function getSchema(): GraphQLSchema {
         types: [MyTypeType]
     });
 }
-export { getSchema };

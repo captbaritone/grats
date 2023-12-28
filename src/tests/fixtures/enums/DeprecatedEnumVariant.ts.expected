@@ -34,7 +34,7 @@ enum Enum {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLEnumType } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
@@ -64,4 +64,3 @@ function getSchema(): GraphQLSchema {
         types: [SomeTypeType, EnumType]
     });
 }
-export { getSchema };

@@ -45,7 +45,7 @@ type Entity {
 union Actor = User | Entity
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLUnionType, GraphQLString } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
@@ -89,4 +89,3 @@ function getSchema(): GraphQLSchema {
         types: [SomeTypeType, UserType, EntityType, ActorType]
     });
 }
-export { getSchema };

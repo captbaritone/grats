@@ -1,6 +1,6 @@
 import { hello as queryHelloResolver } from "./index";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLInputObjectType } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const SomeObjType: GraphQLInputObjectType = new GraphQLInputObjectType({
         name: "SomeObj",
         fields() {
@@ -40,4 +40,3 @@ function getSchema(): GraphQLSchema {
         types: [QueryType, SomeObjType]
     });
 }
-export { getSchema };

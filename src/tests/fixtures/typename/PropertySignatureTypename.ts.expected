@@ -27,7 +27,7 @@ interface IPerson {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInterfaceType } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IPerson",
         fields() {
@@ -57,4 +57,3 @@ function getSchema(): GraphQLSchema {
         types: [UserType, IPersonType]
     });
 }
-export { getSchema };

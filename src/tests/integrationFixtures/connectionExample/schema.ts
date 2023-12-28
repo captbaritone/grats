@@ -1,6 +1,6 @@
 import { firstHundredIntegers as queryFirstHundredIntegersResolver } from "./index";
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLBoolean, GraphQLString, GraphQLList, GraphQLInt } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const FirstHundredIntegersPageInfoType: GraphQLObjectType = new GraphQLObjectType({
         name: "FirstHundredIntegersPageInfo",
         fields() {
@@ -83,4 +83,3 @@ function getSchema(): GraphQLSchema {
         types: [QueryType, FirstHundredIntegersConnectionType, FirstHundredIntegersPageInfoType, FirstHundredIntegersEdgeType]
     });
 }
-export { getSchema };

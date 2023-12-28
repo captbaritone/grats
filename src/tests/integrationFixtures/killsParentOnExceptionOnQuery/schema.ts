@@ -1,7 +1,7 @@
 import { alwaysThrowsKillsParentOnException as queryAlwaysThrowsKillsParentOnExceptionResolver } from "./index";
 import { hello as queryHelloResolver } from "./index";
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
@@ -28,4 +28,3 @@ function getSchema(): GraphQLSchema {
         types: [QueryType]
     });
 }
-export { getSchema };

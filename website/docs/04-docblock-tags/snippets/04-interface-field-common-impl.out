@@ -46,7 +46,7 @@ type Pet implements Greetable {
 import { greeting as userGreetingResolver } from "./04-interface-field-common-impl.grats";
 import { greeting as petGreetingResolver } from "./04-interface-field-common-impl.grats";
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const GreetableType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Greetable",
         fields() {
@@ -108,4 +108,3 @@ function getSchema(): GraphQLSchema {
         types: [GreetableType, UserType, PetType]
     });
 }
-export { getSchema };
