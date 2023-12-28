@@ -16,4 +16,4 @@ OUTPUT
 src/tests/fixtures/user_error/TypeErrorWithTypeCheckingEnabled.ts:6:5 - error TS2322: Type 'number' is not assignable to type 'string'.
 
 6     return 10;
-      ~~~~~~
+      ~~~~~~~~~~
