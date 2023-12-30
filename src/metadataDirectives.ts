@@ -34,7 +34,7 @@ export const DIRECTIVES_AST: DocumentNode = parse(`
       ${TS_MODULE_PATH_ARG}: String!,
       ${EXPORTED_FUNCTION_NAME_ARG}: String!
       ${ARG_COUNT}: Int!
-    ) on FIELD_DEFINITION
+    ) on FIELD_DEFINITION | SCALAR
     directive @${KILLS_PARENT_ON_EXCEPTION_DIRECTIVE} on FIELD_DEFINITION
 `);
 

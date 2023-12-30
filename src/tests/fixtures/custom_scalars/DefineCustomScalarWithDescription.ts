@@ -8,4 +8,4 @@ class SomeType {
  * Use this for URLs.
  * @gqlScalar
  */
-type MyUrl = string;
+export type MyUrl = string;
