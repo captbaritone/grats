@@ -196,7 +196,7 @@ const testDirs = [
 
       const schemaModule = await import(schemaPath);
 
-      const actualSchema = schemaModule.getSchema();
+      const actualSchema = schemaModule.getSchema(server.config);
 
       const schemaDiff = compareSchemas(actualSchema, schemaResult.value);
 

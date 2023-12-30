@@ -435,6 +435,16 @@ class Extractor {
     return node.name;
   }
 
+  typeAliasExportName(node: ts.TypeAliasDeclaration): ts.Identifier | null {
+    const exportKeyword = node.modifiers?.some((modifier) => {
+      return modifier.kind === ts.SyntaxKind.ExportKeyword;
+    });
+    if (exportKeyword == null) {
+      return this.report(node.name, E.customScalarTypeNotExported());
+    }
+    return node.name;
+  }
+
   scalarTypeAliasDeclaration(node: ts.TypeAliasDeclaration, tag: ts.JSDocTag) {
     const name = this.entityName(node, tag);
     if (name == null) return null;
@@ -442,8 +452,22 @@ class Extractor {
     const description = this.collectDescription(node);
     this.recordTypeName(node.name, name, "SCALAR");
 
+    // Ensure the type is exported
+    const exportName = this.typeAliasExportName(node);
+    if (exportName == null) return null;
+
+    const tsModulePath = relativePath(node.getSourceFile().fileName);
+
+    const directives = [
+      this.gql.exportedDirective(exportName, {
+        tsModulePath,
+        exportedFunctionName: exportName.text,
+        argCount: 0,
+      }),
+    ];
+
     this.definitions.push(
-      this.gql.scalarTypeDefinition(node, name, description),
+      this.gql.scalarTypeDefinition(node, name, directives, description),
     );
   }
 

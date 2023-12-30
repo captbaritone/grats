@@ -155,43 +155,7 @@ class Codegen {
         return !PRIMITIVE_TYPE_NAMES.has(scalar.name);
       });
     if (scalarTypes.length == 0) return null;
-    this._statements.push(
-      F.createTypeAliasDeclaration(
-        undefined,
-        SCALAR_CONFIG_TYPE_NAME,
-        [
-          F.createTypeParameterDeclaration(undefined, "TInternal"),
-          F.createTypeParameterDeclaration(undefined, "TExternal"),
-        ],
-        F.createTypeLiteralNode([
-          F.createPropertySignature(
-            undefined,
-            "serialize",
-            undefined,
-            this.graphQLTypeImport("GraphQLScalarSerializer", [
-              F.createTypeReferenceNode("TExternal"),
-            ]),
-          ),
-          F.createPropertySignature(
-            undefined,
-            "parseValue",
-            undefined,
-
-            this.graphQLTypeImport("GraphQLScalarValueParser", [
-              F.createTypeReferenceNode("TInternal"),
-            ]),
-          ),
-          F.createPropertySignature(
-            undefined,
-            "parseLiteral",
-            undefined,
-            this.graphQLTypeImport("GraphQLScalarLiteralParser", [
-              F.createTypeReferenceNode("TInternal"),
-            ]),
-          ),
-        ]),
-      ),
-    );
+    this._statements.push(this.scalarConfigTypeDeclaration());
     return F.createPropertySignature(
       undefined,
       SCHEMA_CONFIG_SCALARS_NAME,
@@ -203,12 +167,56 @@ class Codegen {
             scalar.name,
             undefined,
             F.createTypeReferenceNode(SCALAR_CONFIG_TYPE_NAME, [
-              F.createTypeReferenceNode("Date"),
-              F.createTypeReferenceNode("string"),
+              F.createTypeReferenceNode(
+                formatCustomScalarTypeName(scalar.name),
+              ),
             ]),
           );
         }),
       ),
+    );
+  }
+
+  scalarConfigTypeDeclaration(): ts.TypeAliasDeclaration {
+    return F.createTypeAliasDeclaration(
+      undefined,
+      SCALAR_CONFIG_TYPE_NAME,
+      [F.createTypeParameterDeclaration(undefined, "T")],
+      F.createTypeLiteralNode([
+        F.createMethodSignature(
+          undefined,
+          "serialize",
+          undefined,
+          undefined,
+          [
+            F.createParameterDeclaration(
+              undefined,
+              undefined,
+              "outputValue",
+              undefined,
+              F.createTypeReferenceNode("T"),
+            ),
+          ],
+          F.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword),
+        ),
+        F.createPropertySignature(
+          undefined,
+          "parseValue",
+          undefined,
+
+          this.graphQLTypeImport("GraphQLScalarValueParser", [
+            F.createTypeReferenceNode("T"),
+          ]),
+        ),
+        F.createPropertySignature(
+          undefined,
+          "parseLiteral",
+          undefined,
+          this.graphQLTypeImport("GraphQLScalarLiteralParser", [
+            F.createTypeReferenceNode("T"),
+          ]),
+        ),
+      ]),
     );
   }
 
@@ -502,7 +510,7 @@ class Codegen {
         varName,
         F.createNewExpression(
           this.graphQLImport("GraphQLScalarType"),
-          [],
+          [F.createTypeReferenceNode(formatCustomScalarTypeName(obj.name))],
           [this.customScalarTypeConfig(obj)],
         ),
         // We need to explicitly specify the type due to circular references in
@@ -514,23 +522,42 @@ class Codegen {
   }
 
   customScalarTypeConfig(obj: GraphQLScalarType): ts.ObjectLiteralExpression {
+    const exported = fieldDirective(obj, EXPORTED_DIRECTIVE);
+    if (exported != null) {
+      const exportedMetadata = parseExportedDirective(exported);
+      const module = exportedMetadata.tsModulePath;
+      const funcName = exportedMetadata.exportedFunctionName;
+      const abs = resolveRelativePath(module);
+      const relative = stripExt(
+        path.relative(path.dirname(this._destination), abs),
+      );
+
+      const scalarTypeName = formatCustomScalarTypeName(obj.name);
+      this.import(`./${relative}`, [{ name: funcName, as: scalarTypeName }]);
+    }
     return this.objectLiteral([
       this.description(obj.description),
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       ...["serialize", "parseValue", "parseLiteral"].map((name) => {
-        return F.createPropertyAssignment(
-          name,
+        let func: ts.Expression = F.createPropertyAccessExpression(
           F.createPropertyAccessExpression(
             F.createPropertyAccessExpression(
-              F.createPropertyAccessExpression(
-                F.createIdentifier(SCHEMA_CONFIG_NAME),
-                SCHEMA_CONFIG_SCALARS_NAME,
-              ),
-              obj.name,
+              F.createIdentifier(SCHEMA_CONFIG_NAME),
+              SCHEMA_CONFIG_SCALARS_NAME,
             ),
-            name,
+            obj.name,
           ),
+          name,
         );
+        if (name === "serialize") {
+          func = F.createAsExpression(
+            func,
+            this.graphQLTypeImport("GraphQLScalarSerializer", [
+              F.createTypeReferenceNode(formatCustomScalarTypeName(obj.name)),
+            ]),
+          );
+        }
+        return F.createPropertyAssignment(name, func);
       }),
     ]);
   }
@@ -894,7 +921,7 @@ class Codegen {
 }
 
 function fieldDirective(
-  field: GraphQLField<unknown, unknown>,
+  field: GraphQLField<unknown, unknown> | GraphQLScalarType,
   name: string,
 ): ConstDirectiveNode | null {
   return field.astNode?.directives?.find((d) => d.name.value === name) ?? null;
@@ -918,4 +945,8 @@ function formatResolverFunctionVarName(
   const parent = parentTypeName[0].toLowerCase() + parentTypeName.slice(1);
   const field = fieldName[0].toUpperCase() + fieldName.slice(1);
   return `${parent}${field}Resolver`;
+}
+
+function formatCustomScalarTypeName(scalarName: string): string {
+  return `${scalarName}Type`;
 }

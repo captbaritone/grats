@@ -2,7 +2,7 @@
 INPUT
 ----------------- 
 /** @gqlScalar */
-type MyString = string;
+export type MyString = string;
 
 /** @gqlType */
 export default class SomeType {
@@ -16,27 +16,28 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-scalar MyString
+scalar MyString @exported(tsModulePath: "grats/src/tests/fixtures/field_values/CustomScalar.ts", functionName: "MyString", argCount: 0)
 
 type SomeType {
   hello: MyString
 }
 -- TypeScript --
-import { GraphQLScalarSerializer, GraphQLScalarValueParser, GraphQLScalarLiteralParser, GraphQLSchema, GraphQLScalarType, GraphQLObjectType } from "graphql";
-type ScalarConfigType<TInternal, TExternal> = {
-    serialize: GraphQLScalarSerializer<TExternal>;
-    parseValue: GraphQLScalarValueParser<TInternal>;
-    parseLiteral: GraphQLScalarLiteralParser<TInternal>;
+import { MyString as MyStringType } from "./CustomScalar";
+import { GraphQLScalarValueParser, GraphQLScalarLiteralParser, GraphQLSchema, GraphQLScalarType, GraphQLScalarSerializer, GraphQLObjectType } from "graphql";
+type ScalarConfigType<T> = {
+    serialize(outputValue: T): any;
+    parseValue: GraphQLScalarValueParser<T>;
+    parseLiteral: GraphQLScalarLiteralParser<T>;
 };
 export type SchemaConfigType = {
     scalars: {
-        MyString: ScalarConfigType;
+        MyString: ScalarConfigType<MyStringType>;
     };
 };
 export function getSchema(config: SchemaConfigType): GraphQLSchema {
-    const MyStringType: GraphQLScalarType = new GraphQLScalarType({
+    const MyStringType: GraphQLScalarType = new GraphQLScalarType<MyStringType>({
         name: "MyString",
-        serialize: config.scalars.MyString.serialize,
+        serialize: config.scalars.MyString.serialize as GraphQLScalarSerializer<MyStringType>,
         parseValue: config.scalars.MyString.parseValue,
         parseLiteral: config.scalars.MyString.parseLiteral
     });

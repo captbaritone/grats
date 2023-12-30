@@ -8,7 +8,7 @@ class SomeType {
 }
 
 /** @gqlScalar CustomName */
-type MyUrl = string;
+export type MyUrl = string;
 
 -----------------
 OUTPUT
@@ -18,17 +18,18 @@ type SomeType {
   hello: String
 }
 
-scalar CustomName
+scalar CustomName @exported(tsModulePath: "grats/src/tests/fixtures/custom_scalars/DefineRenamedCustomScalar.ts", functionName: "MyUrl", argCount: 0)
 -- TypeScript --
-import { GraphQLScalarSerializer, GraphQLScalarValueParser, GraphQLScalarLiteralParser, GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLScalarType } from "graphql";
-type ScalarConfigType<TInternal, TExternal> = {
-    serialize: GraphQLScalarSerializer<TExternal>;
-    parseValue: GraphQLScalarValueParser<TInternal>;
-    parseLiteral: GraphQLScalarLiteralParser<TInternal>;
+import { MyUrl as CustomNameType } from "./DefineRenamedCustomScalar";
+import { GraphQLScalarValueParser, GraphQLScalarLiteralParser, GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLScalarType, GraphQLScalarSerializer } from "graphql";
+type ScalarConfigType<T> = {
+    serialize(outputValue: T): any;
+    parseValue: GraphQLScalarValueParser<T>;
+    parseLiteral: GraphQLScalarLiteralParser<T>;
 };
 export type SchemaConfigType = {
     scalars: {
-        CustomName: ScalarConfigType;
+        CustomName: ScalarConfigType<CustomNameType>;
     };
 };
 export function getSchema(config: SchemaConfigType): GraphQLSchema {
@@ -43,9 +44,9 @@ export function getSchema(config: SchemaConfigType): GraphQLSchema {
             };
         }
     });
-    const CustomNameType: GraphQLScalarType = new GraphQLScalarType({
+    const CustomNameType: GraphQLScalarType = new GraphQLScalarType<CustomNameType>({
         name: "CustomName",
-        serialize: config.scalars.CustomName.serialize,
+        serialize: config.scalars.CustomName.serialize as GraphQLScalarSerializer<CustomNameType>,
         parseValue: config.scalars.CustomName.parseValue,
         parseLiteral: config.scalars.CustomName.parseLiteral
     });

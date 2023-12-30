@@ -115,6 +115,10 @@ export function functionFieldNotNamedExport() {
   return `Expected a \`@${FIELD_TAG}\` function to be a named export. Grats needs to import resolver functions into it's generated schema module, so the resolver function must be a named export.`;
 }
 
+export function customScalarTypeNotExported() {
+  return `Expected a \`@${SCALAR_TAG}\` type to be a named export. Grats needs to import custom scalar types into it's generated schema module, so the type must be a named export.`;
+}
+
 export function inputTypeNotLiteral() {
   return `\`@${INPUT_TAG}\` can only be used on type literals. e.g. \`type MyInput = { foo: string }\``;
 }
