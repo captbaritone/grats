@@ -22,10 +22,23 @@ type SomeType {
   hello: MyString
 }
 -- TypeScript --
-import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType } from "graphql";
-export function getSchema(): GraphQLSchema {
+import { GraphQLScalarSerializer, GraphQLScalarValueParser, GraphQLScalarLiteralParser, GraphQLSchema, GraphQLScalarType, GraphQLObjectType } from "graphql";
+type ScalarConfigType<TInternal, TExternal> = {
+    serialize: GraphQLScalarSerializer<TExternal>;
+    parseValue: GraphQLScalarValueParser<TInternal>;
+    parseLiteral: GraphQLScalarLiteralParser<TInternal>;
+};
+export type SchemaConfigType = {
+    scalars: {
+        MyString: ScalarConfigType;
+    };
+};
+export function getSchema(config: SchemaConfigType): GraphQLSchema {
     const MyStringType: GraphQLScalarType = new GraphQLScalarType({
-        name: "MyString"
+        name: "MyString",
+        serialize: config.scalars.MyString.serialize,
+        parseValue: config.scalars.MyString.parseValue,
+        parseLiteral: config.scalars.MyString.parseLiteral
     });
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",

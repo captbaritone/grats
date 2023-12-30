@@ -20,8 +20,18 @@ type SomeType {
 
 scalar CustomName
 -- TypeScript --
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLScalarType } from "graphql";
-export function getSchema(): GraphQLSchema {
+import { GraphQLScalarSerializer, GraphQLScalarValueParser, GraphQLScalarLiteralParser, GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLScalarType } from "graphql";
+type ScalarConfigType<TInternal, TExternal> = {
+    serialize: GraphQLScalarSerializer<TExternal>;
+    parseValue: GraphQLScalarValueParser<TInternal>;
+    parseLiteral: GraphQLScalarLiteralParser<TInternal>;
+};
+export type SchemaConfigType = {
+    scalars: {
+        CustomName: ScalarConfigType;
+    };
+};
+export function getSchema(config: SchemaConfigType): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
@@ -34,7 +44,10 @@ export function getSchema(): GraphQLSchema {
         }
     });
     const CustomNameType: GraphQLScalarType = new GraphQLScalarType({
-        name: "CustomName"
+        name: "CustomName",
+        serialize: config.scalars.CustomName.serialize,
+        parseValue: config.scalars.CustomName.parseValue,
+        parseLiteral: config.scalars.CustomName.parseLiteral
     });
     return new GraphQLSchema({
         types: [SomeTypeType, CustomNameType]

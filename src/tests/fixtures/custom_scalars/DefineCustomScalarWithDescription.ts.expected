@@ -24,8 +24,18 @@ type SomeType {
 """Use this for URLs."""
 scalar MyUrl
 -- TypeScript --
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLScalarType } from "graphql";
-export function getSchema(): GraphQLSchema {
+import { GraphQLScalarSerializer, GraphQLScalarValueParser, GraphQLScalarLiteralParser, GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLScalarType } from "graphql";
+type ScalarConfigType<TInternal, TExternal> = {
+    serialize: GraphQLScalarSerializer<TExternal>;
+    parseValue: GraphQLScalarValueParser<TInternal>;
+    parseLiteral: GraphQLScalarLiteralParser<TInternal>;
+};
+export type SchemaConfigType = {
+    scalars: {
+        MyUrl: ScalarConfigType;
+    };
+};
+export function getSchema(config: SchemaConfigType): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
@@ -39,7 +49,10 @@ export function getSchema(): GraphQLSchema {
     });
     const MyUrlType: GraphQLScalarType = new GraphQLScalarType({
         description: "Use this for URLs.",
-        name: "MyUrl"
+        name: "MyUrl",
+        serialize: config.scalars.MyUrl.serialize,
+        parseValue: config.scalars.MyUrl.parseValue,
+        parseLiteral: config.scalars.MyUrl.parseLiteral
     });
     return new GraphQLSchema({
         types: [SomeTypeType, MyUrlType]
