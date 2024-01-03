@@ -87,7 +87,16 @@ class QueryCodegen {
         undefined,
         "executeOperation",
         undefined,
-        [],
+        [
+          F.createParameterDeclaration(
+            undefined,
+            undefined,
+            "variables",
+            undefined,
+            F.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword),
+            undefined,
+          ),
+        ],
         undefined,
         F.createBlock(
           [
@@ -101,6 +110,10 @@ class QueryCodegen {
                   F.createPropertyAssignment(
                     "document",
                     F.createIdentifier("doc"),
+                  ),
+                  F.createPropertyAssignment(
+                    "variableValues",
+                    F.createIdentifier("variables"),
                   ),
                 ]),
               ]),

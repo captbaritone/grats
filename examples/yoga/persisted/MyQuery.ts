@@ -103,6 +103,6 @@ const doc: DocumentNode = {
         }
     ]
 } as DocumentNode;
-export function executeOperation() {
-    return execute({ schema: schema, document: doc });
+export function executeOperation(variables: any) {
+    return execute({ schema: schema, document: doc, variableValues: variables });
 }
