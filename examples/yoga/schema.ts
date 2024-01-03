@@ -7,7 +7,7 @@ import { me as queryMeResolver } from "./Query";
 import { person as queryPersonResolver } from "./Query";
 import { countdown as subscriptionCountdownResolver } from "./Subscription";
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLString, GraphQLInterfaceType, GraphQLInt } from "graphql";
-function getSchema(): GraphQLSchema {
+export function getSchema(): GraphQLSchema {
     const GroupType: GraphQLObjectType = new GraphQLObjectType({
         name: "Group",
         fields() {
@@ -113,4 +113,3 @@ function getSchema(): GraphQLSchema {
         types: [GroupType, IPersonType, QueryType, SubscriptionType, UserType]
     });
 }
-export { getSchema };
