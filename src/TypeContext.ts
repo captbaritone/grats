@@ -8,6 +8,7 @@ import {
 import { err, ok } from "./utils/Result";
 import * as E from "./Errors";
 import { ExtractionSnapshot } from "./Extractor";
+import { loc } from "./utils/helpers";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
@@ -116,10 +117,7 @@ export class TypeContext {
     }
     const nameDefinition = this._symbolToName.get(symbol);
     if (nameDefinition == null) {
-      if (unresolved.loc == null) {
-        throw new Error("Expected namedType to have a location.");
-      }
-      return err(gqlErr(unresolved.loc, E.unresolvedTypeReference()));
+      return err(gqlErr(loc(unresolved), E.unresolvedTypeReference()));
     }
     return ok({ ...unresolved, value: nameDefinition.name.value });
   }

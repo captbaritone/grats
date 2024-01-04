@@ -12,6 +12,7 @@ import { DiagnosticsResult, gqlErr } from "../utils/DiagnosticError";
 import { err, ok } from "../utils/Result";
 import * as E from "../Errors";
 import { ASYNC_ITERABLE_TYPE_DIRECTIVE } from "../metadataDirectives";
+import { loc } from "../utils/helpers";
 
 /**
  * Ensure that all fields on `Subscription` return an AsyncIterable, and that no other
@@ -67,10 +68,7 @@ function validateField(
     );
 
     if (isSubscription && asyncDirective == null) {
-      if (field.type.loc == null) {
-        throw new Error("Expected field type to have a location.");
-      }
-      return gqlErr(field.type.loc, E.subscriptionFieldNotAsyncIterable());
+      return gqlErr(loc(field.type), E.subscriptionFieldNotAsyncIterable());
     }
 
     if (!isSubscription && asyncDirective != null) {
@@ -78,7 +76,7 @@ function validateField(
         throw new Error("Expected asyncDirective to have a location.");
       }
       return gqlErr(
-        asyncDirective.loc, // Directive location is the AsyncIterable type.
+        loc(asyncDirective), // Directive location is the AsyncIterable type.
         E.nonSubscriptionFieldAsyncIterable(),
       );
     }
