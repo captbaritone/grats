@@ -21,6 +21,20 @@ Grats has a few configuration options. They can be set under the `grats` key in 
     // docblock tag `@killsParentOnException`.
     "nullableByDefault": true, // Default: true
 
+    // Experimental feature to add `@semanticNonNull` to all fields which have
+    // non-null TypeScript return types, but which are made nullable by the
+    // `nullableByDefault` option.
+    //
+    // This feature allows clients which handle errors out of band, for example
+    // by discarding responses with errors, to know which fields are expected to
+    // be non-null in the absence of errors.
+    //
+    // See https://grats.capt.dev/docs/guides/strict-semantic-nullability
+    //
+    // It is an error to enable `semanticNullability` if `nullableByDefault` is
+    // false.
+    "strictSemanticNullability": false, // Default: false
+
     // Should Grats error if it encounters a TypeScript type error?
     // Note that Grats will always error if it encounters a TypeScript syntax
     // error.

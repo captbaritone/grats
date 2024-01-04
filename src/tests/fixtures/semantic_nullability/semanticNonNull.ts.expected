@@ -1,0 +1,47 @@
+-----------------
+INPUT
+----------------- 
+// { "strictSemanticNullability": true }
+
+/** @gqlType */
+export class User {
+  /** @gqlField */
+  name(): string {
+    if (Math.random() < 0.5) {
+      throw new Error("Stuff happens...");
+    }
+    return "Alice";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type User {
+  name: String @semanticNonNull
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString,
+                    resolve(source, args, context, info) {
+                        return (typeof source.name === "function" ? source.name(source, args, context, info) : source.name) ?? semanticNullabilityError();
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [UserType]
+    });
+}
+function semanticNullabilityError(): never {
+    throw new Error("Unexpected nullish value.");
+}

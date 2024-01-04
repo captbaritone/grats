@@ -1,0 +1,54 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlField */
+export function me(_: Query): User {
+  return new User();
+}
+
+/** @gqlType */
+class User {
+  /**
+   * @gqlField
+   * @killsParentOnException
+   */
+  alwaysThrowsKillsParentOnException(): string {
+    // @ts-ignore
+    return null;
+  }
+}
+
+export const query = `
+  query {
+    me {
+      alwaysThrowsKillsParentOnException
+    }
+  }
+`;
+
+-----------------
+OUTPUT
+-----------------
+{
+  "errors": [
+    {
+      "message": "Cannot return null for non-nullable field User.alwaysThrowsKillsParentOnException.",
+      "locations": [
+        {
+          "line": 4,
+          "column": 7
+        }
+      ],
+      "path": [
+        "me",
+        "alwaysThrowsKillsParentOnException"
+      ]
+    }
+  ],
+  "data": {
+    "me": null
+  }
+}

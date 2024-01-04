@@ -28,6 +28,7 @@ import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces";
 import { resolveTypes } from "./transforms/resolveTypes";
 import { validateAsyncIterable } from "./validations/validateAsyncIterable";
 import { applyDefaultNullability } from "./transforms/applyDefaultNullability";
+import { validateSemanticNullability } from "./validations/validateSemanticNullability";
 
 export * from "./gratsConfig";
 
@@ -72,6 +73,7 @@ export function extractSchema(
     .andThen((snapshot) => {
       const { typesWithTypename } = snapshot;
       const config = options.raw.grats;
+
       const checker = program.getTypeChecker();
       const ctx = TypeContext.fromSnapshot(checker, snapshot);
 
@@ -107,6 +109,7 @@ export function extractSchema(
           // Ensure that every type which implements an interface or is a member of a
           // union has a __typename field.
           .andThen((schema) => validateTypenames(schema, typesWithTypename))
+          .andThen((schema) => validateSemanticNullability(schema, config))
           .result()
       );
     })

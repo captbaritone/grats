@@ -1,0 +1,75 @@
+-----------------
+INPUT
+----------------- 
+// { "strictSemanticNullability": true }
+
+/** @gqlInterface */
+interface IPerson {
+  /** @gqlField */
+  name(): string;
+}
+
+/** @gqlType */
+export class User implements IPerson {
+  __typename = "User";
+  /** @gqlField */
+  name(): string {
+    if (Math.random() < 0.5) {
+      throw new Error("Stuff happens...");
+    }
+    return "Alice";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+interface IPerson {
+  name: String @semanticNonNull
+}
+
+type User implements IPerson {
+  name: String @semanticNonNull
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "IPerson",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString,
+                    resolve(source, args, context, info) {
+                        return (typeof source.name === "function" ? source.name(source, args, context, info) : source.name) ?? semanticNullabilityError();
+                    }
+                }
+            };
+        }
+    });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString,
+                    resolve(source, args, context, info) {
+                        return (typeof source.name === "function" ? source.name(source, args, context, info) : source.name) ?? semanticNullabilityError();
+                    }
+                }
+            };
+        },
+        interfaces() {
+            return [IPersonType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [IPersonType, UserType]
+    });
+}
+function semanticNullabilityError(): never {
+    throw new Error("Unexpected nullish value.");
+}
