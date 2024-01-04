@@ -20,11 +20,14 @@ export const ASYNC_ITERABLE_TYPE_DIRECTIVE = "asyncIterable";
 
 export const KILLS_PARENT_ON_EXCEPTION_DIRECTIVE = "killsParentOnException";
 
+export const SEMANTIC_NON_NULL_DIRECTIVE = "semanticNonNull";
+
 export const METADATA_DIRECTIVE_NAMES = new Set([
   FIELD_NAME_DIRECTIVE,
   EXPORTED_DIRECTIVE,
   ASYNC_ITERABLE_TYPE_DIRECTIVE,
   KILLS_PARENT_ON_EXCEPTION_DIRECTIVE,
+  SEMANTIC_NON_NULL_DIRECTIVE,
 ]);
 
 export const DIRECTIVES_AST: DocumentNode = parse(`
@@ -36,6 +39,7 @@ export const DIRECTIVES_AST: DocumentNode = parse(`
       ${ARG_COUNT}: Int!
     ) on FIELD_DEFINITION
     directive @${KILLS_PARENT_ON_EXCEPTION_DIRECTIVE} on FIELD_DEFINITION
+    directive @${SEMANTIC_NON_NULL_DIRECTIVE} on FIELD_DEFINITION
 `);
 
 export function addMetadataDirectives(
@@ -105,6 +109,16 @@ export function makeKillsParentOnExceptionDirective(
     loc,
     name: { kind: Kind.NAME, loc, value: KILLS_PARENT_ON_EXCEPTION_DIRECTIVE },
     arguments: [],
+  };
+}
+
+export function makeSemanticNonNullDirective(
+  loc: Location,
+): ConstDirectiveNode {
+  return {
+    kind: Kind.DIRECTIVE,
+    loc,
+    name: { kind: Kind.NAME, loc, value: SEMANTIC_NON_NULL_DIRECTIVE },
   };
 }
 

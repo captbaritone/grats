@@ -30,6 +30,7 @@ import { validateAsyncIterable } from "./validations/validateAsyncIterable";
 import { applyDefaultNullability } from "./transforms/applyDefaultNullability";
 import { mergeExtensions } from "./transforms/mergeExtensions";
 import { sortSchemaAst } from "./transforms/sortSchemaAst";
+import { validateSemanticNullability } from "./validations/validateSemanticNullability";
 
 export type SchemaAndDoc = {
   schema: GraphQLSchema;
@@ -77,6 +78,7 @@ export function extractSchemaAndDoc(
     .andThen((snapshot) => {
       const { typesWithTypename } = snapshot;
       const config = options.raw.grats;
+
       const checker = program.getTypeChecker();
       const ctx = TypeContext.fromSnapshot(checker, snapshot);
 
@@ -122,6 +124,7 @@ export function extractSchemaAndDoc(
           // Ensure that every type which implements an interface or is a member of a
           // union has a __typename field.
           .andThen((schema) => validateTypenames(schema, typesWithTypename))
+          .andThen((schema) => validateSemanticNullability(schema, config))
           // Combine the schema and document into a single result.
           .map((schema) => ({ schema, doc }))
           .result()

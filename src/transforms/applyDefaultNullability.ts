@@ -3,7 +3,10 @@ import { DiagnosticsResult, gqlErr } from "../utils/DiagnosticError";
 import { err, ok } from "../utils/Result";
 import * as ts from "typescript";
 import * as E from "../Errors";
-import { KILLS_PARENT_ON_EXCEPTION_DIRECTIVE } from "../metadataDirectives";
+import {
+  KILLS_PARENT_ON_EXCEPTION_DIRECTIVE,
+  makeSemanticNonNullDirective,
+} from "../metadataDirectives";
 import { GraphQLConstructor } from "../GraphQLConstructor";
 import { ConfigOptions } from "../gratsConfig";
 import { loc } from "../utils/helpers";
@@ -14,7 +17,7 @@ import { loc } from "../utils/helpers";
  */
 export function applyDefaultNullability(
   doc: DocumentNode,
-  { nullableByDefault }: ConfigOptions,
+  { nullableByDefault, strictSemanticNullability }: ConfigOptions,
 ): DiagnosticsResult<DocumentNode> {
   const gql = new GraphQLConstructor();
   const errors: ts.DiagnosticWithLocation[] = [];
@@ -43,7 +46,13 @@ export function applyDefaultNullability(
         return { ...t, type: { ...t.type, loc: killsParent.loc } };
       }
       if (nullableByDefault && t.type.kind === Kind.NON_NULL_TYPE) {
-        return { ...t, type: gql.nullableType(t.type) };
+        const type = gql.nullableType(t.type);
+        let directives = t.directives ?? [];
+        if (strictSemanticNullability) {
+          const semanticNullability = makeSemanticNonNullDirective(loc(t.type));
+          directives = [...directives, semanticNullability];
+        }
+        return { ...t, directives, type };
       }
       return t;
     },
