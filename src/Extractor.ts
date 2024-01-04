@@ -1577,7 +1577,7 @@ class Extractor {
         return null;
       }
       if (node.types.length > 1) {
-        return this.gql.nullableType(type);
+        return this.gql.withLocation(node, this.gql.nullableType(type));
       }
       return this.gql.nonNullType(node, type);
     } else if (ts.isParenthesizedTypeNode(node)) {

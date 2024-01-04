@@ -31,6 +31,7 @@ import {
   InterfaceTypeDefinitionNode,
   DefinitionNode,
   Location,
+  ASTNode,
 } from "graphql";
 import * as ts from "typescript";
 import {
@@ -295,6 +296,10 @@ export class GraphQLConstructor {
 
   list(node: ts.Node, values: ConstValueNode[]): ConstListValueNode {
     return { kind: Kind.LIST, loc: this._loc(node), values };
+  }
+
+  withLocation<T = ASTNode>(node: ts.Node, value: T): T {
+    return { ...value, loc: this._loc(node) };
   }
 
   constArgument(

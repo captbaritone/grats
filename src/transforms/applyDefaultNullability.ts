@@ -6,6 +6,7 @@ import * as E from "../Errors";
 import { KILLS_PARENT_ON_EXCEPTION_DIRECTIVE } from "../metadataDirectives";
 import { GraphQLConstructor } from "../GraphQLConstructor";
 import { ConfigOptions } from "../gratsConfig";
+import { loc } from "../utils/helpers";
 
 export function applyDefaultNullability(
   doc: DocumentNode,
@@ -20,24 +21,24 @@ export function applyDefaultNullability(
       );
 
       if (killsParent) {
-        if (killsParent.loc == null) {
-          throw new Error("Expected killsParent to have a location");
-        }
         // You can only use @killsParentOnException if nullableByDefault is on.
         if (!nullableByDefault) {
           errors.push(
-            gqlErr(killsParent.loc, E.killsParentOnExceptionWithWrongConfig()),
+            gqlErr(loc(killsParent), E.killsParentOnExceptionWithWrongConfig()),
           );
         }
         // You can't use @killsParentOnException if it's been typed as nullable
         if (t.type.kind !== Kind.NON_NULL_TYPE) {
           errors.push(
-            gqlErr(killsParent.loc, E.killsParentOnExceptionOnNullable()),
+            gqlErr(loc(killsParent), E.killsParentOnExceptionOnNullable()),
           );
         }
-        return t;
+        // Set the location of the NON_NULL_TYPE wrapper to the location of the
+        // @killsParentOnException directive so that type errors created by graphql-js
+        // are reported at the correct location.
+        return { ...t, type: { ...t.type, loc: killsParent.loc } };
       }
-      if (nullableByDefault) {
+      if (nullableByDefault && t.type.kind === Kind.NON_NULL_TYPE) {
         return { ...t, type: gql.nullableType(t.type) };
       }
       return t;
