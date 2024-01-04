@@ -33,7 +33,7 @@ export type ConfigOptions = {
   tsSchemaHeader: string | null; // Defaults to info about Grats
 };
 
-export type ParsedCommandLineGrats = ts.ParsedCommandLine & {
+export type ParsedCommandLineGrats = Omit<ts.ParsedCommandLine, "raw"> & {
   raw: {
     grats: ConfigOptions;
   };
