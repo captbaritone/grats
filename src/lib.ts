@@ -71,7 +71,7 @@ export function extractSchema(
     .map((snapshots) => combineSnapshots(snapshots))
     .andThen((snapshot) => {
       const { typesWithTypename } = snapshot;
-      const { nullableByDefault } = options.raw.grats;
+      const config = options.raw.grats;
       const checker = program.getTypeChecker();
       const ctx = TypeContext.fromSnapshot(checker, snapshot);
 
@@ -96,7 +96,7 @@ export function extractSchema(
           .map((doc) => filterNonGqlInterfaces(ctx, doc))
           // Apply default nullability to fields and arguments, and detect any misuse of
           // `@killsParentOnException`.
-          .andThen((doc) => applyDefaultNullability(doc, nullableByDefault))
+          .andThen((doc) => applyDefaultNullability(doc, config))
           // Resolve TypeScript type references to the GraphQL types they represent (or error).
           .andThen((doc) => resolveTypes(ctx, doc))
           // Ensure all subscription fields, and _only_ subscription fields, return an AsyncIterable.

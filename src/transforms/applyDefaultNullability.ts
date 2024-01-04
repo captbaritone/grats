@@ -5,10 +5,11 @@ import * as ts from "typescript";
 import * as E from "../Errors";
 import { KILLS_PARENT_ON_EXCEPTION_DIRECTIVE } from "../metadataDirectives";
 import { GraphQLConstructor } from "../GraphQLConstructor";
+import { ConfigOptions } from "../gratsConfig";
 
 export function applyDefaultNullability(
   doc: DocumentNode,
-  nullableByDefault: boolean,
+  { nullableByDefault }: ConfigOptions,
 ): DiagnosticsResult<DocumentNode> {
   const gql = new GraphQLConstructor();
   const errors: ts.DiagnosticWithLocation[] = [];
