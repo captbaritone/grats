@@ -32,6 +32,7 @@ import {
   ASYNC_ITERABLE_TYPE_DIRECTIVE,
   parseExportedDirective,
   parsePropertyNameDirective,
+  SEMANTIC_NON_NULL_DIRECTIVE,
 } from "./metadataDirectives";
 import { resolveRelativePath } from "./gratsRoot";
 
@@ -47,11 +48,14 @@ export function codegen(schema: GraphQLSchema, destination: string): string {
   return codegen.print();
 }
 
+const SEMANTIC_NULLABILITY_ERROR_HELPER_FUNCTION = "semanticNullabilityError";
+
 class Codegen {
   _schema: GraphQLSchema;
   _destination: string;
   _imports: ts.Statement[] = [];
   _typeDefinitions: Set<string> = new Set();
+  _helperDefinitions: Map<string, ts.Statement> = new Map();
   _graphQLImports: Set<string> = new Set();
   _statements: ts.Statement[] = [];
 
@@ -209,6 +213,8 @@ class Codegen {
     parentTypeName: string,
   ): ts.MethodDeclaration | null {
     const args = ["source", "args", "context", "info"];
+    const isSemanticNonNull =
+      fieldDirective(field, SEMANTIC_NON_NULL_DIRECTIVE) != null;
 
     const exported = fieldDirective(field, EXPORTED_DIRECTIVE);
     if (exported != null) {
@@ -230,6 +236,14 @@ class Codegen {
 
       const usedArgs = args.slice(0, argCount);
 
+      const callExpression = F.createCallExpression(
+        F.createIdentifier(resolverName),
+        undefined,
+        usedArgs.map((name) => {
+          return F.createIdentifier(name);
+        }),
+      );
+
       return this.method(
         methodName,
         usedArgs.map((name) => {
@@ -237,13 +251,7 @@ class Codegen {
         }),
         [
           F.createReturnStatement(
-            F.createCallExpression(
-              F.createIdentifier(resolverName),
-              undefined,
-              usedArgs.map((name) => {
-                return F.createIdentifier(name);
-              }),
-            ),
+            this.withSemanticNullability(callExpression, isSemanticNonNull),
           ),
         ],
       );
@@ -251,40 +259,108 @@ class Codegen {
     const propertyName = fieldDirective(field, FIELD_NAME_DIRECTIVE);
     if (propertyName != null) {
       const { name } = parsePropertyNameDirective(propertyName);
-      const prop = F.createPropertyAccessExpression(
-        F.createIdentifier("source"),
-        F.createIdentifier(name),
-      );
-      const callExpression = F.createCallExpression(
-        prop,
-        undefined,
-        args.map((name) => {
-          return F.createIdentifier(name);
-        }),
-      );
+      return this.resolverMethod(name, args, isSemanticNonNull, methodName);
+    }
 
-      const isFunc = F.createStrictEquality(
-        F.createTypeOfExpression(prop),
-        F.createStringLiteral("function"),
-      );
-
-      const ternary = F.createConditionalExpression(
-        isFunc,
-        undefined,
-        callExpression,
-        undefined,
-        prop,
-      );
-      return this.method(
+    if (isSemanticNonNull) {
+      return this.resolverMethod(
+        field.name,
+        args,
+        isSemanticNonNull,
         methodName,
-        args.map((name) => {
-          return this.param(name);
-        }),
-        [F.createReturnStatement(ternary)],
       );
     }
 
     return null;
+  }
+
+  resolverMethod(
+    name: string,
+    args: string[],
+    isSemanticNonNull: boolean,
+    methodName: string,
+  ) {
+    const prop = F.createPropertyAccessExpression(
+      F.createIdentifier("source"),
+      F.createIdentifier(name),
+    );
+    const callExpression = F.createCallExpression(
+      prop,
+      undefined,
+      args.map((name) => {
+        return F.createIdentifier(name);
+      }),
+    );
+
+    const isFunc = F.createStrictEquality(
+      F.createTypeOfExpression(prop),
+      F.createStringLiteral("function"),
+    );
+
+    const ternary = F.createConditionalExpression(
+      isFunc,
+      undefined,
+      callExpression,
+      undefined,
+      prop,
+    );
+    const expression = this.withSemanticNullability(ternary, isSemanticNonNull);
+    return this.method(
+      methodName,
+      args.map((name) => {
+        return this.param(name);
+      }),
+      [F.createReturnStatement(expression)],
+    );
+  }
+
+  withSemanticNullability(
+    expression: ts.Expression,
+    isSemanticNonNull: boolean,
+  ): ts.Expression {
+    if (!isSemanticNonNull) {
+      return expression;
+    }
+    this.ensureSemanticNullabilityErrorHelper();
+    return F.createBinaryExpression(
+      // TODO: These parentheses should not be necessary, but TS serialization does not seem to insert parens correctly.
+      F.createParenthesizedExpression(expression),
+      F.createToken(ts.SyntaxKind.QuestionQuestionToken),
+      F.createCallExpression(
+        F.createIdentifier(SEMANTIC_NULLABILITY_ERROR_HELPER_FUNCTION),
+        undefined,
+        undefined,
+      ),
+    );
+  }
+
+  ensureSemanticNullabilityErrorHelper() {
+    if (
+      this._helperDefinitions.has(SEMANTIC_NULLABILITY_ERROR_HELPER_FUNCTION)
+    ) {
+      return;
+    }
+    this._helperDefinitions.set(
+      SEMANTIC_NULLABILITY_ERROR_HELPER_FUNCTION,
+      F.createFunctionDeclaration(
+        undefined,
+        undefined,
+        SEMANTIC_NULLABILITY_ERROR_HELPER_FUNCTION,
+        undefined,
+        [],
+        F.createKeywordTypeNode(ts.SyntaxKind.NeverKeyword),
+        F.createBlock(
+          [
+            F.createThrowStatement(
+              F.createNewExpression(F.createIdentifier("Error"), undefined, [
+                F.createStringLiteral("Unexpected nullish value."),
+              ]),
+            ),
+          ],
+          true,
+        ),
+      ),
+    );
   }
 
   fields(obj: GraphQLObjectType | GraphQLInterfaceType): ts.MethodDeclaration {
@@ -762,7 +838,11 @@ class Codegen {
 
     return printer.printList(
       ts.ListFormat.MultiLine,
-      F.createNodeArray([...this._imports, ...this._statements]),
+      F.createNodeArray([
+        ...this._imports,
+        ...this._statements,
+        ...this._helperDefinitions.values(),
+      ]),
       sourceFile,
     );
   }
