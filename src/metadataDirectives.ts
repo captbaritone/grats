@@ -20,6 +20,7 @@ export const ASYNC_ITERABLE_TYPE_DIRECTIVE = "asyncIterable";
 
 export const KILLS_PARENT_ON_EXCEPTION_DIRECTIVE = "killsParentOnException";
 
+// TODO: Technically not a metadata directive. Should we move this?
 export const SEMANTIC_NON_NULL_DIRECTIVE = "semanticNonNull";
 
 export const METADATA_DIRECTIVE_NAMES = new Set([
@@ -27,7 +28,6 @@ export const METADATA_DIRECTIVE_NAMES = new Set([
   EXPORTED_DIRECTIVE,
   ASYNC_ITERABLE_TYPE_DIRECTIVE,
   KILLS_PARENT_ON_EXCEPTION_DIRECTIVE,
-  SEMANTIC_NON_NULL_DIRECTIVE,
 ]);
 
 export const DIRECTIVES_AST: DocumentNode = parse(`
