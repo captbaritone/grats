@@ -19,13 +19,13 @@ import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError";
 import { writeFileSync } from "fs";
 import { codegen } from "../codegen";
 import { diff } from "jest-diff";
+import { METADATA_DIRECTIVE_NAMES } from "../metadataDirectives";
 import * as semver from "semver";
 import {
   ConfigOptions,
   ParsedCommandLineGrats,
   validateGratsOptions,
 } from "../gratsConfig";
-import { METADATA_DIRECTIVE_NAMES } from "../metadataDirectives";
 
 const TS_VERSION = ts.version;
 

@@ -3,10 +3,11 @@ import { DiagnosticsResult, gqlErr } from "../utils/DiagnosticError";
 import { err, ok } from "../utils/Result";
 import * as ts from "typescript";
 import * as E from "../Errors";
+import { KILLS_PARENT_ON_EXCEPTION_DIRECTIVE } from "../metadataDirectives";
 import {
-  KILLS_PARENT_ON_EXCEPTION_DIRECTIVE,
+  addSemanticNonNullDirective,
   makeSemanticNonNullDirective,
-} from "../metadataDirectives";
+} from "../publicDirectives";
 import { GraphQLConstructor } from "../GraphQLConstructor";
 import { ConfigOptions } from "../gratsConfig";
 import { loc } from "../utils/helpers";
@@ -59,6 +60,12 @@ export function applyDefaultNullability(
   });
   if (errors.length > 0) {
     return err(errors);
+  }
+  if (strictSemanticNullability) {
+    return ok({
+      ...newDoc,
+      definitions: addSemanticNonNullDirective(newDoc.definitions),
+    });
   }
   return ok(newDoc);
 }

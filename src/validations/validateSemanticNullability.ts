@@ -12,7 +12,7 @@ import {
 } from "../utils/DiagnosticError";
 import { err, ok } from "../utils/Result";
 import { ConfigOptions } from "../gratsConfig";
-import { SEMANTIC_NON_NULL_DIRECTIVE } from "../metadataDirectives";
+import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
 import { astNode, loc } from "../utils/helpers";
 
 /**
