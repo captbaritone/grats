@@ -62,27 +62,42 @@ class Group {
 OUTPUT
 -----------------
 -- SDL --
+type Group {
+  description: String
+  members: [User!]
+  name: String
+}
+
 type SomeType {
-  hello(greeting: String!): String
   greetings(greeting: String!): [String!]
   greetings1(greeting: String!): [String!]
   greetings2(greeting: String!): [String!]
+  hello(greeting: String!): String
   me: User
 }
 
 type User {
-  name: String
   groups: [Group!]
-}
-
-type Group {
-  description: String
   name: String
-  members: [User!]
 }
 -- TypeScript --
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLList } from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                groups: {
+                    name: "groups",
+                    type: new GraphQLList(new GraphQLNonNull(GroupType))
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
     const GroupType: GraphQLObjectType = new GraphQLObjectType({
         name: "Group",
         fields() {
@@ -91,28 +106,13 @@ export function getSchema(): GraphQLSchema {
                     name: "description",
                     type: GraphQLString
                 },
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                },
                 members: {
                     name: "members",
                     type: new GraphQLList(new GraphQLNonNull(UserType))
-                }
-            };
-        }
-    });
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
-        name: "User",
-        fields() {
-            return {
+                },
                 name: {
                     name: "name",
                     type: GraphQLString
-                },
-                groups: {
-                    name: "groups",
-                    type: new GraphQLList(new GraphQLNonNull(GroupType))
                 }
             };
         }
@@ -121,16 +121,6 @@ export function getSchema(): GraphQLSchema {
         name: "SomeType",
         fields() {
             return {
-                hello: {
-                    name: "hello",
-                    type: GraphQLString,
-                    args: {
-                        greeting: {
-                            name: "greeting",
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    }
-                },
                 greetings: {
                     name: "greetings",
                     type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
@@ -161,6 +151,16 @@ export function getSchema(): GraphQLSchema {
                         }
                     }
                 },
+                hello: {
+                    name: "hello",
+                    type: GraphQLString,
+                    args: {
+                        greeting: {
+                            name: "greeting",
+                            type: new GraphQLNonNull(GraphQLString)
+                        }
+                    }
+                },
                 me: {
                     name: "me",
                     type: UserType
@@ -169,6 +169,6 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        types: [SomeTypeType, UserType, GroupType]
+        types: [GroupType, SomeTypeType, UserType]
     });
 }

@@ -38,13 +38,13 @@ interface Mammal {
 }
 
 interface Person implements Mammal {
-  name: String
   legs: Int
+  name: String
 }
 
 interface User implements Mammal & Person {
-  name: String
   legs: Int
+  name: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLInt, GraphQLString } from "graphql";
@@ -64,13 +64,13 @@ export function getSchema(): GraphQLSchema {
         name: "Person",
         fields() {
             return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                },
                 legs: {
                     name: "legs",
                     type: GraphQLInt
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
                 }
             };
         },
@@ -82,13 +82,13 @@ export function getSchema(): GraphQLSchema {
         name: "User",
         fields() {
             return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                },
                 legs: {
                     name: "legs",
                     type: GraphQLInt
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
                 }
             };
         },

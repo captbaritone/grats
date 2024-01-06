@@ -17,12 +17,12 @@ class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type User {
-  name: String
-}
-
 type SomeType {
   me: User
+}
+
+type User {
+  name: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
@@ -50,6 +50,6 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        types: [UserType, SomeTypeType]
+        types: [SomeTypeType, UserType]
     });
 }

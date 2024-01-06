@@ -35,7 +35,7 @@ interface Person {
   hello: String
 }
 
-type User implements Person & Node {
+type User implements Node & Person {
   hello: String
   id: String
 }
@@ -79,7 +79,7 @@ export function getSchema(): GraphQLSchema {
             };
         },
         interfaces() {
-            return [PersonType, NodeType];
+            return [NodeType, PersonType];
         }
     });
     return new GraphQLSchema({

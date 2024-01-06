@@ -33,54 +33,54 @@ class Admin implements IPerson {
 OUTPUT
 -----------------
 -- SDL --
-interface IPerson {
+type Admin implements IPerson {
+  greeting: String @exported(tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts", functionName: "greeting", argCount: 1)
   hello: String
+}
+
+interface IPerson {
   greeting: String
+  hello: String
 }
 
 type User implements IPerson {
-  hello: String
   greeting: String @exported(tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts", functionName: "greeting", argCount: 1)
-}
-
-type Admin implements IPerson {
   hello: String
-  greeting: String @exported(tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts", functionName: "greeting", argCount: 1)
 }
 -- TypeScript --
-import { greeting as userGreetingResolver } from "./addStringFieldToInterface";
 import { greeting as adminGreetingResolver } from "./addStringFieldToInterface";
-import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+import { greeting as userGreetingResolver } from "./addStringFieldToInterface";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInterfaceType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IPerson",
         fields() {
             return {
-                hello: {
-                    name: "hello",
-                    type: GraphQLString
-                },
                 greeting: {
                     name: "greeting",
+                    type: GraphQLString
+                },
+                hello: {
+                    name: "hello",
                     type: GraphQLString
                 }
             };
         }
     });
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
-        name: "User",
+    const AdminType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Admin",
         fields() {
             return {
-                hello: {
-                    name: "hello",
-                    type: GraphQLString
-                },
                 greeting: {
                     name: "greeting",
                     type: GraphQLString,
                     resolve(source) {
-                        return userGreetingResolver(source);
+                        return adminGreetingResolver(source);
                     }
+                },
+                hello: {
+                    name: "hello",
+                    type: GraphQLString
                 }
             };
         },
@@ -88,20 +88,20 @@ export function getSchema(): GraphQLSchema {
             return [IPersonType];
         }
     });
-    const AdminType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Admin",
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
         fields() {
             return {
-                hello: {
-                    name: "hello",
-                    type: GraphQLString
-                },
                 greeting: {
                     name: "greeting",
                     type: GraphQLString,
                     resolve(source) {
-                        return adminGreetingResolver(source);
+                        return userGreetingResolver(source);
                     }
+                },
+                hello: {
+                    name: "hello",
+                    type: GraphQLString
                 }
             };
         },
@@ -110,6 +110,6 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        types: [IPersonType, UserType, AdminType]
+        types: [AdminType, IPersonType, UserType]
     });
 }

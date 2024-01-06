@@ -32,8 +32,8 @@ type SomeType {
 
 type User {
   firstName: String
-  lastName: String
   fullName: String @exported(tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts", functionName: "fullName", argCount: 1)
+  lastName: String
 }
 -- TypeScript --
 import { fullName as userFullNameResolver } from "./userExample";
@@ -48,16 +48,16 @@ export function getSchema(): GraphQLSchema {
                     name: "firstName",
                     type: GraphQLString
                 },
-                lastName: {
-                    name: "lastName",
-                    type: GraphQLString
-                },
                 fullName: {
                     name: "fullName",
                     type: GraphQLString,
                     resolve(source) {
                         return userFullNameResolver(source);
                     }
+                },
+                lastName: {
+                    name: "lastName",
+                    type: GraphQLString
                 }
             };
         }

@@ -25,16 +25,16 @@ interface Actor extends GqlNode, Person {
 OUTPUT
 -----------------
 -- SDL --
+interface Actor implements Node & Person {
+  id: String
+  name: String
+}
+
 interface Node {
   id: String
 }
 
 interface Person {
-  name: String
-}
-
-interface Actor implements Node & Person {
-  id: String
   name: String
 }
 -- TypeScript --
@@ -81,6 +81,6 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        types: [NodeType, PersonType, ActorType]
+        types: [ActorType, NodeType, PersonType]
     });
 }

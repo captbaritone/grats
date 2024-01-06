@@ -29,53 +29,53 @@ class Pet implements Greetable {
 
 === SNIP ===
 interface Greetable {
-  name: String
   greeting: String
-}
-
-type User implements Greetable {
   name: String
-  greeting: String
 }
 
 type Pet implements Greetable {
-  name: String
   greeting: String
+  name: String
+}
+
+type User implements Greetable {
+  greeting: String
+  name: String
 }
 === SNIP ===
-import { greeting as userGreetingResolver } from "./04-interface-field-common-impl.grats";
 import { greeting as petGreetingResolver } from "./04-interface-field-common-impl.grats";
+import { greeting as userGreetingResolver } from "./04-interface-field-common-impl.grats";
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const GreetableType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Greetable",
         fields() {
             return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                },
                 greeting: {
                     name: "greeting",
+                    type: GraphQLString
+                },
+                name: {
+                    name: "name",
                     type: GraphQLString
                 }
             };
         }
     });
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
-        name: "User",
+    const PetType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Pet",
         fields() {
             return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                },
                 greeting: {
                     name: "greeting",
                     type: GraphQLString,
                     resolve(source) {
-                        return userGreetingResolver(source);
+                        return petGreetingResolver(source);
                     }
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
                 }
             };
         },
@@ -83,20 +83,20 @@ export function getSchema(): GraphQLSchema {
             return [GreetableType];
         }
     });
-    const PetType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Pet",
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
         fields() {
             return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                },
                 greeting: {
                     name: "greeting",
                     type: GraphQLString,
                     resolve(source) {
-                        return petGreetingResolver(source);
+                        return userGreetingResolver(source);
                     }
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
                 }
             };
         },
@@ -105,6 +105,6 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        types: [GreetableType, UserType, PetType]
+        types: [GreetableType, PetType, UserType]
     });
 }

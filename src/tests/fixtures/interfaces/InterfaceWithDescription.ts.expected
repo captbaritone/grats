@@ -30,20 +30,20 @@ class User implements IPerson {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType {
-  me: User
-}
-
 """An interface describing the common elements of all people types."""
 interface IPerson {
   name: String
+}
+
+type SomeType {
+  me: User
 }
 
 type User implements IPerson {
   name: String
 }
 -- TypeScript --
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInterfaceType } from "graphql";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         description: "An interface describing the common elements of all people types.",
@@ -83,6 +83,6 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        types: [SomeTypeType, IPersonType, UserType]
+        types: [IPersonType, SomeTypeType, UserType]
     });
 }

@@ -32,26 +32,26 @@ class User implements Person, Actor {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType {
-  me: User
+interface Actor {
+  name: String
 }
 
 interface Person {
   name: String
 }
 
-interface Actor {
-  name: String
+type SomeType {
+  me: User
 }
 
-type User implements Person & Actor {
+type User implements Actor & Person {
   name: String
 }
 -- TypeScript --
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInterfaceType } from "graphql";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
-        name: "Person",
+    const ActorType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Actor",
         fields() {
             return {
                 name: {
@@ -61,8 +61,8 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
-    const ActorType: GraphQLInterfaceType = new GraphQLInterfaceType({
-        name: "Actor",
+    const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Person",
         fields() {
             return {
                 name: {
@@ -83,7 +83,7 @@ export function getSchema(): GraphQLSchema {
             };
         },
         interfaces() {
-            return [PersonType, ActorType];
+            return [ActorType, PersonType];
         }
     });
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
@@ -98,6 +98,6 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        types: [SomeTypeType, PersonType, ActorType, UserType]
+        types: [ActorType, PersonType, SomeTypeType, UserType]
     });
 }
