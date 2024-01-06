@@ -3,7 +3,6 @@ import {
   DocumentNode,
   GraphQLSchema,
   Kind,
-  lexicographicSortSchema,
   validateSchema,
 } from "graphql";
 import {
@@ -29,8 +28,8 @@ import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces";
 import { resolveTypes } from "./transforms/resolveTypes";
 import { validateAsyncIterable } from "./validations/validateAsyncIterable";
 import { applyDefaultNullability } from "./transforms/applyDefaultNullability";
-
-export * from "./gratsConfig";
+import { mergeExtensions } from "./transforms/mergeExtensions";
+import { sortSchemaAst } from "./transforms/sortSchemaAst";
 
 export type SchemaAndDoc = {
   schema: GraphQLSchema;
@@ -106,6 +105,8 @@ export function extractSchemaAndDoc(
         .andThen((doc) => resolveTypes(ctx, doc))
         // Ensure all subscription fields, and _only_ subscription fields, return an AsyncIterable.
         .andThen((doc) => validateAsyncIterable(doc))
+        .map((doc) => mergeExtensions(doc))
+        .map((doc) => sortSchemaAst(doc))
         .result();
 
       if (docResult.kind === "ERROR") {
@@ -120,7 +121,6 @@ export function extractSchemaAndDoc(
           // Ensure that every type which implements an interface or is a member of a
           // union has a __typename field.
           .andThen((schema) => validateTypenames(schema, typesWithTypename))
-          .map((schema) => lexicographicSortSchema(schema))
           .map((schema) => ({ schema, doc }))
           .result()
       );

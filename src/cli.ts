@@ -3,8 +3,6 @@
 import { Location } from "graphql";
 import { getParsedTsConfig } from "./";
 import {
-  ConfigOptions,
-  ParsedCommandLineGrats,
   SchemaAndDoc,
   buildSchemaAndDocResult,
   extractSchemaAndDoc,
@@ -17,6 +15,7 @@ import { locate } from "./Locate";
 import { printGratsSDL, printExecutableSchema } from "./printSchema";
 import * as ts from "typescript";
 import { ReportableDiagnostics } from "./utils/DiagnosticError";
+import { ConfigOptions, ParsedCommandLineGrats } from "./gratsConfig";
 
 const program = new Command();
 

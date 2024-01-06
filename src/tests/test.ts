@@ -3,12 +3,9 @@ import TestRunner from "./TestRunner";
 import {
   buildSchemaAndDocResult,
   buildSchemaAndDocResultWithHost,
-  ConfigOptions,
-  ParsedCommandLineGrats,
-  validateGratsOptions,
 } from "../lib";
 import * as ts from "typescript";
-import { graphql, GraphQLSchema } from "graphql";
+import { graphql, GraphQLSchema, print, specifiedScalarTypes } from "graphql";
 import { Command } from "commander";
 import { locate } from "../Locate";
 import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError";
@@ -16,12 +13,14 @@ import { writeFileSync } from "fs";
 import { codegen } from "../codegen";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import { diff } from "jest-diff";
-import {
-  printSDLFromSchemaWithoutDirectives,
-  printSDLWithoutDirectives,
-} from "../printSchema";
+import { printSDLFromSchemaWithoutDirectives } from "../printSchema";
 import { METADATA_DIRECTIVE_NAMES } from "../metadataDirectives";
 import * as semver from "semver";
+import {
+  ConfigOptions,
+  ParsedCommandLineGrats,
+  validateGratsOptions,
+} from "../gratsConfig";
 
 const TS_VERSION = ts.version;
 
@@ -137,15 +136,21 @@ const testDirs = [
           gqlErr(locResult.value, "Located here"),
         ]).formatDiagnosticsWithContext();
       } else {
-        const sansDirectives = new GraphQLSchema({
-          ...schema.toConfig(),
-          directives: schema.getDirectives().filter((directive) => {
-            return !METADATA_DIRECTIVE_NAMES.has(directive.name);
+        const docSansDirectives = {
+          ...doc,
+          definitions: doc.definitions.filter((def) => {
+            if (def.kind === "DirectiveDefinition") {
+              return !METADATA_DIRECTIVE_NAMES.has(def.name.value);
+            }
+            if (def.kind === "ScalarTypeDefinition") {
+              return !specifiedScalarTypes.some(
+                (scalar) => scalar.name === def.name.value,
+              );
+            }
+            return true;
           }),
-        });
-        const sdl = printSchemaWithDirectives(sansDirectives, {
-          assumeValid: true,
-        });
+        };
+        const sdl = print(docSansDirectives);
 
         return `-- SDL --\n${sdl}\n-- TypeScript --\n${executableSchema}`;
       }
