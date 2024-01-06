@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
-import { GraphQLSchema, Location } from "graphql";
+import { Location } from "graphql";
 import { getParsedTsConfig } from "./";
 import {
   ConfigOptions,
   ParsedCommandLineGrats,
-  buildSchemaResult,
-  extractSchema,
+  SchemaAndDoc,
+  buildSchemaAndDocResult,
+  extractSchemaAndDoc,
 } from "./lib";
 import { Command } from "commander";
 import { writeFileSync } from "fs";
@@ -46,13 +47,13 @@ program
   .action((entity, { tsconfig }) => {
     const { config } = getTsConfigOrReportAndExit(tsconfig);
 
-    const schemaResult = buildSchemaResult(config);
+    const schemaResult = buildSchemaAndDocResult(config);
     if (schemaResult.kind === "ERROR") {
       console.error(schemaResult.err.formatDiagnosticsWithColorAndContext());
       process.exit(1);
     }
 
-    const loc = locate(schemaResult.value, entity);
+    const loc = locate(schemaResult.value.schema, entity);
     if (loc.kind === "ERROR") {
       console.error(loc.err);
       process.exit(1);
@@ -77,7 +78,7 @@ function startWatchMode(tsconfig: string) {
   );
   watchHost.afterProgramCreate = (program) => {
     // For now we just rebuild the schema on every change.
-    const schemaResult = extractSchema(config, program.getProgram());
+    const schemaResult = extractSchemaAndDoc(config, program.getProgram());
     if (schemaResult.kind === "ERROR") {
       reportDiagnostics(schemaResult.err);
       return;
@@ -92,7 +93,7 @@ function startWatchMode(tsconfig: string) {
  */
 function runBuild(tsconfig: string) {
   const { config, configPath } = getTsConfigOrReportAndExit(tsconfig);
-  const schemaResult = buildSchemaResult(config);
+  const schemaResult = buildSchemaAndDocResult(config);
   if (schemaResult.kind === "ERROR") {
     console.error(schemaResult.err.formatDiagnosticsWithColorAndContext());
     process.exit(1);
@@ -105,10 +106,12 @@ function runBuild(tsconfig: string) {
  * Serializes the SDL and TypeScript schema to disk and reports to the console.
  */
 function writeSchemaFilesAndReport(
-  schema: GraphQLSchema,
+  schemaAndDoc: SchemaAndDoc,
   config: ParsedCommandLineGrats,
   configPath: string,
 ) {
+  const { schema, doc } = schemaAndDoc;
+
   const gratsOptions: ConfigOptions = config.raw.grats;
 
   const dest = resolve(dirname(configPath), gratsOptions.tsSchema);
@@ -116,7 +119,7 @@ function writeSchemaFilesAndReport(
   writeFileSync(dest, code);
   console.error(`Grats: Wrote TypeScript schema to \`${dest}\`.`);
 
-  const schemaStr = printGratsSDL(schema, gratsOptions);
+  const schemaStr = printGratsSDL(doc, gratsOptions);
 
   const absOutput = resolve(dirname(configPath), gratsOptions.graphqlSchema);
   writeFileSync(absOutput, schemaStr);

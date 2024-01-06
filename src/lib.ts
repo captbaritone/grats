@@ -32,11 +32,16 @@ import { applyDefaultNullability } from "./transforms/applyDefaultNullability";
 
 export * from "./gratsConfig";
 
+export type SchemaAndDoc = {
+  schema: GraphQLSchema;
+  doc: DocumentNode;
+};
+
 // Construct a schema, using GraphQL schema language
 // Exported for tests that want to intercept diagnostic errors.
-export function buildSchemaResult(
+export function buildSchemaAndDocResult(
   options: ParsedCommandLineGrats,
-): Result<GraphQLSchema, ReportableDiagnostics> {
+): Result<SchemaAndDoc, ReportableDiagnostics> {
   // https://stackoverflow.com/a/66604532/1263117
   const compilerHost = ts.createCompilerHost(
     options.options,
@@ -44,19 +49,19 @@ export function buildSchemaResult(
     true,
   );
 
-  return buildSchemaResultWithHost(options, compilerHost);
+  return buildSchemaAndDocResultWithHost(options, compilerHost);
 }
 
-export function buildSchemaResultWithHost(
+export function buildSchemaAndDocResultWithHost(
   options: ParsedCommandLineGrats,
   compilerHost: ts.CompilerHost,
-): Result<GraphQLSchema, ReportableDiagnostics> {
+): Result<SchemaAndDoc, ReportableDiagnostics> {
   const program = ts.createProgram(
     options.fileNames,
     options.options,
     compilerHost,
   );
-  return new ResultPipe(extractSchema(options, program))
+  return new ResultPipe(extractSchemaAndDoc(options, program))
     .mapErr((e) => new ReportableDiagnostics(compilerHost, e))
     .result();
 }
@@ -64,10 +69,10 @@ export function buildSchemaResultWithHost(
 /**
  * The core transformation pipeline of Grats.
  */
-export function extractSchema(
+export function extractSchemaAndDoc(
   options: ParsedCommandLineGrats,
   program: ts.Program,
-): DiagnosticsWithoutLocationResult<GraphQLSchema> {
+): DiagnosticsWithoutLocationResult<SchemaAndDoc> {
   return new ResultPipe(extractSnapshotsFromProgram(program, options))
     .map((snapshots) => combineSnapshots(snapshots))
     .andThen((snapshot) => {
@@ -82,33 +87,41 @@ export function extractSchema(
         validateContextReferences(ctx, snapshot.contextReferences),
       );
 
+      const docResult = new ResultPipe(validationResult)
+        // Add the metadata directive definitions to definitions
+        // found in the snapshot.
+        .map(() => addMetadataDirectives(snapshot.definitions))
+        // If you define a field on an interface using the functional style, we need to add
+        // that field to each concrete type as well. This must be done after all types are created,
+        // but before we validate the schema.
+        .andThen((definitions) => addInterfaceFields(ctx, definitions))
+        // Convert the definitions into a DocumentNode
+        .map((definitions) => ({ kind: Kind.DOCUMENT, definitions } as const))
+        // Filter out any `implements` clauses that are not GraphQL interfaces.
+        .map((doc) => filterNonGqlInterfaces(ctx, doc))
+        // Apply default nullability to fields and arguments, and detect any misuse of
+        // `@killsParentOnException`.
+        .andThen((doc) => applyDefaultNullability(doc, config))
+        // Resolve TypeScript type references to the GraphQL types they represent (or error).
+        .andThen((doc) => resolveTypes(ctx, doc))
+        // Ensure all subscription fields, and _only_ subscription fields, return an AsyncIterable.
+        .andThen((doc) => validateAsyncIterable(doc))
+        .result();
+
+      if (docResult.kind === "ERROR") {
+        return docResult;
+      }
+      const doc = docResult.value;
+
+      // Validate the document node against the GraphQL spec.
+      // Build and validate the schema with regards to the GraphQL spec.
       return (
-        new ResultPipe(validationResult)
-          // Add the metadata directive definitions to definitions
-          // found in the snapshot.
-          .map(() => addMetadataDirectives(snapshot.definitions))
-          // If you define a field on an interface using the functional style, we need to add
-          // that field to each concrete type as well. This must be done after all types are created,
-          // but before we validate the schema.
-          .andThen((definitions) => addInterfaceFields(ctx, definitions))
-          // Convert the definitions into a DocumentNode
-          .map((definitions) => ({ kind: Kind.DOCUMENT, definitions } as const))
-          // Filter out any `implements` clauses that are not GraphQL interfaces.
-          .map((doc) => filterNonGqlInterfaces(ctx, doc))
-          // Apply default nullability to fields and arguments, and detect any misuse of
-          // `@killsParentOnException`.
-          .andThen((doc) => applyDefaultNullability(doc, config))
-          // Resolve TypeScript type references to the GraphQL types they represent (or error).
-          .andThen((doc) => resolveTypes(ctx, doc))
-          // Ensure all subscription fields, and _only_ subscription fields, return an AsyncIterable.
-          .andThen((doc) => validateAsyncIterable(doc))
-          // Validate the document node against the GraphQL spec.
-          // Build and validate the schema with regards to the GraphQL spec.
-          .andThen((doc) => buildSchemaFromDoc(doc))
+        new ResultPipe(buildSchemaFromDoc(doc))
           // Ensure that every type which implements an interface or is a member of a
           // union has a __typename field.
           .andThen((schema) => validateTypenames(schema, typesWithTypename))
           .map((schema) => lexicographicSortSchema(schema))
+          .map((schema) => ({ schema, doc }))
           .result()
       );
     })

@@ -1,8 +1,8 @@
 import * as path from "path";
 import TestRunner from "./TestRunner";
 import {
-  buildSchemaResult,
-  buildSchemaResultWithHost,
+  buildSchemaAndDocResult,
+  buildSchemaAndDocResultWithHost,
   ConfigOptions,
   ParsedCommandLineGrats,
   validateGratsOptions,
@@ -16,7 +16,10 @@ import { writeFileSync } from "fs";
 import { codegen } from "../codegen";
 import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import { diff } from "jest-diff";
-import { printSDLWithoutDirectives } from "../printSchema";
+import {
+  printSDLFromSchemaWithoutDirectives,
+  printSDLWithoutDirectives,
+} from "../printSchema";
 import { METADATA_DIRECTIVE_NAMES } from "../metadataDirectives";
 import * as semver from "semver";
 
@@ -109,7 +112,7 @@ const testDirs = [
         true,
       );
 
-      const schemaResult = buildSchemaResultWithHost(
+      const schemaResult = buildSchemaAndDocResultWithHost(
         parsedOptions,
         compilerHost,
       );
@@ -117,16 +120,15 @@ const testDirs = [
         return schemaResult.err.formatDiagnosticsWithContext();
       }
 
+      const { schema, doc } = schemaResult.value;
+
       // We run codegen here just ensure that it doesn't throw.
-      const executableSchema = codegen(
-        schemaResult.value,
-        `${fixturesDir}/${fileName}`,
-      );
+      const executableSchema = codegen(schema, `${fixturesDir}/${fileName}`);
 
       const LOCATION_REGEX = /^\/\/ Locate: (.*)/;
       const locationMatch = code.match(LOCATION_REGEX);
       if (locationMatch != null) {
-        const locResult = locate(schemaResult.value, locationMatch[1].trim());
+        const locResult = locate(schema, locationMatch[1].trim());
         if (locResult.kind === "ERROR") {
           return locResult.err;
         }
@@ -136,8 +138,8 @@ const testDirs = [
         ]).formatDiagnosticsWithContext();
       } else {
         const sansDirectives = new GraphQLSchema({
-          ...schemaResult.value.toConfig(),
-          directives: schemaResult.value.getDirectives().filter((directive) => {
+          ...schema.toConfig(),
+          directives: schema.getDirectives().filter((directive) => {
             return !METADATA_DIRECTIVE_NAMES.has(directive.name);
           }),
         });
@@ -177,12 +179,14 @@ const testDirs = [
         errors: [],
         fileNames: files,
       });
-      const schemaResult = buildSchemaResult(parsedOptions);
+      const schemaResult = buildSchemaAndDocResult(parsedOptions);
       if (schemaResult.kind === "ERROR") {
         throw new Error(schemaResult.err.formatDiagnosticsWithContext());
       }
 
-      const tsSchema = codegen(schemaResult.value, schemaPath);
+      const { schema, doc } = schemaResult.value;
+
+      const tsSchema = codegen(schema, schemaPath);
 
       writeFileSync(schemaPath, tsSchema);
 
@@ -198,7 +202,7 @@ const testDirs = [
 
       const actualSchema = schemaModule.getSchema();
 
-      const schemaDiff = compareSchemas(actualSchema, schemaResult.value);
+      const schemaDiff = compareSchemas(actualSchema, schema);
 
       if (schemaDiff) {
         console.log(schemaDiff);
@@ -222,8 +226,8 @@ function compareSchemas(
   actual: GraphQLSchema,
   expected: GraphQLSchema,
 ): string | null {
-  const actualSDL = printSDLWithoutDirectives(actual);
-  const expectedSDL = printSDLWithoutDirectives(expected);
+  const actualSDL = printSDLFromSchemaWithoutDirectives(actual);
+  const expectedSDL = printSDLFromSchemaWithoutDirectives(expected);
 
   if (actualSDL === expectedSDL) {
     return null;
