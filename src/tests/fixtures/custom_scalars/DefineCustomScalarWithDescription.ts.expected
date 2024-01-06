@@ -17,15 +17,19 @@ type MyUrl = string;
 OUTPUT
 -----------------
 -- SDL --
+"""Use this for URLs."""
+scalar MyUrl
+
 type SomeType {
   hello: String
 }
-
-"""Use this for URLs."""
-scalar MyUrl
 -- TypeScript --
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLScalarType } from "graphql";
+import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
+    const MyUrlType: GraphQLScalarType = new GraphQLScalarType({
+        description: "Use this for URLs.",
+        name: "MyUrl"
+    });
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
@@ -37,11 +41,7 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
-    const MyUrlType: GraphQLScalarType = new GraphQLScalarType({
-        description: "Use this for URLs.",
-        name: "MyUrl"
-    });
     return new GraphQLSchema({
-        types: [SomeTypeType, MyUrlType]
+        types: [MyUrlType, SomeTypeType]
     });
 }

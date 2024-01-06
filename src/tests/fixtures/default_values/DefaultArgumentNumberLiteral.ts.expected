@@ -20,27 +20,16 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  intField(count: Int! = 10): String
   floatField(scale: Float! = 10): String
+  intField(count: Int! = 10): String
 }
 -- TypeScript --
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLInt, GraphQLFloat } from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLFloat, GraphQLInt } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
             return {
-                intField: {
-                    name: "intField",
-                    type: GraphQLString,
-                    args: {
-                        count: {
-                            name: "count",
-                            type: new GraphQLNonNull(GraphQLInt),
-                            defaultValue: 10
-                        }
-                    }
-                },
                 floatField: {
                     name: "floatField",
                     type: GraphQLString,
@@ -48,6 +37,17 @@ export function getSchema(): GraphQLSchema {
                         scale: {
                             name: "scale",
                             type: new GraphQLNonNull(GraphQLFloat),
+                            defaultValue: 10
+                        }
+                    }
+                },
+                intField: {
+                    name: "intField",
+                    type: GraphQLString,
+                    args: {
+                        count: {
+                            name: "count",
+                            type: new GraphQLNonNull(GraphQLInt),
                             defaultValue: 10
                         }
                     }

@@ -22,28 +22,17 @@ export function greeting(iFoo: IFoo): string {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType {
-  foo: String
-}
-
 interface IFoo {
   bar: String
   greeting: String
 }
+
+type SomeType {
+  foo: String
+}
 -- TypeScript --
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInterfaceType } from "graphql";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-        name: "SomeType",
-        fields() {
-            return {
-                foo: {
-                    name: "foo",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
     const IFooType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IFoo",
         fields() {
@@ -59,7 +48,18 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                foo: {
+                    name: "foo",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
     return new GraphQLSchema({
-        types: [SomeTypeType, IFooType]
+        types: [IFooType, SomeTypeType]
     });
 }

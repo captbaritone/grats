@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { GraphQLSchema, Location, lexicographicSortSchema } from "graphql";
+import { GraphQLSchema, Location } from "graphql";
 import { getParsedTsConfig } from "./";
 import {
   ConfigOptions,
@@ -97,9 +97,8 @@ function runBuild(tsconfig: string) {
     console.error(schemaResult.err.formatDiagnosticsWithColorAndContext());
     process.exit(1);
   }
-  const sortedSchema = lexicographicSortSchema(schemaResult.value);
 
-  writeSchemaFilesAndReport(sortedSchema, config, configPath);
+  writeSchemaFilesAndReport(schemaResult.value, config, configPath);
 }
 
 /**
@@ -110,16 +109,14 @@ function writeSchemaFilesAndReport(
   config: ParsedCommandLineGrats,
   configPath: string,
 ) {
-  const sortedSchema = lexicographicSortSchema(schema);
-
   const gratsOptions: ConfigOptions = config.raw.grats;
 
   const dest = resolve(dirname(configPath), gratsOptions.tsSchema);
-  const code = printExecutableSchema(sortedSchema, gratsOptions, dest);
+  const code = printExecutableSchema(schema, gratsOptions, dest);
   writeFileSync(dest, code);
   console.error(`Grats: Wrote TypeScript schema to \`${dest}\`.`);
 
-  const schemaStr = printGratsSDL(sortedSchema, gratsOptions);
+  const schemaStr = printGratsSDL(schema, gratsOptions);
 
   const absOutput = resolve(dirname(configPath), gratsOptions.graphqlSchema);
   writeFileSync(absOutput, schemaStr);

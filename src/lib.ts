@@ -3,6 +3,7 @@ import {
   DocumentNode,
   GraphQLSchema,
   Kind,
+  lexicographicSortSchema,
   validateSchema,
 } from "graphql";
 import {
@@ -107,6 +108,7 @@ export function extractSchema(
           // Ensure that every type which implements an interface or is a member of a
           // union has a __typename field.
           .andThen((schema) => validateTypenames(schema, typesWithTypename))
+          .map((schema) => lexicographicSortSchema(schema))
           .result()
       );
     })

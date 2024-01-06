@@ -14,9 +14,10 @@ class User {
 
 === SNIP ===
 type User {
+  myField: String
+
   """A description of some field."""
   someField: String
-  myField: String
 }
 === SNIP ===
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
@@ -25,13 +26,13 @@ export function getSchema(): GraphQLSchema {
         name: "User",
         fields() {
             return {
+                myField: {
+                    name: "myField",
+                    type: GraphQLString
+                },
                 someField: {
                     description: "A description of some field.",
                     name: "someField",
-                    type: GraphQLString
-                },
-                myField: {
-                    name: "myField",
                     type: GraphQLString
                 }
             };

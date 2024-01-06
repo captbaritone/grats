@@ -18,15 +18,15 @@ export interface IPerson {
 OUTPUT
 -----------------
 -- SDL --
-type User implements IPerson {
-  name: String
-}
-
 interface IPerson {
   name: String
 }
+
+type User implements IPerson {
+  name: String
+}
 -- TypeScript --
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInterfaceType } from "graphql";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IPerson",
@@ -54,6 +54,6 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        types: [UserType, IPersonType]
+        types: [IPersonType, UserType]
     });
 }

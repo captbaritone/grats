@@ -12,8 +12,8 @@ class User {
 
 === SNIP ===
 type User {
-  oldField: String @deprecated(reason: "Please use myNewField instead.")
   newField: String
+  oldField: String @deprecated(reason: "Please use myNewField instead.")
 }
 === SNIP ===
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
@@ -22,13 +22,13 @@ export function getSchema(): GraphQLSchema {
         name: "User",
         fields() {
             return {
+                newField: {
+                    name: "newField",
+                    type: GraphQLString
+                },
                 oldField: {
                     deprecationReason: "Please use myNewField instead.",
                     name: "oldField",
-                    type: GraphQLString
-                },
-                newField: {
-                    name: "newField",
                     type: GraphQLString
                 }
             };

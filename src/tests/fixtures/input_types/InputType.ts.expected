@@ -16,27 +16,16 @@ type MyInputType = {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType {
-  hello: String
-}
-
 input MyInputType {
   someField: String!
 }
+
+type SomeType {
+  hello: String
+}
 -- TypeScript --
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInputObjectType, GraphQLNonNull } from "graphql";
+import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-        name: "SomeType",
-        fields() {
-            return {
-                hello: {
-                    name: "hello",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
     const MyInputTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({
         name: "MyInputType",
         fields() {
@@ -48,7 +37,18 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                hello: {
+                    name: "hello",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
     return new GraphQLSchema({
-        types: [SomeTypeType, MyInputTypeType]
+        types: [MyInputTypeType, SomeTypeType]
     });
 }

@@ -34,8 +34,8 @@ type Query {
 
 """A user in our kick-ass system!"""
 type User {
-  name: String
   greeting(salutation: String!): String
+  name: String
 }
 === SNIP ===
 import { me as queryMeResolver } from "./gratsSample.grats";
@@ -47,10 +47,6 @@ export function getSchema(): GraphQLSchema {
         description: "A user in our kick-ass system!",
         fields() {
             return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                },
                 greeting: {
                     name: "greeting",
                     type: GraphQLString,
@@ -60,6 +56,10 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     }
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
                 }
             };
         }

@@ -14,14 +14,17 @@ type MyUrl = string;
 OUTPUT
 -----------------
 -- SDL --
+scalar CustomName
+
 type SomeType {
   hello: String
 }
-
-scalar CustomName
 -- TypeScript --
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLScalarType } from "graphql";
+import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
+    const CustomNameType: GraphQLScalarType = new GraphQLScalarType({
+        name: "CustomName"
+    });
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
@@ -33,10 +36,7 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
-    const CustomNameType: GraphQLScalarType = new GraphQLScalarType({
-        name: "CustomName"
-    });
     return new GraphQLSchema({
-        types: [SomeTypeType, CustomNameType]
+        types: [CustomNameType, SomeTypeType]
     });
 }

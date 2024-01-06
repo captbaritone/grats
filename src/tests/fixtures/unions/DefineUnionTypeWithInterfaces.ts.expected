@@ -28,6 +28,12 @@ type Actor = User | Entity;
 OUTPUT
 -----------------
 -- SDL --
+union Actor = Entity | User
+
+type Entity {
+  description: String
+}
+
 type SomeType {
   me: Actor
 }
@@ -35,26 +41,9 @@ type SomeType {
 type User {
   name: String
 }
-
-type Entity {
-  description: String
-}
-
-union Actor = User | Entity
 -- TypeScript --
-import { GraphQLSchema, GraphQLObjectType, GraphQLUnionType, GraphQLString } from "graphql";
+import { GraphQLSchema, GraphQLUnionType, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
-        name: "User",
-        fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
     const EntityType: GraphQLObjectType = new GraphQLObjectType({
         name: "Entity",
         fields() {
@@ -66,10 +55,21 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
     const ActorType: GraphQLUnionType = new GraphQLUnionType({
         name: "Actor",
         types() {
-            return [UserType, EntityType];
+            return [EntityType, UserType];
         }
     });
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
@@ -84,6 +84,6 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        types: [SomeTypeType, UserType, EntityType, ActorType]
+        types: [ActorType, EntityType, SomeTypeType, UserType]
     });
 }

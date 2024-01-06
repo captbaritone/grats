@@ -14,8 +14,8 @@ class User {
 === SNIP ===
 """A user in our kick-ass system!"""
 type User {
-  name: String
   greet(greeting: String!): String
+  name: String
 }
 === SNIP ===
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
@@ -25,10 +25,6 @@ export function getSchema(): GraphQLSchema {
         description: "A user in our kick-ass system!",
         fields() {
             return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                },
                 greet: {
                     name: "greet",
                     type: GraphQLString,
@@ -38,6 +34,10 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     }
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
                 }
             };
         }

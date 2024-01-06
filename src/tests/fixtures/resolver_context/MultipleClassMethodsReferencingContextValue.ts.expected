@@ -23,8 +23,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String
   alsoGreeting: String
+  greeting: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
@@ -33,12 +33,12 @@ export function getSchema(): GraphQLSchema {
         name: "SomeType",
         fields() {
             return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString
-                },
                 alsoGreeting: {
                     name: "alsoGreeting",
+                    type: GraphQLString
+                },
+                greeting: {
+                    name: "greeting",
                     type: GraphQLString
                 }
             };

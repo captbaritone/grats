@@ -1,10 +1,29 @@
 import { firstHundredIntegers as queryFirstHundredIntegersResolver } from "./index";
-import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLBoolean, GraphQLString, GraphQLList, GraphQLInt } from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLString, GraphQLInt, GraphQLBoolean } from "graphql";
 export function getSchema(): GraphQLSchema {
+    const FirstHundredIntegersEdgeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "FirstHundredIntegersEdge",
+        fields() {
+            return {
+                cursor: {
+                    name: "cursor",
+                    type: GraphQLString
+                },
+                node: {
+                    name: "node",
+                    type: GraphQLInt
+                }
+            };
+        }
+    });
     const FirstHundredIntegersPageInfoType: GraphQLObjectType = new GraphQLObjectType({
         name: "FirstHundredIntegersPageInfo",
         fields() {
             return {
+                endCursor: {
+                    name: "endCursor",
+                    type: GraphQLString
+                },
                 hasNextPage: {
                     name: "hasNextPage",
                     type: new GraphQLNonNull(GraphQLBoolean)
@@ -16,25 +35,6 @@ export function getSchema(): GraphQLSchema {
                 startCursor: {
                     name: "startCursor",
                     type: GraphQLString
-                },
-                endCursor: {
-                    name: "endCursor",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const FirstHundredIntegersEdgeType: GraphQLObjectType = new GraphQLObjectType({
-        name: "FirstHundredIntegersEdge",
-        fields() {
-            return {
-                node: {
-                    name: "node",
-                    type: GraphQLInt
-                },
-                cursor: {
-                    name: "cursor",
-                    type: GraphQLString
                 }
             };
         }
@@ -43,13 +43,13 @@ export function getSchema(): GraphQLSchema {
         name: "FirstHundredIntegersConnection",
         fields() {
             return {
-                pageInfo: {
-                    name: "pageInfo",
-                    type: FirstHundredIntegersPageInfoType
-                },
                 edges: {
                     name: "edges",
                     type: new GraphQLList(new GraphQLNonNull(FirstHundredIntegersEdgeType))
+                },
+                pageInfo: {
+                    name: "pageInfo",
+                    type: FirstHundredIntegersPageInfoType
                 }
             };
         }
@@ -62,13 +62,13 @@ export function getSchema(): GraphQLSchema {
                     name: "firstHundredIntegers",
                     type: FirstHundredIntegersConnectionType,
                     args: {
-                        first: {
-                            name: "first",
-                            type: GraphQLInt
-                        },
                         after: {
                             name: "after",
                             type: GraphQLString
+                        },
+                        first: {
+                            name: "first",
+                            type: GraphQLInt
                         }
                     },
                     resolve(source, args) {
@@ -80,6 +80,6 @@ export function getSchema(): GraphQLSchema {
     });
     return new GraphQLSchema({
         query: QueryType,
-        types: [QueryType, FirstHundredIntegersConnectionType, FirstHundredIntegersPageInfoType, FirstHundredIntegersEdgeType]
+        types: [FirstHundredIntegersConnectionType, FirstHundredIntegersEdgeType, FirstHundredIntegersPageInfoType, QueryType]
     });
 }

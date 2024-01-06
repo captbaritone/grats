@@ -26,10 +26,10 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  hello: String
-  goodbye: String
-  farewell: String
   adieu: String
+  farewell: String
+  goodbye: String
+  hello: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
@@ -38,20 +38,20 @@ export function getSchema(): GraphQLSchema {
         name: "SomeType",
         fields() {
             return {
-                hello: {
-                    name: "hello",
-                    type: GraphQLString
-                },
-                goodbye: {
-                    name: "goodbye",
+                adieu: {
+                    name: "adieu",
                     type: GraphQLString
                 },
                 farewell: {
                     name: "farewell",
                     type: GraphQLString
                 },
-                adieu: {
-                    name: "adieu",
+                goodbye: {
+                    name: "goodbye",
+                    type: GraphQLString
+                },
+                hello: {
+                    name: "hello",
                     type: GraphQLString
                 }
             };

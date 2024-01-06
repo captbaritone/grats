@@ -17,27 +17,27 @@ type MyEnum = "VALID" | "INVALID";
 OUTPUT
 -----------------
 -- SDL --
+"""Hello!"""
+enum MyEnum {
+  INVALID
+  VALID
+}
+
 type SomeType {
   hello: MyEnum
 }
-
-"""Hello!"""
-enum MyEnum {
-  VALID
-  INVALID
-}
 -- TypeScript --
-import { GraphQLSchema, GraphQLObjectType, GraphQLEnumType } from "graphql";
+import { GraphQLSchema, GraphQLEnumType, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MyEnumType: GraphQLEnumType = new GraphQLEnumType({
         description: "Hello!",
         name: "MyEnum",
         values: {
-            VALID: {
-                value: "VALID"
-            },
             INVALID: {
                 value: "INVALID"
+            },
+            VALID: {
+                value: "VALID"
             }
         }
     });
@@ -53,6 +53,6 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        types: [SomeTypeType, MyEnumType]
+        types: [MyEnumType, SomeTypeType]
     });
 }

@@ -40,15 +40,15 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
+  getUser: User @exported(tsModulePath: "grats/src/tests/fixtures/examples/playground.ts", functionName: "getUser", argCount: 1)
   me: User
   viewer: User @deprecated(reason: "Please use `me` instead.")
-  getUser: User @exported(tsModulePath: "grats/src/tests/fixtures/examples/playground.ts", functionName: "getUser", argCount: 1)
 }
 
 """A user in our kick-ass system!"""
 type User {
-  name: String
   greeting(salutation: String!): String
+  name: String
 }
 -- TypeScript --
 import { getUser as someTypeGetUserResolver } from "./playground";
@@ -59,10 +59,6 @@ export function getSchema(): GraphQLSchema {
         description: "A user in our kick-ass system!",
         fields() {
             return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                },
                 greeting: {
                     name: "greeting",
                     type: GraphQLString,
@@ -72,6 +68,10 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     }
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
                 }
             };
         }
@@ -80,6 +80,13 @@ export function getSchema(): GraphQLSchema {
         name: "SomeType",
         fields() {
             return {
+                getUser: {
+                    name: "getUser",
+                    type: UserType,
+                    resolve(source) {
+                        return someTypeGetUserResolver(source);
+                    }
+                },
                 me: {
                     name: "me",
                     type: UserType
@@ -88,13 +95,6 @@ export function getSchema(): GraphQLSchema {
                     deprecationReason: "Please use `me` instead.",
                     name: "viewer",
                     type: UserType
-                },
-                getUser: {
-                    name: "getUser",
-                    type: UserType,
-                    resolve(source) {
-                        return someTypeGetUserResolver(source);
-                    }
                 }
             };
         }

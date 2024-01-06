@@ -21,16 +21,16 @@ interface HasName {
 OUTPUT
 -----------------
 -- SDL --
+interface HasName {
+  name: String
+}
+
 type User implements HasName {
   hello: String
   name: String
 }
-
-interface HasName {
-  name: String
-}
 -- TypeScript --
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInterfaceType } from "graphql";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const HasNameType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "HasName",
@@ -62,6 +62,6 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        types: [UserType, HasNameType]
+        types: [HasNameType, UserType]
     });
 }

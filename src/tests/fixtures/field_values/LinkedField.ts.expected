@@ -30,23 +30,23 @@ type SomeType {
 }
 
 type User {
-  name: String
   friends: [User!]
+  name: String
 }
 -- TypeScript --
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull } from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
             return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                },
                 friends: {
                     name: "friends",
                     type: new GraphQLList(new GraphQLNonNull(UserType))
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
                 }
             };
         }
