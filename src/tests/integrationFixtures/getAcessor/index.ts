@@ -1,0 +1,22 @@
+/** @gqlType */
+export type Query = unknown;
+
+/** @gqlField */
+export function me(_: Query): User {
+  return new User();
+}
+
+/** @gqlType */
+class User {
+  /** @gqlField */
+  get hello(): string {
+    return "Hello world!";
+  }
+}
+
+export const query = `
+  query {
+    me {
+      hello
+    }
+  }`;

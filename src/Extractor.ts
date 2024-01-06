@@ -142,6 +142,7 @@ class Extractor {
             !(
               ts.isParameter(node) ||
               ts.isMethodDeclaration(node) ||
+              ts.isGetAccessorDeclaration(node) ||
               ts.isPropertyDeclaration(node) ||
               ts.isMethodSignature(node) ||
               ts.isPropertySignature(node)
@@ -828,7 +829,11 @@ class Extractor {
           }
         }
       }
-      if (ts.isMethodDeclaration(node) || ts.isMethodSignature(node)) {
+      if (
+        ts.isMethodDeclaration(node) ||
+        ts.isMethodSignature(node) ||
+        ts.isGetAccessorDeclaration(node)
+      ) {
         const field = this.methodDeclaration(node);
         if (field != null) {
           fields.push(field);
@@ -1252,6 +1257,7 @@ class Extractor {
     node:
       | ts.ClassDeclaration
       | ts.MethodDeclaration
+      | ts.GetAccessorDeclaration
       | ts.MethodSignature
       | ts.PropertyDeclaration
       | ts.InterfaceDeclaration
@@ -1343,7 +1349,7 @@ class Extractor {
   }
 
   methodDeclaration(
-    node: ts.MethodDeclaration | ts.MethodSignature,
+    node: ts.MethodDeclaration | ts.MethodSignature | ts.GetAccessorDeclaration,
   ): FieldDefinitionNode | null {
     const tag = this.findTag(node, FIELD_TAG);
     if (tag == null) return null;
