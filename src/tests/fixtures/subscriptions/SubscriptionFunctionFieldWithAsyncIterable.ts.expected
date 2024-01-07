@@ -14,12 +14,8 @@ export async function* greetings(_: Subscription): AsyncIterable<string> {
 OUTPUT
 -----------------
 -- SDL --
-schema {
-  subscription: Subscription
-}
-
 type Subscription {
-  greetings: String @exported(tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts", functionName: "greetings", argCount: 1) @asyncIterable
+  greetings: String @asyncIterable @exported(tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts", functionName: "greetings", argCount: 1)
 }
 -- TypeScript --
 import { greetings as subscriptionGreetingsResolver } from "./SubscriptionFunctionFieldWithAsyncIterable";

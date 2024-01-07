@@ -34,10 +34,6 @@ class UserResolver {
 OUTPUT
 -----------------
 -- SDL --
-schema {
-  query: Query
-}
-
 type Query {
   me: User @exported(tsModulePath: "grats/src/tests/fixtures/examples/readme.ts", functionName: "me", argCount: 1)
   viewer: User @deprecated(reason: "Please use `me` instead.") @exported(tsModulePath: "grats/src/tests/fixtures/examples/readme.ts", functionName: "viewer", argCount: 1)

@@ -19,11 +19,11 @@ export type MyUnion = User | Group;
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/typename/UnionMemberMissingTypename.ts:2:14 - error: Missing __typename on `User`. The type `MyUnion` is used in a union or interface, so it must have a `__typename` field.
-
-2 export class User {
-               ~~~~
 src/tests/fixtures/typename/UnionMemberMissingTypename.ts:8:14 - error: Missing __typename on `Group`. The type `MyUnion` is used in a union or interface, so it must have a `__typename` field.
 
 8 export class Group {
                ~~~~~
+src/tests/fixtures/typename/UnionMemberMissingTypename.ts:2:14 - error: Missing __typename on `User`. The type `MyUnion` is used in a union or interface, so it must have a `__typename` field.
+
+2 export class User {
+               ~~~~
