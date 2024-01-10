@@ -20,7 +20,7 @@ OUTPUT
 -- SDL --
 type SomeType {
   """Best field ever!"""
-  greeting: String @exported(tsModulePath: "grats/src/tests/fixtures/extend_type/addFieldWithDescription.ts", functionName: "greeting", argCount: 1)
+  greeting: String @exported(argCount: 1, functionName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_type/addFieldWithDescription.ts")
 }
 -- TypeScript --
 import { greeting as someTypeGreetingResolver } from "./addFieldWithDescription";

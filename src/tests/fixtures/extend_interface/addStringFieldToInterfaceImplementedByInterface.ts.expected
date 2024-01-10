@@ -39,7 +39,7 @@ OUTPUT
 -----------------
 -- SDL --
 type Admin implements IPerson & IThing {
-  greeting: String @exported(tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts", functionName: "greeting", argCount: 1)
+  greeting: String @exported(argCount: 1, functionName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts")
 }
 
 interface IPerson implements IThing {
@@ -51,7 +51,7 @@ interface IThing {
 }
 
 type User implements IPerson & IThing {
-  greeting: String @exported(tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts", functionName: "greeting", argCount: 1)
+  greeting: String @exported(argCount: 1, functionName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts")
 }
 -- TypeScript --
 import { greeting as adminGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";

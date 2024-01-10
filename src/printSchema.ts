@@ -1,5 +1,11 @@
-import { GraphQLSchema, printSchema } from "graphql";
-import { ConfigOptions } from "./lib";
+import {
+  DocumentNode,
+  GraphQLSchema,
+  print,
+  visit,
+  specifiedScalarTypes,
+} from "graphql";
+import { ConfigOptions } from "./gratsConfig";
 import { codegen } from "./codegen";
 import { METADATA_DIRECTIVE_NAMES } from "./metadataDirectives";
 
@@ -24,10 +30,10 @@ export function printExecutableSchema(
  * Includes the user-defined (or default) header comment if provided.
  */
 export function printGratsSDL(
-  schema: GraphQLSchema,
+  doc: DocumentNode,
   config: ConfigOptions,
 ): string {
-  const sdl = printSDLWithoutDirectives(schema);
+  const sdl = printSDLWithoutMetadata(doc);
 
   if (config.schemaHeader) {
     return `${config.schemaHeader}\n${sdl}`;
@@ -35,13 +41,19 @@ export function printGratsSDL(
   return sdl;
 }
 
-export function printSDLWithoutDirectives(schema: GraphQLSchema): string {
-  return printSchema(
-    new GraphQLSchema({
-      ...schema.toConfig(),
-      directives: schema.getDirectives().filter((directive) => {
-        return !METADATA_DIRECTIVE_NAMES.has(directive.name);
-      }),
-    }),
-  );
+export function printSDLWithoutMetadata(doc: DocumentNode): string {
+  const trimmed = visit(doc, {
+    DirectiveDefinition(t) {
+      return METADATA_DIRECTIVE_NAMES.has(t.name.value) ? null : t;
+    },
+    Directive(t) {
+      return METADATA_DIRECTIVE_NAMES.has(t.name.value) ? null : t;
+    },
+    ScalarTypeDefinition(t) {
+      return specifiedScalarTypes.some((scalar) => scalar.name === t.name.value)
+        ? null
+        : t;
+    },
+  });
+  return print(trimmed);
 }

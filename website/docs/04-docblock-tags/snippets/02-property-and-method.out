@@ -15,7 +15,6 @@ class User {
 === SNIP ===
 type User {
   myField: String
-
   """A description of some field."""
   someField: String
 }

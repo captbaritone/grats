@@ -29,12 +29,12 @@ class User implements IPerson {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/extend_interface/redefineFiledThatExistsOnConcreteType.invalid.ts:9:17 - error: Field "User.greeting" can only be defined once.
+src/tests/fixtures/extend_interface/redefineFiledThatExistsOnConcreteType.invalid.ts:21:3 - error: Field "User.greeting" can only be defined once.
 
-9 export function greeting(person: IPerson): string {
-                  ~~~~~~~~
+21   greeting(): string {
+     ~~~~~~~~
 
-  src/tests/fixtures/extend_interface/redefineFiledThatExistsOnConcreteType.invalid.ts:21:3
-    21   greeting(): string {
-         ~~~~~~~~
+  src/tests/fixtures/extend_interface/redefineFiledThatExistsOnConcreteType.invalid.ts:9:17
+    9 export function greeting(person: IPerson): string {
+                      ~~~~~~~~
     Related location

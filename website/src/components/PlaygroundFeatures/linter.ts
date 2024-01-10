@@ -1,10 +1,10 @@
 import { createSystem, createVirtualCompilerHost } from "@typescript/vfs";
 import * as ts from "typescript";
-import { buildSchemaResultWithHost } from "grats/src/lib";
+import { buildSchemaAndDocResultWithHost } from "grats/src/lib";
 import { codegen } from "grats/src/codegen";
-import { printSDLWithoutDirectives } from "grats/src/printSchema";
+import { printSDLWithoutMetadata } from "grats/src/printSchema";
 import { linter } from "@codemirror/lint";
-import { printSchemaWithDirectives } from "@graphql-tools/utils";
+import { DocumentNode, GraphQLSchema, print } from "graphql";
 import GRATS_TYPE_DECLARATIONS from "!!raw-loader!grats/src/Types.ts";
 import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 
@@ -25,7 +25,7 @@ if (ExecutionEnvironment.canUseDOM) {
   };
 }
 
-function buildSchemaResultWithFsMap(fsMap, text, config) {
+function buildSchemaResultWithFsMap(fsMap, text: string, config) {
   fsMap.set("index.ts", text);
   fsMap.set(GRATS_PATH, GRATS_TYPE_DECLARATIONS);
   // TODO: Don't recreate the system each time!
@@ -51,7 +51,7 @@ function buildSchemaResultWithFsMap(fsMap, text, config) {
   };
 
   try {
-    return buildSchemaResultWithHost(parsedOptions, host.compilerHost);
+    return buildSchemaAndDocResultWithHost(parsedOptions, host.compilerHost);
   } catch (e) {
     const message = `Grats playground bug encountered. Please report this error:\n\n ${e.stack}`;
     return {
@@ -69,52 +69,53 @@ export function createLinter(fsMap, view, config) {
 
     store.dispatch({ type: "NEW_DOCUMENT_TEXT", value: text });
 
-    const codegenOutput = computeCodegenOutput(result);
-    const output = computeOutput(result, view);
+    if (result.kind === "ERROR") {
+      const errorText = result.err.formatDiagnosticsWithContext();
+      const output = `# ERROR MESSAGE\n# =============\n\n${commentLines(
+        errorText,
+      )}`;
+      store.dispatch({
+        type: "GRATS_EMITTED_NEW_RESULT",
+        graphql: output,
+        typescript: output,
+      });
+
+      return result.err._diagnostics.map((diagnostic) => {
+        return {
+          from: diagnostic.start,
+          to: diagnostic.start + diagnostic.length,
+          severity: "error",
+          message: diagnostic.messageText,
+          actions: [],
+        };
+      });
+    }
+
+    const codegenOutput = computeCodegenOutput(result.value.schema);
+    const output = computeOutput(result.value.doc, view);
 
     store.dispatch({
       type: "GRATS_EMITTED_NEW_RESULT",
       graphql: output,
       typescript: codegenOutput,
     });
-    const diagnostics = [];
 
-    if (result.kind === "ERROR") {
-      for (const diagnostic of result.err._diagnostics) {
-        diagnostics.push({
-          from: diagnostic.start,
-          to: diagnostic.start + diagnostic.length,
-          severity: "error",
-          message: diagnostic.messageText,
-          actions: [],
-        });
-      }
-    }
-
-    return diagnostics;
+    return [];
   });
 }
 
-function computeOutput(schemaResult, view) {
-  if (schemaResult.kind === "ERROR") {
-    const errorText = schemaResult.err.formatDiagnosticsWithContext();
-    return `# ERROR MESSAGE\n# =============\n\n${commentLines(errorText)}`;
-  }
-
-  const schema = schemaResult.value;
+function computeOutput(
+  doc: DocumentNode,
+  view: { showGratsDirectives: boolean },
+): string {
   if (!view.showGratsDirectives) {
-    return printSDLWithoutDirectives(schema);
+    return printSDLWithoutMetadata(doc);
   }
-  return printSchemaWithDirectives(schema, { assumeValid: true });
+  return print(doc);
 }
 
-function computeCodegenOutput(schemaResult) {
-  if (schemaResult.kind === "ERROR") {
-    const errorText = schemaResult.err.formatDiagnosticsWithContext();
-    return `# ERROR MESSAGE\n# =============\n\n${commentLines(errorText)}`;
-  }
-
-  return codegen(schemaResult.value, "./schema.ts");
+function computeCodegenOutput(schema: GraphQLSchema): string {
+  return codegen(schema, "./schema.ts");
 }
 
 function commentLines(text: string): string {

@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String @exported(tsModulePath: "grats/src/tests/fixtures/extend_type/addStringFieldToSomeType.ts", functionName: "greeting", argCount: 1)
+  greeting: String @exported(argCount: 1, functionName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_type/addStringFieldToSomeType.ts")
 }
 -- TypeScript --
 import { greeting as someTypeGreetingResolver } from "./addStringFieldToSomeType";

@@ -23,7 +23,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String @exported(tsModulePath: "grats/src/tests/fixtures/extend_type/optionalModelType.ts", functionName: "greeting", argCount: 1)
+  greeting: String @exported(argCount: 1, functionName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_type/optionalModelType.ts")
 }
 -- TypeScript --
 import { greeting as someTypeGreetingResolver } from "./optionalModelType";

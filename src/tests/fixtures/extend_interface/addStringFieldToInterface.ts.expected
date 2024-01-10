@@ -34,7 +34,7 @@ OUTPUT
 -----------------
 -- SDL --
 type Admin implements IPerson {
-  greeting: String @exported(tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts", functionName: "greeting", argCount: 1)
+  greeting: String @exported(argCount: 1, functionName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts")
   hello: String
 }
 
@@ -44,7 +44,7 @@ interface IPerson {
 }
 
 type User implements IPerson {
-  greeting: String @exported(tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts", functionName: "greeting", argCount: 1)
+  greeting: String @exported(argCount: 1, functionName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts")
   hello: String
 }
 -- TypeScript --
