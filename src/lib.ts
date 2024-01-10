@@ -105,7 +105,9 @@ export function extractSchemaAndDoc(
         .andThen((doc) => resolveTypes(ctx, doc))
         // Ensure all subscription fields, and _only_ subscription fields, return an AsyncIterable.
         .andThen((doc) => validateAsyncIterable(doc))
+        // Merge any `extend` definitions into their base definitions.
         .map((doc) => mergeExtensions(doc))
+        // Sort the definitions in the document to ensure a stable output.
         .map((doc) => sortSchemaAst(doc))
         .result();
 
@@ -114,13 +116,13 @@ export function extractSchemaAndDoc(
       }
       const doc = docResult.value;
 
-      // Validate the document node against the GraphQL spec.
       // Build and validate the schema with regards to the GraphQL spec.
       return (
         new ResultPipe(buildSchemaFromDoc(doc))
           // Ensure that every type which implements an interface or is a member of a
           // union has a __typename field.
           .andThen((schema) => validateTypenames(schema, typesWithTypename))
+          // Combine the schema and document into a single result.
           .map((schema) => ({ schema, doc }))
           .result()
       );
