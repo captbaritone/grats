@@ -46,13 +46,16 @@ program
   .action((entity, { tsconfig }) => {
     const { config } = getTsConfigOrReportAndExit(tsconfig);
 
-    const schemaResult = buildSchemaAndDocResult(config);
-    if (schemaResult.kind === "ERROR") {
-      console.error(schemaResult.err.formatDiagnosticsWithColorAndContext());
+    const schemaAndDocResult = buildSchemaAndDocResult(config);
+    if (schemaAndDocResult.kind === "ERROR") {
+      console.error(
+        schemaAndDocResult.err.formatDiagnosticsWithColorAndContext(),
+      );
       process.exit(1);
     }
+    const { schema } = schemaAndDocResult.value;
 
-    const loc = locate(schemaResult.value.schema, entity);
+    const loc = locate(schema, entity);
     if (loc.kind === "ERROR") {
       console.error(loc.err);
       process.exit(1);
@@ -92,13 +95,15 @@ function startWatchMode(tsconfig: string) {
  */
 function runBuild(tsconfig: string) {
   const { config, configPath } = getTsConfigOrReportAndExit(tsconfig);
-  const schemaResult = buildSchemaAndDocResult(config);
-  if (schemaResult.kind === "ERROR") {
-    console.error(schemaResult.err.formatDiagnosticsWithColorAndContext());
+  const schemaAndDocResult = buildSchemaAndDocResult(config);
+  if (schemaAndDocResult.kind === "ERROR") {
+    console.error(
+      schemaAndDocResult.err.formatDiagnosticsWithColorAndContext(),
+    );
     process.exit(1);
   }
 
-  writeSchemaFilesAndReport(schemaResult.value, config, configPath);
+  writeSchemaFilesAndReport(schemaAndDocResult.value, config, configPath);
 }
 
 /**
