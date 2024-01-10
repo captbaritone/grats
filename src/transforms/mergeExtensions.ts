@@ -1,9 +1,14 @@
 import { DocumentNode, FieldDefinitionNode, visit } from "graphql";
 import { extend } from "../utils/helpers";
 
-// Take every extension and merge it into the base type definition.
+/**
+ * Takes every example of `extend type Foo` and `extend interface Foo` and
+ * merges them into the original type/interface definition.
+ */
 export function mergeExtensions(doc: DocumentNode): DocumentNode {
   const fields = new MultiMap<string, FieldDefinitionNode>();
+
+  // Collect all the fields from the extensions and trim them from the AST.
   const sansExtensions = visit(doc, {
     ObjectTypeExtension(t) {
       if (t.directives != null || t.interfaces != null) {
@@ -19,7 +24,19 @@ export function mergeExtensions(doc: DocumentNode): DocumentNode {
       fields.extend(t.name.value, t.fields);
       return null;
     },
+    // Grats does not create these extension types
+    ScalarTypeExtension(_) {
+      throw new Error("Unexpected ScalarTypeExtension");
+    },
+    EnumTypeExtension(_) {
+      throw new Error("Unexpected EnumTypeExtension");
+    },
+    SchemaExtension(_) {
+      throw new Error("Unexpected SchemaExtension");
+    },
   });
+
+  // Merge collected extension fields into the original type/interface definition.
   return visit(sansExtensions, {
     ObjectTypeDefinition(t) {
       const extensions = fields.get(t.name.value);
@@ -38,10 +55,11 @@ export function mergeExtensions(doc: DocumentNode): DocumentNode {
   });
 }
 
+// Map a key to an array of values.
 class MultiMap<K, V> {
   private readonly map = new Map<K, V[]>();
 
-  set(key: K, value: V): void {
+  push(key: K, value: V): void {
     let existing = this.map.get(key);
     if (existing == null) {
       existing = [];

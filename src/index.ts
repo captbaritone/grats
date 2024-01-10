@@ -1,10 +1,10 @@
 import * as ts from "typescript";
-import { ParsedCommandLineGrats, validateGratsOptions } from "./lib";
+import { ParsedCommandLineGrats, validateGratsOptions } from "./gratsConfig";
 import { ReportableDiagnostics } from "./utils/DiagnosticError";
 import { err, ok } from "./utils/Result";
 import { Result } from "./utils/Result";
 
-export { printSDLWithoutDirectives } from "./printSchema";
+export { printSDLWithoutMetadata } from "./printSchema";
 export * from "./Types";
 export * from "./lib";
 // Used by the experimental TypeScript plugin

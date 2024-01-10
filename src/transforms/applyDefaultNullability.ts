@@ -8,6 +8,10 @@ import { GraphQLConstructor } from "../GraphQLConstructor";
 import { ConfigOptions } from "../gratsConfig";
 import { loc } from "../utils/helpers";
 
+/**
+ * Grats has options to make all fields nullable by default to conform to
+ * GraphQL best practices. This transform applies this option to the schema.
+ */
 export function applyDefaultNullability(
   doc: DocumentNode,
   { nullableByDefault }: ConfigOptions,

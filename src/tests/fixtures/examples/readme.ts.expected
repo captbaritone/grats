@@ -35,8 +35,8 @@ OUTPUT
 -----------------
 -- SDL --
 type Query {
-  me: User @exported(tsModulePath: "grats/src/tests/fixtures/examples/readme.ts", functionName: "me", argCount: 1)
-  viewer: User @deprecated(reason: "Please use `me` instead.") @exported(tsModulePath: "grats/src/tests/fixtures/examples/readme.ts", functionName: "viewer", argCount: 1)
+  me: User @exported(argCount: 1, functionName: "me", tsModulePath: "grats/src/tests/fixtures/examples/readme.ts")
+  viewer: User @deprecated(reason: "Please use `me` instead.") @exported(argCount: 1, functionName: "viewer", tsModulePath: "grats/src/tests/fixtures/examples/readme.ts")
 }
 
 """A user in our kick-ass system!"""

@@ -2,7 +2,6 @@ import {
   DocumentNode,
   GraphQLSchema,
   print,
-  printSchema,
   visit,
   specifiedScalarTypes,
 } from "graphql";
@@ -34,7 +33,7 @@ export function printGratsSDL(
   doc: DocumentNode,
   config: ConfigOptions,
 ): string {
-  const sdl = printSDLWithoutDirectives(doc);
+  const sdl = printSDLWithoutMetadata(doc);
 
   if (config.schemaHeader) {
     return `${config.schemaHeader}\n${sdl}`;
@@ -42,39 +41,19 @@ export function printGratsSDL(
   return sdl;
 }
 
-export function printSDLWithoutDirectives(doc: DocumentNode): string {
+export function printSDLWithoutMetadata(doc: DocumentNode): string {
   const trimmed = visit(doc, {
     DirectiveDefinition(t) {
-      if (METADATA_DIRECTIVE_NAMES.has(t.name.value)) {
-        return null;
-      }
-      return t;
+      return METADATA_DIRECTIVE_NAMES.has(t.name.value) ? null : t;
     },
     Directive(t) {
-      if (METADATA_DIRECTIVE_NAMES.has(t.name.value)) {
-        return null;
-      }
-      return t;
+      return METADATA_DIRECTIVE_NAMES.has(t.name.value) ? null : t;
     },
     ScalarTypeDefinition(t) {
-      if (specifiedScalarTypes.some((scalar) => scalar.name === t.name.value)) {
-        return null;
-      }
-      return t;
+      return specifiedScalarTypes.some((scalar) => scalar.name === t.name.value)
+        ? null
+        : t;
     },
   });
   return print(trimmed);
-}
-
-export function printSDLFromSchemaWithoutDirectives(
-  schema: GraphQLSchema,
-): string {
-  return printSchema(
-    new GraphQLSchema({
-      ...schema.toConfig(),
-      directives: schema.getDirectives().filter((directive) => {
-        return !METADATA_DIRECTIVE_NAMES.has(directive.name);
-      }),
-    }),
-  );
 }

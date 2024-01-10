@@ -5,15 +5,20 @@ import {
   buildSchemaAndDocResultWithHost,
 } from "../lib";
 import * as ts from "typescript";
-import { graphql, GraphQLSchema, print, specifiedScalarTypes } from "graphql";
+import {
+  buildASTSchema,
+  graphql,
+  GraphQLSchema,
+  print,
+  printSchema,
+  specifiedScalarTypes,
+} from "graphql";
 import { Command } from "commander";
 import { locate } from "../Locate";
 import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError";
 import { writeFileSync } from "fs";
 import { codegen } from "../codegen";
-import { printSchemaWithDirectives } from "@graphql-tools/utils";
 import { diff } from "jest-diff";
-import { printSDLFromSchemaWithoutDirectives } from "../printSchema";
 import { METADATA_DIRECTIVE_NAMES } from "../metadataDirectives";
 import * as semver from "semver";
 import {
@@ -207,7 +212,7 @@ const testDirs = [
 
       const actualSchema = schemaModule.getSchema();
 
-      const schemaDiff = compareSchemas(actualSchema, schema);
+      const schemaDiff = compareSchemas(actualSchema, buildASTSchema(doc));
 
       if (schemaDiff) {
         console.log(schemaDiff);
@@ -239,6 +244,17 @@ function compareSchemas(
   }
 
   return diff(expectedSDL, actualSDL);
+}
+
+function printSDLFromSchemaWithoutDirectives(schema: GraphQLSchema): string {
+  return printSchema(
+    new GraphQLSchema({
+      ...schema.toConfig(),
+      directives: schema.getDirectives().filter((directive) => {
+        return !METADATA_DIRECTIVE_NAMES.has(directive.name);
+      }),
+    }),
+  );
 }
 
 program.parse();
