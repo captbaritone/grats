@@ -1,6 +1,6 @@
 const fs = require("fs");
-const { buildSchemaResult, codegen } = require("grats");
-const { printSDLWithoutDirectives } = require("grats");
+const { buildSchemaAndDocResult, codegen } = require("grats");
+const { printSDLWithoutMetadata } = require("grats");
 const glob = require("glob");
 
 async function main() {
@@ -29,16 +29,16 @@ function processFile(file) {
     errors: [],
     fileNames: files,
   };
-  const schemaResult = buildSchemaResult(parsedOptions);
-  if (schemaResult.kind === "ERROR") {
-    const errors = schemaResult.err.formatDiagnosticsWithContext();
+  const schemaAndDocResult = buildSchemaAndDocResult(parsedOptions);
+  if (schemaAndDocResult.kind === "ERROR") {
+    const errors = schemaAndDocResult.err.formatDiagnosticsWithContext();
     console.error(errors);
     throw new Error("Invalid grats code");
   }
 
-  const schema = schemaResult.value;
+  const { doc, schema } = schemaAndDocResult.value;
   const typeScript = codegen(schema, file, options);
-  const graphql = printSDLWithoutDirectives(schema);
+  const graphql = printSDLWithoutMetadata(doc);
 
   const fileContent = fs.readFileSync(file, "utf8");
 
