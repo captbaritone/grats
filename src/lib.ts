@@ -78,7 +78,6 @@ export function extractSchemaAndDoc(
     .andThen((snapshot) => {
       const { typesWithTypename } = snapshot;
       const config = options.raw.grats;
-
       const checker = program.getTypeChecker();
       const ctx = TypeContext.fromSnapshot(checker, snapshot);
 

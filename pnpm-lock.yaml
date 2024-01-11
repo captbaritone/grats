@@ -226,18 +226,6 @@ importers:
         specifier: workspace:*
         version: link:../..
 
-  examples/yoga-strict-semantic-nullability:
-    dependencies:
-      '@types/node':
-        specifier: ^20.8.10
-        version: 20.8.10
-      graphql-yoga:
-        specifier: ^5.0.0
-        version: 5.0.0(graphql@16.6.0)
-      grats:
-        specifier: workspace:*
-        version: link:../..
-
   website:
     dependencies:
       '@algolia/client-search':
@@ -3832,7 +3820,7 @@ packages:
     peerDependencies:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
     dependencies:
-      '@graphql-typed-document-node/core': 3.2.0(graphql@16.6.0)
+      '@graphql-typed-document-node/core': 3.1.2(graphql@16.6.0)
       cross-inspect: 1.0.0
       dset: 3.1.3
       graphql: 16.6.0
