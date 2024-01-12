@@ -66,7 +66,6 @@ Grats aims to let the community experiment with Strict Semantic Nullability, thi
 
 - Grats does not support using introspection to determine if a field is semantically non-null
 - Grats does not suppprt declaring items within a list as being semantically non-null
-- Grats does not _yet_ apply runtime checks to ensure that a semantically non-nullable value is _actually_ non-null. Instead we rely on TypeScript types being accurate. If your field is typed as non-nullable, but returns null at runtime, that null value will be passed along to the client without any error in the errors array. We will likely add runtime checks in the future to ensure that semantically non-nullable fields are actually non-null and align with the curent RFC. An example of how this could happen:
 
 ```typescript
 /** @gqlField */
