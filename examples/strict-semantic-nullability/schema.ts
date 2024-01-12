@@ -16,10 +16,6 @@ export function getSchema(): GraphQLSchema {
                     name: "description",
                     type: GraphQLString
                 },
-                id: {
-                    name: "id",
-                    type: new GraphQLNonNull(GraphQLString)
-                },
                 members: {
                     name: "members",
                     type: new GraphQLList(new GraphQLNonNull(UserType))

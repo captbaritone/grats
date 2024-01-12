@@ -2,7 +2,6 @@
 # Do not manually edit. Regenerate by running `npx grats`.
 type Group {
   description: String @semanticNonNull
-  id: String!
   members: [User!] @semanticNonNull
   name: String @semanticNonNull
 }
