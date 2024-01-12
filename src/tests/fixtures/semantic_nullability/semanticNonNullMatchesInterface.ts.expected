@@ -71,7 +71,13 @@ The `level` argument can be used to indicate what level is semantically non null
 """
 directive @semanticNonNull(field: String = null, level: Int = null) repeatable on FIELD_DEFINITION | OBJECT
 -- TypeScript --
-import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType, defaultFieldResolver } from "graphql";
+async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
+    const awaited = await value;
+    if (awaited == null)
+        throw new Error("Cannot return null for semantically non-nullable field.");
+    return awaited;
+}
 export function getSchema(): GraphQLSchema {
     const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IPerson",
@@ -90,7 +96,10 @@ export function getSchema(): GraphQLSchema {
             return {
                 name: {
                     name: "name",
-                    type: GraphQLString
+                    type: GraphQLString,
+                    resolve(source, args, context, info) {
+                        return assertNonNull(defaultFieldResolver(source, args, context, info));
+                    }
                 }
             };
         },
