@@ -1,6 +1,6 @@
 {
   "name": "grats",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "main": "dist/src/index.js",
   "bin": "dist/src/cli.js",
   "types": "dist/src/index.d.ts",
