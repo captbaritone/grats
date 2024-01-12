@@ -18,6 +18,8 @@ type Query {
 
 type Subscription {
   countdown(from: Int!): Int @semanticNonNull
+  nullItems: String @semanticNonNull
+  nullIterable: String @semanticNonNull
 }
 
 type User implements IPerson {

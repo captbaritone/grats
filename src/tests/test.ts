@@ -26,6 +26,7 @@ import {
   ParsedCommandLineGrats,
   validateGratsOptions,
 } from "../gratsConfig";
+import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
 
 const TS_VERSION = ts.version;
 
@@ -169,12 +170,18 @@ const testDirs = [
       code: string,
       fileName: string,
     ): Promise<string | false> => {
+      const firstLine = code.split("\n")[0];
+      let options: Partial<ConfigOptions> = {
+        nullableByDefault: true,
+      };
+      if (firstLine.startsWith("// {")) {
+        const json = firstLine.slice(3);
+        const testOptions = JSON.parse(json);
+        options = { ...options, ...testOptions };
+      }
       const filePath = `${integrationFixturesDir}/${fileName}`;
       const schemaPath = path.join(path.dirname(filePath), "schema.ts");
 
-      const options: Partial<ConfigOptions> = {
-        nullableByDefault: true,
-      };
       const files = [filePath, path.join(__dirname, `../Types.ts`)];
       const parsedOptions: ParsedCommandLineGrats = validateGratsOptions({
         options: {
@@ -251,7 +258,10 @@ function printSDLFromSchemaWithoutDirectives(schema: GraphQLSchema): string {
     new GraphQLSchema({
       ...schema.toConfig(),
       directives: schema.getDirectives().filter((directive) => {
-        return !METADATA_DIRECTIVE_NAMES.has(directive.name);
+        return (
+          !METADATA_DIRECTIVE_NAMES.has(directive.name) &&
+          directive.name !== SEMANTIC_NON_NULL_DIRECTIVE
+        );
       }),
     }),
   );
