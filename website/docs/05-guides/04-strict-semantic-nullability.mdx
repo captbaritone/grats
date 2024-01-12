@@ -26,6 +26,8 @@ Grats implements Strict Semantic Nullability on top of its existing `nullableByD
 
 ## Example
 
+With Strict Semantic Nullability enabled, a field that returns a non-nullable string will be typed as nullable, but will also include the `@semanticNonNull` directive.
+
 ```typescript
 /** @gqlField */
 export function name(user: User): string {
@@ -38,6 +40,8 @@ type User {
   name: String @semanticNonNull
 }
 ```
+
+To see an full project example of Strict Semantic Nullability in action, check out the [example project](../05-examples/09-strict-semantic-nullability).
 
 ## Enabling Strict Semantic Nullability
 
