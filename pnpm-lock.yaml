@@ -198,6 +198,18 @@ importers:
         specifier: ^5.0.2
         version: 5.0.2
 
+  examples/strict-semantic-nullability:
+    dependencies:
+      '@types/node':
+        specifier: ^20.8.10
+        version: 20.8.10
+      graphql-yoga:
+        specifier: ^5.0.0
+        version: 5.0.0(graphql@16.6.0)
+      grats:
+        specifier: workspace:*
+        version: link:../..
+
   examples/ts-node:
     dependencies:
       '@types/node':

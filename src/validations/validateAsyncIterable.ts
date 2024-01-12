@@ -72,9 +72,6 @@ function validateField(
     }
 
     if (!isSubscription && asyncDirective != null) {
-      if (asyncDirective.loc == null) {
-        throw new Error("Expected asyncDirective to have a location.");
-      }
       return gqlErr(
         loc(asyncDirective), // Directive location is the AsyncIterable type.
         E.nonSubscriptionFieldAsyncIterable(),

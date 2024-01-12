@@ -17,6 +17,20 @@ export type ConfigOptions = {
   // docblock tag `@killsParentOnException`.
   nullableByDefault: boolean; // Default: true
 
+  // Experimental feature to add `@semanticNonNull` to all fields which have
+  // non-null TypeScript return types, but which are made nullable by the
+  // `nullableByDefault` option.
+  //
+  // This feature allows clients which handle errors out of band, for example
+  // by discarding responses with errors, to know which fields are expected to
+  // be non-null in the absence of errors.
+  //
+  // See https://grats.capt.dev/docs/guides/strict-semantic-nullability
+  //
+  // It is an error to enable `semanticNullability` if `nullableByDefault` is
+  // false.
+  strictSemanticNullability: boolean; // Default: false
+
   // Should Grats error if it encounters a TypeScript type error?
   // Note that Grats will always error if it encounters a TypeScript syntax
   // error.
@@ -57,6 +71,20 @@ export function validateGratsOptions(
   } else if (typeof gratsOptions.nullableByDefault !== "boolean") {
     throw new Error(
       "Grats: The Grats config option `nullableByDefault` must be a boolean if provided.",
+    );
+  }
+  if (gratsOptions.strictSemanticNullability === undefined) {
+    gratsOptions.strictSemanticNullability = false;
+  } else if (typeof gratsOptions.strictSemanticNullability !== "boolean") {
+    throw new Error(
+      "Grats: The Grats config option `strictSemanticNullability` must be a boolean if provided.",
+    );
+  } else if (
+    gratsOptions.strictSemanticNullability &&
+    !gratsOptions.nullableByDefault
+  ) {
+    throw new Error(
+      "Grats: The Grats config option `strictSemanticNullability` cannot be true if `nullableByDefault` is false.",
     );
   }
   if (gratsOptions.reportTypeScriptTypeErrors === undefined) {
