@@ -16,7 +16,8 @@ import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
 import { astNode, loc } from "../utils/helpers";
 
 /**
- * Ensure that all semantically non-nullable fields on an interface are
+ * Ensure that all semantically non-nullable fields on an interface are also
+ * semantically non-nullable on all implementors.
  */
 export function validateSemanticNullability(
   schema: GraphQLSchema,
@@ -25,10 +26,12 @@ export function validateSemanticNullability(
   if (!config.strictSemanticNullability) {
     return ok(schema);
   }
-  const typenameDiagnostics: ts.Diagnostic[] = [];
+  const errors: ts.Diagnostic[] = [];
   const interfaces = Object.values(schema.getTypeMap()).filter(isInterfaceType);
   for (const interfaceType of interfaces) {
     const typeImplementors = schema.getPossibleTypes(interfaceType);
+
+    // For every field on the interface...
     for (const interfaceField of Object.values(interfaceType.getFields())) {
       if (astNode(interfaceField).type.kind === "NonNullType") {
         // Type checking of non-null types is handled by graphql-js. If this field is non-null,
@@ -54,7 +57,7 @@ export function validateSemanticNullability(
         const typeSemanticNonNull = findSemanticNonNull(implementorField);
 
         if (typeSemanticNonNull == null) {
-          typenameDiagnostics.push(
+          errors.push(
             gqlErr(
               loc(interfaceSemanticNonNull),
               `Interface field \`${implementor.name}.${implementorField.name}\` expects a non-nullable type but \`${interfaceType.name}.${interfaceField.name}\` is nullable.`,
@@ -70,8 +73,8 @@ export function validateSemanticNullability(
       }
     }
   }
-  if (typenameDiagnostics.length > 0) {
-    return err(typenameDiagnostics);
+  if (errors.length > 0) {
+    return err(errors);
   }
   return ok(schema);
 }
