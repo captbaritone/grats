@@ -25,14 +25,6 @@ export class User implements IPerson {
 OUTPUT
 -----------------
 -- SDL --
-interface IPerson {
-  name: String @semanticNonNull
-}
-
-type User implements IPerson {
-  name: String @semanticNonNull
-}
-
 """
 Indicates that a field is only null if there is a matching error in the `errors` array.
 In all other cases, the field is non-null.
@@ -70,6 +62,14 @@ The `level` argument can be used to indicate what level is semantically non null
 `level` starts at 0 if there is no list. If `level` is null, all levels are semantically non null.
 """
 directive @semanticNonNull(field: String = null, level: Int = null) repeatable on FIELD_DEFINITION | OBJECT
+
+interface IPerson {
+  name: String @semanticNonNull
+}
+
+type User implements IPerson {
+  name: String @semanticNonNull
+}
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType, defaultFieldResolver } from "graphql";
 async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {

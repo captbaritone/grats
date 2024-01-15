@@ -21,10 +21,6 @@ export class User {
 OUTPUT
 -----------------
 -- SDL --
-type User {
-  name: String
-}
-
 """
 Indicates that a field is only null if there is a matching error in the `errors` array.
 In all other cases, the field is non-null.
@@ -62,6 +58,10 @@ The `level` argument can be used to indicate what level is semantically non null
 `level` starts at 0 if there is no list. If `level` is null, all levels are semantically non null.
 """
 directive @semanticNonNull(field: String = null, level: Int = null) repeatable on FIELD_DEFINITION | OBJECT
+
+type User {
+  name: String
+}
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {

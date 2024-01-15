@@ -85,6 +85,6 @@ export function getSchema(): GraphQLSchema {
     });
     return new GraphQLSchema({
         query: QueryType,
-        types: [GroupType, IPersonType, QueryType, UserType]
+        types: [IPersonType, GroupType, QueryType, UserType]
     });
 }

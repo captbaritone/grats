@@ -33,13 +33,13 @@ class Admin implements IPerson {
 OUTPUT
 -----------------
 -- SDL --
-type Admin implements IPerson {
-  greeting: String @exported(argCount: 1, functionName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts")
+interface IPerson {
+  greeting: String
   hello: String
 }
 
-interface IPerson {
-  greeting: String
+type Admin implements IPerson {
+  greeting: String @exported(argCount: 1, functionName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts")
   hello: String
 }
 
@@ -50,7 +50,7 @@ type User implements IPerson {
 -- TypeScript --
 import { greeting as adminGreetingResolver } from "./addStringFieldToInterface";
 import { greeting as userGreetingResolver } from "./addStringFieldToInterface";
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInterfaceType } from "graphql";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IPerson",
@@ -110,6 +110,6 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        types: [AdminType, IPersonType, UserType]
+        types: [IPersonType, AdminType, UserType]
     });
 }

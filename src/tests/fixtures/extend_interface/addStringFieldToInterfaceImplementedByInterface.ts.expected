@@ -38,10 +38,6 @@ class Admin implements IPerson, IThing {
 OUTPUT
 -----------------
 -- SDL --
-type Admin implements IPerson & IThing {
-  greeting: String @exported(argCount: 1, functionName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts")
-}
-
 interface IPerson implements IThing {
   greeting: String
 }
@@ -50,13 +46,17 @@ interface IThing {
   greeting: String
 }
 
+type Admin implements IPerson & IThing {
+  greeting: String @exported(argCount: 1, functionName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts")
+}
+
 type User implements IPerson & IThing {
   greeting: String @exported(argCount: 1, functionName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts")
 }
 -- TypeScript --
 import { greeting as adminGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";
 import { greeting as userGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInterfaceType } from "graphql";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const IThingType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IThing",
@@ -118,6 +118,6 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        types: [AdminType, IPersonType, IThingType, UserType]
+        types: [IPersonType, IThingType, AdminType, UserType]
     });
 }

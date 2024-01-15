@@ -172,6 +172,6 @@ export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         query: QueryType,
         mutation: MutationType,
-        types: [GroupType, IPersonType, MutationType, QueryType, UserType, UserDataInputType]
+        types: [IPersonType, UserDataInputType, GroupType, MutationType, QueryType, UserType]
     });
 }

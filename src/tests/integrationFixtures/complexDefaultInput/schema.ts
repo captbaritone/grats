@@ -37,6 +37,6 @@ export function getSchema(): GraphQLSchema {
     });
     return new GraphQLSchema({
         query: QueryType,
-        types: [QueryType, SomeObjType]
+        types: [SomeObjType, QueryType]
     });
 }

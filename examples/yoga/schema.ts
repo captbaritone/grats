@@ -110,6 +110,6 @@ export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         query: QueryType,
         subscription: SubscriptionType,
-        types: [GroupType, IPersonType, QueryType, SubscriptionType, UserType]
+        types: [IPersonType, GroupType, QueryType, SubscriptionType, UserType]
     });
 }

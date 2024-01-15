@@ -1,4 +1,4 @@
-import { DocumentNode, Kind, NameNode, visit } from "graphql";
+import { DefinitionNode, DocumentNode, Kind, NameNode, visit } from "graphql";
 import { naturalCompare } from "../utils/naturalCompare";
 
 /*
@@ -50,7 +50,14 @@ export function sortSchemaAst(doc: DocumentNode): DocumentNode {
       };
     },
     Document(t) {
-      return { ...t, definitions: sortNamed(t.definitions) };
+      const definitions = Array.from(t.definitions).sort((a, b) => {
+        const kindOrder = kindSortOrder(a) - kindSortOrder(b);
+        if (kindOrder !== 0) {
+          return kindOrder;
+        }
+        return compareByName(a, b);
+      });
+      return { ...t, definitions };
     },
     FieldDefinition(t) {
       return {
@@ -99,4 +106,40 @@ function compareByName<T extends Named>(a: T, b: T): number {
   }
 
   return naturalCompare(a.name.value, b.name.value);
+}
+
+function kindSortOrder(def: DefinitionNode): number {
+  switch (def.kind) {
+    case Kind.DIRECTIVE_DEFINITION:
+      return 1;
+    case Kind.SCHEMA_DEFINITION:
+      return 2;
+    case Kind.SCALAR_TYPE_DEFINITION:
+      return 3;
+    case Kind.SCALAR_TYPE_EXTENSION:
+      return 3.5;
+    case Kind.ENUM_TYPE_DEFINITION:
+      return 4;
+    case Kind.ENUM_TYPE_EXTENSION:
+      return 4.5;
+    case Kind.UNION_TYPE_DEFINITION:
+      return 5;
+    case Kind.UNION_TYPE_EXTENSION:
+      return 5.5;
+    case Kind.INTERFACE_TYPE_DEFINITION:
+      return 6;
+    case Kind.INTERFACE_TYPE_EXTENSION:
+      return 6.5;
+    case Kind.INPUT_OBJECT_TYPE_DEFINITION:
+      return 7;
+    case Kind.INPUT_OBJECT_TYPE_EXTENSION:
+      return 7.5;
+    case Kind.OBJECT_TYPE_DEFINITION:
+      return 8;
+    case Kind.OBJECT_TYPE_EXTENSION:
+      return 8.5;
+    default: {
+      return 9;
+    }
+  }
 }
