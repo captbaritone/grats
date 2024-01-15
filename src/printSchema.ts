@@ -33,12 +33,12 @@ export function printGratsSDL(
   doc: DocumentNode,
   config: ConfigOptions,
 ): string {
-  const sdl = printSDLWithoutMetadata(doc);
+  let sdl = printSDLWithoutMetadata(doc);
 
   if (config.schemaHeader) {
-    return `${config.schemaHeader}\n${sdl}`;
+    sdl = `${config.schemaHeader}\n${sdl}`;
   }
-  return sdl;
+  return sdl + "\n";
 }
 
 export function printSDLWithoutMetadata(doc: DocumentNode): string {
