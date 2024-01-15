@@ -6,12 +6,13 @@
   "types": "dist/src/index.d.ts",
   "license": "MIT",
   "files": [
-    "dist"
+    "dist",
+    "!dist/src/tests"
   ],
   "scripts": {
     "test": "ts-node src/tests/test.ts",
     "integration-tests": "node src/tests/integration.mjs",
-    "build": "tsc --build",
+    "build": "rm -rf dist/ && tsc --build",
     "format": "prettier . --write",
     "lint": "eslint . && prettier . --check"
   },
@@ -42,5 +43,25 @@
   "engines": {
     "node": ">=16 <=21",
     "pnpm": "^8"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/captbaritone/grats/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/captbaritone/grats.git"
+  },
+  "author": {
+    "name": "Jordan Eldredge",
+    "email": "jordan@jordaneldredge.com",
+    "url": "https://jordaneldredge.com"
+  },
+  "keywords": [
+    "graphql",
+    "typescript",
+    "resolvers",
+    "schema",
+    "code-first",
+    "implementation-first"
+  ]
 }

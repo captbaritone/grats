@@ -76,9 +76,9 @@ GitHub CI publishes a release to npm for each commit. They use the version numbe
 To publish a new release:
 
 ```bash
-pnpm version patch # or minor or major
 pnpm i
 pnpm run build
+pnpm version patch # or minor or major
 pnpm publish
 git push --tags
 git push origin
