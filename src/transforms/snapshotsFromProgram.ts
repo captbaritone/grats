@@ -6,6 +6,8 @@ import { collectResults } from "../utils/Result";
 import { err } from "../utils/Result";
 import { extend } from "../utils/helpers";
 
+const TAG_REGEX = /@(gql)|(killsParentOnException)/i;
+
 // Given a ts.Program, extract a set of ExtractionSnapshots from it.
 // In the future this part might be able to be incremental, were we only run extraction
 // on changed files.
@@ -16,7 +18,7 @@ export function extractSnapshotsFromProgram(
   const errors: ts.DiagnosticWithLocation[] = [];
   const gratsSourceFiles = program.getSourceFiles().filter((sourceFile) => {
     // If the file doesn't contain any GraphQL definitions, skip it.
-    if (!/@gql/i.test(sourceFile.text)) {
+    if (!TAG_REGEX.test(sourceFile.text)) {
       return false;
     }
 

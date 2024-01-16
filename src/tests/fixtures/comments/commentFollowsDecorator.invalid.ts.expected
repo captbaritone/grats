@@ -1,0 +1,24 @@
+-----------------
+INPUT
+----------------- 
+@ObjectType()
+/** @gqlType */
+export default class Composer {
+  @Field()
+  /** @gqlField */
+  url(): string {
+    return `/composer/`;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/comments/commentFollowsDecorator.invalid.ts:2:5 - error: Unexpected Grats tag in detached docblock. Grats was unable to determine which TypeScript declaration this docblock is associated with. Moving the docblock to a position with is unambiguously "above" the relevant declaration may help.
+
+2 /** @gqlType */
+      ~~~~~~~~
+src/tests/fixtures/comments/commentFollowsDecorator.invalid.ts:5:7 - error: Unexpected Grats tag in detached docblock. Grats was unable to determine which TypeScript declaration this docblock is associated with. Moving the docblock to a position with is unambiguously "above" the relevant declaration may help.
+
+5   /** @gqlField */
+        ~~~~~~~~~

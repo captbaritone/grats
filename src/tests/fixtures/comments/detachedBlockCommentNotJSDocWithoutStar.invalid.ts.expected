@@ -1,0 +1,17 @@
+-----------------
+INPUT
+----------------- 
+/*
+   @gqlType
+*/
+/**
+ * Foo
+ */
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/comments/detachedBlockCommentNotJSDocWithoutStar.invalid.ts:2:4 - error: Unexpected Grats tag in non-JSDoc-style block comment. Grats only supports GraphQL tags in JSDoc-style block comments which start with `/**`.
+
+2    @gqlType
+     ~~~~~~~~

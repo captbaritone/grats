@@ -378,3 +378,15 @@ export function operationTypeNotUnknown() {
 export function expectedNullableArgumentToBeOptional() {
   return "Expected nullable argument to _also_ be optional (`?`). graphql-js may omit properties on the argument object where an undefined GraphQL variable is passed, or if the argument is omitted in the operation text. To ensure your resolver is capable of handing this scenario, add a `?` to the end of the argument name to make it optional. e.g. `{greeting?: string | null}`";
 }
+
+export function gqlTagInLineComment() {
+  return "Unexpected Grats tag in line comment. Grats only supports GraphQL tags in JSDoc-style block comments. e.g. `/** @gqlType */`";
+}
+
+export function gqlTagInNonJSDocBlockComment() {
+  return "Unexpected Grats tag in non-JSDoc-style block comment. Grats only supports GraphQL tags in JSDoc-style block comments which start with `/**`.";
+}
+
+export function gqlTagInDetachedJSDocBlockComment() {
+  return 'Unexpected Grats tag in detached docblock. Grats was unable to determine which TypeScript declaration this docblock is associated with. Moving the docblock to a position with is unambiguously "above" the relevant declaration may help.';
+}

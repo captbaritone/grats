@@ -24,6 +24,8 @@ import { traverseJSDocTags } from "./utils/JSDoc";
 import { GraphQLConstructor, GratsDefinitionNode } from "./GraphQLConstructor";
 import { relativePath } from "./gratsRoot";
 import { ISSUE_URL } from "./Errors";
+import { detectInvalidComments } from "./comments";
+import { extend } from "./utils/helpers";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -115,7 +117,9 @@ class Extractor {
   // reporting an error if it is attached to a node where that tag is not
   // supported.
   extract(sourceFile: ts.SourceFile): DiagnosticsResult<ExtractionSnapshot> {
+    const seenCommentPositions: Set<number> = new Set();
     traverseJSDocTags(sourceFile, (node, tag) => {
+      seenCommentPositions.add(tag.parent.pos);
       switch (tag.tagName.text) {
         case TYPE_TAG:
           this.extractType(node, tag);
@@ -160,6 +164,7 @@ class Extractor {
           if (!hasFieldTag) {
             this.report(tag.tagName, E.killsParentOnExceptionOnWrongNode());
           }
+          // TODO: Report invalid location as well
           break;
         }
         default:
@@ -181,6 +186,9 @@ class Extractor {
           break;
       }
     });
+    const errors = detectInvalidComments(sourceFile, seenCommentPositions);
+    extend(this.errors, errors);
+
     if (this.errors.length > 0) {
       return err(this.errors);
     }

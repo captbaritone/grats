@@ -1,0 +1,22 @@
+-----------------
+INPUT
+----------------- 
+// @gqlType
+export default class Composer {
+  // @gqlField
+  url(): string {
+    return `/composer/`;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/comments/lineComment.invalid.ts:1:4 - error: Unexpected Grats tag in line comment. Grats only supports GraphQL tags in JSDoc-style block comments. e.g. `/** @gqlType */`
+
+1 // @gqlType
+     ~~~~~~~~
+src/tests/fixtures/comments/lineComment.invalid.ts:3:6 - error: Unexpected Grats tag in line comment. Grats only supports GraphQL tags in JSDoc-style block comments. e.g. `/** @gqlType */`
+
+3   // @gqlField
+       ~~~~~~~~~

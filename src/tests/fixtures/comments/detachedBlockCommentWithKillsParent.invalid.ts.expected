@@ -1,0 +1,17 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * @killsParentOnException
+ */
+/**
+ * Foo
+ */
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/comments/detachedBlockCommentWithKillsParent.invalid.ts:2:4 - error: Unexpected Grats tag in detached docblock. Grats was unable to determine which TypeScript declaration this docblock is associated with. Moving the docblock to a position with is unambiguously "above" the relevant declaration may help.
+
+2  * @killsParentOnException
+     ~~~~~~~~~~~~~~~~~~~~~~~

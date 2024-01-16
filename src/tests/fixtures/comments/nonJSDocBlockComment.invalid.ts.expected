@@ -1,0 +1,15 @@
+-----------------
+INPUT
+----------------- 
+// Oops! Forgot to use two asterisks for the JSDoc block comment.
+
+/* @gqlType */
+class Composer {}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/comments/nonJSDocBlockComment.invalid.ts:3:4 - error: Unexpected Grats tag in non-JSDoc-style block comment. Grats only supports GraphQL tags in JSDoc-style block comments which start with `/**`.
+
+3 /* @gqlType */
+     ~~~~~~~~
