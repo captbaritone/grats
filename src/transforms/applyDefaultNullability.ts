@@ -42,7 +42,7 @@ export function applyDefaultNullability(
           );
         }
         // Set the location of the NON_NULL_TYPE wrapper to the location of the
-        // @killsParentOnException directive so that type errors created by graphql-js
+        // `@killsParentOnException` directive so that type errors created by graphql-js
         // are reported at the correct location.
         return { ...t, type: { ...t.type, loc: killsParent.loc } };
       }
