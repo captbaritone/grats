@@ -1,0 +1,36 @@
+import GratsCode from "@site/src/components/GratsCode";
+import Example from "!!raw-loader!./snippets/typegraphql.out";
+
+# TypeGraphQL
+
+From https://typegraphql.com/
+
+```typescript
+@ObjectType()
+export class Rate {
+  @Field((type) => Int)
+  value: number;
+}
+
+@ObjectType()
+class Recipe {
+  @Field()
+  title: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field((type) => [Float])
+  ratings: number[];
+
+  @Field((type) => Float, { nullable: true })
+  get averageRating() {
+    const sum = this.ratings.reduce((a, b) => a + b, 0);
+    return sum / this.ratings.length;
+  }
+}
+```
+
+## Grats
+
+<GratsCode out={Example} mode="ts" />
