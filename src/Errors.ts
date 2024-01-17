@@ -20,6 +20,7 @@ const DOC_URLS = {
     "https://grats.capt.dev/docs/docblock-tags/interfaces/#merged-interfaces",
   parameterProperties:
     "https://grats.capt.dev/docs/docblock-tags/fields#class-based-fields",
+  commentSyntax: "https://grats.capt.dev/docs/faq/comment-syntax",
 };
 
 /**
@@ -380,13 +381,13 @@ export function expectedNullableArgumentToBeOptional() {
 }
 
 export function gqlTagInLineComment() {
-  return "Unexpected Grats tag in line comment. Grats only supports GraphQL tags in JSDoc-style block comments. e.g. `/** @gqlType */`";
+  return `Unexpected Grats tag in line (\`//\`) comment. Grats looks for tags in JSDoc-style block comments. e.g. \`/** @gqlType */\`. For more information see: ${DOC_URLS.commentSyntax}`;
 }
 
 export function gqlTagInNonJSDocBlockComment() {
-  return "Unexpected Grats tag in non-JSDoc-style block comment. Grats only supports GraphQL tags in JSDoc-style block comments which start with `/**`.";
+  return `Unexpected Grats tag in non-JSDoc-style block comment. Grats only looks for tags in JSDoc-style block comments which start with \`/**\`. For more information see: ${DOC_URLS.commentSyntax}`;
 }
 
 export function gqlTagInDetachedJSDocBlockComment() {
-  return 'Unexpected Grats tag in detached docblock. Grats was unable to determine which TypeScript declaration this docblock is associated with. Moving the docblock to a position with is unambiguously "above" the relevant declaration may help.';
+  return `Unexpected Grats tag in detached docblock. Grats was unable to determine which TypeScript declaration this docblock is associated with. Moving the docblock to a position with is unambiguously "above" the relevant declaration may help. For more information see: ${DOC_URLS.commentSyntax}`;
 }
