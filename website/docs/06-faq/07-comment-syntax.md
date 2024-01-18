@@ -1,6 +1,6 @@
 # Comment Syntax
 
-Grats uses docblock comments to annotate which declarations in your code should be exposed in your GraphQL schema. Using comments to annotate code like this is unusual and can be confusing at first. This document explains how to use docblocks correctly, but Grats itself also aims to be helpful and will warn you if it encounters a docblock that it doesn't understand or is used improperly.
+Grats uses [JSDoc](https://jsdoc.app/) docblock comments to annotate declarations in your code that you want exposed in your GraphQL schema. Using comments to annotate code like this is unusual and can be confusing at first. This document explains how to use docblocks correctly, but Grats itself also aims to be helpful and will warn you if it encounters a docblock that it doesn't understand or is used improperly.
 
 :::info
 To learn more about _why_ Grats uses docblock comments, see the page [Why Use Comments](./02-why-use-comments.md).
@@ -18,19 +18,36 @@ JSDoc docblocks are defined as block comments that begin with `/**`.
 
 &mdash; [JSDoc Documentation](https://jsdoc.app/about-getting-started)
 
-This means the following comments will _not_ be recognized by Grats:
+This means the following comments will _not_ be recognized by Grats, but Grats will report an error:
 
 ```
 // @gqlType
 /* @gqlType */
 ```
 
+:::info
+
+The reason Grats does not support non JSDoc comments, is that Grats relies on TypeScript to determine which declaration a comment applies to, and TypeScript only recognizes JSDoc comments. See [Attachment](#attachment) below for more information.
+
+:::
+
 ## Tag Syntax
 
-Tags in docblocks
+Tags in JSDocs must appear at the beginning of a line and are defined as a `@` symbol followed by a name. They can optionally be followed by a value which may span multiple lines.
+
+Any free text that appears in a Grats docblock is treated as that declaration's description.
+
+:::note
+Because tag values may span multiple lines, description text should be placed at the top of the docblock, before any tags are used.
+:::
+
+See [Descriptions](../03-resolvers/03-descriptions.mdx) for more information about descriptions.
+
+```
 
 ## Attachment
 
-In order to determine which declaration a comment applies to, Grats leverage's the TypeScript compiler to determine which TypeScript declaration a comment is referencing. This is known as "comment attachment". Comment attachment is a surprisingly complex problem, with edge cases that don't always feel intuitive. But in general, the TypeScript compiler will attach a comment to the declaration that directly follows it.
+Grats leverage's the TypeScript compiler to determine "comment attachment" or, which declaration a comment refers to. Comment attachment is a surprisingly complex problem, with edge cases that don't always feel intuitive. But in general, the TypeScript compiler will attach a comment to the declaration that directly follows it.
 
 If Grats encounters a `@gql` comment that does not seem to be attached to _any_ declaration, it will report an error. Similarly, if Grats encounters a `@gql` comment that is attached to a declaration that is incompatible with the tag used, it will report an error.
+```
