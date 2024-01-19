@@ -16,6 +16,8 @@ module.exports = {
         ignoreRestSiblings: true,
       },
     ],
+    "no-constant-condition": ["error", { checkLoops: false }],
+    "no-constant-binary-expression": "error",
   },
   root: true,
   env: {

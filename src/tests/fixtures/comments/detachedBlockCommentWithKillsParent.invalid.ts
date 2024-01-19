@@ -1,0 +1,6 @@
+/**
+ * @killsParentOnException
+ */
+/**
+ * Foo
+ */

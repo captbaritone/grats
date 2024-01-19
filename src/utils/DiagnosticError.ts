@@ -136,6 +136,26 @@ export function gqlRelated(
   };
 }
 
+export function rangeErr(
+  file: ts.SourceFile,
+  commentRange: ts.CommentRange,
+  message: string,
+  relatedInformation?: ts.DiagnosticRelatedInformation[],
+): ts.DiagnosticWithLocation {
+  const start = commentRange.pos;
+  const length = commentRange.end - commentRange.pos;
+  return {
+    messageText: message,
+    file,
+    code: FAKE_ERROR_CODE,
+    category: ts.DiagnosticCategory.Error,
+    start,
+    length,
+    relatedInformation,
+    source: "Grats",
+  };
+}
+
 export function tsErr(
   node: ts.Node,
   message: string,

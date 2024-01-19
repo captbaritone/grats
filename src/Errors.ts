@@ -20,6 +20,7 @@ const DOC_URLS = {
     "https://grats.capt.dev/docs/docblock-tags/interfaces/#merged-interfaces",
   parameterProperties:
     "https://grats.capt.dev/docs/docblock-tags/fields#class-based-fields",
+  commentSyntax: "https://grats.capt.dev/docs/getting-started/comment-syntax",
 };
 
 /**
@@ -377,4 +378,16 @@ export function operationTypeNotUnknown() {
 
 export function expectedNullableArgumentToBeOptional() {
   return "Expected nullable argument to _also_ be optional (`?`). graphql-js may omit properties on the argument object where an undefined GraphQL variable is passed, or if the argument is omitted in the operation text. To ensure your resolver is capable of handing this scenario, add a `?` to the end of the argument name to make it optional. e.g. `{greeting?: string | null}`";
+}
+
+export function gqlTagInLineComment() {
+  return `Unexpected Grats tag in line (\`//\`) comment. Grats looks for tags in JSDoc-style block comments. e.g. \`/** @gqlType */\`. For more information see: ${DOC_URLS.commentSyntax}`;
+}
+
+export function gqlTagInNonJSDocBlockComment() {
+  return `Unexpected Grats tag in non-JSDoc-style block comment. Grats only looks for tags in JSDoc-style block comments which start with \`/**\`. For more information see: ${DOC_URLS.commentSyntax}`;
+}
+
+export function gqlTagInDetachedJSDocBlockComment() {
+  return `Unexpected Grats tag in detached docblock. Grats was unable to determine which TypeScript declaration this docblock is associated with. Moving the docblock to a position with is unambiguously "above" the relevant declaration may help. For more information see: ${DOC_URLS.commentSyntax}`;
 }

@@ -1,0 +1,2 @@
+/*** @gqlType */
+class User {}

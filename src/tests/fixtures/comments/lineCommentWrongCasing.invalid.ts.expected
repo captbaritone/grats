@@ -1,0 +1,30 @@
+-----------------
+INPUT
+----------------- 
+// @GQLtYPE
+export default class Composer {
+  // @gqlfield
+  url(): string {
+    return `/composer/`;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:1:4 - error: `@GQLtYPE` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`.
+
+1 // @GQLtYPE
+     ~~~~~~~~
+src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:1:4 - error: Unexpected Grats tag in line (`//`) comment. Grats looks for tags in JSDoc-style block comments. e.g. `/** @gqlType */`. For more information see: https://grats.capt.dev/docs/getting-started/comment-syntax
+
+1 // @GQLtYPE
+     ~~~~~~~~
+src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:3:6 - error: `@gqlfield` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`.
+
+3   // @gqlfield
+       ~~~~~~~~~
+src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:3:6 - error: Unexpected Grats tag in line (`//`) comment. Grats looks for tags in JSDoc-style block comments. e.g. `/** @gqlType */`. For more information see: https://grats.capt.dev/docs/getting-started/comment-syntax
+
+3   // @gqlfield
+       ~~~~~~~~~
