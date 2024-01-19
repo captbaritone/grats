@@ -43,11 +43,8 @@ Because tag values may span multiple lines, description text should be placed at
 
 See [Descriptions](../03-resolvers/03-descriptions.mdx) for more information about descriptions.
 
-```
-
 ## Attachment
 
 Grats leverage's the TypeScript compiler to determine "comment attachment" or, which declaration a comment refers to. Comment attachment is a surprisingly complex problem, with edge cases that don't always feel intuitive. But in general, the TypeScript compiler will attach a comment to the declaration that directly follows it.
 
 If Grats encounters a `@gql` comment that does not seem to be attached to _any_ declaration, it will report an error. Similarly, if Grats encounters a `@gql` comment that is attached to a declaration that is incompatible with the tag used, it will report an error.
-```
