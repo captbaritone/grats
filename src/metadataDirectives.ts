@@ -10,6 +10,7 @@ import { GratsDefinitionNode } from "./GraphQLConstructor";
 
 export const FIELD_NAME_DIRECTIVE = "propertyName";
 const FIELD_NAME_ARG = "name";
+const IS_METHOD_ARG = "isMethod";
 
 export const EXPORTED_DIRECTIVE = "exported";
 const TS_MODULE_PATH_ARG = "tsModulePath";
@@ -29,7 +30,7 @@ export const METADATA_DIRECTIVE_NAMES = new Set([
 
 export const DIRECTIVES_AST: DocumentNode = parse(`
     directive @${ASYNC_ITERABLE_TYPE_DIRECTIVE} on FIELD_DEFINITION
-    directive @${FIELD_NAME_DIRECTIVE}(${FIELD_NAME_ARG}: String!) on FIELD_DEFINITION
+    directive @${FIELD_NAME_DIRECTIVE}(${FIELD_NAME_ARG}: String!, ${IS_METHOD_ARG}: Boolean!) on FIELD_DEFINITION
     directive @${EXPORTED_DIRECTIVE}(
       ${TS_MODULE_PATH_ARG}: String!,
       ${EXPORTED_FUNCTION_NAME_ARG}: String!
@@ -48,6 +49,7 @@ export type AsyncIterableTypeMetadata = true;
 
 export type PropertyNameMetadata = {
   name: string;
+  isMethod: boolean;
 };
 
 export type ExportedMetadata = {
@@ -64,7 +66,10 @@ export function makePropertyNameDirective(
     kind: Kind.DIRECTIVE,
     loc,
     name: { kind: Kind.NAME, loc, value: FIELD_NAME_DIRECTIVE },
-    arguments: [makeStringArg(loc, FIELD_NAME_ARG, propertyName.name)],
+    arguments: [
+      makeStringArg(loc, FIELD_NAME_ARG, propertyName.name),
+      makeBoolArg(loc, IS_METHOD_ARG, propertyName.isMethod),
+    ],
   };
 }
 
@@ -126,7 +131,10 @@ export function parsePropertyNameDirective(
     throw new Error(`Expected directive to be ${FIELD_NAME_DIRECTIVE}`);
   }
 
-  return { name: getStringArg(directive, FIELD_NAME_ARG) };
+  return {
+    name: getStringArg(directive, FIELD_NAME_ARG),
+    isMethod: getBoolArg(directive, IS_METHOD_ARG),
+  };
 }
 
 export function parseExportedDirective(
@@ -168,6 +176,19 @@ function getIntArg(directive: ConstDirectiveNode, argName: string): number {
   return parseInt(arg.value.value, 10);
 }
 
+function getBoolArg(directive: ConstDirectiveNode, argName: string): boolean {
+  const arg = directive.arguments?.find((arg) => arg.name.value === argName);
+  if (!arg) {
+    throw new Error(`Expected to find argument ${argName}`);
+  }
+
+  if (arg.value.kind !== Kind.BOOLEAN) {
+    throw new Error(`Expected argument ${argName} to be a boolean`);
+  }
+
+  return arg.value.value;
+}
+
 function makeStringArg(
   loc: Location,
   argName: string,
@@ -178,6 +199,19 @@ function makeStringArg(
     loc,
     name: { kind: Kind.NAME, loc, value: argName },
     value: { kind: Kind.STRING, loc, value },
+  };
+}
+
+function makeBoolArg(
+  loc: Location,
+  argName: string,
+  value: boolean,
+): ConstArgumentNode {
+  return {
+    kind: Kind.ARGUMENT,
+    loc,
+    name: { kind: Kind.NAME, loc, value: argName },
+    value: { kind: Kind.BOOLEAN, loc, value },
   };
 }
 

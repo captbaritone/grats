@@ -9,7 +9,7 @@ export function getSchema(): GraphQLSchema {
                     name: "hello",
                     type: GraphQLString,
                     resolve(source, args, context, info) {
-                        return typeof source.NOT_THIS === "function" ? source.NOT_THIS(source, args, context, info) : source.NOT_THIS;
+                        return source.NOT_THIS;
                     }
                 }
             };

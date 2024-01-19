@@ -36,7 +36,7 @@ export function getSchema(): GraphQLSchema {
                     name: "notName",
                     type: GraphQLString,
                     resolve(source, args, context, info) {
-                        return assertNonNull(typeof source.alsoName === "function" ? source.alsoName(source, args, context, info) : source.alsoName);
+                        return assertNonNull(source.alsoName);
                     }
                 }
             };

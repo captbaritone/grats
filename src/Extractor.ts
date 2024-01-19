@@ -906,7 +906,10 @@ class Extractor {
     let directives: ConstDirectiveNode[] = [];
     if (id.text !== name.value) {
       directives = [
-        this.gql.propertyNameDirective(node.name, { name: id.text }),
+        this.gql.propertyNameDirective(node.name, {
+          name: id.text,
+          isMethod: false,
+        }),
       ];
     }
 
@@ -1394,7 +1397,10 @@ class Extractor {
     let directives: ConstDirectiveNode[] = [];
     if (id.text !== name.value) {
       directives = [
-        this.gql.propertyNameDirective(node.name, { name: id.text }),
+        this.gql.propertyNameDirective(node.name, {
+          name: id.text,
+          isMethod: isCallable(node),
+        }),
       ];
     }
     if (isStream) {
@@ -1540,7 +1546,10 @@ class Extractor {
 
     if (id.text !== name.value) {
       directives = [
-        this.gql.propertyNameDirective(node.name, { name: id.text }),
+        this.gql.propertyNameDirective(node.name, {
+          name: id.text,
+          isMethod: false,
+        }),
       ];
     }
 
@@ -1713,4 +1722,10 @@ function graphQLNameValidationMessage(name: string): string | null {
 // contain a `*` surrounded by whitespace.
 function trimTrailingCommentLines(text: string) {
   return text.replace(/(\s*\n\s*\*?\s*)+$/, "");
+}
+
+function isCallable(
+  node: ts.MethodDeclaration | ts.MethodSignature | ts.GetAccessorDeclaration,
+): boolean {
+  return ts.isMethodDeclaration(node) || ts.isMethodSignature(node);
 }

@@ -14,7 +14,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  hello: String @propertyName(name: "foo")
+  hello: String @propertyName(isMethod: false, name: "foo")
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
@@ -27,7 +27,7 @@ export function getSchema(): GraphQLSchema {
                     name: "hello",
                     type: GraphQLString,
                     resolve(source, args, context, info) {
-                        return typeof source.foo === "function" ? source.foo(source, args, context, info) : source.foo;
+                        return source.foo;
                     }
                 }
             };

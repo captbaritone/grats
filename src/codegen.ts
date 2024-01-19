@@ -257,35 +257,22 @@ class Codegen {
     }
     const propertyName = fieldDirective(field, FIELD_NAME_DIRECTIVE);
     if (propertyName != null) {
-      const { name } = parsePropertyNameDirective(propertyName);
+      const { name, isMethod } = parsePropertyNameDirective(propertyName);
       const prop = F.createPropertyAccessExpression(
         F.createIdentifier("source"),
         F.createIdentifier(name),
       );
-      let valueExpression: ts.Expression = F.createCallExpression(
-        prop,
-        undefined,
-        RESOLVER_ARGS.map((name) => {
-          return F.createIdentifier(name);
-        }),
-      );
 
-      // If there are no args, this might be a property not a method. In that case, we first need to
-      // check if the property is a function. If it is, we call it, otherwise we just read the prop.
-      if (field.args.length === 0) {
-        const isFunc = F.createStrictEquality(
-          F.createTypeOfExpression(prop),
-          F.createStringLiteral("function"),
-        );
+      let valueExpression: ts.Expression = prop;
 
-        const ternary = F.createConditionalExpression(
-          isFunc,
-          undefined,
-          valueExpression,
-          undefined,
+      if (isMethod) {
+        valueExpression = F.createCallExpression(
           prop,
+          undefined,
+          RESOLVER_ARGS.map((name) => {
+            return F.createIdentifier(name);
+          }),
         );
-        valueExpression = ternary;
       }
 
       return this.method(

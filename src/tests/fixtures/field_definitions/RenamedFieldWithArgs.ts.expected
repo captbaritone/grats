@@ -14,7 +14,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greetz(greeting: String!): String @propertyName(name: "hello")
+  greetz(greeting: String!): String @propertyName(isMethod: true, name: "hello")
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";

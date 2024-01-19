@@ -17,7 +17,7 @@ OUTPUT
 -----------------
 -- SDL --
 type User {
-  name: String @deprecated @propertyName(name: "graphQLName")
+  name: String @deprecated @propertyName(isMethod: true, name: "graphQLName")
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
@@ -31,7 +31,7 @@ export function getSchema(): GraphQLSchema {
                     name: "name",
                     type: GraphQLString,
                     resolve(source, args, context, info) {
-                        return typeof source.graphQLName === "function" ? source.graphQLName(source, args, context, info) : source.graphQLName;
+                        return source.graphQLName(source, args, context, info);
                     }
                 }
             };

@@ -17,8 +17,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String @propertyName(name: "somePropertyField")
-  salutaion: String @propertyName(name: "someMethodField")
+  greeting: String @propertyName(isMethod: false, name: "somePropertyField")
+  salutaion: String @propertyName(isMethod: true, name: "someMethodField")
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
@@ -31,14 +31,14 @@ export function getSchema(): GraphQLSchema {
                     name: "greeting",
                     type: GraphQLString,
                     resolve(source, args, context, info) {
-                        return typeof source.somePropertyField === "function" ? source.somePropertyField(source, args, context, info) : source.somePropertyField;
+                        return source.somePropertyField;
                     }
                 },
                 salutaion: {
                     name: "salutaion",
                     type: GraphQLString,
                     resolve(source, args, context, info) {
-                        return typeof source.someMethodField === "function" ? source.someMethodField(source, args, context, info) : source.someMethodField;
+                        return source.someMethodField(source, args, context, info);
                     }
                 }
             };
