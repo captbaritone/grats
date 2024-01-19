@@ -16,7 +16,7 @@ src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:1:4 - error: `@GQL
 
 1 // @GQLtYPE
      ~~~~~~~~
-src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:1:4 - error: Unexpected Grats tag in line (`//`) comment. Grats looks for tags in JSDoc-style block comments. e.g. `/** @gqlType */`. For more information see: https://grats.capt.dev/docs/faq/comment-syntax
+src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:1:4 - error: Unexpected Grats tag in line (`//`) comment. Grats looks for tags in JSDoc-style block comments. e.g. `/** @gqlType */`. For more information see: https://grats.capt.dev/docs/getting-started/comment-syntax
 
 1 // @GQLtYPE
      ~~~~~~~~
@@ -24,7 +24,7 @@ src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:3:6 - error: `@gql
 
 3   // @gqlfield
        ~~~~~~~~~
-src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:3:6 - error: Unexpected Grats tag in line (`//`) comment. Grats looks for tags in JSDoc-style block comments. e.g. `/** @gqlType */`. For more information see: https://grats.capt.dev/docs/faq/comment-syntax
+src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:3:6 - error: Unexpected Grats tag in line (`//`) comment. Grats looks for tags in JSDoc-style block comments. e.g. `/** @gqlType */`. For more information see: https://grats.capt.dev/docs/getting-started/comment-syntax
 
 3   // @gqlfield
        ~~~~~~~~~

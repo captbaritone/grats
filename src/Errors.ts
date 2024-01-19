@@ -20,7 +20,7 @@ const DOC_URLS = {
     "https://grats.capt.dev/docs/docblock-tags/interfaces/#merged-interfaces",
   parameterProperties:
     "https://grats.capt.dev/docs/docblock-tags/fields#class-based-fields",
-  commentSyntax: "https://grats.capt.dev/docs/faq/comment-syntax",
+  commentSyntax: "https://grats.capt.dev/docs/getting-started/comment-syntax",
 };
 
 /**

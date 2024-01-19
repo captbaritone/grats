@@ -3,7 +3,7 @@
 Grats uses [JSDoc](https://jsdoc.app/) docblock comments to annotate declarations in your code that you want exposed in your GraphQL schema. Using comments to annotate code like this is unusual and can be confusing at first. This document explains how to use docblocks correctly, but Grats itself also aims to be helpful and will warn you if it encounters a docblock that it doesn't understand or is used improperly.
 
 :::info
-To learn more about _why_ Grats uses docblock comments, see the page [Why Use Comments](./02-why-use-comments.md).
+To learn more about _why_ Grats uses docblock comments, see the page [Why Use Comments](../06-faq/02-why-use-comments.md).
 :::
 
 In broad strokes, Grats looks for docblocks with special `@gql` tags and uses the position of those docblocks to infer the declaration to which they apply.
