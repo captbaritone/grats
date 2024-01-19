@@ -8,7 +8,7 @@ JSDocs must being with `/**` (two asterisk). However, they may be consolidated i
 
 :::info
 
-- To learn about comment syntax, see [Comment Syntax](../06-faq/07-comment-syntax.md)
+- To learn about comment syntax, see [Comment Syntax](../01-getting-started/04-comment-syntax.md)
 - To learn _why_ Grats uses comments, see [Why Use Comments](../06-faq/02-why-use-comments.md)
 
 :::
