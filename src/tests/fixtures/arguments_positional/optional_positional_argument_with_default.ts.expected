@@ -1,0 +1,46 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class User {
+  /** @gqlField */
+  greeting(name: string | null = "Alice"): string {
+    return `Hello ${name}`;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type User {
+  greeting(name: String = "Alice" @positionalArg(position: 0)): String
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    args: {
+                        name: {
+                            name: "name",
+                            type: GraphQLString,
+                            defaultValue: "Alice"
+                        }
+                    },
+                    resolve(source, args, context, info) {
+                        return typeof source.resolve === "function" ? source.resolve(args.name) : source.resolve;
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [UserType]
+    });
+}

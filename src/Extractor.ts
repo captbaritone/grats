@@ -26,6 +26,7 @@ import { relativePath } from "./gratsRoot";
 import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
 import { extend } from "./utils/helpers";
+import { dir } from "console";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -354,7 +355,7 @@ class Extractor {
     let args: readonly InputValueDefinitionNode[] | null = null;
     const argsParam = node.parameters[1];
     if (argsParam != null) {
-      args = this.collectArgs(argsParam);
+      args = this.collectArgs(node.parameters);
     }
 
     const context = node.parameters[2];
@@ -937,31 +938,85 @@ class Extractor {
   }
 
   collectArgs(
-    argsParam: ts.ParameterDeclaration,
+    jsArgs: ts.NodeArray<ts.ParameterDeclaration>,
   ): ReadonlyArray<InputValueDefinitionNode> | null {
-    const args: InputValueDefinitionNode[] = [];
-
-    const argsType = argsParam.type;
+    const initialParam = jsArgs[0];
+    const argsType = initialParam.type;
     if (argsType == null) {
-      return this.report(argsParam, E.argumentParamIsMissingType());
+      return this.report(initialParam, E.argumentParamIsMissingType());
     }
     if (argsType.kind === ts.SyntaxKind.UnknownKeyword) {
       return [];
     }
-    if (!ts.isTypeLiteralNode(argsType)) {
-      return this.report(argsType, E.argumentParamIsNotObject());
-    }
-
-    let defaults: ArgDefaults | null = null;
-    if (ts.isObjectBindingPattern(argsParam.name)) {
-      defaults = this.collectArgDefaults(argsParam.name);
-    }
-
-    for (const member of argsType.members) {
-      const arg = this.collectArg(member, defaults);
-      if (arg != null) {
-        args.push(arg);
+    if (ts.isTypeLiteralNode(argsType)) {
+      const context = jsArgs[1];
+      if (context != null) {
+        this.validateContextParameter(context);
       }
+      const args: InputValueDefinitionNode[] = [];
+      let defaults: ArgDefaults | null = null;
+      if (ts.isObjectBindingPattern(initialParam.name)) {
+        defaults = this.collectArgDefaults(initialParam.name);
+      }
+
+      for (const member of argsType.members) {
+        const arg = this.collectArg(member, defaults);
+        if (arg != null) {
+          args.push(arg);
+        }
+      }
+      return args;
+    }
+
+    const args: InputValueDefinitionNode[] = [];
+    for (let i = 0; i < jsArgs.length; i++) {
+      const param = jsArgs[i];
+      if (param.type == null) {
+        // TODO: Collect all errors?
+        return this.report(param, E.argumentParamIsMissingType());
+      }
+
+      let type = this.collectType(param.type);
+      if (type == null) return null;
+      if (param.questionToken) {
+        // Question mark means we can handle the argument being undefined in the
+        // object literal, but if we are going to type the GraphQL arg as
+        // optional, the code must also be able to handle an explicit null.
+        //
+        // TODO: This will catch { a?: string } but not { a?: string | undefined }.
+        if (type.kind === Kind.NON_NULL_TYPE) {
+          return this.report(
+            param.questionToken,
+            E.nonNullTypeCannotBeOptional(),
+          );
+        }
+        type = this.gql.nullableType(type);
+      }
+      const name = this.expectNameIdentifier(param.name);
+      if (name == null) return null;
+      let defaultValue: ConstValueNode | null = null;
+      if (param.initializer != null) {
+        defaultValue = this.collectConstValue(param.initializer);
+        if (defaultValue == null) return null;
+      }
+
+      // TODO: Add position information metadata directive
+      const deprecatedDirective = this.collectDeprecated(param);
+      const description = this.collectDescription(param);
+
+      const directives = [this.gql.positionalArgDirective(param, i)];
+      if (deprecatedDirective != null) {
+        directives.push(deprecatedDirective);
+      }
+      const arg = this.gql.inputValueDefinition(
+        param,
+        this.gql.name(param.name, name.text),
+        type,
+        directives,
+        defaultValue,
+        description,
+      );
+      args.push(arg);
     }
     return args;
   }
@@ -1379,12 +1434,7 @@ class Extractor {
     let args: readonly InputValueDefinitionNode[] | null = null;
     const argsParam = node.parameters[0];
     if (argsParam != null) {
-      args = this.collectArgs(argsParam);
-    }
-
-    const context = node.parameters[1];
-    if (context != null) {
-      this.validateContextParameter(context);
+      args = this.collectArgs(node.parameters);
     }
 
     const description = this.collectDescription(node);

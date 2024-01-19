@@ -20,6 +20,23 @@ export function extend<T>(a: T[], b: readonly T[]) {
   }
 }
 
+// Sort an array by a key function. Takes care to avoid computing the key
+// function more than once per item.
+export function sortBy<T>(array: readonly T[], keyFn: (item: T) => number) {
+  const keys = new Map<T, number>();
+  const memoizedKeyFn = (item: T) => {
+    const key = keys.get(item);
+    if (key != null) {
+      return key;
+    }
+    const value = keyFn(item);
+    keys.set(item, value);
+    return value;
+  };
+
+  return array.slice().sort((a, b) => memoizedKeyFn(a) - memoizedKeyFn(b));
+}
+
 export function loc(item: { loc?: Location }): Location {
   if (item.loc == null) {
     throw new Error("Expected item to have loc");

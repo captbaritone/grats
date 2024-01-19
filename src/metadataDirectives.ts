@@ -20,11 +20,15 @@ export const ASYNC_ITERABLE_TYPE_DIRECTIVE = "asyncIterable";
 
 export const KILLS_PARENT_ON_EXCEPTION_DIRECTIVE = "killsParentOnException";
 
+export const POSITIONAL_ARG_DIRECTIVE_NAME = "positionalArg";
+const POSITION_ARG = "position";
+
 export const METADATA_DIRECTIVE_NAMES = new Set([
   FIELD_NAME_DIRECTIVE,
   EXPORTED_DIRECTIVE,
   ASYNC_ITERABLE_TYPE_DIRECTIVE,
   KILLS_PARENT_ON_EXCEPTION_DIRECTIVE,
+  POSITIONAL_ARG_DIRECTIVE_NAME,
 ]);
 
 export const DIRECTIVES_AST: DocumentNode = parse(`
@@ -36,6 +40,7 @@ export const DIRECTIVES_AST: DocumentNode = parse(`
       ${ARG_COUNT}: Int!
     ) on FIELD_DEFINITION
     directive @${KILLS_PARENT_ON_EXCEPTION_DIRECTIVE} on FIELD_DEFINITION
+    directive @${POSITIONAL_ARG_DIRECTIVE_NAME}(${POSITION_ARG}: Int!) on ARGUMENT_DEFINITION
 `);
 
 export function addMetadataDirectives(
@@ -54,6 +59,10 @@ export type ExportedMetadata = {
   tsModulePath: string;
   exportedFunctionName: string;
   argCount: number;
+};
+
+export type PositionalMetadata = {
+  position: number;
 };
 
 export function makePropertyNameDirective(
@@ -108,6 +117,18 @@ export function makeKillsParentOnExceptionDirective(
   };
 }
 
+export function makePositionalArgDirective(
+  loc: Location,
+  position: number,
+): ConstDirectiveNode {
+  return {
+    kind: Kind.DIRECTIVE,
+    loc,
+    name: { kind: Kind.NAME, loc, value: POSITIONAL_ARG_DIRECTIVE_NAME },
+    arguments: [makeIntArg(loc, POSITION_ARG, position)],
+  };
+}
+
 export function parseAsyncIterableTypeDirective(
   directive: ConstDirectiveNode,
 ): AsyncIterableTypeMetadata {
@@ -139,6 +160,19 @@ export function parseExportedDirective(
     tsModulePath: getStringArg(directive, TS_MODULE_PATH_ARG),
     exportedFunctionName: getStringArg(directive, EXPORTED_FUNCTION_NAME_ARG),
     argCount: getIntArg(directive, ARG_COUNT),
+  };
+}
+
+export function parsePositionalArgsDirective(
+  directive: ConstDirectiveNode,
+): PositionalMetadata {
+  if (directive.name.value !== POSITIONAL_ARG_DIRECTIVE_NAME) {
+    throw new Error(
+      `Expected directive to be ${POSITIONAL_ARG_DIRECTIVE_NAME}`,
+    );
+  }
+  return {
+    position: getIntArg(directive, POSITION_ARG),
   };
 }
 

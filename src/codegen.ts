@@ -32,6 +32,8 @@ import {
   ASYNC_ITERABLE_TYPE_DIRECTIVE,
   parseExportedDirective,
   parsePropertyNameDirective,
+  parsePositionalArgsDirective,
+  POSITIONAL_ARG_DIRECTIVE_NAME,
 } from "./metadataDirectives";
 import { resolveRelativePath } from "./gratsRoot";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "./publicDirectives";
@@ -39,7 +41,8 @@ import {
   ASSERT_NON_NULL_HELPER,
   createAssertNonNullHelper,
 } from "./codegenHelpers";
-import { extend } from "./utils/helpers";
+import { extend, sortBy } from "./utils/helpers";
+import { me } from "./tests/integrationFixtures/getAcessor";
 
 const RESOLVER_ARGS = ["source", "args", "context", "info"];
 
@@ -217,8 +220,16 @@ class Codegen {
     methodName: string,
     parentTypeName: string,
   ): ts.MethodDeclaration | null {
-    const exported = fieldDirective(field, EXPORTED_DIRECTIVE);
+    const exported = nodeDirective(field, EXPORTED_DIRECTIVE);
+    const positional = field.args.some((arg) =>
+      nodeDirective(arg, POSITIONAL_ARG_DIRECTIVE_NAME),
+    );
     if (exported != null) {
+      if (positional) {
+        throw new Error(
+          `Positional arguments are not supported for fields with the @exported directive`,
+        );
+      }
       const exportedMetadata = parseExportedDirective(exported);
       const module = exportedMetadata.tsModulePath;
       const funcName = exportedMetadata.exportedFunctionName;
@@ -255,20 +266,22 @@ class Codegen {
         ],
       );
     }
-    const propertyName = fieldDirective(field, FIELD_NAME_DIRECTIVE);
+    const propertyName = nodeDirective(field, FIELD_NAME_DIRECTIVE);
     if (propertyName != null) {
+      if (positional) {
+        throw new Error(
+          `Positional arguments are not supported for fields with the @fieldName directive`,
+        );
+      }
       const { name } = parsePropertyNameDirective(propertyName);
+
+      const args = RESOLVER_ARGS.map((name) => F.createIdentifier(name));
+
       const prop = F.createPropertyAccessExpression(
         F.createIdentifier("source"),
         F.createIdentifier(name),
       );
-      const callExpression = F.createCallExpression(
-        prop,
-        undefined,
-        RESOLVER_ARGS.map((name) => {
-          return F.createIdentifier(name);
-        }),
-      );
+      const callExpression = F.createCallExpression(prop, undefined, args);
 
       const isFunc = F.createStrictEquality(
         F.createTypeOfExpression(prop),
@@ -289,8 +302,36 @@ class Codegen {
       );
     }
 
+    // TODO: Merge with propertyName above
+    if (positional) {
+      const sortedArgs = sortBy(field.args, argPosition);
+      const args = sortedArgs.map(({ name }) => {
+        return F.createPropertyAccessExpression(
+          F.createIdentifier("args"),
+          F.createIdentifier(name),
+        );
+      });
+      const prop = F.createPropertyAccessExpression(
+        F.createIdentifier("source"),
+        F.createIdentifier(field.name),
+      );
+      const callExpression = F.createCallExpression(prop, undefined, args);
+
+      return this.method(
+        methodName,
+        RESOLVER_ARGS.map((name) => this.param(name)),
+        [F.createReturnStatement(callExpression)],
+      );
+    }
+
     return null;
   }
+
+  foo(
+    fieldName: string,
+    propertyName: string,
+    args: ts.Expression[],
+  ): ts.MethodDeclaration {}
 
   // If a field is smantically non-null, we need to wrap the resolver in a
   // runtime check to ensure that the resolver does not return null.
@@ -298,7 +339,7 @@ class Codegen {
     field: GraphQLField<unknown, unknown>,
     method_: ts.MethodDeclaration | null,
   ): ts.MethodDeclaration | null {
-    const semanticNonNull = fieldDirective(field, SEMANTIC_NON_NULL_DIRECTIVE);
+    const semanticNonNull = nodeDirective(field, SEMANTIC_NON_NULL_DIRECTIVE);
     if (semanticNonNull == null) {
       return method_;
     }
@@ -554,7 +595,7 @@ class Codegen {
     field: GraphQLField<unknown, unknown>,
     parentTypeName: string,
   ): Array<ts.ObjectLiteralElementLike | null> {
-    const asyncIterable = fieldDirective(field, ASYNC_ITERABLE_TYPE_DIRECTIVE);
+    const asyncIterable = nodeDirective(field, ASYNC_ITERABLE_TYPE_DIRECTIVE);
     if (asyncIterable == null) {
       const resolve = this.resolveMethod(field, "resolve", parentTypeName);
       return [this.maybeApplySemanticNullRuntimeCheck(field, resolve)];
@@ -852,8 +893,17 @@ class Codegen {
   }
 }
 
-function fieldDirective(
-  field: GraphQLField<unknown, unknown>,
+function argPosition(arg: GraphQLArgument): number {
+  const positional = nodeDirective(arg, POSITIONAL_ARG_DIRECTIVE_NAME);
+  if (positional == null) {
+    throw new Error(`Expected argument ${arg.name} to be positional`);
+  }
+  const { position } = parsePositionalArgsDirective(positional);
+  return position;
+}
+
+function nodeDirective(
+  field: GraphQLField<unknown, unknown> | GraphQLArgument,
   name: string,
 ): ConstDirectiveNode | null {
   return field.astNode?.directives?.find((d) => d.name.value === name) ?? null;

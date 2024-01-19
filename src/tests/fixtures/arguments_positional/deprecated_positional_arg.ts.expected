@@ -1,0 +1,49 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class User {
+  /** @gqlField */
+  greeting(
+    /** @deprecated Don't use this any more */
+    name?: string | null,
+  ): string {
+    return `Hello ${name || "Alice"}`;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type User {
+  greeting(name: String @deprecated(reason: "Don't use this any more") @positionalArg(position: 0)): String
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    args: {
+                        name: {
+                            deprecationReason: "Don't use this any more",
+                            name: "name",
+                            type: GraphQLString
+                        }
+                    },
+                    resolve(source, args, context, info) {
+                        return typeof source.resolve === "function" ? source.resolve(args.name) : source.resolve;
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [UserType]
+    });
+}

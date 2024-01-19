@@ -41,6 +41,7 @@ import {
   makeExportedDirective,
   makeKillsParentOnExceptionDirective,
   makePropertyNameDirective,
+  makePositionalArgDirective,
 } from "./metadataDirectives";
 
 // Grats can't always extract an SDL AST node right away. In some cases, it
@@ -79,6 +80,10 @@ export class GraphQLConstructor {
 
   killsParentOnExceptionDirective(node: ts.Node): ConstDirectiveNode {
     return makeKillsParentOnExceptionDirective(this._loc(node));
+  }
+
+  positionalArgDirective(node: ts.Node, position: number): ConstDirectiveNode {
+    return makePositionalArgDirective(this._loc(node), position);
   }
 
   /* Top Level Types */
