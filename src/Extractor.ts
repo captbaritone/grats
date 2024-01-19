@@ -26,7 +26,6 @@ import { relativePath } from "./gratsRoot";
 import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
 import { extend } from "./utils/helpers";
-import { dir } from "console";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -1000,7 +999,6 @@ class Extractor {
         if (defaultValue == null) return null;
       }
 
-      // TODO: Add position information metadata directive
       const deprecatedDirective = this.collectDeprecated(param);
       const description = this.collectDescription(param);
 
