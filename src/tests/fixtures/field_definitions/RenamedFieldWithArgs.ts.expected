@@ -1,0 +1,45 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class SomeType {
+  /** @gqlField greetz */
+  hello(args: { greeting: string }): string {
+    return `${args.greeting} world!`;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type SomeType {
+  greetz(greeting: String!): String @propertyName(name: "hello")
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                greetz: {
+                    name: "greetz",
+                    type: GraphQLString,
+                    args: {
+                        greeting: {
+                            name: "greeting",
+                            type: new GraphQLNonNull(GraphQLString)
+                        }
+                    },
+                    resolve(source, args, context, info) {
+                        return source.hello(source, args, context, info);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType]
+    });
+}

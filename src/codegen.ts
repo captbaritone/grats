@@ -262,7 +262,7 @@ class Codegen {
         F.createIdentifier("source"),
         F.createIdentifier(name),
       );
-      const callExpression = F.createCallExpression(
+      let valueExpression: ts.Expression = F.createCallExpression(
         prop,
         undefined,
         RESOLVER_ARGS.map((name) => {
@@ -270,22 +270,28 @@ class Codegen {
         }),
       );
 
-      const isFunc = F.createStrictEquality(
-        F.createTypeOfExpression(prop),
-        F.createStringLiteral("function"),
-      );
+      // If there are no args, this might be a property not a method. In that case, we first need to
+      // check if the property is a function. If it is, we call it, otherwise we just read the prop.
+      if (field.args.length === 0) {
+        const isFunc = F.createStrictEquality(
+          F.createTypeOfExpression(prop),
+          F.createStringLiteral("function"),
+        );
 
-      const ternary = F.createConditionalExpression(
-        isFunc,
-        undefined,
-        callExpression,
-        undefined,
-        prop,
-      );
+        const ternary = F.createConditionalExpression(
+          isFunc,
+          undefined,
+          valueExpression,
+          undefined,
+          prop,
+        );
+        valueExpression = ternary;
+      }
+
       return this.method(
         methodName,
         RESOLVER_ARGS.map((name) => this.param(name)),
-        [F.createReturnStatement(ternary)],
+        [F.createReturnStatement(valueExpression)],
       );
     }
 
