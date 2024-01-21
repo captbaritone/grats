@@ -243,6 +243,7 @@ class Extractor {
   extractInput(node: ts.Node, tag: ts.JSDocTag) {
     if (ts.isTypeAliasDeclaration(node)) {
       this.inputTypeAliasDeclaration(node, tag);
+      // TODO: Could we support interfaces?
     } else {
       this.report(tag, E.invalidInputTagUsage());
     }
@@ -578,7 +579,7 @@ class Extractor {
     const description = this.collectDescription(node);
     const fields = this.collectFields(node);
     const interfaces = this.collectInterfaces(node);
-    this.recordTypeName(node.name, name, "INTERFACE");
+    this.recordTypeName(node.name, name, "TYPE");
 
     this.checkForTypenameProperty(node, name.value);
 

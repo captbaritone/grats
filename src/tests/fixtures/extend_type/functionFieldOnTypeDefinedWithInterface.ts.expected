@@ -1,0 +1,42 @@
+-----------------
+INPUT
+----------------- 
+// https://twitter.com/edvinwennerdahl/status/1748436186840904103
+
+/** @gqlType */
+interface Cat {}
+
+/** @gqlField */
+export function catSound(obj: Cat): string {
+  return "meow";
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Cat {
+  catSound: String @exported(argCount: 1, functionName: "catSound", tsModulePath: "grats/src/tests/fixtures/extend_type/functionFieldOnTypeDefinedWithInterface.ts")
+}
+-- TypeScript --
+import { catSound as catCatSoundResolver } from "./functionFieldOnTypeDefinedWithInterface";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const CatType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Cat",
+        fields() {
+            return {
+                catSound: {
+                    name: "catSound",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return catCatSoundResolver(source);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [CatType]
+    });
+}
