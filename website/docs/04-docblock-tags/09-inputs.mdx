@@ -3,6 +3,7 @@
 GraphQL input types can be defined by placing a `@gqlInput` docblock directly before a:
 
 - Type alias declaration
+- Interface declaration
 
 ```ts
 /**
@@ -15,7 +16,15 @@ type MyInput = {
 };
 ```
 
-Unlike with fields, every property of an input type is automatically included as part of the GraphQL definition. You do not need to annotate individual properties with `@gqlField`.
+```ts
+/** @gqlInput */
+interface MyInput {
+  name: string;
+  age: number;
+}
+```
+
+Unlike with type or interface fields, every property of an input type is automatically included as part of the GraphQL definition. You do not need to annotate individual properties with `@gqlField`.
 
 ## Deprecated fields
 
@@ -29,3 +38,9 @@ type MyInput = {
   age?: number;
 };
 ```
+
+## Merged Interfaces
+
+TypeScript [merges interfaces](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces) if you to define multiple interfaces with the same name in the same scope. For example, `Node` is a built-in interface that describes DOM nodes. So, if you define a `Node` interface in your code, TypeScript will merge your interface with the built-in one.
+
+To avoid ambiguity, Grats will error if you try to define a GraphQL input type using a merged TypeScript interface. To avoid this error you can define a new interface, with a unique name, and then [rename](../03-resolvers/04-renaming.mdx) it to the name you want to use in your schema.
