@@ -243,7 +243,8 @@ class Extractor {
   extractInput(node: ts.Node, tag: ts.JSDocTag) {
     if (ts.isTypeAliasDeclaration(node)) {
       this.inputTypeAliasDeclaration(node, tag);
-      // TODO: Could we support interfaces?
+    } else if (ts.isInterfaceDeclaration(node)) {
+      this.inputInterfaceDeclaration(node, tag);
     } else {
       this.report(tag, E.invalidInputTagUsage());
     }
@@ -465,6 +466,43 @@ class Extractor {
     this.recordTypeName(node.name, name, "INPUT_OBJECT");
 
     const fields = this.collectInputFields(node);
+
+    const deprecatedDirective = this.collectDeprecated(node);
+
+    this.definitions.push(
+      this.gql.inputObjectTypeDefinition(
+        node,
+        name,
+        fields,
+        deprecatedDirective == null ? null : [deprecatedDirective],
+        description,
+      ),
+    );
+  }
+
+  inputInterfaceDeclaration(node: ts.InterfaceDeclaration, tag: ts.JSDocTag) {
+    const name = this.entityName(node, tag);
+    if (name == null) return null;
+
+    const description = this.collectDescription(node);
+    this.recordTypeName(node.name, name, "INPUT_OBJECT");
+
+    const fields: Array<InputValueDefinitionNode> = [];
+
+    for (const member of node.members) {
+      if (!ts.isPropertySignature(member)) {
+        this.reportUnhandled(
+          member,
+          "input field",
+          E.inputTypeFieldNotProperty(),
+        );
+        continue;
+      }
+      const field = this.collectInputField(member);
+      if (field != null) fields.push(field);
+    }
+
+    this.interfaceDeclarations.push(node);
 
     const deprecatedDirective = this.collectDeprecated(node);
 

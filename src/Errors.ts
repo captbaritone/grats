@@ -67,7 +67,7 @@ export function invalidEnumTagUsage() {
 }
 
 export function invalidInputTagUsage() {
-  return `\`@${INPUT_TAG}\` can only be used on type alias declarations. e.g. \`type MyInput = { foo: string }\``;
+  return `\`@${INPUT_TAG}\` can only be used on type alias or interface declarations. e.g. \`type MyInput = { foo: string }\` or \`interface MyInput { foo: string }\``;
 }
 
 export function invalidUnionTagUsage() {
@@ -122,6 +122,10 @@ export function inputTypeNotLiteral() {
 
 export function inputTypeFieldNotProperty() {
   return `\`@${INPUT_TAG}\` types only support property signature members. e.g. \`type MyInput = { foo: string }\``;
+}
+
+export function inputInterfaceFieldNotProperty() {
+  return `\`@${INPUT_TAG}\` interfaces only support property signature members. e.g. \`interface MyInput { foo: string }\``;
 }
 
 export function inputFieldUntyped() {
@@ -275,7 +279,7 @@ export function mergedInterfaces() {
   return [
     `Unexpected merged interface.`,
     `If an interface is declared multiple times in a scope, TypeScript merges them.`,
-    `To avoid ambiguity Grats does not support using merged interfaces as GraphQL interfaces.`,
+    `To avoid ambiguity Grats does not support using merged interfaces as GraphQL definitions.`,
     `Consider using a unique name for your TypeScript interface and renaming it.\n\n`,
     `Learn more: ${DOC_URLS.mergedInterfaces}`,
   ].join(" ");
