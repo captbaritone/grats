@@ -27,8 +27,10 @@
   },
   "homepage": "https://github.com/captbaritone/grats#readme",
   "dependencies": {
+    "graphql-yoga": "^5.0.0"
+  },
+  "devDependencies": {
     "@types/node": "^20.8.10",
-    "graphql-yoga": "^5.0.0",
     "grats": "workspace:*"
   }
 }

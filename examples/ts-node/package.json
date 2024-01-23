@@ -28,11 +28,11 @@
   },
   "homepage": "https://github.com/captbaritone/grats#readme",
   "dependencies": {
-    "@types/node": "^20.8.10",
-    "graphql-yoga": "^5.0.0",
-    "grats": "workspace:*"
+    "graphql-yoga": "^5.0.0"
   },
   "devDependencies": {
-    "ts-node": "^10.9.1"
+    "@types/node": "^20.8.10",
+    "ts-node": "^10.9.1",
+    "grats": "workspace:*"
   }
 }
