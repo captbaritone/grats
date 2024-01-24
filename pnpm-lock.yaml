@@ -240,6 +240,12 @@ importers:
         specifier: workspace:*
         version: link:../..
 
+  grats-ts-plugin:
+    dependencies:
+      grats:
+        specifier: '>=0.0.19'
+        version: link:..
+
   website:
     dependencies:
       '@algolia/client-search':

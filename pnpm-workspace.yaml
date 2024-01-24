@@ -1,3 +1,4 @@
 packages:
   - 'website'
   - 'examples/*'
+  - 'grats-ts-plugin'

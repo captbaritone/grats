@@ -31,6 +31,7 @@ import { applyDefaultNullability } from "./transforms/applyDefaultNullability";
 import { mergeExtensions } from "./transforms/mergeExtensions";
 import { sortSchemaAst } from "./transforms/sortSchemaAst";
 import { validateSemanticNullability } from "./validations/validateSemanticNullability";
+export { initTsPlugin } from "./tsPlugin/initTsPlugin";
 
 export type SchemaAndDoc = {
   schema: GraphQLSchema;
