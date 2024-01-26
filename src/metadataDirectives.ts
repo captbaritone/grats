@@ -30,7 +30,7 @@ export const DIRECTIVES_AST: DocumentNode = parse(`
       """
       Path of the TypeScript module to import if the field is a function.
       """
-      ${TS_MODULE_PATH_ARG}: String,
+      ${TS_MODULE_PATH_ARG}: String
       """
       Number of arguments. No value means property access
       """
