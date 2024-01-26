@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  ratio: Float
+  ratio: Float @metadata(argCount: 0)
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLFloat } from "graphql";

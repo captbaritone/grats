@@ -35,12 +35,12 @@ import {
 } from "graphql";
 import * as ts from "typescript";
 import {
-  ExportedMetadata,
-  PropertyNameMetadata,
-  makeAsyncIterableDirective,
-  makeExportedDirective,
   makeKillsParentOnExceptionDirective,
-  makePropertyNameDirective,
+  TS_MODULE_PATH_ARG,
+  FIELD_NAME_ARG,
+  ARG_COUNT,
+  ASYNC_ITERABLE_ARG,
+  FIELD_METADATA_DIRECTIVE,
 } from "./metadataDirectives";
 
 // Grats can't always extract an SDL AST node right away. In some cases, it
@@ -58,23 +58,57 @@ export type AbstractFieldDefinitionNode = {
 };
 
 export class GraphQLConstructor {
-  /* Metadata Directives */
-  exportedDirective(
+  fieldMetadataDirective(
     node: ts.Node,
-    exported: ExportedMetadata,
+    metadata: {
+      tsModulePath: string | null;
+      name: string | null;
+      argCount: number | null;
+      asyncIterable?: ts.Node | null;
+    },
   ): ConstDirectiveNode {
-    return makeExportedDirective(this._loc(node), exported);
-  }
-
-  propertyNameDirective(
-    node: ts.Node,
-    propertyName: PropertyNameMetadata,
-  ): ConstDirectiveNode {
-    return makePropertyNameDirective(this._loc(node), propertyName);
-  }
-
-  asyncIterableDirective(node: ts.Node): ConstDirectiveNode {
-    return makeAsyncIterableDirective(this._loc(node));
+    const args: ConstArgumentNode[] = [];
+    if (metadata.tsModulePath != null) {
+      args.push(
+        this.constArgument(
+          node,
+          this.name(node, TS_MODULE_PATH_ARG),
+          this.string(node, metadata.tsModulePath),
+        ),
+      );
+    }
+    if (metadata.name != null) {
+      args.push(
+        this.constArgument(
+          node,
+          this.name(node, FIELD_NAME_ARG),
+          this.string(node, metadata.name),
+        ),
+      );
+    }
+    if (metadata.argCount != null) {
+      args.push(
+        this.constArgument(
+          node,
+          this.name(node, ARG_COUNT),
+          this.int(node, metadata.argCount.toString()),
+        ),
+      );
+    }
+    if (metadata.asyncIterable) {
+      args.push(
+        this.constArgument(
+          metadata.asyncIterable,
+          this.name(node, ASYNC_ITERABLE_ARG),
+          this.boolean(node, true),
+        ),
+      );
+    }
+    return this.constDirective(
+      node,
+      this.name(node, FIELD_METADATA_DIRECTIVE),
+      args,
+    );
   }
 
   killsParentOnExceptionDirective(node: ts.Node): ConstDirectiveNode {

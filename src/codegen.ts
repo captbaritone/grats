@@ -27,11 +27,8 @@ import {
 import * as ts from "typescript";
 import * as path from "path";
 import {
-  EXPORTED_DIRECTIVE,
-  FIELD_NAME_DIRECTIVE,
-  ASYNC_ITERABLE_TYPE_DIRECTIVE,
-  parseExportedDirective,
-  parsePropertyNameDirective,
+  FIELD_METADATA_DIRECTIVE,
+  parseFieldMetadataDirective,
 } from "./metadataDirectives";
 import { resolveRelativePath } from "./gratsRoot";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "./publicDirectives";
@@ -217,12 +214,21 @@ class Codegen {
     methodName: string,
     parentTypeName: string,
   ): ts.MethodDeclaration | null {
-    const exported = fieldDirective(field, EXPORTED_DIRECTIVE);
-    if (exported != null) {
-      const exportedMetadata = parseExportedDirective(exported);
-      const module = exportedMetadata.tsModulePath;
-      const funcName = exportedMetadata.exportedFunctionName;
-      const argCount = exportedMetadata.argCount;
+    const metadataDirective = fieldDirective(field, FIELD_METADATA_DIRECTIVE);
+    if (metadataDirective == null) {
+      throw new Error(`Expected to find metadata directive.`);
+    }
+    const metadata = parseFieldMetadataDirective(metadataDirective);
+    if (metadata.tsModulePath != null) {
+      const module = metadata.tsModulePath;
+      const funcName = metadata.name;
+      if (funcName == null) {
+        throw new Error(`Expected to find name in metadata directive.`);
+      }
+      const argCount = metadata.argCount;
+      if (argCount == null) {
+        throw new Error(`Expected to find argCount in metadata directive.`);
+      }
 
       const abs = resolveRelativePath(module);
       const relative = stripExt(
@@ -255,17 +261,15 @@ class Codegen {
         ],
       );
     }
-    const propertyName = fieldDirective(field, FIELD_NAME_DIRECTIVE);
-    if (propertyName != null) {
-      const { name, isMethod } = parsePropertyNameDirective(propertyName);
+    if (metadata.name != null) {
       const prop = F.createPropertyAccessExpression(
         F.createIdentifier("source"),
-        F.createIdentifier(name),
+        F.createIdentifier(metadata.name),
       );
 
       let valueExpression: ts.Expression = prop;
 
-      if (isMethod) {
+      if (metadata.argCount != null) {
         valueExpression = F.createCallExpression(
           prop,
           undefined,
@@ -282,6 +286,8 @@ class Codegen {
       );
     }
 
+    // If the resolver name matches the field name, and the field is not backed by a function,
+    // we can just use the default resolver.
     return null;
   }
 
@@ -547,8 +553,12 @@ class Codegen {
     field: GraphQLField<unknown, unknown>,
     parentTypeName: string,
   ): Array<ts.ObjectLiteralElementLike | null> {
-    const asyncIterable = fieldDirective(field, ASYNC_ITERABLE_TYPE_DIRECTIVE);
-    if (asyncIterable == null) {
+    const metadataDirective = fieldDirective(field, FIELD_METADATA_DIRECTIVE);
+    if (metadataDirective == null) {
+      throw new Error(`Expected to find metadata directive.`);
+    }
+    const metadata = parseFieldMetadataDirective(metadataDirective);
+    if (!metadata.asyncIterable) {
       const resolve = this.resolveMethod(field, "resolve", parentTypeName);
       return [this.maybeApplySemanticNullRuntimeCheck(field, resolve)];
     }

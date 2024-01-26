@@ -18,11 +18,11 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  me: User
+  me: User @metadata
 }
 
 type User {
-  name: String
+  name: String @metadata
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

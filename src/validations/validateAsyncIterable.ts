@@ -11,7 +11,10 @@ import {
 import { DiagnosticsResult, gqlErr } from "../utils/DiagnosticError";
 import { err, ok } from "../utils/Result";
 import * as E from "../Errors";
-import { ASYNC_ITERABLE_TYPE_DIRECTIVE } from "../metadataDirectives";
+import {
+  FIELD_METADATA_DIRECTIVE,
+  parseFieldMetadataDirective,
+} from "../metadataDirectives";
 import { loc } from "../utils/helpers";
 
 /**
@@ -62,18 +65,32 @@ function validateField(
     t.name.value === "Subscription" &&
     (t.kind === Kind.OBJECT_TYPE_DEFINITION ||
       t.kind === Kind.OBJECT_TYPE_EXTENSION);
+  const isInterface =
+    t.kind === Kind.INTERFACE_TYPE_DEFINITION ||
+    t.kind === Kind.INTERFACE_TYPE_EXTENSION;
   for (const field of t.fields) {
-    const asyncDirective = field.directives?.find(
-      (directive) => directive.name.value === ASYNC_ITERABLE_TYPE_DIRECTIVE,
+    const metadataDirective = field.directives?.find(
+      (directive) => directive.name.value === FIELD_METADATA_DIRECTIVE,
     );
+    if (isInterface && metadataDirective == null) {
+      return;
+    }
+    if (metadataDirective == null) {
+      throw new Error(
+        `Expected to find metadata directive on non-interface field "${t.name.value}.${field.name.value}".`,
+      );
+    }
 
-    if (isSubscription && asyncDirective == null) {
+    const asyncIterable =
+      parseFieldMetadataDirective(metadataDirective).asyncIterable;
+
+    if (isSubscription && !asyncIterable) {
       return gqlErr(loc(field.type), E.subscriptionFieldNotAsyncIterable());
     }
 
-    if (!isSubscription && asyncDirective != null) {
+    if (!isSubscription && asyncIterable) {
       return gqlErr(
-        loc(asyncDirective), // Directive location is the AsyncIterable type.
+        asyncIterable, // Arg location is the AsyncIterable type reference.
         E.nonSubscriptionFieldAsyncIterable(),
       );
     }

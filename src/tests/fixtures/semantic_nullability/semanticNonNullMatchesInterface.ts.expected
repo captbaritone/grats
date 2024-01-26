@@ -64,11 +64,11 @@ The `level` argument can be used to indicate what level is semantically non null
 directive @semanticNonNull(field: String = null, level: Int = null) repeatable on FIELD_DEFINITION | OBJECT
 
 interface IPerson {
-  name: String @semanticNonNull
+  name: String @metadata(argCount: 0) @semanticNonNull
 }
 
 type User implements IPerson {
-  name: String @semanticNonNull
+  name: String @metadata(argCount: 0) @semanticNonNull
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType, defaultFieldResolver } from "graphql";

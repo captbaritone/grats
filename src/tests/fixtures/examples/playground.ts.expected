@@ -40,15 +40,15 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  getUser: User @exported(argCount: 1, functionName: "getUser", tsModulePath: "grats/src/tests/fixtures/examples/playground.ts")
-  me: User
-  viewer: User @deprecated(reason: "Please use `me` instead.")
+  getUser: User @metadata(argCount: 1, name: "getUser", tsModulePath: "grats/src/tests/fixtures/examples/playground.ts")
+  me: User @metadata(argCount: 0)
+  viewer: User @deprecated(reason: "Please use `me` instead.") @metadata(argCount: 0)
 }
 
 """A user in our kick-ass system!"""
 type User {
-  greeting(salutation: String!): String
-  name: String
+  greeting(salutation: String!): String @metadata(argCount: 1)
+  name: String @metadata
 }
 -- TypeScript --
 import { getUser as someTypeGetUserResolver } from "./playground";

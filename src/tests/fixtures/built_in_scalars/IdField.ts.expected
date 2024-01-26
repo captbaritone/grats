@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  id: ID
+  id: ID @metadata(argCount: 0)
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLID } from "graphql";

@@ -20,8 +20,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  floatField(scale: Float! = 10): String
-  intField(count: Int! = 10): String
+  floatField(scale: Float! = 10): String @metadata(argCount: 1)
+  intField(count: Int! = 10): String @metadata(argCount: 1)
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLFloat, GraphQLInt } from "graphql";

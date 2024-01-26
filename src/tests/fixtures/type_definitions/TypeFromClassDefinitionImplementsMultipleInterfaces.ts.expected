@@ -28,16 +28,16 @@ OUTPUT
 -----------------
 -- SDL --
 interface Node {
-  id: String
+  id: String @metadata
 }
 
 interface Person {
-  hello: String
+  hello: String @metadata
 }
 
 type User implements Node & Person {
-  hello: String
-  id: String
+  hello: String @metadata
+  id: String @metadata
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";

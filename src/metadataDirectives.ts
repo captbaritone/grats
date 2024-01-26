@@ -1,5 +1,4 @@
 import {
-  ConstArgumentNode,
   ConstDirectiveNode,
   DocumentNode,
   Kind,
@@ -8,33 +7,39 @@ import {
 } from "graphql";
 import { GratsDefinitionNode } from "./GraphQLConstructor";
 
-export const FIELD_NAME_DIRECTIVE = "propertyName";
-const FIELD_NAME_ARG = "name";
-const IS_METHOD_ARG = "isMethod";
-
-export const EXPORTED_DIRECTIVE = "exported";
-const TS_MODULE_PATH_ARG = "tsModulePath";
-const ARG_COUNT = "argCount";
-const EXPORTED_FUNCTION_NAME_ARG = "functionName";
-
-export const ASYNC_ITERABLE_TYPE_DIRECTIVE = "asyncIterable";
+export const FIELD_METADATA_DIRECTIVE = "metadata";
+export const FIELD_NAME_ARG = "name";
+export const TS_MODULE_PATH_ARG = "tsModulePath";
+export const ARG_COUNT = "argCount";
+export const ASYNC_ITERABLE_ARG = "asyncIterable";
 
 export const KILLS_PARENT_ON_EXCEPTION_DIRECTIVE = "killsParentOnException";
 
 export const METADATA_DIRECTIVE_NAMES = new Set([
-  FIELD_NAME_DIRECTIVE,
-  EXPORTED_DIRECTIVE,
-  ASYNC_ITERABLE_TYPE_DIRECTIVE,
+  FIELD_METADATA_DIRECTIVE,
   KILLS_PARENT_ON_EXCEPTION_DIRECTIVE,
 ]);
 
 export const DIRECTIVES_AST: DocumentNode = parse(`
-    directive @${ASYNC_ITERABLE_TYPE_DIRECTIVE} on FIELD_DEFINITION
-    directive @${FIELD_NAME_DIRECTIVE}(${FIELD_NAME_ARG}: String!, ${IS_METHOD_ARG}: Boolean!) on FIELD_DEFINITION
-    directive @${EXPORTED_DIRECTIVE}(
-      ${TS_MODULE_PATH_ARG}: String!,
-      ${EXPORTED_FUNCTION_NAME_ARG}: String!
-      ${ARG_COUNT}: Int!
+    directive @${FIELD_METADATA_DIRECTIVE}(
+      """
+      Name of property/method/function. Defaults to field name. For
+      function-backed fields, this is the function's export name.
+      """
+      ${FIELD_NAME_ARG}: String
+      """
+      Path of the TypeScript module to import if the field is a function.
+      """
+      ${TS_MODULE_PATH_ARG}: String,
+      """
+      Number of arguments. No value means property access
+      """
+      ${ARG_COUNT}: Int
+      """
+      Whether the field is an async iterable. If true, the argument's
+      location is the typescript AsyncIterable identifier.
+      """
+      ${ASYNC_ITERABLE_ARG}: Boolean
     ) on FIELD_DEFINITION
     directive @${KILLS_PARENT_ON_EXCEPTION_DIRECTIVE} on FIELD_DEFINITION
 `);
@@ -45,62 +50,12 @@ export function addMetadataDirectives(
   return [...DIRECTIVES_AST.definitions, ...definitions];
 }
 
-export type AsyncIterableTypeMetadata = true;
-
-export type PropertyNameMetadata = {
-  name: string;
-  isMethod: boolean;
+export type FieldMetadata = {
+  tsModulePath: string | null;
+  name: string | null;
+  argCount: number | null;
+  asyncIterable?: Location | null;
 };
-
-export type ExportedMetadata = {
-  tsModulePath: string;
-  exportedFunctionName: string;
-  argCount: number;
-};
-
-export function makePropertyNameDirective(
-  loc: Location,
-  propertyName: PropertyNameMetadata,
-): ConstDirectiveNode {
-  return {
-    kind: Kind.DIRECTIVE,
-    loc,
-    name: { kind: Kind.NAME, loc, value: FIELD_NAME_DIRECTIVE },
-    arguments: [
-      makeStringArg(loc, FIELD_NAME_ARG, propertyName.name),
-      makeBoolArg(loc, IS_METHOD_ARG, propertyName.isMethod),
-    ],
-  };
-}
-
-export function makeExportedDirective(
-  loc: Location,
-  exported: ExportedMetadata,
-): ConstDirectiveNode {
-  return {
-    kind: Kind.DIRECTIVE,
-    loc,
-    name: { kind: Kind.NAME, loc, value: EXPORTED_DIRECTIVE },
-    arguments: [
-      makeStringArg(loc, TS_MODULE_PATH_ARG, exported.tsModulePath),
-      makeStringArg(
-        loc,
-        EXPORTED_FUNCTION_NAME_ARG,
-        exported.exportedFunctionName,
-      ),
-      makeIntArg(loc, ARG_COUNT, exported.argCount),
-    ],
-  };
-}
-
-export function makeAsyncIterableDirective(loc: Location): ConstDirectiveNode {
-  return {
-    kind: Kind.DIRECTIVE,
-    loc,
-    name: { kind: Kind.NAME, loc, value: ASYNC_ITERABLE_TYPE_DIRECTIVE },
-    arguments: [],
-  };
-}
 
 export function makeKillsParentOnExceptionDirective(
   loc: Location,
@@ -113,47 +68,38 @@ export function makeKillsParentOnExceptionDirective(
   };
 }
 
-export function parseAsyncIterableTypeDirective(
+export function parseFieldMetadataDirective(
   directive: ConstDirectiveNode,
-): AsyncIterableTypeMetadata {
-  if (directive.name.value !== ASYNC_ITERABLE_TYPE_DIRECTIVE) {
-    throw new Error(
-      `Expected directive to be ${ASYNC_ITERABLE_TYPE_DIRECTIVE}`,
-    );
+): FieldMetadata {
+  if (directive.name.value !== FIELD_METADATA_DIRECTIVE) {
+    throw new Error(`Expected directive to be ${FIELD_METADATA_DIRECTIVE}`);
   }
-  return true;
-}
 
-export function parsePropertyNameDirective(
-  directive: ConstDirectiveNode,
-): PropertyNameMetadata {
-  if (directive.name.value !== FIELD_NAME_DIRECTIVE) {
-    throw new Error(`Expected directive to be ${FIELD_NAME_DIRECTIVE}`);
+  const asyncIterableNode = directive.arguments?.find(
+    (arg) => arg.name.value === ASYNC_ITERABLE_ARG,
+  );
+
+  if (asyncIterableNode?.value.kind === Kind.BOOLEAN) {
+    if (!asyncIterableNode.value.value) {
+      throw new Error(`Expected ${ASYNC_ITERABLE_ARG} to be true`);
+    }
   }
 
   return {
     name: getStringArg(directive, FIELD_NAME_ARG),
-    isMethod: getBoolArg(directive, IS_METHOD_ARG),
-  };
-}
-
-export function parseExportedDirective(
-  directive: ConstDirectiveNode,
-): ExportedMetadata {
-  if (directive.name.value !== EXPORTED_DIRECTIVE) {
-    throw new Error(`Expected directive to be ${EXPORTED_DIRECTIVE}`);
-  }
-  return {
     tsModulePath: getStringArg(directive, TS_MODULE_PATH_ARG),
-    exportedFunctionName: getStringArg(directive, EXPORTED_FUNCTION_NAME_ARG),
     argCount: getIntArg(directive, ARG_COUNT),
+    asyncIterable: asyncIterableNode?.loc,
   };
 }
 
-function getStringArg(directive: ConstDirectiveNode, argName: string): string {
+function getStringArg(
+  directive: ConstDirectiveNode,
+  argName: string,
+): string | null {
   const arg = directive.arguments?.find((arg) => arg.name.value === argName);
   if (!arg) {
-    throw new Error(`Expected to find argument ${argName}`);
+    return null;
   }
 
   if (arg.value.kind !== Kind.STRING) {
@@ -163,10 +109,13 @@ function getStringArg(directive: ConstDirectiveNode, argName: string): string {
   return arg.value.value;
 }
 
-function getIntArg(directive: ConstDirectiveNode, argName: string): number {
+function getIntArg(
+  directive: ConstDirectiveNode,
+  argName: string,
+): number | null {
   const arg = directive.arguments?.find((arg) => arg.name.value === argName);
   if (!arg) {
-    throw new Error(`Expected to find argument ${argName}`);
+    return null;
   }
 
   if (arg.value.kind !== Kind.INT) {
@@ -174,56 +123,4 @@ function getIntArg(directive: ConstDirectiveNode, argName: string): number {
   }
 
   return parseInt(arg.value.value, 10);
-}
-
-function getBoolArg(directive: ConstDirectiveNode, argName: string): boolean {
-  const arg = directive.arguments?.find((arg) => arg.name.value === argName);
-  if (!arg) {
-    throw new Error(`Expected to find argument ${argName}`);
-  }
-
-  if (arg.value.kind !== Kind.BOOLEAN) {
-    throw new Error(`Expected argument ${argName} to be a boolean`);
-  }
-
-  return arg.value.value;
-}
-
-function makeStringArg(
-  loc: Location,
-  argName: string,
-  value: string,
-): ConstArgumentNode {
-  return {
-    kind: Kind.ARGUMENT,
-    loc,
-    name: { kind: Kind.NAME, loc, value: argName },
-    value: { kind: Kind.STRING, loc, value },
-  };
-}
-
-function makeBoolArg(
-  loc: Location,
-  argName: string,
-  value: boolean,
-): ConstArgumentNode {
-  return {
-    kind: Kind.ARGUMENT,
-    loc,
-    name: { kind: Kind.NAME, loc, value: argName },
-    value: { kind: Kind.BOOLEAN, loc, value },
-  };
-}
-
-function makeIntArg(
-  loc: Location,
-  argName: string,
-  value: number,
-): ConstArgumentNode {
-  return {
-    kind: Kind.ARGUMENT,
-    loc,
-    name: { kind: Kind.NAME, loc, value: argName },
-    value: { kind: Kind.INT, loc, value: value.toString() },
-  };
 }

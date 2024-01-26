@@ -30,7 +30,7 @@ enum Enum {
 }
 
 type SomeType {
-  hello: String
+  hello: String @metadata
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLEnumType, GraphQLObjectType, GraphQLString } from "graphql";

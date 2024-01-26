@@ -27,13 +27,13 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  me: User @exported(argCount: 1, functionName: "me", tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts")
+  me: User @metadata(argCount: 1, name: "me", tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts")
 }
 
 type User {
-  firstName: String
-  fullName: String @exported(argCount: 1, functionName: "fullName", tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts")
-  lastName: String
+  firstName: String @metadata
+  fullName: String @metadata(argCount: 1, name: "fullName", tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts")
+  lastName: String @metadata
 }
 -- TypeScript --
 import { fullName as userFullNameResolver } from "./userExample";

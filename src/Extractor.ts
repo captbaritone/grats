@@ -351,7 +351,7 @@ class Extractor {
 
     const returnType = this.collectReturnType(node.type);
     if (returnType == null) return null;
-    const { type, isStream } = returnType;
+    const { type, asyncIterable } = returnType;
 
     let args: readonly InputValueDefinitionNode[] | null = null;
     const argsParam = node.parameters[1];
@@ -374,16 +374,13 @@ class Extractor {
     const tsModulePath = relativePath(node.getSourceFile().fileName);
 
     const directives = [
-      this.gql.exportedDirective(funcName, {
+      this.gql.fieldMetadataDirective(funcName, {
         tsModulePath,
-        exportedFunctionName: funcName.text,
+        name: funcName.text,
         argCount: node.parameters.length,
+        asyncIterable: asyncIterable,
       }),
     ];
-
-    if (isStream) {
-      directives.push(this.gql.asyncIterableDirective(node.type));
-    }
 
     const deprecated = this.collectDeprecated(node);
     if (deprecated != null) {
@@ -941,16 +938,14 @@ class Extractor {
       // https://www.typescriptlang.org/play?#code/MYGwhgzhAEBiD29oG8BQ1rHgOwgFwCcBXYPeAgCgAciAjEAS2BQDNEBfAShXdXaA
       return null;
     }
-
-    let directives: ConstDirectiveNode[] = [];
-    if (id.text !== name.value) {
-      directives = [
-        this.gql.propertyNameDirective(node.name, {
-          name: id.text,
-          isMethod: false,
-        }),
-      ];
-    }
+    const directives = [
+      this.gql.fieldMetadataDirective(node.name, {
+        name: id.text == name.value ? null : id.text,
+        tsModulePath: null,
+        argCount: null,
+        asyncIterable: null,
+      }),
+    ];
 
     const type = this.collectType(node.type);
     if (type == null) return null;
@@ -1413,7 +1408,7 @@ class Extractor {
 
     const returnType = this.collectReturnType(node.type);
     if (returnType == null) return null;
-    const { type, isStream } = returnType;
+    const { type, asyncIterable } = returnType;
 
     // We already reported an error
     if (type == null) return null;
@@ -1433,18 +1428,14 @@ class Extractor {
 
     const id = this.expectNameIdentifier(node.name);
     if (id == null) return null;
-    let directives: ConstDirectiveNode[] = [];
-    if (id.text !== name.value) {
-      directives = [
-        this.gql.propertyNameDirective(node.name, {
-          name: id.text,
-          isMethod: isCallable(node),
-        }),
-      ];
-    }
-    if (isStream) {
-      directives.push(this.gql.asyncIterableDirective(node.type));
-    }
+    const directives = [
+      this.gql.fieldMetadataDirective(node.name, {
+        name: id.text === name.value ? null : id.text,
+        tsModulePath: null,
+        argCount: isCallable(node) ? node.parameters.length : null,
+        asyncIterable: asyncIterable,
+      }),
+    ];
 
     const deprecated = this.collectDeprecated(node);
     if (deprecated != null) {
@@ -1470,7 +1461,7 @@ class Extractor {
 
   collectReturnType(
     node: ts.TypeNode,
-  ): { type: TypeNode; isStream: boolean } | null {
+  ): { type: TypeNode; asyncIterable?: ts.Node } | null {
     if (ts.isTypeReferenceNode(node)) {
       const identifier = this.expectNameIdentifier(node.typeName);
       if (identifier == null) return null;
@@ -1481,14 +1472,14 @@ class Extractor {
         }
         const t = this.collectType(node.typeArguments[0]);
         if (t == null) return null;
-        return { type: t, isStream: true };
+        return { type: t, asyncIterable: identifier };
       }
     }
     const inner = this.maybeUnwrapPromise(node);
     if (inner == null) return null;
     const t = this.collectType(inner);
     if (t == null) return null;
-    return { type: t, isStream: false };
+    return { type: t };
   }
 
   collectPropertyType(node: ts.TypeNode): TypeNode | null {
@@ -1574,7 +1565,7 @@ class Extractor {
 
     const description = this.collectDescription(node);
 
-    let directives: ConstDirectiveNode[] = [];
+    const directives: ConstDirectiveNode[] = [];
     const id = this.expectNameIdentifier(node.name);
     if (id == null) return null;
 
@@ -1583,14 +1574,14 @@ class Extractor {
       directives.push(deprecated);
     }
 
-    if (id.text !== name.value) {
-      directives = [
-        this.gql.propertyNameDirective(node.name, {
-          name: id.text,
-          isMethod: false,
-        }),
-      ];
-    }
+    directives.push(
+      this.gql.fieldMetadataDirective(node.name, {
+        name: id.text === name.value ? null : id.text,
+        tsModulePath: null,
+        argCount: null,
+        asyncIterable: null,
+      }),
+    );
 
     const killsParentOnExceptionDirective =
       this.killsParentOnExceptionDirective(node);

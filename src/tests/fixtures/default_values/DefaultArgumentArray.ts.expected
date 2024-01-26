@@ -21,7 +21,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  someField1(inputs: [String!] = ["hello", "there"]): String
+  someField1(inputs: [String!] = ["hello", "there"]): String @metadata(argCount: 1)
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull } from "graphql";

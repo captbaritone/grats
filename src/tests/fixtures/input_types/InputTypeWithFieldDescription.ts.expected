@@ -23,7 +23,7 @@ input MyInputType {
 }
 
 type SomeType {
-  hello: String
+  hello: String @metadata
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";

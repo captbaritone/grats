@@ -21,8 +21,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  someField1(greet: Boolean = false): String
-  someField2(greet: Boolean = true): String
+  someField1(greet: Boolean = false): String @metadata(argCount: 1)
+  someField2(greet: Boolean = true): String @metadata(argCount: 1)
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLBoolean } from "graphql";

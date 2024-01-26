@@ -17,8 +17,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String @propertyName(isMethod: false, name: "somePropertyField")
-  salutaion: String @propertyName(isMethod: true, name: "someMethodField")
+  greeting: String @metadata(name: "somePropertyField")
+  salutaion: String @metadata(argCount: 0, name: "someMethodField")
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

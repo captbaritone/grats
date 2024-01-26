@@ -13,4 +13,4 @@ OUTPUT
 src/tests/fixtures/subscriptions/InterfaceWithAsyncIterable.invalid.ts:4:16 - error: Unexpected AsyncIterable. Only fields on `Subscription` should return an `AsyncIterable`. Non-subscription fields are only expected to return a single value.
 
 4   greetings(): AsyncIterable<string>;
-                 ~~~~~~~~~~~~~~~~~~~~~
+                 ~~~~~~~~~~~~~

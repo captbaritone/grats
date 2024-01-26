@@ -35,17 +35,17 @@ OUTPUT
 -- SDL --
 interface IPerson {
   greeting: String
-  hello: String
+  hello: String @metadata
 }
 
 type Admin implements IPerson {
-  greeting: String @exported(argCount: 1, functionName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts")
-  hello: String
+  greeting: String @metadata(argCount: 1, name: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts")
+  hello: String @metadata
 }
 
 type User implements IPerson {
-  greeting: String @exported(argCount: 1, functionName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts")
-  hello: String
+  greeting: String @metadata(argCount: 1, name: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts")
+  hello: String @metadata
 }
 -- TypeScript --
 import { greeting as adminGreetingResolver } from "./addStringFieldToInterface";
