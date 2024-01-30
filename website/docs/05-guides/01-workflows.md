@@ -60,7 +60,7 @@ If you do wish to keep them formatted, we recommend that you apply that formatti
 To ensure that your code base does not get into a state where Grats cannot
 extract types due to errors, and that your schema file always matches your
 implementation, we recommend that you add a CI step that runs Grats and ensures
-that the schema maces the checked in version.
+that the schema matches the checked-in version.
 
 Here's what an example script might look like:
 
