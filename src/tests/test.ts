@@ -27,6 +27,7 @@ import {
   validateGratsOptions,
 } from "../gratsConfig";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
+import { getParsedTsConfig } from "..";
 
 const TS_VERSION = ts.version;
 
@@ -70,6 +71,7 @@ program
 const gratsDir = path.join(__dirname, "../..");
 const fixturesDir = path.join(__dirname, "fixtures");
 const integrationFixturesDir = path.join(__dirname, "integrationFixtures");
+const configFixturesDir = path.join(__dirname, "configFixtures");
 
 const testDirs = [
   {
@@ -234,6 +236,20 @@ const testDirs = [
       });
 
       return JSON.stringify(data, null, 2);
+    },
+  },
+  {
+    fixturesDir: configFixturesDir,
+    testFilePattern: /\.json$/,
+    ignoreFilePattern: null,
+    transformer: (code: string, fileName: string): string | false => {
+      const filePath = `${configFixturesDir}/${fileName}`;
+      const configResult = getParsedTsConfig(filePath);
+      if (configResult.kind === "ERROR") {
+        return configResult.err.formatDiagnosticsWithContext();
+      }
+      const config = configResult.value;
+      return JSON.stringify(config.raw.grats, null, 2);
     },
   },
 ];

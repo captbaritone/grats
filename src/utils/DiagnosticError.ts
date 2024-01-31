@@ -176,6 +176,43 @@ export function tsErr(
   };
 }
 
+// Nodes in JSON files don't seem to be able to get their own source, so they
+// must be passed explicitly.
+export function tsErrWithSource(
+  node: ts.Node,
+  source: ts.SourceFile,
+  message: string,
+  relatedInformation?: ts.DiagnosticRelatedInformation[],
+): ts.DiagnosticWithLocation {
+  const start = node.getStart(source);
+  const length = node.getEnd() - start;
+  return {
+    messageText: message,
+    file: source,
+    code: FAKE_ERROR_CODE,
+    category: ts.DiagnosticCategory.Error,
+    start,
+    length,
+    relatedInformation,
+    source: "Grats",
+  };
+}
+
+export function tsRelatedWithSource(
+  node: ts.Node,
+  source: ts.SourceFile,
+  message: string,
+): ts.DiagnosticRelatedInformation {
+  return {
+    category: ts.DiagnosticCategory.Message,
+    code: 0,
+    file: source,
+    start: node.getStart(source),
+    length: node.getWidth(source),
+    messageText: message,
+  };
+}
+
 export function tsRelated(
   node: ts.Node,
   message: string,

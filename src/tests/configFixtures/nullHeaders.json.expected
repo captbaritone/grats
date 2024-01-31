@@ -1,0 +1,19 @@
+-----------------
+INPUT
+----------------- 
+{
+  "grats": { "schemaHeader": null, "tsSchemaHeader": null },
+  "include": ["../test.ts"]
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/configFixtures/nullHeaders.json:2:30 - error: Expected `schemaHeader` to be a string if provided.
+
+2   "grats": { "schemaHeader": null, "tsSchemaHeader": null },
+                               ~~~~
+src/tests/configFixtures/nullHeaders.json:2:54 - error: Expected `tsSchemaHeader` to be a string if provided.
+
+2   "grats": { "schemaHeader": null, "tsSchemaHeader": null },
+                                                       ~~~~

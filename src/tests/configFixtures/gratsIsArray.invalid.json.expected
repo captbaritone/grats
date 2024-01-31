@@ -1,0 +1,15 @@
+-----------------
+INPUT
+----------------- 
+{
+  "grats": [],
+  "include": ["../test.ts"]
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/configFixtures/gratsIsArray.invalid.json:2:12 - error: Expected the "grats" config option, if defined, to be an object.
+
+2   "grats": [],
+             ~~

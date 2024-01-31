@@ -1,0 +1,15 @@
+-----------------
+INPUT
+----------------- 
+{
+  "grats": { "nullableByDefault": "NO!" },
+  "include": ["../test.ts"]
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/configFixtures/nonBooleanNullableByDefault.invalid.json:2:35 - error: Expected `nullableByDefault` to be a boolean if provided.
+
+2   "grats": { "nullableByDefault": "NO!" },
+                                    ~~~~~

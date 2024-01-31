@@ -1,0 +1,4 @@
+{
+  "grats": { "lol wut?": true },
+  "include": ["../test.ts"]
+}

@@ -1,0 +1,4 @@
+{
+  "grats": { "nullableByDefault": "NO!" },
+  "include": ["../test.ts"]
+}

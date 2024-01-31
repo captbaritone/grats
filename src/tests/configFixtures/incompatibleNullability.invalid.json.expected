@@ -1,0 +1,23 @@
+-----------------
+INPUT
+----------------- 
+{
+  "grats": {
+    "nullableByDefault": false,
+    "strictSemanticNullability": true
+  },
+  "include": ["../test.ts"]
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/configFixtures/incompatibleNullability.invalid.json:4:34 - error: Grats: The Grats config option `strictSemanticNullability` cannot be true if `nullableByDefault` is false.
+
+4     "strictSemanticNullability": true
+                                   ~~~~
+
+  src/tests/configFixtures/incompatibleNullability.invalid.json:3:26
+    3     "nullableByDefault": false,
+                               ~~~~~
+    `nullableByDefault` is defined here.

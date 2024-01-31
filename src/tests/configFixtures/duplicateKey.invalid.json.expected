@@ -1,0 +1,23 @@
+-----------------
+INPUT
+----------------- 
+{
+  "grats": {
+    "nullableByDefault": false,
+    "nullableByDefault": true
+  },
+  "include": ["../test.ts"]
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/configFixtures/duplicateKey.invalid.json:4:5 - error: Unexpected duplicate Grats config option
+
+4     "nullableByDefault": true
+      ~~~~~~~~~~~~~~~~~~~
+
+  src/tests/configFixtures/duplicateKey.invalid.json:3:5
+    3     "nullableByDefault": false,
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    `nullableByDefault` was already defined here.

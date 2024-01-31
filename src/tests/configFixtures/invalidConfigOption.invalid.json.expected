@@ -1,0 +1,15 @@
+-----------------
+INPUT
+----------------- 
+{
+  "grats": { "lol wut?": true },
+  "include": ["../test.ts"]
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/configFixtures/invalidConfigOption.invalid.json:2:14 - error: Unknown Grats config option `lol wut?`. Valid config options are: `graphqlSchema`, `tsSchema`, `nullableByDefault`, `strictSemanticNullability`, `reportTypeScriptTypeErrors`, `schemaHeader`, `tsSchemaHeader`.
+
+2   "grats": { "lol wut?": true },
+               ~~~~~~~~~~

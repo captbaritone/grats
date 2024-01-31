@@ -1,0 +1,4 @@
+{
+  "grats": { "schemaHeader": null, "tsSchemaHeader": null },
+  "include": ["../test.ts"]
+}
