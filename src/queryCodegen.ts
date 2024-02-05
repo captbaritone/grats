@@ -1,46 +1,45 @@
-import { DocumentNode } from "graphql";
+import { DocumentNode, GraphQLSchema } from "graphql";
 import * as ts from "typescript";
-import * as path from "path";
-import { ConfigOptions } from "./gratsConfig";
+import { Codegen } from "./codegen";
+import { extractUsedSchema } from "./usedSchema";
 
 const F = ts.factory;
 
 // Given a GraphQL SDL, returns the a string of TypeScript code that generates a
 // GraphQLSchema implementing that schema.
 export function queryCodegen(
-  gratsOptions: ConfigOptions,
-  configPath: string,
-  dest: string,
+  schema: GraphQLSchema,
   doc: DocumentNode,
+  destination: string,
 ): string {
-  const schemaLocation = path.resolve(
-    path.dirname(configPath),
-    gratsOptions.tsSchema,
-  );
-  const codegen = new QueryCodegen(schemaLocation, dest);
+  const usedSchema = extractUsedSchema(schema, doc);
+  const codegen = new Codegen(usedSchema, destination);
 
-  codegen.gen(doc);
+  codegen.schemaDeclarationExport();
 
-  return codegen.print();
+  // TODO: Rather than leak these implementation details,
+  // we could create an IR class for a TypeScript module which
+  // can be shared by both the schema and query codegen.
+  const queryCodegen = new QueryCodegen();
+  queryCodegen._graphQLImports = codegen._graphQLImports;
+  queryCodegen._imports = codegen._imports;
+  queryCodegen._typeDefinitions = codegen._typeDefinitions;
+  queryCodegen._statements = codegen._statements;
+  queryCodegen._helpers = codegen._helpers;
+
+  queryCodegen.gen(doc);
+
+  return queryCodegen.print();
 }
 
 class QueryCodegen {
-  _schemaLocation: string;
   _imports: ts.Statement[] = [];
   _typeDefinitions: Set<string> = new Set();
   _graphQLImports: Set<string> = new Set();
   _statements: ts.Statement[] = [];
-
-  constructor(schemaLocation: string, destination: string) {
-    this._schemaLocation = path.relative(
-      path.dirname(destination),
-      schemaLocation,
-    );
-  }
+  _helpers: Map<string, ts.Statement> = new Map();
 
   gen(doc: DocumentNode) {
-    this.import(makeImport(this._schemaLocation), [{ name: "getSchema" }]);
-
     // TODO: Should every query create its own schema instance?
     this._statements.push(
       F.createVariableStatement(
@@ -177,7 +176,11 @@ class QueryCodegen {
 
     return printer.printList(
       ts.ListFormat.MultiLine,
-      F.createNodeArray([...this._imports, ...this._statements]),
+      F.createNodeArray([
+        ...this._imports,
+        ...this._helpers.values(),
+        ...this._statements,
+      ]),
       sourceFile,
     );
   }
@@ -212,9 +215,4 @@ function jsonAbleToAst(value: any): ts.Expression {
   } else {
     throw new Error(`Unexpected value: ${value}`);
   }
-}
-
-// add ./ and trim extension
-function makeImport(path: string): string {
-  return `./${path.replace(/\.[^/.]+$/, "")}`;
 }

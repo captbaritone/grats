@@ -84,7 +84,7 @@ program
     }
 
     if (operationText === "-") {
-      operationText = fs.readFileSync(process.stdin.fd, "utf-8");
+      operationText = fs.readFileSync(0, "utf-8");
     }
 
     const doc = parse(operationText, { noLocation: true });
