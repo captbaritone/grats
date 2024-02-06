@@ -41,7 +41,7 @@ export function printGratsSDL(
   config: ConfigOptions,
 ): string {
   const sdl = printSDLWithoutMetadata(doc);
-  return applySDLHeader(config, sdl);
+  return applySDLHeader(config, sdl) + "\n";
 }
 
 export function applySDLHeader(config: ConfigOptions, sdl: string): string {
