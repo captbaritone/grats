@@ -19,6 +19,13 @@ export function printExecutableSchema(
   destination: string,
 ): string {
   const code = codegen(schema, destination);
+  return applyTypeScriptHeader(config, code);
+}
+
+export function applyTypeScriptHeader(
+  config: ConfigOptions,
+  code: string,
+): string {
   if (config.tsSchemaHeader) {
     return `${config.tsSchemaHeader}\n${code}`;
   }
@@ -33,12 +40,15 @@ export function printGratsSDL(
   doc: DocumentNode,
   config: ConfigOptions,
 ): string {
-  let sdl = printSDLWithoutMetadata(doc);
+  const sdl = printSDLWithoutMetadata(doc);
+  return applySDLHeader(config, sdl);
+}
 
+export function applySDLHeader(config: ConfigOptions, sdl: string): string {
   if (config.schemaHeader) {
-    sdl = `${config.schemaHeader}\n${sdl}`;
+    return `${config.schemaHeader}\n${sdl}`;
   }
-  return sdl + "\n";
+  return sdl;
 }
 
 export function printSDLWithoutMetadata(doc: DocumentNode): string {

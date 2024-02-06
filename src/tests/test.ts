@@ -27,6 +27,7 @@ import {
   validateGratsOptions,
 } from "../gratsConfig";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
+import { applySDLHeader, applyTypeScriptHeader } from "../printSchema";
 
 const TS_VERSION = ts.version;
 
@@ -81,6 +82,7 @@ const testDirs = [
       let options: Partial<ConfigOptions> = {
         nullableByDefault: true,
         schemaHeader: null,
+        tsSchemaHeader: null,
       };
       if (firstLine.startsWith("// {")) {
         const json = firstLine.slice(3);
@@ -128,7 +130,10 @@ const testDirs = [
       const { schema, doc } = schemaResult.value;
 
       // We run codegen here just ensure that it doesn't throw.
-      const executableSchema = codegen(schema, `${fixturesDir}/${fileName}`);
+      const executableSchema = applyTypeScriptHeader(
+        parsedOptions.raw.grats,
+        codegen(schema, `${fixturesDir}/${fileName}`),
+      );
 
       const LOCATION_REGEX = /^\/\/ Locate: (.*)/;
       const locationMatch = code.match(LOCATION_REGEX);
@@ -156,7 +161,10 @@ const testDirs = [
             return true;
           }),
         };
-        const sdl = print(docSansDirectives);
+        const sdl = applySDLHeader(
+          parsedOptions.raw.grats,
+          print(docSansDirectives),
+        );
 
         return `-- SDL --\n${sdl}\n-- TypeScript --\n${executableSchema}`;
       }

@@ -119,23 +119,43 @@ export function validateGratsOptions(
 
   if (gratsOptions.schemaHeader === undefined) {
     gratsOptions.schemaHeader = DEFAULT_SDL_HEADER;
+  } else if (Array.isArray(gratsOptions.schemaHeader)) {
+    if (
+      !gratsOptions.schemaHeader.every((segment) => typeof segment === "string")
+    ) {
+      throw new Error(
+        "Grats: If the Grats config option `schemaHeader` is an array, it must be an array of strings.",
+      );
+    }
+    gratsOptions.schemaHeader = gratsOptions.schemaHeader.join("");
   } else if (
     typeof gratsOptions.schemaHeader !== "string" &&
     gratsOptions.schemaHeader !== null
   ) {
     throw new Error(
-      "Grats: The Grats config option `schemaHeader` must be a string or `null` if provided.",
+      "Grats: The Grats config option `schemaHeader` must be a string, an array of strings, or `null` if provided.",
     );
   }
 
   if (gratsOptions.tsSchemaHeader === undefined) {
     gratsOptions.tsSchemaHeader = DEFAULT_TYPESCRIPT_HEADER;
+  } else if (Array.isArray(gratsOptions.tsSchemaHeader)) {
+    if (
+      !gratsOptions.tsSchemaHeader.every(
+        (segment) => typeof segment === "string",
+      )
+    ) {
+      throw new Error(
+        "Grats: If the Grats config option `tsSchemaHeader` is an array, it must be an array of strings.",
+      );
+    }
+    gratsOptions.tsSchemaHeader = gratsOptions.tsSchemaHeader.join("");
   } else if (
     typeof gratsOptions.tsSchemaHeader !== "string" &&
     gratsOptions.tsSchemaHeader !== null
   ) {
     throw new Error(
-      "Grats: The Grats config option `tsSchemaHeader` must be a string or `null` if provided.",
+      "Grats: The Grats config option `tsSchemaHeader` must be a string, an array of strings, or `null` if provided.",
     );
   }
 

@@ -41,13 +41,17 @@ Grats has a few configuration options. They can be set under the `grats` key in 
     "reportTypeScriptTypeErrors": false, // Default: false
 
     // A string to prepend to the generated schema text. Useful for copyright
-    // headers or other information to the generated file. Set to `null` to omit
-    // the default header.
+    // headers or other information to the generated file. You may also pass an array
+    // of strings. These strings will be joined together.
+    //
+    // Set to `null` to omit the default header.
     "schemaHeader": "# Copyright SomeCorp, 1998...", // Defaults to info about Grats
 
     // A string to prepend to the generated TypeScript schema file. Useful for copyright
-    // headers or other information to the generated file. Set to `null` to omit
-    // the default header.
+    // headers or other information to the generated file. You may also pass an array
+    // of strings. These strings will be joined together.
+    //
+    // Set to `null` to omit the default header.
     "tsSchemaHeader": "/** Copyright SomeCorp, 1998..." // Defaults to info about Grats
   },
   "compilerOptions": {
