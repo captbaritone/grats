@@ -61,11 +61,27 @@ const DEFAULT_TYPESCRIPT_HEADER = `/**
  * Do not manually edit. Regenerate by running \`npx grats\`.
  */`;
 
+const VALID_CONFIG_KEYS = new Set([
+  "graphqlSchema",
+  "tsSchema",
+  "nullableByDefault",
+  "strictSemanticNullability",
+  "reportTypeScriptTypeErrors",
+  "schemaHeader",
+  "tsSchemaHeader",
+]);
+
 // TODO: Make this return diagnostics
 export function validateGratsOptions(
   options: ts.ParsedCommandLine,
 ): ParsedCommandLineGrats {
   const gratsOptions = { ...(options.raw?.grats ?? {}) };
+  for (const key of Object.keys(gratsOptions)) {
+    if (!VALID_CONFIG_KEYS.has(key)) {
+      // TODO: Suggest similar?
+      throw new Error(`Grats: Unknown Grats config option \`${key}\``);
+    }
+  }
   if (gratsOptions.nullableByDefault === undefined) {
     gratsOptions.nullableByDefault = true;
   } else if (typeof gratsOptions.nullableByDefault !== "boolean") {

@@ -103,14 +103,19 @@ const testDirs = [
         `${fixturesDir}/${fileName}`,
         path.join(__dirname, `../Types.ts`),
       ];
-      const parsedOptions: ParsedCommandLineGrats = validateGratsOptions({
-        options: {},
-        raw: {
-          grats: options,
-        },
-        errors: [],
-        fileNames: files,
-      });
+      let parsedOptions: ParsedCommandLineGrats;
+      try {
+        parsedOptions = validateGratsOptions({
+          options: {},
+          raw: {
+            grats: options,
+          },
+          errors: [],
+          fileNames: files,
+        });
+      } catch (e) {
+        return e.message;
+      }
 
       // https://stackoverflow.com/a/66604532/1263117
       const compilerHost = ts.createCompilerHost(

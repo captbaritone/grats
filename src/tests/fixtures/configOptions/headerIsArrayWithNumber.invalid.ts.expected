@@ -1,0 +1,14 @@
+-----------------
+INPUT
+----------------- 
+// {"schemaHeader": ["Hello", 1]}
+/** @gqlType */
+export default class SomeType {
+  /** @gqlField */
+  hello: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+Grats: If the Grats config option `schemaHeader` is an array, it must be an array of strings.

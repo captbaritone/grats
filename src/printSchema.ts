@@ -26,10 +26,7 @@ export function applyTypeScriptHeader(
   config: ConfigOptions,
   code: string,
 ): string {
-  if (config.tsSchemaHeader) {
-    return `${config.tsSchemaHeader}\n${code}`;
-  }
-  return code;
+  return formatHeader(config.tsSchemaHeader, code);
 }
 
 /**
@@ -45,10 +42,7 @@ export function printGratsSDL(
 }
 
 export function applySDLHeader(config: ConfigOptions, sdl: string): string {
-  if (config.schemaHeader) {
-    return `${config.schemaHeader}\n${sdl}`;
-  }
-  return sdl;
+  return formatHeader(config.schemaHeader, sdl);
 }
 
 export function printSDLWithoutMetadata(doc: DocumentNode): string {
@@ -66,4 +60,11 @@ export function printSDLWithoutMetadata(doc: DocumentNode): string {
     },
   });
   return print(trimmed);
+}
+
+function formatHeader(header: string | string[] | null, code: string): string {
+  if (header !== null) {
+    return `${Array.isArray(header) ? header.join("") : header}\n${code}`;
+  }
+  return code;
 }

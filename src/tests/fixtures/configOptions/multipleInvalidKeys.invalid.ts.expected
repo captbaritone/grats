@@ -1,0 +1,14 @@
+-----------------
+INPUT
+----------------- 
+// {"invalidKey": "Oops", "anotherInvalidKey": "Oops"}
+/** @gqlType */
+export default class SomeType {
+  /** @gqlField */
+  hello: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+Grats: Unknown Grats config option `invalidKey`
