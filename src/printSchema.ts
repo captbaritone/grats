@@ -62,9 +62,9 @@ export function printSDLWithoutMetadata(doc: DocumentNode): string {
   return print(trimmed);
 }
 
-function formatHeader(header: string | string[] | null, code: string): string {
+function formatHeader(header: string | null, code: string): string {
   if (header !== null) {
-    return `${Array.isArray(header) ? header.join("") : header}\n${code}`;
+    return `${header}\n${code}`;
   }
   return code;
 }
