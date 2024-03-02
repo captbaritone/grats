@@ -1139,11 +1139,22 @@ class Extractor {
       return this.report(node.name, E.expectedNullableArgumentToBeOptional());
     }
 
-    if (node.questionToken) {
+    let defaultValue: ConstValueNode | null = null;
+    if (defaults != null) {
+      const def = defaults.get(node.name.text);
+      if (def != null) {
+        defaultValue = this.collectConstValue(def);
+      }
+    }
+
+    if (node.questionToken && defaultValue == null) {
       // Question mark means we can handle the argument being undefined in the
       // object literal, but if we are going to type the GraphQL arg as
       // optional, the code must also be able to handle an explicit null.
       //
+      // ... unless there is a default value. In that case, the default will be
+      // used argument is omitted or references an undefined variable.
+
       // TODO: This will catch { a?: string } but not { a?: string | undefined }.
       if (type.kind === Kind.NON_NULL_TYPE) {
         return this.report(node.questionToken, E.nonNullTypeCannotBeOptional());
@@ -1152,14 +1163,6 @@ class Extractor {
     }
 
     const description = this.collectDescription(node);
-
-    let defaultValue: ConstValueNode | null = null;
-    if (defaults != null) {
-      const def = defaults.get(node.name.text);
-      if (def != null) {
-        defaultValue = this.collectConstValue(def);
-      }
-    }
 
     const deprecatedDirective = this.collectDeprecated(node);
 

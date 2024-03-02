@@ -24,7 +24,7 @@ export function userById(_: Query, args: { id: string }): User {
 
 ## Default values
 
-Default values for arguments can be defined by using the `=` operator with destructuring. Note tha tyou must perform the destructuring in the argument list, not in the function body:
+Default values for arguments can be defined by using the `=` operator with destructuring. Note that you must perform the destructuring in the argument list, not in the function body:
 
 ```ts
 class MyClass {
@@ -55,6 +55,33 @@ type GreetingConfig = {
 };
 ```
 
+## Nullable arguments
+
+If you define your argument as nullable in your GraphQL schema, `graphql-js` may pass either an explicit `null` if the user passes an explicit null or simply not define the argument if the user omits the argument or passes it a nullable variable which ends up not being passed to the operation.
+
+To account for this, Grats will require that any argument that is either nullable (`someArg: T | null`) or optional (`someArg?: T`) be defined as _both_ nullable and optional: `someArg?: T | null`.
+
+This ensures your resolver code handles both possible casses.
+
+The one exception is if your argument has a default value. In that case, you may opt to mark your argument as optional but not nullabe.
+
+```ts
+/** @gqlField */
+export function greeting(_: Query, { name: "Max" }: { name?: string }): string {
+  return `Hello, ${name}`;
+}
+```
+
+Will result in the following schema:
+
+```graphql
+type Query {
+  greeting(name: String! = "Max"): String!
+}
+```
+
+Note that the `name` argument is marked as non-nullable in the schema. This means the user may not pass an explicit `null`, but if the argument is omitted, the default value will be used.
+
 ## Deprecated arguments
 
 Optional arguments can be marked as `@deprecated` by using the `@deprecated` JSDoc tag:
@@ -70,3 +97,5 @@ class MyClass {
   }
 }
 ```
+
+import ts from "typescript";
