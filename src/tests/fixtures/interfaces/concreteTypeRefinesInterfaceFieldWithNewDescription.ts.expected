@@ -1,0 +1,69 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface */
+interface IThing {
+  /**
+   * This description is on the interface type.
+   * @gqlField
+   */
+  name: string;
+}
+
+/** @gqlType */
+export class Doohickey implements IThing {
+  __typename: "Doohickey";
+  /**
+   * This description is on the concrete type.
+   * @gqlField
+   */
+  name: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+interface IThing {
+  """This description is on the interface type."""
+  name: String @metadata
+}
+
+type Doohickey implements IThing {
+  """This description is on the concrete type."""
+  name: String @metadata
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const IThingType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "IThing",
+        fields() {
+            return {
+                name: {
+                    description: "This description is on the interface type.",
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const DoohickeyType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Doohickey",
+        fields() {
+            return {
+                name: {
+                    description: "This description is on the concrete type.",
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        },
+        interfaces() {
+            return [IThingType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [IThingType, DoohickeyType]
+    });
+}
