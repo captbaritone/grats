@@ -1,4 +1,9 @@
-import { DocumentNode, FieldDefinitionNode, visit } from "graphql";
+import {
+  DocumentNode,
+  FieldDefinitionNode,
+  NamedTypeNode,
+  visit,
+} from "graphql";
 import { DefaultMap, extend } from "../utils/helpers";
 
 /**
@@ -11,11 +16,11 @@ export function mergeExtensions(doc: DocumentNode): DocumentNode {
 }
 
 class ExtensionMerger {
-  _fields: MultiMap<string, FieldDefinitionNode>;
+  _fields: DefaultMap<string, FieldDefinitionNode[]>;
   _interfaceMap: DefaultMap<string, Set<string>>;
   constructor() {
-    this._fields = new MultiMap<string, FieldDefinitionNode>();
-    this._interfaceMap = new DefaultMap<string, Set<string>>(() => new Set());
+    this._fields = new DefaultMap(() => []);
+    this._interfaceMap = new DefaultMap(() => new Set());
   }
 
   mergeExtensions(doc: DocumentNode): DocumentNode {
@@ -43,7 +48,7 @@ class ExtensionMerger {
   propagateMissingFields(sansExtensions: DocumentNode) {
     const processedInterfaces = new Set<string>();
 
-    const extendObject = (name: string): void => {
+    const extendType = (name: string): void => {
       const ownFields = this._fields.get(name);
       for (const iface of this._interfaceMap.get(name)) {
         // First make sure the interface has been fully populated
@@ -66,22 +71,13 @@ class ExtensionMerger {
       // since some other validation pass should detect that. The main issues is
       // to avoid infinite recursion leading to a stack overflow.
       processedInterfaces.add(name);
-      const ownFields = this._fields.get(name);
-      for (const iface of this._interfaceMap.get(name)) {
-        extendInterface(iface);
-        const ifaceFields = this._fields.get(iface);
-        for (const field of ifaceFields) {
-          if (!ownFields.some((f) => f.name.value === field.name.value)) {
-            ownFields.push(field);
-          }
-        }
-      }
+      extendType(name);
     };
 
     for (const doc of sansExtensions.definitions) {
       switch (doc.kind) {
         case "ObjectTypeDefinition":
-          extendObject(doc.name.value);
+          extendType(doc.name.value);
           break;
         case "InterfaceTypeDefinition":
           extendInterface(doc.name.value);
@@ -97,32 +93,24 @@ class ExtensionMerger {
         if (t.directives != null || t.interfaces != null) {
           throw new Error("Unexpected directives or interfaces on Extension");
         }
-        this._fields.extend(t.name.value, t.fields);
+        this.addFields(t.name.value, t.fields);
         return null;
       },
       InterfaceTypeExtension: (t) => {
         if (t.directives != null || t.interfaces != null) {
           throw new Error("Unexpected directives or interfaces on Extension");
         }
-        this._fields.extend(t.name.value, t.fields);
+        this.addFields(t.name.value, t.fields);
         return null;
       },
       ObjectTypeDefinition: (t) => {
-        if (t.interfaces != null) {
-          for (const i of t.interfaces) {
-            this._interfaceMap.get(t.name.value).add(i.name.value);
-          }
-        }
-        this._fields.extend(t.name.value, t.fields);
+        this.addInterfaces(t.name.value, t.interfaces);
+        this.addFields(t.name.value, t.fields);
         return t;
       },
       InterfaceTypeDefinition: (t) => {
-        if (t.interfaces != null) {
-          for (const i of t.interfaces) {
-            this._interfaceMap.get(t.name.value).add(i.name.value);
-          }
-        }
-        this._fields.extend(t.name.value, t.fields);
+        this.addInterfaces(t.name.value, t.interfaces);
+        this.addFields(t.name.value, t.fields);
         return t;
       },
       // Grats does not create these extension types
@@ -137,34 +125,24 @@ class ExtensionMerger {
       },
     });
   }
-}
 
-// Map a key to an array of values.
-class MultiMap<K, V> {
-  private readonly map = new Map<K, V[]>();
-
-  push(key: K, value: V): void {
-    let existing = this.map.get(key);
-    if (existing == null) {
-      existing = [];
-      this.map.set(key, existing);
+  addFields(
+    name: string,
+    fields: readonly FieldDefinitionNode[] | undefined,
+  ): void {
+    if (fields != null) {
+      extend(this._fields.get(name), fields);
     }
-    existing.push(value);
   }
 
-  extend(key: K, values?: readonly V[]): void {
-    if (values == null) {
-      return;
+  addInterfaces(
+    name: string,
+    interfaces: readonly NamedTypeNode[] | undefined,
+  ): void {
+    if (interfaces != null) {
+      for (const i of interfaces) {
+        this._interfaceMap.get(name).add(i.name.value);
+      }
     }
-    let existing = this.map.get(key);
-    if (existing == null) {
-      existing = [];
-      this.map.set(key, existing);
-    }
-    extend(existing, values);
-  }
-
-  get(key: K): V[] {
-    return this.map.get(key) ?? [];
   }
 }
