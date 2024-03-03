@@ -9,6 +9,8 @@ import { DefaultMap, extend } from "../utils/helpers";
 /**
  * Takes every example of `extend type Foo` and `extend interface Foo` and
  * merges them into the original type/interface definition.
+ *
+ * Also, propagates fields from interfaces to their implementing types.
  */
 export function mergeExtensions(doc: DocumentNode): DocumentNode {
   const merger = new ExtensionMerger();
@@ -31,12 +33,10 @@ class ExtensionMerger {
     // Merge collected extension fields into the original type/interface definition.
     return visit(sansExtensions, {
       ObjectTypeDefinition: (t) => {
-        const extensions = this._fields.get(t.name.value);
-        return { ...t, fields: extensions };
+        return { ...t, fields: this._fields.get(t.name.value) };
       },
       InterfaceTypeDefinition: (t) => {
-        const extensions = this._fields.get(t.name.value);
-        return { ...t, fields: extensions };
+        return { ...t, fields: this._fields.get(t.name.value) };
       },
     });
   }
@@ -55,6 +55,10 @@ class ExtensionMerger {
         extendInterface(iface);
         const ifaceFields = this._fields.get(iface);
         for (const field of ifaceFields) {
+          // TODO: This is not very efficient. Every interface's field requires an O(n) search.
+          // Modeling fields a a name => field map would be more efficient but
+          // ends up implicitly removing duplicates, which should be reported as
+          // an error by later phases of the pipeline.
           if (!ownFields.some((f) => f.name.value === field.name.value)) {
             ownFields.push(field);
           }

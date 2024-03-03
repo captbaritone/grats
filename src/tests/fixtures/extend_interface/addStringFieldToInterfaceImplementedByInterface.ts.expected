@@ -39,11 +39,11 @@ OUTPUT
 -----------------
 -- SDL --
 interface IPerson implements IThing {
-  greeting: String
+  greeting: String @metadata(argCount: 1, name: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts")
 }
 
 interface IThing {
-  greeting: String
+  greeting: String @metadata(argCount: 1, name: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts")
 }
 
 type Admin implements IPerson & IThing {
