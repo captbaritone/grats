@@ -1,0 +1,81 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface */
+interface Entity {
+  /** @gqlField */
+  name: string | null;
+}
+
+/** @gqlInterface */
+interface NotEntity {}
+
+/** @gqlField */
+export function name(_: NotEntity): string | null {
+  return "Hello";
+}
+
+/** @gqlType */
+export class Doohickey implements Entity, NotEntity {
+  __typename: "Doohickey";
+  name: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+interface Entity {
+  name: String @metadata
+}
+
+interface NotEntity {
+  name: String @metadata(argCount: 1, name: "name", tsModulePath: "grats/src/tests/fixtures/interfaces/concreteTypeInheritsFunctionFieldFromMultipleInterfacets.ts")
+}
+
+type Doohickey implements Entity & NotEntity {
+  name: String @metadata
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const EntityType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Entity",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const NotEntityType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "NotEntity",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const DoohickeyType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Doohickey",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        },
+        interfaces() {
+            return [EntityType, NotEntityType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [EntityType, NotEntityType, DoohickeyType]
+    });
+}
