@@ -1,0 +1,123 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface */
+interface Entity {
+  name: string | null;
+}
+
+/** @gqlField */
+export function greeting(entity: Entity): string {
+  return `Hello, ${entity.name ?? "World"}!`;
+}
+
+/** @gqlInterface */
+interface IThing extends Entity {
+  name: string | null;
+}
+
+/** @gqlField greeting */
+export function iThingGreeting(iThing: IThing): string {
+  return `Hello, ${iThing.name ?? "IThing"}!`;
+}
+
+/** @gqlType */
+export class Doohickey implements IThing, Entity {
+  __typename: "Doohickey";
+  name: string;
+}
+
+// Reverse the order of the interfaces to test that the order doesn't matter
+/** @gqlType */
+export class Widget implements Entity, IThing {
+  __typename: "Widget";
+  name: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+interface Entity {
+  greeting: String @metadata(argCount: 1, name: "greeting", tsModulePath: "grats/src/tests/fixtures/interfaces/concreteTypeInheritsFunctionFieldFromClosestTransitiveInterfacets.ts")
+}
+
+interface IThing implements Entity {
+  greeting: String @metadata(argCount: 1, name: "iThingGreeting", tsModulePath: "grats/src/tests/fixtures/interfaces/concreteTypeInheritsFunctionFieldFromClosestTransitiveInterfacets.ts")
+}
+
+type Doohickey implements Entity & IThing {
+  greeting: String @metadata(argCount: 1, name: "iThingGreeting", tsModulePath: "grats/src/tests/fixtures/interfaces/concreteTypeInheritsFunctionFieldFromClosestTransitiveInterfacets.ts")
+}
+
+type Widget implements Entity & IThing {
+  greeting: String @metadata(argCount: 1, name: "greeting", tsModulePath: "grats/src/tests/fixtures/interfaces/concreteTypeInheritsFunctionFieldFromClosestTransitiveInterfacets.ts")
+}
+-- TypeScript --
+import { iThingGreeting as doohickeyIThingGreetingResolver } from "./concreteTypeInheritsFunctionFieldFromClosestTransitiveInterfacets";
+import { greeting as widgetGreetingResolver } from "./concreteTypeInheritsFunctionFieldFromClosestTransitiveInterfacets";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const EntityType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Entity",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const IThingType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "IThing",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString
+                }
+            };
+        },
+        interfaces() {
+            return [EntityType];
+        }
+    });
+    const DoohickeyType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Doohickey",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return doohickeyIThingGreetingResolver(source);
+                    }
+                }
+            };
+        },
+        interfaces() {
+            return [EntityType, IThingType];
+        }
+    });
+    const WidgetType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Widget",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return widgetGreetingResolver(source);
+                    }
+                }
+            };
+        },
+        interfaces() {
+            return [EntityType, IThingType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [EntityType, IThingType, DoohickeyType, WidgetType]
+    });
+}

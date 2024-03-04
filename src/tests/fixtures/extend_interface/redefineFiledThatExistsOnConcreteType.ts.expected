@@ -31,7 +31,7 @@ OUTPUT
 -----------------
 -- SDL --
 interface IPerson {
-  greeting: String @metadata(argCount: 1, name: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/redefineFiledThatExistsOnConcreteType.invalid.ts")
+  greeting: String @metadata(argCount: 1, name: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/redefineFiledThatExistsOnConcreteType.ts")
   hello: String @metadata
 }
 
