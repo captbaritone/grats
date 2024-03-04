@@ -3,6 +3,7 @@ import InterfaceDeclaration from "!!raw-loader!./snippets/04-interface-declarati
 import NodeInterface from "!!raw-loader!./snippets/04-merged-interface-renaming.out";
 import InterfaceImplementingInterface from "!!raw-loader!./snippets/04-interface-implement-interface.out";
 import InterfaceFieldCommonImpl from "!!raw-loader!./snippets/04-interface-field-common-impl.out";
+import InterfaceOverrideFieldImpl from "!!raw-loader!./snippets/04-interface-override-field-impl.out";
 
 # Interfaces
 
@@ -32,12 +33,13 @@ Which will generate the following GraphQL schema:
 
 <GratsCode out={InterfaceImplementingInterface} mode="gql" />
 
----
+## Overriding Interface Fields
 
-TODO
-:::note
-Each implementor of an interface must declare define all the fields required by the interface with `/** @gqlField */`. This means that if you have an interface that implements another interface, you must define all the fields required by both interfaces.
-:::
+Unlike GraphQL, when you add a field to an interface with `/** @gqlField */`, the field will be automatically be added to the GraphQL definitions of all the implementors of the interface.
+
+If you wish to override the field in a specific implementor, you can add a `/** @gqlField */` with the same name to the implementor.
+
+<GratsCode out={InterfaceOverrideFieldImpl} mode="ts" />
 
 ## Merged Interfaces
 
