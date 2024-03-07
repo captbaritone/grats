@@ -1,0 +1,11 @@
+{
+  "grats": {},
+  "compilerOptions": {
+    "outDir": "dist",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "esnext",
+    "lib": ["esnext"],
+    "strict": true
+  }
+}
