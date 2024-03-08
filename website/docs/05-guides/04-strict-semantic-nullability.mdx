@@ -10,7 +10,7 @@ Because Strict Semantic Nullability is still in flux, the implementation and beh
 
 Today fields in GraphQL can be typed as either nullable or non-nullable. However, this distinction is overloaded, since null values are used to represent both "true" null values as well as values that are in an error state. Strict Semantic Nullability aims to tease these two concepts apart by allowing the schema to indicate fields which will only be null in the case of error. This allows clients which handle field errors out of band, for example by discarding any query with errors, to treat these fields as non-nullable.
 
-This allows client code to make an informed decsion about the expected nullability of a field, avoiding tedious null checks of values that are never null in practice, while also ensuring expected nulls are appropriately handled.
+This allows client code to make an informed decision about the expected nullability of a field, avoiding tedious null checks of values that are never null in practice, while also ensuring expected nulls are appropriately handled.
 
 ## How does Grats support Strict Semantic Nullability?
 
@@ -65,7 +65,7 @@ Strict Semantic Nullability can be enabled in your Grats config within your `tsc
 Grats aims to let the community experiment with Strict Semantic Nullability, this involves supporting some of the proposed RFC, but not all of it. In particular:
 
 - Grats does not support using introspection to determine if a field is semantically non-null
-- Grats does not suppprt declaring items within a list as being semantically non-null
+- Grats does not support declaring items within a list as being semantically non-null
 
 ```typescript
 /** @gqlField */

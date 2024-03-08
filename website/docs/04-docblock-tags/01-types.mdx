@@ -15,11 +15,11 @@ GraphQL types can be defined by placing a `@gqlType` docblock directly before a:
 - Type alias of a literal type or `unknown`
 
 If model your GraphQL resolvers using classes, simply add a `@gqlType` docblock
-before the class conaining that type's resolvers.
+before the class containing that type's resolvers.
 
 <GratsCode out={TypesClass} mode="ts" />
 
-If youre types are represented in your code by TypeScript interfaces, simply add a
+If your types are represented in your code by TypeScript interfaces, simply add a
 `@gqlType` docblock before the interface representing that type. Note that by
 using `@gqlType` on an interface, Grats will treat it as a GraphQL type and not
 an interface.
@@ -50,7 +50,7 @@ The three operation types, `Query`, `Mutation` and `Subscription` are special an
 ## Implementing Interfaces
 
 :::note
-Like GraphQL's schema definition language, each type which implemnts of an interface must manually define all the fields required by the interface with `/** @gqlField */` tags. Grats will not automatically inherit the fields of the interface. If you omit any fields, or fail to match types correctly, Grats will report an error.
+Like GraphQL's schema definition language, each type which implements of an interface must manually define all the fields required by the interface with `/** @gqlField */` tags. Grats will not automatically inherit the fields of the interface. If you omit any fields, or fail to match types correctly, Grats will report an error.
 :::
 
 ### Classes

@@ -5,9 +5,9 @@ import NullabilityExample from "!!raw-loader!./snippets/06-nullability.out";
 
 By default, Grats makes all fields nullable in keeping with **[GraphQL best practices](https://graphql.org/learn/best-practices/#nullability)**. By modeling fields as nullable by default, any error encountered when evaluating a resolver function/method will be caught by the GraphQL executor and returned as a `null` value with error metadata attached to the response.
 
-This approach allows for maximally resiliant network requests, since a single error will not take down the entire query, generally it will only affect the field that threw the error.
+This approach allows for maximally resilient network requests, since a single error will not take down the entire query, generally it will only affect the field that threw the error.
 
-However, there are some fields where it is nessesary to have a non-nullable field. In this case, you may add the docblock tag `@killsParentOnException` to the field. This will cause the field to be typed as non-nullable, but _it comes at a price_. Should the resolver throw, the error will bubble up to the first nullable parent.
+However, there are some fields where it is necessary to have a non-nullable field. In this case, you may add the docblock tag `@killsParentOnException` to the field. This will cause the field to be typed as non-nullable, but _it comes at a price_. Should the resolver throw, the error will bubble up to the first nullable parent.
 
 :::caution
 If `@killsParentOnException` is used too liberally, small errors can take down huge portions of your query.
@@ -24,5 +24,5 @@ Would extract:
 This behavior can be changed by setting the [config option](../01-getting-started/03-configuration.md) `{ "nullableByDefault": false }`.
 
 :::danger
-Dissabling `nullableByDefault` is equivilent to marking all non-nullable fields as `@killsParentOnException`.
+Disabling `nullableByDefault` is equivalent to marking all non-nullable fields as `@killsParentOnException`.
 :::

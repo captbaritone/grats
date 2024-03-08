@@ -61,9 +61,9 @@ If you define your argument as nullable in your GraphQL schema, `graphql-js` may
 
 To account for this, Grats will require that any argument that is either nullable (`someArg: T | null`) or optional (`someArg?: T`) be defined as _both_ nullable and optional: `someArg?: T | null`.
 
-This ensures your resolver code handles both possible casses.
+This ensures your resolver code handles both possible cases.
 
-The one exception is if your argument has a default value. In that case, you may opt to mark your argument as optional but not nullabe.
+The one exception is if your argument has a default value. In that case, you may opt to mark your argument as optional but not nullable.
 
 ```ts
 /** @gqlField */
