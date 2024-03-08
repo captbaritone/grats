@@ -3,7 +3,7 @@ import { Ctx } from "../ViewerContext";
 import { GraphQLNode } from "../graphql/Node";
 import { User } from "./User";
 import { Model } from "./Model";
-import { Mutation, Query } from "../graphql/Roots";
+import { Mutation } from "../graphql/Roots";
 import { ID } from "../../../dist/src";
 
 /**
@@ -34,21 +34,19 @@ export class Post extends Model<DB.PostRow> implements GraphQLNode {
   }
 }
 
-// --- Root Fields ---
-
-/**
- * All posts in the system. Note that there is no guarantee of order.
- * @gqlField */
-export async function posts(_: Query, __: unknown, ctx: Ctx): Promise<Post[]> {
-  const rows = await DB.selectPosts(ctx.vc);
-  return rows.map((row) => new Post(row));
-}
+// --- Mutations ---
 
 /** @gqlInput */
 type CreatePostInput = {
   title: string;
   content: string;
   authorId: ID;
+};
+
+/** @gqlType */
+type CreatePostPayload = {
+  /** @gqlField */
+  post: Post;
 };
 
 /**
@@ -58,7 +56,8 @@ export async function createPost(
   _: Mutation,
   args: { input: CreatePostInput },
   ctx: Ctx,
-): Promise<Post> {
+): Promise<CreatePostPayload> {
+  // TODO: Decode authorId from global ID
   const row = await DB.createPost(ctx.vc, args.input);
-  return new Post(row);
+  return { post: new Post(row) };
 }

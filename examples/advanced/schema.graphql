@@ -17,9 +17,20 @@ input CreatePostInput {
   title: String!
 }
 
+type CreatePostPayload {
+  post: Post
+}
+
 type Mutation {
   """Create a new post."""
-  createPost(input: CreatePostInput!): Post
+  createPost(input: CreatePostInput!): CreatePostPayload
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean
+  hasPreviousPage: Boolean
+  startCursor: String
 }
 
 """A blog post."""
@@ -39,15 +50,25 @@ type Post implements Node {
   title: String
 }
 
+type PostConnection {
+  edges: [PostEdge!]
+  pageInfo: PageInfo
+}
+
+type PostEdge {
+  cursor: String
+  node: Post
+}
+
 type Query {
   """Fetch a single `Node` by its globally unique ID."""
   node(id: ID!): Node
   """Fetch a list of `Node`s by their globally unique IDs."""
   nodes(ids: [ID!]!): [Node]
   """All posts in the system. Note that there is no guarantee of order."""
-  posts: [Post!]
+  posts(after: String, before: String, first: Int, last: Int): PostConnection
   """All users in the system. Note that there is no guarantee of order."""
-  users: [User!]
+  users(after: String, before: String, first: Int, last: Int): UserConnection
 }
 
 type User implements Node {
@@ -63,5 +84,15 @@ type User implements Node {
   """
   All posts written by this user. Note that there is no guarantee of order.
   """
-  posts: [Post!]
+  posts: PostConnection
+}
+
+type UserConnection {
+  edges: [UserEdge!]
+  pageInfo: PageInfo
+}
+
+type UserEdge {
+  cursor: String
+  node: User
 }

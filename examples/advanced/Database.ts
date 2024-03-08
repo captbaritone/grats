@@ -65,11 +65,7 @@ export async function selectPosts(vc: VC): Promise<Array<PostRow>> {
 
 export async function createPost(
   vc: VC,
-  draft: {
-    authorId: string;
-    title: string;
-    content: string;
-  },
+  draft: { authorId: string; title: string; content: string },
 ): Promise<PostRow> {
   vc.log(`DB query: createPost: ${JSON.stringify(draft)}`);
   const id = (MOCK_POSTS.length + 1).toString();
@@ -91,12 +87,23 @@ export async function selectUsers(vc: VC): Promise<Array<UserRow>> {
   return MOCK_USERS;
 }
 
+export async function createUser(
+  vc: VC,
+  draft: { name: string },
+): Promise<UserRow> {
+  vc.log(`DB query: createUser: ${JSON.stringify(draft)}`);
+  const id = (MOCK_POSTS.length + 1).toString();
+  const row = { id, ...draft };
+  MOCK_USERS.push(row);
+  return row;
+}
+
 export async function getPostsByIds(
   vc: VC,
   ids: readonly string[],
 ): Promise<Array<PostRow>> {
   vc.log(`DB query: getPostsByIds: ${ids.join(", ")}`);
-  return ids.map((id) => MOCK_POSTS.find((post) => post.id === id)!);
+  return ids.map((id) => nullThrows(MOCK_POSTS.find((post) => post.id === id)));
 }
 
 export async function getUsersByIds(
@@ -104,5 +111,12 @@ export async function getUsersByIds(
   ids: readonly string[],
 ): Promise<Array<UserRow>> {
   vc.log(`DB query: getUsersByIds: ${ids.join(", ")}`);
-  return ids.map((id) => MOCK_USERS.find((user) => user.id === id)!);
+  return ids.map((id) => nullThrows(MOCK_USERS.find((user) => user.id === id)));
+}
+
+function nullThrows<T>(value: T | null | undefined): T {
+  if (value == null) {
+    throw new Error("Expected value to be non-null");
+  }
+  return value;
 }

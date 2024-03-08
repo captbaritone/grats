@@ -63,6 +63,9 @@ importers:
       dataloader:
         specifier: ^2.2.2
         version: 2.2.2
+      graphql-relay:
+        specifier: ^0.10.0
+        version: 0.10.0(graphql@16.6.0)
       graphql-yoga:
         specifier: ^5.0.0
         version: 5.0.0(graphql@16.6.0)
@@ -11643,6 +11646,15 @@ packages:
       graphql: 16.6.0
       nullthrows: 1.1.1
       vscode-languageserver-types: 3.17.3
+    dev: false
+
+  /graphql-relay@0.10.0(graphql@16.6.0):
+    resolution: {integrity: sha512-44yBuw2/DLNEiMypbNZBt1yMDbBmyVPVesPywnteGGALiBmdyy1JP8jSg8ClLePg8ZZxk0O4BLhd1a6U/1jDOQ==}
+    engines: {node: ^12.20.0 || ^14.15.0 || >= 15.9.0}
+    peerDependencies:
+      graphql: ^16.2.0
+    dependencies:
+      graphql: 16.6.0
     dev: false
 
   /graphql-yoga@5.0.0(graphql@16.6.0):

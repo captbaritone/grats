@@ -1,9 +1,11 @@
+import { connectionFromArray } from "graphql-relay";
 import * as DB from "../Database";
 import { Ctx } from "../ViewerContext";
 import { GraphQLNode } from "../graphql/Node";
-import { Query } from "../graphql/Roots";
 import { Model } from "./Model";
 import { Post } from "./Post";
+import { PostConnection } from "./PostConnection";
+import { Mutation } from "../graphql/Roots";
 
 /** @gqlType */
 export class User extends Model<DB.UserRow> implements GraphQLNode {
@@ -19,18 +21,34 @@ export class User extends Model<DB.UserRow> implements GraphQLNode {
   /**
    * All posts written by this user. Note that there is no guarantee of order.
    * @gqlField */
-  async posts(_: unknown, ctx: Ctx): Promise<Post[]> {
+  async posts(_: unknown, ctx: Ctx): Promise<PostConnection> {
     const rows = await DB.selectPostsWhereAuthor(ctx.vc, this.row.id);
-    return rows.map((row) => new Post(row));
+    const posts = rows.map((row) => new Post(row));
+    return connectionFromArray(posts, {});
   }
 }
 
-// --- Root Fields ---
+// --- Mutations ---
+
+/** @gqlInput */
+type CreateUserInput = {
+  name: string;
+};
+
+/** @gqlType */
+type CreateUserPayload = {
+  /** @gqlField */
+  user: User;
+};
 
 /**
- * All users in the system. Note that there is no guarantee of order.
+ * Create a new user.
  * @gqlField */
-export async function users(_: Query, __: unknown, ctx: Ctx): Promise<User[]> {
-  const rows = await DB.selectUsers(ctx.vc);
-  return rows.map((row) => new User(row));
+export async function createUser(
+  _: Mutation,
+  args: { input: CreateUserInput },
+  ctx: Ctx,
+): Promise<CreateUserPayload> {
+  const row = await DB.createUser(ctx.vc, args.input);
+  return { user: new User(row) };
 }

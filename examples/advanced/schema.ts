@@ -6,10 +6,10 @@ import { node as queryNodeResolver } from "./graphql/Node";
 import { nodes as queryNodesResolver } from "./graphql/Node";
 import { id as userIdResolver } from "./graphql/Node";
 import { id as postIdResolver } from "./graphql/Node";
-import { posts as queryPostsResolver } from "./models/Post";
-import { users as queryUsersResolver } from "./models/User";
+import { posts as queryPostsResolver } from "./models/PostConnection";
+import { users as queryUsersResolver } from "./models/UserConnection";
 import { createPost as mutationCreatePostResolver } from "./models/Post";
-import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType, GraphQLID, GraphQLNonNull, GraphQLList, GraphQLString, GraphQLInputObjectType } from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType, GraphQLID, GraphQLNonNull, GraphQLList, GraphQLString, GraphQLBoolean, GraphQLInt, GraphQLInputObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
         description: "Indicates a stable refetchable object in the system.",
@@ -44,7 +44,7 @@ export function getSchema(): GraphQLSchema {
                 posts: {
                     description: "All posts written by this user. Note that there is no guarantee of order.",
                     name: "posts",
-                    type: new GraphQLList(new GraphQLNonNull(PostType))
+                    type: PostConnectionType
                 }
             };
         },
@@ -86,6 +86,89 @@ export function getSchema(): GraphQLSchema {
             return [NodeType];
         }
     });
+    const PostEdgeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "PostEdge",
+        fields() {
+            return {
+                cursor: {
+                    name: "cursor",
+                    type: GraphQLString
+                },
+                node: {
+                    name: "node",
+                    type: PostType
+                }
+            };
+        }
+    });
+    const PageInfoType: GraphQLObjectType = new GraphQLObjectType({
+        name: "PageInfo",
+        fields() {
+            return {
+                endCursor: {
+                    name: "endCursor",
+                    type: GraphQLString
+                },
+                hasNextPage: {
+                    name: "hasNextPage",
+                    type: GraphQLBoolean
+                },
+                hasPreviousPage: {
+                    name: "hasPreviousPage",
+                    type: GraphQLBoolean
+                },
+                startCursor: {
+                    name: "startCursor",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const PostConnectionType: GraphQLObjectType = new GraphQLObjectType({
+        name: "PostConnection",
+        fields() {
+            return {
+                edges: {
+                    name: "edges",
+                    type: new GraphQLList(new GraphQLNonNull(PostEdgeType))
+                },
+                pageInfo: {
+                    name: "pageInfo",
+                    type: PageInfoType
+                }
+            };
+        }
+    });
+    const UserEdgeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "UserEdge",
+        fields() {
+            return {
+                cursor: {
+                    name: "cursor",
+                    type: GraphQLString
+                },
+                node: {
+                    name: "node",
+                    type: UserType
+                }
+            };
+        }
+    });
+    const UserConnectionType: GraphQLObjectType = new GraphQLObjectType({
+        name: "UserConnection",
+        fields() {
+            return {
+                edges: {
+                    name: "edges",
+                    type: new GraphQLList(new GraphQLNonNull(UserEdgeType))
+                },
+                pageInfo: {
+                    name: "pageInfo",
+                    type: PageInfoType
+                }
+            };
+        }
+    });
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
@@ -121,7 +204,25 @@ export function getSchema(): GraphQLSchema {
                 posts: {
                     description: "All posts in the system. Note that there is no guarantee of order.",
                     name: "posts",
-                    type: new GraphQLList(new GraphQLNonNull(PostType)),
+                    type: PostConnectionType,
+                    args: {
+                        after: {
+                            name: "after",
+                            type: GraphQLString
+                        },
+                        before: {
+                            name: "before",
+                            type: GraphQLString
+                        },
+                        first: {
+                            name: "first",
+                            type: GraphQLInt
+                        },
+                        last: {
+                            name: "last",
+                            type: GraphQLInt
+                        }
+                    },
                     resolve(source, args, context) {
                         return queryPostsResolver(source, args, context);
                     }
@@ -129,10 +230,39 @@ export function getSchema(): GraphQLSchema {
                 users: {
                     description: "All users in the system. Note that there is no guarantee of order.",
                     name: "users",
-                    type: new GraphQLList(new GraphQLNonNull(UserType)),
+                    type: UserConnectionType,
+                    args: {
+                        after: {
+                            name: "after",
+                            type: GraphQLString
+                        },
+                        before: {
+                            name: "before",
+                            type: GraphQLString
+                        },
+                        first: {
+                            name: "first",
+                            type: GraphQLInt
+                        },
+                        last: {
+                            name: "last",
+                            type: GraphQLInt
+                        }
+                    },
                     resolve(source, args, context) {
                         return queryUsersResolver(source, args, context);
                     }
+                }
+            };
+        }
+    });
+    const CreatePostPayloadType: GraphQLObjectType = new GraphQLObjectType({
+        name: "CreatePostPayload",
+        fields() {
+            return {
+                post: {
+                    name: "post",
+                    type: PostType
                 }
             };
         }
@@ -163,7 +293,7 @@ export function getSchema(): GraphQLSchema {
                 createPost: {
                     description: "Create a new post.",
                     name: "createPost",
-                    type: PostType,
+                    type: CreatePostPayloadType,
                     args: {
                         input: {
                             name: "input",
@@ -180,6 +310,6 @@ export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         query: QueryType,
         mutation: MutationType,
-        types: [NodeType, CreatePostInputType, MutationType, PostType, QueryType, UserType]
+        types: [NodeType, CreatePostInputType, CreatePostPayloadType, MutationType, PageInfoType, PostType, PostConnectionType, PostEdgeType, QueryType, UserType, UserConnectionType, UserEdgeType]
     });
 }

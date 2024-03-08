@@ -1,3 +1,4 @@
+import { fromGlobalId, toGlobalId } from "graphql-relay";
 import { ID } from "grats";
 import { Query } from "./Roots";
 import { Ctx } from "../ViewerContext";
@@ -21,7 +22,7 @@ export interface GraphQLNode {
  * @gqlField
  * @killsParentOnExceptions */
 export function id(node: GraphQLNode): ID {
-  return encodeID(node.__typename, node.localID());
+  return toGlobalId(node.__typename, node.localID());
 }
 
 /**
@@ -32,18 +33,18 @@ export async function node(
   args: { id: ID },
   ctx: Ctx,
 ): Promise<GraphQLNode | null> {
-  const { typename, localID } = decodeID(args.id);
+  const { type, id } = fromGlobalId(args.id);
 
   // Note: Every type which implements `Node` must be represented here, and
   // there's not currently any static way to enforce that. This is a potential
   // source of bugs.
-  switch (typename) {
+  switch (type) {
     case "User":
-      return new User(await ctx.vc.getUserById(localID));
+      return new User(await ctx.vc.getUserById(id));
     case "Post":
-      return new Post(await ctx.vc.getPostById(localID));
+      return new Post(await ctx.vc.getPostById(id));
     default:
-      throw new Error(`Unknown typename: ${typename}`);
+      throw new Error(`Unknown typename: ${type}`);
   }
 }
 
@@ -56,13 +57,4 @@ export async function nodes(
   ctx: Ctx,
 ): Promise<Array<GraphQLNode | null>> {
   return Promise.all(args.ids.map((id) => node(_, { id }, ctx)));
-}
-
-export function encodeID(typename: string, id: string): ID {
-  return btoa(typename + ":" + id);
-}
-
-export function decodeID(id: ID): { typename: string; localID: string } {
-  const [typename, localID] = atob(id).split(":");
-  return { typename, localID };
 }
