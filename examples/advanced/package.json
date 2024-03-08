@@ -1,7 +1,7 @@
 {
-  "name": "grats-example-yoga",
+  "name": "grats-advanced-example",
   "version": "0.0.0",
-  "description": "Example server showcasing Grats used with Yoga",
+  "description": "Example server showcasing Grats in a feature complete server",
   "main": "index.js",
   "scripts": {
     "start": "tsc && node dist/server.js",
@@ -18,7 +18,10 @@
     "yoga",
     "javascript",
     "typescript",
-    "subscriptions"
+    "relay",
+    "node",
+    "dataloader",
+    "connections"
   ],
   "author": "",
   "license": "ISC",

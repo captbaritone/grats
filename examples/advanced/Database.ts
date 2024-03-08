@@ -17,6 +17,7 @@ export type PostRow = {
   authorId: string;
   title: string;
   content: string;
+  publishedAt: Date;
 };
 
 const MOCK_USERS: UserRow[] = [
@@ -31,30 +32,35 @@ const MOCK_POSTS: PostRow[] = [
     authorId: "1",
     title: "Hello, World!",
     content: "This is my first post.",
+    publishedAt: new Date("2021-01-01"),
   },
   {
     id: "2",
     authorId: "2",
     title: "My favorite things",
     content: "Here are some things I like.",
+    publishedAt: new Date("2021-01-02"),
   },
   {
     id: "3",
     authorId: "3",
     title: "I'm back",
     content: "I was away for a while.",
+    publishedAt: new Date("2021-01-03"),
   },
   {
     id: "4",
     authorId: "1",
     title: "Hello again",
     content: "I'm back too.",
+    publishedAt: new Date("2021-01-04"),
   },
   {
     id: "5",
     authorId: "2",
     title: "My favorite things 2",
     content: "Here are some more things I like.",
+    publishedAt: new Date("2021-01-05"),
   },
 ];
 
@@ -65,7 +71,12 @@ export async function selectPosts(vc: VC): Promise<Array<PostRow>> {
 
 export async function createPost(
   vc: VC,
-  draft: { authorId: string; title: string; content: string },
+  draft: {
+    authorId: string;
+    title: string;
+    content: string;
+    publishedAt: Date;
+  },
 ): Promise<PostRow> {
   vc.log(`DB query: createPost: ${JSON.stringify(draft)}`);
   const id = (MOCK_POSTS.length + 1).toString();

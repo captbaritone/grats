@@ -12,7 +12,7 @@ import { nodes as userConnectionNodesResolver } from "./models/UserConnection";
 import { users as queryUsersResolver } from "./models/UserConnection";
 import { createPost as mutationCreatePostResolver } from "./models/Post";
 import { createUser as mutationCreateUserResolver } from "./models/User";
-import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType, GraphQLID, GraphQLNonNull, GraphQLList, GraphQLString, GraphQLBoolean, GraphQLInt, GraphQLInputObjectType } from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType, GraphQLID, GraphQLNonNull, GraphQLList, GraphQLString, GraphQLScalarType, GraphQLBoolean, GraphQLInt, GraphQLInputObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
         description: "Indicates a stable refetchable object in the system.",
@@ -55,6 +55,10 @@ export function getSchema(): GraphQLSchema {
             return [NodeType];
         }
     });
+    const DateType: GraphQLScalarType = new GraphQLScalarType({
+        description: "A date and time. Serialized as a Unix timestamp.",
+        name: "Date"
+    });
     const PostType: GraphQLObjectType = new GraphQLObjectType({
         name: "Post",
         description: "A blog post.",
@@ -77,6 +81,11 @@ export function getSchema(): GraphQLSchema {
                     resolve(source) {
                         return postIdResolver(source);
                     }
+                },
+                publishedAt: {
+                    description: "The date and time at which the post was created.",
+                    name: "publishedAt",
+                    type: DateType
                 },
                 title: {
                     description: "The editor-approved title of the post.",
@@ -298,6 +307,10 @@ export function getSchema(): GraphQLSchema {
                     name: "content",
                     type: new GraphQLNonNull(GraphQLString)
                 },
+                publishedAt: {
+                    name: "publishedAt",
+                    type: new GraphQLNonNull(DateType)
+                },
                 title: {
                     name: "title",
                     type: new GraphQLNonNull(GraphQLString)
@@ -365,6 +378,6 @@ export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         query: QueryType,
         mutation: MutationType,
-        types: [NodeType, CreatePostInputType, CreateUserInputType, CreatePostPayloadType, CreateUserPayloadType, MutationType, PageInfoType, PostType, PostConnectionType, PostEdgeType, QueryType, UserType, UserConnectionType, UserEdgeType]
+        types: [DateType, NodeType, CreatePostInputType, CreateUserInputType, CreatePostPayloadType, CreateUserPayloadType, MutationType, PageInfoType, PostType, PostConnectionType, PostEdgeType, QueryType, UserType, UserConnectionType, UserEdgeType]
     });
 }

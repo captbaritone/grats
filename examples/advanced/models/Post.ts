@@ -5,6 +5,7 @@ import { User } from "./User";
 import { Model } from "./Model";
 import { Mutation } from "../graphql/Roots";
 import { ID } from "../../../dist/src";
+import { GqlDate } from "../graphql/CustomScalars";
 
 /**
  * A blog post.
@@ -27,6 +28,13 @@ export class Post extends Model<DB.PostRow> implements GraphQLNode {
   }
 
   /**
+   * The date and time at which the post was created.
+   * @gqlField */
+  publishedAt(): GqlDate {
+    return this.row.publishedAt;
+  }
+
+  /**
    * The author of the post. This cannot change after the post is created.
    * @gqlField */
   async author(_args: unknown, ctx: Ctx): Promise<User> {
@@ -41,6 +49,7 @@ type CreatePostInput = {
   title: string;
   content: string;
   authorId: ID;
+  publishedAt: GqlDate;
 };
 
 /** @gqlType */
