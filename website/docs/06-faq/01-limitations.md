@@ -51,7 +51,7 @@ type MyEnum =
   | "B";
 ```
 
-This is because we rely on the TypeScript compiler to tell us which docblocsk
+This is because we rely on the TypeScript compiler to tell us which docblocks
 are "attached" to a given AST node, and TypeScript doesn't see those comments as
 attached to anything. In the future we could explore implementing our own
 comment attachment, but it is a difficult problem.
@@ -62,7 +62,7 @@ It would be nice if Grats supported other comment types, such as regular block
 comments (with one \*) or inline comments (starting with two slashes). However we
 can't currently.
 
-This is because we rely on the TypeScript compiler to tell us which docblocsk
+This is because we rely on the TypeScript compiler to tell us which docblocks
 are "attached" to a given AST node, and TypeScript doesn't see those comments as
 attached to anything. In the future we could explore implementing our own
 comment attachment, but it is a difficult problem.
