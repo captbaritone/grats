@@ -17,13 +17,23 @@ input CreatePostInput {
   title: String!
 }
 
+input CreateUserInput {
+  name: String!
+}
+
 type CreatePostPayload {
   post: Post
+}
+
+type CreateUserPayload {
+  user: User
 }
 
 type Mutation {
   """Create a new post."""
   createPost(input: CreatePostInput!): CreatePostPayload
+  """Create a new user."""
+  createUser(input: CreateUserInput!): CreateUserPayload
 }
 
 type PageInfo {
@@ -52,6 +62,8 @@ type Post implements Node {
 
 type PostConnection {
   edges: [PostEdge!]
+  """Convenience field to get the nodes from a connection."""
+  nodes: [Post!]
   pageInfo: PageInfo
 }
 
@@ -89,6 +101,8 @@ type User implements Node {
 
 type UserConnection {
   edges: [UserEdge!]
+  """Convenience field to get the nodes from a connection."""
+  nodes: [User!]
   pageInfo: PageInfo
 }
 

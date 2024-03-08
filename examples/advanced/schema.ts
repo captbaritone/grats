@@ -6,9 +6,12 @@ import { node as queryNodeResolver } from "./graphql/Node";
 import { nodes as queryNodesResolver } from "./graphql/Node";
 import { id as userIdResolver } from "./graphql/Node";
 import { id as postIdResolver } from "./graphql/Node";
+import { nodes as postConnectionNodesResolver } from "./models/PostConnection";
 import { posts as queryPostsResolver } from "./models/PostConnection";
+import { nodes as userConnectionNodesResolver } from "./models/UserConnection";
 import { users as queryUsersResolver } from "./models/UserConnection";
 import { createPost as mutationCreatePostResolver } from "./models/Post";
+import { createUser as mutationCreateUserResolver } from "./models/User";
 import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType, GraphQLID, GraphQLNonNull, GraphQLList, GraphQLString, GraphQLBoolean, GraphQLInt, GraphQLInputObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
@@ -132,6 +135,14 @@ export function getSchema(): GraphQLSchema {
                     name: "edges",
                     type: new GraphQLList(new GraphQLNonNull(PostEdgeType))
                 },
+                nodes: {
+                    description: "Convenience field to get the nodes from a connection.",
+                    name: "nodes",
+                    type: new GraphQLList(new GraphQLNonNull(PostType)),
+                    resolve(source) {
+                        return postConnectionNodesResolver(source);
+                    }
+                },
                 pageInfo: {
                     name: "pageInfo",
                     type: PageInfoType
@@ -161,6 +172,14 @@ export function getSchema(): GraphQLSchema {
                 edges: {
                     name: "edges",
                     type: new GraphQLList(new GraphQLNonNull(UserEdgeType))
+                },
+                nodes: {
+                    description: "Convenience field to get the nodes from a connection.",
+                    name: "nodes",
+                    type: new GraphQLList(new GraphQLNonNull(UserType)),
+                    resolve(source) {
+                        return userConnectionNodesResolver(source);
+                    }
                 },
                 pageInfo: {
                     name: "pageInfo",
@@ -286,6 +305,28 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
+    const CreateUserPayloadType: GraphQLObjectType = new GraphQLObjectType({
+        name: "CreateUserPayload",
+        fields() {
+            return {
+                user: {
+                    name: "user",
+                    type: UserType
+                }
+            };
+        }
+    });
+    const CreateUserInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        name: "CreateUserInput",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: new GraphQLNonNull(GraphQLString)
+                }
+            };
+        }
+    });
     const MutationType: GraphQLObjectType = new GraphQLObjectType({
         name: "Mutation",
         fields() {
@@ -303,6 +344,20 @@ export function getSchema(): GraphQLSchema {
                     resolve(source, args, context) {
                         return mutationCreatePostResolver(source, args, context);
                     }
+                },
+                createUser: {
+                    description: "Create a new user.",
+                    name: "createUser",
+                    type: CreateUserPayloadType,
+                    args: {
+                        input: {
+                            name: "input",
+                            type: new GraphQLNonNull(CreateUserInputType)
+                        }
+                    },
+                    resolve(source, args, context) {
+                        return mutationCreateUserResolver(source, args, context);
+                    }
                 }
             };
         }
@@ -310,6 +365,6 @@ export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         query: QueryType,
         mutation: MutationType,
-        types: [NodeType, CreatePostInputType, CreatePostPayloadType, MutationType, PageInfoType, PostType, PostConnectionType, PostEdgeType, QueryType, UserType, UserConnectionType, UserEdgeType]
+        types: [NodeType, CreatePostInputType, CreateUserInputType, CreatePostPayloadType, CreateUserPayloadType, MutationType, PageInfoType, PostType, PostConnectionType, PostEdgeType, QueryType, UserType, UserConnectionType, UserEdgeType]
     });
 }
