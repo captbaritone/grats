@@ -14,15 +14,22 @@ interface Node {
   id: ID
 }
 
+input CreateLikeInput {
+  postId: ID!
+}
+
 input CreatePostInput {
   authorId: ID!
   content: String!
-  publishedAt: Date!
   title: String!
 }
 
 input CreateUserInput {
   name: String!
+}
+
+type CreateLikePayload {
+  post: Post
 }
 
 type CreatePostPayload {
@@ -33,7 +40,43 @@ type CreateUserPayload {
   user: User
 }
 
+"""A reaction from a user indicating that they like a post."""
+type Like implements Node {
+  """The date and time at which the post was liked."""
+  createdAt: Date
+  """
+  A globally unique opaque identifier for a node. Can be used to fetch the the
+  node with the `node` or `nodes` fields.
+  
+  See: https://graphql.org/learn/global-object-identification/
+  """
+  id: ID
+  """The user who liked the post."""
+  liker: User
+  """The post that was liked."""
+  post: Post
+}
+
+type LikeConnection {
+  """
+  The total number of likes that post has received.
+  **Note:** This is separate from the number of edges currently being read.
+  """
+  count: Int
+  edges: [LikeEdge!]
+  """Convenience field to get the nodes from a connection."""
+  nodes: [Like!]
+  pageInfo: PageInfo
+}
+
+type LikeEdge {
+  cursor: String
+  node: Like
+}
+
 type Mutation {
+  """Like a post. This action is taken as the currently logged in user."""
+  createLike(input: CreateLikeInput!): CreateLikePayload
   """Create a new post."""
   createPost(input: CreatePostInput!): CreatePostPayload
   """Create a new user."""
@@ -60,6 +103,11 @@ type Post implements Node {
   See: https://graphql.org/learn/global-object-identification/
   """
   id: ID
+  """
+  All the likes this post has received.
+  **Note:** You can use this connection to access the number of likes.
+  """
+  likes(after: String, before: String, first: Int, last: Int): LikeConnection
   """The date and time at which the post was created."""
   publishedAt: Date
   """The editor-approved title of the post."""
@@ -79,6 +127,10 @@ type PostEdge {
 }
 
 type Query {
+  """All likes in the system. Note that there is no guarantee of order."""
+  likes(after: String, before: String, first: Int, last: Int): LikeConnection
+  """The currently authenticated user."""
+  me: User
   """Fetch a single `Node` by its globally unique ID."""
   node(id: ID!): Node
   """Fetch a list of `Node`s by their globally unique IDs."""

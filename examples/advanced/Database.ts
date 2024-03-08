@@ -20,6 +20,13 @@ export type PostRow = {
   publishedAt: Date;
 };
 
+export type LikeRow = {
+  id: string;
+  userId: string;
+  postId: string;
+  createdAt: Date;
+};
+
 const MOCK_USERS: UserRow[] = [
   { id: "1", name: "Alice" },
   { id: "2", name: "Bob" },
@@ -64,6 +71,14 @@ const MOCK_POSTS: PostRow[] = [
   },
 ];
 
+const MOCK_LIKES: LikeRow[] = [
+  { id: "1", userId: "1", postId: "1", createdAt: new Date("2021-01-01") },
+  { id: "2", userId: "1", postId: "2", createdAt: new Date("2021-01-02") },
+  { id: "3", userId: "2", postId: "1", createdAt: new Date("2021-01-03") },
+  { id: "4", userId: "3", postId: "2", createdAt: new Date("2021-01-04") },
+  { id: "5", userId: "3", postId: "3", createdAt: new Date("2021-01-05") },
+];
+
 export async function selectPosts(vc: VC): Promise<Array<PostRow>> {
   vc.log("DB query: selectPosts");
   return MOCK_POSTS;
@@ -75,12 +90,11 @@ export async function createPost(
     authorId: string;
     title: string;
     content: string;
-    publishedAt: Date;
   },
 ): Promise<PostRow> {
   vc.log(`DB query: createPost: ${JSON.stringify(draft)}`);
   const id = (MOCK_POSTS.length + 1).toString();
-  const row = { id, ...draft };
+  const row = { id, ...draft, publishedAt: new Date() };
   MOCK_POSTS.push(row);
   return row;
 }
@@ -91,6 +105,14 @@ export async function selectPostsWhereAuthor(
 ): Promise<Array<PostRow>> {
   vc.log(`DB query: selectPostsWhereAuthor: ${authorId}`);
   return MOCK_POSTS.filter((post) => post.authorId === authorId);
+}
+
+export async function getPostsByIds(
+  vc: VC,
+  ids: readonly string[],
+): Promise<Array<PostRow>> {
+  vc.log(`DB query: getPostsByIds: ${ids.join(", ")}`);
+  return ids.map((id) => nullThrows(MOCK_POSTS.find((post) => post.id === id)));
 }
 
 export async function selectUsers(vc: VC): Promise<Array<UserRow>> {
@@ -109,20 +131,60 @@ export async function createUser(
   return row;
 }
 
-export async function getPostsByIds(
-  vc: VC,
-  ids: readonly string[],
-): Promise<Array<PostRow>> {
-  vc.log(`DB query: getPostsByIds: ${ids.join(", ")}`);
-  return ids.map((id) => nullThrows(MOCK_POSTS.find((post) => post.id === id)));
-}
-
 export async function getUsersByIds(
   vc: VC,
   ids: readonly string[],
 ): Promise<Array<UserRow>> {
   vc.log(`DB query: getUsersByIds: ${ids.join(", ")}`);
   return ids.map((id) => nullThrows(MOCK_USERS.find((user) => user.id === id)));
+}
+
+export async function selectLikes(vc: VC): Promise<Array<LikeRow>> {
+  vc.log("DB query: selectLikes");
+  return MOCK_LIKES;
+}
+
+export async function createLike(
+  vc: VC,
+  like: { userId: string; postId: string },
+): Promise<LikeRow> {
+  vc.log(`DB query: createLike: ${JSON.stringify(like)}`);
+  const id = (MOCK_LIKES.length + 1).toString();
+  const row = { ...like, id, createdAt: new Date() };
+  MOCK_LIKES.push(row);
+  return row;
+}
+
+export async function getLikesByUserId(
+  vc: VC,
+  userId: string,
+): Promise<Array<LikeRow>> {
+  vc.log(`DB query: getLikesByUserId: ${userId}`);
+  return MOCK_LIKES.filter((like) => like.userId === userId);
+}
+
+export async function getLikesByPostId(
+  vc: VC,
+  postId: string,
+): Promise<Array<LikeRow>> {
+  vc.log(`DB query: getLikesByPostId: ${postId}`);
+  return MOCK_LIKES.filter((like) => like.postId === postId);
+}
+
+export async function getLikesForPost(
+  vc: VC,
+  postId: string,
+): Promise<LikeRow[]> {
+  vc.log(`DB query: countLikesForPost: ${postId}`);
+  return MOCK_LIKES.filter((like) => like.postId === postId);
+}
+
+export async function countLikeCountForPost(
+  vc: VC,
+  postId: string,
+): Promise<number> {
+  vc.log(`DB query: countLikeCountForPost: ${postId}`);
+  return MOCK_LIKES.filter((like) => like.postId === postId).length;
 }
 
 function nullThrows<T>(value: T | null | undefined): T {

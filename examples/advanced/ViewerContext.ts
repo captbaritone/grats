@@ -26,6 +26,11 @@ export class VC {
   async getUserById(id: string): Promise<UserRow> {
     return this._userLoader.load(id);
   }
+  userId(): string {
+    // We don't have authentication in this example app, so we'll just assume
+    // the user is always user 1.
+    return "1";
+  }
   log(message: string) {
     this._logs.push(message);
     console.log(message);

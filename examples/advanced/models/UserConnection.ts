@@ -7,7 +7,7 @@ import { PageInfo } from "./PageInfo";
 import { connectionFromArray } from "graphql-relay";
 
 /** @gqlType */
-type UserConnection = {
+export type UserConnection = {
   /** @gqlField */
   edges: UserEdge[];
   /** @gqlField */
