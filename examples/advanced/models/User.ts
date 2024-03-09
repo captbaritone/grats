@@ -5,7 +5,7 @@ import { GraphQLNode } from "../graphql/Node";
 import { Model } from "./Model";
 import { Post } from "./Post";
 import { PostConnection } from "./PostConnection";
-import { Mutation, Query } from "../graphql/Roots";
+import { Mutation } from "../graphql/Roots";
 
 /** @gqlType */
 export class User extends Model<DB.UserRow> implements GraphQLNode {
@@ -26,15 +26,6 @@ export class User extends Model<DB.UserRow> implements GraphQLNode {
     const posts = rows.map((row) => new Post(row));
     return connectionFromArray(posts, {});
   }
-}
-
-// --- Root Fields ---
-
-/**
- * The currently authenticated user.
- * @gqlField */
-export async function me(_: Query, __: unknown, ctx: Ctx): Promise<User> {
-  return new User(await ctx.vc.getUserById(ctx.vc.userId()));
 }
 
 // --- Mutations ---

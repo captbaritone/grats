@@ -129,8 +129,6 @@ type PostEdge {
 type Query {
   """All likes in the system. Note that there is no guarantee of order."""
   likes(after: String, before: String, first: Int, last: Int): LikeConnection
-  """The currently authenticated user."""
-  me: User
   """Fetch a single `Node` by its globally unique ID."""
   node(id: ID!): Node
   """Fetch a list of `Node`s by their globally unique IDs."""
@@ -139,6 +137,8 @@ type Query {
   posts(after: String, before: String, first: Int, last: Int): PostConnection
   """All users in the system. Note that there is no guarantee of order."""
   users(after: String, before: String, first: Int, last: Int): UserConnection
+  """The currently authenticated viewer."""
+  viewer: Viewer
 }
 
 type User implements Node {
@@ -167,4 +167,16 @@ type UserConnection {
 type UserEdge {
   cursor: String
   node: User
+}
+
+"""The currently authenticated viewer."""
+type Viewer {
+  """
+  An "algorithmically generated" feed of posts.
+  **Note:** Due to the extreme complexity of this algorithm, it can be slow.
+  It is recommended to use `@stream` to avoid blocking the client.
+  """
+  feed: [Post!]
+  """The currently authenticated user."""
+  user: User
 }

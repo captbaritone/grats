@@ -175,16 +175,8 @@ export async function getLikesForPost(
   vc: VC,
   postId: string,
 ): Promise<LikeRow[]> {
-  vc.log(`DB query: countLikesForPost: ${postId}`);
+  vc.log(`DB query: getLikesForPost: ${postId}`);
   return MOCK_LIKES.filter((like) => like.postId === postId);
-}
-
-export async function countLikeCountForPost(
-  vc: VC,
-  postId: string,
-): Promise<number> {
-  vc.log(`DB query: countLikeCountForPost: ${postId}`);
-  return MOCK_LIKES.filter((like) => like.postId === postId).length;
 }
 
 function nullThrows<T>(value: T | null | undefined): T {

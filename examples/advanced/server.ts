@@ -3,12 +3,17 @@ import { createYoga } from "graphql-yoga";
 import { getSchema } from "./schema";
 import { VC } from "./ViewerContext";
 import { addGraphQLScalarSerialization } from "./graphql/CustomScalars";
+import { useDeferStream } from "@graphql-yoga/plugin-defer-stream";
 
 const schema = getSchema();
 
 addGraphQLScalarSerialization(schema);
 
-const yoga = createYoga({ schema, context: () => ({ vc: new VC() }) });
+const yoga = createYoga({
+  schema,
+  context: () => ({ vc: new VC() }),
+  plugins: [useDeferStream()],
+});
 
 const server = createServer(yoga);
 
