@@ -17,6 +17,7 @@ class Viewer {
 
   /**
    * An "algorithmically generated" feed of posts.
+   *
    * **Note:** Due to the extreme complexity of this algorithm, it can be slow.
    * It is recommended to use `@stream` to avoid blocking the client.
    * @gqlField
