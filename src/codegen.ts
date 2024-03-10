@@ -557,8 +557,9 @@ class Codegen {
     if (metadataDirective == null) {
       throw new Error(`Expected to find metadata directive.`);
     }
-    const metadata = parseFieldMetadataDirective(metadataDirective);
-    if (!metadata.asyncIterable) {
+    // Note: We assume the default name is used here. When custom operation types are supported
+    // we'll need to update this.
+    if (parentTypeName !== "Subscription") {
       const resolve = this.resolveMethod(field, "resolve", parentTypeName);
       return [this.maybeApplySemanticNullRuntimeCheck(field, resolve)];
     }

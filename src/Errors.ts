@@ -215,6 +215,10 @@ export function wrapperMissingTypeArg() {
   return `Expected wrapper type reference to have type arguments. Grats needs to be able to see the return type in order to generate a GraphQL schema.`;
 }
 
+export function invalidWrapperOnInputType(wrapperName: string) {
+  return `Invalid input type. \`${wrapperName}\` is not a valid type when used as a GraphQL input value.`;
+}
+
 export function cannotResolveSymbolForDescription() {
   return "Expected TypeScript to be able to resolve this GraphQL entity to a symbol. Is it possible that this type is not defined in this file? Grats needs to follow type references to their declaration in order to determine which GraphQL name is being referenced.";
 }
@@ -370,10 +374,6 @@ export function graphQLTagNameHasWhitespace(tagName: string): string {
 
 export function subscriptionFieldNotAsyncIterable() {
   return "Expected fields on `Subscription` to return an `AsyncIterable`. Fields on `Subscription` model a subscription, which is a stream of events. Grats expects fields on `Subscription` to return an `AsyncIterable` which can be used to model this stream.";
-}
-
-export function nonSubscriptionFieldAsyncIterable() {
-  return "Unexpected AsyncIterable. Only fields on `Subscription` should return an `AsyncIterable`. Non-subscription fields are only expected to return a single value.";
 }
 
 export function operationTypeNotUnknown() {

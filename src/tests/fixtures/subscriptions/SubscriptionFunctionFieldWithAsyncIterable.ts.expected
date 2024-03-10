@@ -1,6 +1,7 @@
 -----------------
 INPUT
 ----------------- 
+// { "nullableByDefault": false }
 /** @gqlType */
 export type Subscription = unknown;
 
@@ -10,16 +11,46 @@ export async function* greetings(_: Subscription): AsyncIterable<string> {
   yield "World";
 }
 
+/** @gqlField */
+export async function* maybeGreetings(
+  _: Subscription,
+): AsyncIterable<string> | null {
+  yield "Hello";
+  yield "World";
+}
+
+/** @gqlField */
+export async function* greetingsMaybe(
+  _: Subscription,
+): AsyncIterable<string | null> {
+  yield "Hello";
+  yield null;
+  yield "World";
+}
+
+/** @gqlField */
+export async function* maybeGreetingsMaybe(
+  _: Subscription,
+): AsyncIterable<string | null> | null {
+  return null;
+}
+
 -----------------
 OUTPUT
 -----------------
 -- SDL --
 type Subscription {
-  greetings: String @metadata(argCount: 1, asyncIterable: true, name: "greetings", tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts")
+  greetings: String! @metadata(argCount: 1, name: "greetings", tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts")
+  greetingsMaybe: String @metadata(argCount: 1, name: "greetingsMaybe", tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts")
+  maybeGreetings: String @metadata(argCount: 1, name: "maybeGreetings", tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts")
+  maybeGreetingsMaybe: String @metadata(argCount: 1, name: "maybeGreetingsMaybe", tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts")
 }
 -- TypeScript --
 import { greetings as subscriptionGreetingsResolver } from "./SubscriptionFunctionFieldWithAsyncIterable";
-import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+import { greetingsMaybe as subscriptionGreetingsMaybeResolver } from "./SubscriptionFunctionFieldWithAsyncIterable";
+import { maybeGreetings as subscriptionMaybeGreetingsResolver } from "./SubscriptionFunctionFieldWithAsyncIterable";
+import { maybeGreetingsMaybe as subscriptionMaybeGreetingsMaybeResolver } from "./SubscriptionFunctionFieldWithAsyncIterable";
+import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
         name: "Subscription",
@@ -27,9 +58,39 @@ export function getSchema(): GraphQLSchema {
             return {
                 greetings: {
                     name: "greetings",
-                    type: GraphQLString,
+                    type: new GraphQLNonNull(GraphQLString),
                     subscribe(source) {
                         return subscriptionGreetingsResolver(source);
+                    },
+                    resolve(payload) {
+                        return payload;
+                    }
+                },
+                greetingsMaybe: {
+                    name: "greetingsMaybe",
+                    type: GraphQLString,
+                    subscribe(source) {
+                        return subscriptionGreetingsMaybeResolver(source);
+                    },
+                    resolve(payload) {
+                        return payload;
+                    }
+                },
+                maybeGreetings: {
+                    name: "maybeGreetings",
+                    type: GraphQLString,
+                    subscribe(source) {
+                        return subscriptionMaybeGreetingsResolver(source);
+                    },
+                    resolve(payload) {
+                        return payload;
+                    }
+                },
+                maybeGreetingsMaybe: {
+                    name: "maybeGreetingsMaybe",
+                    type: GraphQLString,
+                    subscribe(source) {
+                        return subscriptionMaybeGreetingsMaybeResolver(source);
                     },
                     resolve(payload) {
                         return payload;

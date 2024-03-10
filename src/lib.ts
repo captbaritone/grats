@@ -100,13 +100,13 @@ export function extractSchemaAndDoc(
         .map((definitions) => ({ kind: Kind.DOCUMENT, definitions } as const))
         // Filter out any `implements` clauses that are not GraphQL interfaces.
         .map((doc) => filterNonGqlInterfaces(ctx, doc))
+        // Resolve TypeScript type references to the GraphQL types they represent (or error).
+        .andThen((doc) => resolveTypes(ctx, doc))
+        // Ensure all subscription fields return an AsyncIterable.
+        .andThen((doc) => validateAsyncIterable(doc))
         // Apply default nullability to fields and arguments, and detect any misuse of
         // `@killsParentOnException`.
         .andThen((doc) => applyDefaultNullability(doc, config))
-        // Resolve TypeScript type references to the GraphQL types they represent (or error).
-        .andThen((doc) => resolveTypes(ctx, doc))
-        // Ensure all subscription fields, and _only_ subscription fields, return an AsyncIterable.
-        .andThen((doc) => validateAsyncIterable(doc))
         // Merge any `extend` definitions into their base definitions.
         .map((doc) => mergeExtensions(doc))
         // Sort the definitions in the document to ensure a stable output.

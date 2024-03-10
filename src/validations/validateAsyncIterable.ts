@@ -1,98 +1,89 @@
 import * as ts from "typescript";
 import {
   DocumentNode,
+  FieldDefinitionNode,
   InterfaceTypeDefinitionNode,
   InterfaceTypeExtensionNode,
   Kind,
   ObjectTypeDefinitionNode,
   ObjectTypeExtensionNode,
+  TypeNode,
   visit,
 } from "graphql";
 import { DiagnosticsResult, gqlErr } from "../utils/DiagnosticError";
 import { err, ok } from "../utils/Result";
 import * as E from "../Errors";
-import {
-  FIELD_METADATA_DIRECTIVE,
-  parseFieldMetadataDirective,
-} from "../metadataDirectives";
 import { loc } from "../utils/helpers";
 
 /**
- * Ensure that all fields on `Subscription` return an AsyncIterable, and that no other
- * fields do.
+ * Ensure that all fields on `Subscription` return an AsyncIterable and transform
+ * the return type of subscription fields to not treat AsyncIterable as as list type.
  */
 export function validateAsyncIterable(
   doc: DocumentNode,
 ): DiagnosticsResult<DocumentNode> {
   const errors: ts.DiagnosticWithLocation[] = [];
 
-  const visitNode = (
-    t:
-      | ObjectTypeDefinitionNode
-      | ObjectTypeExtensionNode
-      | InterfaceTypeDefinitionNode
-      | InterfaceTypeExtensionNode,
-  ) => {
-    const validateFieldsResult = validateField(t);
-    if (validateFieldsResult != null) {
-      errors.push(validateFieldsResult);
-    }
+  const visitNode = {
+    enter: (
+      t:
+        | ObjectTypeDefinitionNode
+        | ObjectTypeExtensionNode
+        | InterfaceTypeDefinitionNode
+        | InterfaceTypeExtensionNode,
+    ) => {
+      // Note: We assume the default name is used here. When custom operation types are supported
+      // we'll need to update this.
+      if (t.name.value !== "Subscription") {
+        // Don't visit nodes that aren't the Subscription type.
+        return false;
+      }
+    },
   };
 
-  visit(doc, {
+  const visitSubscriptionField = (field: FieldDefinitionNode) => {
+    const inner = innerType(field.type); // Remove any non-null wrapper types
+
+    if (inner.kind !== Kind.LIST_TYPE || !inner.isAsyncIterable) {
+      errors.push(
+        gqlErr(loc(field.type), E.subscriptionFieldNotAsyncIterable()),
+      );
+      return field;
+    }
+
+    const itemType = inner.type;
+
+    // If either field.type or item type is nullable, the field should be nullable
+    if (isNullable(field.type) || isNullable(itemType)) {
+      const innerInner = innerType(itemType);
+      return { ...field, type: innerInner };
+    }
+
+    // If _both_ are non-nullable, we will preserve the non-nullability.
+    return { ...field, type: itemType };
+  };
+
+  const newDoc = visit(doc, {
     [Kind.INTERFACE_TYPE_DEFINITION]: visitNode,
     [Kind.INTERFACE_TYPE_EXTENSION]: visitNode,
     [Kind.OBJECT_TYPE_DEFINITION]: visitNode,
     [Kind.OBJECT_TYPE_EXTENSION]: visitNode,
+    [Kind.FIELD_DEFINITION]: visitSubscriptionField,
   });
   if (errors.length > 0) {
     return err(errors);
   }
-  return ok(doc);
+
+  return ok(newDoc);
 }
 
-function validateField(
-  t:
-    | ObjectTypeDefinitionNode
-    | ObjectTypeExtensionNode
-    | InterfaceTypeDefinitionNode
-    | InterfaceTypeExtensionNode,
-): ts.DiagnosticWithLocation | void {
-  if (t.fields == null) return;
-  // Note: We assume the default name is used here. When custom operation types are supported
-  // we'll need to update this.
-  const isSubscription =
-    t.name.value === "Subscription" &&
-    (t.kind === Kind.OBJECT_TYPE_DEFINITION ||
-      t.kind === Kind.OBJECT_TYPE_EXTENSION);
-  const isInterface =
-    t.kind === Kind.INTERFACE_TYPE_DEFINITION ||
-    t.kind === Kind.INTERFACE_TYPE_EXTENSION;
-  for (const field of t.fields) {
-    const metadataDirective = field.directives?.find(
-      (directive) => directive.name.value === FIELD_METADATA_DIRECTIVE,
-    );
-    if (isInterface && metadataDirective == null) {
-      return;
-    }
-    if (metadataDirective == null) {
-      throw new Error(
-        `Expected to find metadata directive on non-interface field "${t.name.value}.${field.name.value}".`,
-      );
-    }
-
-    const asyncIterable =
-      parseFieldMetadataDirective(metadataDirective).asyncIterable;
-
-    if (isSubscription && !asyncIterable) {
-      return gqlErr(loc(field.type), E.subscriptionFieldNotAsyncIterable());
-    }
-
-    if (!isSubscription && asyncIterable) {
-      return gqlErr(
-        asyncIterable, // Arg location is the AsyncIterable type reference.
-        E.nonSubscriptionFieldAsyncIterable(),
-      );
-    }
+function innerType(type: TypeNode): TypeNode {
+  if (type.kind === Kind.NON_NULL_TYPE) {
+    return innerType(type.type);
   }
+  return type;
+}
+
+function isNullable(t: TypeNode): boolean {
+  return t.kind !== Kind.NON_NULL_TYPE;
 }

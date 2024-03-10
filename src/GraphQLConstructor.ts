@@ -39,7 +39,6 @@ import {
   TS_MODULE_PATH_ARG,
   FIELD_NAME_ARG,
   ARG_COUNT,
-  ASYNC_ITERABLE_ARG,
   FIELD_METADATA_DIRECTIVE,
 } from "./metadataDirectives";
 
@@ -64,7 +63,6 @@ export class GraphQLConstructor {
       tsModulePath: string | null;
       name: string | null;
       argCount: number | null;
-      asyncIterable?: ts.Node | null;
     },
   ): ConstDirectiveNode {
     const args: ConstArgumentNode[] = [];
@@ -95,15 +93,7 @@ export class GraphQLConstructor {
         ),
       );
     }
-    if (metadata.asyncIterable) {
-      args.push(
-        this.constArgument(
-          metadata.asyncIterable,
-          this.name(node, ASYNC_ITERABLE_ARG),
-          this.boolean(node, true),
-        ),
-      );
-    }
+
     return this.constDirective(
       node,
       this.name(node, FIELD_METADATA_DIRECTIVE),

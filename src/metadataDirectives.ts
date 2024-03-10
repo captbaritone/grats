@@ -7,6 +7,27 @@ import {
 } from "graphql";
 import { GratsDefinitionNode } from "./GraphQLConstructor";
 
+/**
+ * In most cases we can use directives to annotate constructs
+ * however, it't not possible to annotate an individual TypeNode.
+ * Additionally, we can't use sets or maps to "tag" nodes because
+ * there are places where we immutably update the AST to make changes.
+ *
+ * Instead, we cheat and add properties to some nodes. These types use
+ * interface merging to add our own properties to the AST.
+ *
+ * We try to use this approach sparingly.
+ */
+declare module "graphql" {
+  export interface ListTypeNode {
+    /**
+     * Grats metadata: Whether the list type was defined as an AsyncIterable.
+     * Used to ensure that all fields on `Subscription` return an AsyncIterable.
+     */
+    isAsyncIterable?: boolean;
+  }
+}
+
 export const FIELD_METADATA_DIRECTIVE = "metadata";
 export const FIELD_NAME_ARG = "name";
 export const TS_MODULE_PATH_ARG = "tsModulePath";
@@ -35,11 +56,6 @@ export const DIRECTIVES_AST: DocumentNode = parse(`
       Number of arguments. No value means property access
       """
       ${ARG_COUNT}: Int
-      """
-      Whether the field is an async iterable. If true, the argument's
-      location is the typescript AsyncIterable identifier.
-      """
-      ${ASYNC_ITERABLE_ARG}: Boolean
     ) on FIELD_DEFINITION
     directive @${KILLS_PARENT_ON_EXCEPTION_DIRECTIVE} on FIELD_DEFINITION
 `);
@@ -54,7 +70,6 @@ export type FieldMetadata = {
   tsModulePath: string | null;
   name: string | null;
   argCount: number | null;
-  asyncIterable?: Location | null;
 };
 
 export function makeKillsParentOnExceptionDirective(
@@ -75,21 +90,10 @@ export function parseFieldMetadataDirective(
     throw new Error(`Expected directive to be ${FIELD_METADATA_DIRECTIVE}`);
   }
 
-  const asyncIterableNode = directive.arguments?.find(
-    (arg) => arg.name.value === ASYNC_ITERABLE_ARG,
-  );
-
-  if (asyncIterableNode?.value.kind === Kind.BOOLEAN) {
-    if (!asyncIterableNode.value.value) {
-      throw new Error(`Expected ${ASYNC_ITERABLE_ARG} to be true`);
-    }
-  }
-
   return {
     name: getStringArg(directive, FIELD_NAME_ARG),
     tsModulePath: getStringArg(directive, TS_MODULE_PATH_ARG),
     argCount: getIntArg(directive, ARG_COUNT),
-    asyncIterable: asyncIterableNode?.loc,
   };
 }
 

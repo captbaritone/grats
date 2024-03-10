@@ -66,6 +66,10 @@ export type ExtractionSnapshot = {
   readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
 };
 
+type FieldTypeContext = {
+  kind: "OUTPUT" | "INPUT";
+};
+
 /**
  * Extracts GraphQL definitions from TypeScript source code.
  *
@@ -349,9 +353,8 @@ class Extractor {
       return this.report(funcName, E.invalidReturnTypeForFunctionField());
     }
 
-    const returnType = this.collectReturnType(node.type);
-    if (returnType == null) return null;
-    const { type, asyncIterable } = returnType;
+    const type = this.collectType(node.type, { kind: "OUTPUT" });
+    if (type == null) return null;
 
     let args: readonly InputValueDefinitionNode[] | null = null;
     const argsParam = node.parameters[1];
@@ -378,7 +381,6 @@ class Extractor {
         tsModulePath,
         name: funcName.text,
         argCount: node.parameters.length,
-        asyncIterable: asyncIterable,
       }),
     ];
 
@@ -549,7 +551,7 @@ class Extractor {
       return this.report(node, E.inputFieldUntyped());
     }
 
-    const inner = this.collectType(node.type);
+    const inner = this.collectType(node.type, { kind: "INPUT" });
     if (inner == null) return null;
 
     const type =
@@ -943,11 +945,10 @@ class Extractor {
         name: id.text == name.value ? null : id.text,
         tsModulePath: null,
         argCount: null,
-        asyncIterable: null,
       }),
     ];
 
-    const type = this.collectType(node.type);
+    const type = this.collectType(node.type, { kind: "OUTPUT" });
     if (type == null) return null;
 
     const deprecated = this.collectDeprecated(node);
@@ -1129,7 +1130,7 @@ class Extractor {
     if (node.type == null) {
       return this.report(node.name, E.argNotTyped());
     }
-    let type = this.collectType(node.type);
+    let type = this.collectType(node.type, { kind: "INPUT" });
     if (type == null) return null;
 
     if (type.kind !== Kind.NON_NULL_TYPE && !node.questionToken) {
@@ -1409,9 +1410,8 @@ class Extractor {
       return this.report(node.name, E.methodMissingType());
     }
 
-    const returnType = this.collectReturnType(node.type);
-    if (returnType == null) return null;
-    const { type, asyncIterable } = returnType;
+    const type = this.collectType(node.type, { kind: "OUTPUT" });
+    if (type == null) return null;
 
     // We already reported an error
     if (type == null) return null;
@@ -1436,7 +1436,6 @@ class Extractor {
         name: id.text === name.value ? null : id.text,
         tsModulePath: null,
         argCount: isCallable(node) ? node.parameters.length : null,
-        asyncIterable: asyncIterable,
       }),
     ];
 
@@ -1460,51 +1459,6 @@ class Extractor {
       directives,
       description,
     );
-  }
-
-  collectReturnType(
-    node: ts.TypeNode,
-  ): { type: TypeNode; asyncIterable?: ts.Node } | null {
-    if (ts.isTypeReferenceNode(node)) {
-      const identifier = this.expectNameIdentifier(node.typeName);
-      if (identifier == null) return null;
-      if (identifier.text == "AsyncIterable") {
-        if (node.typeArguments == null || node.typeArguments.length === 0) {
-          // TODO: Better error?
-          return this.report(node, E.wrapperMissingTypeArg());
-        }
-        const t = this.collectType(node.typeArguments[0]);
-        if (t == null) return null;
-        return { type: t, asyncIterable: identifier };
-      }
-    }
-    const inner = this.maybeUnwrapPromise(node);
-    if (inner == null) return null;
-    const t = this.collectType(inner);
-    if (t == null) return null;
-    return { type: t };
-  }
-
-  collectPropertyType(node: ts.TypeNode): TypeNode | null {
-    // TODO: Handle function types here.
-    const inner = this.maybeUnwrapPromise(node);
-    if (inner == null) return null;
-    return this.collectType(inner);
-  }
-
-  maybeUnwrapPromise(node: ts.TypeNode): ts.TypeNode | null {
-    if (ts.isTypeReferenceNode(node)) {
-      const identifier = this.expectNameIdentifier(node.typeName);
-      if (identifier == null) return null;
-
-      if (identifier.text === "Promise") {
-        if (node.typeArguments == null || node.typeArguments.length === 0) {
-          return this.report(node, E.wrapperMissingTypeArg());
-        }
-        return node.typeArguments[0];
-      }
-    }
-    return node;
   }
 
   collectDescription(node: ts.Node): StringValueNode | null {
@@ -1560,7 +1514,7 @@ class Extractor {
       return null;
     }
 
-    const inner = this.collectPropertyType(node.type);
+    const inner = this.collectType(node.type, { kind: "OUTPUT" });
     // We already reported an error
     if (inner == null) return null;
     const type =
@@ -1582,7 +1536,6 @@ class Extractor {
         name: id.text === name.value ? null : id.text,
         tsModulePath: null,
         argCount: null,
-        asyncIterable: null,
       }),
     );
 
@@ -1602,16 +1555,15 @@ class Extractor {
       description,
     );
   }
-
   // TODO: Support separate modes for input and output types
   // For input nodes and field may only be optional if `null` is a valid value.
-  collectType(node: ts.TypeNode): TypeNode | null {
+  collectType(node: ts.TypeNode, ctx: FieldTypeContext): TypeNode | null {
     if (ts.isTypeReferenceNode(node)) {
-      const type = this.typeReference(node);
+      const type = this.typeReference(node, ctx);
       if (type == null) return null;
       return type;
     } else if (ts.isArrayTypeNode(node)) {
-      const element = this.collectType(node.elementType);
+      const element = this.collectType(node.elementType, ctx);
       if (element == null) return null;
       return this.gql.nonNullType(node, this.gql.listType(node, element));
     } else if (ts.isUnionTypeNode(node)) {
@@ -1620,7 +1572,7 @@ class Extractor {
         return this.report(node, E.expectedOneNonNullishType());
       }
 
-      const type = this.collectType(types[0]);
+      const type = this.collectType(types[0], ctx);
       if (type == null) return null;
 
       if (types.length > 1) {
@@ -1637,7 +1589,7 @@ class Extractor {
       }
       return this.gql.nonNullType(node, type);
     } else if (ts.isParenthesizedTypeNode(node)) {
-      return this.collectType(node.type);
+      return this.collectType(node.type, ctx);
     } else if (node.kind === ts.SyntaxKind.StringKeyword) {
       return this.gql.nonNullType(node, this.gql.namedType(node, "String"));
     } else if (node.kind === ts.SyntaxKind.BooleanKeyword) {
@@ -1652,21 +1604,52 @@ class Extractor {
     return null;
   }
 
-  typeReference(node: ts.TypeReferenceNode): TypeNode | null {
+  typeReference(
+    node: ts.TypeReferenceNode,
+    ctx: FieldTypeContext,
+  ): TypeNode | null {
     const identifier = this.expectNameIdentifier(node.typeName);
     if (identifier == null) return null;
 
     const typeName = identifier.text;
+    // Some types are not valid as input types. Validate that here:
+    if (ctx.kind === "INPUT") {
+      switch (typeName) {
+        case "AsyncIterable":
+          return this.report(
+            node,
+            "`AsyncIterable` is not a valid as an input type.",
+          );
+        case "Promise":
+          return this.report(
+            node,
+            "`Promise` is not a valid as an input type.",
+          );
+      }
+    }
     switch (typeName) {
       case "Array":
       case "Iterator":
-      case "ReadonlyArray": {
+      case "ReadonlyArray":
+      case "AsyncIterable": {
         if (node.typeArguments == null) {
           return this.report(node, E.pluralTypeMissingParameter());
         }
-        const element = this.collectType(node.typeArguments[0]);
+        const element = this.collectType(node.typeArguments[0], ctx);
         if (element == null) return null;
-        return this.gql.nonNullType(node, this.gql.listType(node, element));
+        const listType = this.gql.listType(node, element);
+        if (typeName === "AsyncIterable") {
+          listType.isAsyncIterable = true;
+        }
+        return this.gql.nonNullType(node, listType);
+      }
+      case "Promise": {
+        if (node.typeArguments == null) {
+          return this.report(node, E.wrapperMissingTypeArg());
+        }
+        const element = this.collectType(node.typeArguments[0], ctx);
+        if (element == null) return null;
+        return element;
       }
       default: {
         // We may not have encountered the definition of this type yet. So, we

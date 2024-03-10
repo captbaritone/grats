@@ -9,7 +9,7 @@ interface MyInputType {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/input_types/InputTypeInterfacePromiseField.invalid.ts:3:15 - error: Unable to resolve type reference. In order to generate a GraphQL schema, Grats needs to determine which GraphQL type is being referenced. This requires being able to resolve type references to their `@gql` annotated declaration. However this reference could not be resolved. Is it possible that this type is not defined in this file?
+src/tests/fixtures/input_types/InputTypeInterfacePromiseField.invalid.ts:3:15 - error: `Promise` is not a valid as an input type.
 
 3   someMethod: Promise<string>;
                 ~~~~~~~~~~~~~~~
