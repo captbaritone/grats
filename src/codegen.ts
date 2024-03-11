@@ -54,7 +54,7 @@ export function codegen(schema: GraphQLSchema, destination: string): string {
 
 class Codegen {
   _schema: GraphQLSchema;
-  _destinationDir: string;
+  _destination: string;
   _imports: ts.Statement[] = [];
   _helpers: Map<string, ts.Statement> = new Map();
   _typeDefinitions: Set<string> = new Set();
@@ -63,7 +63,7 @@ class Codegen {
 
   constructor(schema: GraphQLSchema, destination: string) {
     this._schema = schema;
-    this._destinationDir = path.dirname(destination);
+    this._destination = destination;
   }
 
   createBlockWithScope(closure: () => void): ts.Block {
@@ -231,7 +231,9 @@ class Codegen {
       }
 
       const abs = resolveRelativePath(module);
-      const relative = stripExt(path.relative(this._destinationDir, abs));
+      const relative = stripExt(
+        path.relative(path.dirname(this._destination), abs),
+      );
 
       const resolverName = formatResolverFunctionVarName(
         parentTypeName,
