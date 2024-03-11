@@ -141,6 +141,10 @@ type Query {
   viewer: Viewer
 }
 
+type Subscription {
+  countdown: Int
+}
+
 type User implements Node {
   """
   A globally unique opaque identifier for a node. Can be used to fetch the the

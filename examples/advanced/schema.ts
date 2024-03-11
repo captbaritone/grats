@@ -17,6 +17,7 @@ import { viewer as queryViewerResolver } from "./models/Viewer";
 import { createLike as mutationCreateLikeResolver } from "./models/Like";
 import { createPost as mutationCreatePostResolver } from "./models/Post";
 import { createUser as mutationCreateUserResolver } from "./models/User";
+import { countdown as subscriptionCountdownResolver } from "./graphql/Roots";
 import { GraphQLSchema, GraphQLObjectType, GraphQLInt, GraphQLList, GraphQLNonNull, GraphQLString, GraphQLScalarType, GraphQLID, GraphQLInterfaceType, GraphQLBoolean, GraphQLInputObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const DateType: GraphQLScalarType = new GraphQLScalarType({
@@ -564,9 +565,27 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
+    const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Subscription",
+        fields() {
+            return {
+                countdown: {
+                    name: "countdown",
+                    type: GraphQLInt,
+                    subscribe(source) {
+                        return subscriptionCountdownResolver(source);
+                    },
+                    resolve(payload) {
+                        return payload;
+                    }
+                }
+            };
+        }
+    });
     return new GraphQLSchema({
         query: QueryType,
         mutation: MutationType,
-        types: [DateType, NodeType, CreateLikeInputType, CreatePostInputType, CreateUserInputType, CreateLikePayloadType, CreatePostPayloadType, CreateUserPayloadType, LikeType, LikeConnectionType, LikeEdgeType, MutationType, PageInfoType, PostType, PostConnectionType, PostEdgeType, QueryType, UserType, UserConnectionType, UserEdgeType, ViewerType]
+        subscription: SubscriptionType,
+        types: [DateType, NodeType, CreateLikeInputType, CreatePostInputType, CreateUserInputType, CreateLikePayloadType, CreatePostPayloadType, CreateUserPayloadType, LikeType, LikeConnectionType, LikeEdgeType, MutationType, PageInfoType, PostType, PostConnectionType, PostEdgeType, QueryType, SubscriptionType, UserType, UserConnectionType, UserEdgeType, ViewerType]
     });
 }
