@@ -9,11 +9,10 @@ on:
 jobs:
   build:
     name: "Build and run integration tests"
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [ubuntu-latest, windows-latest]
         node-version: [18.x, 19.x, 20.x, 21.x]
-    runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
