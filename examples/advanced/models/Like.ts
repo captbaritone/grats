@@ -1,6 +1,6 @@
 import * as DB from "../Database";
 import { Ctx } from "../ViewerContext";
-import { GraphQLNode } from "../graphql/Node";
+import { GraphQLNode, getLocalTypeAssert } from "../graphql/Node";
 import { User } from "./User";
 import { Model } from "./Model";
 import { Mutation } from "../graphql/Roots";
@@ -57,7 +57,7 @@ export async function createLike(
   args: { input: CreateLikeInput },
   ctx: Ctx,
 ): Promise<CreateLikePayload> {
-  // TODO: Decode postId from global ID
+  const id = getLocalTypeAssert(args.input.postId, "Post");
   await DB.createLike(ctx.vc, { ...args.input, userId: ctx.vc.userId() });
-  return { post: new Post(await ctx.vc.getPostById(args.input.postId)) };
+  return { post: new Post(await ctx.vc.getPostById(id)) };
 }

@@ -17,7 +17,7 @@ import { viewer as queryViewerResolver } from "./models/Viewer";
 import { createLike as mutationCreateLikeResolver } from "./models/Like";
 import { createPost as mutationCreatePostResolver } from "./models/Post";
 import { createUser as mutationCreateUserResolver } from "./models/User";
-import { countdown as subscriptionCountdownResolver } from "./graphql/Roots";
+import { postLikes as subscriptionPostLikesResolver } from "./models/LikeConnection";
 import { GraphQLSchema, GraphQLObjectType, GraphQLInt, GraphQLList, GraphQLNonNull, GraphQLString, GraphQLScalarType, GraphQLID, GraphQLInterfaceType, GraphQLBoolean, GraphQLInputObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const DateType: GraphQLScalarType = new GraphQLScalarType({
@@ -569,11 +569,18 @@ export function getSchema(): GraphQLSchema {
         name: "Subscription",
         fields() {
             return {
-                countdown: {
-                    name: "countdown",
-                    type: GraphQLInt,
-                    subscribe(source) {
-                        return subscriptionCountdownResolver(source);
+                postLikes: {
+                    description: "Subscribe to likes on a post.\n**Note:** Does not immediately return likes, but rather updates as likes are applied.",
+                    name: "postLikes",
+                    type: LikeConnectionType,
+                    args: {
+                        postID: {
+                            name: "postID",
+                            type: new GraphQLNonNull(GraphQLString)
+                        }
+                    },
+                    subscribe(source, args, context) {
+                        return subscriptionPostLikesResolver(source, args, context);
                     },
                     resolve(payload) {
                         return payload;

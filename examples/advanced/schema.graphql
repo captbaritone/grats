@@ -142,7 +142,11 @@ type Query {
 }
 
 type Subscription {
-  countdown: Int
+  """
+  Subscribe to likes on a post.
+  **Note:** Does not immediately return likes, but rather updates as likes are applied.
+  """
+  postLikes(postID: String!): LikeConnection
 }
 
 type User implements Node {

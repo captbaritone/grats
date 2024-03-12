@@ -1,10 +1,14 @@
 import { Int } from "grats";
 import * as DB from "../Database";
 import { Ctx } from "../ViewerContext";
-import { Query } from "../graphql/Roots";
+import { Query, Subscription } from "../graphql/Roots";
 import { Like } from "./Like";
 import { PageInfo } from "./PageInfo";
 import { connectionFromArray } from "graphql-relay";
+import { Post } from "./Post";
+import { PubSub } from "../PubSub";
+import { filter, map, pipe } from "graphql-yoga";
+import { getLocalTypeAssert } from "../graphql/Node";
 
 /** @gqlType */
 export type LikeConnection = {
@@ -55,4 +59,23 @@ export async function likes(
     ...connectionFromArray(likes, args),
     count: likes.length,
   };
+}
+
+/**
+ * Subscribe to likes on a post.
+ * **Note:** Does not immediately return likes, but rather updates as likes are applied.
+ * @gqlField */
+export async function postLikes(
+  _: Subscription,
+  args: { postID: string },
+  ctx: Ctx,
+): Promise<AsyncIterable<LikeConnection>> {
+  const id = getLocalTypeAssert(args.postID, "Post");
+  const postRow = await ctx.vc.getPostById(id);
+  const post = new Post(postRow);
+  return pipe(
+    PubSub.subscribe("postLiked"),
+    filter((postId) => postId === id),
+    map(() => post.likes({}, ctx)),
+  );
 }

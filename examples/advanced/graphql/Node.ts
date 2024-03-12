@@ -6,6 +6,18 @@ import { User } from "../models/User";
 import { Post } from "../models/Post";
 
 /**
+ * Converts a globally unique ID into a local ID asserting
+ * that the typename matches the expected typename.
+ */
+export function getLocalTypeAssert(id: ID, typename: string): string {
+  const { type, id: localID } = fromGlobalId(id);
+  if (type !== typename) {
+    throw new Error(`Expected ID of type ${typename}, got ${type}`);
+  }
+  return localID;
+}
+
+/**
  * Indicates a stable refetchable object in the system.
  * @gqlInterface Node */
 export interface GraphQLNode {

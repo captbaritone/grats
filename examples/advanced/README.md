@@ -7,6 +7,8 @@ This example includes a relatively fully featured app to demonstrate how real-wo
 - [Node interface](https://graphql.org/learn/global-object-identification/)
 - [dataloader](https://github.com/graphql/dataloader)
 - [Connections](https://relay.dev/graphql/connections.htm) (as used by Relay)
+- Subscriptions - See `Subscription.postLikes` in `src/models/LikeConnection.ts`
+- `@stream` for expensive lists like `Viewer.feed`
 - Custom scalars
 
 ## Implementation notes

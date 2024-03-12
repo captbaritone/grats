@@ -1,3 +1,4 @@
+import { PubSub } from "./PubSub";
 import { VC } from "./ViewerContext";
 
 /**
@@ -152,6 +153,7 @@ export async function createLike(
   const id = (MOCK_LIKES.length + 1).toString();
   const row = { ...like, id, createdAt: new Date() };
   MOCK_LIKES.push(row);
+  PubSub.publish("postLiked", like.postId);
   return row;
 }
 

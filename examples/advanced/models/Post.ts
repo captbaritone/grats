@@ -1,6 +1,6 @@
 import * as DB from "../Database";
 import { Ctx } from "../ViewerContext";
-import { GraphQLNode } from "../graphql/Node";
+import { GraphQLNode, getLocalTypeAssert } from "../graphql/Node";
 import { User } from "./User";
 import { Model } from "./Model";
 import { Mutation } from "../graphql/Roots";
@@ -89,7 +89,9 @@ export async function createPost(
   args: { input: CreatePostInput },
   ctx: Ctx,
 ): Promise<CreatePostPayload> {
-  // TODO: Decode authorId from global ID
-  const row = await DB.createPost(ctx.vc, args.input);
+  const row = await DB.createPost(ctx.vc, {
+    ...args.input,
+    authorId: getLocalTypeAssert(args.input.authorId, "User"),
+  });
   return { post: new Post(row) };
 }
