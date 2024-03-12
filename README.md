@@ -57,3 +57,7 @@ See [`CONTRIBUTING.md`](./CONTRIBUTING.md) in the repo root for details on how t
   - [ts2gql](https://github.com/convoyinc/ts2gql)
   - [ts2graphql](https://github.com/cevek/ts2graphql)
   - [typegraphql-reflection-poc](https://github.com/MichalLytek/typegraphql-reflection-poc)
+
+## License
+
+Grats is [MIT licensed](./LICENSE).
