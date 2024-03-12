@@ -5,7 +5,6 @@ type Query = unknown;
  * @gqlInput
  */
 type SomeObj = {
-  /** @gqlField */
   a: string;
 };
 
