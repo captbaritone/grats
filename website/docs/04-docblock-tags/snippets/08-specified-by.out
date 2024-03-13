@@ -1,0 +1,18 @@
+/**
+ * @gqlScalar
+ * @specifiedBy https://tools.ietf.org/html/rfc4122
+ */
+type UUID = string;
+
+=== SNIP ===
+scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
+=== SNIP ===
+import { GraphQLSchema, GraphQLScalarType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const UUIDType: GraphQLScalarType = new GraphQLScalarType({
+        name: "UUID"
+    });
+    return new GraphQLSchema({
+        types: [UUIDType]
+    });
+}

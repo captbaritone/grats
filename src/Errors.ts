@@ -10,6 +10,7 @@ import {
   SCALAR_TAG,
   TYPE_TAG,
   UNION_TAG,
+  SPECIFIED_BY_TAG,
 } from "./Extractor";
 
 export const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
@@ -402,4 +403,12 @@ export function gqlFieldTagOnInputType() {
 
 export function gqlFieldParentMissingTag() {
   return `Unexpected \`@${FIELD_TAG}\`. The parent construct must be either a \`@${TYPE_TAG}\` or \`@${INTERFACE_TAG}\` tag. Are you missing one of these tags?`;
+}
+
+export function missingSpecifiedByUrl() {
+  return `Expected \`@${SPECIFIED_BY_TAG}\` tag to be followed by a URL. This URL will be used as the \`url\` argument to the \`@specifiedBy\` directive in the generated GraphQL schema. See https://spec.graphql.org/draft/#sec--specifiedBy for more information.`;
+}
+
+export function specifiedByOnWrongNode() {
+  return `Unexpected \`@${SPECIFIED_BY_TAG}\` tag on non-scalar declaration. \`@${SPECIFIED_BY_TAG}\` can only be used on custom scalar declarations. Are you missing a \`@${SCALAR_TAG}\` tag?`;
 }

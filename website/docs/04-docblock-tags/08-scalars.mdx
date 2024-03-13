@@ -1,3 +1,6 @@
+import GratsCode from "@site/src/components/GratsCode";
+import SpecifiedBy from "!!raw-loader!./snippets/08-specified-by.out";
+
 # Scalars
 
 GraphQL custom scalars can be defined by placing a `@gqlScalar` docblock directly before a:
@@ -32,6 +35,12 @@ class Math {
   }
 }
 ```
+
+## `@specifiedBy` Directive
+
+The GraphQL specification defines the [`@specifiedBy`](https://spec.graphql.org/draft/#sec--specifiedBy) directive which can be added to custom scalar definitions. The directive provides a "scalar specification URL for specifying the behavior of custom scalar types.". Grats lets you add this directive to your custom scalars by adding a `@specifiedBy` docblock tag to the type alias declaration followed by the URL of the specification.
+
+<GratsCode out={SpecifiedBy} mode="both" />
 
 ## Serialization and Parsing of Custom Scalars
 

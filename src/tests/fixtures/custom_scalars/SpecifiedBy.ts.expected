@@ -1,0 +1,24 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * @gqlScalar
+ * @specifiedBy https://tools.ietf.org/html/rfc4122
+ */
+export type UUID = string;
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
+-- TypeScript --
+import { GraphQLSchema, GraphQLScalarType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const UUIDType: GraphQLScalarType = new GraphQLScalarType({
+        name: "UUID"
+    });
+    return new GraphQLSchema({
+        types: [UUIDType]
+    });
+}

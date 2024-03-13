@@ -53,6 +53,7 @@ export const ALL_TAGS = [
 ];
 
 const DEPRECATED_TAG = "deprecated";
+export const SPECIFIED_BY_TAG = "specifiedBy";
 const OPERATION_TYPES = new Set(["Query", "Mutation", "Subscription"]);
 
 type ArgDefaults = Map<string, ts.Expression>;
@@ -173,13 +174,16 @@ class Extractor {
           }
           break;
         case KILLS_PARENT_ON_EXCEPTION_TAG: {
-          const hasFieldTag = ts.getJSDocTags(node).some((t) => {
-            return t.tagName.text === FIELD_TAG;
-          });
-          if (!hasFieldTag) {
+          if (!this.hasTag(node, FIELD_TAG)) {
             this.report(tag.tagName, E.killsParentOnExceptionOnWrongNode());
           }
           // TODO: Report invalid location as well
+          break;
+        }
+        case SPECIFIED_BY_TAG: {
+          if (!this.hasTag(node, SCALAR_TAG)) {
+            this.report(tag.tagName, E.specifiedByOnWrongNode());
+          }
           break;
         }
         default:
@@ -463,8 +467,17 @@ class Extractor {
     const description = this.collectDescription(node);
     this.recordTypeName(node.name, name, "SCALAR");
 
+    // TODO: Can a scalar be deprecated?
+
+    const specifiedByDirective = this.collectSpecifiedBy(node);
+
     this.definitions.push(
-      this.gql.scalarTypeDefinition(node, name, description),
+      this.gql.scalarTypeDefinition(
+        node,
+        name,
+        specifiedByDirective == null ? null : [specifiedByDirective],
+        description,
+      ),
     );
   }
 
@@ -1508,6 +1521,30 @@ class Extractor {
       tag.tagName,
       this.gql.name(node, DEPRECATED_TAG),
       reason == null ? null : [reason],
+    );
+  }
+
+  collectSpecifiedBy(node: ts.Node): ConstDirectiveNode | null {
+    const tag = this.findTag(node, SPECIFIED_BY_TAG);
+    if (tag == null) return null;
+    const urlComment = tag.comment && ts.getTextOfJSDocComment(tag.comment);
+    if (urlComment == null) {
+      return this.report(
+        tag,
+        "Expected @specifiedBy tag to be followed by a URL.",
+      );
+    }
+
+    // FIXME: Use the _value_'s location not the tag's
+    const reason = this.gql.constArgument(
+      tag,
+      this.gql.name(tag, "url"),
+      this.gql.string(tag, urlComment),
+    );
+    return this.gql.constDirective(
+      tag.tagName,
+      this.gql.name(node, SPECIFIED_BY_TAG),
+      [reason],
     );
   }
 

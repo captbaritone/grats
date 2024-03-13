@@ -1,0 +1,16 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * @gqlEnum
+ * @specifiedBy https://tools.ietf.org/html/rfc4122
+ */
+export type MyEnum = "A" | "B" | "C";
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/custom_scalars/SpecifiedByOnEnum.invalid.ts:3:5 - error: Unexpected `@specifiedBy` tag on non-scalar declaration. `@specifiedBy` can only be used on custom scalar declarations. Are you missing a `@gqlScalar` tag?
+
+3  * @specifiedBy https://tools.ietf.org/html/rfc4122
+      ~~~~~~~~~~~

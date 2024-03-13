@@ -1,0 +1,18 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * @gqlScalar
+ * @specifiedBy
+ */
+export type UUID = string;
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/custom_scalars/SpecifiedByMissingUrlinvalid.ts:3:4 - error: Expected @specifiedBy tag to be followed by a URL.
+
+3  * @specifiedBy
+     ~~~~~~~~~~~~
+4  */
+  ~
