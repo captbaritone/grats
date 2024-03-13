@@ -35,7 +35,7 @@ const DOC_URLS = {
  */
 
 export function fieldTagOnWrongNode() {
-  return `\`@${FIELD_TAG}\` can only be used on method/property declarations or signatures.`;
+  return `\`@${FIELD_TAG}\` can only be used on method/property declarations, signatures, or function declarations.`;
 }
 export function killsParentOnExceptionOnWrongNode() {
   return `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\`. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` can only be used in field annotation docblocks. Perhaps you are missing a \`@${FIELD_TAG}\` tag?`;
@@ -394,4 +394,12 @@ export function gqlTagInNonJSDocBlockComment() {
 
 export function gqlTagInDetachedJSDocBlockComment() {
   return `Unexpected Grats tag in detached docblock. Grats was unable to determine which TypeScript declaration this docblock is associated with. Moving the docblock to a position with is unambiguously "above" the relevant declaration may help. For more information see: ${DOC_URLS.commentSyntax}`;
+}
+
+export function gqlFieldTagOnInputType() {
+  return `The tag \`@${FIELD_TAG}\` is not needed on fields of input types. All fields are automatically included as part of the input type. This tag can be safely removed.`;
+}
+
+export function gqlFieldParentMissingTag() {
+  return `Unexpected \`@${FIELD_TAG}\`. The parent construct must be either a \`@${TYPE_TAG}\` or \`@${INTERFACE_TAG}\` tag. Are you missing one of these tags?`;
 }

@@ -146,19 +146,30 @@ class Extractor {
         case FIELD_TAG:
           if (ts.isFunctionDeclaration(node)) {
             this.functionDeclarationExtendType(node, tag);
-          } else if (
-            !(
-              ts.isParameter(node) ||
-              ts.isMethodDeclaration(node) ||
-              ts.isGetAccessorDeclaration(node) ||
-              ts.isPropertyDeclaration(node) ||
-              ts.isMethodSignature(node) ||
-              ts.isPropertySignature(node)
-            )
-          ) {
-            // Right now this happens via deep traversal
-            // Note: Keep this in sync with `collectFields`
-            this.reportUnhandled(node, "field", E.fieldTagOnWrongNode());
+          } else {
+            // Non-function fields must be defined as a decent of something that
+            // is annotated with @gqlType or @gqlInterface.
+            //
+            // The actual field will get extracted when we traverse the parent, but
+            // we need to report an error if the parent is not a valid type or is not
+            // annotated with @gqlType or @gqlInterface. Otherwise, the user may get
+            // confused as to why the field is not showing up in the schema.
+            const parent = getFieldParent(node);
+
+            // If there was no valid parent, report an error.
+            if (parent === null) {
+              this.reportUnhandled(node, "field", E.fieldTagOnWrongNode());
+            } else if (this.hasTag(parent, INPUT_TAG)) {
+              // You don't need to add `@gqlField` to input types, but it's an
+              // easy mistake to think you might need to. We report a helpful
+              // error in this case.
+              this.report(tag, E.gqlFieldTagOnInputType());
+            } else if (
+              !this.hasTag(parent, TYPE_TAG) &&
+              !this.hasTag(parent, INTERFACE_TAG)
+            ) {
+              this.report(tag, E.gqlFieldParentMissingTag());
+            }
           }
           break;
         case KILLS_PARENT_ON_EXCEPTION_TAG: {
@@ -1705,6 +1716,14 @@ class Extractor {
     return tags[0];
   }
 
+  hasTag(node: ts.Node, tagName: string): boolean {
+    const tags = ts
+      .getJSDocTags(node)
+      .filter((tag) => tag.tagName.escapedText === tagName);
+
+    return tags.length > 0;
+  }
+
   // It is a GraphQL best practice to model all fields as nullable. This allows
   // the server to handle field level executions by simply returning null for
   // that field.
@@ -1744,4 +1763,38 @@ function isCallable(
   node: ts.MethodDeclaration | ts.MethodSignature | ts.GetAccessorDeclaration,
 ): boolean {
   return ts.isMethodDeclaration(node) || ts.isMethodSignature(node);
+}
+
+// Given a node annotated as @gqlField, finds the parent node that is
+// expected to be annotated with @gqlType or @gqlInterface.
+//
+// Note that this is basically a reverse encoding of the traversal
+// we do from the @gqlType or @gqlInterface node to the fields.
+// This code needs to stay in sync with the traversal code, but should do so
+// safely since, if it doesn't match we'd end up with test errors.
+function getFieldParent(node: ts.Node): ts.Node | null {
+  if (
+    ts.isMethodDeclaration(node) ||
+    ts.isGetAccessorDeclaration(node) ||
+    ts.isPropertyDeclaration(node)
+  ) {
+    return node.parent;
+  } else if (ts.isParameter(node)) {
+    if (ts.isConstructorDeclaration(node.parent)) {
+      return node.parent.parent;
+    }
+    return null;
+  } else if (ts.isPropertySignature(node) || ts.isMethodSignature(node)) {
+    if (
+      ts.isTypeLiteralNode(node.parent) &&
+      ts.isTypeAliasDeclaration(node.parent.parent)
+    ) {
+      return node.parent.parent;
+    } else if (ts.isInterfaceDeclaration(node.parent)) {
+      return node.parent;
+    }
+    return null;
+  }
+
+  return null;
 }

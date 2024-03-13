@@ -11,7 +11,7 @@ class SomeType {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/field_definitions/FieldTagOnIncorrectNode.ts:3:3 - error: `@gqlField` can only be used on method/property declarations or signatures.
+src/tests/fixtures/field_definitions/FieldTagOnIncorrectNode.ts:3:3 - error: `@gqlField` can only be used on method/property declarations, signatures, or function declarations.
 
 If you think Grats should be able to infer this field, please report an issue at https://github.com/captbaritone/grats/issues.
 
