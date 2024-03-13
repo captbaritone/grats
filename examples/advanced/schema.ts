@@ -21,7 +21,7 @@ import { postLikes as subscriptionPostLikesResolver } from "./models/LikeConnect
 import { GraphQLSchema, GraphQLObjectType, GraphQLInt, GraphQLList, GraphQLNonNull, GraphQLString, GraphQLScalarType, GraphQLID, GraphQLInterfaceType, GraphQLBoolean, GraphQLInputObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const DateType: GraphQLScalarType = new GraphQLScalarType({
-        description: "A date and time. Serialized as a Unix timestamp.",
+        description: "A date and time. Serialized as a Unix timestamp.\n\n**Note**: The `@specifiedBy` directive does not point to a real spec, but is\nincluded here for demonstration purposes.",
         name: "Date"
     });
     const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({

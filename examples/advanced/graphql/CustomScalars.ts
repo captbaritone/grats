@@ -8,7 +8,12 @@ import { GraphQLScalarType, GraphQLSchema, Kind } from "graphql";
 /**
  * A date and time. Serialized as a Unix timestamp.
  *
- * @gqlScalar Date */
+ * **Note**: The `@specifiedBy` directive does not point to a real spec, but is
+ * included here for demonstration purposes.
+ *
+ * @gqlScalar Date
+ * @specifiedBy https://example.com/html/spec-for-date-as-unix-timestamp
+ */
 export type GqlDate = Date;
 
 // Grats does not yet have a built-in mechanism for defining the serialization and deserialization of
