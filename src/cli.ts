@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { Location } from "graphql";
+import { Location, parse } from "graphql";
 import { getParsedTsConfig } from "./";
 import {
   SchemaAndDoc,
@@ -9,13 +9,15 @@ import {
 } from "./lib";
 import { Command } from "commander";
 import { writeFileSync } from "fs";
-import { resolve, dirname } from "path";
+import { resolve, dirname, join } from "path";
 import { version } from "../package.json";
 import { locate } from "./Locate";
 import { printGratsSDL, printExecutableSchema } from "./printSchema";
 import * as ts from "typescript";
 import { ReportableDiagnostics } from "./utils/DiagnosticError";
 import { ConfigOptions, ParsedCommandLineGrats } from "./gratsConfig";
+import * as fs from "fs";
+import { queryCodegen } from "./queryCodegen";
 
 const program = new Command();
 
@@ -61,6 +63,47 @@ program
       process.exit(1);
     }
     console.log(formatLoc(loc.value));
+  });
+
+program
+  .command("persist")
+  .argument("<OPERATION_TEXT>", "Text of the GraphQL operation to persist")
+  .option(
+    "--tsconfig <TSCONFIG>",
+    "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",
+  )
+  .action((operationText, { tsconfig }) => {
+    const { config, configPath } = getTsConfigOrReportAndExit(tsconfig);
+
+    const schemaAndDocResult = buildSchemaAndDocResult(config);
+    if (schemaAndDocResult.kind === "ERROR") {
+      console.error(
+        schemaAndDocResult.err.formatDiagnosticsWithColorAndContext(),
+      );
+      process.exit(1);
+    }
+
+    if (operationText === "-") {
+      operationText = fs.readFileSync(0, "utf-8");
+    }
+
+    const doc = parse(operationText, { noLocation: true });
+
+    if (doc.definitions.length !== 1) {
+      throw new Error("Expected exactly one definition in the document");
+    }
+    if (doc.definitions[0].kind !== "OperationDefinition") {
+      throw new Error("Expected the definition to be an operation");
+    }
+    const name = doc.definitions[0].name?.value;
+
+    const destDir = resolve(dirname(configPath), `./persisted`);
+    const dest = join(destDir, `${name}.ts`);
+    const result = queryCodegen(config.raw.grats, configPath, dest, doc);
+
+    fs.mkdirSync(destDir, { recursive: true });
+    writeFileSync(dest, result);
+    console.error(`Grats: Wrote TypeScript operation to \`${dest}\`.`);
   });
 
 program.parse();
