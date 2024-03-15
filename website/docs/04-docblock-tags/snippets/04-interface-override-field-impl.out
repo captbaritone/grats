@@ -1,0 +1,68 @@
+/** @gqlInterface */
+interface Person {
+  /** @gqlField */
+  name: string;
+}
+
+/** @gqlType */
+class User implements Person {
+  __typename = "User";
+  name: string;
+
+  // highlight-start
+  /**
+   * For `User` this method will be used instead of the `name` property.
+   *
+   * @gqlField name
+   */
+  userSpecificName(): string {
+    return `User: this.name`;
+  }
+  // highlight-end
+}
+
+=== SNIP ===
+interface Person {
+  name: String
+}
+
+type User implements Person {
+  """For `User` this method will be used instead of the `name` property."""
+  name: String
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Person",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    description: "For `User` this method will be used instead of the `name` property.",
+                    name: "name",
+                    type: GraphQLString,
+                    resolve(source, args, context, info) {
+                        return source.userSpecificName(source, args, context, info);
+                    }
+                }
+            };
+        },
+        interfaces() {
+            return [PersonType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [PersonType, UserType]
+    });
+}

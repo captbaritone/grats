@@ -19,14 +19,11 @@ class User implements IPerson {
   name: string;
   /** @gqlField */
   hello: string;
-}
 
-/** @gqlType */
-class Admin implements IPerson {
-  __typename: "Admin";
-  name: string;
   /** @gqlField */
-  hello: string;
+  greeting(): string {
+    return `Hello ${this.name}!`;
+  }
 }
 
 -----------------
@@ -34,22 +31,15 @@ OUTPUT
 -----------------
 -- SDL --
 interface IPerson {
-  greeting: String @metadata(argCount: 1, name: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts")
-  hello: String @metadata
-}
-
-type Admin implements IPerson {
-  greeting: String @metadata(argCount: 1, name: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts")
+  greeting: String @metadata(argCount: 1, name: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/redefineFiledThatExistsOnConcreteType.ts")
   hello: String @metadata
 }
 
 type User implements IPerson {
-  greeting: String @metadata(argCount: 1, name: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts")
+  greeting: String @metadata(argCount: 0)
   hello: String @metadata
 }
 -- TypeScript --
-import { greeting as adminGreetingResolver } from "./addStringFieldToInterface";
-import { greeting as userGreetingResolver } from "./addStringFieldToInterface";
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
@@ -67,37 +57,13 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
-    const AdminType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Admin",
-        fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString,
-                    resolve(source) {
-                        return adminGreetingResolver(source);
-                    }
-                },
-                hello: {
-                    name: "hello",
-                    type: GraphQLString
-                }
-            };
-        },
-        interfaces() {
-            return [IPersonType];
-        }
-    });
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
             return {
                 greeting: {
                     name: "greeting",
-                    type: GraphQLString,
-                    resolve(source) {
-                        return userGreetingResolver(source);
-                    }
+                    type: GraphQLString
                 },
                 hello: {
                     name: "hello",
@@ -110,6 +76,6 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        types: [IPersonType, AdminType, UserType]
+        types: [IPersonType, UserType]
     });
 }

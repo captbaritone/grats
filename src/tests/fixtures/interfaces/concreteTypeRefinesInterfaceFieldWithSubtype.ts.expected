@@ -1,0 +1,60 @@
+-----------------
+INPUT
+----------------- 
+// { "nullableByDefault": false }
+/** @gqlInterface */
+interface IThing {
+  /** @gqlField */
+  name: string | null;
+}
+
+/** @gqlType */
+export class Doohickey implements IThing {
+  __typename: "Doohickey";
+  /** @gqlField */
+  name: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+interface IThing {
+  name: String @metadata
+}
+
+type Doohickey implements IThing {
+  name: String! @metadata
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType, GraphQLNonNull } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const IThingType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "IThing",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const DoohickeyType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Doohickey",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: new GraphQLNonNull(GraphQLString)
+                }
+            };
+        },
+        interfaces() {
+            return [IThingType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [IThingType, DoohickeyType]
+    });
+}

@@ -8,14 +8,12 @@ import {
   gqlRelated,
 } from "../utils/DiagnosticError";
 import { err, ok } from "../utils/Result";
-import { InterfaceMap, computeInterfaceMap } from "../InterfaceGraph";
 import { extend } from "../utils/helpers";
 import { FIELD_TAG } from "../Extractor";
 import {
   AbstractFieldDefinitionNode,
   GratsDefinitionNode,
 } from "../GraphQLConstructor";
-import { FIELD_METADATA_DIRECTIVE } from "../metadataDirectives";
 
 /**
  * Grats allows you to define GraphQL fields on TypeScript interfaces using
@@ -32,15 +30,9 @@ export function addInterfaceFields(
   const newDocs: DefinitionNode[] = [];
   const errors: ts.DiagnosticWithLocation[] = [];
 
-  const interfaceGraph = computeInterfaceMap(ctx, docs);
-
   for (const doc of docs) {
     if (doc.kind === "AbstractFieldDefinition") {
-      const abstractDocResults = addAbstractFieldDefinition(
-        ctx,
-        doc,
-        interfaceGraph,
-      );
+      const abstractDocResults = addAbstractFieldDefinition(ctx, doc);
       if (abstractDocResults.kind === "ERROR") {
         extend(errors, abstractDocResults.err);
       } else {
@@ -61,7 +53,6 @@ export function addInterfaceFields(
 function addAbstractFieldDefinition(
   ctx: TypeContext,
   doc: AbstractFieldDefinitionNode,
-  interfaceGraph: InterfaceMap,
 ): DiagnosticsResult<DefinitionNode[]> {
   const newDocs: DefinitionNode[] = [];
   const definitionResult = ctx.getNameDefinition(doc.onType);
@@ -74,7 +65,6 @@ function addAbstractFieldDefinition(
 
   switch (nameDefinition.kind) {
     case "TYPE":
-      // Extending a type, is just adding a field to it.
       newDocs.push({
         kind: Kind.OBJECT_TYPE_EXTENSION,
         name: doc.onType,
@@ -83,45 +73,11 @@ function addAbstractFieldDefinition(
       });
       break;
     case "INTERFACE": {
-      // Extending an interface is a bit more complicated. We need to add the field
-      // to the interface, and to each type that implements the interface.
-
-      // The interface field definition is not executable, so we don't
-      // need to annotate it with the details of the implementation.
-      const directives = doc.field.directives?.filter((directive) => {
-        return directive.name.value !== FIELD_METADATA_DIRECTIVE;
-      });
       newDocs.push({
         kind: Kind.INTERFACE_TYPE_EXTENSION,
         name: doc.onType,
-        fields: [{ ...doc.field, directives }],
+        fields: [doc.field],
       });
-
-      for (const implementor of interfaceGraph.get(nameDefinition.name.value)) {
-        const name = {
-          kind: Kind.NAME,
-          value: implementor.name,
-          loc: doc.loc, // Bit of a lie, but I don't see a better option.
-        } as const;
-        switch (implementor.kind) {
-          case "TYPE":
-            newDocs.push({
-              kind: Kind.OBJECT_TYPE_EXTENSION,
-              name,
-              fields: [doc.field],
-              loc: doc.loc,
-            });
-            break;
-          case "INTERFACE":
-            newDocs.push({
-              kind: Kind.INTERFACE_TYPE_EXTENSION,
-              name,
-              fields: [{ ...doc.field, directives }],
-              loc: doc.loc,
-            });
-            break;
-        }
-      }
       break;
     }
     default: {

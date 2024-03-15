@@ -24,7 +24,7 @@ OUTPUT
 -- SDL --
 interface IFoo {
   bar: String @metadata
-  greeting: String
+  greeting: String @metadata(argCount: 1, name: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_type/interfaceFirstArgumentType.ts")
 }
 
 type SomeType {
