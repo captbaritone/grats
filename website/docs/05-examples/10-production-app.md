@@ -2,6 +2,8 @@
 
 This example includes a relatively fully featured app to demonstrate how real-world applications can be built with Grats.
 
+**https://github.com/captbaritone/grats/tree/main/examples/production-app/**
+
 ## Features
 
 - [Node interface](https://graphql.org/learn/global-object-identification/)
@@ -24,5 +26,3 @@ The viewer context is passed all the way through the app to the data layer. This
 - `dataloader`
 - `@graphql-yoga/plugin-defer-stream`
 - `graphql-relay`
-
-https://github.com/captbaritone/grats/tree/main/examples/production-app/
