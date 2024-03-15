@@ -1,5 +1,5 @@
 {
-  "name": "grats-advanced-example",
+  "name": "grats-production-app-example",
   "version": "0.0.0",
   "description": "Example server showcasing Grats in a feature complete server",
   "main": "index.js",

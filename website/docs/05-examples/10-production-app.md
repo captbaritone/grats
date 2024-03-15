@@ -1,4 +1,4 @@
-# Advanced Example
+# Production App
 
 This example includes a relatively fully featured app to demonstrate how real-world applications can be built with Grats.
 
@@ -17,7 +17,12 @@ Dataloaders are attached to the per-request viewer context. This enables per-req
 
 The viewer context is passed all the way through the app to the data layer. This would enable permission checking to be defined as close to the data as possible.
 
-## Running the demo
+## Libraries used
 
-- `$ pnpm install`
-- `$ pnpm run start`
+- `graphql-yoga`
+- `graphql-js`
+- `dataloader`
+- `@graphql-yoga/plugin-defer-stream`
+- `graphql-relay`
+
+https://github.com/captbaritone/grats/tree/main/examples/production-app/

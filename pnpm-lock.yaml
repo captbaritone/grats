@@ -58,7 +58,7 @@ importers:
         specifier: ^10.9.1
         version: 10.9.1(@types/node@18.15.0)(typescript@5.0.2)
 
-  examples/advanced:
+  examples/production-app:
     dependencies:
       '@graphql-yoga/plugin-defer-stream':
         specifier: ^3.1.1
