@@ -100,35 +100,35 @@ class TemplateExtractor {
         template.declarationTemplate.name.value,
       ].join("");
 
-      this.expandTemplate(name, template, namedTypeArgs);
+      const definitionName = { ...node.name, value: name };
 
-      // TODO: LOC??
-      return {
-        kind: Kind.NAMED_TYPE,
-        name: { kind: Kind.NAME, value: name },
-      };
+      this.expandTemplate(definitionName, template, namedTypeArgs);
+
+      return { ...node, name: definitionName };
     }
     return node;
   }
 
-  expandTemplate(name: string, template: Template, typeArgs: NamedTypeNode[]) {
+  expandTemplate(
+    name: NameNode,
+    template: Template,
+    typeArgs: NamedTypeNode[],
+  ) {
+    if (this._definedTemplates.has(name.value)) {
+      return;
+    }
+    this._definedTemplates.add(name.value); // Add it right away to avoid infinite recursion.
+    const definition = { ...template.declarationTemplate, name };
     this._definitions.push(
-      visit(
-        {
-          ...template.declarationTemplate,
-          // TODO: LOC??
-          name: { kind: Kind.NAME, value: name },
+      visit(definition, {
+        [Kind.NAMED_TYPE]: (node) => {
+          const genericIndex = template.genericNodes.get(node);
+          if (genericIndex != null) {
+            return typeArgs[genericIndex];
+          }
+          return node;
         },
-        {
-          [Kind.NAMED_TYPE]: (node) => {
-            const genericIndex = template.genericNodes.get(node);
-            if (genericIndex != null) {
-              return typeArgs[genericIndex];
-            }
-            return node;
-          },
-        },
-      ),
+      }),
     );
   }
 

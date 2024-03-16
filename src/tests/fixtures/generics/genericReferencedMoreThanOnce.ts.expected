@@ -22,6 +22,8 @@ export type Page = {
 export type SomeType = {
   /** @gqlField */
   pageResult: Result<Page>;
+  /** @gqlField */
+  alsoPageResult: Result<Page>;
 };
 
 -----------------
@@ -39,6 +41,7 @@ type Page {
 }
 
 type SomeType {
+  alsoPageResult: PageResult @metadata
   pageResult: PageResult @metadata
 }
 -- TypeScript --
@@ -76,6 +79,10 @@ export function getSchema(): GraphQLSchema {
         name: "SomeType",
         fields() {
             return {
+                alsoPageResult: {
+                    name: "alsoPageResult",
+                    type: PageResultType
+                },
                 pageResult: {
                     name: "pageResult",
                     type: PageResultType
