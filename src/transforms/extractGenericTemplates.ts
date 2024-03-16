@@ -69,7 +69,7 @@ class TemplateExtractor {
 
     if (template != null) {
       return this.canonicalizeGenericTypeReference(
-        referenceNode.typeArguments,
+        this.covertTsTypeArgsToGraphQLNames(referenceNode.typeArguments),
         template,
         node,
       );
@@ -79,13 +79,32 @@ class TemplateExtractor {
 
   private canonicalizeGenericTypeReference(
     // The type arguments passed to this generic type
-    typeArguments: ts.NodeArray<ts.TypeNode>,
+    namedTypeArgs: NamedTypeNode[],
     // The template for this generic type
     template: Template,
     // The type node that is defined with a generic type
     node: NamedTypeNode,
   ): NamedTypeNode {
-    const namedTypeArgs: NamedTypeNode[] = typeArguments.map((arg) => {
+    const name = [
+      ...namedTypeArgs.map((node) => node.name.value),
+      template.declarationTemplate.name.value,
+    ].join("");
+
+    const definitionName = { ...node.name, value: name };
+
+    this.expandTemplate(definitionName, template, namedTypeArgs);
+
+    return { ...node, name: definitionName };
+  }
+
+  private covertTsTypeArgsToGraphQLNames(
+    typeArguments: ts.NodeArray<ts.TypeNode>,
+    templateContext?: {
+      template: Template;
+      typeArgs: NamedTypeNode[];
+    },
+  ): NamedTypeNode[] {
+    return typeArguments.map((arg) => {
       if (!ts.isTypeReferenceNode(arg)) {
         throw new Error(`Expected type reference node, got ${arg.kind}`);
       }
@@ -101,23 +120,20 @@ class TemplateExtractor {
       if (this._templates.has(declaration)) {
         throw new Error("TODO: Template referenced as type argument");
       }
+      if (templateContext != null) {
+        const genericIndex = templateContext.template.genericNodes.get(
+          arg.typeName,
+        );
+        if (genericIndex != null) {
+          return templateContext.typeArgs[genericIndex];
+        }
+      }
       const nameDefinition = this.ctx._symbolToName.get(symbol);
       if (nameDefinition == null) {
         throw new Error(`Could not find name for symbol ${symbol.name}`);
       }
       return { kind: Kind.NAMED_TYPE, name: nameDefinition.name };
     });
-
-    const name = [
-      ...namedTypeArgs.map((node) => node.name.value),
-      template.declarationTemplate.name.value,
-    ].join("");
-
-    const definitionName = { ...node.name, value: name };
-
-    this.expandTemplate(definitionName, template, namedTypeArgs);
-
-    return { ...node, name: definitionName };
   }
 
   expandTemplate(
@@ -133,31 +149,47 @@ class TemplateExtractor {
     this._definitions.push(
       visit(definition, {
         [Kind.NAMED_TYPE]: (node) => {
+          // The TS type reference node used to define this type.
           const referenceNode = this.getReferenceNode(node.name);
           if (referenceNode == null) {
             return;
           }
+          // The genericNodes map allows us to looking TS type references and
+          // see if they point to a generic.
           const genericIndex = template.genericNodes.get(
             referenceNode.typeName,
           );
           if (genericIndex != null) {
+            // This is a reference to a generic type. We are currently expanding
+            // a template with a set of pre-resolved generics, so we just look up
+            // which generic type this reference is and return the corresponding
             return typeArgs[genericIndex];
           }
+
+          // This type is not a generic itself, but it may reference a template
 
           const declaration = this.resolveToDeclaration(referenceNode.typeName);
 
           const t = this._templates.get(declaration);
           if (t != null) {
-            throw new Error("TODO: Template referenced as type argument");
+            // This is a template! So we need to expand it.
+            // What are the type arguments to this template?
             if (referenceNode.typeArguments == null) {
               throw new Error(
                 "Expected type arguments when expanding template",
               );
             }
+
+            // We need to construct the set of GraphQL type nodes that this
+            // template will be expanded with.
+
             return this.canonicalizeGenericTypeReference(
               // We can't pass these here, because they may reference generic
               // types on the template we are currently expanding.
-              referenceNode.typeArguments,
+              this.covertTsTypeArgsToGraphQLNames(referenceNode.typeArguments, {
+                template: template,
+                typeArgs,
+              }), //namedTypeArgs,
               t,
               node,
             );
