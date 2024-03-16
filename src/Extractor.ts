@@ -60,7 +60,7 @@ type ArgDefaults = Map<string, ts.Expression>;
 
 export type ExtractionSnapshot = {
   readonly definitions: GratsDefinitionNode[];
-  readonly unresolvedNames: Map<ts.Node, NameNode>;
+  readonly unresolvedNames: Map<ts.TypeReferenceNode, NameNode>;
   readonly nameDefinitions: Map<ts.Node, NameDefinition>;
   readonly contextReferences: Array<ts.Node>;
   readonly typesWithTypename: Set<string>;
@@ -92,7 +92,7 @@ class Extractor {
   definitions: GratsDefinitionNode[] = [];
 
   // Snapshot data
-  unresolvedNames: Map<ts.Node, NameNode> = new Map();
+  unresolvedNames: Map<ts.TypeReferenceNode, NameNode> = new Map();
   nameDefinitions: Map<ts.Node, NameDefinition> = new Map();
   contextReferences: Array<ts.Node> = [];
   typesWithTypename: Set<string> = new Set();
@@ -105,7 +105,7 @@ class Extractor {
     this.gql = new GraphQLConstructor();
   }
 
-  markUnresolvedType(node: ts.Node, name: NameNode) {
+  markUnresolvedType(node: ts.TypeReferenceNode, name: NameNode) {
     this.unresolvedNames.set(node, name);
   }
 
@@ -335,7 +335,7 @@ class Extractor {
         member.typeName,
         UNRESOLVED_REFERENCE_NAME,
       );
-      this.markUnresolvedType(member.typeName, namedType.name);
+      this.markUnresolvedType(member, namedType.name);
       types.push(namedType);
     }
 
@@ -432,9 +432,11 @@ class Extractor {
       return this.report(typeParam.type, E.functionFieldParentTypeNotValid());
     }
 
-    const nameNode = typeParam.type.typeName;
-    const typeName = this.gql.name(nameNode, UNRESOLVED_REFERENCE_NAME);
-    this.markUnresolvedType(nameNode, typeName);
+    const typeName = this.gql.name(
+      typeParam.type.typeName,
+      UNRESOLVED_REFERENCE_NAME,
+    );
+    this.markUnresolvedType(typeParam.type, typeName);
     return typeName;
   }
 
@@ -827,7 +829,9 @@ class Extractor {
       .flatMap((clause): Array<NamedTypeNode | null> => {
         return clause.types
           .map((type) => type.expression)
-          .filter((expression) => ts.isIdentifier(expression))
+          .filter((expression): expression is ts.Identifier =>
+            ts.isIdentifier(expression),
+          )
           .map((expression) => {
             const namedType = this.gql.namedType(
               expression,
@@ -1705,7 +1709,7 @@ class Extractor {
         //
         // A later pass will resolve the type.
         const namedType = this.gql.namedType(node, UNRESOLVED_REFERENCE_NAME);
-        this.markUnresolvedType(node.typeName, namedType.name);
+        this.markUnresolvedType(node, namedType.name);
         return this.gql.nonNullType(node, namedType);
       }
     }

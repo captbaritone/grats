@@ -29,9 +29,10 @@ import {
   InputObjectTypeDefinitionNode,
   EnumTypeDefinitionNode,
   InterfaceTypeDefinitionNode,
-  DefinitionNode,
   Location,
   ASTNode,
+  TypeSystemDefinitionNode,
+  TypeSystemExtensionNode,
 } from "graphql";
 import * as ts from "typescript";
 import {
@@ -45,7 +46,10 @@ import {
 // Grats can't always extract an SDL AST node right away. In some cases, it
 // needs to extract something abstract which can only be converted into an SDL
 // AST after the whole program has been analyzed.
-export type GratsDefinitionNode = DefinitionNode | AbstractFieldDefinitionNode;
+export type GratsDefinitionNode =
+  | TypeSystemDefinitionNode
+  | TypeSystemExtensionNode
+  | AbstractFieldDefinitionNode;
 
 // A field definition that applies to some construct. We don't yet know if it applies to
 // a concrete type, or an interface.

@@ -31,6 +31,7 @@ import { applyDefaultNullability } from "./transforms/applyDefaultNullability";
 import { mergeExtensions } from "./transforms/mergeExtensions";
 import { sortSchemaAst } from "./transforms/sortSchemaAst";
 import { validateSemanticNullability } from "./validations/validateSemanticNullability";
+import { extractGenericTemplates } from "./transforms/extractGenericTemplates";
 export { initTsPlugin } from "./tsPlugin/initTsPlugin";
 
 export type SchemaAndDoc = {
@@ -92,6 +93,7 @@ export function extractSchemaAndDoc(
         // Add the metadata directive definitions to definitions
         // found in the snapshot.
         .map(() => addMetadataDirectives(snapshot.definitions))
+        .map((definitions) => extractGenericTemplates(ctx, definitions))
         // If you define a field on an interface using the functional style, we need to add
         // that field to each concrete type as well. This must be done after all types are created,
         // but before we validate the schema.

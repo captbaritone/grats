@@ -33,7 +33,9 @@ export class TypeContext {
   checker: ts.TypeChecker;
 
   _symbolToName: Map<ts.Symbol, NameDefinition> = new Map();
+  _nameToSymbol: Map<NameNode, ts.Symbol> = new Map();
   _unresolvedTypes: Map<NameNode, ts.Symbol> = new Map();
+  _unresolvedNodes: Map<NameNode, ts.TypeReferenceNode> = new Map();
 
   static fromSnapshot(
     checker: ts.TypeChecker,
@@ -67,12 +69,14 @@ export class TypeContext {
       // Ensure we never try to record the same name twice.
       throw new Error("Unexpected double recording of typename.");
     }
+    this._nameToSymbol.set(name, symbol);
     this._symbolToName.set(symbol, { name, kind });
   }
 
   // Record that a type reference `node`
-  _markUnresolvedType(node: ts.Node, name: NameNode) {
-    const symbol = this.checker.getSymbolAtLocation(node);
+  _markUnresolvedType(node: ts.TypeReferenceNode, name: NameNode) {
+    const entityName = node.typeName;
+    const symbol = this.checker.getSymbolAtLocation(entityName);
     if (symbol == null) {
       //
       throw new Error(
@@ -80,6 +84,7 @@ export class TypeContext {
       );
     }
 
+    this._unresolvedNodes.set(name, node);
     this._unresolvedTypes.set(name, this.resolveSymbol(symbol));
   }
 
