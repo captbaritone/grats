@@ -8,6 +8,8 @@ import {
 import { GratsDefinitionNode } from "../GraphQLConstructor";
 import { TypeContext } from "../TypeContext";
 import * as ts from "typescript";
+import { err, ok } from "../utils/Result";
+import { DiagnosticsResult, tsErr } from "../utils/DiagnosticError";
 
 type Template = {
   declarationTemplate: TypeDefinitionNode;
@@ -18,16 +20,22 @@ type Template = {
 export function extractGenericTemplates(
   ctx: TypeContext,
   definitions: Array<GratsDefinitionNode>,
-): Array<GratsDefinitionNode> {
+): DiagnosticsResult<GratsDefinitionNode[]> {
   const templateExtractor = new TemplateExtractor(ctx);
   const filtered = templateExtractor.extractGenericTemplates(definitions);
-  return templateExtractor.materializeGenericTypeReferences(filtered);
+  const newDefinitions =
+    templateExtractor.materializeGenericTypeReferences(filtered);
+  if (templateExtractor._errors.length > 0) {
+    return err(templateExtractor._errors);
+  }
+  return ok(newDefinitions);
 }
 
 class TemplateExtractor {
   _templates: Map<ts.Node, Template> = new Map();
   _definitions: Array<GratsDefinitionNode> = [];
   _definedTemplates: Set<string> = new Set();
+  _errors: ts.DiagnosticWithLocation[] = [];
   constructor(private ctx: TypeContext) {}
 
   materializeGenericTypeReferences(
@@ -50,7 +58,7 @@ class TemplateExtractor {
   // If a node is a generic type, ensure the type is materialized and derive the canonical name.
   discoverGenericTypeReferencesInDefinition(
     node: NamedTypeNode,
-  ): NamedTypeNode {
+  ): NamedTypeNode | null {
     const referenceNode = this.getReferenceNode(node.name);
     if (referenceNode == null || referenceNode.typeArguments == null) {
       return node;
@@ -64,11 +72,11 @@ class TemplateExtractor {
       return node;
     }
 
-    return this.materializeGenericType(
-      this.covertTsTypeArgsToGraphQLNames(referenceNode.typeArguments),
-      template,
-      node,
+    const args = this.covertTsTypeArgsToGraphQLNames(
+      referenceNode.typeArguments,
     );
+    if (args == null) return null;
+    return this.materializeGenericType(args, template, node);
   }
 
   materializeGenericType(
@@ -94,10 +102,14 @@ class TemplateExtractor {
       template: Template;
       typeArgs: NamedTypeNode[];
     },
-  ): NamedTypeNode[] {
-    return typeArguments.map((arg) => {
-      return this.convertTsTypeToGraphQLName(arg, templateContext);
-    });
+  ): NamedTypeNode[] | null {
+    const graphQLNames: NamedTypeNode[] = [];
+    for (const arg of typeArguments) {
+      const gqlName = this.convertTsTypeToGraphQLName(arg, templateContext);
+      if (gqlName == null) return null;
+      graphQLNames.push(gqlName);
+    }
+    return graphQLNames;
   }
 
   convertTsTypeToGraphQLName(
@@ -106,9 +118,9 @@ class TemplateExtractor {
       template: Template;
       typeArgs: NamedTypeNode[];
     },
-  ): NamedTypeNode {
+  ): NamedTypeNode | null {
     if (!ts.isTypeReferenceNode(arg)) {
-      throw new Error(`Expected type reference node, got ${arg.kind}`);
+      return this.report(arg, E.invalidTypePassedAsGqlGeneric());
     }
 
     const symbol = this.ctx.checker.getSymbolAtLocation(arg.typeName);
@@ -128,6 +140,7 @@ class TemplateExtractor {
         arg.typeArguments,
         templateContext,
       );
+      if (tArgs == null) return null;
       // TODO: NEED LOCS
       return this.materializeGenericType(tArgs, t, {
         kind: Kind.NAMED_TYPE,
@@ -199,14 +212,20 @@ class TemplateExtractor {
 
             // We need to construct the set of GraphQL type nodes that this
             // template will be expanded with.
+            const args = this.covertTsTypeArgsToGraphQLNames(
+              referenceNode.typeArguments,
+              {
+                template: template,
+                typeArgs,
+              },
+            );
+
+            if (args == null) return null;
 
             return this.materializeGenericType(
               // We can't pass these here, because they may reference generic
               // types on the template we are currently expanding.
-              this.covertTsTypeArgsToGraphQLNames(referenceNode.typeArguments, {
-                template: template,
-                typeArgs,
-              }), //namedTypeArgs,
+              args,
               t,
               node,
             );
@@ -325,4 +344,16 @@ class TemplateExtractor {
     }
     return tsNode;
   }
+
+  report(node: ts.Node, message: string): null {
+    this._errors.push(tsErr(node, message));
+    return null;
+  }
 }
+
+const E = {
+  invalidTypePassedAsGqlGeneric(): string {
+    // TODO: Refine this message
+    return "Invalid type passed as a generic argument to a GraphQL type.";
+  },
+};

@@ -93,7 +93,7 @@ export function extractSchemaAndDoc(
         // Add the metadata directive definitions to definitions
         // found in the snapshot.
         .map(() => addMetadataDirectives(snapshot.definitions))
-        .map((definitions) => extractGenericTemplates(ctx, definitions))
+        .andThen((definitions) => extractGenericTemplates(ctx, definitions))
         // If you define a field on an interface using the functional style, we need to add
         // that field to each concrete type as well. This must be done after all types are created,
         // but before we validate the schema.
