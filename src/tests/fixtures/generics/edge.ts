@@ -4,8 +4,6 @@ type Page = {
   name: string;
 };
 
-type F<V> = V;
-
 /** @gqlType */
 type Edge<T> = {
   /** @gqlField */
