@@ -36,9 +36,7 @@ class TemplateExtractor {
     filtered.forEach((definition) => {
       if (definition.kind !== "AbstractFieldDefinition") {
         const interpolated = visit(definition, {
-          [Kind.NAMED_TYPE]: (node) => {
-            return this.maybeMaterializeType(node);
-          },
+          [Kind.NAMED_TYPE]: (node) => this.maybeCanonicalize(node),
         });
         this._definitions.push(interpolated);
       } else {
@@ -49,7 +47,7 @@ class TemplateExtractor {
   }
 
   // If a node is a generic type, ensure the type is materialized and derive the canonical name.
-  maybeMaterializeType(node: NamedTypeNode): NamedTypeNode {
+  maybeCanonicalize(node: NamedTypeNode): NamedTypeNode {
     const referenceNode = this.getReferenceNode(node.name);
     if (referenceNode == null || referenceNode.typeArguments == null) {
       return node;
@@ -70,43 +68,53 @@ class TemplateExtractor {
     const template = this._templates.get(declaration);
 
     if (template != null) {
-      const namedTypeArgs: NamedTypeNode[] = referenceNode.typeArguments.map(
-        (arg) => {
-          if (!ts.isTypeReferenceNode(arg)) {
-            throw new Error(`Expected type reference node, got ${arg.kind}`);
-          }
-
-          const symbol = this.ctx.checker.getSymbolAtLocation(arg.typeName);
-          if (!symbol) {
-            throw new Error(`Could not find symbol for ${arg.getText()}`);
-          }
-          const declaration = this.ctx.findSymbolDeclaration(symbol);
-          if (declaration == null) {
-            throw new Error(`Could not find declaration for ${arg.getText()}`);
-          }
-          if (this._templates.has(declaration)) {
-            throw new Error("TODO: Template referenced as type argument");
-          }
-          const nameDefinition = this.ctx._symbolToName.get(symbol);
-          if (nameDefinition == null) {
-            throw new Error(`Could not find name for symbol ${symbol.name}`);
-          }
-          return { kind: Kind.NAMED_TYPE, name: nameDefinition.name };
-        },
+      return this.canonicalizeGenericTypeReference(
+        referenceNode.typeArguments,
+        template,
+        node,
       );
-
-      const name = [
-        ...namedTypeArgs.map((node) => node.name.value),
-        template.declarationTemplate.name.value,
-      ].join("");
-
-      const definitionName = { ...node.name, value: name };
-
-      this.expandTemplate(definitionName, template, namedTypeArgs);
-
-      return { ...node, name: definitionName };
     }
     return node;
+  }
+
+  private canonicalizeGenericTypeReference(
+    typeArguments: ts.NodeArray<ts.TypeNode>,
+    template: Template,
+    node: NamedTypeNode,
+  ): NamedTypeNode {
+    const namedTypeArgs: NamedTypeNode[] = typeArguments.map((arg) => {
+      if (!ts.isTypeReferenceNode(arg)) {
+        throw new Error(`Expected type reference node, got ${arg.kind}`);
+      }
+
+      const symbol = this.ctx.checker.getSymbolAtLocation(arg.typeName);
+      if (!symbol) {
+        throw new Error(`Could not find symbol for ${arg.getText()}`);
+      }
+      const declaration = this.ctx.findSymbolDeclaration(symbol);
+      if (declaration == null) {
+        throw new Error(`Could not find declaration for ${arg.getText()}`);
+      }
+      if (this._templates.has(declaration)) {
+        throw new Error("TODO: Template referenced as type argument");
+      }
+      const nameDefinition = this.ctx._symbolToName.get(symbol);
+      if (nameDefinition == null) {
+        throw new Error(`Could not find name for symbol ${symbol.name}`);
+      }
+      return { kind: Kind.NAMED_TYPE, name: nameDefinition.name };
+    });
+
+    const name = [
+      ...namedTypeArgs.map((node) => node.name.value),
+      template.declarationTemplate.name.value,
+    ].join("");
+
+    const definitionName = { ...node.name, value: name };
+
+    this.expandTemplate(definitionName, template, namedTypeArgs);
+
+    return { ...node, name: definitionName };
   }
 
   expandTemplate(
@@ -178,12 +186,6 @@ class TemplateExtractor {
     if (name.value !== "__UNRESOLVED_REFERENCE__") {
       return null;
     }
-
-    // Get the TS Node for this name.
-    // Get the name (n1) of this node
-    // Get the symbol for n1
-
-    // This is the type reference used in the definition.
     const tsNode = this.ctx._unresolvedNodes.get(name);
     if (!tsNode) {
       throw new Error(`Could not find type node for ${name.value}`);
@@ -195,33 +197,31 @@ class TemplateExtractor {
     definition: TypeDefinitionNode,
     generics: ts.NodeArray<ts.TypeParameterDeclaration>,
   ): Template | null {
-    let referencesGeneric = false;
     const genericNodes = new Map<NamedTypeNode, number>();
-    const declarationTemplate = visit(definition, {
+    visit(definition, {
       [Kind.NAMED_TYPE]: (node) => {
         const referenceNode = this.getReferenceNode(node.name);
         if (referenceNode == null) {
-          return node;
+          return;
         }
         const declaration = this.resolveToDeclaration(referenceNode.typeName);
 
         // If the type points to a type param...
-        if (ts.isTypeParameterDeclaration(declaration)) {
-          // And it's one of our parent type's type params...
-          const genericIndex = generics.indexOf(declaration);
-          if (genericIndex !== -1) {
-            genericNodes.set(node, genericIndex);
-
-            referencesGeneric = true;
-          }
+        if (!ts.isTypeParameterDeclaration(declaration)) {
+          return;
+        }
+        // And it's one of our parent type's type params...
+        const genericIndex = generics.indexOf(declaration);
+        if (genericIndex !== -1) {
+          genericNodes.set(node, genericIndex);
         }
       },
     });
-    if (!referencesGeneric) {
+    if (genericNodes.size === 0) {
       return null;
     }
     return {
-      declarationTemplate,
+      declarationTemplate: definition,
       genericNodes,
       generics: generics,
     };
