@@ -117,7 +117,22 @@ class TemplateExtractor {
       if (declaration == null) {
         throw new Error(`Could not find declaration for ${arg.getText()}`);
       }
-      if (this._templates.has(declaration)) {
+      const t = this._templates.get(declaration);
+      if (t != null) {
+        if (arg.typeArguments == null) {
+          throw new Error("Expected type arguments when expanding template");
+        }
+        const tArgs = this.covertTsTypeArgsToGraphQLNames(
+          arg.typeArguments,
+          templateContext,
+        );
+        return this.canonicalizeGenericTypeReference(tArgs, t, {
+          kind: Kind.NAMED_TYPE,
+          name: {
+            kind: Kind.NAME,
+            value: t.declarationTemplate.name.value,
+          },
+        });
         throw new Error("TODO: Template referenced as type argument");
       }
       if (templateContext != null) {
