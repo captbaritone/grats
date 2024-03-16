@@ -11,7 +11,7 @@ import * as ts from "typescript";
 
 type Template = {
   declarationTemplate: TypeDefinitionNode;
-  genericNodes: Map<NamedTypeNode, number>;
+  genericNodes: Map<ts.EntityName, number>;
   generics: ts.NodeArray<ts.TypeParameterDeclaration>;
 };
 
@@ -78,8 +78,11 @@ class TemplateExtractor {
   }
 
   private canonicalizeGenericTypeReference(
+    // The type arguments passed to this generic type
     typeArguments: ts.NodeArray<ts.TypeNode>,
+    // The template for this generic type
     template: Template,
+    // The type node that is defined with a generic type
     node: NamedTypeNode,
   ): NamedTypeNode {
     const namedTypeArgs: NamedTypeNode[] = typeArguments.map((arg) => {
@@ -130,10 +133,36 @@ class TemplateExtractor {
     this._definitions.push(
       visit(definition, {
         [Kind.NAMED_TYPE]: (node) => {
-          const genericIndex = template.genericNodes.get(node);
+          const referenceNode = this.getReferenceNode(node.name);
+          if (referenceNode == null) {
+            return;
+          }
+          const genericIndex = template.genericNodes.get(
+            referenceNode.typeName,
+          );
           if (genericIndex != null) {
             return typeArgs[genericIndex];
           }
+
+          const declaration = this.resolveToDeclaration(referenceNode.typeName);
+
+          const t = this._templates.get(declaration);
+          if (t != null) {
+            throw new Error("TODO: Template referenced as type argument");
+            if (referenceNode.typeArguments == null) {
+              throw new Error(
+                "Expected type arguments when expanding template",
+              );
+            }
+            return this.canonicalizeGenericTypeReference(
+              // We can't pass these here, because they may reference generic
+              // types on the template we are currently expanding.
+              referenceNode.typeArguments,
+              t,
+              node,
+            );
+          }
+
           return node;
         },
       }),
@@ -197,34 +226,41 @@ class TemplateExtractor {
     definition: TypeDefinitionNode,
     generics: ts.NodeArray<ts.TypeParameterDeclaration>,
   ): Template | null {
-    const genericNodes = new Map<NamedTypeNode, number>();
+    const genericNodes = new Map<ts.EntityName, number>();
+
+    const maybeGeneric = (node: ts.TypeReferenceNode) => {
+      if (node.typeArguments != null) {
+        for (const arg of node.typeArguments) {
+          if (ts.isTypeReferenceNode(arg)) {
+            maybeGeneric(arg);
+          }
+        }
+      }
+      const declaration = this.resolveToDeclaration(node.typeName);
+
+      // If the type points to a type param...
+      if (!ts.isTypeParameterDeclaration(declaration)) {
+        return;
+      }
+      // And it's one of our parent type's type params...
+      const genericIndex = generics.indexOf(declaration);
+      if (genericIndex !== -1) {
+        genericNodes.set(node.typeName, genericIndex);
+      }
+    };
     visit(definition, {
       [Kind.NAMED_TYPE]: (node) => {
         const referenceNode = this.getReferenceNode(node.name);
         if (referenceNode == null) {
           return;
         }
-        const declaration = this.resolveToDeclaration(referenceNode.typeName);
-
-        // If the type points to a type param...
-        if (!ts.isTypeParameterDeclaration(declaration)) {
-          return;
-        }
-        // And it's one of our parent type's type params...
-        const genericIndex = generics.indexOf(declaration);
-        if (genericIndex !== -1) {
-          genericNodes.set(node, genericIndex);
-        }
+        maybeGeneric(referenceNode);
       },
     });
     if (genericNodes.size === 0) {
       return null;
     }
-    return {
-      declarationTemplate: definition,
-      genericNodes,
-      generics: generics,
-    };
+    return { declarationTemplate: definition, genericNodes, generics };
   }
 
   resolveToDeclaration(node: ts.Node): ts.Declaration {
