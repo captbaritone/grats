@@ -21,7 +21,7 @@ export function extractGenericTemplates(
 ): Array<GratsDefinitionNode> {
   const templateExtractor = new TemplateExtractor(ctx);
   const filtered = templateExtractor.extractGenericTemplates(definitions);
-  return templateExtractor.expandFromTemplates(filtered);
+  return templateExtractor.materializeGenericTypeReferences(filtered);
 }
 
 class TemplateExtractor {
@@ -30,13 +30,14 @@ class TemplateExtractor {
   _definedTemplates: Set<string> = new Set();
   constructor(private ctx: TypeContext) {}
 
-  expandFromTemplates(
+  materializeGenericTypeReferences(
     filtered: Array<GratsDefinitionNode>,
   ): Array<GratsDefinitionNode> {
     filtered.forEach((definition) => {
       if (definition.kind !== "AbstractFieldDefinition") {
         const interpolated = visit(definition, {
-          [Kind.NAMED_TYPE]: (node) => this.maybeCanonicalize(node),
+          [Kind.NAMED_TYPE]: (node) =>
+            this.discoverGenericTypeReferencesInDefinition(node),
         });
         this._definitions.push(interpolated);
       } else {
@@ -47,7 +48,9 @@ class TemplateExtractor {
   }
 
   // If a node is a generic type, ensure the type is materialized and derive the canonical name.
-  maybeCanonicalize(node: NamedTypeNode): NamedTypeNode {
+  discoverGenericTypeReferencesInDefinition(
+    node: NamedTypeNode,
+  ): NamedTypeNode {
     const referenceNode = this.getReferenceNode(node.name);
     if (referenceNode == null || referenceNode.typeArguments == null) {
       return node;
@@ -57,22 +60,20 @@ class TemplateExtractor {
 
     const template = this._templates.get(declaration);
 
-    if (template != null) {
-      return this.canonicalizeGenericTypeReference(
-        this.covertTsTypeArgsToGraphQLNames(referenceNode.typeArguments),
-        template,
-        node,
-      );
+    if (template == null) {
+      return node;
     }
-    return node;
+
+    return this.materializeGenericType(
+      this.covertTsTypeArgsToGraphQLNames(referenceNode.typeArguments),
+      template,
+      node,
+    );
   }
 
-  private canonicalizeGenericTypeReference(
-    // The type arguments passed to this generic type
+  materializeGenericType(
     namedTypeArgs: NamedTypeNode[],
-    // The template for this generic type
     template: Template,
-    // The type node that is defined with a generic type
     node: NamedTypeNode,
   ): NamedTypeNode {
     const name = [
@@ -82,7 +83,7 @@ class TemplateExtractor {
 
     const definitionName = { ...node.name, value: name };
 
-    this.expandTemplate(definitionName, template, namedTypeArgs);
+    this.materializeTemplate(definitionName, template, namedTypeArgs);
 
     return { ...node, name: definitionName };
   }
@@ -128,7 +129,7 @@ class TemplateExtractor {
         templateContext,
       );
       // TODO: NEED LOCS
-      return this.canonicalizeGenericTypeReference(tArgs, t, {
+      return this.materializeGenericType(tArgs, t, {
         kind: Kind.NAMED_TYPE,
         name: {
           kind: Kind.NAME,
@@ -152,7 +153,7 @@ class TemplateExtractor {
     return { kind: Kind.NAMED_TYPE, name: nameDefinition.name };
   }
 
-  expandTemplate(
+  materializeTemplate(
     name: NameNode,
     template: Template,
     typeArgs: NamedTypeNode[],
@@ -199,7 +200,7 @@ class TemplateExtractor {
             // We need to construct the set of GraphQL type nodes that this
             // template will be expanded with.
 
-            return this.canonicalizeGenericTypeReference(
+            return this.materializeGenericType(
               // We can't pass these here, because they may reference generic
               // types on the template we are currently expanding.
               this.covertTsTypeArgsToGraphQLNames(referenceNode.typeArguments, {
