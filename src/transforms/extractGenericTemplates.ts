@@ -53,17 +53,7 @@ class TemplateExtractor {
       return node;
     }
 
-    const symbol = this.ctx.checker.getSymbolAtLocation(referenceNode.typeName);
-
-    if (!symbol) {
-      throw new Error(`Could not find type symbol for ${node.name.value}`);
-    }
-
-    // This is where the type reference is declared.
-    const declaration = this.ctx.findSymbolDeclaration(symbol);
-    if (!declaration) {
-      throw new Error(`Could not find declaration for ${node.name.value}`);
-    }
+    const declaration = this.resolveToDeclaration(referenceNode.typeName);
 
     const template = this._templates.get(declaration);
 
@@ -105,50 +95,61 @@ class TemplateExtractor {
     },
   ): NamedTypeNode[] {
     return typeArguments.map((arg) => {
-      if (!ts.isTypeReferenceNode(arg)) {
-        throw new Error(`Expected type reference node, got ${arg.kind}`);
-      }
-
-      const symbol = this.ctx.checker.getSymbolAtLocation(arg.typeName);
-      if (!symbol) {
-        throw new Error(`Could not find symbol for ${arg.getText()}`);
-      }
-      const declaration = this.ctx.findSymbolDeclaration(symbol);
-      if (declaration == null) {
-        throw new Error(`Could not find declaration for ${arg.getText()}`);
-      }
-      const t = this._templates.get(declaration);
-      if (t != null) {
-        if (arg.typeArguments == null) {
-          throw new Error("Expected type arguments when expanding template");
-        }
-        const tArgs = this.covertTsTypeArgsToGraphQLNames(
-          arg.typeArguments,
-          templateContext,
-        );
-        return this.canonicalizeGenericTypeReference(tArgs, t, {
-          kind: Kind.NAMED_TYPE,
-          name: {
-            kind: Kind.NAME,
-            value: t.declarationTemplate.name.value,
-          },
-        });
-        throw new Error("TODO: Template referenced as type argument");
-      }
-      if (templateContext != null) {
-        const genericIndex = templateContext.template.genericNodes.get(
-          arg.typeName,
-        );
-        if (genericIndex != null) {
-          return templateContext.typeArgs[genericIndex];
-        }
-      }
-      const nameDefinition = this.ctx._symbolToName.get(symbol);
-      if (nameDefinition == null) {
-        throw new Error(`Could not find name for symbol ${symbol.name}`);
-      }
-      return { kind: Kind.NAMED_TYPE, name: nameDefinition.name };
+      return this.convertTsTypeToGraphQLName(arg, templateContext);
     });
+  }
+
+  convertTsTypeToGraphQLName(
+    arg: ts.TypeNode,
+    templateContext?: {
+      template: Template;
+      typeArgs: NamedTypeNode[];
+    },
+  ): NamedTypeNode {
+    if (!ts.isTypeReferenceNode(arg)) {
+      throw new Error(`Expected type reference node, got ${arg.kind}`);
+    }
+
+    const symbol = this.ctx.checker.getSymbolAtLocation(arg.typeName);
+    if (!symbol) {
+      throw new Error(`Could not find symbol for ${arg.getText()}`);
+    }
+    const declaration = this.ctx.findSymbolDeclaration(symbol);
+    if (declaration == null) {
+      throw new Error(`Could not find declaration for ${arg.getText()}`);
+    }
+    const t = this._templates.get(declaration);
+    if (t != null) {
+      if (arg.typeArguments == null) {
+        throw new Error("Expected type arguments when expanding template");
+      }
+      const tArgs = this.covertTsTypeArgsToGraphQLNames(
+        arg.typeArguments,
+        templateContext,
+      );
+      // TODO: NEED LOCS
+      return this.canonicalizeGenericTypeReference(tArgs, t, {
+        kind: Kind.NAMED_TYPE,
+        name: {
+          kind: Kind.NAME,
+          value: t.declarationTemplate.name.value,
+        },
+      });
+      throw new Error("TODO: Template referenced as type argument");
+    }
+    if (templateContext != null) {
+      const genericIndex = templateContext.template.genericNodes.get(
+        arg.typeName,
+      );
+      if (genericIndex != null) {
+        return templateContext.typeArgs[genericIndex];
+      }
+    }
+    const nameDefinition = this.ctx._symbolToName.get(symbol);
+    if (nameDefinition == null) {
+      throw new Error(`Could not find name for symbol ${symbol.name}`);
+    }
+    return { kind: Kind.NAMED_TYPE, name: nameDefinition.name };
   }
 
   expandTemplate(
@@ -246,29 +247,6 @@ class TemplateExtractor {
     return filtered;
   }
 
-  getNameDeclaration(name: NameNode): ts.Declaration {
-    const tsDefinition = this.ctx._nameToSymbol.get(name);
-    if (!tsDefinition) {
-      throw new Error(`Could not find type definition for ${name.value}`);
-    }
-    const declaration = this.ctx.findSymbolDeclaration(tsDefinition);
-    if (!declaration) {
-      throw new Error(`Could not find declaration for ${name.value}`);
-    }
-    return declaration;
-  }
-
-  getReferenceNode(name: NameNode): ts.TypeReferenceNode | null {
-    if (name.value !== "__UNRESOLVED_REFERENCE__") {
-      return null;
-    }
-    const tsNode = this.ctx._unresolvedNodes.get(name);
-    if (!tsNode) {
-      throw new Error(`Could not find type node for ${name.value}`);
-    }
-    return tsNode;
-  }
-
   getAsTemplate(
     definition: TypeDefinitionNode,
     generics: ts.NodeArray<ts.TypeParameterDeclaration>,
@@ -310,6 +288,8 @@ class TemplateExtractor {
     return { declarationTemplate: definition, genericNodes, generics };
   }
 
+  // --- Helpers ---
+
   resolveToDeclaration(node: ts.Node): ts.Declaration {
     const symbol = this.ctx.checker.getSymbolAtLocation(node);
     if (!symbol) {
@@ -320,5 +300,28 @@ class TemplateExtractor {
       throw new Error(`Could not find declaration for ${node.getText()}`);
     }
     return declaration;
+  }
+
+  getNameDeclaration(name: NameNode): ts.Declaration {
+    const tsDefinition = this.ctx._nameToSymbol.get(name);
+    if (!tsDefinition) {
+      throw new Error(`Could not find type definition for ${name.value}`);
+    }
+    const declaration = this.ctx.findSymbolDeclaration(tsDefinition);
+    if (!declaration) {
+      throw new Error(`Could not find declaration for ${name.value}`);
+    }
+    return declaration;
+  }
+
+  getReferenceNode(name: NameNode): ts.TypeReferenceNode | null {
+    if (name.value !== "__UNRESOLVED_REFERENCE__") {
+      return null;
+    }
+    const tsNode = this.ctx._unresolvedNodes.get(name);
+    if (!tsNode) {
+      throw new Error(`Could not find type node for ${name.value}`);
+    }
+    return tsNode;
   }
 }
