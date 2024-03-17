@@ -1,0 +1,49 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+type Edge<T> = {
+  /** @gqlField */
+  node: T;
+  /** @gqlField */
+  cursor: string;
+};
+
+/** @gqlType */
+type Page = {
+  /** @gqlField */
+  title: string;
+};
+
+/**
+ * Re-expose title directly on the edge
+ * @gqlField */
+export function title(edge: Edge<Page>): string {
+  return edge.node.title;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Page {
+  title: String @metadata
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const PageType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Page",
+        fields() {
+            return {
+                title: {
+                    name: "title",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [PageType]
+    });
+}

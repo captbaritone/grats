@@ -56,7 +56,10 @@ class TemplateExtractor {
       } else {
         this._definitions.push({
           ...definition,
-          onType: this.foo(definition.onType),
+          // Ideally we would transform the field type here, but we can't
+          // because we expect to be able to look up the field type via this
+          // object's identity. More work needed here.
+          onType: definition.onType,
           field: this.foo(definition.field),
         });
       }

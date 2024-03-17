@@ -9,3 +9,4 @@ Here are edge cases that we'll want to test for:
 - [ ] Enum value derived from generic
 - [ ] Argument as generic value
 - [ ] Generic type returned from function field
+- [ ] Define a field on a templated type. currently breaks because we can't find the NameDefinition of the synthesized type
