@@ -74,9 +74,8 @@ export class TypeContext {
   }
 
   // Record that a type references `node`
-  _markUnresolvedType(node: ts.TypeReferenceNode, name: NameNode) {
-    const entityName = node.typeName;
-    const symbol = this.checker.getSymbolAtLocation(entityName);
+  _markUnresolvedType(node: ts.EntityName, name: NameNode) {
+    const symbol = this.checker.getSymbolAtLocation(node);
     if (symbol == null) {
       //
       throw new Error(
@@ -84,7 +83,14 @@ export class TypeContext {
       );
     }
 
-    this._unresolvedNodes.set(name, node);
+    const parent = node.parent;
+    if (ts.isTypeReferenceNode(parent)) {
+      // Hack: We need to be able to look up the parameterized
+      // type later. So we record the unresolved node only if it's something that
+      // can have type params. We should find a better way to do this.
+      this._unresolvedNodes.set(name, parent);
+    }
+
     this._unresolvedTypes.set(name, this.resolveSymbol(symbol));
   }
 

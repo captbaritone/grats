@@ -60,7 +60,7 @@ type ArgDefaults = Map<string, ts.Expression>;
 
 export type ExtractionSnapshot = {
   readonly definitions: GratsDefinitionNode[];
-  readonly unresolvedNames: Map<ts.TypeReferenceNode, NameNode>;
+  readonly unresolvedNames: Map<ts.EntityName, NameNode>;
   readonly nameDefinitions: Map<ts.Node, NameDefinition>;
   readonly contextReferences: Array<ts.Node>;
   readonly typesWithTypename: Set<string>;
@@ -92,7 +92,7 @@ class Extractor {
   definitions: GratsDefinitionNode[] = [];
 
   // Snapshot data
-  unresolvedNames: Map<ts.TypeReferenceNode, NameNode> = new Map();
+  unresolvedNames: Map<ts.EntityName, NameNode> = new Map();
   nameDefinitions: Map<ts.Node, NameDefinition> = new Map();
   contextReferences: Array<ts.Node> = [];
   typesWithTypename: Set<string> = new Set();
@@ -105,7 +105,7 @@ class Extractor {
     this.gql = new GraphQLConstructor();
   }
 
-  markUnresolvedType(node: ts.TypeReferenceNode, name: NameNode) {
+  markUnresolvedType(node: ts.EntityName, name: NameNode) {
     this.unresolvedNames.set(node, name);
   }
 
@@ -335,7 +335,7 @@ class Extractor {
         member.typeName,
         UNRESOLVED_REFERENCE_NAME,
       );
-      this.markUnresolvedType(member, namedType.name);
+      this.markUnresolvedType(member.typeName, namedType.name);
       types.push(namedType);
     }
 
@@ -436,7 +436,7 @@ class Extractor {
       typeParam.type.typeName,
       UNRESOLVED_REFERENCE_NAME,
     );
-    this.markUnresolvedType(typeParam.type, typeName);
+    this.markUnresolvedType(typeParam.type.typeName, typeName);
     return typeName;
   }
 
@@ -1709,7 +1709,7 @@ class Extractor {
         //
         // A later pass will resolve the type.
         const namedType = this.gql.namedType(node, UNRESOLVED_REFERENCE_NAME);
-        this.markUnresolvedType(node, namedType.name);
+        this.markUnresolvedType(node.typeName, namedType.name);
         return this.gql.nonNullType(node, namedType);
       }
     }

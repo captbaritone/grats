@@ -342,6 +342,11 @@ class TemplateExtractor {
     }
     const tsNode = this.ctx._unresolvedNodes.get(name);
     if (!tsNode) {
+      // TODO: This means the name did not point to a type reference.
+      // Since we only care about potential generics here, we can ignore this.
+      // NOTE: There are possibly other nodes that can have type params which
+      // should be accounted for. See heritage clauses and type arguments.
+      return null;
       throw new Error(`Could not find type node for ${name.value}`);
     }
     return tsNode;
