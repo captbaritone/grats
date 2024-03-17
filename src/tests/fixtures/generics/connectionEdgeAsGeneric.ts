@@ -19,7 +19,7 @@ type Edge<T> = {
 };
 
 /** @gqlType */
-type Connection<T> = {
+type Connection<T extends Edge<any>> = {
   /** @gqlField */
   edges: T;
   /** @gqlField */
