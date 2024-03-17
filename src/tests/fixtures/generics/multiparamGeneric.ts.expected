@@ -1,0 +1,96 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlUnion */
+type Result<V, E> = V | E;
+
+/** @gqlType */
+type Err = {
+  __typename: "Err";
+  /** @gqlField */
+  error: string;
+};
+
+/** @gqlType */
+type Page = {
+  __typename: "Page";
+  /** @gqlField */
+  title: string;
+};
+
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlField */
+export function pageResult(_: Query): Result<Page, Err> {
+  return { title: "Hello", __typename: "Page" };
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+union PageErrResult = Err | Page
+
+type Err {
+  error: String @metadata
+}
+
+type Page {
+  title: String @metadata
+}
+
+type Query {
+  pageResult: PageErrResult @metadata(argCount: 1, name: "pageResult", tsModulePath: "grats/src/tests/fixtures/generics/multiparamGeneric.ts")
+}
+-- TypeScript --
+import { pageResult as queryPageResultResolver } from "./multiparamGeneric";
+import { GraphQLSchema, GraphQLObjectType, GraphQLUnionType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const ErrType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Err",
+        fields() {
+            return {
+                error: {
+                    name: "error",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const PageType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Page",
+        fields() {
+            return {
+                title: {
+                    name: "title",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const PageErrResultType: GraphQLUnionType = new GraphQLUnionType({
+        name: "PageErrResult",
+        types() {
+            return [ErrType, PageType];
+        }
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                pageResult: {
+                    name: "pageResult",
+                    type: PageErrResultType,
+                    resolve(source) {
+                        return queryPageResultResolver(source);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [PageErrResultType, ErrType, PageType, QueryType]
+    });
+}

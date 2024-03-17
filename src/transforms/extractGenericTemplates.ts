@@ -1,7 +1,9 @@
 import {
+  ASTNode,
   Kind,
   NameNode,
   NamedTypeNode,
+  ObjectTypeExtensionNode,
   TypeDefinitionNode,
   visit,
 } from "graphql";
@@ -38,18 +40,25 @@ class TemplateExtractor {
   _errors: ts.DiagnosticWithLocation[] = [];
   constructor(private ctx: TypeContext) {}
 
+  foo<N extends ASTNode>(node: N): N {
+    return visit(node, {
+      [Kind.NAMED_TYPE]: (node) =>
+        this.discoverGenericTypeReferencesInDefinition(node),
+    });
+  }
+
   materializeGenericTypeReferences(
     filtered: Array<GratsDefinitionNode>,
   ): Array<GratsDefinitionNode> {
     filtered.forEach((definition) => {
       if (definition.kind !== "AbstractFieldDefinition") {
-        const interpolated = visit(definition, {
-          [Kind.NAMED_TYPE]: (node) =>
-            this.discoverGenericTypeReferencesInDefinition(node),
-        });
-        this._definitions.push(interpolated);
+        this._definitions.push(this.foo(definition));
       } else {
-        this._definitions.push(definition);
+        this._definitions.push({
+          ...definition,
+          onType: this.foo(definition.onType),
+          field: this.foo(definition.field),
+        });
       }
     });
     return this._definitions;
