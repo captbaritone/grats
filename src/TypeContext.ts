@@ -73,7 +73,7 @@ export class TypeContext {
     this._symbolToName.set(symbol, { name, kind });
   }
 
-  // Record that a type reference `node`
+  // Record that a type references `node`
   _markUnresolvedType(node: ts.TypeReferenceNode, name: NameNode) {
     const entityName = node.typeName;
     const symbol = this.checker.getSymbolAtLocation(entityName);

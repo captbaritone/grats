@@ -149,7 +149,6 @@ class TemplateExtractor {
           value: t.declarationTemplate.name.value,
         },
       });
-      throw new Error("TODO: Template referenced as type argument");
     }
     if (templateContext != null) {
       const genericIndex = templateContext.template.genericNodes.get(
@@ -243,9 +242,12 @@ class TemplateExtractor {
     const filtered = definitions.filter((definition) => {
       if (
         definition.kind === Kind.OBJECT_TYPE_DEFINITION ||
-        definition.kind === Kind.UNION_TYPE_DEFINITION
+        definition.kind === Kind.UNION_TYPE_DEFINITION ||
+        definition.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION ||
+        definition.kind === Kind.INTERFACE_TYPE_DEFINITION
       ) {
         const declaration = this.getNameDeclaration(definition.name);
+        // TODO: Handle other types of declarations which have generics.
         if (ts.isTypeAliasDeclaration(declaration)) {
           if (declaration.typeParameters == null) {
             return true;
@@ -259,7 +261,7 @@ class TemplateExtractor {
           }
           return genericTemplate == null;
         }
-        throw new Error(`TODO: Support declaration kind: ${declaration.kind}`);
+        return true;
       }
       return true;
     });
