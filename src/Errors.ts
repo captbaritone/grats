@@ -412,3 +412,8 @@ export function missingSpecifiedByUrl() {
 export function specifiedByOnWrongNode() {
   return `Unexpected \`@${SPECIFIED_BY_TAG}\` tag on non-scalar declaration. \`@${SPECIFIED_BY_TAG}\` can only be used on custom scalar declarations. Are you missing a \`@${SCALAR_TAG}\` tag?`;
 }
+
+export function invalidTypePassedAsGqlGeneric(): string {
+  // TODO: Refine this message
+  return "Invalid type passed as a generic argument to a GraphQL type.";
+}

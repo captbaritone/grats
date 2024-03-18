@@ -103,6 +103,8 @@ export function extractSchemaAndDoc(
         // Filter out any `implements` clauses that are not GraphQL interfaces.
         .map((doc) => filterNonGqlInterfaces(ctx, doc))
         // Resolve TypeScript type references to the GraphQL types they represent (or error).
+        // TODO: We should be able to remove this and do all
+        // type resolution extractGenericTemplates
         .andThen((doc) => resolveTypes(ctx, doc))
         // Ensure all subscription fields return an AsyncIterable.
         .andThen((doc) => validateAsyncIterable(doc))
