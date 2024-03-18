@@ -1,10 +1,13 @@
 import {
   ASTNode,
+  InputObjectTypeDefinitionNode,
+  InterfaceTypeDefinitionNode,
   Kind,
   NameNode,
   NamedTypeNode,
-  ObjectTypeExtensionNode,
+  ObjectTypeDefinitionNode,
   TypeDefinitionNode,
+  UnionTypeDefinitionNode,
   visit,
 } from "graphql";
 import { GratsDefinitionNode } from "../GraphQLConstructor";
@@ -12,11 +15,11 @@ import { TypeContext } from "../TypeContext";
 import * as ts from "typescript";
 import { err, ok } from "../utils/Result";
 import { DiagnosticsResult, tsErr } from "../utils/DiagnosticError";
+import { extend } from "../utils/helpers";
 
 type Template = {
   declarationTemplate: TypeDefinitionNode;
   genericNodes: Map<ts.EntityName, number>;
-  generics: ts.NodeArray<ts.TypeParameterDeclaration>;
 };
 
 export function extractGenericTemplates(
@@ -24,7 +27,9 @@ export function extractGenericTemplates(
   definitions: Array<GratsDefinitionNode>,
 ): DiagnosticsResult<GratsDefinitionNode[]> {
   const templateExtractor = new TemplateExtractor(ctx);
-  const filtered = templateExtractor.extractGenericTemplates(definitions);
+  const filtered = definitions.filter((definition) => {
+    return !templateExtractor.maybeExtractAsTemplate(definition);
+  });
   const newDefinitions =
     templateExtractor.materializeGenericTypeReferences(filtered);
   if (templateExtractor._errors.length > 0) {
@@ -248,78 +253,87 @@ class TemplateExtractor {
     );
   }
 
-  extractGenericTemplates(
-    definitions: Array<GratsDefinitionNode>,
-  ): Array<GratsDefinitionNode> {
-    const filtered = definitions.filter((definition) => {
-      if (
-        definition.kind === Kind.OBJECT_TYPE_DEFINITION ||
-        definition.kind === Kind.UNION_TYPE_DEFINITION ||
-        definition.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION ||
-        definition.kind === Kind.INTERFACE_TYPE_DEFINITION
-      ) {
-        const declaration = this.getNameDeclaration(definition.name);
-        // TODO: Handle other types of declarations which have generics.
-        if (ts.isTypeAliasDeclaration(declaration)) {
-          if (declaration.typeParameters == null) {
-            return true;
-          }
-          const genericTemplate = this.getAsTemplate(
-            definition,
-            declaration.typeParameters,
-          );
-          if (genericTemplate != null) {
-            this._templates.set(declaration, genericTemplate);
-          }
-          return genericTemplate == null;
-        }
-        return true;
-      }
-      return true;
-    });
+  maybeExtractAsTemplate(definition: GratsDefinitionNode): boolean {
+    if (!mayReferenceGenerics(definition)) {
+      return false;
+    }
+    const declaration = this.getNameDeclaration(definition.name);
+    const typeParams = getTypeParameters(declaration);
 
-    return filtered;
-  }
+    if (typeParams == null || typeParams.length === 0) {
+      return false;
+    }
 
-  getAsTemplate(
-    definition: TypeDefinitionNode,
-    generics: ts.NodeArray<ts.TypeParameterDeclaration>,
-  ): Template | null {
     const genericNodes = new Map<ts.EntityName, number>();
 
-    const maybeGeneric = (node: ts.TypeReferenceNode) => {
-      if (node.typeArguments != null) {
-        for (const arg of node.typeArguments) {
-          if (ts.isTypeReferenceNode(arg)) {
-            maybeGeneric(arg);
-          }
-        }
-      }
-      const declaration = this.resolveToDeclaration(node.typeName);
-
-      // If the type points to a type param...
-      if (!ts.isTypeParameterDeclaration(declaration)) {
-        return;
-      }
-      // And it's one of our parent type's type params...
-      const genericIndex = generics.indexOf(declaration);
-      if (genericIndex !== -1) {
-        genericNodes.set(node.typeName, genericIndex);
-      }
-    };
     visit(definition, {
+      // TODO: We should only visit types which are in positions where generics are valid:
+      // Field types
       [Kind.NAMED_TYPE]: (node) => {
         const referenceNode = this.getReferenceNode(node.name);
         if (referenceNode == null) {
           return;
         }
-        maybeGeneric(referenceNode);
+        const references = findAllReferences(referenceNode);
+        for (const reference of references) {
+          const declaration = this.resolveToDeclaration(reference.typeName);
+
+          // If the type points to a type param...
+          if (!ts.isTypeParameterDeclaration(declaration)) {
+            return;
+          }
+          // And it's one of our parent type's type params...
+          const genericIndex = typeParams.indexOf(declaration);
+          if (genericIndex !== -1) {
+            genericNodes.set(reference.typeName, genericIndex);
+          }
+        }
+      },
+    });
+    if (genericNodes.size === 0) {
+      return false;
+    }
+    this._templates.set(declaration, {
+      declarationTemplate: definition,
+      genericNodes,
+    });
+    return true;
+  }
+
+  maybeGetAsTemplate(
+    definition: TypeDefinitionNode,
+    generics: ts.NodeArray<ts.TypeParameterDeclaration>,
+  ): Template | null {
+    const genericNodes = new Map<ts.EntityName, number>();
+
+    visit(definition, {
+      // TODO: We should only visit types which are in positions where generics are valid:
+      // Field types
+      [Kind.NAMED_TYPE]: (node) => {
+        const referenceNode = this.getReferenceNode(node.name);
+        if (referenceNode == null) {
+          return;
+        }
+        const references = findAllReferences(referenceNode);
+        for (const reference of references) {
+          const declaration = this.resolveToDeclaration(reference.typeName);
+
+          // If the type points to a type param...
+          if (!ts.isTypeParameterDeclaration(declaration)) {
+            return;
+          }
+          // And it's one of our parent type's type params...
+          const genericIndex = generics.indexOf(declaration);
+          if (genericIndex !== -1) {
+            genericNodes.set(reference.typeName, genericIndex);
+          }
+        }
       },
     });
     if (genericNodes.size === 0) {
       return null;
     }
-    return { declarationTemplate: definition, genericNodes, generics };
+    return { declarationTemplate: definition, genericNodes };
   }
 
   // --- Helpers ---
@@ -376,3 +390,49 @@ const E = {
     return "Invalid type passed as a generic argument to a GraphQL type.";
   },
 };
+
+function mayReferenceGenerics(
+  definition: GratsDefinitionNode,
+): definition is
+  | ObjectTypeDefinitionNode
+  | UnionTypeDefinitionNode
+  | InputObjectTypeDefinitionNode
+  | InterfaceTypeDefinitionNode {
+  return (
+    definition.kind === Kind.OBJECT_TYPE_DEFINITION ||
+    definition.kind === Kind.UNION_TYPE_DEFINITION ||
+    definition.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION ||
+    definition.kind === Kind.INTERFACE_TYPE_DEFINITION
+  );
+}
+
+function getTypeParameters(
+  declaration: ts.Declaration,
+): ts.NodeArray<ts.TypeParameterDeclaration> | null {
+  if (ts.isTypeAliasDeclaration(declaration)) {
+    return declaration.typeParameters ?? null;
+  }
+  if (ts.isInterfaceDeclaration(declaration)) {
+    return declaration.typeParameters ?? null;
+  }
+  if (ts.isClassDeclaration(declaration)) {
+    return declaration.typeParameters ?? null;
+  }
+  // TODO: Handle other types of declarations which have generics.
+  return null;
+}
+
+// Given a type reference, recursively walk its type arguments and return all
+// type references in the current.
+function findAllReferences(node: ts.TypeReferenceNode): ts.TypeReferenceNode[] {
+  const references: ts.TypeReferenceNode[] = [];
+  if (node.typeArguments != null) {
+    for (const arg of node.typeArguments) {
+      if (ts.isTypeReferenceNode(arg)) {
+        extend(references, findAllReferences(arg));
+      }
+    }
+  }
+  references.push(node);
+  return references;
+}
