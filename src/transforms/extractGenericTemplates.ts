@@ -3,7 +3,6 @@ import {
   InputObjectTypeDefinitionNode,
   InterfaceTypeDefinitionNode,
   Kind,
-  NameNode,
   ObjectTypeDefinitionNode,
   TypeDefinitionNode,
   UnionTypeDefinitionNode,
@@ -13,7 +12,11 @@ import { GraphQLConstructor, GratsDefinitionNode } from "../GraphQLConstructor";
 import { TypeContext } from "../TypeContext";
 import * as ts from "typescript";
 import { err, ok } from "../utils/Result";
-import { DiagnosticsResult, tsErr } from "../utils/DiagnosticError";
+import {
+  DiagnosticResult,
+  DiagnosticsResult,
+  tsErr,
+} from "../utils/DiagnosticError";
 import { extend } from "../utils/helpers";
 import * as E from "../Errors";
 
@@ -79,9 +82,10 @@ class TemplateExtractor {
         if (node.value !== "__UNRESOLVED_REFERENCE__") {
           return node;
         }
-        const referenceNode = this.getReferenceNode(node);
+        const referenceNode = this.ctx.getReferenceNode(node);
         // TODO: Diagnostic?
-        if (referenceNode == null) return node;
+        if (referenceNode == null || !ts.isTypeReferenceNode(referenceNode))
+          return node;
         const name = this.resolveTypeReference(referenceNode);
         if (name == null) return node;
         return { ...node, value: name };
@@ -93,8 +97,12 @@ class TemplateExtractor {
     node: ts.TypeReferenceNode,
     generics?: Map<ts.Node, string>,
   ): string | null {
-    const declaration = this.resolveToDeclaration(node.typeName);
-    if (declaration == null) return null;
+    const declaration = this.asNullable(
+      this.ctx.resolveTsReferenceToDeclaration(node.typeName),
+    );
+    if (declaration == null) {
+      return null;
+    }
 
     if (generics != null) {
       const genericName = generics.get(declaration);
@@ -136,19 +144,9 @@ class TemplateExtractor {
 
       return this.materializeTemplate(node, names, template);
     }
+    const nameResult = this.ctx.resolveTsReferenceToGraphQLName(node.typeName);
 
-    const symbol = this.ctx.checker.getSymbolAtLocation(node.typeName);
-    if (symbol == null) {
-      throw new Error(`Could not find symbol for ${declaration.getText()}`);
-    }
-
-    const nameDefinition = this.ctx._symbolToName.get(
-      this.ctx.resolveSymbol(symbol),
-    );
-    if (nameDefinition == null) {
-      return this.report(node, E.unresolvedTypeReference());
-    }
-    return nameDefinition.name.value;
+    return this.asNullable(nameResult);
   }
 
   materializeTemplate(
@@ -192,9 +190,10 @@ class TemplateExtractor {
           if (node.name.value !== "__UNRESOLVED_REFERENCE__") {
             return node;
           }
-          const referenceNode = this.getReferenceNode(node.name);
+          const referenceNode = this.ctx.getReferenceNode(node.name);
           // TODO: Diagnostic?
-          if (referenceNode == null) return node;
+          if (referenceNode == null || !ts.isTypeReferenceNode(referenceNode))
+            return node;
 
           const name = this.resolveTypeReference(
             referenceNode,
@@ -216,7 +215,7 @@ class TemplateExtractor {
     if (!mayReferenceGenerics(definition)) {
       return false;
     }
-    const declaration = this.getNameDeclaration(definition.name);
+    const declaration = this.ctx.getNameDeclaration(definition.name);
     const typeParams = getTypeParameters(declaration);
 
     if (typeParams == null || typeParams.length === 0) {
@@ -229,14 +228,20 @@ class TemplateExtractor {
       // TODO: We should only visit types which are in positions where generics are valid:
       // Field types
       [Kind.NAMED_TYPE]: (node) => {
-        const referenceNode = this.getReferenceNode(node.name);
-        if (referenceNode == null) {
+        const referenceNode = this.ctx.getReferenceNode(node.name);
+        if (referenceNode == null || !ts.isTypeReferenceNode(referenceNode)) {
           return;
         }
         const references = findAllReferences(referenceNode);
         for (const reference of references) {
-          const declaration = this.resolveToDeclaration(reference.typeName);
-          if (declaration == null) return;
+          const declarationResult = this.ctx.resolveTsReferenceToDeclaration(
+            reference.typeName,
+          );
+          if (declarationResult.kind === "ERROR") {
+            this._errors.push(declarationResult.err);
+            return;
+          }
+          const declaration = declarationResult.value;
 
           // If the type points to a type param...
           if (!ts.isTypeParameterDeclaration(declaration)) {
@@ -263,48 +268,20 @@ class TemplateExtractor {
 
   // --- Helpers ---
 
-  resolveToDeclaration(node: ts.Node): ts.Declaration | null {
-    const symbol = this.ctx.checker.getSymbolAtLocation(node);
-    if (!symbol) {
-      throw new Error(`Could not find symbol for ${node.getText()}`);
-    }
-    const declaration = this.ctx.findSymbolDeclaration(symbol);
-    if (!declaration) {
-      return this.report(node, E.unresolvedTypeReference());
-    }
-    return declaration;
-  }
-
-  getNameDeclaration(name: NameNode): ts.Declaration {
-    const tsDefinition = this.ctx._nameToSymbol.get(name.tsIdentifier);
-    if (!tsDefinition) {
-      throw new Error(`Could not find type definition for ${name.value}`);
-    }
-    const declaration = this.ctx.findSymbolDeclaration(tsDefinition);
-    if (!declaration) {
-      throw new Error(`Could not find declaration for ${name.value}`);
-    }
-    return declaration;
-  }
-
-  getReferenceNode(name: NameNode): ts.TypeReferenceNode | null {
-    if (name.value !== "__UNRESOLVED_REFERENCE__") {
+  asNullable<T>(result: DiagnosticResult<T>): T | null {
+    if (result.kind === "ERROR") {
+      this._errors.push(result.err);
       return null;
     }
-    const tsNode = this.ctx._unresolvedNodes.get(name.tsIdentifier);
-    if (!tsNode) {
-      // TODO: This means the name did not point to a type reference.
-      // Since we only care about potential generics here, we can ignore this.
-      // NOTE: There are possibly other nodes that can have type params which
-      // should be accounted for. See heritage clauses and type arguments.
-      return null;
-      throw new Error(`Could not find type node for ${name.value}`);
-    }
-    return tsNode;
+    return result.value;
   }
 
-  report(node: ts.Node, message: string): null {
-    this._errors.push(tsErr(node, message));
+  report(
+    node: ts.Node,
+    message: string,
+    relatedInformation?: ts.DiagnosticRelatedInformation[],
+  ): null {
+    this._errors.push(tsErr(node, message, relatedInformation));
     return null;
   }
 }

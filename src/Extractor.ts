@@ -61,7 +61,7 @@ type ArgDefaults = Map<string, ts.Expression>;
 export type ExtractionSnapshot = {
   readonly definitions: GratsDefinitionNode[];
   readonly unresolvedNames: Map<ts.EntityName, NameNode>;
-  readonly nameDefinitions: Map<ts.Node, NameDefinition>;
+  readonly nameDefinitions: Map<ts.EntityName, NameDefinition>;
   readonly contextReferences: Array<ts.Node>;
   readonly typesWithTypename: Set<string>;
   readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
@@ -93,7 +93,7 @@ class Extractor {
 
   // Snapshot data
   unresolvedNames: Map<ts.EntityName, NameNode> = new Map();
-  nameDefinitions: Map<ts.Node, NameDefinition> = new Map();
+  nameDefinitions: Map<ts.EntityName, NameDefinition> = new Map();
   contextReferences: Array<ts.Node> = [];
   typesWithTypename: Set<string> = new Set();
   interfaceDeclarations: Array<ts.InterfaceDeclaration> = [];
@@ -110,7 +110,7 @@ class Extractor {
   }
 
   recordTypeName(
-    node: ts.Node,
+    node: ts.EntityName,
     name: NameNode,
     kind: NameDefinition["kind"],
   ): void {
