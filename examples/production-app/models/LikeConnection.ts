@@ -3,7 +3,7 @@ import * as DB from "../Database";
 import { Ctx } from "../ViewerContext";
 import { Query, Subscription } from "../graphql/Roots";
 import { Like } from "./Like";
-import { PageInfo } from "./PageInfo";
+import { PageInfo } from "../graphql/Connection";
 import { connectionFromArray } from "graphql-relay";
 import { Post } from "./Post";
 import { PubSub } from "../PubSub";

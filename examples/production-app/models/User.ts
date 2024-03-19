@@ -4,8 +4,8 @@ import { Ctx } from "../ViewerContext";
 import { GraphQLNode } from "../graphql/Node";
 import { Model } from "./Model";
 import { Post } from "./Post";
-import { PostConnection } from "./PostConnection";
 import { Mutation } from "../graphql/Roots";
+import { Connection } from "../graphql/Connection";
 
 /** @gqlType */
 export class User extends Model<DB.UserRow> implements GraphQLNode {
@@ -21,7 +21,7 @@ export class User extends Model<DB.UserRow> implements GraphQLNode {
   /**
    * All posts written by this user. Note that there is no guarantee of order.
    * @gqlField */
-  async posts(_: unknown, ctx: Ctx): Promise<PostConnection> {
+  async posts(_: unknown, ctx: Ctx): Promise<Connection<Post>> {
     const rows = await DB.selectPostsWhereAuthor(ctx.vc, this.row.id);
     const posts = rows.map((row) => new Post(row));
     return connectionFromArray(posts, {});
