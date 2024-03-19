@@ -17,6 +17,8 @@ export type NameDefinition = {
   kind: "TYPE" | "INTERFACE" | "UNION" | "SCALAR" | "INPUT_OBJECT" | "ENUM";
 };
 
+type TsIdentifier = number;
+
 /**
  * Used to track TypeScript references.
  *
@@ -33,9 +35,9 @@ export class TypeContext {
   checker: ts.TypeChecker;
 
   _symbolToName: Map<ts.Symbol, NameDefinition> = new Map();
-  _nameToSymbol: Map<NameNode, ts.Symbol> = new Map();
-  _unresolvedTypes: Map<NameNode, ts.Symbol> = new Map();
-  _unresolvedNodes: Map<NameNode, ts.TypeReferenceNode> = new Map();
+  _nameToSymbol: Map<TsIdentifier, ts.Symbol> = new Map();
+  _unresolvedTypes: Map<TsIdentifier, ts.Symbol> = new Map();
+  _unresolvedNodes: Map<TsIdentifier, ts.TypeReferenceNode> = new Map();
 
   static fromSnapshot(
     checker: ts.TypeChecker,
@@ -69,7 +71,7 @@ export class TypeContext {
       // Ensure we never try to record the same name twice.
       throw new Error("Unexpected double recording of typename.");
     }
-    this._nameToSymbol.set(name, symbol);
+    this._nameToSymbol.set(name.tsIdentifier, symbol);
     this._symbolToName.set(symbol, { name, kind });
   }
 
@@ -88,10 +90,10 @@ export class TypeContext {
       // Hack: We need to be able to look up the parameterized
       // type later. So we record the unresolved node only if it's something that
       // can have type params. We should find a better way to do this.
-      this._unresolvedNodes.set(name, parent);
+      this._unresolvedNodes.set(name.tsIdentifier, parent);
     }
 
-    this._unresolvedTypes.set(name, this.resolveSymbol(symbol));
+    this._unresolvedTypes.set(name.tsIdentifier, this.resolveSymbol(symbol));
   }
 
   public findSymbolDeclaration(startSymbol: ts.Symbol): ts.Declaration | null {
@@ -118,13 +120,13 @@ export class TypeContext {
   }
 
   resolveNamedType(unresolved: NameNode): DiagnosticResult<NameNode> {
-    const symbol = this._unresolvedTypes.get(unresolved);
-    if (symbol == null) {
-      if (unresolved.value === UNRESOLVED_REFERENCE_NAME) {
-        // This is a logic error on our side.
-        throw new Error("Unexpected unresolved reference name.");
-      }
+    if (unresolved.value !== UNRESOLVED_REFERENCE_NAME) {
       return ok(unresolved);
+    }
+    const symbol = this._unresolvedTypes.get(unresolved.tsIdentifier);
+    if (symbol == null) {
+      // This is a logic error on our side.
+      throw new Error("Unexpected unresolved reference name.");
     }
     const nameDefinition = this._symbolToName.get(symbol);
     if (nameDefinition == null) {
@@ -134,7 +136,7 @@ export class TypeContext {
   }
 
   unresolvedNameIsGraphQL(unresolved: NameNode): boolean {
-    const symbol = this._unresolvedTypes.get(unresolved);
+    const symbol = this._unresolvedTypes.get(unresolved.tsIdentifier);
     return symbol != null && this._symbolToName.has(symbol);
   }
 
@@ -144,7 +146,7 @@ export class TypeContext {
     if (typeNameResult.kind === "ERROR") {
       return err([typeNameResult.err]);
     }
-    const symbol = this._unresolvedTypes.get(nameNode);
+    const symbol = this._unresolvedTypes.get(nameNode.tsIdentifier);
     if (symbol == null) {
       // This should have already been handled by resolveNamedType
       throw new Error("Expected to find unresolved type.");

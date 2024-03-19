@@ -41,6 +41,7 @@ import {
   ARG_COUNT,
   FIELD_METADATA_DIRECTIVE,
 } from "./metadataDirectives";
+import { uniqueId } from "./utils/helpers";
 
 // Grats can't always extract an SDL AST node right away. In some cases, it
 // needs to extract something abstract which can only be converted into an SDL
@@ -284,7 +285,12 @@ export class GraphQLConstructor {
 
   /* Primitives */
   name(node: ts.Node, value: string): NameNode {
-    return { kind: Kind.NAME, loc: this._loc(node), value };
+    return {
+      kind: Kind.NAME,
+      loc: this._loc(node),
+      value,
+      tsIdentifier: uniqueId(),
+    };
   }
   namedType(node: ts.Node, value: string): NamedTypeNode {
     return {

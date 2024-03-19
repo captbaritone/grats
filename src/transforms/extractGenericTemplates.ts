@@ -28,15 +28,8 @@ export function extractGenericTemplates(
   definitions: Array<GratsDefinitionNode>,
 ): DiagnosticsResult<GratsDefinitionNode[]> {
   const templateExtractor = new TemplateExtractor(ctx);
-  const filtered = definitions.filter((definition) => {
-    return !templateExtractor.maybeExtractAsTemplate(definition);
-  });
-  const newDefinitions =
-    templateExtractor.materializeGenericTypeReferences(filtered);
-  if (templateExtractor._errors.length > 0) {
-    return err(templateExtractor._errors);
-  }
-  return ok(newDefinitions);
+
+  return templateExtractor.materializeGenericTypeReferences(definitions);
 }
 
 class TemplateExtractor {
@@ -50,23 +43,34 @@ class TemplateExtractor {
   }
 
   materializeGenericTypeReferences(
-    filtered: Array<GratsDefinitionNode>,
-  ): Array<GratsDefinitionNode> {
+    definitions: Array<GratsDefinitionNode>,
+  ): DiagnosticsResult<Array<GratsDefinitionNode>> {
+    // We filter out all template declarations and index them as a first pass.
+    const filtered = definitions.filter((definition) => {
+      return !this.maybeExtractAsTemplate(definition);
+    });
+
+    // Now we can visit the remaining "real" definitions and materialize any
+    // generic type references.
     filtered.forEach((definition) => {
       if (definition.kind === "AbstractFieldDefinition") {
+        // We can't use the default `visit` function because this is not
+        // a GraphQL AST node. Instead, we manually visit the child GraphQL AST
+        // nodes within the AbstractFieldDefinition.
         this._definitions.push({
           ...definition,
-          // Ideally we would transform the field type here, but we can't
-          // because we expect to be able to look up the field type via this
-          // object's identity. More work needed here.
-          onType: definition.onType,
+          onType: this.materializeTemplateForNode(definition.onType),
           field: this.materializeTemplateForNode(definition.field),
         });
       } else {
         this._definitions.push(this.materializeTemplateForNode(definition));
       }
     });
-    return this._definitions;
+
+    if (this._errors.length > 0) {
+      return err(this._errors);
+    }
+    return ok(this._definitions);
   }
 
   materializeTemplateForNode<N extends ASTNode>(node: N): N {
@@ -272,7 +276,7 @@ class TemplateExtractor {
   }
 
   getNameDeclaration(name: NameNode): ts.Declaration {
-    const tsDefinition = this.ctx._nameToSymbol.get(name);
+    const tsDefinition = this.ctx._nameToSymbol.get(name.tsIdentifier);
     if (!tsDefinition) {
       throw new Error(`Could not find type definition for ${name.value}`);
     }
@@ -287,7 +291,7 @@ class TemplateExtractor {
     if (name.value !== "__UNRESOLVED_REFERENCE__") {
       return null;
     }
-    const tsNode = this.ctx._unresolvedNodes.get(name);
+    const tsNode = this.ctx._unresolvedNodes.get(name.tsIdentifier);
     if (!tsNode) {
       // TODO: This means the name did not point to a type reference.
       // Since we only care about potential generics here, we can ignore this.

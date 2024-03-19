@@ -9,7 +9,7 @@ import {
 } from "../utils/DiagnosticError";
 import { err, ok } from "../utils/Result";
 import { InterfaceMap, computeInterfaceMap } from "../InterfaceGraph";
-import { extend } from "../utils/helpers";
+import { extend, uniqueId } from "../utils/helpers";
 import { FIELD_TAG } from "../Extractor";
 import {
   AbstractFieldDefinitionNode,
@@ -102,6 +102,7 @@ function addAbstractFieldDefinition(
           kind: Kind.NAME,
           value: implementor.name,
           loc: doc.loc, // Bit of a lie, but I don't see a better option.
+          tsIdentifier: uniqueId(),
         } as const;
         switch (implementor.kind) {
           case "TYPE":

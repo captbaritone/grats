@@ -6,6 +6,7 @@ import {
   parse,
 } from "graphql";
 import { GratsDefinitionNode } from "./GraphQLConstructor";
+import { uniqueId } from "./utils/helpers";
 
 /**
  * In most cases we can use directives to annotate constructs
@@ -25,6 +26,9 @@ declare module "graphql" {
      * Used to ensure that all fields on `Subscription` return an AsyncIterable.
      */
     isAsyncIterable?: boolean;
+  }
+  export interface NameNode {
+    tsIdentifier: number;
   }
 }
 
@@ -78,7 +82,12 @@ export function makeKillsParentOnExceptionDirective(
   return {
     kind: Kind.DIRECTIVE,
     loc,
-    name: { kind: Kind.NAME, loc, value: KILLS_PARENT_ON_EXCEPTION_DIRECTIVE },
+    name: {
+      kind: Kind.NAME,
+      loc,
+      value: KILLS_PARENT_ON_EXCEPTION_DIRECTIVE,
+      tsIdentifier: uniqueId(),
+    },
     arguments: [],
   };
 }

@@ -33,3 +33,8 @@ export function astNode<T>(item: { astNode?: T | undefined | null }): T {
   }
   return item.astNode;
 }
+
+let i = 0;
+export function uniqueId() {
+  return i++;
+}
