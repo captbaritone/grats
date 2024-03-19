@@ -58,31 +58,6 @@ importers:
         specifier: ^10.9.1
         version: 10.9.1(@types/node@18.15.0)(typescript@5.0.2)
 
-  examples/production-app:
-    dependencies:
-      '@graphql-yoga/plugin-defer-stream':
-        specifier: ^3.1.1
-        version: 3.1.1(graphql-yoga@5.0.0)(graphql@16.8.1)
-      dataloader:
-        specifier: ^2.2.2
-        version: 2.2.2
-      graphql:
-        specifier: 16.8.1
-        version: 16.8.1
-      graphql-relay:
-        specifier: ^0.10.0
-        version: 0.10.0(graphql@16.8.1)
-      graphql-yoga:
-        specifier: ^5.0.0
-        version: 5.0.0(graphql@16.8.1)
-    devDependencies:
-      '@types/node':
-        specifier: ^20.8.10
-        version: 20.8.10
-      grats:
-        specifier: workspace:*
-        version: link:../..
-
   examples/apollo-server:
     dependencies:
       '@apollo/server':
@@ -149,37 +124,6 @@ importers:
         specifier: ^5.0.2
         version: 5.0.2
 
-  examples/express-graphql-http-functions:
-    dependencies:
-      '@types/express':
-        specifier: ^4.17.20
-        version: 4.17.20
-      '@types/node':
-        specifier: ^20.8.10
-        version: 20.8.10
-      '@types/uuid':
-        specifier: ^9.0.7
-        version: 9.0.7
-      express:
-        specifier: ^4.18.2
-        version: 4.18.2
-      graphql:
-        specifier: 16.8.1
-        version: 16.8.1
-      graphql-http:
-        specifier: ^1.22.0
-        version: 1.22.0(graphql@16.8.1)
-      uuid:
-        specifier: ^9.0.1
-        version: 9.0.1
-    devDependencies:
-      grats:
-        specifier: workspace:*
-        version: link:../..
-      typescript:
-        specifier: ^5.0.2
-        version: 5.0.2
-
   examples/next-js:
     dependencies:
       graphql:
@@ -213,6 +157,31 @@ importers:
       typescript:
         specifier: ^5.0.2
         version: 5.0.2
+
+  examples/production-app:
+    dependencies:
+      '@graphql-yoga/plugin-defer-stream':
+        specifier: ^3.1.1
+        version: 3.1.1(graphql-yoga@5.0.0)(graphql@16.8.1)
+      dataloader:
+        specifier: ^2.2.2
+        version: 2.2.2
+      graphql:
+        specifier: 16.8.1
+        version: 16.8.1
+      graphql-relay:
+        specifier: ^0.10.0
+        version: 0.10.0(graphql@16.8.1)
+      graphql-yoga:
+        specifier: ^5.0.0
+        version: 5.0.0(graphql@16.8.1)
+    devDependencies:
+      '@types/node':
+        specifier: ^20.8.10
+        version: 20.8.10
+      grats:
+        specifier: workspace:*
+        version: link:../..
 
   examples/strict-semantic-nullability:
     dependencies:
@@ -372,6 +341,9 @@ importers:
       '@tsconfig/docusaurus':
         specifier: ^1.0.5
         version: 1.0.7
+      graphql-relay:
+        specifier: ^0.10.0
+        version: 0.10.0(graphql@16.6.0)
 
 packages:
 
@@ -6966,10 +6938,6 @@ packages:
     resolution: {integrity: sha512-EwmlvuaxPNej9+T4v5AuBPJa2x2UOJVdjCtDHgcDqitUeOtjnJKJ+apYjVcAoBEMjKW1VVFGZLUb5+qqa09XFA==}
     dev: false
 
-  /@types/uuid@9.0.7:
-    resolution: {integrity: sha512-WUtIVRUZ9i5dYXefDEAI7sh9/O7jGvHg7Df/5O/gtH3Yabe5odI3UWopVR1qbPXQtvOxWu3mM4XxlYeZtMWF4g==}
-    dev: false
-
   /@types/ws@8.5.4:
     resolution: {integrity: sha512-zdQDHKUgcX/zBc4GrwsE/7dVdAD8JR4EuiAXiiUhhfyIJXXb2+PrGshFyeXWQPMmmZ2XxgaqclgpIC7eTXc1mg==}
     dependencies:
@@ -11698,6 +11666,15 @@ packages:
       nullthrows: 1.1.1
       vscode-languageserver-types: 3.17.3
     dev: false
+
+  /graphql-relay@0.10.0(graphql@16.6.0):
+    resolution: {integrity: sha512-44yBuw2/DLNEiMypbNZBt1yMDbBmyVPVesPywnteGGALiBmdyy1JP8jSg8ClLePg8ZZxk0O4BLhd1a6U/1jDOQ==}
+    engines: {node: ^12.20.0 || ^14.15.0 || >= 15.9.0}
+    peerDependencies:
+      graphql: ^16.2.0
+    dependencies:
+      graphql: 16.6.0
+    dev: true
 
   /graphql-relay@0.10.0(graphql@16.8.1):
     resolution: {integrity: sha512-44yBuw2/DLNEiMypbNZBt1yMDbBmyVPVesPywnteGGALiBmdyy1JP8jSg8ClLePg8ZZxk0O4BLhd1a6U/1jDOQ==}

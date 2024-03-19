@@ -1,4 +1,4 @@
-## Dataloader
+# Dataloader
 
 One well-known challenge of GraphQL relative to REST is the "N+1 problem".
 

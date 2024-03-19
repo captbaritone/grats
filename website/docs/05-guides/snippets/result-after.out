@@ -1,0 +1,158 @@
+/** @gqlUnion */
+// highlight-start
+export type Result<T> = T | MyError;
+// highlight-end
+
+/** @gqlField */
+// highlight-start
+export function myValue(_: Query): Result<MyValue> {
+  // highlight-end
+  try {
+    return getMyValue();
+  } catch (e) {
+    return { message: e.message, __typename: "MyError" };
+  }
+}
+
+/** @gqlField */
+// highlight-start
+export function myOtherValue(_: Query): Result<MyOtherValue> {
+  // highlight-end
+  try {
+    return getMyOtherValue();
+  } catch (e) {
+    return { message: e.message, __typename: "MyError" };
+  }
+}
+// trim-start
+
+/** @gqlType */
+export type MyValue = {
+  __typename: "MyValue";
+  /** @gqlField */
+  value: string;
+};
+
+/** @gqlType */
+export type MyOtherValue = {
+  __typename: "MyOtherValue";
+  /** @gqlField */
+  value: string;
+};
+
+/** @gqlType */
+export type MyError = {
+  __typename: "MyError";
+  /** @gqlField */
+  message: string;
+};
+
+/** @gqlType */
+type Query = unknown;
+
+function getMyValue(): MyValue {
+  return { value: "Hello, World!", __typename: "MyValue" };
+}
+
+function getMyOtherValue(): MyOtherValue {
+  return { value: "Hello, World!", __typename: "MyOtherValue" };
+}
+// trim-end
+
+=== SNIP ===
+union MyOtherValueResult = MyError | MyOtherValue
+
+union MyValueResult = MyError | MyValue
+
+type MyError {
+  message: String
+}
+
+type MyOtherValue {
+  value: String
+}
+
+type MyValue {
+  value: String
+}
+
+type Query {
+  myOtherValue: MyOtherValueResult
+  myValue: MyValueResult
+}
+=== SNIP ===
+import { myOtherValue as queryMyOtherValueResolver } from "./result-after.grats";
+import { myValue as queryMyValueResolver } from "./result-after.grats";
+import { GraphQLSchema, GraphQLObjectType, GraphQLUnionType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const MyErrorType: GraphQLObjectType = new GraphQLObjectType({
+        name: "MyError",
+        fields() {
+            return {
+                message: {
+                    name: "message",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const MyOtherValueType: GraphQLObjectType = new GraphQLObjectType({
+        name: "MyOtherValue",
+        fields() {
+            return {
+                value: {
+                    name: "value",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const MyOtherValueResultType: GraphQLUnionType = new GraphQLUnionType({
+        name: "MyOtherValueResult",
+        types() {
+            return [MyErrorType, MyOtherValueType];
+        }
+    });
+    const MyValueType: GraphQLObjectType = new GraphQLObjectType({
+        name: "MyValue",
+        fields() {
+            return {
+                value: {
+                    name: "value",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const MyValueResultType: GraphQLUnionType = new GraphQLUnionType({
+        name: "MyValueResult",
+        types() {
+            return [MyErrorType, MyValueType];
+        }
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                myOtherValue: {
+                    name: "myOtherValue",
+                    type: MyOtherValueResultType,
+                    resolve(source) {
+                        return queryMyOtherValueResolver(source);
+                    }
+                },
+                myValue: {
+                    name: "myValue",
+                    type: MyValueResultType,
+                    resolve(source) {
+                        return queryMyValueResolver(source);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [MyOtherValueResultType, MyValueResultType, MyErrorType, MyOtherValueType, MyValueType, QueryType]
+    });
+}

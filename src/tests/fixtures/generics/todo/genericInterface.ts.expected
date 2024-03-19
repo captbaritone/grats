@@ -1,0 +1,33 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class User implements Friendly<Dog> {
+  __typename: "User";
+  /** @gqlField */
+  name: string;
+  /** @gqlField */
+  to: Dog;
+}
+
+/** @gqlInterface */
+interface Friendly<T> {
+  /** @gqlField */
+  to: T;
+}
+
+/** @gqlType */
+class Dog {
+  /** @gqlField */
+  name: string;
+  /** @gqlField */
+  bestFriend: Friendly<Dog>;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/generics/todo/genericInterface.ts:2:23 - error: Unknown type "Friendly". Did you mean "DogFriendly"?
+
+2 class User implements Friendly<Dog> {
+                        ~~~~~~~~
