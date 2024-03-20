@@ -65,7 +65,7 @@ function addAbstractFieldDefinition(
   interfaceGraph: InterfaceMap,
 ): DiagnosticResult<DefinitionNode[]> {
   const newDocs: DefinitionNode[] = [];
-  const definitionResult = ctx.getNameDefinition(doc.onType);
+  const definitionResult = ctx.gqlNameDefinitionForGqlName(doc.onType);
 
   if (definitionResult.kind === "ERROR") {
     return definitionResult;

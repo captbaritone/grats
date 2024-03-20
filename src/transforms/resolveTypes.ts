@@ -17,7 +17,7 @@ export function resolveTypes(
   const errors: ts.DiagnosticWithLocation[] = [];
   const newDoc = visit(doc, {
     [Kind.NAME]: (t) => {
-      const namedTypeResult = ctx.resolveNamedType(t);
+      const namedTypeResult = ctx.resolveUnresolvedNamedType(t);
       if (namedTypeResult.kind === "ERROR") {
         errors.push(namedTypeResult.err);
         return t;

@@ -37,8 +37,7 @@ export class TypeContext {
   checker: ts.TypeChecker;
 
   _declarationToName: Map<ts.Declaration, NameDefinition> = new Map();
-  _unresolvedNodes: Map<TsIdentifier, ts.TypeReferenceNode | ts.EntityName> =
-    new Map();
+  _unresolvedNodes: Map<TsIdentifier, ts.EntityName> = new Map();
   _idToDeclaration: Map<TsIdentifier, ts.Declaration> = new Map();
 
   static fromSnapshot(
@@ -72,15 +71,7 @@ export class TypeContext {
 
   // Record that a type references `node`
   private _markUnresolvedType(node: ts.EntityName, name: NameNode) {
-    const parent = node.parent;
-    if (ts.isTypeReferenceNode(parent)) {
-      // Hack: We need to be able to look up the parameterized
-      // type later. So we record the unresolved node only if it's something that
-      // can have type params. We should find a better way to do this.
-      this._unresolvedNodes.set(name.tsIdentifier, parent);
-    } else {
-      this._unresolvedNodes.set(name.tsIdentifier, node);
-    }
+    this._unresolvedNodes.set(name.tsIdentifier, node);
   }
 
   findSymbolDeclaration(startSymbol: ts.Symbol): ts.Declaration | null {
@@ -106,17 +97,16 @@ export class TypeContext {
     return symbol;
   }
 
-  resolveNamedType(unresolved: NameNode): DiagnosticResult<NameNode> {
+  resolveUnresolvedNamedType(unresolved: NameNode): DiagnosticResult<NameNode> {
     if (unresolved.value !== UNRESOLVED_REFERENCE_NAME) {
       return ok(unresolved);
     }
-    const typeReference = this.getReferenceNode(unresolved);
+    const typeReference = this.getEntityName(unresolved);
     if (typeReference == null) {
       throw new Error("Unexpected unresolved reference name.");
     }
 
-    const declarationResult =
-      this.resolveTsReferenceToDeclaration(typeReference);
+    const declarationResult = this.tsDeclarationForTsName(typeReference);
     if (declarationResult.kind === "ERROR") {
       return err(declarationResult.err);
     }
@@ -137,23 +127,22 @@ export class TypeContext {
   }
 
   unresolvedNameIsGraphQL(unresolved: NameNode): boolean {
-    const referenceNode = this.getReferenceNode(unresolved);
+    const referenceNode = this.getEntityName(unresolved);
     if (referenceNode == null) return false;
-    const declaration =
-      this.maybeResolveTsReferenceToDeclaration(referenceNode);
+    const declaration = this.maybeTsDeclarationForTsName(referenceNode);
     if (declaration == null) return false;
     return this._declarationToName.has(declaration);
   }
 
-  // TODO: Merge this with resolveNamedType
-  getNameDefinition(nameNode: NameNode): DiagnosticResult<NameDefinition> {
-    const referenceNode = this.getReferenceNode(nameNode);
+  gqlNameDefinitionForGqlName(
+    nameNode: NameNode,
+  ): DiagnosticResult<NameDefinition> {
+    const referenceNode = this.getEntityName(nameNode);
     if (referenceNode == null) {
       throw new Error("Expected to find reference node for name node.");
     }
 
-    const declaration =
-      this.maybeResolveTsReferenceToDeclaration(referenceNode);
+    const declaration = this.maybeTsDeclarationForTsName(referenceNode);
     if (declaration == null) {
       return err(gqlErr(loc(nameNode), E.unresolvedTypeReference()));
     }
@@ -164,12 +153,9 @@ export class TypeContext {
     return ok(definition);
   }
 
-  // TODO: Refactor?
   // Note! This assumes you have already handled any type parameters.
-  resolveTsReferenceToGraphQLName(
-    node: ts.EntityName,
-  ): DiagnosticResult<string> {
-    const declarationResult = this.resolveTsReferenceToDeclaration(node);
+  gqlNameForTsName(node: ts.EntityName): DiagnosticResult<string> {
+    const declarationResult = this.tsDeclarationForTsName(node);
     if (declarationResult.kind === "ERROR") {
       return err(declarationResult.err);
     }
@@ -188,13 +174,9 @@ export class TypeContext {
     return ok(nameDefinition.name.value);
   }
 
-  maybeResolveTsReferenceToDeclaration(
-    node: ts.TypeReferenceNode | ts.EntityName,
+  private maybeTsDeclarationForTsName(
+    node: ts.EntityName,
   ): ts.Declaration | null {
-    // TODO: Can we simplify this?
-    if (ts.isTypeReferenceNode(node)) {
-      return this.maybeResolveTsReferenceToDeclaration(node.typeName);
-    }
     const symbol = this.checker.getSymbolAtLocation(node);
     if (symbol == null) {
       return null;
@@ -202,17 +184,17 @@ export class TypeContext {
     return this.findSymbolDeclaration(symbol);
   }
 
-  resolveTsReferenceToDeclaration(
-    node: ts.TypeReferenceNode | ts.EntityName,
+  tsDeclarationForTsName(
+    node: ts.EntityName,
   ): DiagnosticResult<ts.Declaration> {
-    const declaration = this.maybeResolveTsReferenceToDeclaration(node);
+    const declaration = this.maybeTsDeclarationForTsName(node);
     if (!declaration) {
       return err(tsErr(node, E.unresolvedTypeReference()));
     }
     return ok(declaration);
   }
 
-  getNameDeclaration(
+  tsDeclarationForGqlDefinition(
     definition:
       | ObjectTypeDefinitionNode
       | UnionTypeDefinitionNode
@@ -227,9 +209,7 @@ export class TypeContext {
     return declaration;
   }
 
-  getReferenceNode(
-    name: NameNode,
-  ): ts.EntityName | ts.TypeReferenceNode | null {
+  getEntityName(name: NameNode): ts.EntityName | null {
     return this._unresolvedNodes.get(name.tsIdentifier) ?? null;
   }
 }

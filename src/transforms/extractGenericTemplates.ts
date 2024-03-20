@@ -3,6 +3,7 @@ import {
   InputObjectTypeDefinitionNode,
   InterfaceTypeDefinitionNode,
   Kind,
+  NameNode,
   ObjectTypeDefinitionNode,
   TypeDefinitionNode,
   UnionTypeDefinitionNode,
@@ -82,10 +83,9 @@ class TemplateExtractor {
         if (node.value !== "__UNRESOLVED_REFERENCE__") {
           return node;
         }
-        const referenceNode = this.ctx.getReferenceNode(node);
+        const referenceNode = this.getReferenceNode(node);
         // TODO: Diagnostic?
-        if (referenceNode == null || !ts.isTypeReferenceNode(referenceNode))
-          return node;
+        if (referenceNode == null) return node;
         const name = this.resolveTypeReference(referenceNode);
         if (name == null) return node;
         return { ...node, value: name };
@@ -98,7 +98,7 @@ class TemplateExtractor {
     generics?: Map<ts.Node, string>,
   ): string | null {
     const declaration = this.asNullable(
-      this.ctx.resolveTsReferenceToDeclaration(node.typeName),
+      this.ctx.tsDeclarationForTsName(node.typeName),
     );
     if (declaration == null) {
       return null;
@@ -144,7 +144,7 @@ class TemplateExtractor {
 
       return this.materializeTemplate(node, names, template);
     }
-    const nameResult = this.ctx.resolveTsReferenceToGraphQLName(node.typeName);
+    const nameResult = this.ctx.gqlNameForTsName(node.typeName);
 
     return this.asNullable(nameResult);
   }
@@ -190,10 +190,9 @@ class TemplateExtractor {
           if (node.name.value !== "__UNRESOLVED_REFERENCE__") {
             return node;
           }
-          const referenceNode = this.ctx.getReferenceNode(node.name);
+          const referenceNode = this.getReferenceNode(node.name);
           // TODO: Diagnostic?
-          if (referenceNode == null || !ts.isTypeReferenceNode(referenceNode))
-            return node;
+          if (referenceNode == null) return node;
 
           const name = this.resolveTypeReference(
             referenceNode,
@@ -215,7 +214,7 @@ class TemplateExtractor {
     if (!mayReferenceGenerics(definition)) {
       return false;
     }
-    const declaration = this.ctx.getNameDeclaration(definition);
+    const declaration = this.ctx.tsDeclarationForGqlDefinition(definition);
     const typeParams = getTypeParameters(declaration);
 
     if (typeParams == null || typeParams.length === 0) {
@@ -228,13 +227,11 @@ class TemplateExtractor {
       // TODO: We should only visit types which are in positions where generics are valid:
       // Field types
       [Kind.NAMED_TYPE]: (node) => {
-        const referenceNode = this.ctx.getReferenceNode(node.name);
-        if (referenceNode == null || !ts.isTypeReferenceNode(referenceNode)) {
-          return;
-        }
+        const referenceNode = this.getReferenceNode(node.name);
+        if (referenceNode == null) return;
         const references = findAllReferences(referenceNode);
         for (const reference of references) {
-          const declarationResult = this.ctx.resolveTsReferenceToDeclaration(
+          const declarationResult = this.ctx.tsDeclarationForTsName(
             reference.typeName,
           );
           if (declarationResult.kind === "ERROR") {
@@ -267,6 +264,12 @@ class TemplateExtractor {
   }
 
   // --- Helpers ---
+
+  getReferenceNode(name: NameNode): ts.TypeReferenceNode | null {
+    const node = this.ctx.getEntityName(name);
+    if (node == null || !ts.isTypeReferenceNode(node.parent)) return null;
+    return node.parent;
+  }
 
   asNullable<T>(result: DiagnosticResult<T>): T | null {
     if (result.kind === "ERROR") {
