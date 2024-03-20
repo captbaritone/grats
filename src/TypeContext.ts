@@ -1,11 +1,6 @@
 import { NameNode } from "graphql";
 import * as ts from "typescript";
-import {
-  gqlErr,
-  DiagnosticResult,
-  DiagnosticsResult,
-  tsErr,
-} from "./utils/DiagnosticError";
+import { gqlErr, DiagnosticResult, tsErr } from "./utils/DiagnosticError";
 import { err, ok } from "./utils/Result";
 import * as E from "./Errors";
 import { ExtractionSnapshot } from "./Extractor";
@@ -36,9 +31,11 @@ export class TypeContext {
   checker: ts.TypeChecker;
 
   _symbolToName: Map<ts.Symbol, NameDefinition> = new Map();
+  _declarationToName: Map<ts.Declaration, NameDefinition> = new Map();
   __nameToSymbol: Map<TsIdentifier, ts.Symbol> = new Map();
   _unresolvedNodes: Map<TsIdentifier, ts.TypeReferenceNode | ts.EntityName> =
     new Map();
+  _idToDeclaration: Map<TsIdentifier, ts.Declaration> = new Map();
 
   static fromSnapshot(
     checker: ts.TypeChecker,
@@ -65,7 +62,7 @@ export class TypeContext {
   // Record that a GraphQL construct of type `kind` with the name `name` is
   // declared at `node`.
   private _recordTypeName(
-    node: ts.Node,
+    node: ts.Declaration,
     name: NameNode,
     kind: NameDefinition["kind"],
   ) {
@@ -80,8 +77,14 @@ export class TypeContext {
       // Ensure we never try to record the same name twice.
       throw new Error("Unexpected double recording of typename.");
     }
+    this._idToDeclaration.set(name.tsIdentifier, node);
     this.__nameToSymbol.set(name.tsIdentifier, symbol);
     this._symbolToName.set(symbol, { name, kind });
+    // console.log("Adding name to declaration", name.value, node.getText());
+    // TODO
+    const actualDeclaration = node.parent as ts.Declaration;
+
+    this._declarationToName.set(actualDeclaration, { name, kind });
   }
 
   // Record that a type references `node`
@@ -100,10 +103,11 @@ export class TypeContext {
       // type later. So we record the unresolved node only if it's something that
       // can have type params. We should find a better way to do this.
       this._unresolvedNodes.set(name.tsIdentifier, parent);
+    } else {
+      this._unresolvedNodes.set(name.tsIdentifier, node);
     }
 
     this.__nameToSymbol.set(name.tsIdentifier, this.resolveSymbol(symbol));
-    // this._unresolvedTypes.set(name.tsIdentifier, this.resolveSymbol(symbol));
   }
 
   findSymbolDeclaration(startSymbol: ts.Symbol): ts.Declaration | null {
@@ -133,37 +137,46 @@ export class TypeContext {
     if (unresolved.value !== UNRESOLVED_REFERENCE_NAME) {
       return ok(unresolved);
     }
-    const symbol = this.nameToSymbol(unresolved);
-    if (symbol == null) {
-      // This is a logic error on our side.
+    const typeReference = this.getReferenceNode(unresolved);
+    if (typeReference == null) {
       throw new Error("Unexpected unresolved reference name.");
     }
-    const nameDefinition = this._symbolToName.get(symbol);
+
+    const declarationResult =
+      this.resolveTsReferenceToDeclaration(typeReference);
+    if (declarationResult.kind === "ERROR") {
+      return err(declarationResult.err);
+    }
+    if (ts.isTypeParameterDeclaration(declarationResult.value)) {
+      return err(
+        gqlErr(
+          loc(unresolved),
+          "Type parameters are not supported in this context.",
+        ),
+      );
+    }
+
+    const nameDefinition = this._declarationToName.get(declarationResult.value);
     if (nameDefinition == null) {
-      const declaration = this.findSymbolDeclaration(symbol);
-      if (declaration != null && ts.isTypeParameterDeclaration(declaration)) {
-        return err(
-          gqlErr(
-            loc(unresolved),
-            "Type parameters are not supported in this context.",
-          ),
-        );
-      }
       return err(gqlErr(loc(unresolved), E.unresolvedTypeReference()));
     }
     return ok({ ...unresolved, value: nameDefinition.name.value });
   }
 
   unresolvedNameIsGraphQL(unresolved: NameNode): boolean {
-    const symbol = this.nameToSymbol(unresolved);
-    return symbol != null && this._symbolToName.has(symbol);
+    const referenceNode = this.getReferenceNode(unresolved);
+    if (referenceNode == null) return false;
+    const declaration =
+      this.maybeResolveTsReferenceToDeclaration(referenceNode);
+    if (declaration == null) return false;
+    return this._declarationToName.has(declaration);
   }
 
   // TODO: Merge this with resolveNamedType
-  getNameDefinition(nameNode: NameNode): DiagnosticsResult<NameDefinition> {
+  getNameDefinition(nameNode: NameNode): DiagnosticResult<NameDefinition> {
     const typeNameResult = this.resolveNamedType(nameNode);
     if (typeNameResult.kind === "ERROR") {
-      return err([typeNameResult.err]);
+      return err(typeNameResult.err);
     }
     const symbol = this.nameToSymbol(nameNode);
     if (symbol == null) {
@@ -183,34 +196,37 @@ export class TypeContext {
   resolveTsReferenceToGraphQLName(
     node: ts.EntityName,
   ): DiagnosticResult<string> {
-    const symbol = this.checker.getSymbolAtLocation(node);
-    if (symbol == null) {
-      throw new Error(`Could not find symbol for ${node.getText()}`);
+    const declarationResult = this.resolveTsReferenceToDeclaration(node);
+    if (declarationResult.kind === "ERROR") {
+      return err(declarationResult.err);
+    }
+    if (ts.isTypeParameterDeclaration(declarationResult.value)) {
+      return err(
+        tsErr(node, "Type parameter not valid", [
+          tsErr(declarationResult.value, "Defined here"),
+        ]),
+      );
     }
 
-    const nameDefinition = this._symbolToName.get(this.resolveSymbol(symbol));
+    const nameDefinition = this._declarationToName.get(declarationResult.value);
     if (nameDefinition == null) {
-      const declaration = this.findSymbolDeclaration(symbol);
-      if (declaration != null && ts.isTypeParameterDeclaration(declaration)) {
-        return err(
-          tsErr(node, "Type parameter not valid", [
-            tsErr(declaration, "Defined here"),
-          ]),
-        );
-      }
       return err(tsErr(node, E.unresolvedTypeReference()));
     }
     return ok(nameDefinition.name.value);
   }
 
-  resolveTsReferenceToDeclaration(
-    node: ts.Node,
-  ): DiagnosticResult<ts.Declaration> {
+  maybeResolveTsReferenceToDeclaration(node: ts.Node): ts.Declaration | null {
     const symbol = this.checker.getSymbolAtLocation(node);
     if (!symbol) {
       throw new Error(`Could not find symbol for ${node.getText()}`);
     }
-    const declaration = this.findSymbolDeclaration(symbol);
+    return this.findSymbolDeclaration(symbol);
+  }
+
+  resolveTsReferenceToDeclaration(
+    node: ts.Node,
+  ): DiagnosticResult<ts.Declaration> {
+    const declaration = this.maybeResolveTsReferenceToDeclaration(node);
     if (!declaration) {
       return err(tsErr(node, E.unresolvedTypeReference()));
     }
@@ -232,18 +248,6 @@ export class TypeContext {
   getReferenceNode(
     name: NameNode,
   ): ts.EntityName | ts.TypeReferenceNode | null {
-    if (name.value !== "__UNRESOLVED_REFERENCE__") {
-      return null;
-    }
-    const tsNode = this._unresolvedNodes.get(name.tsIdentifier);
-    if (!tsNode) {
-      // TODO: This means the name did not point to a type reference.
-      // Since we only care about potential generics here, we can ignore this.
-      // NOTE: There are possibly other nodes that can have type params which
-      // should be accounted for. See heritage clauses and type arguments.
-      return null;
-      throw new Error(`Could not find type node for ${name.value}`);
-    }
-    return tsNode;
+    return this._unresolvedNodes.get(name.tsIdentifier) ?? null;
   }
 }

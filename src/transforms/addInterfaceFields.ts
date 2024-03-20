@@ -3,6 +3,7 @@ import * as ts from "typescript";
 import { DefinitionNode, Kind } from "graphql";
 import { TypeContext } from "../TypeContext";
 import {
+  DiagnosticResult,
   DiagnosticsResult,
   gqlErr,
   gqlRelated,
@@ -42,7 +43,7 @@ export function addInterfaceFields(
         interfaceGraph,
       );
       if (abstractDocResults.kind === "ERROR") {
-        extend(errors, abstractDocResults.err);
+        errors.push(abstractDocResults.err);
       } else {
         extend(newDocs, abstractDocResults.value);
       }
@@ -62,7 +63,7 @@ function addAbstractFieldDefinition(
   ctx: TypeContext,
   doc: AbstractFieldDefinitionNode,
   interfaceGraph: InterfaceMap,
-): DiagnosticsResult<DefinitionNode[]> {
+): DiagnosticResult<DefinitionNode[]> {
   const newDocs: DefinitionNode[] = [];
   const definitionResult = ctx.getNameDefinition(doc.onType);
 
@@ -136,14 +137,14 @@ function addAbstractFieldDefinition(
         throw new Error("Expected nameDefinition to have a location.");
       }
 
-      return err([
+      return err(
         gqlErr(loc, E.invalidTypePassedToFieldFunction(), [
           gqlRelated(
             relatedLoc,
             `This is the type that was passed to \`@${FIELD_TAG}\`.`,
           ),
         ]),
-      ]);
+      );
     }
   }
   return ok(newDocs);
