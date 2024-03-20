@@ -1,4 +1,10 @@
-import { NameNode } from "graphql";
+import {
+  InputObjectTypeDefinitionNode,
+  InterfaceTypeDefinitionNode,
+  NameNode,
+  ObjectTypeDefinitionNode,
+  UnionTypeDefinitionNode,
+} from "graphql";
 import * as ts from "typescript";
 import { gqlErr, DiagnosticResult, tsErr } from "./utils/DiagnosticError";
 import { err, ok } from "./utils/Result";
@@ -30,9 +36,7 @@ type TsIdentifier = number;
 export class TypeContext {
   checker: ts.TypeChecker;
 
-  _symbolToName: Map<ts.Symbol, NameDefinition> = new Map();
   _declarationToName: Map<ts.Declaration, NameDefinition> = new Map();
-  __nameToSymbol: Map<TsIdentifier, ts.Symbol> = new Map();
   _unresolvedNodes: Map<TsIdentifier, ts.TypeReferenceNode | ts.EntityName> =
     new Map();
   _idToDeclaration: Map<TsIdentifier, ts.Declaration> = new Map();
@@ -55,10 +59,6 @@ export class TypeContext {
     this.checker = checker;
   }
 
-  private nameToSymbol(name: NameNode): ts.Symbol | undefined {
-    return this.__nameToSymbol.get(name.tsIdentifier);
-  }
-
   // Record that a GraphQL construct of type `kind` with the name `name` is
   // declared at `node`.
   private _recordTypeName(
@@ -73,15 +73,7 @@ export class TypeContext {
         "Could not resolve type reference. You probably have a TypeScript error.",
       );
     }
-    if (this._symbolToName.has(symbol)) {
-      // Ensure we never try to record the same name twice.
-      throw new Error("Unexpected double recording of typename.");
-    }
-    this._idToDeclaration.set(name.tsIdentifier, node);
-    this.__nameToSymbol.set(name.tsIdentifier, symbol);
-    this._symbolToName.set(symbol, { name, kind });
-    // console.log("Adding name to declaration", name.value, node.getText());
-    // TODO
+    this._idToDeclaration.set(name.tsIdentifier, node.parent);
     const actualDeclaration = node.parent as ts.Declaration;
 
     this._declarationToName.set(actualDeclaration, { name, kind });
@@ -106,8 +98,6 @@ export class TypeContext {
     } else {
       this._unresolvedNodes.set(name.tsIdentifier, node);
     }
-
-    this.__nameToSymbol.set(name.tsIdentifier, this.resolveSymbol(symbol));
   }
 
   findSymbolDeclaration(startSymbol: ts.Symbol): ts.Declaration | null {
@@ -174,21 +164,21 @@ export class TypeContext {
 
   // TODO: Merge this with resolveNamedType
   getNameDefinition(nameNode: NameNode): DiagnosticResult<NameDefinition> {
-    const typeNameResult = this.resolveNamedType(nameNode);
-    if (typeNameResult.kind === "ERROR") {
-      return err(typeNameResult.err);
+    const referenceNode = this.getReferenceNode(nameNode);
+    if (referenceNode == null) {
+      throw new Error("Expected to find reference node for name node.");
     }
-    const symbol = this.nameToSymbol(nameNode);
-    if (symbol == null) {
-      // This should have already been handled by resolveNamedType
-      throw new Error("Expected to find unresolved type.");
+
+    const declaration =
+      this.maybeResolveTsReferenceToDeclaration(referenceNode);
+    if (declaration == null) {
+      return err(gqlErr(loc(nameNode), E.unresolvedTypeReference()));
     }
-    const nameDefinition = this._symbolToName.get(symbol);
-    if (nameDefinition == null) {
-      // This should have already been handled by resolveNamedType
+    const definition = this._declarationToName.get(declaration);
+    if (definition == null) {
       throw new Error("Expected to find name definition.");
     }
-    return ok(nameDefinition);
+    return ok(definition);
   }
 
   // TODO: Refactor?
@@ -215,16 +205,22 @@ export class TypeContext {
     return ok(nameDefinition.name.value);
   }
 
-  maybeResolveTsReferenceToDeclaration(node: ts.Node): ts.Declaration | null {
+  maybeResolveTsReferenceToDeclaration(
+    node: ts.TypeReferenceNode | ts.EntityName,
+  ): ts.Declaration | null {
+    // TODO: Can we simplify this?
+    if (ts.isTypeReferenceNode(node)) {
+      return this.maybeResolveTsReferenceToDeclaration(node.typeName);
+    }
     const symbol = this.checker.getSymbolAtLocation(node);
-    if (!symbol) {
-      throw new Error(`Could not find symbol for ${node.getText()}`);
+    if (symbol == null) {
+      return null;
     }
     return this.findSymbolDeclaration(symbol);
   }
 
   resolveTsReferenceToDeclaration(
-    node: ts.Node,
+    node: ts.TypeReferenceNode | ts.EntityName,
   ): DiagnosticResult<ts.Declaration> {
     const declaration = this.maybeResolveTsReferenceToDeclaration(node);
     if (!declaration) {
@@ -233,12 +229,15 @@ export class TypeContext {
     return ok(declaration);
   }
 
-  getNameDeclaration(name: NameNode): ts.Declaration {
-    const tsDefinition = this.nameToSymbol(name);
-    if (!tsDefinition) {
-      throw new Error(`Could not find type definition for ${name.value}`);
-    }
-    const declaration = this.findSymbolDeclaration(tsDefinition);
+  getNameDeclaration(
+    definition:
+      | ObjectTypeDefinitionNode
+      | UnionTypeDefinitionNode
+      | InputObjectTypeDefinitionNode
+      | InterfaceTypeDefinitionNode,
+  ): ts.Declaration {
+    const name = definition.name;
+    const declaration = this._idToDeclaration.get(name.tsIdentifier);
     if (!declaration) {
       throw new Error(`Could not find declaration for ${name.value}`);
     }

@@ -215,7 +215,7 @@ class TemplateExtractor {
     if (!mayReferenceGenerics(definition)) {
       return false;
     }
-    const declaration = this.ctx.getNameDeclaration(definition.name);
+    const declaration = this.ctx.getNameDeclaration(definition);
     const typeParams = getTypeParameters(declaration);
 
     if (typeParams == null || typeParams.length === 0) {
