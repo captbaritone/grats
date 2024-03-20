@@ -20,3 +20,4 @@ Here are edge cases that we'll want to test for:
 - [ ] Revisit docs
 - [ ] Revisit @stream docs
 - [ ] Validate that \_\_typename validation works on templated types
+- [x] Validate that input types can accept generics
