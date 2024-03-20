@@ -66,29 +66,12 @@ export class TypeContext {
     name: NameNode,
     kind: NameDefinition["kind"],
   ) {
-    const symbol = this.checker.getSymbolAtLocation(node);
-    if (symbol == null) {
-      // FIXME: Make this a diagnostic
-      throw new Error(
-        "Could not resolve type reference. You probably have a TypeScript error.",
-      );
-    }
-    this._idToDeclaration.set(name.tsIdentifier, node.parent);
-    const actualDeclaration = node.parent as ts.Declaration;
-
-    this._declarationToName.set(actualDeclaration, { name, kind });
+    this._idToDeclaration.set(name.tsIdentifier, node);
+    this._declarationToName.set(node, { name, kind });
   }
 
   // Record that a type references `node`
   private _markUnresolvedType(node: ts.EntityName, name: NameNode) {
-    const symbol = this.checker.getSymbolAtLocation(node);
-    if (symbol == null) {
-      //
-      throw new Error(
-        "Could not resolve type reference. You probably have a TypeScript error.",
-      );
-    }
-
     const parent = node.parent;
     if (ts.isTypeReferenceNode(parent)) {
       // Hack: We need to be able to look up the parameterized

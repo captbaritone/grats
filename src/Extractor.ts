@@ -61,7 +61,7 @@ type ArgDefaults = Map<string, ts.Expression>;
 export type ExtractionSnapshot = {
   readonly definitions: GratsDefinitionNode[];
   readonly unresolvedNames: Map<ts.EntityName, NameNode>;
-  readonly nameDefinitions: Map<ts.Declaration, NameDefinition>;
+  readonly nameDefinitions: Map<ts.DeclarationStatement, NameDefinition>;
   readonly contextReferences: Array<ts.Node>;
   readonly typesWithTypename: Set<string>;
   readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
@@ -93,7 +93,7 @@ class Extractor {
 
   // Snapshot data
   unresolvedNames: Map<ts.EntityName, NameNode> = new Map();
-  nameDefinitions: Map<ts.Declaration, NameDefinition> = new Map();
+  nameDefinitions: Map<ts.DeclarationStatement, NameDefinition> = new Map();
   contextReferences: Array<ts.Node> = [];
   typesWithTypename: Set<string> = new Set();
   interfaceDeclarations: Array<ts.InterfaceDeclaration> = [];
@@ -110,7 +110,7 @@ class Extractor {
   }
 
   recordTypeName(
-    node: ts.Declaration,
+    node: ts.DeclarationStatement,
     name: NameNode,
     kind: NameDefinition["kind"],
   ): void {
@@ -339,7 +339,7 @@ class Extractor {
       types.push(namedType);
     }
 
-    this.recordTypeName(node.name, name, "UNION");
+    this.recordTypeName(node, name, "UNION");
 
     this.definitions.push(
       this.gql.unionTypeDefinition(node, name, types, description),
@@ -467,7 +467,7 @@ class Extractor {
     if (name == null) return null;
 
     const description = this.collectDescription(node);
-    this.recordTypeName(node.name, name, "SCALAR");
+    this.recordTypeName(node, name, "SCALAR");
 
     // TODO: Can a scalar be deprecated?
 
@@ -488,7 +488,7 @@ class Extractor {
     if (name == null) return null;
 
     const description = this.collectDescription(node);
-    this.recordTypeName(node.name, name, "INPUT_OBJECT");
+    this.recordTypeName(node, name, "INPUT_OBJECT");
 
     const fields = this.collectInputFields(node);
 
@@ -510,7 +510,7 @@ class Extractor {
     if (name == null) return null;
 
     const description = this.collectDescription(node);
-    this.recordTypeName(node.name, name, "INPUT_OBJECT");
+    this.recordTypeName(node, name, "INPUT_OBJECT");
 
     const fields: Array<InputValueDefinitionNode> = [];
 
@@ -610,7 +610,7 @@ class Extractor {
     const description = this.collectDescription(node);
     const fields = this.collectFields(node);
     const interfaces = this.collectInterfaces(node);
-    this.recordTypeName(node.name, name, "TYPE");
+    this.recordTypeName(node, name, "TYPE");
 
     this.checkForTypenameProperty(node, name.value);
 
@@ -642,7 +642,7 @@ class Extractor {
     const description = this.collectDescription(node);
     const fields = this.collectFields(node);
     const interfaces = this.collectInterfaces(node);
-    this.recordTypeName(node.name, name, "TYPE");
+    this.recordTypeName(node, name, "TYPE");
 
     this.checkForTypenameProperty(node, name.value);
 
@@ -678,7 +678,7 @@ class Extractor {
     }
 
     const description = this.collectDescription(node);
-    this.recordTypeName(node.name, name, "TYPE");
+    this.recordTypeName(node, name, "TYPE");
 
     this.definitions.push(
       this.gql.objectTypeDefinition(
@@ -875,7 +875,7 @@ class Extractor {
 
     const fields = this.collectFields(node);
 
-    this.recordTypeName(node.name, name, "INTERFACE");
+    this.recordTypeName(node, name, "INTERFACE");
 
     this.definitions.push(
       this.gql.interfaceTypeDefinition(
@@ -1214,7 +1214,7 @@ class Extractor {
 
     const values = this.collectEnumValues(node);
 
-    this.recordTypeName(node.name, name, "ENUM");
+    this.recordTypeName(node, name, "ENUM");
 
     this.definitions.push(
       this.gql.enumTypeDefinition(node, name, values, description),
@@ -1234,7 +1234,7 @@ class Extractor {
     if (values == null) return;
 
     const description = this.collectDescription(node);
-    this.recordTypeName(node.name, name, "ENUM");
+    this.recordTypeName(node, name, "ENUM");
 
     this.definitions.push(
       this.gql.enumTypeDefinition(node, name, values, description),
