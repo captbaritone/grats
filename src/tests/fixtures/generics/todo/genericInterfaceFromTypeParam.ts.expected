@@ -1,0 +1,31 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export class User<T> implements Friendly<T> {
+  __typename: "User";
+  /** @gqlField */
+  name: string;
+}
+
+/** @gqlInterface */
+interface Friendly<T> {
+  /** @gqlField */
+  name: string;
+}
+
+/** @gqlType */
+class Dog {
+  /** @gqlField */
+  name: string;
+  /** @gqlField */
+  bestFriend: User<Dog>;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/generics/todo/genericInterfaceFromTypeParam.ts:2:33 - error: Unexpected interface implementation on generic `@gqlType`. Generic GraphQL types will be synthesize into types with different names, but types which implement an interface must define an explicit `__typename` property matching their GraphQL name.
+
+2 export class User<T> implements Friendly<T> {
+                                  ~~~~~~~~
