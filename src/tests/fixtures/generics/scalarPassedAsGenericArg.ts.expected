@@ -16,10 +16,10 @@ type OtherType = {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/generics/scalarPassedAsGenericArg.ts:10:12 - error: Expected `Wrapper` to be passed a GraphQL type argument for type parameter `T`.
+src/tests/fixtures/generics/scalarPassedAsGenericArg.ts:10:20 - error: Expected `Wrapper` to be passed a GraphQL type argument for type parameter `T`.
 
 10   wrapper: Wrapper<string>;
-              ~~~~~~~~~~~~~~~
+                      ~~~~~~
 
   src/tests/fixtures/generics/scalarPassedAsGenericArg.ts:2:14
     2 type Wrapper<T> = {

@@ -1,0 +1,22 @@
+-----------------
+INPUT
+----------------- 
+// T is not inspected by Grats, so this is fine.
+/** @gqlScalar */
+type MyScalar<T> = T;
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+scalar MyScalar
+-- TypeScript --
+import { GraphQLSchema, GraphQLScalarType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const MyScalarType: GraphQLScalarType = new GraphQLScalarType({
+        name: "MyScalar"
+    });
+    return new GraphQLSchema({
+        types: [MyScalarType]
+    });
+}

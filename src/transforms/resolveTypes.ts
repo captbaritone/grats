@@ -167,7 +167,7 @@ class TemplateExtractor {
         }
         if (!ts.isTypeReferenceNode(arg)) {
           return this.report(
-            node,
+            arg,
             E.nonGraphQLGenericType(templateName, paramName),
             [
               tsErr(param, `Type parameter \`${paramName}\` is defined here`),
