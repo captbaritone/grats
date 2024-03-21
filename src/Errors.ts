@@ -413,7 +413,16 @@ export function specifiedByOnWrongNode() {
   return `Unexpected \`@${SPECIFIED_BY_TAG}\` tag on non-scalar declaration. \`@${SPECIFIED_BY_TAG}\` can only be used on custom scalar declarations. Are you missing a \`@${SCALAR_TAG}\` tag?`;
 }
 
-export function invalidTypePassedAsGqlGeneric(): string {
-  // TODO: Refine this message
-  return "Invalid type passed as a generic argument to a GraphQL type.";
+export function missingGenericType(
+  templateName: string,
+  paramName: string,
+): string {
+  return `Missing type argument for generic GraphQL type. Expected \`${templateName}\` to be passed a GraphQL type argument for type parameter \`${paramName}\`.`;
+}
+
+export function nonGraphQLGenericType(
+  templateName: string,
+  paramName: string,
+): string {
+  return `Expected \`${templateName}\` to be passed a GraphQL type argument for type parameter \`${paramName}\`.`;
 }

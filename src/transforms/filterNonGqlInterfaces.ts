@@ -1,5 +1,6 @@
-import { DocumentNode, Kind, NamedTypeNode, visit } from "graphql";
+import { Kind, NamedTypeNode } from "graphql";
 import { TypeContext } from "../TypeContext";
+import { GratsDefinitionNode } from "../GraphQLConstructor";
 
 type InterfaceHaver = {
   readonly interfaces?: ReadonlyArray<NamedTypeNode>;
@@ -13,17 +14,22 @@ type InterfaceHaver = {
  */
 export function filterNonGqlInterfaces(
   ctx: TypeContext,
-  doc: DocumentNode,
-): DocumentNode {
-  return visit(doc, {
-    [Kind.INTERFACE_TYPE_DEFINITION]: (t) => filterInterfaces(ctx, t),
-    [Kind.OBJECT_TYPE_DEFINITION]: (t) => filterInterfaces(ctx, t),
-    [Kind.OBJECT_TYPE_EXTENSION]: (t) => filterInterfaces(ctx, t),
-    [Kind.INTERFACE_TYPE_EXTENSION]: (t) => filterInterfaces(ctx, t),
+  definitions: GratsDefinitionNode[],
+): GratsDefinitionNode[] {
+  return definitions.map((def) => {
+    if (
+      def.kind === Kind.INTERFACE_TYPE_DEFINITION ||
+      def.kind === Kind.INTERFACE_TYPE_EXTENSION ||
+      def.kind === Kind.OBJECT_TYPE_DEFINITION ||
+      def.kind === Kind.OBJECT_TYPE_EXTENSION
+    ) {
+      return filterInterfaces(ctx, def);
+    }
+    return def;
   });
 }
 
-function filterInterfaces(ctx: TypeContext, t: InterfaceHaver): InterfaceHaver {
+function filterInterfaces<T extends InterfaceHaver>(ctx: TypeContext, t: T): T {
   if (t.interfaces == null || t.interfaces.length === 0) {
     return t;
   }

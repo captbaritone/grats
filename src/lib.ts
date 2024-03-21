@@ -93,6 +93,8 @@ export function extractSchemaAndDoc(
         // Add the metadata directive definitions to definitions
         // found in the snapshot.
         .map(() => addMetadataDirectives(snapshot.definitions))
+        // Filter out any `implements` clauses that are not GraphQL interfaces.
+        .map((definitions) => filterNonGqlInterfaces(ctx, definitions))
         .andThen((definitions) => extractGenericTemplates(ctx, definitions))
         // If you define a field on an interface using the functional style, we need to add
         // that field to each concrete type as well. This must be done after all types are created,
@@ -100,11 +102,7 @@ export function extractSchemaAndDoc(
         .andThen((definitions) => addInterfaceFields(ctx, definitions))
         // Convert the definitions into a DocumentNode
         .map((definitions) => ({ kind: Kind.DOCUMENT, definitions } as const))
-        // Filter out any `implements` clauses that are not GraphQL interfaces.
-        .map((doc) => filterNonGqlInterfaces(ctx, doc))
         // Resolve TypeScript type references to the GraphQL types they represent (or error).
-        // TODO: We should be able to remove this and do all
-        // type resolution extractGenericTemplates
         .andThen((doc) => resolveTypes(ctx, doc))
         // Ensure all subscription fields return an AsyncIterable.
         .andThen((doc) => validateAsyncIterable(doc))

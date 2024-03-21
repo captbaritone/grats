@@ -32,7 +32,6 @@ export function extractGenericTemplates(
   definitions: Array<GratsDefinitionNode>,
 ): DiagnosticsResult<GratsDefinitionNode[]> {
   const templateExtractor = new TemplateExtractor(ctx);
-
   return templateExtractor.materializeGenericTypeReferences(definitions);
 }
 
@@ -63,11 +62,11 @@ class TemplateExtractor {
         // nodes within the AbstractFieldDefinition.
         this._definitions.push({
           ...definition,
-          onType: this.materializeTemplateForNode(definition.onType),
-          field: this.materializeTemplateForNode(definition.field),
+          onType: this.materializeTemplatesForNode(definition.onType),
+          field: this.materializeTemplatesForNode(definition.field),
         });
       } else {
-        this._definitions.push(this.materializeTemplateForNode(definition));
+        this._definitions.push(this.materializeTemplatesForNode(definition));
       }
     });
 
@@ -77,32 +76,26 @@ class TemplateExtractor {
     return ok(this._definitions);
   }
 
-  materializeTemplateForNode<N extends ASTNode>(node: N): N {
+  materializeTemplatesForNode<N extends ASTNode>(node: N): N {
     return visit(node, {
       [Kind.NAME]: (node) => {
-        if (node.value !== "__UNRESOLVED_REFERENCE__") {
-          return node;
-        }
         const referenceNode = this.getReferenceNode(node);
-        // TODO: Diagnostic?
         if (referenceNode == null) return node;
-        const name = this.resolveTypeReference(referenceNode);
+        const name = this.resolveTypeReferenceOrReport(referenceNode);
         if (name == null) return node;
         return { ...node, value: name };
       },
     });
   }
 
-  resolveTypeReference(
+  resolveTypeReferenceOrReport(
     node: ts.TypeReferenceNode,
     generics?: Map<ts.Node, string>,
   ): string | null {
     const declaration = this.asNullable(
       this.ctx.tsDeclarationForTsName(node.typeName),
     );
-    if (declaration == null) {
-      return null;
-    }
+    if (declaration == null) return null;
 
     if (generics != null) {
       const genericName = generics.get(declaration);
@@ -113,32 +106,52 @@ class TemplateExtractor {
 
     const template = this._templates.get(declaration);
     if (template != null) {
-      const typeArguments = node.typeArguments;
-      if (typeArguments == null) {
-        // TODO: Message
-        return this.report(node, "Missing type arguments for generic");
+      const templateName = template.declarationTemplate.name.value;
+      const typeArguments = node.typeArguments ?? [];
+
+      const genericIndexes = new Map();
+      for (const [node, index] of template.genericNodes) {
+        genericIndexes.set(index, node);
       }
 
-      // TODO: Make this more efficient?
-      const gqlIndexes: number[] = Array.from(template.genericNodes.values());
-      gqlIndexes.sort();
-
       const names: string[] = [];
-      for (const index of gqlIndexes) {
-        const arg = typeArguments[index];
+      for (let i = 0; i < template.typeParameters.length; i++) {
+        const exampleGenericNode = genericIndexes.get(i);
+        if (exampleGenericNode == null) {
+          continue;
+        }
+        const param = template.typeParameters[i];
+        const paramName = param.name.text;
+        const arg = typeArguments[i];
         if (arg == null) {
-          // TODO: Better diagnostic message
-          return this.report(node, "Missing type argument for generic");
+          return this.report(
+            node,
+            E.missingGenericType(templateName, paramName),
+            [
+              tsErr(param, `Type parameter \`${paramName}\` is defined here`),
+              tsErr(
+                exampleGenericNode,
+                `and expects a GraphQL type because it was used in a GraphQL position here.`,
+              ),
+            ],
+          );
         }
         if (!ts.isTypeReferenceNode(arg)) {
-          return this.report(arg, E.invalidTypePassedAsGqlGeneric());
+          return this.report(
+            node,
+            E.nonGraphQLGenericType(templateName, paramName),
+            [
+              tsErr(param, `Type parameter \`${paramName}\` is defined here`),
+              tsErr(
+                exampleGenericNode,
+                `and expects a GraphQL type because it was used in a GraphQL position here.`,
+              ),
+            ],
+          );
         }
-        const name = this.resolveTypeReference(arg, generics);
-        if (name == null) {
-          const message = `Could not resolve type reference for ${arg.getText()} with generics ${generics}`;
-          throw new Error(message);
-          return null;
-        }
+        const name = this.resolveTypeReferenceOrReport(arg, generics);
+        // resolveTypeReference will report an error if the definition is not found.
+        if (name == null) return null;
         names.push(name);
       }
 
@@ -163,12 +176,15 @@ class TemplateExtractor {
     for (const i of new Set(template.genericNodes.values())) {
       const name = typeParams[i];
       if (name == null) {
-        const message = `Trying to materialize template ${template.declarationTemplate.name.value} with ${typeParams.length} type params, but missing type param at index ${i}`;
-        throw new Error(message);
+        throw new Error(
+          "Previous checks should have ensured we have a param name.",
+        );
       }
       const param = template.typeParameters[i];
       if (param == null) {
-        throw new Error("Type param not found");
+        throw new Error(
+          "Previous checks should have ensured we have a param definition.",
+        );
       }
       genericsContext.set(param, name);
     }
@@ -187,14 +203,10 @@ class TemplateExtractor {
       },
       {
         [Kind.NAMED_TYPE]: (node) => {
-          if (node.name.value !== "__UNRESOLVED_REFERENCE__") {
-            return node;
-          }
           const referenceNode = this.getReferenceNode(node.name);
-          // TODO: Diagnostic?
           if (referenceNode == null) return node;
 
-          const name = this.resolveTypeReference(
+          const name = this.resolveTypeReferenceOrReport(
             referenceNode,
             genericsContext,
           );
@@ -224,8 +236,6 @@ class TemplateExtractor {
     const genericNodes = new Map<ts.EntityName, number>();
 
     visit(definition, {
-      // TODO: We should only visit types which are in positions where generics are valid:
-      // Field types
       [Kind.NAMED_TYPE]: (node) => {
         const referenceNode = this.getReferenceNode(node.name);
         if (referenceNode == null) return;

@@ -210,6 +210,10 @@ export class TypeContext {
   }
 
   getEntityName(name: NameNode): ts.EntityName | null {
-    return this._unresolvedNodes.get(name.tsIdentifier) ?? null;
+    const entityName = this._unresolvedNodes.get(name.tsIdentifier) ?? null;
+    if (entityName == null && name.value === UNRESOLVED_REFERENCE_NAME) {
+      throw new Error("Expected unresolved reference to have a node.");
+    }
+    return entityName;
   }
 }
