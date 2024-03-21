@@ -156,8 +156,21 @@ export function rangeErr(
   };
 }
 
+/**
+ * A generic version of the methods on ts.Node that we need
+ * to create diagnostics.
+ *
+ * This interface allows us to create diagnostics from our
+ * own classes.
+ */
+export interface TsLocatableNode {
+  getStart(): number;
+  getEnd(): number;
+  getSourceFile(): ts.SourceFile;
+}
+
 export function tsErr(
-  node: ts.Node,
+  node: TsLocatableNode,
   message: string,
   relatedInformation?: ts.DiagnosticRelatedInformation[],
 ): ts.DiagnosticWithLocation {

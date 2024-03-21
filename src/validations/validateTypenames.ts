@@ -33,7 +33,7 @@ export function validateTypenames(
         typenameDiagnostics.push(
           gqlErr(
             loc,
-            `Missing __typename on \`${implementor.name}\`. The type \`${type.name}\` is used in a union or interface, so it must have a \`__typename\` field.`,
+            `Missing __typename on \`${implementor.name}\`. The type \`${implementor.name}\` is used in a union or interface, so it must have a \`__typename\` field.`,
           ),
         );
       }

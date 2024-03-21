@@ -42,6 +42,7 @@ import {
   FIELD_METADATA_DIRECTIVE,
 } from "./metadataDirectives";
 import { uniqueId } from "./utils/helpers";
+import { TsLocatableNode } from "./utils/DiagnosticError";
 
 // Grats can't always extract an SDL AST node right away. In some cases, it
 // needs to extract something abstract which can only be converted into an SDL
@@ -103,7 +104,7 @@ export class GraphQLConstructor {
   }
 
   killsParentOnExceptionDirective(node: ts.Node): ConstDirectiveNode {
-    return makeKillsParentOnExceptionDirective(this._loc(node));
+    return makeKillsParentOnExceptionDirective(loc(node));
   }
 
   /* Top Level Types */
@@ -115,7 +116,7 @@ export class GraphQLConstructor {
   ): UnionTypeDefinitionNode {
     return {
       kind: Kind.UNION_TYPE_DEFINITION,
-      loc: this._loc(node),
+      loc: loc(node),
       description: description ?? undefined,
       name,
       types,
@@ -131,7 +132,7 @@ export class GraphQLConstructor {
   ): ObjectTypeDefinitionNode {
     return {
       kind: Kind.OBJECT_TYPE_DEFINITION,
-      loc: this._loc(node),
+      loc: loc(node),
       description: description ?? undefined,
       directives: undefined,
       name,
@@ -149,7 +150,7 @@ export class GraphQLConstructor {
   ): InterfaceTypeDefinitionNode {
     return {
       kind: Kind.INTERFACE_TYPE_DEFINITION,
-      loc: this._loc(node),
+      loc: loc(node),
       description: description ?? undefined,
       directives: undefined,
       name,
@@ -166,7 +167,7 @@ export class GraphQLConstructor {
   ): EnumTypeDefinitionNode {
     return {
       kind: Kind.ENUM_TYPE_DEFINITION,
-      loc: this._loc(node),
+      loc: loc(node),
       description: description ?? undefined,
       name,
       values,
@@ -182,7 +183,7 @@ export class GraphQLConstructor {
   ): AbstractFieldDefinitionNode {
     return {
       kind: "AbstractFieldDefinition",
-      loc: this._loc(node),
+      loc: loc(node),
       onType,
       field,
     };
@@ -200,7 +201,7 @@ export class GraphQLConstructor {
   ): FieldDefinitionNode {
     return {
       kind: Kind.FIELD_DEFINITION,
-      loc: this._loc(node),
+      loc: loc(node),
       description: description ?? undefined,
       name,
       type,
@@ -214,7 +215,7 @@ export class GraphQLConstructor {
     name: NameNode,
     value: ConstValueNode,
   ): ConstObjectFieldNode {
-    return { kind: Kind.OBJECT_FIELD, loc: this._loc(node), name, value };
+    return { kind: Kind.OBJECT_FIELD, loc: loc(node), name, value };
   }
 
   inputValueDefinition(
@@ -227,7 +228,7 @@ export class GraphQLConstructor {
   ): InputValueDefinitionNode {
     return {
       kind: Kind.INPUT_VALUE_DEFINITION,
-      loc: this._loc(node),
+      loc: loc(node),
       description: description ?? undefined,
       name,
       type,
@@ -244,7 +245,7 @@ export class GraphQLConstructor {
   ): EnumValueDefinitionNode {
     return {
       kind: Kind.ENUM_VALUE_DEFINITION,
-      loc: this._loc(node),
+      loc: loc(node),
       description: description ?? undefined,
       name,
       directives,
@@ -259,7 +260,7 @@ export class GraphQLConstructor {
   ): ScalarTypeDefinitionNode {
     return {
       kind: Kind.SCALAR_TYPE_DEFINITION,
-      loc: this._loc(node),
+      loc: loc(node),
       description: description ?? undefined,
       name,
       directives: this._optionalList(directives),
@@ -275,7 +276,7 @@ export class GraphQLConstructor {
   ): InputObjectTypeDefinitionNode {
     return {
       kind: Kind.INPUT_OBJECT_TYPE_DEFINITION,
-      loc: this._loc(node),
+      loc: loc(node),
       description: description ?? undefined,
       name,
       fields: fields ?? undefined,
@@ -287,7 +288,7 @@ export class GraphQLConstructor {
   name(node: ts.Node, value: string): NameNode {
     return {
       kind: Kind.NAME,
-      loc: this._loc(node),
+      loc: loc(node),
       value,
       tsIdentifier: uniqueId(),
     };
@@ -295,7 +296,7 @@ export class GraphQLConstructor {
   namedType(node: ts.Node, value: string): NamedTypeNode {
     return {
       kind: Kind.NAMED_TYPE,
-      loc: this._loc(node),
+      loc: loc(node),
       name: this.name(node, value),
     };
   }
@@ -304,7 +305,7 @@ export class GraphQLConstructor {
     node: ts.Node,
     fields: ReadonlyArray<ConstObjectFieldNode>,
   ): ConstObjectValueNode {
-    return { kind: Kind.OBJECT, loc: this._loc(node), fields };
+    return { kind: Kind.OBJECT, loc: loc(node), fields };
   }
 
   /* Helpers */
@@ -312,7 +313,7 @@ export class GraphQLConstructor {
     if (type.kind === Kind.NON_NULL_TYPE) {
       return type;
     }
-    return { kind: Kind.NON_NULL_TYPE, loc: this._loc(node), type };
+    return { kind: Kind.NON_NULL_TYPE, loc: loc(node), type };
   }
   nullableType(type: TypeNode): NamedTypeNode | ListTypeNode {
     let inner = type;
@@ -322,15 +323,15 @@ export class GraphQLConstructor {
     return inner;
   }
   listType(node: ts.Node, type: TypeNode): ListTypeNode {
-    return { kind: Kind.LIST_TYPE, loc: this._loc(node), type };
+    return { kind: Kind.LIST_TYPE, loc: loc(node), type };
   }
 
   list(node: ts.Node, values: ConstValueNode[]): ConstListValueNode {
-    return { kind: Kind.LIST, loc: this._loc(node), values };
+    return { kind: Kind.LIST, loc: loc(node), values };
   }
 
   withLocation<T = ASTNode>(node: ts.Node, value: T): T {
-    return { ...value, loc: this._loc(node) };
+    return { ...value, loc: loc(node) };
   }
 
   constArgument(
@@ -338,7 +339,7 @@ export class GraphQLConstructor {
     name: NameNode,
     value: ConstValueNode,
   ): ConstArgumentNode {
-    return { kind: Kind.ARGUMENT, loc: this._loc(node), name, value };
+    return { kind: Kind.ARGUMENT, loc: loc(node), name, value };
   }
 
   constDirective(
@@ -348,30 +349,30 @@ export class GraphQLConstructor {
   ): ConstDirectiveNode {
     return {
       kind: Kind.DIRECTIVE,
-      loc: this._loc(node),
+      loc: loc(node),
       name,
       arguments: this._optionalList(args),
     };
   }
 
   string(node: ts.Node, value: string, block?: boolean): StringValueNode {
-    return { kind: Kind.STRING, loc: this._loc(node), value, block };
+    return { kind: Kind.STRING, loc: loc(node), value, block };
   }
 
   float(node: ts.Node, value: string): FloatValueNode {
-    return { kind: Kind.FLOAT, loc: this._loc(node), value };
+    return { kind: Kind.FLOAT, loc: loc(node), value };
   }
 
   int(node: ts.Node, value: string): IntValueNode {
-    return { kind: Kind.INT, loc: this._loc(node), value };
+    return { kind: Kind.INT, loc: loc(node), value };
   }
 
   null(node: ts.Node): NullValueNode {
-    return { kind: Kind.NULL, loc: this._loc(node) };
+    return { kind: Kind.NULL, loc: loc(node) };
   }
 
   boolean(node: ts.Node, value: boolean): BooleanValueNode {
-    return { kind: Kind.BOOLEAN, loc: this._loc(node), value };
+    return { kind: Kind.BOOLEAN, loc: loc(node), value };
   }
 
   _optionalList<T>(input: readonly T[] | null): readonly T[] | undefined {
@@ -380,20 +381,20 @@ export class GraphQLConstructor {
     }
     return input;
   }
+}
 
-  // TODO: This is potentially quite expensive, and we only need it if we report
-  // an error at one of these locations. We could consider some trick to return a
-  // proxy object that would lazily compute the line/column info.
-  _loc(node: ts.Node): GraphQLLocation {
-    const sourceFile = node.getSourceFile();
-    const source = new Source(sourceFile.text, sourceFile.fileName);
-    const startToken = this._dummyToken(sourceFile, node.getStart());
-    const endToken = this._dummyToken(sourceFile, node.getEnd());
-    return new GraphQLLocation(startToken, endToken, source);
-  }
+// TODO: This is potentially quite expensive, and we only need it if we report
+// an error at one of these locations. We could consider some trick to return a
+// proxy object that would lazily compute the line/column info.
+export function loc(node: TsLocatableNode): GraphQLLocation {
+  const sourceFile = node.getSourceFile();
+  const source = new Source(sourceFile.text, sourceFile.fileName);
+  const startToken = _dummyToken(sourceFile, node.getStart());
+  const endToken = _dummyToken(sourceFile, node.getEnd());
+  return new GraphQLLocation(startToken, endToken, source);
+}
 
-  _dummyToken(sourceFile: ts.SourceFile, pos: number): Token {
-    const { line, character } = sourceFile.getLineAndCharacterOfPosition(pos);
-    return new Token(TokenKind.SOF, pos, pos, line, character, undefined);
-  }
+function _dummyToken(sourceFile: ts.SourceFile, pos: number): Token {
+  const { line, character } = sourceFile.getLineAndCharacterOfPosition(pos);
+  return new Token(TokenKind.SOF, pos, pos, line, character, undefined);
 }
