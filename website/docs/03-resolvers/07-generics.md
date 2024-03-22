@@ -67,3 +67,17 @@ type User = {
   reviews: Result<Connection<Review>>;
 };
 ```
+
+## Limitations
+
+There are some limitations to how generics can be used in Grats:
+
+### Only unadorned type names may be passed as GraphQL type parameters
+
+You may not pass scalars, arrays, or unions as type parameters. This helps ensure Grats can derive a sensible name for each materialized type.
+
+### Parameterized types may not implement interfaces or be members of unions
+
+For a type to be part of an abstract type, the executor must be able to determine its concrete type at runtime. Grats enforces this by requiring all types that are part of an abstract type to explicitly define a `__typename` field that is a string literal matching the type's name. This is not possible for parameterized types, so they may not be part of abstract types.
+
+In the future we may find ways to lift or relax these restrictions, so if you have a legitimate use case that is blocked by these limitations, please let us know by [opening an issue](https://github.com/captbaritone/grats/issues/new).
