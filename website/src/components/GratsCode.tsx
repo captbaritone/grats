@@ -69,7 +69,7 @@ function PlaygroundLink({ ts }) {
       doc,
       config: {
         nullableByDefault: true,
-        reportTypeScriptTypeErrors: true,
+        reportTypeScriptTypeErrors: false,
       },
       view: {
         showGratsDirectives: false,

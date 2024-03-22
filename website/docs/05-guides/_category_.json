@@ -1,6 +1,6 @@
 {
   "label": "Guides",
-  "collapsed": false,
-  "collapsible": false,
+  "collapsed": true,
+  "collapsible": true,
   "link": {}
 }

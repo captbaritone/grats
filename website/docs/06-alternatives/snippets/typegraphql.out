@@ -1,0 +1,57 @@
+import { Float, Int } from "grats";
+
+/** @gqlType */
+class Recipe {
+  /** @gqlField */
+  title: string;
+
+  /** @gqlField */
+  description?: string;
+
+  /** @gqlField */
+  ratings: Float[];
+
+  /** @gqlField */
+  get averageRating(): Float | null {
+    const sum = this.ratings.reduce((a, b) => a + b, 0);
+    return sum / this.ratings.length;
+  }
+}
+
+=== SNIP ===
+type Recipe {
+  averageRating: Float
+  description: String
+  ratings: [Float!]
+  title: String
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLFloat, GraphQLString, GraphQLList, GraphQLNonNull } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const RecipeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Recipe",
+        fields() {
+            return {
+                averageRating: {
+                    name: "averageRating",
+                    type: GraphQLFloat
+                },
+                description: {
+                    name: "description",
+                    type: GraphQLString
+                },
+                ratings: {
+                    name: "ratings",
+                    type: new GraphQLList(new GraphQLNonNull(GraphQLFloat))
+                },
+                title: {
+                    name: "title",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [RecipeType]
+    });
+}
