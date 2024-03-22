@@ -16,7 +16,7 @@ export interface IPerson {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/typename/ImplementorMissingTypename.ts:2:14 - error: Missing __typename on `User`. The type `User` is used in a union or interface, so it must have a `__typename` field.
+src/tests/fixtures/typename/ImplementorMissingTypename.ts:2:14 - error: Missing `__typename` on `User`. The type `User` is used in a union or interface, so it must have a `__typename` field.
 
 2 export class User implements IPerson {
                ~~~~
