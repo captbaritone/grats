@@ -14,6 +14,7 @@ import {
   ConstObjectValueNode,
   ConstListValueNode,
   assertName,
+  DefinitionNode,
 } from "graphql";
 import { tsErr, tsRelated, DiagnosticsResult } from "./utils/DiagnosticError";
 import { err, ok } from "./utils/Result";
@@ -21,7 +22,7 @@ import * as ts from "typescript";
 import { NameDefinition, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
 import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
-import { GraphQLConstructor, GratsDefinitionNode } from "./GraphQLConstructor";
+import { GraphQLConstructor } from "./GraphQLConstructor";
 import { relativePath } from "./gratsRoot";
 import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
@@ -59,7 +60,7 @@ const OPERATION_TYPES = new Set(["Query", "Mutation", "Subscription"]);
 type ArgDefaults = Map<string, ts.Expression>;
 
 export type ExtractionSnapshot = {
-  readonly definitions: GratsDefinitionNode[];
+  readonly definitions: DefinitionNode[];
   readonly unresolvedNames: Map<ts.EntityName, NameNode>;
   readonly nameDefinitions: Map<ts.DeclarationStatement, NameDefinition>;
   readonly contextReferences: Array<ts.Node>;
@@ -89,7 +90,7 @@ export function extract(
 }
 
 class Extractor {
-  definitions: GratsDefinitionNode[] = [];
+  definitions: DefinitionNode[] = [];
 
   // Snapshot data
   unresolvedNames: Map<ts.EntityName, NameNode> = new Map();

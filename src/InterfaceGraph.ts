@@ -1,7 +1,6 @@
-import { GratsDefinitionNode } from "./GraphQLConstructor";
 import { TypeContext } from "./TypeContext";
 import { DefaultMap } from "./utils/helpers";
-import { Kind } from "graphql";
+import { DefinitionNode, Kind } from "graphql";
 
 export type InterfaceImplementor = { kind: "TYPE" | "INTERFACE"; name: string };
 export type InterfaceMap = DefaultMap<string, Set<InterfaceImplementor>>;
@@ -11,7 +10,7 @@ export type InterfaceMap = DefaultMap<string, Set<InterfaceImplementor>>;
  */
 export function computeInterfaceMap(
   typeContext: TypeContext,
-  docs: GratsDefinitionNode[],
+  docs: DefinitionNode[],
 ): InterfaceMap {
   // For each interface definition, we need to know which types and interfaces implement it.
   const graph = new DefaultMap<string, Set<InterfaceImplementor>>(

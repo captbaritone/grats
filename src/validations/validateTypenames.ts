@@ -34,7 +34,7 @@ export function validateTypenames(
       const ast = nullThrows(implementor.astNode);
       // Synthesized type cannot guarantee that they have the correct __typename field, so we
       // prevent their use in interfaces and unions.
-      if (ast.kind === Kind.OBJECT_TYPE_DEFINITION && ast.name.wasSynthesized) {
+      if (ast.kind === Kind.OBJECT_TYPE_DEFINITION && ast.wasSynthesized) {
         const message =
           type instanceof GraphQLInterfaceType
             ? E.genericTypeImplementsInterface()

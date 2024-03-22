@@ -1,6 +1,5 @@
-import { Kind, NamedTypeNode } from "graphql";
+import { DefinitionNode, Kind, NamedTypeNode } from "graphql";
 import { TypeContext } from "../TypeContext";
-import { GratsDefinitionNode } from "../GraphQLConstructor";
 
 type InterfaceHaver = {
   readonly interfaces?: ReadonlyArray<NamedTypeNode>;
@@ -14,8 +13,8 @@ type InterfaceHaver = {
  */
 export function filterNonGqlInterfaces(
   ctx: TypeContext,
-  definitions: GratsDefinitionNode[],
-): GratsDefinitionNode[] {
+  definitions: DefinitionNode[],
+): DefinitionNode[] {
   return definitions.map((def) => {
     if (
       def.kind === Kind.INTERFACE_TYPE_DEFINITION ||

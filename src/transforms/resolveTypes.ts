@@ -1,8 +1,10 @@
 import {
   ASTNode,
+  DefinitionNode,
   InputObjectTypeDefinitionNode,
   InterfaceTypeDefinitionNode,
   Kind,
+  Location,
   NameNode,
   NamedTypeNode,
   ObjectTypeDefinitionNode,
@@ -10,7 +12,7 @@ import {
   UnionTypeDefinitionNode,
   visit,
 } from "graphql";
-import { loc, GratsDefinitionNode } from "../GraphQLConstructor";
+import { loc } from "../GraphQLConstructor";
 import { TypeContext } from "../TypeContext";
 import * as ts from "typescript";
 import { err, ok } from "../utils/Result";
@@ -38,8 +40,8 @@ type Template = {
  */
 export function resolveTypes(
   ctx: TypeContext,
-  definitions: Array<GratsDefinitionNode>,
-): DiagnosticsResult<GratsDefinitionNode[]> {
+  definitions: Array<DefinitionNode>,
+): DiagnosticsResult<DefinitionNode[]> {
   const templateExtractor = new TemplateExtractor(ctx);
   return templateExtractor.materializeGenericTypeReferences(definitions);
 }
@@ -70,14 +72,14 @@ export function resolveTypes(
  */
 class TemplateExtractor {
   _templates: Map<ts.Node, Template> = new Map();
-  _definitions: Array<GratsDefinitionNode> = [];
+  _definitions: Array<DefinitionNode> = [];
   _definedTemplates: Set<string> = new Set();
   _errors: ts.DiagnosticWithLocation[] = [];
   constructor(private ctx: TypeContext) {}
 
   materializeGenericTypeReferences(
-    definitions: Array<GratsDefinitionNode>,
-  ): DiagnosticsResult<Array<GratsDefinitionNode>> {
+    definitions: Array<DefinitionNode>,
+  ): DiagnosticsResult<Array<DefinitionNode>> {
     // We filter out all template declarations and index them as a first pass.
     const filtered = definitions.filter((definition) => {
       return !this.maybeExtractAsTemplate(definition);
@@ -86,18 +88,7 @@ class TemplateExtractor {
     // Now we can visit the remaining "real" definitions and materialize any
     // generic type references.
     filtered.forEach((definition) => {
-      if (definition.kind === "AbstractFieldDefinition") {
-        // We can't use the default `visit` function because this is not
-        // a GraphQL AST node. Instead, we manually visit the child GraphQL AST
-        // nodes within the AbstractFieldDefinition.
-        this._definitions.push({
-          ...definition,
-          onType: this.materializeTemplatesForNode(definition.onType),
-          field: this.materializeTemplatesForNode(definition.field),
-        });
-      } else {
-        this._definitions.push(this.materializeTemplatesForNode(definition));
-      }
+      this._definitions.push(this.materializeTemplatesForNode(definition));
     });
 
     if (this._errors.length > 0) {
@@ -221,15 +212,8 @@ class TemplateExtractor {
     }
 
     const gqlLoc = loc(referenceLoc);
-
     const original = template.declarationTemplate;
-    const name: NameNode = {
-      ...original.name,
-      loc: gqlLoc,
-      value: derivedName,
-      wasSynthesized: true,
-    };
-    const renamedDefinition = { ...original, loc: gqlLoc, name };
+    const renamedDefinition = renameDefinition(original, derivedName, gqlLoc);
 
     const definition = visit(renamedDefinition, {
       [Kind.NAMED_TYPE]: (node): NamedTypeNode => {
@@ -251,7 +235,7 @@ class TemplateExtractor {
     return derivedName;
   }
 
-  maybeExtractAsTemplate(definition: GratsDefinitionNode): boolean {
+  maybeExtractAsTemplate(definition: DefinitionNode): boolean {
     if (!mayReferenceGenerics(definition)) {
       return false;
     }
@@ -349,7 +333,7 @@ class TemplateExtractor {
 }
 
 function mayReferenceGenerics(
-  definition: GratsDefinitionNode,
+  definition: DefinitionNode,
 ): definition is
   | ObjectTypeDefinitionNode
   | UnionTypeDefinitionNode
@@ -420,4 +404,12 @@ function findAllReferences(
   }
   references.push(node);
   return references;
+}
+function renameDefinition<T extends TypeDefinitionNode>(
+  original: T,
+  newName: string,
+  loc: Location,
+): T {
+  const name = { ...original.name, value: newName };
+  return { ...original, loc, name, wasSynthesized: true };
 }

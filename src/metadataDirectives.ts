@@ -1,11 +1,11 @@
 import {
   ConstDirectiveNode,
+  DefinitionNode,
   DocumentNode,
   Kind,
   Location,
   parse,
 } from "graphql";
-import { GratsDefinitionNode } from "./GraphQLConstructor";
 import { uniqueId } from "./utils/helpers";
 
 /**
@@ -28,8 +28,39 @@ declare module "graphql" {
     isAsyncIterable?: boolean;
   }
   export interface NameNode {
+    /**
+     * Grats metadata: A unique identifier for the node. Used to track
+     * data about nodes in lookup data structures.
+     */
     tsIdentifier: number;
+  }
+  export interface ObjectTypeDefinitionNode {
+    /**
+     * Grats metadata: Indicates that the type was materialized as part of
+     * generic type resolution.
+     */
     wasSynthesized?: boolean;
+  }
+  export interface UnionTypeDefinitionNode {
+    /**
+     * Grats metadata: Indicates that the type was materialized as part of
+     * generic type resolution.
+     */
+    wasSynthesized?: boolean;
+  }
+  export interface InterfaceTypeDefinitionNode {
+    /**
+     * Grats metadata: Indicates that the type was materialized as part of
+     * generic type resolution.
+     */
+    wasSynthesized?: boolean;
+  }
+  export interface ObjectTypeExtensionNode {
+    /**
+     * Grats metadata: Indicates that we don't know yet if this is extending an interface
+     * or a type.
+     */
+    mayBeInterface?: boolean;
   }
 }
 
@@ -66,8 +97,8 @@ export const DIRECTIVES_AST: DocumentNode = parse(`
 `);
 
 export function addMetadataDirectives(
-  definitions: Array<GratsDefinitionNode>,
-): Array<GratsDefinitionNode> {
+  definitions: Array<DefinitionNode>,
+): Array<DefinitionNode> {
   return [...DIRECTIVES_AST.definitions, ...definitions];
 }
 
