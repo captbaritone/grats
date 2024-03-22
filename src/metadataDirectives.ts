@@ -29,6 +29,7 @@ declare module "graphql" {
   }
   export interface NameNode {
     tsIdentifier: number;
+    wasSynthesized?: boolean;
   }
 }
 

@@ -4,6 +4,7 @@ import {
   InterfaceTypeDefinitionNode,
   Kind,
   NameNode,
+  NamedTypeNode,
   ObjectTypeDefinitionNode,
   TypeDefinitionNode,
   UnionTypeDefinitionNode,
@@ -20,7 +21,7 @@ import {
   gqlErr,
   tsErr,
 } from "../utils/DiagnosticError";
-import { extend } from "../utils/helpers";
+import { extend, loc as getLoc, nullThrows } from "../utils/helpers";
 import * as E from "../Errors";
 
 type Template = {
@@ -105,9 +106,16 @@ class TemplateExtractor {
     return ok(this._definitions);
   }
 
+  /**
+   * Walks GraphQL ASTs and expands generic types into their concrete types
+   * adding their materialized definitions to the `_definitions` array as we go.
+   *
+   * **Note:** Here we also detect generics being used as members of a union and
+   * report that as an error.
+   */
   materializeTemplatesForNode<N extends ASTNode>(node: N): N {
     return visit(node, {
-      [Kind.NAME]: (node) => {
+      [Kind.NAME]: (node): NameNode => {
         const referenceNode = this.getReferenceNode(node);
         if (referenceNode == null) return node;
         const name = this.resolveTypeReferenceOrReport(referenceNode);
@@ -207,29 +215,24 @@ class TemplateExtractor {
 
     const genericsContext = new Map<ts.Node, string>();
     for (const i of new Set(template.genericNodes.values())) {
-      const name = typeParams[i];
-      if (name == null) {
-        throw new Error(
-          "Previous checks should have ensured we have a param name.",
-        );
-      }
-      const param = template.typeParameters[i];
-      if (param == null) {
-        throw new Error(
-          "Previous checks should have ensured we have a param definition.",
-        );
-      }
+      const name = nullThrows(typeParams[i]);
+      const param = nullThrows(template.typeParameters[i]);
       genericsContext.set(param, name);
     }
 
     const gqlLoc = loc(referenceLoc);
 
     const original = template.declarationTemplate;
-    const name = { ...original.name, loc: gqlLoc, value: derivedName };
+    const name: NameNode = {
+      ...original.name,
+      loc: gqlLoc,
+      value: derivedName,
+      wasSynthesized: true,
+    };
     const renamedDefinition = { ...original, loc: gqlLoc, name };
 
     const definition = visit(renamedDefinition, {
-      [Kind.NAMED_TYPE]: (node) => {
+      [Kind.NAMED_TYPE]: (node): NamedTypeNode => {
         const referenceNode = this.getReferenceNode(node.name);
         if (referenceNode == null) return node;
 
@@ -293,14 +296,8 @@ class TemplateExtractor {
     }
     if (definition.kind === Kind.OBJECT_TYPE_DEFINITION) {
       if (definition.interfaces && definition.interfaces.length > 0) {
-        // TODO: What about union members?
-        this._errors.push(
-          gqlErr(
-            definition.interfaces[0].name.loc!,
-
-            "Unexpected interface implementation on generic `@gqlType`. Generic GraphQL types will be synthesize into types with different names, but types which implement an interface must define an explicit `__typename` property matching their GraphQL name.",
-          ),
-        );
+        const loc = getLoc(definition.interfaces[0].name);
+        this._errors.push(gqlErr(loc, E.genericTypeImplementsInterface()));
       }
     }
     this._templates.set(declaration, {

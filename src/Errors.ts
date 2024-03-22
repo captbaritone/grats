@@ -426,3 +426,14 @@ export function nonGraphQLGenericType(
 ): string {
   return `Expected \`${templateName}\` to be passed a GraphQL type argument for type parameter \`${paramName}\`.`;
 }
+
+export function genericTypeUsedAsUnionMember(): string {
+  return `Unexpected generic type used sa union member. Generic type may not currently be used as members of a union. Grats requires that all union members define a \`__typename\` field typed as a string literal matching the type's name. Since generic types are synthesized into multiple types with different names, Grats cannot ensure they have a correct \`__typename\` property and thus cannot be used as members of a union.`;
+}
+export function genericTypeImplementsInterface(): string {
+  return `Unexpected \`implements\` on generic \`${TYPE_TAG}\`. Generic types may not currently declare themselves as implementing interfaces. Grats requires that all types which implement an interface define a \`__typename\` field typed as a string literal matching the type's name. Since generic types are synthesized into multiple types with different names, Grats cannot ensure they have a correct \`__typename\` property and thus declare themselves as interface implementors.`;
+}
+
+export function concreteTypeMissingTypename(implementor: string): string {
+  return `Missing \`__typename\` on \`${implementor}\`. The type \`${implementor}\` is used in a union or interface, so it must have a \`__typename\` field.`;
+}
