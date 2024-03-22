@@ -410,6 +410,6 @@ function renameDefinition<T extends TypeDefinitionNode>(
   newName: string,
   loc: Location,
 ): T {
-  const name = { ...original.name, value: newName };
+  const name = { ...original.name, value: newName, loc };
   return { ...original, loc, name, wasSynthesized: true };
 }
