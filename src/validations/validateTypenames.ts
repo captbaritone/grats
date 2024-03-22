@@ -1,10 +1,18 @@
 import * as ts from "typescript";
-import { GraphQLSchema, isAbstractType, isType } from "graphql";
+import {
+  GraphQLInterfaceType,
+  GraphQLSchema,
+  Kind,
+  isAbstractType,
+  isType,
+} from "graphql";
 import {
   DiagnosticsWithoutLocationResult,
   gqlErr,
 } from "../utils/DiagnosticError";
 import { err, ok } from "../utils/Result";
+import { loc, nullThrows } from "../utils/helpers";
+import * as E from "../Errors";
 
 /**
  * Ensure that every type which implements an interface or is a member of a
@@ -14,7 +22,7 @@ export function validateTypenames(
   schema: GraphQLSchema,
   hasTypename: Set<string>,
 ): DiagnosticsWithoutLocationResult<GraphQLSchema> {
-  const typenameDiagnostics: ts.Diagnostic[] = [];
+  const errors: ts.Diagnostic[] = [];
   const abstractTypes = Object.values(schema.getTypeMap()).filter(
     isAbstractType,
   );
@@ -23,24 +31,26 @@ export function validateTypenames(
 
     const typeImplementors = schema.getPossibleTypes(type).filter(isType);
     for (const implementor of typeImplementors) {
-      if (!hasTypename.has(implementor.name)) {
-        const loc = implementor.astNode?.name?.loc;
-        if (loc == null) {
-          throw new Error(
-            `Grats expected the parsed type \`${implementor.name}\` to have location information. This is a bug in Grats. Please report it.`,
-          );
-        }
-        typenameDiagnostics.push(
-          gqlErr(
-            loc,
-            `Missing __typename on \`${implementor.name}\`. The type \`${type.name}\` is used in a union or interface, so it must have a \`__typename\` field.`,
-          ),
+      const ast = nullThrows(implementor.astNode);
+      // Synthesized type cannot guarantee that they have the correct __typename field, so we
+      // prevent their use in interfaces and unions.
+      if (ast.kind === Kind.OBJECT_TYPE_DEFINITION && ast.wasSynthesized) {
+        const message =
+          type instanceof GraphQLInterfaceType
+            ? E.genericTypeImplementsInterface()
+            : E.genericTypeUsedAsUnionMember();
+        errors.push(gqlErr(loc(ast.name), message));
+      } else if (!hasTypename.has(implementor.name)) {
+        const err = gqlErr(
+          loc(ast.name),
+          E.concreteTypeMissingTypename(implementor.name),
         );
+        errors.push(err);
       }
     }
   }
-  if (typenameDiagnostics.length > 0) {
-    return err(typenameDiagnostics);
+  if (errors.length > 0) {
+    return err(errors);
   }
   return ok(schema);
 }
