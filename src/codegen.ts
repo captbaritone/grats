@@ -25,7 +25,7 @@ import {
   isUnionType,
 } from "graphql";
 import * as ts from "typescript";
-import * as path from "node:path";
+import * as path from "path";
 import {
   FIELD_METADATA_DIRECTIVE,
   parseFieldMetadataDirective,
