@@ -25,7 +25,7 @@ import {
   isUnionType,
 } from "graphql";
 import * as ts from "typescript";
-import * as path from "path";
+import * as path from "node:path";
 import {
   FIELD_METADATA_DIRECTIVE,
   parseFieldMetadataDirective,
@@ -239,7 +239,9 @@ class Codegen {
         parentTypeName,
         funcName,
       );
-      this.import(`./${relative}`, [{ name: funcName, as: resolverName }]);
+      this.import(`./${normalizeRelativePathToPosix(relative)}`, [
+        { name: funcName, as: resolverName },
+      ]);
 
       const usedArgs = RESOLVER_ARGS.slice(0, argCount);
 
@@ -881,4 +883,9 @@ function formatResolverFunctionVarName(
   const parent = parentTypeName[0].toLowerCase() + parentTypeName.slice(1);
   const field = fieldName[0].toUpperCase() + fieldName.slice(1);
   return `${parent}${field}Resolver`;
+}
+
+// https://github.com/sindresorhus/slash/blob/98b618f5a3bfcb5dd374b204868818845b87bb2f/index.js#L8C9-L8C33
+function normalizeRelativePathToPosix(unknownPath: string): string {
+  return unknownPath.replace(/\\/g, "/");
 }
