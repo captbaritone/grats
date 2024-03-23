@@ -157,6 +157,14 @@ export async function createLike(
   return row;
 }
 
+export async function getLikesByIds(
+  vc: VC,
+  ids: readonly string[],
+): Promise<Array<LikeRow>> {
+  vc.log(`DB query: getLikesByIds: ${ids.join(", ")}`);
+  return ids.map((id) => nullThrows(MOCK_LIKES.find((like) => like.id === id)));
+}
+
 export async function getLikesByUserId(
   vc: VC,
   userId: string,
