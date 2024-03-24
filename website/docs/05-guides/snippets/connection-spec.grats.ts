@@ -1,5 +1,4 @@
 import { Int } from "grats";
-import { connectionFromArray } from "graphql-relay";
 
 /** @gqlField */
 export function users(
@@ -54,4 +53,16 @@ type User = {
   /** @gqlField */
   name: string;
 };
+
+// This function can be found in the module `graphql-relay`.
+// Extracted here for example purposes.
+declare function connectionFromArray<T>(
+  data: ReadonlyArray<T>,
+  args: {
+    first?: Int | null;
+    after?: string | null;
+    last?: Int | null;
+    before?: string | null;
+  },
+): Connection<T>;
 // trim-end
