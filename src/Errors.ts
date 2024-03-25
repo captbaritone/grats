@@ -156,6 +156,22 @@ export function typeNameInitializeNotString() {
   return `Expected \`__typename\` property initializer to be a string literal. For example: \`__typename = "MyType"\` or \`__typename: "MyType";\`. ${TYPENAME_CONTEXT}`;
 }
 
+export function typeNameInitializeNotExpression() {
+  return `Expected \`__typename\` property initializer to be an expression with a const assertion. For example: \`__typename = "MyType" as const\`. ${TYPENAME_CONTEXT}`;
+}
+
+export function typeNameTypeNotReferenceNode() {
+  return `Expected \`__typename\` property type to be a TypeReferenceNode. ${TYPENAME_CONTEXT}`;
+}
+
+export function typeNameTypeNameNotIdentifier() {
+  return `Expected \`__typename\` property type name to be an Identifier. ${TYPENAME_CONTEXT}`;
+}
+
+export function typeNameTypeNameNotConst() {
+  return `Expected \`__typename\` property type name to be "const". ${TYPENAME_CONTEXT}`;
+}
+
 export function typeNameInitializerWrong(expected: string, actual: string) {
   return `Expected \`__typename\` property initializer to be \`"${expected}"\`, found \`"${actual}"\`. ${TYPENAME_CONTEXT}`;
 }

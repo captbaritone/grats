@@ -740,18 +740,39 @@ class Extractor {
       return false;
     }
 
-    if (!ts.isStringLiteral(node.initializer)) {
-      this.report(node.initializer, E.typeNameInitializeNotString());
+    if (!ts.isAsExpression(node.initializer)) {
+      this.report(node.initializer, E.typeNameInitializeNotExpression())
       return false;
     }
 
-    if (node.initializer.text !== expectedName) {
+    if (!ts.isStringLiteral(node.initializer.expression)) {
+      this.report(node.initializer.expression, E.typeNameInitializeNotString());
+      return false
+    }
+
+    if (node.initializer.expression.text !== expectedName) {
       this.report(
         node.initializer,
-        E.typeNameInitializerWrong(expectedName, node.initializer.text),
+        E.typeNameInitializerWrong(expectedName, node.initializer.expression.text),
       );
+      return false
+    }
+
+    if (!ts.isTypeReferenceNode(node.initializer.type)) {
+      this.report(node.initializer.type, E.typeNameTypeNotReferenceNode());
       return false;
     }
+
+    if (!ts.isIdentifier(node.initializer.type.typeName)) {
+      this.report(node.initializer.type.typeName, E.typeNameTypeNameNotIdentifier());
+      return false;
+    }
+
+    if (node.initializer.type.typeName.escapedText !== "const") {
+      this.report(node.initializer.type.typeName, E.typeNameTypeNameNotConst());
+      return false;
+    }
+
     return true;
   }
 
