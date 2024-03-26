@@ -4,7 +4,7 @@
 
 _Beta Software: Grats is largely stable and being used in production in multiple places. If you encounter any issues, don't hesitate to let us know._
 
-**What if building a GraphQL server were as simple as just writing functions?**
+**The simplest way to build a GraphQL server in TypeScript**
 
 When you write your GraphQL server in TypeScript, your fields and resolvers
 are _already_ annotated with type information. _Grats leverages your existing
@@ -14,6 +14,8 @@ generic TypeScript resolver code._
 By making your TypeScript implementation the source of truth, you never have to
 worry about validating that your implementation matches your schema. Your
 implementation _is_ your schema!
+
+Read the [blog post](https://jordaneldredge.com/blog/grats).
 
 ## Example
 
