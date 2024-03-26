@@ -1,6 +1,7 @@
 import type * as TS from "typescript/lib/tsserverlibrary";
 import { extract } from "../Extractor";
 import { FAKE_ERROR_CODE } from "../utils/DiagnosticError";
+import { nullThrows } from "../utils/helpers";
 
 // An experimental plugin for TypeScript that adds a new language service
 // which reports diagnostics for the current file. Currently it only reports
@@ -91,7 +92,7 @@ export function initTsPlugin(modules: { typescript: typeof TS }) {
       );
 
       const fixes = relatedDiagnostics.map((err) => {
-        return err.fix!;
+        return nullThrows(err.fix);
       });
 
       return [...prior, ...fixes];
