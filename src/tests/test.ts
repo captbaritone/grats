@@ -71,6 +71,7 @@ program
 const gratsDir = path.join(__dirname, "../..");
 const fixturesDir = path.join(__dirname, "fixtures");
 const integrationFixturesDir = path.join(__dirname, "integrationFixtures");
+const codeActionFixturesDir = path.join(__dirname, "codeActions");
 
 const testDirs = [
   {
@@ -173,6 +174,119 @@ const testDirs = [
 
         return `-- SDL --\n${sdl}\n-- TypeScript --\n${executableSchema}`;
       }
+    },
+  },
+  {
+    fixturesDir: codeActionFixturesDir,
+    testFilePattern: /\.ts$/,
+    ignoreFilePattern: null,
+    transformer: async (
+      code: string,
+      fileName: string,
+    ): Promise<string | false> => {
+      const firstLine = code.split("\n")[0];
+      let options: Partial<ConfigOptions> = {
+        nullableByDefault: true,
+        schemaHeader: null,
+        tsSchemaHeader: null,
+      };
+      if (firstLine.startsWith("// {")) {
+        const json = firstLine.slice(3);
+        const { tsVersion, ...testOptions } = JSON.parse(json);
+        if (tsVersion != null && !semver.satisfies(TS_VERSION, tsVersion)) {
+          console.log(
+            "Skipping test because TS version doesn't match",
+            tsVersion,
+            "does not match",
+            TS_VERSION,
+          );
+          return false;
+        }
+        options = { ...options, ...testOptions };
+      }
+
+      const filePath = `${codeActionFixturesDir}/${fileName}`;
+
+      const files = [filePath, path.join(__dirname, `../Types.ts`)];
+      let parsedOptions: ParsedCommandLineGrats;
+      try {
+        parsedOptions = validateGratsOptions({
+          options: {},
+          raw: {
+            grats: options,
+          },
+          errors: [],
+          fileNames: files,
+        });
+      } catch (e) {
+        return e.message;
+      }
+
+      // https://stackoverflow.com/a/66604532/1263117
+      const compilerHost = ts.createCompilerHost(
+        parsedOptions.options,
+        /* setParentNodes this is needed for finding jsDocs */
+        true,
+      );
+
+      const schemaResult = buildSchemaAndDocResultWithHost(
+        parsedOptions,
+        compilerHost,
+      );
+      if (schemaResult.kind !== "ERROR") {
+        throw new Error("Expected an error for code action test.");
+      }
+
+      if (schemaResult.err._diagnostics.length !== 1) {
+        throw new Error(
+          "FIXME! Expected exactly one error for code action test.",
+        );
+      }
+      const diagnostic = schemaResult.err._diagnostics[0];
+      if (diagnostic.fix == null) {
+        throw new Error(
+          "FIXME! Expected a fixable diagnostic for code action test.",
+        );
+      }
+      const changes = diagnostic.fix.changes;
+      if (changes.length !== 1) {
+        throw new Error(
+          "FIXME! Expected exactly one change for code action test.",
+        );
+      }
+      const change = changes[0];
+      if (!change.fileName.endsWith(filePath)) {
+        throw new Error(
+          "FIXME! Expected the change to be in the same file as the diagnostic.",
+        );
+      }
+      const textChanges = change.textChanges;
+      if (textChanges.length !== 1) {
+        throw new Error(
+          "FIXME! Expected exactly one text change for code action test.",
+        );
+      }
+
+      const head = code.slice(0, textChanges[0].span.start);
+      const tail = code.slice(
+        textChanges[0].span.start + textChanges[0].span.length,
+      );
+
+      const newCode = `${head}${textChanges[0].newText}${tail}`;
+
+      const noColor = (str: string) => str;
+
+      const diffOptions = {
+        aColor: noColor,
+        bColor: noColor,
+        changeColor: noColor,
+        commonColor: noColor,
+        patchColor: noColor,
+        contextLines: 3,
+        expand: false,
+      };
+
+      return diff(code, newCode, diffOptions) ?? "No diff";
     },
   },
   {

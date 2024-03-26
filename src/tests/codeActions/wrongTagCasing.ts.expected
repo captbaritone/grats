@@ -1,0 +1,15 @@
+-----------------
+INPUT
+----------------- 
+/** @GqLtyPe */
+export type Query = unknown;
+
+-----------------
+OUTPUT
+-----------------
+- Expected
++ Received
+
+- /** @GqLtyPe */
++ /** @gqlType */
+  export type Query = unknown;

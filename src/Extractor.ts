@@ -32,6 +32,7 @@ import { relativePath } from "./gratsRoot";
 import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
 import { extend, loc } from "./utils/helpers";
+import * as Act from "./CodeActions";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -183,7 +184,16 @@ class Extractor {
           break;
         case KILLS_PARENT_ON_EXCEPTION_TAG: {
           if (!this.hasTag(node, FIELD_TAG)) {
-            this.report(tag.tagName, E.killsParentOnExceptionOnWrongNode());
+            this.report(
+              tag.tagName,
+              E.killsParentOnExceptionOnWrongNode(),
+              [],
+              {
+                fixName: "remove-kills-parent-on-exception",
+                description: "Remove @killsParentOnException tag",
+                changes: [Act.removeNode(tag)],
+              },
+            );
           }
           // TODO: Report invalid location as well
           break;
@@ -198,16 +208,26 @@ class Extractor {
           {
             const lowerCaseTag = tag.tagName.text.toLowerCase();
             if (lowerCaseTag.startsWith("gql")) {
+              let reported = false;
               for (const t of ALL_TAGS) {
                 if (t.toLowerCase() === lowerCaseTag) {
                   this.report(
                     tag.tagName,
                     E.wrongCasingForGratsTag(tag.tagName.text, t),
+                    [],
+                    {
+                      fixName: "fix-grats-tag-casing",
+                      description: `Change to @${t}`,
+                      changes: [Act.replaceNode(tag.tagName, t)],
+                    },
                   );
+                  reported = true;
                   break;
                 }
               }
-              this.report(tag.tagName, E.invalidGratsTag(tag.tagName.text));
+              if (!reported) {
+                this.report(tag.tagName, E.invalidGratsTag(tag.tagName.text));
+              }
             }
           }
           break;
@@ -291,8 +311,9 @@ class Extractor {
     node: ts.Node,
     message: string,
     relatedInformation?: ts.DiagnosticRelatedInformation[],
+    fix?: ts.CodeFixAction,
   ): null {
-    this.errors.push(tsErr(node, message, relatedInformation));
+    this.errors.push(tsErr(node, message, relatedInformation, fix));
     return null;
   }
 
@@ -397,7 +418,11 @@ class Extractor {
     });
 
     if (!isExported) {
-      return this.report(classNode, E.staticMethodFieldClassNotExported());
+      return this.report(classNode, E.staticMethodFieldClassNotExported(), [], {
+        fixName: "add-export-keyword-to-class",
+        description: "Add export keyword to class with static @gqlField",
+        changes: [Act.prefixNode(classNode, "export ")],
+      });
     }
     const isDefault = classNode.modifiers?.some((modifier) => {
       return modifier.kind === ts.SyntaxKind.DefaultKeyword;
@@ -518,12 +543,16 @@ class Extractor {
     if (node.name == null) {
       return this.report(node, E.functionFieldNotNamed());
     }
-    const exportKeyword = node.modifiers?.some((modifier) => {
+    const isExported = node.modifiers?.some((modifier) => {
       return modifier.kind === ts.SyntaxKind.ExportKeyword;
     });
 
-    if (exportKeyword == null) {
-      return this.report(node.name, E.functionFieldNotNamedExport());
+    if (!isExported) {
+      return this.report(node.name, E.functionFieldNotNamedExport(), [], {
+        fixName: "add-export-keyword-to-function",
+        description: "Add export keyword to function with @gqlField",
+        changes: [Act.prefixNode(node, "export ")],
+      });
     }
     const defaultKeyword = node.modifiers?.find((modifier) => {
       return modifier.kind === ts.SyntaxKind.DefaultKeyword;

@@ -1,0 +1,29 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class User {
+  /** @gqlField */
+  name: string;
+
+  /** @gqlField */
+  static getUser(_: Query): User {
+    return new User();
+  }
+}
+
+/** @gqlType */
+export type Query = unknown;
+
+-----------------
+OUTPUT
+-----------------
+- Expected
++ Received
+
+@@ -1,5 +1,5 @@
+  /** @gqlType */
+- class User {
++ export class User {
+    /** @gqlField */
+    name: string;
