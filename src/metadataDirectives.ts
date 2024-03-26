@@ -65,6 +65,7 @@ declare module "graphql" {
 }
 
 export const FIELD_METADATA_DIRECTIVE = "metadata";
+export const EXPORT_NAME_ARG = "exportName";
 export const FIELD_NAME_ARG = "name";
 export const TS_MODULE_PATH_ARG = "tsModulePath";
 export const ARG_COUNT = "argCount";
@@ -80,14 +81,18 @@ export const METADATA_DIRECTIVE_NAMES = new Set([
 export const DIRECTIVES_AST: DocumentNode = parse(`
     directive @${FIELD_METADATA_DIRECTIVE}(
       """
-      Name of property/method/function. Defaults to field name. For
-      function-backed fields, this is the function's export name.
+      Name of property/method/function. Defaults to field name.
       """
       ${FIELD_NAME_ARG}: String
       """
       Path of the TypeScript module to import if the field is a function.
       """
       ${TS_MODULE_PATH_ARG}: String
+      """
+      Export name of the field. For function fields this is the exported function name,
+      for static method fields, this is the exported class name.
+      """
+      ${EXPORT_NAME_ARG}: String
       """
       Number of arguments. No value means property access
       """
@@ -105,6 +110,7 @@ export function addMetadataDirectives(
 export type FieldMetadata = {
   tsModulePath: string | null;
   name: string | null;
+  exportName: string | null;
   argCount: number | null;
 };
 
@@ -134,6 +140,7 @@ export function parseFieldMetadataDirective(
   return {
     name: getStringArg(directive, FIELD_NAME_ARG),
     tsModulePath: getStringArg(directive, TS_MODULE_PATH_ARG),
+    exportName: getStringArg(directive, EXPORT_NAME_ARG),
     argCount: getIntArg(directive, ARG_COUNT),
   };
 }

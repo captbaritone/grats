@@ -1,34 +1,36 @@
 -----------------
 INPUT
 ----------------- 
+export class SomeClass {
+  /** @gqlField */
+  static greet(_: Query): string {
+    return "Hello, world!";
+  }
+}
+
 /** @gqlType */
 type Query = unknown;
-
-/** @gqlField */
-export function foo(_: Query): string {
-  return "foo";
-}
 
 -----------------
 OUTPUT
 -----------------
 -- SDL --
 type Query {
-  foo: String @metadata(argCount: 1, exportName: "foo", tsModulePath: "grats/src/tests/fixtures/type_definitions_from_alias/QueryAsAliasOfUnknown.ts")
+  greet: String @metadata(argCount: 1, exportName: "SomeClass", name: "greet", tsModulePath: "grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethodOnNonGqlClass.ts")
 }
 -- TypeScript --
-import { foo as queryFooResolver } from "./QueryAsAliasOfUnknown";
+import { SomeClass as queryGreetResolver } from "./FieldAsStaticClassMethodOnNonGqlClass";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
             return {
-                foo: {
-                    name: "foo",
+                greet: {
+                    name: "greet",
                     type: GraphQLString,
                     resolve(source) {
-                        return queryFooResolver(source);
+                        return queryGreetResolver.greet(source);
                     }
                 }
             };

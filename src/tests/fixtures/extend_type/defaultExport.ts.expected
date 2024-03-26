@@ -2,11 +2,13 @@
 INPUT
 ----------------- 
 /** @gqlType */
-export type SomeType = unknown;
+class SomeType {
+  // No fields
+}
 
 /** @gqlField */
-export function greeting(_: SomeType): string {
-  return "Hello world";
+export default function greeting(_: SomeType): string {
+  return `Hello World`;
 }
 
 -----------------
@@ -14,10 +16,10 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String @metadata(argCount: 1, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/type_definitions_from_alias/AliasOfUnknownDefinesType.ts")
+  greeting: String @metadata(argCount: 1, tsModulePath: "grats/src/tests/fixtures/extend_type/defaultExport.ts")
 }
 -- TypeScript --
-import { greeting as someTypeGreetingResolver } from "./AliasOfUnknownDefinesType";
+import someTypeGreetingResolver from "./defaultExport";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

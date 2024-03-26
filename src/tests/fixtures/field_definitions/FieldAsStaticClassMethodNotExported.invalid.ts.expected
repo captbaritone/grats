@@ -1,0 +1,31 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class User {
+  /** @gqlField */
+  name: string;
+
+  /** @gqlField */
+  static getUser(_: Query): User {
+    return new User();
+  }
+}
+
+/** @gqlType */
+type Query = unknown;
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/field_definitions/FieldAsStaticClassMethodNotExported.invalid.ts:2:1 - error: Expected `@gqlField` static method's class to be exported. Grats needs to import resolvers into it's generated schema module, so the resolver class must be an exported.
+
+  2 class User {
+    ~~~~~~~~~~~~
+  3   /** @gqlField */
+    ~~~~~~~~~~~~~~~~~~
+... 
+  9   }
+    ~~~
+ 10 }
+    ~

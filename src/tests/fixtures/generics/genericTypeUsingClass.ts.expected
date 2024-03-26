@@ -37,7 +37,7 @@ type PageEdge {
 }
 
 type Query {
-  createEdge: PageEdge @metadata(argCount: 1, name: "createEdge", tsModulePath: "grats/src/tests/fixtures/generics/genericTypeUsingClass.ts")
+  createEdge: PageEdge @metadata(argCount: 1, exportName: "createEdge", tsModulePath: "grats/src/tests/fixtures/generics/genericTypeUsingClass.ts")
 }
 -- TypeScript --
 import { createEdge as queryCreateEdgeResolver } from "./genericTypeUsingClass";

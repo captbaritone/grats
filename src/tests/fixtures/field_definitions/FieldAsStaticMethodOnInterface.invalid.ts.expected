@@ -1,0 +1,22 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export interface User {
+  /** @gqlField */
+  name: string;
+
+  /** @gqlField */
+  static getUser(_: Query): User;
+}
+
+/** @gqlType */
+type Query = unknown;
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/field_definitions/FieldAsStaticMethodOnInterface.invalid.ts:7:3 - error: Unexpected `static` modifier on non-method `@gqlField`. `static` is only valid on method signatures.
+
+7   static getUser(_: Query): User;
+    ~~~~~~

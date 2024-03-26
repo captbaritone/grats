@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 type Cat {
-  catSound: String @metadata(argCount: 1, name: "catSound", tsModulePath: "grats/src/tests/fixtures/extend_type/functionFieldOnTypeDefinedWithInterface.ts")
+  catSound: String @metadata(argCount: 1, exportName: "catSound", tsModulePath: "grats/src/tests/fixtures/extend_type/functionFieldOnTypeDefinedWithInterface.ts")
 }
 -- TypeScript --
 import { catSound as catCatSoundResolver } from "./functionFieldOnTypeDefinedWithInterface";

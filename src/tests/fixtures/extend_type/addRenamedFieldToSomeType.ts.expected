@@ -16,10 +16,10 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  hello: String @metadata(argCount: 1, name: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_type/addRenamedFieldToSomeType.ts")
+  hello: String @metadata(argCount: 1, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_type/addRenamedFieldToSomeType.ts")
 }
 -- TypeScript --
-import { greeting as someTypeGreetingResolver } from "./addRenamedFieldToSomeType";
+import { greeting as someTypeHelloResolver } from "./addRenamedFieldToSomeType";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
@@ -30,7 +30,7 @@ export function getSchema(): GraphQLSchema {
                     name: "hello",
                     type: GraphQLString,
                     resolve(source) {
-                        return someTypeGreetingResolver(source);
+                        return someTypeHelloResolver(source);
                     }
                 }
             };

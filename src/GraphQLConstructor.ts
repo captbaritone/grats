@@ -39,6 +39,7 @@ import {
   FIELD_NAME_ARG,
   ARG_COUNT,
   FIELD_METADATA_DIRECTIVE,
+  EXPORT_NAME_ARG,
 } from "./metadataDirectives";
 import { uniqueId } from "./utils/helpers";
 import { TsLocatableNode } from "./utils/DiagnosticError";
@@ -49,6 +50,7 @@ export class GraphQLConstructor {
     metadata: {
       tsModulePath: string | null;
       name: string | null;
+      exportName: string | null;
       argCount: number | null;
     },
   ): ConstDirectiveNode {
@@ -68,6 +70,15 @@ export class GraphQLConstructor {
           node,
           this.name(node, FIELD_NAME_ARG),
           this.string(node, metadata.name),
+        ),
+      );
+    }
+    if (metadata.exportName != null) {
+      args.push(
+        this.constArgument(
+          node,
+          this.name(node, EXPORT_NAME_ARG),
+          this.string(node, metadata.exportName),
         ),
       );
     }

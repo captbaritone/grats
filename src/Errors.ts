@@ -95,6 +95,14 @@ export function functionFieldNotTopLevel() {
   return `Expected \`@${FIELD_TAG}\` function to be a top-level declaration. Grats needs to import resolver functions into it's generated schema module, so the resolver function must be an exported.`;
 }
 
+export function staticMethodClassNotTopLevel() {
+  return `Expected class with a static \`@${FIELD_TAG}\` method to be a top-level declaration. Grats needs to import resolver methods into it's generated schema module, so the resolver's class must be an exported.`;
+}
+
+export function staticMethodFieldClassNotExported() {
+  return `Expected \`@${FIELD_TAG}\` static method's class to be exported. Grats needs to import resolvers into it's generated schema module, so the resolver class must be an exported.`;
+}
+
 const FUNCTION_PARENT_TYPE_CONTEXT = `Grats treats the first argument as the parent object of the field. Therefore Grats needs to see the _type_ of the first argument in order to know to which type/interface this field should be added.`;
 
 export function functionFieldParentTypeMissing() {
@@ -107,10 +115,6 @@ export function functionFieldParentTypeNotValid() {
 
 export function functionFieldNotNamed() {
   return `Expected \`@${FIELD_TAG}\` function to be named. Grats uses the name of the function to derive the name of the GraphQL field. Additionally, Grats needs to import resolver functions into it's generated schema module, so the resolver function must be a named export.`;
-}
-
-export function functionFieldDefaultExport() {
-  return `Expected a \`@${FIELD_TAG}\` function to be a named export, not a default export. Grats needs to import resolver functions into it's generated schema module, so the resolver function must be a named export.`;
 }
 
 export function functionFieldNotNamedExport() {
@@ -436,4 +440,20 @@ export function genericTypeImplementsInterface(): string {
 
 export function concreteTypeMissingTypename(implementor: string): string {
   return `Missing \`__typename\` on \`${implementor}\`. The type \`${implementor}\` is used in a union or interface, so it must have a \`__typename\` field.`;
+}
+
+export function invalidFieldNonPublicAccessModifier(): string {
+  return `Unexpected access modifier on \`@${FIELD_TAG}\` method. GraphQL fields must be able to be called by the GraphQL executor.`;
+}
+
+export function invalidStaticModifier(): string {
+  return `Unexpected \`static\` modifier on non-method \`@${FIELD_TAG}\`. \`static\` is only valid on method signatures.`;
+}
+
+export function staticMethodOnNonClass(): string {
+  return `Unexpected \`@${FIELD_TAG}\` \`static\` method on non-class declaration. Static method fields may only be declared on exported class declarations.`;
+}
+
+export function staticMethodClassWithNamedExportNotNamed(): string {
+  return `Expected \`@${FIELD_TAG}\` static method's class to be named if exported without the \`default\` keyword.`;
 }
