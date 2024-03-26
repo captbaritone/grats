@@ -2,6 +2,7 @@ import { createSystem, createVirtualCompilerHost } from "@typescript/vfs";
 import * as ts from "typescript";
 import { buildSchemaAndDocResultWithHost } from "grats/src/lib";
 import { codegen } from "grats/src/codegen";
+import { ReportableDiagnostics } from "grats/src/utils/DiagnosticError";
 import { printSDLWithoutMetadata } from "grats/src/printSchema";
 import { linter } from "@codemirror/lint";
 import { DocumentNode, GraphQLSchema, print } from "graphql";
@@ -56,7 +57,10 @@ function buildSchemaResultWithFsMap(fsMap, text: string, config) {
     const message = `Grats playground bug encountered. Please report this error:\n\n ${e.stack}`;
     return {
       kind: "ERROR",
-      err: { formatDiagnosticsWithContext: () => message, _diagnostics: [] },
+      err: {
+        formatDiagnosticsWithContext: () => message,
+        _diagnostics: [] as ReportableDiagnostics[],
+      },
     };
   }
 }
@@ -81,12 +85,17 @@ export function createLinter(fsMap, view, config) {
       });
 
       return result.err._diagnostics.map((diagnostic) => {
+        const actions = [];
+        if (diagnostic.fix) {
+          const action = gratsFixToCodeMirrorAction(diagnostic.fix);
+          actions.push(action);
+        }
         return {
           from: diagnostic.start,
           to: diagnostic.start + diagnostic.length,
           severity: "error",
           message: diagnostic.messageText,
-          actions: [],
+          actions,
         };
       });
     }
@@ -123,4 +132,25 @@ function commentLines(text: string): string {
     .split("\n")
     .map((line) => `# ${line}`)
     .join("\n");
+}
+
+function gratsFixToCodeMirrorAction(fix) {
+  const change = fix.changes[0]?.textChanges[0];
+  if (change == null) {
+    return null;
+  }
+  return {
+    name: fix.description,
+    apply: (view) => {
+      view.dispatch({
+        changes: [
+          {
+            from: change.span.start,
+            to: change.span.start + change.span.length,
+            insert: change.newText,
+          },
+        ],
+      });
+    },
+  };
 }
