@@ -17,10 +17,7 @@ When defining your resolvers as methods on a class, the initial `obj` argument
 is omitted in favor of `this`.
 :::
 
-When using the functional style, Grats inspects
-the type annotation of the first argument to determine which which type this
-field is being defined on. In other word, the definition of the type applied to
-the `obj` argument must be annotated with `/** @gqlType */`. Grats will report a helpful error if you forget to do this.
+When using the functional or static method style, Grats inspects the type annotation of the first argument to determine which which type this field is being defined on. In other word, the definition of the type applied to the `obj` argument must be annotated with `/** @gqlType */`. Grats will report a helpful error if you forget to do this.
 
 ### `args`
 
@@ -36,6 +33,8 @@ A value which is provided to every resolver and holds important contextual infor
 - Information about the current request
 - Context about the currently logged in user
 - Per-request caches, such as [DataLoaders](https://github.com/graphql/dataloader)
+
+Grats will ensure that all resolvers in your project use reference the same type for the `context` argument.
 
 ### `info`
 

@@ -7,7 +7,7 @@ import { User } from "./User";
 /**
  * The currently authenticated viewer.
  * @gqlType */
-class Viewer {
+export class Viewer {
   /**
    * The currently authenticated user.
    * @gqlField */
@@ -30,13 +30,12 @@ class Viewer {
       yield new Post(row);
     }
   }
-}
+  // --- Root Fields ---
 
-// --- Root Fields ---
-
-/**
- * The currently authenticated viewer.
- * @gqlField */
-export function viewer(_: Query): Viewer {
-  return new Viewer();
+  /**
+   * The currently authenticated viewer.
+   * @gqlField */
+  static viewer(_: Query): Viewer {
+    return new Viewer();
+  }
 }

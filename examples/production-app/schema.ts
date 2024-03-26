@@ -13,7 +13,7 @@ import { nodes as queryNodesResolver } from "./graphql/Node";
 import { posts as queryPostsResolver } from "./models/PostConnection";
 import { nodes as userConnectionNodesResolver } from "./models/UserConnection";
 import { users as queryUsersResolver } from "./models/UserConnection";
-import { viewer as queryViewerResolver } from "./models/Viewer";
+import { Viewer as queryViewerResolver } from "./models/Viewer";
 import { createLike as mutationCreateLikeResolver } from "./models/Like";
 import { createPost as mutationCreatePostResolver } from "./models/Post";
 import { createUser as mutationCreateUserResolver } from "./models/User";
@@ -436,7 +436,7 @@ export function getSchema(): GraphQLSchema {
                     name: "viewer",
                     type: ViewerType,
                     resolve(source) {
-                        return queryViewerResolver(source);
+                        return queryViewerResolver.viewer(source);
                     }
                 }
             };
