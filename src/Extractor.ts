@@ -45,6 +45,7 @@ export const ENUM_TAG = "gqlEnum";
 export const UNION_TAG = "gqlUnion";
 export const INPUT_TAG = "gqlInput";
 
+export const CONTEXT_TAG = "gqlContext";
 export const IMPLEMENTS_TAG_DEPRECATED = "gqlImplements";
 export const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
 
@@ -57,6 +58,7 @@ export const ALL_TAGS = [
   ENUM_TAG,
   UNION_TAG,
   INPUT_TAG,
+  CONTEXT_TAG,
 ];
 
 const DEPRECATED_TAG = "deprecated";
@@ -70,6 +72,7 @@ export type ExtractionSnapshot = {
   readonly unresolvedNames: Map<ts.EntityName, NameNode>;
   readonly nameDefinitions: Map<ts.DeclarationStatement, NameDefinition>;
   readonly contextReferences: Array<ts.Node>;
+  readonly contextDefinitions: Array<ContextNodeType>;
   readonly typesWithTypename: Set<string>;
   readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
 };
@@ -95,6 +98,11 @@ export function extract(
   return extractor.extract(sourceFile);
 }
 
+type ContextNodeType =
+  | ts.TypeAliasDeclaration
+  | ts.InterfaceDeclaration
+  | ts.ClassDeclaration;
+
 class Extractor {
   definitions: DefinitionNode[] = [];
 
@@ -102,6 +110,7 @@ class Extractor {
   unresolvedNames: Map<ts.EntityName, NameNode> = new Map();
   nameDefinitions: Map<ts.DeclarationStatement, NameDefinition> = new Map();
   contextReferences: Array<ts.Node> = [];
+  contextDefinitions: Array<ContextNodeType> = [];
   typesWithTypename: Set<string> = new Set();
   interfaceDeclarations: Array<ts.InterfaceDeclaration> = [];
 
@@ -195,6 +204,20 @@ class Extractor {
             }
           }
           break;
+        case CONTEXT_TAG: {
+          if (
+            !(
+              ts.isTypeAliasDeclaration(node) ||
+              ts.isInterfaceDeclaration(node) ||
+              ts.isClassDeclaration(node)
+            )
+          ) {
+            console.log("node kind", node.kind);
+            return this.report(node, E.contextTagOnWrongNode());
+          }
+          this.contextDefinitions.push(node);
+          break;
+        }
         case KILLS_PARENT_ON_EXCEPTION_TAG: {
           if (!this.hasTag(node, FIELD_TAG)) {
             this.report(
@@ -257,6 +280,7 @@ class Extractor {
       unresolvedNames: this.unresolvedNames,
       nameDefinitions: this.nameDefinitions,
       contextReferences: this.contextReferences,
+      contextDefinitions: this.contextDefinitions,
       typesWithTypename: this.typesWithTypename,
       interfaceDeclarations: this.interfaceDeclarations,
     });

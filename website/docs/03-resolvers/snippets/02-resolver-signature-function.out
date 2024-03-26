@@ -12,6 +12,7 @@ export function friends(
   return context.db.getSortedFriends(user._bestFriendID, args.order);
 }
 
+/** @gqlContext */
 type GqlContext = {
   db: { getSortedFriends(id: number, order: string): User };
 };

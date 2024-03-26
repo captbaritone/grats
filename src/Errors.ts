@@ -11,6 +11,7 @@ import {
   TYPE_TAG,
   UNION_TAG,
   SPECIFIED_BY_TAG,
+  CONTEXT_TAG,
 } from "./Extractor";
 
 export const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
@@ -375,6 +376,15 @@ export function unexpectedParamSpreadForContextParam() {
 
 export function multipleContextTypes() {
   return "Context argument's type does not match. Grats expects all resolvers that read the context argument to use the same type for that argument. Did you use the incorrect type in one of your resolvers?";
+}
+
+export function contextTagOnWrongNode() {
+  // TODO: Word this better
+  return `Expected \`@${CONTEXT_TAG}\` tag to be applied to a type alias declaration..`;
+}
+
+export function multipleContextDefinitions() {
+  return `Unexpected multiple \`@${CONTEXT_TAG}\` definitions. Only one type may be annotated with \`@${CONTEXT_TAG}\` in a Grats project.`;
 }
 
 export function graphQLNameHasLeadingNewlines(

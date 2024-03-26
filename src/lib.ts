@@ -88,7 +88,7 @@ export function extractSchemaAndDoc(
       // Collect validation errors
       const validationResult = concatResults(
         validateMergedInterfaces(checker, snapshot.interfaceDeclarations),
-        validateContextReferences(ctx, snapshot.contextReferences),
+        validateContextReferences(ctx, snapshot),
       );
 
       const docResult = new ResultPipe(validationResult)
@@ -167,6 +167,7 @@ function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
     nameDefinitions: new Map(),
     unresolvedNames: new Map(),
     contextReferences: [],
+    contextDefinitions: [],
     typesWithTypename: new Set(),
     interfaceDeclarations: [],
   };
@@ -186,6 +187,10 @@ function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
 
     for (const contextReference of snapshot.contextReferences) {
       result.contextReferences.push(contextReference);
+    }
+
+    for (const contextDefinition of snapshot.contextDefinitions) {
+      result.contextDefinitions.push(contextDefinition);
     }
 
     for (const typeName of snapshot.typesWithTypename) {
