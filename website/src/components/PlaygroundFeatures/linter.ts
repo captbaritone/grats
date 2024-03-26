@@ -135,22 +135,23 @@ function commentLines(text: string): string {
 }
 
 function gratsFixToCodeMirrorAction(fix) {
-  const change = fix.changes[0]?.textChanges[0];
-  if (change == null) {
+  const changes = [];
+  for (const tsChange of fix.changes) {
+    for (const textChange of tsChange.textChanges) {
+      changes.push({
+        from: textChange.span.start,
+        to: textChange.span.start + textChange.span.length,
+        insert: textChange.newText,
+      });
+    }
+  }
+  if (changes.length === 0) {
     return null;
   }
   return {
     name: fix.description,
     apply: (view) => {
-      view.dispatch({
-        changes: [
-          {
-            from: change.span.start,
-            to: change.span.start + change.span.length,
-            insert: change.newText,
-          },
-        ],
-      });
+      view.dispatch({ changes });
     },
   };
 }

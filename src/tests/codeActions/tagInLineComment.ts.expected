@@ -1,0 +1,22 @@
+-----------------
+INPUT
+----------------- 
+// @gqlType
+type User = {
+  // @gqlField
+  name: string;
+};
+
+-----------------
+OUTPUT
+-----------------
+- Expected
++ Received
+
+- // @gqlType
++ /** @gqlType */
+  type User = {
+-   // @gqlField
++   /** @gqlField */
+    name: string;
+  };

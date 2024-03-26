@@ -1,6 +1,7 @@
 import * as ts from "typescript";
 import { rangeErr } from "./utils/DiagnosticError";
 import * as E from "./Errors";
+import * as Act from "./CodeActions";
 import { ALL_TAGS, KILLS_PARENT_ON_EXCEPTION_TAG } from "./Extractor";
 
 // A line that starts with optional *s followed by @gql or @killsParentOnException
@@ -34,11 +35,21 @@ export function detectInvalidComments(
         errors.push(rangeErr(sourceFile, range, E.invalidGratsTag(tagName)));
       }
       if (isLine) {
-        errors.push(rangeErr(sourceFile, range, E.gqlTagInLineComment()));
+        errors.push(
+          rangeErr(sourceFile, range, E.gqlTagInLineComment(), [], {
+            fixName: "convert-line-comment-to-docblock-comment",
+            description: "Convert to a docblock comment",
+            changes: [Act.convertLineCommentToDocblock(sourceFile, comment)],
+          }),
+        );
       } else {
         if (textSlice[0] !== "*") {
           errors.push(
-            rangeErr(sourceFile, range, E.gqlTagInNonJSDocBlockComment()),
+            rangeErr(sourceFile, range, E.gqlTagInNonJSDocBlockComment(), [], {
+              fixName: "convert-block-comment-to-docblock-comment",
+              description: "Convert to a docblock comment",
+              changes: [Act.convertBlockCommentToDocblock(sourceFile, comment)],
+            }),
           );
         } else {
           errors.push(

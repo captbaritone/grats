@@ -28,6 +28,7 @@ import {
 } from "../gratsConfig";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
 import { applySDLHeader, applyTypeScriptHeader } from "../printSchema";
+import { extend } from "../utils/helpers";
 
 const TS_VERSION = ts.version;
 
@@ -237,43 +238,34 @@ const testDirs = [
         throw new Error("Expected an error for code action test.");
       }
 
-      if (schemaResult.err._diagnostics.length !== 1) {
-        throw new Error(
-          "FIXME! Expected exactly one error for code action test.",
-        );
-      }
-      const diagnostic = schemaResult.err._diagnostics[0];
-      if (diagnostic.fix == null) {
-        throw new Error(
-          "FIXME! Expected a fixable diagnostic for code action test.",
-        );
-      }
-      const changes = diagnostic.fix.changes;
-      if (changes.length !== 1) {
-        throw new Error(
-          "FIXME! Expected exactly one change for code action test.",
-        );
-      }
-      const change = changes[0];
-      if (!change.fileName.endsWith(filePath)) {
-        throw new Error(
-          "FIXME! Expected the change to be in the same file as the diagnostic.",
-        );
-      }
-      const textChanges = change.textChanges;
-      if (textChanges.length !== 1) {
-        throw new Error(
-          "FIXME! Expected exactly one text change for code action test.",
-        );
+      const textChanges: ts.TextChange[] = [];
+
+      for (const diagnostic of schemaResult.err._diagnostics) {
+        if (diagnostic.fix == null) {
+          continue;
+        }
+        for (const change of diagnostic.fix.changes) {
+          if (!change.fileName.endsWith(filePath)) {
+            throw new Error(
+              "FIXME! Expected the change to be in the same file as the diagnostic.",
+            );
+          }
+
+          extend(textChanges, change.textChanges);
+        }
       }
 
-      const head = code.slice(0, textChanges[0].span.start);
-      const tail = code.slice(
-        textChanges[0].span.start + textChanges[0].span.length,
-      );
-
-      const newCode = `${head}${textChanges[0].newText}${tail}`;
-
+      let newCode = code;
+      // Process edits in reverse to avoid changing the span of subsequent edits
+      const reversed = textChanges.slice();
+      reversed.sort((a, b) => b.span.start - a.span.start);
+      for (const textChange of reversed) {
+        const head = newCode.slice(0, textChange.span.start);
+        const tail = newCode.slice(
+          textChange.span.start + textChange.span.length,
+        );
+        newCode = `${head}${textChange.newText}${tail}`;
+      }
       const noColor = (str: string) => str;
 
       const diffOptions = {

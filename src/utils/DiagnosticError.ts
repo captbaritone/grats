@@ -151,7 +151,8 @@ export function rangeErr(
   commentRange: ts.CommentRange,
   message: string,
   relatedInformation?: ts.DiagnosticRelatedInformation[],
-): ts.DiagnosticWithLocation {
+  fix?: ts.CodeFixAction,
+): FixableDiagnosticWithLocation {
   const start = commentRange.pos;
   const length = commentRange.end - commentRange.pos;
   return {
@@ -163,6 +164,7 @@ export function rangeErr(
     length,
     relatedInformation,
     source: "Grats",
+    fix,
   };
 }
 
