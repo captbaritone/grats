@@ -32,6 +32,10 @@ import { sortSchemaAst } from "./transforms/sortSchemaAst";
 import { validateSemanticNullability } from "./validations/validateSemanticNullability";
 import { resolveTypes } from "./transforms/resolveTypes";
 
+// Export the TypeScript plugin implementation used by
+// grats-ts-plugin
+export { initTsPlugin } from "./tsPlugin/initTsPlugin";
+
 export type SchemaAndDoc = {
   schema: GraphQLSchema;
   doc: DocumentNode;
