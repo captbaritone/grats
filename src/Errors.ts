@@ -332,7 +332,6 @@ export function parameterWithoutModifiers() {
   ].join("");
 }
 
-// TODO: Add code action
 export function parameterPropertyNotPublic() {
   return [
     `Expected \`@${FIELD_TAG}\` parameter property to be public. Valid modifiers for \`@${FIELD_TAG}\` parameter properties are  \`public\` and \`readonly\`.\n\n`,
@@ -389,12 +388,10 @@ export function graphQLTagNameHasWhitespace(tagName: string): string {
   return `Expected text following a \`@${tagName}\` tag to be a GraphQL name. If you intended this text to be a description, place it at the top of the docblock before any \`@tags\`.`;
 }
 
-// TODO: Add code action
 export function subscriptionFieldNotAsyncIterable() {
   return "Expected fields on `Subscription` to return an `AsyncIterable`. Fields on `Subscription` model a subscription, which is a stream of events. Grats expects fields on `Subscription` to return an `AsyncIterable` which can be used to model this stream.";
 }
 
-// TODO: Add code action
 export function operationTypeNotUnknown() {
   return "Operation types `Query`, `Mutation`, and `Subscription` must be defined as type aliases of `unknown`. E.g. `type Query = unknown`. This is because GraphQL servers do not have an agreed upon way to produce root values, and Grats errs on the side of safety. If you are trying to implement dependency injection, consider using the `context` argument passed to each resolver instead. If you have a strong use case for a concrete root value, please file an issue.";
 }
@@ -415,7 +412,6 @@ export function gqlTagInDetachedJSDocBlockComment() {
   return `Unexpected Grats tag in detached docblock. Grats was unable to determine which TypeScript declaration this docblock is associated with. Moving the docblock to a position with is unambiguously "above" the relevant declaration may help. For more information see: ${DOC_URLS.commentSyntax}`;
 }
 
-// TODO: Add code action
 export function gqlFieldTagOnInputType() {
   return `The tag \`@${FIELD_TAG}\` is not needed on fields of input types. All fields are automatically included as part of the input type. This tag can be safely removed.`;
 }
@@ -464,12 +460,10 @@ export function invalidFieldNonPublicAccessModifier(): string {
   return `Unexpected access modifier on \`@${FIELD_TAG}\` method. GraphQL fields must be able to be called by the GraphQL executor.`;
 }
 
-// TODO: Add code action
 export function invalidStaticModifier(): string {
   return `Unexpected \`static\` modifier on non-method \`@${FIELD_TAG}\`. \`static\` is only valid on method signatures.`;
 }
 
-// TODO: Add code action
 export function staticMethodOnNonClass(): string {
   return `Unexpected \`@${FIELD_TAG}\` \`static\` method on non-class declaration. Static method fields may only be declared on exported class declarations.`;
 }

@@ -1,6 +1,5 @@
 dist
 src/tests/fixtures/**/*.ts
 src/tests/integrationFixtures/**/*.ts
-src/tests/codeActions/**/*.ts
 website/build/*
 website/**/*.grats.ts

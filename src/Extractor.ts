@@ -172,8 +172,21 @@ class Extractor {
             } else if (this.hasTag(parent, INPUT_TAG)) {
               // You don't need to add `@gqlField` to input types, but it's an
               // easy mistake to think you might need to. We report a helpful
-              // error in this case.
-              this.report(tag, E.gqlFieldTagOnInputType());
+              // error in this case and offer a fix.
+              const docblock = tag.parent;
+              const isOnlyTag =
+                ts.isJSDoc(docblock) &&
+                docblock.tags?.length === 1 &&
+                !docblock.comment;
+
+              const action = isOnlyTag
+                ? Act.removeNode(docblock)
+                : Act.removeNode(tag);
+              this.report(tag, E.gqlFieldTagOnInputType(), [], {
+                fixName: "remove-gql-field-from-input",
+                description: "Remove @gqlField tag",
+                changes: [action],
+              });
             } else if (
               !this.hasTag(parent, TYPE_TAG) &&
               !this.hasTag(parent, INTERFACE_TAG)
@@ -411,6 +424,10 @@ class Extractor {
       return this.report(classNode, E.staticMethodOnNonClass());
     }
 
+    if (!ts.isSourceFile(classNode.parent)) {
+      return this.report(classNode, E.staticMethodClassNotTopLevel());
+    }
+
     let exportName: string | null = null;
 
     const isExported = classNode.modifiers?.some((modifier) => {
@@ -439,10 +456,6 @@ class Extractor {
       if (className == null) return null;
 
       exportName = className.text;
-    }
-
-    if (!ts.isSourceFile(classNode.parent)) {
-      return this.report(classNode, E.staticMethodClassNotTopLevel());
     }
 
     const tsModulePath = relativePath(node.getSourceFile().fileName);
@@ -1059,7 +1072,11 @@ class Extractor {
     );
 
     if (notPublic != null) {
-      return this.report(notPublic, E.parameterPropertyNotPublic());
+      return this.report(notPublic, E.parameterPropertyNotPublic(), [], {
+        fixName: "make-parameter-property-public",
+        description: "Make parameter property public",
+        changes: [Act.replaceNode(notPublic, "public")],
+      });
     }
 
     const name = this.entityName(node, tag);

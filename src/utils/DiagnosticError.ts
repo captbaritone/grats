@@ -5,7 +5,7 @@ import { Result } from "./Result";
 type FixableDiagnostic = ts.Diagnostic & {
   fix?: ts.CodeFixAction;
 };
-type FixableDiagnosticWithLocation = ts.DiagnosticWithLocation & {
+export type FixableDiagnosticWithLocation = ts.DiagnosticWithLocation & {
   fix?: ts.CodeFixAction;
 };
 
