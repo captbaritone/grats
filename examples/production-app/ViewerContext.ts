@@ -49,4 +49,5 @@ export class VC {
   }
 }
 
+/**  @gqlContext */
 export type Ctx = YogaInitialContext & { vc: VC };

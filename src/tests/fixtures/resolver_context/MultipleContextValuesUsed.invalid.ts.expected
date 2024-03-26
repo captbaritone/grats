@@ -1,10 +1,12 @@
 -----------------
 INPUT
 ----------------- 
+/** @gqlContext */
 type GratsContext = {
   greeting: string;
 };
 
+/** @gqlContext */
 type AlsoGratsContext = {
   greeting: string;
 };
@@ -24,12 +26,20 @@ export class SomeType {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/resolver_context/MultipleContextValuesUsed.invalid.ts:16:36 - error: Context argument's type does not match. Grats expects all resolvers that read the context argument to use the same type for that argument. Did you use the incorrect type in one of your resolvers?
+src/tests/fixtures/resolver_context/MultipleContextValuesUsed.invalid.ts:7:1 - error: Unexpected multiple `@gqlContext` definitions. Only one type may be annotated with `@gqlContext` in a Grats project.
 
-16   alsoGreeting(args: unknown, ctx: AlsoGratsContext): string {
-                                      ~~~~~~~~~~~~~~~~
+7 type AlsoGratsContext = {
+  ~~~~~~~~~~~~~~~~~~~~~~~~~
+8   greeting: string;
+  ~~~~~~~~~~~~~~~~~~~
+9 };
+  ~~
 
-  src/tests/fixtures/resolver_context/MultipleContextValuesUsed.invalid.ts:12:32
-    12   greeting(args: unknown, ctx: GratsContext): string {
-                                      ~~~~~~~~~~~~
-    A different type reference was used here
+  src/tests/fixtures/resolver_context/MultipleContextValuesUsed.invalid.ts:2:1
+    2 type GratsContext = {
+      ~~~~~~~~~~~~~~~~~~~~~
+    3   greeting: string;
+      ~~~~~~~~~~~~~~~~~~~
+    4 };
+      ~~
+    A different context definition was found here

@@ -1,3 +1,4 @@
+/** @gqlContext */
 export type GratsContext = {
   greeting: string;
 };

@@ -7,6 +7,7 @@ class User {
   }
 }
 
+/** @gqlContext */
 type GqlContext = {
   db: { getSortedFriends(id: number, order: string): User };
 };

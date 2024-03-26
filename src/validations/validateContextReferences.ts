@@ -7,6 +7,8 @@ import {
 } from "../utils/DiagnosticError";
 import { err, ok } from "../utils/Result";
 import { TypeContext } from "../TypeContext";
+import { ExtractionSnapshot } from "../Extractor";
+import { prefixNode } from "../CodeActions";
 
 /**
  * Ensure that all context type references resolve to the same
@@ -14,10 +16,24 @@ import { TypeContext } from "../TypeContext";
  */
 export function validateContextReferences(
   ctx: TypeContext,
-  references: ts.Node[],
+  snapshot: ExtractionSnapshot,
 ): DiagnosticsWithoutLocationResult<void> {
-  let gqlContext: { declaration: ts.Node; firstReference: ts.Node } | null =
-    null;
+  const { contextReferences: references, contextDefinitions: definitions } =
+    snapshot;
+
+  if (definitions.length > 1) {
+    return err([
+      tsErr(definitions[1], E.multipleContextDefinitions(), [
+        tsRelated(
+          definitions[0],
+          "A different context definition was found here",
+        ),
+      ]),
+    ]);
+  }
+
+  const tagged: ts.Node | undefined = definitions[0];
+
   for (const typeName of references) {
     const symbol = ctx.checker.getSymbolAtLocation(typeName);
     if (symbol == null) {
@@ -33,19 +49,26 @@ export function validateContextReferences(
       ]);
     }
 
-    if (gqlContext == null) {
-      // This is the first typed context value we've seen...
-      gqlContext = {
-        declaration: declaration,
-        firstReference: typeName,
-      };
-    } else if (gqlContext.declaration !== declaration) {
+    if (tagged == null) {
       return err([
+        tsErr(
+          typeName,
+          "Add a @gqlContext tag",
+          [tsRelated(declaration, "This is the type declaration")],
+          {
+            fixName: "add-context-tag",
+            description: "Tag context declaration with @gqlContext",
+            changes: [prefixNode(declaration, "/** @gqlContext */\n")],
+          },
+        ),
+      ]);
+    }
+
+    if (tagged !== declaration) {
+      return err([
+        // TODO: Reword
         tsErr(typeName, E.multipleContextTypes(), [
-          tsRelated(
-            gqlContext.firstReference,
-            "A different type reference was used here",
-          ),
+          tsRelated(declaration, "A different type reference was used here"),
         ]),
       ]);
     }

@@ -1,0 +1,2 @@
+/** @gqlContext */
+type Context = {};
