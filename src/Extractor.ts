@@ -212,10 +212,10 @@ class Extractor {
               ts.isClassDeclaration(node)
             )
           ) {
-            console.log("node kind", node.kind);
-            return this.report(node, E.contextTagOnWrongNode());
+            this.report(node, E.contextTagOnWrongNode());
+          } else {
+            this.contextDefinitions.push(node);
           }
-          this.contextDefinitions.push(node);
           break;
         }
         case KILLS_PARENT_ON_EXCEPTION_TAG: {
