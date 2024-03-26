@@ -399,7 +399,6 @@ export function operationTypeNotUnknown() {
   return "Operation types `Query`, `Mutation`, and `Subscription` must be defined as type aliases of `unknown`. E.g. `type Query = unknown`. This is because GraphQL servers do not have an agreed upon way to produce root values, and Grats errs on the side of safety. If you are trying to implement dependency injection, consider using the `context` argument passed to each resolver instead. If you have a strong use case for a concrete root value, please file an issue.";
 }
 
-// TODO: Add code action
 export function expectedNullableArgumentToBeOptional() {
   return "Expected nullable argument to _also_ be optional (`?`). graphql-js may omit properties on the argument object where an undefined GraphQL variable is passed, or if the argument is omitted in the operation text. To ensure your resolver is capable of handing this scenario, add a `?` to the end of the argument name to make it optional. e.g. `{greeting?: string | null}`";
 }

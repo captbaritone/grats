@@ -1274,7 +1274,16 @@ class Extractor {
       // If a field is passed an argument value, and that argument is not defined in the request,
       // `graphql-js` will not define the argument property. Therefore we must ensure the argument
       // is not just nullable, but optional.
-      return this.report(node.name, E.expectedNullableArgumentToBeOptional());
+      return this.report(
+        node.name,
+        E.expectedNullableArgumentToBeOptional(),
+        [],
+        {
+          fixName: "add-question-token-to-arg",
+          description: "Make argument optional",
+          changes: [Act.suffixNode(node.name, "?")],
+        },
+      );
     }
 
     let defaultValue: ConstValueNode | null = null;

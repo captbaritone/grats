@@ -8,6 +8,14 @@ export function prefixNode(node: ts.Node, prefix: string): ts.FileTextChanges {
   };
 }
 
+export function suffixNode(node: ts.Node, suffix: string): ts.FileTextChanges {
+  const end = node.getEnd();
+  return {
+    fileName: node.getSourceFile().fileName,
+    textChanges: [{ span: { start: end, length: 0 }, newText: suffix }],
+  };
+}
+
 export function removeNode(node: ts.Node): ts.FileTextChanges {
   const start = node.getStart();
   const length = node.getEnd() - start;
