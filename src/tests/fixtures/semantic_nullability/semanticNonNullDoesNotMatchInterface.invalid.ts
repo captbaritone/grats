@@ -8,7 +8,7 @@ interface IPerson {
 
 /** @gqlType */
 export class User implements IPerson {
-  __typename = "User";
+  __typename = "User" as const;
   /** @gqlField */
   // @ts-ignore
   name(): string | null {

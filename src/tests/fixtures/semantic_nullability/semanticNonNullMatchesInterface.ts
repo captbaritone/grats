@@ -8,7 +8,7 @@ interface IPerson {
 
 /** @gqlType */
 export class User implements IPerson {
-  __typename = "User";
+  __typename = "User" as const;
   /** @gqlField */
   name(): string {
     if (Math.random() < 0.5) {
