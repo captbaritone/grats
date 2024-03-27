@@ -6,7 +6,7 @@ interface DONT_USE_THIS {
 
 /** @gqlType */
 class User implements DONT_USE_THIS {
-  __typename = "User";
+  __typename = "User" as const;
   /** @gqlField */
   name: string;
 }

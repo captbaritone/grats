@@ -17,7 +17,7 @@ interface IPerson {
 
 /** @gqlType */
 class User implements IPerson {
-  __typename = "User";
+  __typename = "User" as const;
   /** @gqlField */
   name: string;
 }

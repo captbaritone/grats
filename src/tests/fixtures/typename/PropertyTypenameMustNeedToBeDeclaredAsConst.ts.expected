@@ -11,7 +11,7 @@ export class User {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/typename/PropertyTypenameMustNeedToBeDeclaredAsConst.ts:3:16 - error: Expected \`__typename\` property initializer to be an expression with a const assertion. For example: \`__typename = "MyType" as const\`.
+src/tests/fixtures/typename/PropertyTypenameMustNeedToBeDeclaredAsConst.ts:3:16 - error: Expected \`__typename\` property initializer to be an expression with a const assertion. For example: \`__typename = "User" as const\`.
 
-3   __typename = "User";
+3   __typename = "User" ;
                  ~~~~~~~

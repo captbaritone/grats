@@ -12,7 +12,7 @@ interface Person {
 
 /** @gqlType */
 export default class User implements Person, GqlNode {
-  readonly __typename = "User";
+  readonly __typename = "User" as const;
   /** @gqlField */
   hello: string;
 
