@@ -65,7 +65,7 @@ function buildSchemaResultWithFsMap(fsMap, text: string, config) {
   }
 }
 
-export function createLinter(fsMap, view, config) {
+export function createLinter(fsMap, config) {
   return linter((codeMirrorView) => {
     const text = codeMirrorView.viewState.state.doc.toString();
 
@@ -101,7 +101,7 @@ export function createLinter(fsMap, view, config) {
     }
 
     const codegenOutput = computeCodegenOutput(result.value.schema);
-    const output = computeOutput(result.value.doc, view);
+    const output = computeOutput(result.value.doc);
 
     store.dispatch({
       type: "GRATS_EMITTED_NEW_RESULT",
@@ -113,14 +113,8 @@ export function createLinter(fsMap, view, config) {
   });
 }
 
-function computeOutput(
-  doc: DocumentNode,
-  view: { showGratsDirectives: boolean },
-): string {
-  if (!view.showGratsDirectives) {
-    return printSDLWithoutMetadata(doc);
-  }
-  return print(doc);
+function computeOutput(doc: DocumentNode): string {
+  return printSDLWithoutMetadata(doc);
 }
 
 function computeCodegenOutput(schema: GraphQLSchema): string {

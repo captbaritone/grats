@@ -15,6 +15,7 @@ import {
   ConstListValueNode,
   assertName,
   DefinitionNode,
+  Location,
 } from "graphql";
 import {
   tsErr,
@@ -33,7 +34,7 @@ import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
 import { extend, loc } from "./utils/helpers";
 import * as Act from "./CodeActions";
-import { ResolverArg, ResolverSignature } from "./metadataDirectives";
+import { FunctionResolver, ResolverArg } from "./IR";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -435,15 +436,12 @@ class Extractor {
       return this.report(node, E.functionFieldNotTopLevel());
     }
 
-    const tsModulePath = relativePath(node.getSourceFile().fileName);
-
-    this.collectAbstractField(node, name, {
-      kind: "function",
-      exportName: funcName == null ? null : funcName.text,
-      tsModulePath,
-      methodName: null,
-      args: [],
-    });
+    this.collectAbstractField(
+      node,
+      name,
+      funcName == null ? null : funcName.text,
+      null,
+    );
   }
 
   staticMethodExtendType(node: ts.MethodDeclaration, tag: ts.JSDocTag) {
@@ -492,24 +490,15 @@ class Extractor {
       exportName = className.text;
     }
 
-    const tsModulePath = relativePath(node.getSourceFile().fileName);
-
-    this.collectAbstractField(node, name, {
-      kind: "function",
-      exportName,
-      tsModulePath,
-      methodName: methodName.text,
-      args: [],
-    });
+    this.collectAbstractField(node, name, exportName, methodName.text);
   }
 
   collectAbstractField(
     node: ts.FunctionDeclaration | ts.MethodDeclaration,
     name: NameNode,
-    signature: ResolverSignature,
+    exportName: string | null,
+    methodName: string | null,
   ) {
-    const args = this.collectArgs(node.parameters.slice(1));
-
     const typeParam = node.parameters[0];
     if (typeParam == null) {
       // TODO: Make error generic
@@ -531,20 +520,24 @@ class Extractor {
     const type = this.collectType(node.type, { kind: "OUTPUT" });
     if (type == null) return null;
 
-    const directives: ConstDirectiveNode[] = [];
-
     const description = this.collectDescription(node);
+
+    const directives: ConstDirectiveNode[] = [];
     const deprecated = this.collectDeprecated(node);
     if (deprecated != null) {
       directives.push(deprecated);
     }
+    const tsModulePath = relativePath(node.getSourceFile().fileName);
 
-    const killsParentOnExceptionDirective =
-      this.killsParentOnExceptionDirective(node);
+    const args = this.collectArgs(node.parameters.slice(1));
 
-    if (killsParentOnExceptionDirective != null) {
-      directives.push(killsParentOnExceptionDirective);
-    }
+    const signature: FunctionResolver = {
+      kind: "function",
+      exportName,
+      tsModulePath,
+      methodName,
+      args: [{ kind: "source" }, ...args.tsArgs],
+    };
 
     const field = this.gql.fieldDefinition(
       node,
@@ -553,7 +546,8 @@ class Extractor {
       args.gqlArgs,
       directives,
       description,
-      { ...signature, args: [{ kind: "source" }, ...args.tsArgs] },
+      this.killsParentOnException(node),
+      signature,
     );
     this.definitions.push(
       this.gql.abstractFieldDefinition(node, typeName, field),
@@ -1126,13 +1120,6 @@ class Extractor {
     }
     const description = this.collectDescription(node);
 
-    const killsParentOnExceptionDirective =
-      this.killsParentOnExceptionDirective(node);
-
-    if (killsParentOnExceptionDirective != null) {
-      directives.push(killsParentOnExceptionDirective);
-    }
-
     return this.gql.fieldDefinition(
       node,
       name,
@@ -1140,6 +1127,7 @@ class Extractor {
       null,
       directives,
       description,
+      this.killsParentOnException(node),
       {
         kind: "property",
         name: id.text == name.value ? null : id.text,
@@ -1217,7 +1205,7 @@ class Extractor {
   collectArgsParams(params: Array<ts.ParameterDeclaration>): ResolverArgs {
     const gqlArgs: InputValueDefinitionNode[] = [];
     const tsArgs: ResolverArg[] = [];
-    params.forEach((param, i) => {
+    params.forEach((param) => {
       if (!ts.isIdentifier(param.name)) {
         return this.report(param.name, E.positionalArgNameNotLiteral());
       }
@@ -1278,7 +1266,6 @@ class Extractor {
           deprecatedDirective == null ? null : [deprecatedDirective],
           defaultValue,
           description,
-          i,
         ),
       );
     });
@@ -1742,13 +1729,6 @@ class Extractor {
       directives.push(deprecated);
     }
 
-    const killsParentOnExceptionDirective =
-      this.killsParentOnExceptionDirective(node);
-
-    if (killsParentOnExceptionDirective != null) {
-      directives.push(killsParentOnExceptionDirective);
-    }
-
     return this.gql.fieldDefinition(
       node,
       name,
@@ -1756,6 +1736,7 @@ class Extractor {
       args.gqlArgs,
       directives,
       description,
+      this.killsParentOnException(node),
       {
         kind: "property",
         args: args.tsArgs,
@@ -1880,13 +1861,6 @@ class Extractor {
       directives.push(deprecated);
     }
 
-    const killsParentOnExceptionDirective =
-      this.killsParentOnExceptionDirective(node);
-
-    if (killsParentOnExceptionDirective != null) {
-      directives.push(killsParentOnExceptionDirective);
-    }
-
     return this.gql.fieldDefinition(
       node,
       name,
@@ -1894,6 +1868,7 @@ class Extractor {
       null,
       directives,
       description,
+      this.killsParentOnException(node),
       {
         kind: "property",
         args: null,
@@ -2063,19 +2038,15 @@ class Extractor {
   // the server to handle field level executions by simply returning null for
   // that field.
   // https://graphql.org/learn/best-practices/#nullability
-  killsParentOnExceptionDirective(
-    parentNode: ts.Node,
-  ): ConstDirectiveNode | null {
+  //
+  // Returns the location of the @killsParentOnException tag if found.
+  killsParentOnException(parentNode: ts.Node): Location | undefined {
     const tags = ts.getJSDocTags(parentNode);
-    const killsParentOnExceptions = tags.find(
+    const tag = tags.find(
       (tag) => tag.tagName.text === KILLS_PARENT_ON_EXCEPTION_TAG,
     );
-    if (killsParentOnExceptions) {
-      return this.gql.killsParentOnExceptionDirective(
-        killsParentOnExceptions.tagName,
-      );
-    }
-    return null;
+    if (tag == null) return;
+    return this.gql.loc(tag.tagName);
   }
 }
 

@@ -7,7 +7,6 @@ import {
 } from "graphql";
 import { ConfigOptions } from "./gratsConfig";
 import { codegen } from "./codegen";
-import { METADATA_DIRECTIVE_NAMES } from "./metadataDirectives";
 
 /**
  * Prints code for a TypeScript module that exports a GraphQLSchema.
@@ -47,12 +46,6 @@ export function applySDLHeader(config: ConfigOptions, sdl: string): string {
 
 export function printSDLWithoutMetadata(doc: DocumentNode): string {
   const trimmed = visit(doc, {
-    DirectiveDefinition(t) {
-      return METADATA_DIRECTIVE_NAMES.has(t.name.value) ? null : t;
-    },
-    Directive(t) {
-      return METADATA_DIRECTIVE_NAMES.has(t.name.value) ? null : t;
-    },
     ScalarTypeDefinition(t) {
       return specifiedScalarTypes.some((scalar) => scalar.name === t.name.value)
         ? null

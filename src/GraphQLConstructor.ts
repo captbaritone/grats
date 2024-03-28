@@ -31,20 +31,14 @@ import {
   InterfaceTypeDefinitionNode,
   ASTNode,
   ObjectTypeExtensionNode,
+  Location,
 } from "graphql";
 import * as ts from "typescript";
-import {
-  makeKillsParentOnExceptionDirective,
-  ResolverSignature,
-} from "./metadataDirectives";
+import { ResolverSignature } from "./IR";
 import { uniqueId } from "./utils/helpers";
 import { TsLocatableNode } from "./utils/DiagnosticError";
 
 export class GraphQLConstructor {
-  killsParentOnExceptionDirective(node: ts.Node): ConstDirectiveNode {
-    return makeKillsParentOnExceptionDirective(loc(node));
-  }
-
   /* Top Level Types */
   unionTypeDefinition(
     node: ts.Node,
@@ -137,6 +131,7 @@ export class GraphQLConstructor {
     args: readonly InputValueDefinitionNode[] | null,
     directives: readonly ConstDirectiveNode[],
     description: StringValueNode | null,
+    killsParentOnException: Location | undefined,
     resolverSignature: ResolverSignature,
   ): FieldDefinitionNode {
     return {
@@ -147,6 +142,7 @@ export class GraphQLConstructor {
       type,
       arguments: args ?? undefined,
       directives: this._optionalList(directives),
+      killsParentOnException,
       resolverSignature,
     };
   }
@@ -166,7 +162,6 @@ export class GraphQLConstructor {
     directives: readonly ConstDirectiveNode[] | null,
     defaultValue: ConstValueNode | null,
     description: StringValueNode | null,
-    argIndex?: number,
   ): InputValueDefinitionNode {
     return {
       kind: Kind.INPUT_VALUE_DEFINITION,
@@ -176,7 +171,6 @@ export class GraphQLConstructor {
       type,
       defaultValue: defaultValue ?? undefined,
       directives: this._optionalList(directives),
-      argIndex,
     };
   }
 
@@ -323,6 +317,10 @@ export class GraphQLConstructor {
       return undefined;
     }
     return input;
+  }
+
+  loc(node: ts.Node): GraphQLLocation {
+    return loc(node);
   }
 }
 

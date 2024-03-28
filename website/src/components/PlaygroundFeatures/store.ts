@@ -12,7 +12,6 @@ export type State = {
     reportTypeScriptTypeErrors: boolean;
   };
   view: {
-    showGratsDirectives: boolean;
     outputOption: "sdl" | "typescript";
   };
   gratsResult: null | {
@@ -29,10 +28,6 @@ export type Action =
   | {
       type: "SET_WHOLE_STATE";
       state: State;
-    }
-  | {
-      type: "SHOW_GRATS_DIRECTIVE_INPUT_CHANGED";
-      value: boolean;
     }
   | {
       type: "DEFAULT_NULLABLE_INPUT_CHANGED";
@@ -58,15 +53,6 @@ function reducer(state: State = stateFromUrl(), action: Action) {
       return stateFromUrl();
     case "SET_WHOLE_STATE":
       return action.state;
-    case "SHOW_GRATS_DIRECTIVE_INPUT_CHANGED":
-      return {
-        ...state,
-        view: {
-          ...state.view,
-          showGratsDirectives: action.value,
-        },
-      };
-
     case "OUTPUT_VIEW_SELECTION_CHANGED":
       return {
         ...state,
@@ -158,10 +144,6 @@ export function getNullableByDefault(state): boolean {
   return state.config.nullableByDefault;
 }
 
-export function getShowGratsDirectives(state): boolean {
-  return state.view.showGratsDirectives;
-}
-
 export const getGraphQLOutputString = createSelector(
   getGratsGraphqlResult,
   (gratsResult) => {
@@ -183,7 +165,7 @@ export type SerializableState = {
     reportTypeScriptTypeErrors: boolean;
   };
   view: {
-    showGratsDirectives: boolean;
+    outputOption: "sdl" | "typescript";
   };
   VERSION: number;
 };
