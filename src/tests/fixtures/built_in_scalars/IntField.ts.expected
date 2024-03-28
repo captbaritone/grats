@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  age: Int @metadata(argCount: 0)
+  age: Int
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLInt } from "graphql";

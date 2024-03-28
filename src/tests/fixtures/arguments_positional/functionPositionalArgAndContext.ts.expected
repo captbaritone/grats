@@ -26,8 +26,8 @@ OUTPUT
 -----------------
 -- SDL --
 type User {
-  greeting(greeting: String!): String @metadata(argCount: 3, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/arguments_positional/functionPositionalArgAndContext.ts")
-  name: String @metadata
+  greeting(greeting: String!): String
+  name: String
 }
 -- TypeScript --
 import { greeting as userGreetingResolver } from "./functionPositionalArgAndContext";

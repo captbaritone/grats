@@ -22,8 +22,8 @@ type User {
   greeting(
     """Greeting to use when greeting the user."""
     greeting: String!
-  ): String @metadata(argCount: 1)
-  name: String @metadata
+  ): String
+  name: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";

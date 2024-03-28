@@ -35,71 +35,12 @@ import {
 import * as ts from "typescript";
 import {
   makeKillsParentOnExceptionDirective,
-  TS_MODULE_PATH_ARG,
-  FIELD_NAME_ARG,
-  ARG_COUNT,
-  FIELD_METADATA_DIRECTIVE,
-  EXPORT_NAME_ARG,
   ResolverSignature,
 } from "./metadataDirectives";
 import { uniqueId } from "./utils/helpers";
 import { TsLocatableNode } from "./utils/DiagnosticError";
 
 export class GraphQLConstructor {
-  fieldMetadataDirective(
-    node: ts.Node,
-    metadata: {
-      tsModulePath: string | null;
-      name: string | null;
-      exportName: string | null;
-      argCount: number | null;
-    },
-  ): ConstDirectiveNode {
-    const args: ConstArgumentNode[] = [];
-    if (metadata.tsModulePath != null) {
-      args.push(
-        this.constArgument(
-          node,
-          this.name(node, TS_MODULE_PATH_ARG),
-          this.string(node, metadata.tsModulePath),
-        ),
-      );
-    }
-    if (metadata.name != null) {
-      args.push(
-        this.constArgument(
-          node,
-          this.name(node, FIELD_NAME_ARG),
-          this.string(node, metadata.name),
-        ),
-      );
-    }
-    if (metadata.exportName != null) {
-      args.push(
-        this.constArgument(
-          node,
-          this.name(node, EXPORT_NAME_ARG),
-          this.string(node, metadata.exportName),
-        ),
-      );
-    }
-    if (metadata.argCount != null) {
-      args.push(
-        this.constArgument(
-          node,
-          this.name(node, ARG_COUNT),
-          this.int(node, metadata.argCount.toString()),
-        ),
-      );
-    }
-
-    return this.constDirective(
-      node,
-      this.name(node, FIELD_METADATA_DIRECTIVE),
-      args,
-    );
-  }
-
   killsParentOnExceptionDirective(node: ts.Node): ConstDirectiveNode {
     return makeKillsParentOnExceptionDirective(loc(node));
   }

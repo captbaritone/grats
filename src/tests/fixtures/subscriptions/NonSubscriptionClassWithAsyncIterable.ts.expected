@@ -30,10 +30,10 @@ OUTPUT
 -----------------
 -- SDL --
 type User {
-  greetings: [String!]! @metadata(argCount: 0)
-  greetingsMaybe: [String]! @metadata(argCount: 0)
-  maybeGreetings: [String!] @metadata(argCount: 0)
-  maybeGreetingsMaybe: [String] @metadata(argCount: 0)
+  greetings: [String!]!
+  greetingsMaybe: [String]!
+  maybeGreetings: [String!]
+  maybeGreetingsMaybe: [String]
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLString } from "graphql";

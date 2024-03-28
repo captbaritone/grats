@@ -14,7 +14,7 @@ OUTPUT
 -----------------
 -- SDL --
 type Query {
-  foo: String @metadata(argCount: 1, exportName: "foo", tsModulePath: "grats/src/tests/fixtures/type_definitions_from_alias/QueryAsAliasOfUnknown.ts")
+  foo: String
 }
 -- TypeScript --
 import { foo as queryFooResolver } from "./QueryAsAliasOfUnknown";

@@ -21,11 +21,11 @@ OUTPUT
 -----------------
 -- SDL --
 type Query {
-  fetchUser(id: ID!): User @metadata(argCount: 2, exportName: "User", name: "fetchUser", tsModulePath: "grats/src/tests/fixtures/arguments_positional/positionalArgStaticMethod.ts")
+  fetchUser(id: ID!): User
 }
 
 type User {
-  name: String @metadata
+  name: String
 }
 -- TypeScript --
 import { User as queryFetchUserResolver } from "./positionalArgStaticMethod";

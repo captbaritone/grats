@@ -14,8 +14,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  b: [String!] @metadata
-  c: [String!] @metadata
+  b: [String!]
+  c: [String!]
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLString } from "graphql";
