@@ -98,7 +98,7 @@ export function extract(
   return extractor.extract(sourceFile);
 }
 
-type ContextNodeType =
+export type ContextNodeType =
   | ts.TypeAliasDeclaration
   | ts.InterfaceDeclaration
   | ts.ClassDeclaration;
@@ -214,6 +214,11 @@ class Extractor {
           ) {
             this.report(node, E.contextTagOnWrongNode());
           } else {
+            this.recordTypeName(
+              node,
+              this.gql.name(node, "__context"),
+              "CONTEXT",
+            );
             this.contextDefinitions.push(node);
           }
           break;
@@ -499,16 +504,7 @@ class Extractor {
     name: NameNode,
     metadataDirective: ConstDirectiveNode,
   ) {
-    let args: readonly InputValueDefinitionNode[] | null = null;
-    const argsParam = node.parameters[1];
-    if (argsParam != null) {
-      args = this.collectArgs(argsParam);
-    }
-
-    const context = node.parameters[2];
-    if (context != null) {
-      this.validateContextParameter(context);
-    }
+    const args = this.collectArgs(node.parameters.slice(1));
 
     const typeParam = node.parameters[0];
     if (typeParam == null) {
@@ -1152,7 +1148,43 @@ class Extractor {
     );
   }
 
+  /**
+   * Grats supports two ways of defining arguments. You may use the
+   * "traditional" approach where args are defined using an object literal. This
+   * matches what graphql-js does.
+   *
+   * The other approach is to define arguments as parameters to the function.
+   * This is more ergonomic, especially when you want to define default values,
+   * but may feel less familiar to those who are used to graphql-js.
+   *
+   * This method detects which is being used and delegates to the correct type
+   * of extraction.
+   */
   collectArgs(
+    params: Array<ts.ParameterDeclaration>,
+  ): ReadonlyArray<InputValueDefinitionNode> | null {
+    if (params.length === 0) {
+      return null;
+    }
+    const first = params[0];
+    if (
+      first.type == null ||
+      (first.type != null &&
+        (first.type.kind === ts.SyntaxKind.UnknownKeyword ||
+          ts.isTypeLiteralNode(first.type)))
+    ) {
+      const args = this.collectArgsObj(params[0]);
+      const context = params[1];
+      if (context != null) {
+        this.validateContextParameter(context);
+      }
+      return args;
+    }
+
+    return this.collectArgsParams(params);
+  }
+
+  collectArgsObj(
     argsParam: ts.ParameterDeclaration,
   ): ReadonlyArray<InputValueDefinitionNode> | null {
     const args: InputValueDefinitionNode[] = [];
@@ -1179,6 +1211,77 @@ class Extractor {
         args.push(arg);
       }
     }
+    return args;
+  }
+
+  collectArgsParams(
+    params: Array<ts.ParameterDeclaration>,
+  ): ReadonlyArray<InputValueDefinitionNode> | null {
+    const args: InputValueDefinitionNode[] = [];
+    params.forEach((param, i) => {
+      if (!ts.isIdentifier(param.name)) {
+        return this.report(param.name, E.positionalArgNameNotLiteral());
+      }
+      if (param.type == null) {
+        return this.report(param.name, E.argNotTyped());
+      }
+      let type = this.collectType(param.type, { kind: "INPUT" });
+      if (type == null) return;
+      let defaultValue: ConstValueNode | null = null;
+      if (param.initializer) {
+        defaultValue = this.collectConstValue(param.initializer);
+      }
+
+      if (param.questionToken && defaultValue == null) {
+        // Question mark means we can handle the argument being undefined in the
+        // object literal, but if we are going to type the GraphQL arg as
+        // optional, the code must also be able to handle an explicit null.
+        //
+        // ... unless there is a default value. In that case, the default will be
+        // used argument is omitted or references an undefined variable.
+
+        // TODO: This will catch { a?: string } but not { a?: string | undefined }.
+        if (type.kind === Kind.NON_NULL_TYPE) {
+          return this.report(
+            param.questionToken,
+            E.nonNullTypeCannotBeOptional(),
+          );
+        }
+        type = this.gql.nullableType(type);
+      }
+
+      if (type.kind !== Kind.NON_NULL_TYPE && !param.questionToken) {
+        // If a field is passed an argument value, and that argument is not defined in the request,
+        // `graphql-js` will not define the argument property. Therefore we must ensure the argument
+        // is not just nullable, but optional.
+        return this.report(
+          param.name,
+          E.expectedNullableArgumentToBeOptional(),
+          [],
+          {
+            fixName: "add-question-token-to-arg",
+            description: "Make argument optional",
+            changes: [Act.suffixNode(param.name, "?")],
+          },
+        );
+      }
+      const description = this.collectDescription(param);
+
+      const deprecatedDirective = this.collectDeprecated(param);
+
+      // TODO: Validate default
+      args.push(
+        this.gql.inputValueDefinition(
+          param,
+          this.gql.name(param.name, param.name.text),
+          type,
+          deprecatedDirective == null ? null : [deprecatedDirective],
+          defaultValue,
+          description,
+          i,
+        ),
+      );
+    });
     return args;
   }
 
@@ -1623,16 +1726,7 @@ class Extractor {
     // We already reported an error
     if (type == null) return null;
 
-    let args: readonly InputValueDefinitionNode[] | null = null;
-    const argsParam = node.parameters[0];
-    if (argsParam != null) {
-      args = this.collectArgs(argsParam);
-    }
-
-    const context = node.parameters[1];
-    if (context != null) {
-      this.validateContextParameter(context);
-    }
+    const args = this.collectArgs(Array.from(node.parameters));
 
     const description = this.collectDescription(node);
 

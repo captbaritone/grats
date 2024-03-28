@@ -1,0 +1,63 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class User {
+  /** @gqlField */
+  name: string = "John Doe";
+}
+
+/** @gqlField */
+export function greeting(user: User, greeting: string, ctx: Ctx): string {
+  if (ctx.id === "1") {
+    return `${greeting}, ${user.name}!`;
+  } else {
+    return "Unauthorized";
+  }
+}
+
+/** @gqlContext */
+type Ctx = {
+  id: string;
+};
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type User {
+  greeting(greeting: String!): String @metadata(argCount: 3, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/arguments_positional/functionPositionalArgAndContext.ts")
+  name: String @metadata
+}
+-- TypeScript --
+import { greeting as userGreetingResolver } from "./functionPositionalArgAndContext";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    args: {
+                        greeting: {
+                            name: "greeting",
+                            type: new GraphQLNonNull(GraphQLString)
+                        }
+                    },
+                    resolve(source, args, context) {
+                        return userGreetingResolver(source, args.greeting, context);
+                    }
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [UserType]
+    });
+}

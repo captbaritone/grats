@@ -181,7 +181,7 @@ export function typeNameDoesNotMatchExpected(expected: string) {
 
 // TODO: Add code action
 export function argumentParamIsMissingType() {
-  return "Expected GraphQL field arguments to have an explicit type annotation. If there are no arguments, you can use `args: unknown`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
+  return "Expected GraphQL field arguments to have an explicit type annotation. If there are no arguments, you may omit the args argument. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
 }
 
 export function argumentParamIsNotObject() {
@@ -193,7 +193,11 @@ export function argIsNotProperty() {
 }
 
 export function argNameNotLiteral() {
-  return "Expected GraphQL field argument names to be a literal. For example: `{ someField: string }`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
+  return "Expected GraphQL field argument to have a name. For example: `{ someField: string }`. Grats needs to be able to see the name of the arguments to generate a GraphQL schema.";
+}
+
+export function positionalArgNameNotLiteral() {
+  return "Expected GraphQL field argument to have a name. For example: `someField: string`. Grats uses this name to determine the argument name to use in the derived GraphQL schema.";
 }
 
 export function argNotTyped() {
@@ -266,7 +270,7 @@ export function unsupportedTypeLiteral() {
 }
 
 export function unknownGraphQLType() {
-  return `Unknown GraphQL type. Grats doe not know how to map this type to a GraphQL type. You may want to define a named GraphQL type elsewhere and reference it here. If you think Grats should be able to infer a GraphQL type from this type, please file an issue.`;
+  return `Unknown GraphQL type. Grats does not know how to resolve this to a GraphQL type. You may want to define a named GraphQL type elsewhere and reference it here. If you think Grats should be able to infer a GraphQL type from this type, please file an issue.`;
 }
 
 export function pluralTypeMissingParameter() {
@@ -346,6 +350,11 @@ export function parameterPropertyMissingType() {
 
 export function invalidTypePassedToFieldFunction() {
   return `Unexpected type passed to \`@${FIELD_TAG}\` function. \`@${FIELD_TAG}\` functions can only be used to extend \`@${TYPE_TAG}\` and \`@${INTERFACE_TAG}\` types.`;
+}
+
+// TODO: Add code action
+export function unannotatedTypeReference() {
+  return "Expected a reference to a declaration with a `@gql*` docblock. Grats needs to determine which GraphQL type is being referenced in this location. This requires being able to resolve type references to their `@gql` annotated declaration.";
 }
 
 export function unresolvedTypeReference() {

@@ -45,7 +45,8 @@ program
     "-f, --filter <FILTER_REGEX>",
     "A regex to filter the tests to run. Only tests with a file path matching the regex will be run.",
   )
-  .action(async ({ filter, write }) => {
+  .option("-i, --interactive", "Run tests in interactive mode.")
+  .action(async ({ filter, write, interactive }) => {
     const filterRegex = filter ?? null;
     let failures = false;
     for (const {
@@ -62,7 +63,7 @@ program
         ignoreFilePattern,
         transformer,
       );
-      failures = !(await runner.run()) || failures;
+      failures = !(await runner.run({ interactive })) || failures;
     }
     if (failures) {
       process.exit(1);

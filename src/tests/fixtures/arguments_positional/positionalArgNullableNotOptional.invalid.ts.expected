@@ -1,0 +1,32 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class User {
+  /** @gqlField */
+  name: string = "John Doe";
+  /** @gqlField */
+  greeting(greeting: string | null): string {
+    return `${greeting}, ${this.name}!`;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+-- Error Report --
+src/tests/fixtures/arguments_positional/positionalArgNullableNotOptional.invalid.ts:6:12 - error: Expected nullable argument to _also_ be optional (`?`). graphql-js may omit properties on the argument object where an undefined GraphQL variable is passed, or if the argument is omitted in the operation text. To ensure your resolver is capable of handing this scenario, add a `?` to the end of the argument name to make it optional. e.g. `{greeting?: string | null}`
+
+6   greeting(greeting: string | null): string {
+             ~~~~~~~~
+
+
+-- Code Action: "Make argument optional" (add-question-token-to-arg) --
+- Original
++ Fixed
+
+@@ -5,3 +5,3 @@
+    /** @gqlField */
+-   greeting(greeting: string | null): string {
++   greeting(greeting?: string | null): string {
+      return `${greeting}, ${this.name}!`;

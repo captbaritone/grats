@@ -28,7 +28,9 @@ import * as ts from "typescript";
 import * as path from "path";
 import {
   FIELD_METADATA_DIRECTIVE,
+  ResolverArg,
   parseFieldMetadataDirective,
+  resolverSignatureFromField,
 } from "./metadataDirectives";
 import { resolveRelativePath } from "./gratsRoot";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "./publicDirectives";
@@ -214,93 +216,98 @@ class Codegen {
     methodName: string,
     parentTypeName: string,
   ): ts.MethodDeclaration | null {
-    const metadataDirective = nullThrows(
-      fieldDirective(field, FIELD_METADATA_DIRECTIVE),
+    const fieldSignature = resolverSignatureFromField(
+      nullThrows(field.astNode),
     );
-    const metadata = parseFieldMetadataDirective(metadataDirective);
-    if (metadata.tsModulePath != null) {
-      const module = metadata.tsModulePath;
+    switch (fieldSignature.kind) {
+      case "property": {
+        if (
+          fieldSignature.name == null &&
+          (fieldSignature.args == null ||
+            !fieldSignature.args.some((arg) => arg.kind === "positionalArg"))
+        ) {
+          // In these cases we can use the default resolver.
+          return null;
+        }
+        const prop = F.createPropertyAccessExpression(
+          F.createIdentifier("source"),
+          F.createIdentifier(fieldSignature.name || field.name),
+        );
 
-      const exportName = metadata.exportName;
-      const argCount = nullThrows(metadata.argCount);
+        let valueExpression: ts.Expression = prop;
+        let argCount = 1; // Ensure we read "source"
 
-      const abs = resolveRelativePath(module);
-      const relative = stripExt(
-        path.relative(path.dirname(this._destination), abs),
-      );
+        if (fieldSignature.args != null) {
+          valueExpression = F.createCallExpression(
+            prop,
+            undefined,
+            getArgs(fieldSignature.args),
+          );
 
-      // Note: This name is guaranteed to be unique, but for static methods, it
-      // means we import the same class multiple times with multiple names.
-      const resolverName = formatResolverFunctionVarName(
-        parentTypeName,
-        field.name,
-      );
+          argCount = Math.max(getArgCount(fieldSignature.args), argCount);
+        }
 
-      const modulePath = `./${normalizeRelativePathToPosix(relative)}`;
-
-      if (exportName == null) {
-        this.importDefault(modulePath, resolverName);
-      } else {
-        this.import(modulePath, [{ name: exportName, as: resolverName }]);
-      }
-
-      const usedArgs = RESOLVER_ARGS.slice(0, argCount);
-
-      let resolverAccess: ts.Expression = F.createIdentifier(resolverName);
-
-      if (metadata.name != null) {
-        resolverAccess = F.createPropertyAccessExpression(
-          resolverAccess,
-          F.createIdentifier(metadata.name),
+        return this.method(
+          methodName,
+          RESOLVER_ARGS.slice(0, argCount).map((name) => this.param(name)),
+          [F.createReturnStatement(valueExpression)],
         );
       }
+      case "function": {
+        const module = fieldSignature.tsModulePath;
 
-      return this.method(
-        methodName,
-        usedArgs.map((name) => {
-          return this.param(name);
-        }),
-        [
-          F.createReturnStatement(
-            F.createCallExpression(
-              resolverAccess,
-              undefined,
-              usedArgs.map((name) => {
-                return F.createIdentifier(name);
-              }),
+        const exportName = fieldSignature.exportName;
+
+        const abs = resolveRelativePath(module);
+        const relative = stripExt(
+          path.relative(path.dirname(this._destination), abs),
+        );
+
+        // Note: This name is guaranteed to be unique, but for static methods, it
+        // means we import the same class multiple times with multiple names.
+        const resolverName = formatResolverFunctionVarName(
+          parentTypeName,
+          field.name,
+        );
+
+        const modulePath = `./${normalizeRelativePathToPosix(relative)}`;
+
+        if (exportName == null) {
+          this.importDefault(modulePath, resolverName);
+        } else {
+          this.import(modulePath, [{ name: exportName, as: resolverName }]);
+        }
+
+        let resolverAccess: ts.Expression = F.createIdentifier(resolverName);
+
+        if (fieldSignature.methodName != null) {
+          resolverAccess = F.createPropertyAccessExpression(
+            resolverAccess,
+            F.createIdentifier(fieldSignature.methodName),
+          );
+        }
+
+        const argCount = getArgCount(fieldSignature.args);
+
+        return this.method(
+          methodName,
+          RESOLVER_ARGS.slice(0, argCount).map((name) => this.param(name)),
+          [
+            F.createReturnStatement(
+              F.createCallExpression(
+                resolverAccess,
+                undefined,
+                getArgs(fieldSignature.args),
+              ),
             ),
-          ),
-        ],
-      );
-    }
-    if (metadata.name != null) {
-      const prop = F.createPropertyAccessExpression(
-        F.createIdentifier("source"),
-        F.createIdentifier(metadata.name),
-      );
-
-      let valueExpression: ts.Expression = prop;
-
-      if (metadata.argCount != null) {
-        valueExpression = F.createCallExpression(
-          prop,
-          undefined,
-          RESOLVER_ARGS.map((name) => {
-            return F.createIdentifier(name);
-          }),
+          ],
         );
       }
-
-      return this.method(
-        methodName,
-        RESOLVER_ARGS.map((name) => this.param(name)),
-        [F.createReturnStatement(valueExpression)],
-      );
+      default:
+        throw new Error(
+          `Unexpected resolver signature kind: ${fieldSignature.kind}`,
+        );
     }
-
-    // If the resolver name matches the field name, and the field is not backed by a function,
-    // we can just use the default resolver.
-    return null;
   }
 
   // If a field is smantically non-null, we need to wrap the resolver in a
@@ -901,4 +908,46 @@ function formatResolverFunctionVarName(
 // https://github.com/sindresorhus/slash/blob/98b618f5a3bfcb5dd374b204868818845b87bb2f/index.js#L8C9-L8C33
 function normalizeRelativePathToPosix(unknownPath: string): string {
   return unknownPath.replace(/\\/g, "/");
+}
+
+function getArgs(argSignatures: ResolverArg[]): ts.Expression[] {
+  return argSignatures.map((arg) => {
+    switch (arg.kind) {
+      case "positionalArg":
+        return F.createPropertyAccessExpression(
+          F.createIdentifier("args"),
+          F.createIdentifier(arg.name),
+        );
+      case "argsObj":
+        return F.createIdentifier("args");
+      case "source":
+        return F.createIdentifier("source");
+      case "context":
+        return F.createIdentifier("context");
+      default:
+        throw new Error(`Unexpected arg kind: ${arg.kind}`);
+    }
+  });
+}
+
+function getArgCount(args: ResolverArg[]): number {
+  let argCount = 0;
+  for (const arg of args) {
+    switch (arg.kind) {
+      case "argsObj":
+      case "positionalArg":
+        argCount = Math.max(argCount, 2);
+        break;
+      case "source":
+        argCount = Math.max(argCount, 1);
+        break;
+      case "context":
+        argCount = Math.max(argCount, 3);
+        break;
+      case "info":
+        argCount = Math.max(argCount, 4);
+        break;
+    }
+  }
+  return argCount;
 }

@@ -1,0 +1,69 @@
+-----------------
+INPUT
+----------------- 
+import { ID } from "../../../Types";
+
+/** @gqlType */
+export class User {
+  /** @gqlField */
+  name: string = "John Doe";
+  /** @gqlField */
+  static fetchUser(_: Query, id: ID): User {
+    return new User();
+  }
+}
+
+/** @gqlType */
+type Query = unknown;
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Query {
+  fetchUser(id: ID!): User @metadata(argCount: 2, exportName: "User", name: "fetchUser", tsModulePath: "grats/src/tests/fixtures/arguments_positional/positionalArgStaticMethod.ts")
+}
+
+type User {
+  name: String @metadata
+}
+-- TypeScript --
+import { User as queryFetchUserResolver } from "./positionalArgStaticMethod";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLID } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                fetchUser: {
+                    name: "fetchUser",
+                    type: UserType,
+                    args: {
+                        id: {
+                            name: "id",
+                            type: new GraphQLNonNull(GraphQLID)
+                        }
+                    },
+                    resolve(source, args) {
+                        return queryFetchUserResolver.fetchUser(source, args.id);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType, UserType]
+    });
+}

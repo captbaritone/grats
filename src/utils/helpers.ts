@@ -1,4 +1,4 @@
-import { Location } from "graphql";
+import { Kind, Location, NamedTypeNode, TypeNode } from "graphql";
 
 export class DefaultMap<K, V> {
   _map: Map<K, V> = new Map();
@@ -46,4 +46,11 @@ export function nullThrows<T>(value: T | null | undefined): T {
     );
   }
   return value;
+}
+
+export function innerType(type: TypeNode): NamedTypeNode {
+  if (type.kind === Kind.NON_NULL_TYPE || type.kind === Kind.LIST_TYPE) {
+    return innerType(type.type);
+  }
+  return type;
 }
