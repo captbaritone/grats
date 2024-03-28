@@ -437,14 +437,7 @@ class Extractor {
 
     const tsModulePath = relativePath(node.getSourceFile().fileName);
 
-    const metadataDirective = this.gql.fieldMetadataDirective(node, {
-      tsModulePath,
-      name: null,
-      exportName: funcName == null ? null : funcName.text,
-      argCount: node.parameters.length,
-    });
-
-    this.collectAbstractField(node, name, metadataDirective, {
+    this.collectAbstractField(node, name, {
       kind: "function",
       exportName: funcName == null ? null : funcName.text,
       tsModulePath,
@@ -501,14 +494,7 @@ class Extractor {
 
     const tsModulePath = relativePath(node.getSourceFile().fileName);
 
-    const metadataDirective = this.gql.fieldMetadataDirective(methodName, {
-      tsModulePath,
-      name: methodName.text,
-      exportName,
-      argCount: node.parameters.length,
-    });
-
-    this.collectAbstractField(node, name, metadataDirective, {
+    this.collectAbstractField(node, name, {
       kind: "function",
       exportName,
       tsModulePath,
@@ -520,7 +506,6 @@ class Extractor {
   collectAbstractField(
     node: ts.FunctionDeclaration | ts.MethodDeclaration,
     name: NameNode,
-    metadataDirective: ConstDirectiveNode,
     signature: ResolverSignature,
   ) {
     const args = this.collectArgs(node.parameters.slice(1));
@@ -546,7 +531,7 @@ class Extractor {
     const type = this.collectType(node.type, { kind: "OUTPUT" });
     if (type == null) return null;
 
-    const directives = [metadataDirective];
+    const directives: ConstDirectiveNode[] = [];
 
     const description = this.collectDescription(node);
     const deprecated = this.collectDeprecated(node);
@@ -1130,14 +1115,7 @@ class Extractor {
       // https://www.typescriptlang.org/play?#code/MYGwhgzhAEBiD29oG8BQ1rHgOwgFwCcBXYPeAgCgAciAjEAS2BQDNEBfAShXdXaA
       return null;
     }
-    const directives = [
-      this.gql.fieldMetadataDirective(node.name, {
-        name: id.text == name.value ? null : id.text,
-        tsModulePath: null,
-        exportName: null,
-        argCount: null,
-      }),
-    ];
+    const directives: ConstDirectiveNode[] = [];
 
     const type = this.collectType(node.type, { kind: "OUTPUT" });
     if (type == null) return null;
@@ -1757,14 +1735,7 @@ class Extractor {
 
     const id = this.expectNameIdentifier(node.name);
     if (id == null) return null;
-    const directives = [
-      this.gql.fieldMetadataDirective(node.name, {
-        name: id.text === name.value ? null : id.text,
-        tsModulePath: null,
-        exportName: null,
-        argCount: isCallable(node) ? node.parameters.length : null,
-      }),
-    ];
+    const directives: ConstDirectiveNode[] = [];
 
     const deprecated = this.collectDeprecated(node);
     if (deprecated != null) {
@@ -1908,15 +1879,6 @@ class Extractor {
     if (deprecated != null) {
       directives.push(deprecated);
     }
-
-    directives.push(
-      this.gql.fieldMetadataDirective(node.name, {
-        name: id.text === name.value ? null : id.text,
-        exportName: null,
-        tsModulePath: null,
-        argCount: null,
-      }),
-    );
 
     const killsParentOnExceptionDirective =
       this.killsParentOnExceptionDirective(node);
@@ -2130,12 +2092,6 @@ function graphQLNameValidationMessage(name: string): string | null {
 // contain a `*` surrounded by whitespace.
 function trimTrailingCommentLines(text: string) {
   return text.replace(/(\s*\n\s*\*?\s*)+$/, "");
-}
-
-function isCallable(
-  node: ts.MethodDeclaration | ts.MethodSignature | ts.GetAccessorDeclaration,
-): boolean {
-  return ts.isMethodDeclaration(node) || ts.isMethodSignature(node);
 }
 
 function isStaticMethod(node: ts.Node): node is ts.MethodDeclaration {

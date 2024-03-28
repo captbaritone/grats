@@ -25,7 +25,7 @@ All mimsy were the borogoves,
   And the mome raths outgrabe.
 """
 type SomeType {
-  name: String @metadata
+  name: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

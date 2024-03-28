@@ -20,8 +20,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  someField1(hello: String = null): String @metadata(argCount: 1)
-  someField2(hello: String = null): String @metadata(argCount: 1)
+  someField1(hello: String = null): String
+  someField2(hello: String = null): String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

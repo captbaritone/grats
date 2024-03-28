@@ -27,15 +27,15 @@ OUTPUT
 -----------------
 -- SDL --
 interface Person {
-  name: String @metadata
+  name: String
 }
 
 type SomeType {
-  me: User @metadata(argCount: 0)
+  me: User
 }
 
 type User implements Person {
-  name: String @metadata
+  name: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";

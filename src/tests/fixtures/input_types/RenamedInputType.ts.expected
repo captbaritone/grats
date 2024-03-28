@@ -21,7 +21,7 @@ input OtherName {
 }
 
 type SomeType {
-  hello: String @metadata
+  hello: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";

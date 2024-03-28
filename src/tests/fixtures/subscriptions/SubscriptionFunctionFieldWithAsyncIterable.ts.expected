@@ -40,10 +40,10 @@ OUTPUT
 -----------------
 -- SDL --
 type Subscription {
-  greetings: String! @metadata(argCount: 1, exportName: "greetings", tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts")
-  greetingsMaybe: String @metadata(argCount: 1, exportName: "greetingsMaybe", tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts")
-  maybeGreetings: String @metadata(argCount: 1, exportName: "maybeGreetings", tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts")
-  maybeGreetingsMaybe: String @metadata(argCount: 1, exportName: "maybeGreetingsMaybe", tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts")
+  greetings: String!
+  greetingsMaybe: String
+  maybeGreetings: String
+  maybeGreetingsMaybe: String
 }
 -- TypeScript --
 import { greetings as subscriptionGreetingsResolver } from "./SubscriptionFunctionFieldWithAsyncIterable";

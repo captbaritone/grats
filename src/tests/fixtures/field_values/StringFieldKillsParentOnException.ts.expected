@@ -17,7 +17,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  hello: String! @killsParentOnException @metadata(argCount: 0)
+  hello: String! @killsParentOnException
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString } from "graphql";

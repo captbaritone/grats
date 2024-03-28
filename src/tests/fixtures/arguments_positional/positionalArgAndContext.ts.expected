@@ -25,8 +25,8 @@ OUTPUT
 -----------------
 -- SDL --
 type User {
-  greeting(greeting: String!): String @metadata(argCount: 2)
-  name: String @metadata
+  greeting(greeting: String!): String
+  name: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";

@@ -19,7 +19,7 @@ OUTPUT
 -----------------
 -- SDL --
 type User {
-  greeting: String @metadata(argCount: 3, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/resolver_context/FunctionWithContextValue.ts")
+  greeting: String
 }
 -- TypeScript --
 import { greeting as userGreetingResolver } from "./FunctionWithContextValue";

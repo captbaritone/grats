@@ -28,16 +28,16 @@ OUTPUT
 -----------------
 -- SDL --
 type Page {
-  name: String @metadata
+  name: String
 }
 
 type PageEdge {
-  cursor: String @metadata
-  node: Page @metadata
+  cursor: String
+  node: Page
 }
 
 type Query {
-  createEdge: PageEdge @metadata(argCount: 1, exportName: "createEdge", tsModulePath: "grats/src/tests/fixtures/generics/genericTypeUsingInterface.ts")
+  createEdge: PageEdge
 }
 -- TypeScript --
 import { createEdge as queryCreateEdgeResolver } from "./genericTypeUsingInterface";
