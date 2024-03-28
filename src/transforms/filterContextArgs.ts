@@ -1,7 +1,8 @@
 import { DefinitionNode, Kind, visit } from "graphql";
 import { TypeContext } from "../TypeContext";
 import { ContextNodeType } from "../Extractor";
-import { innerType, nullThrows } from "../utils/helpers";
+import { innerType } from "../utils/helpers";
+import { ResolverArg } from "../IR";
 
 export function filterContextArgs(
   ctx: TypeContext,
@@ -19,7 +20,17 @@ export function filterContextArgs(
           return node;
         }
         let tsArgs = node.resolverSignature.args;
-        let contextArgIndex: number | null = null;
+
+        function markAsContext(name: string): null | readonly ResolverArg[] {
+          if (tsArgs == null) return null;
+          return tsArgs.map((tsArg) => {
+            if (tsArg.kind === "positionalArg" && tsArg.name === name) {
+              return { kind: "context" };
+            }
+            return tsArg;
+          });
+        }
+
         const args = node.arguments.filter((arg) => {
           const typeName = innerType(arg.type);
           if (typeName.name.value !== "__UNRESOLVED_REFERENCE__") {
@@ -35,32 +46,15 @@ export function filterContextArgs(
           }
           if (namedTypeResult.value.kind === "CONTEXT") {
             // Need to mark the field as using the context
-            contextArgIndex = nullThrows(arg.argIndex);
-            if (tsArgs != null) {
-              tsArgs = tsArgs.map((tsArg) => {
-                if (
-                  tsArg.kind === "positionalArg" &&
-                  tsArg.name === arg.name.value
-                ) {
-                  return { kind: "context" };
-                }
-                return tsArg;
-              });
-            }
-
+            tsArgs = markAsContext(arg.name.value);
             // TODO: Assert non-plural
             return false;
           }
         });
 
-        if (contextArgIndex == null) {
-          return node;
-        }
-
         return {
           ...node,
           arguments: args,
-          contextArgIndex,
           resolverSignature: {
             ...node.resolverSignature,
             args: tsArgs,

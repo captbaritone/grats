@@ -6,7 +6,7 @@ The N+1 problem is a performance issue that arises when a GraphQL server resolve
 
 In a traditional REST server, where the query shape is hard coded, it is possible to hand-write a query which fetches all the necessary data in a single request. While this degree of optimization is not possible in GraphQL (unless you tightly couple your database and your schema), there is a mitigation strategy that can be employed which is simple to employ and can solve the N+1 problem in a generalizable fashion: DataLoader.
 
-Dataloader is a simple pattern for batching and caching data which originated inside of Facebook and was later shared with the community as a pattern with a reference implementaiton written in JavaScript (much like GraphQL itself).
+Dataloader is a simple pattern for batching and caching data which originated inside of Facebook and was later shared with the community as a pattern with a reference implementation written in JavaScript (much like GraphQL itself).
 
 The basic idea is that any time you want to fetch a single record from the database, instead of calling the database directly, you simply add the record's key to a queue. You then wait one turn of the event-loop. Then you batch up all the keys in the queue and fetch all the records at once. This way, you can fetch all the records you need in a single query, and you can avoid the N+1 problem.
 

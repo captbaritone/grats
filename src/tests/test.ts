@@ -19,7 +19,6 @@ import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError";
 import { writeFileSync } from "fs";
 import { codegen } from "../codegen";
 import { diff } from "jest-diff";
-import { METADATA_DIRECTIVE_NAMES } from "../metadataDirectives";
 import * as semver from "semver";
 import {
   ConfigOptions,
@@ -157,9 +156,6 @@ const testDirs = [
         const docSansDirectives = {
           ...doc,
           definitions: doc.definitions.filter((def) => {
-            if (def.kind === "DirectiveDefinition") {
-              return !METADATA_DIRECTIVE_NAMES.has(def.name.value);
-            }
             if (def.kind === "ScalarTypeDefinition") {
               return !specifiedScalarTypes.some(
                 (scalar) => scalar.name === def.name.value,
@@ -273,10 +269,7 @@ function printSDLFromSchemaWithoutDirectives(schema: GraphQLSchema): string {
     new GraphQLSchema({
       ...schema.toConfig(),
       directives: schema.getDirectives().filter((directive) => {
-        return (
-          !METADATA_DIRECTIVE_NAMES.has(directive.name) &&
-          directive.name !== SEMANTIC_NON_NULL_DIRECTIVE
-        );
+        return directive.name !== SEMANTIC_NON_NULL_DIRECTIVE;
       }),
     }),
   );

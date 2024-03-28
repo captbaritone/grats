@@ -2,7 +2,6 @@ import React from "react";
 import store, {
   getNullableByDefault,
   getOutputOption,
-  getShowGratsDirectives,
   useAppSelector,
 } from "./store";
 import FormatButton from "./FormatButton";
@@ -11,7 +10,6 @@ import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 
 export default function ConfigBar(): JSX.Element {
   const nullableByDefault = useAppSelector(getNullableByDefault);
-  const showGratsDirectives = useAppSelector(getShowGratsDirectives);
   const outputOption = useAppSelector(getOutputOption);
   const { gitHash } = useDocusaurusContext().siteConfig.customFields as {
     gitHash: string;
@@ -54,7 +52,7 @@ export default function ConfigBar(): JSX.Element {
       </ConfigBarSide>
       <ConfigBarSide>
         <ConfigBlock>
-          <ConfigBarHeading>View options:</ConfigBarHeading>
+          <ConfigBarHeading>Show:</ConfigBarHeading>
           <Label>
             <select
               value={outputOption}
@@ -70,21 +68,6 @@ export default function ConfigBar(): JSX.Element {
               <option value="typescript">TypeScript Schema</option>
             </select>
           </Label>
-          {outputOption === "sdl" && (
-            <Label>
-              <input
-                checked={showGratsDirectives}
-                type="checkbox"
-                onChange={(e) => {
-                  store.dispatch({
-                    type: "SHOW_GRATS_DIRECTIVE_INPUT_CHANGED",
-                    value: e.target.checked,
-                  });
-                }}
-              />
-              Show Grats directives
-            </Label>
-          )}
         </ConfigBlock>
         <div
           style={{

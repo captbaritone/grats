@@ -26,7 +26,7 @@ import {
 } from "graphql";
 import * as ts from "typescript";
 import * as path from "path";
-import { ResolverArg } from "./metadataDirectives";
+import { FunctionResolver, PropertyResolver, ResolverArg } from "./IR";
 import { resolveRelativePath } from "./gratsRoot";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "./publicDirectives";
 import {
@@ -211,98 +211,118 @@ class Codegen {
     methodName: string,
     parentTypeName: string,
   ): ts.MethodDeclaration | null {
-    const fieldAst = nullThrows(field.astNode);
-    const signature = fieldAst.resolverSignature;
+    const signature = nullThrows(field.astNode).resolverSignature;
     switch (signature.kind) {
-      case "property": {
-        if (
-          signature.name == null &&
-          (signature.args == null ||
-            !signature.args.some((arg) => arg.kind === "positionalArg"))
-        ) {
-          // In these cases we can use the default resolver.
-          return null;
-        }
-        const prop = F.createPropertyAccessExpression(
-          F.createIdentifier("source"),
-          F.createIdentifier(signature.name || field.name),
-        );
-
-        let valueExpression: ts.Expression = prop;
-        let argCount = 1; // Ensure we read "source"
-
-        if (signature.args != null) {
-          valueExpression = F.createCallExpression(
-            prop,
-            undefined,
-            getArgs(signature.args),
-          );
-
-          argCount = Math.max(getArgCount(signature.args), argCount);
-        }
-
-        return this.method(
+      case "property":
+        return this.resolvePropertyMethod(field, methodName, signature);
+      case "function":
+        return this.resolveFunctionMethod(
+          field,
           methodName,
-          RESOLVER_ARGS.slice(0, argCount).map((name) => this.param(name)),
-          [F.createReturnStatement(valueExpression)],
-        );
-      }
-      case "function": {
-        const module = signature.tsModulePath;
-
-        const exportName = signature.exportName;
-
-        const abs = resolveRelativePath(module);
-        const relative = stripExt(
-          path.relative(path.dirname(this._destination), abs),
-        );
-
-        // Note: This name is guaranteed to be unique, but for static methods, it
-        // means we import the same class multiple times with multiple names.
-        const resolverName = formatResolverFunctionVarName(
           parentTypeName,
-          field.name,
+          signature,
         );
-
-        const modulePath = `./${normalizeRelativePathToPosix(relative)}`;
-
-        if (exportName == null) {
-          this.importDefault(modulePath, resolverName);
-        } else {
-          this.import(modulePath, [{ name: exportName, as: resolverName }]);
-        }
-
-        let resolverAccess: ts.Expression = F.createIdentifier(resolverName);
-
-        if (signature.methodName != null) {
-          resolverAccess = F.createPropertyAccessExpression(
-            resolverAccess,
-            F.createIdentifier(signature.methodName),
-          );
-        }
-
-        const argCount = getArgCount(signature.args);
-
-        return this.method(
-          methodName,
-          RESOLVER_ARGS.slice(0, argCount).map((name) => this.param(name)),
-          [
-            F.createReturnStatement(
-              F.createCallExpression(
-                resolverAccess,
-                undefined,
-                getArgs(signature.args),
-              ),
-            ),
-          ],
-        );
-      }
       default: {
         throw new Error(
+          // @ts-expect-error
           `Unexpected resolver signature kind: ${signature.kind}`,
         );
       }
     }
+  }
+
+  resolvePropertyMethod(
+    field: GraphQLField<unknown, unknown>,
+    methodName: string,
+    signature: PropertyResolver,
+  ) {
+    if (
+      signature.name == null &&
+      (signature.args == null ||
+        !signature.args.some((arg) => arg.kind === "positionalArg"))
+    ) {
+      // In these cases we can use the default resolver.
+      return null;
+    }
+    const prop = F.createPropertyAccessExpression(
+      F.createIdentifier("source"),
+      F.createIdentifier(signature.name || field.name),
+    );
+
+    let valueExpression: ts.Expression = prop;
+    let argCount = 1; // Ensure we read "source"
+
+    if (signature.args != null) {
+      valueExpression = F.createCallExpression(
+        prop,
+        undefined,
+        getArgs(signature.args),
+      );
+
+      argCount = Math.max(getArgCount(signature.args), argCount);
+    }
+
+    return this.method(
+      methodName,
+      RESOLVER_ARGS.slice(0, argCount).map((name) => this.param(name)),
+      [F.createReturnStatement(valueExpression)],
+    );
+  }
+
+  resolveFunctionMethod(
+    field: GraphQLField<unknown, unknown>,
+    methodName: string,
+    parentTypeName: string,
+    signature: FunctionResolver,
+  ) {
+    const module = signature.tsModulePath;
+
+    const exportName = signature.exportName;
+
+    const abs = resolveRelativePath(module);
+    const relative = stripExt(
+      path.relative(path.dirname(this._destination), abs),
+    );
+
+    // Note: This name is guaranteed to be unique, but for static methods, it
+    // means we import the same class multiple times with multiple names.
+    const resolverName = formatResolverFunctionVarName(
+      parentTypeName,
+      field.name,
+    );
+
+    const modulePath = `./${normalizeRelativePathToPosix(relative)}`;
+
+    if (exportName == null) {
+      this.importDefault(modulePath, resolverName);
+    } else {
+      this.import(modulePath, [{ name: exportName, as: resolverName }]);
+    }
+
+    let resolverAccess: ts.Expression = F.createIdentifier(resolverName);
+
+    if (signature.methodName != null) {
+      resolverAccess = F.createPropertyAccessExpression(
+        resolverAccess,
+        F.createIdentifier(signature.methodName),
+      );
+    }
+
+    const argCount = getArgCount(signature.args);
+
+    return this.method(
+      methodName,
+      RESOLVER_ARGS.slice(0, argCount).map((name) => this.param(name)),
+      [
+        F.createReturnStatement(
+          F.createCallExpression(
+            resolverAccess,
+            undefined,
+            getArgs(signature.args),
+          ),
+        ),
+      ],
+    );
   }
 
   // If a field is smantically non-null, we need to wrap the resolver in a

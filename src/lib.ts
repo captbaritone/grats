@@ -22,7 +22,6 @@ import { validateTypenames } from "./validations/validateTypenames";
 import { extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram";
 import { validateMergedInterfaces } from "./validations/validateMergedInterfaces";
 import { validateContextReferences } from "./validations/validateContextReferences";
-import { addMetadataDirectives } from "./metadataDirectives";
 import { addInterfaceFields } from "./transforms/addInterfaceFields";
 import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces";
 import { validateAsyncIterable } from "./validations/validateAsyncIterable";
@@ -96,11 +95,8 @@ export function extractSchemaAndDoc(
         snapshot.contextDefinitions[0] ?? null;
 
       const docResult = new ResultPipe(validationResult)
-        // Add the metadata directive definitions to definitions
-        // found in the snapshot.
-        .map(() => addMetadataDirectives(snapshot.definitions))
         // Filter out any `implements` clauses that are not GraphQL interfaces.
-        .map((definitions) => filterNonGqlInterfaces(ctx, definitions))
+        .map(() => filterNonGqlInterfaces(ctx, snapshot.definitions))
         .map((definitions) => filterContextArgs(ctx, definitions, contextDef))
         .andThen((definitions) => resolveTypes(ctx, definitions))
         // If you define a field on an interface using the functional style, we need to add

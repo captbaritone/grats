@@ -11,7 +11,7 @@ import {
 import { createLinter } from "../linter";
 import lzstring from "lz-string";
 import { createDefaultMapFromCDN } from "@typescript/vfs";
-import { getConfig, getDoc, getView, onSelectorChange } from "../store";
+import { getConfig, getDoc, onSelectorChange } from "../store";
 import { createSelector } from "reselect";
 import { Theme } from "./theme";
 import store, { useUrlState } from "../store";
@@ -71,8 +71,8 @@ async function createInputView(store, fsMap, left) {
   const state = store.getState();
 
   // Create a selector that memoizes the linter and closes over the fsMap
-  const getLinter = createSelector(getView, getConfig, (view, config) => {
-    return createLinter(fsMap, view, config);
+  const getLinter = createSelector(getConfig, (config) => {
+    return createLinter(fsMap, config);
   });
 
   const linter = getLinter(state);
