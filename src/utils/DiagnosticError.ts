@@ -2,17 +2,27 @@ import { GraphQLError, Location, Source } from "graphql";
 import * as ts from "typescript";
 import { Result } from "./Result";
 
-export type DiagnosticResult<T> = Result<T, ts.DiagnosticWithLocation>;
-export type DiagnosticsResult<T> = Result<T, ts.DiagnosticWithLocation[]>;
+type FixableDiagnostic = ts.Diagnostic & {
+  fix?: ts.CodeFixAction;
+};
+type FixableDiagnosticWithLocation = ts.DiagnosticWithLocation & {
+  fix?: ts.CodeFixAction;
+};
+
+export type DiagnosticResult<T> = Result<T, FixableDiagnosticWithLocation>;
+export type DiagnosticsResult<T> = Result<T, FixableDiagnosticWithLocation[]>;
 
 // GraphQL errors might not have a location, so we have to handle that case
 export type DiagnosticsWithoutLocationResult<T> = Result<T, ts.Diagnostic[]>;
 
 export class ReportableDiagnostics {
   _host: ts.FormatDiagnosticsHost;
-  _diagnostics: ts.Diagnostic[];
+  _diagnostics: FixableDiagnostic[];
 
-  constructor(host: ts.FormatDiagnosticsHost, diagnostics: ts.Diagnostic[]) {
+  constructor(
+    host: ts.FormatDiagnosticsHost,
+    diagnostics: FixableDiagnostic[],
+  ) {
     this._host = host;
     this._diagnostics = diagnostics;
   }
@@ -46,7 +56,7 @@ export class ReportableDiagnostics {
 
 // A made-up error code that we use to fake a TypeScript error code.
 // We pick a very random number to avoid collisions with real error messages.
-export const FAKE_ERROR_CODE = 349389149282;
+export const FAKE_ERROR_CODE = 1038;
 
 function stripColor(str: string): string {
   // eslint-disable-next-line no-control-regex
@@ -156,11 +166,25 @@ export function rangeErr(
   };
 }
 
+/**
+ * A generic version of the methods on ts.Node that we need
+ * to create diagnostics.
+ *
+ * This interface allows us to create diagnostics from our
+ * own classes.
+ */
+export interface TsLocatableNode {
+  getStart(): number;
+  getEnd(): number;
+  getSourceFile(): ts.SourceFile;
+}
+
 export function tsErr(
-  node: ts.Node,
+  node: TsLocatableNode,
   message: string,
   relatedInformation?: ts.DiagnosticRelatedInformation[],
-): ts.DiagnosticWithLocation {
+  fix?: ts.CodeFixAction,
+): FixableDiagnosticWithLocation {
   const start = node.getStart();
   const length = node.getEnd() - start;
   const sourceFile = node.getSourceFile();
@@ -173,6 +197,7 @@ export function tsErr(
     length,
     relatedInformation,
     source: "Grats",
+    fix,
   };
 }
 

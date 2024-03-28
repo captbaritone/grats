@@ -36,7 +36,7 @@ import {
   ASSERT_NON_NULL_HELPER,
   createAssertNonNullHelper,
 } from "./codegenHelpers";
-import { extend } from "./utils/helpers";
+import { extend, nullThrows } from "./utils/helpers";
 
 const RESOLVER_ARGS = ["source", "args", "context", "info"];
 
@@ -214,34 +214,46 @@ class Codegen {
     methodName: string,
     parentTypeName: string,
   ): ts.MethodDeclaration | null {
-    const metadataDirective = fieldDirective(field, FIELD_METADATA_DIRECTIVE);
-    if (metadataDirective == null) {
-      throw new Error(`Expected to find metadata directive.`);
-    }
+    const metadataDirective = nullThrows(
+      fieldDirective(field, FIELD_METADATA_DIRECTIVE),
+    );
     const metadata = parseFieldMetadataDirective(metadataDirective);
     if (metadata.tsModulePath != null) {
       const module = metadata.tsModulePath;
-      const funcName = metadata.name;
-      if (funcName == null) {
-        throw new Error(`Expected to find name in metadata directive.`);
-      }
-      const argCount = metadata.argCount;
-      if (argCount == null) {
-        throw new Error(`Expected to find argCount in metadata directive.`);
-      }
+
+      const exportName = metadata.exportName;
+      const argCount = nullThrows(metadata.argCount);
 
       const abs = resolveRelativePath(module);
       const relative = stripExt(
         path.relative(path.dirname(this._destination), abs),
       );
 
+      // Note: This name is guaranteed to be unique, but for static methods, it
+      // means we import the same class multiple times with multiple names.
       const resolverName = formatResolverFunctionVarName(
         parentTypeName,
-        funcName,
+        field.name,
       );
-      this.import(`./${relative}`, [{ name: funcName, as: resolverName }]);
+
+      const modulePath = `./${normalizeRelativePathToPosix(relative)}`;
+
+      if (exportName == null) {
+        this.importDefault(modulePath, resolverName);
+      } else {
+        this.import(modulePath, [{ name: exportName, as: resolverName }]);
+      }
 
       const usedArgs = RESOLVER_ARGS.slice(0, argCount);
+
+      let resolverAccess: ts.Expression = F.createIdentifier(resolverName);
+
+      if (metadata.name != null) {
+        resolverAccess = F.createPropertyAccessExpression(
+          resolverAccess,
+          F.createIdentifier(metadata.name),
+        );
+      }
 
       return this.method(
         methodName,
@@ -251,7 +263,7 @@ class Codegen {
         [
           F.createReturnStatement(
             F.createCallExpression(
-              F.createIdentifier(resolverName),
+              resolverAccess,
               undefined,
               usedArgs.map((name) => {
                 return F.createIdentifier(name);
@@ -315,16 +327,13 @@ class Codegen {
     let foundReturn = false;
     const newBodyStatements = bodyStatements.map((statement) => {
       if (ts.isReturnStatement(statement)) {
-        if (statement.expression == null) {
-          throw new Error("Expected return statement to have an expression");
-        }
         foundReturn = true;
         // We need to wrap the return statement in a call to the runtime check
         return F.createReturnStatement(
           F.createCallExpression(
             F.createIdentifier(ASSERT_NON_NULL_HELPER),
             [],
-            [statement.expression],
+            [nullThrows(statement.expression)],
           ),
         );
       }
@@ -553,10 +562,6 @@ class Codegen {
     field: GraphQLField<unknown, unknown>,
     parentTypeName: string,
   ): Array<ts.ObjectLiteralElementLike | null> {
-    const metadataDirective = fieldDirective(field, FIELD_METADATA_DIRECTIVE);
-    if (metadataDirective == null) {
-      throw new Error(`Expected to find metadata directive.`);
-    }
     // Note: We assume the default name is used here. When custom operation types are supported
     // we'll need to update this.
     if (parentTypeName !== "Subscription") {
@@ -829,6 +834,16 @@ class Codegen {
     );
   }
 
+  importDefault(from: string, as: string) {
+    this._imports.push(
+      F.createImportDeclaration(
+        undefined,
+        F.createImportClause(false, F.createIdentifier(as), undefined),
+        F.createStringLiteral(from),
+      ),
+    );
+  }
+
   print(): string {
     const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
     const sourceFile = ts.createSourceFile(
@@ -881,4 +896,9 @@ function formatResolverFunctionVarName(
   const parent = parentTypeName[0].toLowerCase() + parentTypeName.slice(1);
   const field = fieldName[0].toUpperCase() + fieldName.slice(1);
   return `${parent}${field}Resolver`;
+}
+
+// https://github.com/sindresorhus/slash/blob/98b618f5a3bfcb5dd374b204868818845b87bb2f/index.js#L8C9-L8C33
+function normalizeRelativePathToPosix(unknownPath: string): string {
+  return unknownPath.replace(/\\/g, "/");
 }

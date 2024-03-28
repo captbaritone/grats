@@ -1,0 +1,43 @@
+-----------------
+INPUT
+----------------- 
+export default class {
+  /** @gqlField */
+  static greet(_: Query): string {
+    return "Hello, world!";
+  }
+}
+
+/** @gqlType */
+type Query = unknown;
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Query {
+  greet: String @metadata(argCount: 1, name: "greet", tsModulePath: "grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethodOnUnnamedNonGqlClass.ts")
+}
+-- TypeScript --
+import queryGreetResolver from "./FieldAsStaticClassMethodOnUnnamedNonGqlClass";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                greet: {
+                    name: "greet",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return queryGreetResolver.greet(source);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType]
+    });
+}

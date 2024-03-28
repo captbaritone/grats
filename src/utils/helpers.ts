@@ -33,3 +33,17 @@ export function astNode<T>(item: { astNode?: T | undefined | null }): T {
   }
   return item.astNode;
 }
+
+let i = 0;
+export function uniqueId() {
+  return i++;
+}
+
+export function nullThrows<T>(value: T | null | undefined): T {
+  if (value == null) {
+    throw new Error(
+      "Grats Error. Expected value to be non-nullish. This error represents an error in Grats. Please report it.",
+    );
+  }
+  return value;
+}

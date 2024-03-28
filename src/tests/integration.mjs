@@ -48,6 +48,7 @@ async function testExample(exampleName, exampleDir) {
   let testConfig = {
     port: 4000,
     route: "graphql",
+    testCases,
   };
   const testConfigPath = path.join(exampleDir, "testConfig.json");
   // Check for test config
@@ -60,7 +61,7 @@ async function testExample(exampleName, exampleDir) {
 
   const url = `http://localhost:${testConfig.port}/${testConfig.route}`;
   await withExampleServer(exampleDir, async () => {
-    for (const testCase of testCases) {
+    for (const testCase of testConfig.testCases) {
       console.log(`  Running test case "${testCase.name}"...`);
       const actual = await fetchQuery(url, testCase.query, testCase.variables);
       assert.deepEqual(actual, testCase.expected);

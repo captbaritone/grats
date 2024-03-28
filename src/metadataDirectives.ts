@@ -1,11 +1,12 @@
 import {
   ConstDirectiveNode,
+  DefinitionNode,
   DocumentNode,
   Kind,
   Location,
   parse,
 } from "graphql";
-import { GratsDefinitionNode } from "./GraphQLConstructor";
+import { uniqueId } from "./utils/helpers";
 
 /**
  * In most cases we can use directives to annotate constructs
@@ -26,9 +27,45 @@ declare module "graphql" {
      */
     isAsyncIterable?: boolean;
   }
+  export interface NameNode {
+    /**
+     * Grats metadata: A unique identifier for the node. Used to track
+     * data about nodes in lookup data structures.
+     */
+    tsIdentifier: number;
+  }
+  export interface ObjectTypeDefinitionNode {
+    /**
+     * Grats metadata: Indicates that the type was materialized as part of
+     * generic type resolution.
+     */
+    wasSynthesized?: boolean;
+  }
+  export interface UnionTypeDefinitionNode {
+    /**
+     * Grats metadata: Indicates that the type was materialized as part of
+     * generic type resolution.
+     */
+    wasSynthesized?: boolean;
+  }
+  export interface InterfaceTypeDefinitionNode {
+    /**
+     * Grats metadata: Indicates that the type was materialized as part of
+     * generic type resolution.
+     */
+    wasSynthesized?: boolean;
+  }
+  export interface ObjectTypeExtensionNode {
+    /**
+     * Grats metadata: Indicates that we don't know yet if this is extending an interface
+     * or a type.
+     */
+    mayBeInterface?: boolean;
+  }
 }
 
 export const FIELD_METADATA_DIRECTIVE = "metadata";
+export const EXPORT_NAME_ARG = "exportName";
 export const FIELD_NAME_ARG = "name";
 export const TS_MODULE_PATH_ARG = "tsModulePath";
 export const ARG_COUNT = "argCount";
@@ -44,14 +81,18 @@ export const METADATA_DIRECTIVE_NAMES = new Set([
 export const DIRECTIVES_AST: DocumentNode = parse(`
     directive @${FIELD_METADATA_DIRECTIVE}(
       """
-      Name of property/method/function. Defaults to field name. For
-      function-backed fields, this is the function's export name.
+      Name of property/method/function. Defaults to field name.
       """
       ${FIELD_NAME_ARG}: String
       """
       Path of the TypeScript module to import if the field is a function.
       """
       ${TS_MODULE_PATH_ARG}: String
+      """
+      Export name of the field. For function fields this is the exported function name,
+      for static method fields, this is the exported class name.
+      """
+      ${EXPORT_NAME_ARG}: String
       """
       Number of arguments. No value means property access
       """
@@ -61,14 +102,15 @@ export const DIRECTIVES_AST: DocumentNode = parse(`
 `);
 
 export function addMetadataDirectives(
-  definitions: Array<GratsDefinitionNode>,
-): Array<GratsDefinitionNode> {
+  definitions: Array<DefinitionNode>,
+): Array<DefinitionNode> {
   return [...DIRECTIVES_AST.definitions, ...definitions];
 }
 
 export type FieldMetadata = {
   tsModulePath: string | null;
   name: string | null;
+  exportName: string | null;
   argCount: number | null;
 };
 
@@ -78,7 +120,12 @@ export function makeKillsParentOnExceptionDirective(
   return {
     kind: Kind.DIRECTIVE,
     loc,
-    name: { kind: Kind.NAME, loc, value: KILLS_PARENT_ON_EXCEPTION_DIRECTIVE },
+    name: {
+      kind: Kind.NAME,
+      loc,
+      value: KILLS_PARENT_ON_EXCEPTION_DIRECTIVE,
+      tsIdentifier: uniqueId(),
+    },
     arguments: [],
   };
 }
@@ -93,6 +140,7 @@ export function parseFieldMetadataDirective(
   return {
     name: getStringArg(directive, FIELD_NAME_ARG),
     tsModulePath: getStringArg(directive, TS_MODULE_PATH_ARG),
+    exportName: getStringArg(directive, EXPORT_NAME_ARG),
     argCount: getIntArg(directive, ARG_COUNT),
   };
 }

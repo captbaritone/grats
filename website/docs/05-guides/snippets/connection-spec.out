@@ -1,0 +1,199 @@
+import { Int } from "grats";
+
+/** @gqlField */
+export function users(
+  _: Query,
+  args: {
+    first?: Int | null;
+    after?: string | null;
+    last?: Int | null;
+    before?: string | null;
+  },
+): Connection<User> {
+  const users = [{ name: "John" }];
+  return connectionFromArray(users, args);
+}
+
+/** --- Reusable Connection Types --- */
+
+/** @gqlType */
+export type Connection<T> = {
+  /** @gqlField */
+  edges: Edge<T>[];
+  /** @gqlField */
+  pageInfo: PageInfo;
+};
+
+/** @gqlType */
+export type Edge<T> = {
+  /** @gqlField */
+  node: T;
+  /** @gqlField */
+  cursor: string;
+};
+
+/** @gqlType */
+export type PageInfo = {
+  /** @gqlField */
+  startCursor: string | null;
+  /** @gqlField */
+  endCursor: string | null;
+  /** @gqlField */
+  hasNextPage: boolean;
+  /** @gqlField */
+  hasPreviousPage: boolean;
+};
+// trim-start
+
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlType */
+type User = {
+  /** @gqlField */
+  name: string;
+};
+
+// This function can be found in the module `graphql-relay`.
+// Extracted here for example purposes.
+declare function connectionFromArray<T>(
+  data: ReadonlyArray<T>,
+  args: {
+    first?: Int | null;
+    after?: string | null;
+    last?: Int | null;
+    before?: string | null;
+  },
+): Connection<T>;
+// trim-end
+
+=== SNIP ===
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean
+  hasPreviousPage: Boolean
+  startCursor: String
+}
+
+type Query {
+  users(after: String, before: String, first: Int, last: Int): UserConnection
+}
+
+type User {
+  name: String
+}
+
+type UserConnection {
+  edges: [UserEdge!]
+  pageInfo: PageInfo
+}
+
+type UserEdge {
+  cursor: String
+  node: User
+}
+=== SNIP ===
+import { users as queryUsersResolver } from "./connection-spec.grats";
+import { GraphQLSchema, GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLString, GraphQLBoolean, GraphQLInt } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const UserEdgeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "UserEdge",
+        fields() {
+            return {
+                cursor: {
+                    name: "cursor",
+                    type: GraphQLString
+                },
+                node: {
+                    name: "node",
+                    type: UserType
+                }
+            };
+        }
+    });
+    const PageInfoType: GraphQLObjectType = new GraphQLObjectType({
+        name: "PageInfo",
+        fields() {
+            return {
+                endCursor: {
+                    name: "endCursor",
+                    type: GraphQLString
+                },
+                hasNextPage: {
+                    name: "hasNextPage",
+                    type: GraphQLBoolean
+                },
+                hasPreviousPage: {
+                    name: "hasPreviousPage",
+                    type: GraphQLBoolean
+                },
+                startCursor: {
+                    name: "startCursor",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const UserConnectionType: GraphQLObjectType = new GraphQLObjectType({
+        name: "UserConnection",
+        fields() {
+            return {
+                edges: {
+                    name: "edges",
+                    type: new GraphQLList(new GraphQLNonNull(UserEdgeType))
+                },
+                pageInfo: {
+                    name: "pageInfo",
+                    type: PageInfoType
+                }
+            };
+        }
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                users: {
+                    name: "users",
+                    type: UserConnectionType,
+                    args: {
+                        after: {
+                            name: "after",
+                            type: GraphQLString
+                        },
+                        before: {
+                            name: "before",
+                            type: GraphQLString
+                        },
+                        first: {
+                            name: "first",
+                            type: GraphQLInt
+                        },
+                        last: {
+                            name: "last",
+                            type: GraphQLInt
+                        }
+                    },
+                    resolve(source, args) {
+                        return queryUsersResolver(source, args);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [PageInfoType, QueryType, UserType, UserConnectionType, UserEdgeType]
+    });
+}

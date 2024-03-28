@@ -1,0 +1,26 @@
+import GratsCode from "@site/src/components/GratsCode";
+import ConnectionExample from "!!raw-loader!./snippets/connection-spec.out";
+
+# Connection Spec
+
+The [Connection Spec](https://relay.dev/graphql/connections.htm) is an opinionated formal specification for a convention of how to expose a paginated list of items in a GraphQL schema. Smart clients like [Relay](https://relay.dev) are able to use this specification to automatically handle pagination for you.
+
+While Connections are sometimes refered to as "Relay Connections", they are not specific to Relay and can be considered a best practice for any GraphQL API.
+
+Given that most application that we build are heavily oriented around lists of data, having a consistent way to interact with paginated lists allows clients to build helpful, optimized, abstractions for things like infinite scrolling, pagination, prelaoding, and more.
+
+:::tip
+**When possible, prefer modeling list fields using connections**, even if your server does not implement pagination yet. This will make it easier to add pagination in the future without breaking clients.
+
+The npm library `graphql-relay` provides a number of helpful utility functions which make it easy to implement simple connection fields even from simple arrays.
+:::
+
+## Example Connection using Grats
+
+Grats' support for [generic types](./07-generics.mdx) is a perfect fit for modeling connections. Here's an example of a generic, reusable `Connection` type. Feel free to copy/paste these reusable types into your own code base.
+
+:::info
+For a full working example of Connections in action, see our [Production App](../05-examples/10-production-app.md) example app.
+:::
+
+<GratsCode mode="both" out={ConnectionExample} />

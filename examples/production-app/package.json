@@ -1,0 +1,43 @@
+{
+  "name": "grats-production-app-example",
+  "version": "0.0.0",
+  "description": "Example server showcasing Grats in a feature complete server",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsc && node dist/server.js",
+    "grats": "grats",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/captbaritone/grats.git"
+  },
+  "keywords": [
+    "graphql",
+    "grats",
+    "yoga",
+    "javascript",
+    "typescript",
+    "relay",
+    "node",
+    "dataloader",
+    "connections"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/captbaritone/grats/issues"
+  },
+  "homepage": "https://github.com/captbaritone/grats#readme",
+  "dependencies": {
+    "@graphql-yoga/plugin-defer-stream": "^3.1.1",
+    "dataloader": "^2.2.2",
+    "graphql": "16.8.1",
+    "graphql-relay": "^0.10.0",
+    "graphql-yoga": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.10",
+    "grats": "workspace:*"
+  }
+}

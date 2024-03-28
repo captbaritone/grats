@@ -1,7 +1,6 @@
-import { GratsDefinitionNode } from "./GraphQLConstructor";
 import { TypeContext } from "./TypeContext";
 import { DefaultMap } from "./utils/helpers";
-import { Kind } from "graphql";
+import { DefinitionNode, Kind } from "graphql";
 
 export type InterfaceImplementor = { kind: "TYPE" | "INTERFACE"; name: string };
 export type InterfaceMap = DefaultMap<string, Set<InterfaceImplementor>>;
@@ -11,7 +10,7 @@ export type InterfaceMap = DefaultMap<string, Set<InterfaceImplementor>>;
  */
 export function computeInterfaceMap(
   typeContext: TypeContext,
-  docs: GratsDefinitionNode[],
+  docs: DefinitionNode[],
 ): InterfaceMap {
   // For each interface definition, we need to know which types and interfaces implement it.
   const graph = new DefaultMap<string, Set<InterfaceImplementor>>(
@@ -27,7 +26,9 @@ export function computeInterfaceMap(
       case Kind.INTERFACE_TYPE_DEFINITION:
       case Kind.INTERFACE_TYPE_EXTENSION:
         for (const implementor of doc.interfaces ?? []) {
-          const resolved = typeContext.resolveNamedType(implementor.name);
+          const resolved = typeContext.resolveUnresolvedNamedType(
+            implementor.name,
+          );
           if (resolved.kind === "ERROR") {
             // We trust that these errors will be reported elsewhere.
             continue;
@@ -41,7 +42,9 @@ export function computeInterfaceMap(
       case Kind.OBJECT_TYPE_DEFINITION:
       case Kind.OBJECT_TYPE_EXTENSION:
         for (const implementor of doc.interfaces ?? []) {
-          const resolved = typeContext.resolveNamedType(implementor.name);
+          const resolved = typeContext.resolveUnresolvedNamedType(
+            implementor.name,
+          );
           if (resolved.kind === "ERROR") {
             // We trust that these errors will be reported elsewhere.
             continue;

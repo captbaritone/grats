@@ -5,6 +5,7 @@ import HomepageExample from "!!raw-loader!./snippets/homepageExample.out";
 import HomepageExampleFP from "!!raw-loader!./snippets/homepageExampleFP.out";
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
+import Link from "@docusaurus/Link";
 
 export default function HomepageFeatures(): JSX.Element {
   return (
@@ -13,8 +14,7 @@ export default function HomepageFeatures(): JSX.Element {
         <div className="row">
           <div className="col col--8 col--offset-2">
             <h2 className="text--center margin-bottom--xl">
-              What if building a GraphQL server were as simple as just writing
-              functions?
+              The simplest way to build a GraphQL server in TypeScript
             </h2>
           </div>
         </div>
@@ -42,7 +42,6 @@ export default function HomepageFeatures(): JSX.Element {
               docblock hints. No Grats code is needed at runtime.
             </p>
           </div>
-
           <div className="col col--8 margin-top--xl margin-bottom--xl col--offset-2">
             <Tabs>
               <TabItem value="oop" label="Object Oriented">
@@ -52,6 +51,18 @@ export default function HomepageFeatures(): JSX.Element {
                 <Example out={HomepageExampleFP} />
               </TabItem>
             </Tabs>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col col--10 text--right margin-bottom--xl">
+            <div className={styles.buttons}>
+              <Link
+                className="button button--primary button--lg"
+                href="https://jordaneldredge.com/blog/grats/"
+              >
+                Read the Blog Post ➔
+              </Link>
+            </div>
           </div>
         </div>
       </div>

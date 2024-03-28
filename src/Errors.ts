@@ -46,6 +46,7 @@ export function wrongCasingForGratsTag(actual: string, expected: string) {
   return `Incorrect casing for Grats tag \`@${actual}\`. Use \`@${expected}\` instead.`;
 }
 
+// TODO: Add code action
 export function invalidGratsTag(actual: string) {
   const validTagList = ALL_TAGS.map((t) => `\`@${t}\``).join(", ");
   return `\`@${actual}\` is not a valid Grats tag. Valid tags are: ${validTagList}.`;
@@ -95,6 +96,14 @@ export function functionFieldNotTopLevel() {
   return `Expected \`@${FIELD_TAG}\` function to be a top-level declaration. Grats needs to import resolver functions into it's generated schema module, so the resolver function must be an exported.`;
 }
 
+export function staticMethodClassNotTopLevel() {
+  return `Expected class with a static \`@${FIELD_TAG}\` method to be a top-level declaration. Grats needs to import resolver methods into it's generated schema module, so the resolver's class must be an exported.`;
+}
+
+export function staticMethodFieldClassNotExported() {
+  return `Expected \`@${FIELD_TAG}\` static method's class to be exported. Grats needs to import resolvers into it's generated schema module, so the resolver class must be an exported.`;
+}
+
 const FUNCTION_PARENT_TYPE_CONTEXT = `Grats treats the first argument as the parent object of the field. Therefore Grats needs to see the _type_ of the first argument in order to know to which type/interface this field should be added.`;
 
 export function functionFieldParentTypeMissing() {
@@ -107,10 +116,6 @@ export function functionFieldParentTypeNotValid() {
 
 export function functionFieldNotNamed() {
   return `Expected \`@${FIELD_TAG}\` function to be named. Grats uses the name of the function to derive the name of the GraphQL field. Additionally, Grats needs to import resolver functions into it's generated schema module, so the resolver function must be a named export.`;
-}
-
-export function functionFieldDefaultExport() {
-  return `Expected a \`@${FIELD_TAG}\` function to be a named export, not a default export. Grats needs to import resolver functions into it's generated schema module, so the resolver function must be a named export.`;
 }
 
 export function functionFieldNotNamedExport() {
@@ -141,6 +146,7 @@ export function typeTagOnAliasOfNonObjectOrUnknown() {
   return `Expected \`@${TYPE_TAG}\` type to be an object type literal (\`{ }\`) or \`unknown\`. For example: \`type Foo = { bar: string }\` or \`type Query = unknown\`.`;
 }
 
+// TODO: Add code action
 export function typeNameNotDeclaration() {
   return `Expected \`__typename\` to be a property declaration. For example: \`__typename: "MyType"\`.`;
 }
@@ -188,6 +194,7 @@ export function typeNameDoesNotMatchExpected(expected: string) {
   return `Expected \`__typename\` property to be \`"${expected}"\`. ${TYPENAME_CONTEXT}`;
 }
 
+// TODO: Add code action
 export function argumentParamIsMissingType() {
   return "Expected GraphQL field arguments to have an explicit type annotation. If there are no arguments, you can use `args: unknown`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
 }
@@ -248,6 +255,7 @@ export function expectedOneNonNullishType() {
   return `Expected exactly one non-nullish type. GraphQL does not support fields returning an arbitrary union of types. Consider defining an explicit \`@${UNION_TAG}\` union type and returning that.`;
 }
 
+// TODO: Add code action
 export function ambiguousNumberType() {
   return `Unexpected number type. GraphQL supports both Int and Float, making \`number\` ambiguous. Instead, import the \`Int\` or \`Float\` type from \`${LIBRARY_IMPORT_NAME}\` and use that. e.g. \`import { Int, Float } from "${LIBRARY_IMPORT_NAME}";\`.`;
 }
@@ -284,14 +292,17 @@ export function expectedNameIdentifier() {
   return "Expected an name identifier. Grats expected to find a name here which it could use to derive the GraphQL name.";
 }
 
+// TODO: Add code action
 export function killsParentOnExceptionWithWrongConfig() {
   return `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` tag. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` is only supported when the Grats config option \`nullableByDefault\` is enabled in your \`tsconfig.json\`.`;
 }
 
+// TODO: Add code action
 export function killsParentOnExceptionOnNullable() {
   return `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` tag on field typed as nullable. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` will force a field to appear as non-nullable in the schema, so it's implementation must also be non-nullable. .`;
 }
 
+// TODO: Add code action
 export function nonNullTypeCannotBeOptional() {
   return `Unexpected optional argument that does not also accept \`null\`. Optional arguments in GraphQL may get passed an explicit \`null\` value by the GraphQL executor. This means optional arguments must be typed to also accept \`null\`. Consider adding \`| null\` to the end of the argument type.`;
 }
@@ -306,10 +317,12 @@ export function mergedInterfaces() {
   ].join(" ");
 }
 
+// TODO: Add code action
 export function implementsTagOnClass() {
   return `\`@${IMPLEMENTS_TAG_DEPRECATED}\` has been deprecated. Instead use \`class MyType implements MyInterface\`.`;
 }
 
+// TODO: Add code action
 export function implementsTagOnInterface() {
   return `\`@${IMPLEMENTS_TAG_DEPRECATED}\` has been deprecated. Instead use \`interface MyType extends MyInterface\`.`;
 }
@@ -318,6 +331,7 @@ export function implementsTagOnTypeAlias() {
   return `\`@${IMPLEMENTS_TAG_DEPRECATED}\` has been deprecated. Types which implement GraphQL interfaces should be defined using TypeScript class or interface declarations.`;
 }
 
+// TODO: Add code action
 export function duplicateTag(tagName: string) {
   return `Unexpected duplicate \`@${tagName}\` tag. Grats does not accept multiple instances of the same tag.`;
 }
@@ -326,6 +340,7 @@ export function duplicateInterfaceTag() {
   return `Unexpected duplicate \`@${IMPLEMENTS_TAG_DEPRECATED}\` tag. To declare that a type or interface implements multiple interfaces list them as comma separated values: \`@${IMPLEMENTS_TAG_DEPRECATED} interfaceA, interfaceB\`.`;
 }
 
+// TODO: Add code action
 export function parameterWithoutModifiers() {
   return [
     `Expected \`@${FIELD_TAG}\` constructor parameter to be a parameter property. This requires a modifier such as \`public\` or \`readonly\` before the parameter name.\n\n`,
@@ -333,6 +348,7 @@ export function parameterWithoutModifiers() {
   ].join("");
 }
 
+// TODO: Add code action
 export function parameterPropertyNotPublic() {
   return [
     `Expected \`@${FIELD_TAG}\` parameter property to be public. Valid modifiers for \`@${FIELD_TAG}\` parameter properties are  \`public\` and \`readonly\`.\n\n`,
@@ -389,22 +405,27 @@ export function graphQLTagNameHasWhitespace(tagName: string): string {
   return `Expected text following a \`@${tagName}\` tag to be a GraphQL name. If you intended this text to be a description, place it at the top of the docblock before any \`@tags\`.`;
 }
 
+// TODO: Add code action
 export function subscriptionFieldNotAsyncIterable() {
   return "Expected fields on `Subscription` to return an `AsyncIterable`. Fields on `Subscription` model a subscription, which is a stream of events. Grats expects fields on `Subscription` to return an `AsyncIterable` which can be used to model this stream.";
 }
 
+// TODO: Add code action
 export function operationTypeNotUnknown() {
   return "Operation types `Query`, `Mutation`, and `Subscription` must be defined as type aliases of `unknown`. E.g. `type Query = unknown`. This is because GraphQL servers do not have an agreed upon way to produce root values, and Grats errs on the side of safety. If you are trying to implement dependency injection, consider using the `context` argument passed to each resolver instead. If you have a strong use case for a concrete root value, please file an issue.";
 }
 
+// TODO: Add code action
 export function expectedNullableArgumentToBeOptional() {
   return "Expected nullable argument to _also_ be optional (`?`). graphql-js may omit properties on the argument object where an undefined GraphQL variable is passed, or if the argument is omitted in the operation text. To ensure your resolver is capable of handing this scenario, add a `?` to the end of the argument name to make it optional. e.g. `{greeting?: string | null}`";
 }
 
+// TODO: Add code action
 export function gqlTagInLineComment() {
   return `Unexpected Grats tag in line (\`//\`) comment. Grats looks for tags in JSDoc-style block comments. e.g. \`/** @gqlType */\`. For more information see: ${DOC_URLS.commentSyntax}`;
 }
 
+// TODO: Add code action
 export function gqlTagInNonJSDocBlockComment() {
   return `Unexpected Grats tag in non-JSDoc-style block comment. Grats only looks for tags in JSDoc-style block comments which start with \`/**\`. For more information see: ${DOC_URLS.commentSyntax}`;
 }
@@ -413,10 +434,12 @@ export function gqlTagInDetachedJSDocBlockComment() {
   return `Unexpected Grats tag in detached docblock. Grats was unable to determine which TypeScript declaration this docblock is associated with. Moving the docblock to a position with is unambiguously "above" the relevant declaration may help. For more information see: ${DOC_URLS.commentSyntax}`;
 }
 
+// TODO: Add code action
 export function gqlFieldTagOnInputType() {
   return `The tag \`@${FIELD_TAG}\` is not needed on fields of input types. All fields are automatically included as part of the input type. This tag can be safely removed.`;
 }
 
+// TODO: Add code action
 export function gqlFieldParentMissingTag() {
   return `Unexpected \`@${FIELD_TAG}\`. The parent construct must be either a \`@${TYPE_TAG}\` or \`@${INTERFACE_TAG}\` tag. Are you missing one of these tags?`;
 }
@@ -425,6 +448,51 @@ export function missingSpecifiedByUrl() {
   return `Expected \`@${SPECIFIED_BY_TAG}\` tag to be followed by a URL. This URL will be used as the \`url\` argument to the \`@specifiedBy\` directive in the generated GraphQL schema. See https://spec.graphql.org/draft/#sec--specifiedBy for more information.`;
 }
 
+// TODO: Add code action
 export function specifiedByOnWrongNode() {
   return `Unexpected \`@${SPECIFIED_BY_TAG}\` tag on non-scalar declaration. \`@${SPECIFIED_BY_TAG}\` can only be used on custom scalar declarations. Are you missing a \`@${SCALAR_TAG}\` tag?`;
+}
+
+export function missingGenericType(
+  templateName: string,
+  paramName: string,
+): string {
+  return `Missing type argument for generic GraphQL type. Expected \`${templateName}\` to be passed a GraphQL type argument for type parameter \`${paramName}\`.`;
+}
+
+export function nonGraphQLGenericType(
+  templateName: string,
+  paramName: string,
+): string {
+  return `Expected \`${templateName}\` to be passed a GraphQL type argument for type parameter \`${paramName}\`.`;
+}
+
+export function genericTypeUsedAsUnionMember(): string {
+  return `Unexpected generic type used as union member. Generic type may not currently be used as members of a union. Grats requires that all union members define a \`__typename\` field typed as a string literal matching the type's name. Since generic types are synthesized into multiple types with different names, Grats cannot ensure they have a correct \`__typename\` property and thus cannot be used as members of a union.`;
+}
+export function genericTypeImplementsInterface(): string {
+  return `Unexpected \`implements\` on generic \`${TYPE_TAG}\`. Generic types may not currently declare themselves as implementing interfaces. Grats requires that all types which implement an interface define a \`__typename\` field typed as a string literal matching the type's name. Since generic types are synthesized into multiple types with different names, Grats cannot ensure they have a correct \`__typename\` property and thus declare themselves as interface implementors.`;
+}
+
+export function concreteTypeMissingTypename(implementor: string): string {
+  return `Missing \`__typename\` on \`${implementor}\`. The type \`${implementor}\` is used in a union or interface, so it must have a \`__typename\` field.`;
+}
+
+// TODO: Add code action
+export function invalidFieldNonPublicAccessModifier(): string {
+  return `Unexpected access modifier on \`@${FIELD_TAG}\` method. GraphQL fields must be able to be called by the GraphQL executor.`;
+}
+
+// TODO: Add code action
+export function invalidStaticModifier(): string {
+  return `Unexpected \`static\` modifier on non-method \`@${FIELD_TAG}\`. \`static\` is only valid on method signatures.`;
+}
+
+// TODO: Add code action
+export function staticMethodOnNonClass(): string {
+  return `Unexpected \`@${FIELD_TAG}\` \`static\` method on non-class declaration. Static method fields may only be declared on exported class declarations.`;
+}
+
+export function staticMethodClassWithNamedExportNotNamed(): string {
+  return `Expected \`@${FIELD_TAG}\` static method's class to be named if exported without the \`default\` keyword.`;
 }

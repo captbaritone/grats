@@ -14,18 +14,25 @@ import {
   ConstObjectValueNode,
   ConstListValueNode,
   assertName,
+  DefinitionNode,
 } from "graphql";
-import { tsErr, tsRelated, DiagnosticsResult } from "./utils/DiagnosticError";
+import {
+  tsErr,
+  tsRelated,
+  DiagnosticsResult,
+  gqlErr,
+} from "./utils/DiagnosticError";
 import { err, ok } from "./utils/Result";
 import * as ts from "typescript";
 import { NameDefinition, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
 import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
-import { GraphQLConstructor, GratsDefinitionNode } from "./GraphQLConstructor";
+import { GraphQLConstructor } from "./GraphQLConstructor";
 import { relativePath } from "./gratsRoot";
 import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
-import { extend } from "./utils/helpers";
+import { extend, loc } from "./utils/helpers";
+import * as Act from "./CodeActions";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -59,9 +66,9 @@ const OPERATION_TYPES = new Set(["Query", "Mutation", "Subscription"]);
 type ArgDefaults = Map<string, ts.Expression>;
 
 export type ExtractionSnapshot = {
-  readonly definitions: GratsDefinitionNode[];
-  readonly unresolvedNames: Map<ts.Node, NameNode>;
-  readonly nameDefinitions: Map<ts.Node, NameDefinition>;
+  readonly definitions: DefinitionNode[];
+  readonly unresolvedNames: Map<ts.EntityName, NameNode>;
+  readonly nameDefinitions: Map<ts.DeclarationStatement, NameDefinition>;
   readonly contextReferences: Array<ts.Node>;
   readonly typesWithTypename: Set<string>;
   readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
@@ -89,11 +96,11 @@ export function extract(
 }
 
 class Extractor {
-  definitions: GratsDefinitionNode[] = [];
+  definitions: DefinitionNode[] = [];
 
   // Snapshot data
-  unresolvedNames: Map<ts.Node, NameNode> = new Map();
-  nameDefinitions: Map<ts.Node, NameDefinition> = new Map();
+  unresolvedNames: Map<ts.EntityName, NameNode> = new Map();
+  nameDefinitions: Map<ts.DeclarationStatement, NameDefinition> = new Map();
   contextReferences: Array<ts.Node> = [];
   typesWithTypename: Set<string> = new Set();
   interfaceDeclarations: Array<ts.InterfaceDeclaration> = [];
@@ -105,12 +112,12 @@ class Extractor {
     this.gql = new GraphQLConstructor();
   }
 
-  markUnresolvedType(node: ts.Node, name: NameNode) {
+  markUnresolvedType(node: ts.EntityName, name: NameNode) {
     this.unresolvedNames.set(node, name);
   }
 
   recordTypeName(
-    node: ts.Node,
+    node: ts.DeclarationStatement,
     name: NameNode,
     kind: NameDefinition["kind"],
   ): void {
@@ -147,6 +154,8 @@ class Extractor {
         case FIELD_TAG:
           if (ts.isFunctionDeclaration(node)) {
             this.functionDeclarationExtendType(node, tag);
+          } else if (isStaticMethod(node)) {
+            this.staticMethodExtendType(node, tag);
           } else {
             // Non-function fields must be defined as a decent of something that
             // is annotated with @gqlType or @gqlInterface.
@@ -175,7 +184,16 @@ class Extractor {
           break;
         case KILLS_PARENT_ON_EXCEPTION_TAG: {
           if (!this.hasTag(node, FIELD_TAG)) {
-            this.report(tag.tagName, E.killsParentOnExceptionOnWrongNode());
+            this.report(
+              tag.tagName,
+              E.killsParentOnExceptionOnWrongNode(),
+              [],
+              {
+                fixName: "remove-kills-parent-on-exception",
+                description: "Remove @killsParentOnException tag",
+                changes: [Act.removeNode(tag)],
+              },
+            );
           }
           // TODO: Report invalid location as well
           break;
@@ -190,16 +208,26 @@ class Extractor {
           {
             const lowerCaseTag = tag.tagName.text.toLowerCase();
             if (lowerCaseTag.startsWith("gql")) {
+              let reported = false;
               for (const t of ALL_TAGS) {
                 if (t.toLowerCase() === lowerCaseTag) {
                   this.report(
                     tag.tagName,
                     E.wrongCasingForGratsTag(tag.tagName.text, t),
+                    [],
+                    {
+                      fixName: "fix-grats-tag-casing",
+                      description: `Change to @${t}`,
+                      changes: [Act.replaceNode(tag.tagName, t)],
+                    },
                   );
+                  reported = true;
                   break;
                 }
               }
-              this.report(tag.tagName, E.invalidGratsTag(tag.tagName.text));
+              if (!reported) {
+                this.report(tag.tagName, E.invalidGratsTag(tag.tagName.text));
+              }
             }
           }
           break;
@@ -283,8 +311,9 @@ class Extractor {
     node: ts.Node,
     message: string,
     relatedInformation?: ts.DiagnosticRelatedInformation[],
+    fix?: ts.CodeFixAction,
   ): null {
-    this.errors.push(tsErr(node, message, relatedInformation));
+    this.errors.push(tsErr(node, message, relatedInformation, fix));
     return null;
   }
 
@@ -339,7 +368,7 @@ class Extractor {
       types.push(namedType);
     }
 
-    this.recordTypeName(node.name, name, "UNION");
+    this.recordTypeName(node, name, "UNION");
 
     this.definitions.push(
       this.gql.unionTypeDefinition(node, name, types, description),
@@ -351,26 +380,88 @@ class Extractor {
     tag: ts.JSDocTag,
   ) {
     const funcName = this.namedFunctionExportName(node);
-    if (funcName == null) return null;
+    const name = this.entityName(node, tag);
+    if (name == null) return null;
 
-    const typeParam = node.parameters[0];
-    if (typeParam == null) {
-      return this.report(funcName, E.invalidParentArgForFunctionField());
+    if (!ts.isSourceFile(node.parent)) {
+      return this.report(node, E.functionFieldNotTopLevel());
     }
 
-    const typeName = this.typeReferenceFromParam(typeParam);
-    if (typeName == null) return null;
+    const tsModulePath = relativePath(node.getSourceFile().fileName);
+
+    const metadataDirective = this.gql.fieldMetadataDirective(node, {
+      tsModulePath,
+      name: null,
+      exportName: funcName == null ? null : funcName.text,
+      argCount: node.parameters.length,
+    });
+
+    this.collectAbstractField(node, name, metadataDirective);
+  }
+
+  staticMethodExtendType(node: ts.MethodDeclaration, tag: ts.JSDocTag) {
+    const methodName = this.expectNameIdentifier(node.name);
+    if (methodName == null) return null;
 
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
-    if (node.type == null) {
-      return this.report(funcName, E.invalidReturnTypeForFunctionField());
+    const classNode = node.parent;
+    if (!ts.isClassDeclaration(classNode)) {
+      return this.report(classNode, E.staticMethodOnNonClass());
     }
 
-    const type = this.collectType(node.type, { kind: "OUTPUT" });
-    if (type == null) return null;
+    let exportName: string | null = null;
 
+    const isExported = classNode.modifiers?.some((modifier) => {
+      return modifier.kind === ts.SyntaxKind.ExportKeyword;
+    });
+
+    if (!isExported) {
+      return this.report(classNode, E.staticMethodFieldClassNotExported(), [], {
+        fixName: "add-export-keyword-to-class",
+        description: "Add export keyword to class with static @gqlField",
+        changes: [Act.prefixNode(classNode, "export ")],
+      });
+    }
+    const isDefault = classNode.modifiers?.some((modifier) => {
+      return modifier.kind === ts.SyntaxKind.DefaultKeyword;
+    });
+
+    if (!isDefault) {
+      if (classNode.name == null) {
+        return this.report(
+          classNode,
+          E.staticMethodClassWithNamedExportNotNamed(),
+        );
+      }
+      const className = this.expectNameIdentifier(classNode.name);
+      if (className == null) return null;
+
+      exportName = className.text;
+    }
+
+    if (!ts.isSourceFile(classNode.parent)) {
+      return this.report(classNode, E.staticMethodClassNotTopLevel());
+    }
+
+    const tsModulePath = relativePath(node.getSourceFile().fileName);
+
+    const metadataDirective = this.gql.fieldMetadataDirective(methodName, {
+      tsModulePath,
+      name: methodName.text,
+      exportName,
+      argCount: node.parameters.length,
+    });
+
+    this.collectAbstractField(node, name, metadataDirective);
+  }
+
+  collectAbstractField(
+    node: ts.FunctionDeclaration | ts.MethodDeclaration,
+    name: NameNode,
+    metadataDirective: ConstDirectiveNode,
+  ) {
     let args: readonly InputValueDefinitionNode[] | null = null;
     const argsParam = node.parameters[1];
     if (argsParam != null) {
@@ -382,23 +473,30 @@ class Extractor {
       this.validateContextParameter(context);
     }
 
-    const description = this.collectDescription(node);
-
-    if (!ts.isSourceFile(node.parent)) {
-      return this.report(node, E.functionFieldNotTopLevel());
+    const typeParam = node.parameters[0];
+    if (typeParam == null) {
+      // TODO: Make error generic
+      this.errors.push(gqlErr(loc(name), E.invalidParentArgForFunctionField()));
+      return;
     }
 
-    // TODO: Does this work in the browser?
-    const tsModulePath = relativePath(node.getSourceFile().fileName);
+    const typeName = this.typeReferenceFromParam(typeParam);
+    if (typeName == null) return null;
 
-    const directives = [
-      this.gql.fieldMetadataDirective(funcName, {
-        tsModulePath,
-        name: funcName.text,
-        argCount: node.parameters.length,
-      }),
-    ];
+    if (node.type == null) {
+      // TODO: Make error generic
+      this.errors.push(
+        gqlErr(loc(name), E.invalidReturnTypeForFunctionField()),
+      );
+      return;
+    }
 
+    const type = this.collectType(node.type, { kind: "OUTPUT" });
+    if (type == null) return null;
+
+    const directives = [metadataDirective];
+
+    const description = this.collectDescription(node);
     const deprecated = this.collectDeprecated(node);
     if (deprecated != null) {
       directives.push(deprecated);
@@ -432,30 +530,36 @@ class Extractor {
       return this.report(typeParam.type, E.functionFieldParentTypeNotValid());
     }
 
-    const nameNode = typeParam.type.typeName;
-    const typeName = this.gql.name(nameNode, UNRESOLVED_REFERENCE_NAME);
-    this.markUnresolvedType(nameNode, typeName);
+    const typeName = this.gql.name(
+      typeParam.type.typeName,
+      UNRESOLVED_REFERENCE_NAME,
+    );
+    this.markUnresolvedType(typeParam.type.typeName, typeName);
     return typeName;
   }
 
+  // A little awkward that null here is both semantic or an indication of an error.
   namedFunctionExportName(node: ts.FunctionDeclaration): ts.Identifier | null {
     if (node.name == null) {
       return this.report(node, E.functionFieldNotNamed());
     }
-    const exportKeyword = node.modifiers?.some((modifier) => {
+    const isExported = node.modifiers?.some((modifier) => {
       return modifier.kind === ts.SyntaxKind.ExportKeyword;
     });
+
+    if (!isExported) {
+      return this.report(node.name, E.functionFieldNotNamedExport(), [], {
+        fixName: "add-export-keyword-to-function",
+        description: "Add export keyword to function with @gqlField",
+        changes: [Act.prefixNode(node, "export ")],
+      });
+    }
     const defaultKeyword = node.modifiers?.find((modifier) => {
       return modifier.kind === ts.SyntaxKind.DefaultKeyword;
     });
 
     if (defaultKeyword != null) {
-      // TODO: We could support this
-      return this.report(defaultKeyword, E.functionFieldDefaultExport());
-    }
-
-    if (exportKeyword == null) {
-      return this.report(node.name, E.functionFieldNotNamedExport());
+      return null;
     }
     return node.name;
   }
@@ -465,7 +569,7 @@ class Extractor {
     if (name == null) return null;
 
     const description = this.collectDescription(node);
-    this.recordTypeName(node.name, name, "SCALAR");
+    this.recordTypeName(node, name, "SCALAR");
 
     // TODO: Can a scalar be deprecated?
 
@@ -486,7 +590,7 @@ class Extractor {
     if (name == null) return null;
 
     const description = this.collectDescription(node);
-    this.recordTypeName(node.name, name, "INPUT_OBJECT");
+    this.recordTypeName(node, name, "INPUT_OBJECT");
 
     const fields = this.collectInputFields(node);
 
@@ -508,7 +612,7 @@ class Extractor {
     if (name == null) return null;
 
     const description = this.collectDescription(node);
-    this.recordTypeName(node.name, name, "INPUT_OBJECT");
+    this.recordTypeName(node, name, "INPUT_OBJECT");
 
     const fields: Array<InputValueDefinitionNode> = [];
 
@@ -606,9 +710,15 @@ class Extractor {
     this.validateOperationTypes(node.name, name.value);
 
     const description = this.collectDescription(node);
-    const fields = this.collectFields(node);
+    const fieldMembers = node.members.filter((member) => {
+      // Static methods are handled when we encounter the tag at our top-level
+      // traversal, similar to how functions are handled. We filter them out here to ensure
+      // we don't double-visit them.
+      return !isStaticMethod(member);
+    });
+    const fields = this.collectFields(fieldMembers);
     const interfaces = this.collectInterfaces(node);
-    this.recordTypeName(node.name, name, "TYPE");
+    this.recordTypeName(node, name, "TYPE");
 
     this.checkForTypenameProperty(node, name.value);
 
@@ -638,9 +748,9 @@ class Extractor {
     this.validateOperationTypes(node.name, name.value);
 
     const description = this.collectDescription(node);
-    const fields = this.collectFields(node);
+    const fields = this.collectFields(node.members);
     const interfaces = this.collectInterfaces(node);
-    this.recordTypeName(node.name, name, "TYPE");
+    this.recordTypeName(node, name, "TYPE");
 
     this.checkForTypenameProperty(node, name.value);
 
@@ -664,7 +774,7 @@ class Extractor {
 
     if (ts.isTypeLiteralNode(node.type)) {
       this.validateOperationTypes(node.type, name.value);
-      fields = this.collectFields(node.type);
+      fields = this.collectFields(node.type.members);
       interfaces = this.collectInterfaces(node);
       this.checkForTypenameProperty(node.type, name.value);
     } else if (node.type.kind === ts.SyntaxKind.UnknownKeyword) {
@@ -676,7 +786,7 @@ class Extractor {
     }
 
     const description = this.collectDescription(node);
-    this.recordTypeName(node.name, name, "TYPE");
+    this.recordTypeName(node, name, "TYPE");
 
     this.definitions.push(
       this.gql.objectTypeDefinition(
@@ -848,7 +958,9 @@ class Extractor {
       .flatMap((clause): Array<NamedTypeNode | null> => {
         return clause.types
           .map((type) => type.expression)
-          .filter((expression) => ts.isIdentifier(expression))
+          .filter((expression): expression is ts.Identifier =>
+            ts.isIdentifier(expression),
+          )
           .map((expression) => {
             const namedType = this.gql.namedType(
               expression,
@@ -890,9 +1002,9 @@ class Extractor {
     const description = this.collectDescription(node);
     const interfaces = this.collectInterfaces(node);
 
-    const fields = this.collectFields(node);
+    const fields = this.collectFields(node.members);
 
-    this.recordTypeName(node.name, name, "INTERFACE");
+    this.recordTypeName(node, name, "INTERFACE");
 
     this.definitions.push(
       this.gql.interfaceTypeDefinition(
@@ -906,10 +1018,10 @@ class Extractor {
   }
 
   collectFields(
-    node: ts.ClassDeclaration | ts.InterfaceDeclaration | ts.TypeLiteralNode,
+    members: ReadonlyArray<ts.ClassElement | ts.TypeElement>,
   ): Array<FieldDefinitionNode> {
     const fields: FieldDefinitionNode[] = [];
-    ts.forEachChild(node, (node) => {
+    members.forEach((node) => {
       if (ts.isConstructorDeclaration(node)) {
         // Handle parameter properties
         // https://www.typescriptlang.org/docs/handbook/2/classes.html#parameter-properties
@@ -989,6 +1101,7 @@ class Extractor {
       this.gql.fieldMetadataDirective(node.name, {
         name: id.text == name.value ? null : id.text,
         tsModulePath: null,
+        exportName: null,
         argCount: null,
       }),
     ];
@@ -1231,7 +1344,7 @@ class Extractor {
 
     const values = this.collectEnumValues(node);
 
-    this.recordTypeName(node.name, name, "ENUM");
+    this.recordTypeName(node, name, "ENUM");
 
     this.definitions.push(
       this.gql.enumTypeDefinition(node, name, values, description),
@@ -1251,7 +1364,7 @@ class Extractor {
     if (values == null) return;
 
     const description = this.collectDescription(node);
-    this.recordTypeName(node.name, name, "ENUM");
+    this.recordTypeName(node, name, "ENUM");
 
     this.definitions.push(
       this.gql.enumTypeDefinition(node, name, values, description),
@@ -1448,6 +1561,26 @@ class Extractor {
     const tag = this.findTag(node, FIELD_TAG);
     if (tag == null) return null;
 
+    if (node.modifiers != null) {
+      for (const modifier of node.modifiers) {
+        switch (modifier.kind) {
+          case ts.SyntaxKind.PrivateKeyword:
+          case ts.SyntaxKind.ProtectedKeyword:
+            this.report(modifier, E.invalidFieldNonPublicAccessModifier());
+            break;
+          case ts.SyntaxKind.StaticKeyword:
+            // Return early here, since static methods expect a parent object as
+            // first argument rather than args, and we don't want to emit
+            // confusing error messages
+            // Note: We expect that static methods are handled at the top-level
+            // and will be filtered out before getting here, so this just
+            // catches static property signatures which are also invalid
+            // TypeScript.
+            return this.report(modifier, E.invalidStaticModifier());
+        }
+      }
+    }
+
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
@@ -1480,6 +1613,7 @@ class Extractor {
       this.gql.fieldMetadataDirective(node.name, {
         name: id.text === name.value ? null : id.text,
         tsModulePath: null,
+        exportName: null,
         argCount: isCallable(node) ? node.parameters.length : null,
       }),
     ];
@@ -1504,6 +1638,25 @@ class Extractor {
       directives,
       description,
     );
+  }
+
+  modifiersAreValidForField(
+    node: ts.MethodDeclaration | ts.MethodSignature | ts.GetAccessorDeclaration,
+  ): boolean {
+    if (node.modifiers == null) return true;
+
+    for (const modifier of node.modifiers) {
+      switch (modifier.kind) {
+        case ts.SyntaxKind.PrivateKeyword:
+        case ts.SyntaxKind.ProtectedKeyword:
+          this.report(modifier, E.invalidFieldNonPublicAccessModifier());
+          return false;
+        case ts.SyntaxKind.StaticKeyword:
+          this.report(modifier, E.invalidStaticModifier());
+          return false;
+      }
+    }
+    return true;
   }
 
   collectDescription(node: ts.Node): StringValueNode | null {
@@ -1603,6 +1756,7 @@ class Extractor {
     directives.push(
       this.gql.fieldMetadataDirective(node.name, {
         name: id.text === name.value ? null : id.text,
+        exportName: null,
         tsModulePath: null,
         argCount: null,
       }),
@@ -1821,6 +1975,16 @@ function isCallable(
   node: ts.MethodDeclaration | ts.MethodSignature | ts.GetAccessorDeclaration,
 ): boolean {
   return ts.isMethodDeclaration(node) || ts.isMethodSignature(node);
+}
+
+function isStaticMethod(node: ts.Node): node is ts.MethodDeclaration {
+  return (
+    ts.isMethodDeclaration(node) &&
+    node.modifiers != null &&
+    node.modifiers.some(
+      (modifier) => modifier.kind === ts.SyntaxKind.StaticKeyword,
+    )
+  );
 }
 
 // Given a node annotated as @gqlField, finds the parent node that is

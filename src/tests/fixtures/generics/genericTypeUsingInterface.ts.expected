@@ -1,0 +1,90 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+type Page = {
+  /** @gqlField */
+  name: string;
+};
+
+/** @gqlType */
+export interface Edge<T> {
+  /** @gqlField */
+  node: T;
+  /** @gqlField */
+  cursor: string;
+}
+
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlField */
+export function createEdge(_: Query): Edge<Page> {
+  return { node: { name: "My Page" }, cursor: "cursor" };
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Page {
+  name: String @metadata
+}
+
+type PageEdge {
+  cursor: String @metadata
+  node: Page @metadata
+}
+
+type Query {
+  createEdge: PageEdge @metadata(argCount: 1, exportName: "createEdge", tsModulePath: "grats/src/tests/fixtures/generics/genericTypeUsingInterface.ts")
+}
+-- TypeScript --
+import { createEdge as queryCreateEdgeResolver } from "./genericTypeUsingInterface";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const PageType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Page",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const PageEdgeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "PageEdge",
+        fields() {
+            return {
+                cursor: {
+                    name: "cursor",
+                    type: GraphQLString
+                },
+                node: {
+                    name: "node",
+                    type: PageType
+                }
+            };
+        }
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                createEdge: {
+                    name: "createEdge",
+                    type: PageEdgeType,
+                    resolve(source) {
+                        return queryCreateEdgeResolver(source);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [PageType, PageEdgeType, QueryType]
+    });
+}

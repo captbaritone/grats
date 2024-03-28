@@ -17,3 +17,4 @@ src/tests/fixtures/user_error/KillsParentOnExceptionOnNonField.invalid.ts:1:6 - 
 
 1 /** @killsParentOnException */
        ~~~~~~~~~~~~~~~~~~~~~~
+

@@ -25,12 +25,15 @@ import { validateContextReferences } from "./validations/validateContextReferenc
 import { addMetadataDirectives } from "./metadataDirectives";
 import { addInterfaceFields } from "./transforms/addInterfaceFields";
 import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces";
-import { resolveTypes } from "./transforms/resolveTypes";
 import { validateAsyncIterable } from "./validations/validateAsyncIterable";
 import { applyDefaultNullability } from "./transforms/applyDefaultNullability";
 import { mergeExtensions } from "./transforms/mergeExtensions";
 import { sortSchemaAst } from "./transforms/sortSchemaAst";
 import { validateSemanticNullability } from "./validations/validateSemanticNullability";
+import { resolveTypes } from "./transforms/resolveTypes";
+
+// Export the TypeScript plugin implementation used by
+// grats-ts-plugin
 export { initTsPlugin } from "./tsPlugin/initTsPlugin";
 
 export type SchemaAndDoc = {
@@ -92,16 +95,15 @@ export function extractSchemaAndDoc(
         // Add the metadata directive definitions to definitions
         // found in the snapshot.
         .map(() => addMetadataDirectives(snapshot.definitions))
+        // Filter out any `implements` clauses that are not GraphQL interfaces.
+        .map((definitions) => filterNonGqlInterfaces(ctx, definitions))
+        .andThen((definitions) => resolveTypes(ctx, definitions))
         // If you define a field on an interface using the functional style, we need to add
         // that field to each concrete type as well. This must be done after all types are created,
         // but before we validate the schema.
         .andThen((definitions) => addInterfaceFields(ctx, definitions))
         // Convert the definitions into a DocumentNode
         .map((definitions) => ({ kind: Kind.DOCUMENT, definitions } as const))
-        // Filter out any `implements` clauses that are not GraphQL interfaces.
-        .map((doc) => filterNonGqlInterfaces(ctx, doc))
-        // Resolve TypeScript type references to the GraphQL types they represent (or error).
-        .andThen((doc) => resolveTypes(ctx, doc))
         // Ensure all subscription fields return an AsyncIterable.
         .andThen((doc) => validateAsyncIterable(doc))
         // Apply default nullability to fields and arguments, and detect any misuse of

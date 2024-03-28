@@ -1,0 +1,71 @@
+{
+  "testCases": [
+    {
+      "name": "Simple query",
+      "query": "query { viewer { user { name } } }",
+      "variables": {},
+      "expected": { "data": { "viewer": { "user": { "name": "Alice" } } } }
+    },
+    {
+      "name": "Posts connection",
+      "query": "query { posts { nodes { title } } }",
+      "variables": {},
+      "expected": {
+        "data": {
+          "posts": {
+            "nodes": [
+              { "title": "Hello, World!" },
+              { "title": "My favorite things" },
+              { "title": "I'm back" },
+              { "title": "Hello again" },
+              { "title": "My favorite things 2" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "Users connection",
+      "query": "query { users { nodes { name } } }",
+      "variables": {},
+      "expected": {
+        "data": {
+          "users": {
+            "nodes": [
+              { "name": "Alice" },
+              { "name": "Bob" },
+              { "name": "Charlie" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "Create user",
+      "query": "mutation { createUser(input: {name: \"Elizabeth\"}) { user { name } } }",
+      "variables": {},
+      "expected": {
+        "data": {
+          "createUser": { "user": { "name": "Elizabeth" } }
+        }
+      }
+    },
+    {
+      "name": "Users after update",
+      "query": "query { users { nodes { name } } }",
+      "variables": {},
+      "expected": {
+        "data": {
+          "users": {
+            "nodes": [
+              { "name": "Alice" },
+              { "name": "Bob" },
+              { "name": "Charlie" },
+              { "name": "Elizabeth" }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

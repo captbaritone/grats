@@ -18,3 +18,4 @@ src/tests/fixtures/extend_type/notExported.invalid.ts:7:10 - error: Expected a `
 
 7 function greeting(_: Query): string {
            ~~~~~~~~
+

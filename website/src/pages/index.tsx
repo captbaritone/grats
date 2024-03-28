@@ -21,7 +21,7 @@ function HomepageHeader() {
               className="button button--secondary button--lg"
               to="/docs/getting-started/quick-start"
             >
-              Quickstart
+              Quick Start
             </Link>
           </div>
           <div className={styles.buttons}>

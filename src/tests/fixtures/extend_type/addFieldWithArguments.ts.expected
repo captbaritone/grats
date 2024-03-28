@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting(name: String!): String @metadata(argCount: 2, name: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_type/addFieldWithArguments.ts")
+  greeting(name: String!): String @metadata(argCount: 2, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_type/addFieldWithArguments.ts")
 }
 -- TypeScript --
 import { greeting as someTypeGreetingResolver } from "./addFieldWithArguments";

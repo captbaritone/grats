@@ -1,0 +1,21 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * @gqlType
+ * @killsParentOnException
+ */
+type Query = unknown;
+
+-----------------
+OUTPUT
+-----------------
+- Expected
++ Received
+
+  /**
+   * @gqlType
+-  * @killsParentOnException
+-  */
++  * */
+  type Query = unknown;

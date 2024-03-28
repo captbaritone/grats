@@ -1,0 +1,36 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export class User {
+  /** @gqlField */
+  public greet(): string {
+    return "Hello";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type User {
+  greet: String @metadata(argCount: 0)
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                greet: {
+                    name: "greet",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [UserType]
+    });
+}

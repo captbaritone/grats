@@ -1,5 +1,28 @@
 # Examples
 
-Working minimal code examples are often the best way to see how a library should be configured. It gives a working starting point that one can borrow from when setting up their own project. To that end, Grats's repository contains a number of examples that demonstrate how to use Grats with various frameworks and libraries. Each example is covered by our integration tests to ensure it's in working order.
+Working minimal code examples are often the best way to see how a library should be configured. It gives a working starting point that one can borrow from when setting up their own project. To that end, Grats' repository contains a number of examples that demonstrate how to use Grats with various frameworks and libraries. Each example is covered by our integration tests to ensure it's in working order.
 
-**Disclaimer:** Grats is still young and so we don't yet have many examples. If you have a working example of Grats in use with a framework or library that isn't covered here, please reach out on [Discord](https://capt.dev/grats-chat) or [Twitter](https://twitter.com/captbaritone).
+## Grats with Other Libraries
+
+- [Apollo Server](./01-apollo-server.md) - A very minimal example of using Grats with Apollo Server.
+- [Express GraphQL](./02-express-graphql.md) - Simple demo project integrating Grats, [Express](http://expressjs.com/) and [express-graphql](https://www.npmjs.com/package/express-graphql).
+- [GraphQL HTTP](./03-graphql-http.md) - Simple demo project integrating Grats, [Express](http://expressjs.com/) and [graphql-http](https://graphql-http.com/).
+- [Yoga](./04-yoga.md) - Simple demo project integrating Grats and [Yoga](https://github.com/dotansimha/graphql-yoga) with Node's built-in HTTP server. This example also includes an working example of GraphQL subscriptions.
+- [NextJS](./08-next-js.md) - Simple demo project integrating Grats and [Next.js](https://nextjs.org/) and [Yoga](https://github.com/dotansimha/graphql-yoga).
+
+## Capabilities of Grats
+
+- [Strict Semantic Nullabilty](./09-strict-semantic-nullability.md)
+  - This example demonstrates Grats' experimental support for [Strict Semantic Nullability](https://grats.capt.dev/docs/guides/strict-semantic-nullability).
+- [Production App](./10-production-app.md)
+  - Demonstrates many of the practical concerns of implementing GraphQL in production.
+  - Node/Connection (Relay schema)
+  - Dataloader pattern
+  - Subscriptions
+  - @stream
+  - Custom scalars
+  - GraphQL context
+
+:::note
+If you would like a working example of Grats used with a framework or library that isn't covered here, please reach out on [Discord](https://capt.dev/grats-chat) or [Twitter](https://twitter.com/captbaritone).
+:::

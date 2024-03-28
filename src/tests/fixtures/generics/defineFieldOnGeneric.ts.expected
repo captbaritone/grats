@@ -1,0 +1,80 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+type Edge<T> = {
+  /** @gqlField */
+  node: T;
+  /** @gqlField */
+  cursor: string;
+};
+
+/** @gqlType */
+type Page = {
+  /** @gqlField */
+  title: string;
+};
+
+/**
+ * Re-expose title directly on the edge
+ * @gqlField */
+export function title(edge: Edge<Page>): string {
+  return edge.node.title;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Page {
+  title: String @metadata
+}
+
+type PageEdge {
+  cursor: String @metadata
+  node: Page @metadata
+  """Re-expose title directly on the edge"""
+  title: String @metadata(argCount: 1, exportName: "title", tsModulePath: "grats/src/tests/fixtures/generics/defineFieldOnGeneric.ts")
+}
+-- TypeScript --
+import { title as pageEdgeTitleResolver } from "./defineFieldOnGeneric";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const PageType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Page",
+        fields() {
+            return {
+                title: {
+                    name: "title",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const PageEdgeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "PageEdge",
+        fields() {
+            return {
+                cursor: {
+                    name: "cursor",
+                    type: GraphQLString
+                },
+                node: {
+                    name: "node",
+                    type: PageType
+                },
+                title: {
+                    description: "Re-expose title directly on the edge",
+                    name: "title",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return pageEdgeTitleResolver(source);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [PageType, PageEdgeType]
+    });
+}
