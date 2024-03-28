@@ -15,7 +15,8 @@ export class UserResolver {
 
   /**
    * A customizable greeting for the user
-   * @gqlField */
+   * @gqlField
+   */
   greeting(salutation: string = "Hello"): string {
     return \`\${salutation}, \${this.name}\`;
   }
