@@ -31,7 +31,7 @@ interface IPerson {
 
 /** @gqlType */
 class User implements IPerson {
-  __typename = "User";
+  __typename = "User" as const;
   constructor(name: string) {
     this.name = name;
     this.alsoName = name;

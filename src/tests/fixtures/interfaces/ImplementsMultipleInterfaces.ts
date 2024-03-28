@@ -20,7 +20,7 @@ interface Actor {
 
 /** @gqlType */
 class User implements Person, Actor {
-  __typename = "User";
+  __typename = "User" as const;
   /** @gqlField */
   name: string;
 }
