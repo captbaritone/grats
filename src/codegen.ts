@@ -26,12 +26,7 @@ import {
 } from "graphql";
 import * as ts from "typescript";
 import * as path from "path";
-import {
-  FIELD_METADATA_DIRECTIVE,
-  ResolverArg,
-  parseFieldMetadataDirective,
-  resolverSignatureFromField,
-} from "./metadataDirectives";
+import { ResolverArg } from "./metadataDirectives";
 import { resolveRelativePath } from "./gratsRoot";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "./publicDirectives";
 import {
@@ -216,35 +211,34 @@ class Codegen {
     methodName: string,
     parentTypeName: string,
   ): ts.MethodDeclaration | null {
-    const fieldSignature = resolverSignatureFromField(
-      nullThrows(field.astNode),
-    );
-    switch (fieldSignature.kind) {
+    const fieldAst = nullThrows(field.astNode);
+    const signature = fieldAst.resolverSignature;
+    switch (signature.kind) {
       case "property": {
         if (
-          fieldSignature.name == null &&
-          (fieldSignature.args == null ||
-            !fieldSignature.args.some((arg) => arg.kind === "positionalArg"))
+          signature.name == null &&
+          (signature.args == null ||
+            !signature.args.some((arg) => arg.kind === "positionalArg"))
         ) {
           // In these cases we can use the default resolver.
           return null;
         }
         const prop = F.createPropertyAccessExpression(
           F.createIdentifier("source"),
-          F.createIdentifier(fieldSignature.name || field.name),
+          F.createIdentifier(signature.name || field.name),
         );
 
         let valueExpression: ts.Expression = prop;
         let argCount = 1; // Ensure we read "source"
 
-        if (fieldSignature.args != null) {
+        if (signature.args != null) {
           valueExpression = F.createCallExpression(
             prop,
             undefined,
-            getArgs(fieldSignature.args),
+            getArgs(signature.args),
           );
 
-          argCount = Math.max(getArgCount(fieldSignature.args), argCount);
+          argCount = Math.max(getArgCount(signature.args), argCount);
         }
 
         return this.method(
@@ -254,9 +248,9 @@ class Codegen {
         );
       }
       case "function": {
-        const module = fieldSignature.tsModulePath;
+        const module = signature.tsModulePath;
 
-        const exportName = fieldSignature.exportName;
+        const exportName = signature.exportName;
 
         const abs = resolveRelativePath(module);
         const relative = stripExt(
@@ -280,14 +274,14 @@ class Codegen {
 
         let resolverAccess: ts.Expression = F.createIdentifier(resolverName);
 
-        if (fieldSignature.methodName != null) {
+        if (signature.methodName != null) {
           resolverAccess = F.createPropertyAccessExpression(
             resolverAccess,
-            F.createIdentifier(fieldSignature.methodName),
+            F.createIdentifier(signature.methodName),
           );
         }
 
-        const argCount = getArgCount(fieldSignature.args);
+        const argCount = getArgCount(signature.args);
 
         return this.method(
           methodName,
@@ -297,16 +291,17 @@ class Codegen {
               F.createCallExpression(
                 resolverAccess,
                 undefined,
-                getArgs(fieldSignature.args),
+                getArgs(signature.args),
               ),
             ),
           ],
         );
       }
-      default:
+      default: {
         throw new Error(
-          `Unexpected resolver signature kind: ${fieldSignature.kind}`,
+          `Unexpected resolver signature kind: ${signature.kind}`,
         );
+      }
     }
   }
 
@@ -910,7 +905,7 @@ function normalizeRelativePathToPosix(unknownPath: string): string {
   return unknownPath.replace(/\\/g, "/");
 }
 
-function getArgs(argSignatures: ResolverArg[]): ts.Expression[] {
+function getArgs(argSignatures: readonly ResolverArg[]): ts.Expression[] {
   return argSignatures.map((arg) => {
     switch (arg.kind) {
       case "positionalArg":
@@ -930,7 +925,7 @@ function getArgs(argSignatures: ResolverArg[]): ts.Expression[] {
   });
 }
 
-function getArgCount(args: ResolverArg[]): number {
+function getArgCount(args: readonly ResolverArg[]): number {
   let argCount = 0;
   for (const arg of args) {
     switch (arg.kind) {

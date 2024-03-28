@@ -40,6 +40,7 @@ import {
   ARG_COUNT,
   FIELD_METADATA_DIRECTIVE,
   EXPORT_NAME_ARG,
+  ResolverSignature,
 } from "./metadataDirectives";
 import { uniqueId } from "./utils/helpers";
 import { TsLocatableNode } from "./utils/DiagnosticError";
@@ -195,6 +196,7 @@ export class GraphQLConstructor {
     args: readonly InputValueDefinitionNode[] | null,
     directives: readonly ConstDirectiveNode[],
     description: StringValueNode | null,
+    resolverSignature: ResolverSignature,
   ): FieldDefinitionNode {
     return {
       kind: Kind.FIELD_DEFINITION,
@@ -204,6 +206,7 @@ export class GraphQLConstructor {
       type,
       arguments: args ?? undefined,
       directives: this._optionalList(directives),
+      resolverSignature,
     };
   }
 
