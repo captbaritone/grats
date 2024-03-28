@@ -191,7 +191,7 @@ class Extractor {
               !this.hasTag(parent, TYPE_TAG) &&
               !this.hasTag(parent, INTERFACE_TAG)
             ) {
-              this.report(tag, E.gqlFieldParentMissingTag());
+              this.report(tag.tagName, E.gqlFieldParentMissingTag());
             }
           }
           break;
