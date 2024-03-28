@@ -33,6 +33,7 @@ import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
 import { extend, loc } from "./utils/helpers";
 import * as Act from "./CodeActions";
+import { ResolverArg, ResolverSignature } from "./metadataDirectives";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -79,6 +80,11 @@ export type ExtractionSnapshot = {
 
 type FieldTypeContext = {
   kind: "OUTPUT" | "INPUT";
+};
+
+type ResolverArgs = {
+  gqlArgs: ReadonlyArray<InputValueDefinitionNode> | null;
+  tsArgs: ReadonlyArray<ResolverArg>;
 };
 
 /**
@@ -438,7 +444,13 @@ class Extractor {
       argCount: node.parameters.length,
     });
 
-    this.collectAbstractField(node, name, metadataDirective);
+    this.collectAbstractField(node, name, metadataDirective, {
+      kind: "function",
+      exportName: funcName == null ? null : funcName.text,
+      tsModulePath,
+      methodName: null,
+      args: [],
+    });
   }
 
   staticMethodExtendType(node: ts.MethodDeclaration, tag: ts.JSDocTag) {
@@ -496,13 +508,20 @@ class Extractor {
       argCount: node.parameters.length,
     });
 
-    this.collectAbstractField(node, name, metadataDirective);
+    this.collectAbstractField(node, name, metadataDirective, {
+      kind: "function",
+      exportName,
+      tsModulePath,
+      methodName: methodName.text,
+      args: [],
+    });
   }
 
   collectAbstractField(
     node: ts.FunctionDeclaration | ts.MethodDeclaration,
     name: NameNode,
     metadataDirective: ConstDirectiveNode,
+    signature: ResolverSignature,
   ) {
     const args = this.collectArgs(node.parameters.slice(1));
 
@@ -546,9 +565,10 @@ class Extractor {
       node,
       name,
       type,
-      args,
+      args.gqlArgs,
       directives,
       description,
+      { ...signature, args: [{ kind: "source" }, ...args.tsArgs] },
     );
     this.definitions.push(
       this.gql.abstractFieldDefinition(node, typeName, field),
@@ -1044,18 +1064,15 @@ class Extractor {
           }
         }
       }
-      if (
-        ts.isMethodDeclaration(node) ||
-        ts.isMethodSignature(node) ||
-        ts.isGetAccessorDeclaration(node)
-      ) {
+      if (ts.isMethodDeclaration(node) || ts.isMethodSignature(node)) {
         const field = this.methodDeclaration(node);
         if (field != null) {
           fields.push(field);
         }
       } else if (
         ts.isPropertyDeclaration(node) ||
-        ts.isPropertySignature(node)
+        ts.isPropertySignature(node) ||
+        ts.isGetAccessorDeclaration(node)
       ) {
         const field = this.property(node);
         if (field) {
@@ -1145,6 +1162,11 @@ class Extractor {
       null,
       directives,
       description,
+      {
+        kind: "property",
+        name: id.text == name.value ? null : id.text,
+        args: null,
+      },
     );
   }
 
@@ -1160,11 +1182,9 @@ class Extractor {
    * This method detects which is being used and delegates to the correct type
    * of extraction.
    */
-  collectArgs(
-    params: Array<ts.ParameterDeclaration>,
-  ): ReadonlyArray<InputValueDefinitionNode> | null {
+  collectArgs(params: Array<ts.ParameterDeclaration>): ResolverArgs {
     if (params.length === 0) {
-      return null;
+      return { gqlArgs: null, tsArgs: [] };
     }
     const first = params[0];
     if (
@@ -1173,12 +1193,14 @@ class Extractor {
         (first.type.kind === ts.SyntaxKind.UnknownKeyword ||
           ts.isTypeLiteralNode(first.type)))
     ) {
-      const args = this.collectArgsObj(params[0]);
+      const gqlArgs = this.collectArgsObj(params[0]);
+      const tsArgs: ResolverArg[] = [{ kind: "argsObj" }];
       const context = params[1];
       if (context != null) {
         this.validateContextParameter(context);
+        tsArgs.push({ kind: "context" });
       }
-      return args;
+      return { gqlArgs, tsArgs };
     }
 
     return this.collectArgsParams(params);
@@ -1214,10 +1236,9 @@ class Extractor {
     return args;
   }
 
-  collectArgsParams(
-    params: Array<ts.ParameterDeclaration>,
-  ): ReadonlyArray<InputValueDefinitionNode> | null {
-    const args: InputValueDefinitionNode[] = [];
+  collectArgsParams(params: Array<ts.ParameterDeclaration>): ResolverArgs {
+    const gqlArgs: InputValueDefinitionNode[] = [];
+    const tsArgs: ResolverArg[] = [];
     params.forEach((param, i) => {
       if (!ts.isIdentifier(param.name)) {
         return this.report(param.name, E.positionalArgNameNotLiteral());
@@ -1270,7 +1291,8 @@ class Extractor {
       const deprecatedDirective = this.collectDeprecated(param);
 
       // TODO: Validate default
-      args.push(
+      tsArgs.push({ kind: "positionalArg", name: param.name.text });
+      gqlArgs.push(
         this.gql.inputValueDefinition(
           param,
           this.gql.name(param.name, param.name.text),
@@ -1282,7 +1304,7 @@ class Extractor {
         ),
       );
     });
-    return args;
+    return { gqlArgs, tsArgs };
   }
 
   collectArgDefaults(node: ts.ObjectBindingPattern): ArgDefaults {
@@ -1688,7 +1710,7 @@ class Extractor {
   }
 
   methodDeclaration(
-    node: ts.MethodDeclaration | ts.MethodSignature | ts.GetAccessorDeclaration,
+    node: ts.MethodDeclaration | ts.MethodSignature,
   ): FieldDefinitionNode | null {
     const tag = this.findTag(node, FIELD_TAG);
     if (tag == null) return null;
@@ -1727,6 +1749,9 @@ class Extractor {
     if (type == null) return null;
 
     const args = this.collectArgs(Array.from(node.parameters));
+    if (args == null) {
+      return null;
+    }
 
     const description = this.collectDescription(node);
 
@@ -1757,9 +1782,14 @@ class Extractor {
       node,
       name,
       type,
-      args,
+      args.gqlArgs,
       directives,
       description,
+      {
+        kind: "property",
+        args: args.tsArgs,
+        name: id.text === name.value ? null : id.text,
+      },
     );
   }
 
@@ -1846,7 +1876,10 @@ class Extractor {
   }
 
   property(
-    node: ts.PropertyDeclaration | ts.PropertySignature,
+    node:
+      | ts.PropertyDeclaration
+      | ts.PropertySignature
+      | ts.GetAccessorDeclaration,
   ): FieldDefinitionNode | null {
     const tag = this.findTag(node, FIELD_TAG);
     if (tag == null) return null;
@@ -1899,6 +1932,11 @@ class Extractor {
       null,
       directives,
       description,
+      {
+        kind: "property",
+        args: null,
+        name: id.text === name.value ? null : id.text,
+      },
     );
   }
   // TODO: Support separate modes for input and output types
