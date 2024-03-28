@@ -1,0 +1,54 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class User {
+  /** @gqlField */
+  name: string = "John Doe";
+}
+
+/** @gqlField */
+export function greeting(user: User, greeting: string): string {
+  return `${greeting}, ${user.name}!`;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type User {
+  greeting(greeting: String!): String @metadata(argCount: 2, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/arguments_positional/positionalArgFunction.ts")
+  name: String @metadata
+}
+-- TypeScript --
+import { greeting as userGreetingResolver } from "./positionalArgFunction";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    args: {
+                        greeting: {
+                            name: "greeting",
+                            type: new GraphQLNonNull(GraphQLString)
+                        }
+                    },
+                    resolve(source, args) {
+                        return userGreetingResolver(source, args.greeting);
+                    }
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [UserType]
+    });
+}

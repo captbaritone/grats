@@ -30,8 +30,8 @@ export function getSchema(): GraphQLSchema {
                     deprecationReason: "No longer supported",
                     name: "name",
                     type: GraphQLString,
-                    resolve(source, args, context, info) {
-                        return source.graphQLName(source, args, context, info);
+                    resolve(source) {
+                        return source.graphQLName();
                     }
                 }
             };

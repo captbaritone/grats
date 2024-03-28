@@ -222,6 +222,7 @@ export class GraphQLConstructor {
     directives: readonly ConstDirectiveNode[] | null,
     defaultValue: ConstValueNode | null,
     description: StringValueNode | null,
+    argIndex?: number,
   ): InputValueDefinitionNode {
     return {
       kind: Kind.INPUT_VALUE_DEFINITION,
@@ -231,6 +232,7 @@ export class GraphQLConstructor {
       type,
       defaultValue: defaultValue ?? undefined,
       directives: this._optionalList(directives),
+      argIndex,
     };
   }
 

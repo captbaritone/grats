@@ -12,12 +12,7 @@ export function greeting<T>(_: Query): T {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/generics/referencingMethodGeneric.invalid.ts:5:40 - error: Type parameter not valid
+src/tests/fixtures/generics/referencingMethodGeneric.invalid.ts:5:40 - error: Type parameters are not supported in this context.
 
 5 export function greeting<T>(_: Query): T {
                                          ~
-
-  src/tests/fixtures/generics/referencingMethodGeneric.invalid.ts:5:26
-    5 export function greeting<T>(_: Query): T {
-                               ~
-    Defined here

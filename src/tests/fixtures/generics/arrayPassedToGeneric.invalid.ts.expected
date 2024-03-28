@@ -43,7 +43,7 @@ src/tests/fixtures/generics/arrayPassedToGeneric.invalid.ts:19:15 - error: Expec
     10   someField: T;
                     ~
     and expects a GraphQL type because it was used in a GraphQL position here.
-src/tests/fixtures/generics/arrayPassedToGeneric.invalid.ts:22:15 - error: Unable to resolve type reference. In order to generate a GraphQL schema, Grats needs to determine which GraphQL type is being referenced. This requires being able to resolve type references to their `@gql` annotated declaration. However this reference could not be resolved. Is it possible that this type is not defined in this file?
+src/tests/fixtures/generics/arrayPassedToGeneric.invalid.ts:22:15 - error: Expected a reference to a declaration with a `@gql*` docblock. Grats needs to determine which GraphQL type is being referenced in this location. This requires being able to resolve type references to their `@gql` annotated declaration.
 
 22   b: SomeType<Array<Page>>;
                  ~~~~~
