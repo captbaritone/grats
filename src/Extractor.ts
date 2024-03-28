@@ -851,7 +851,7 @@ class Extractor {
     }
 
     if (!ts.isAsExpression(node.initializer)) {
-      this.report(node.initializer, E.typeNameInitializeNotExpression())
+      this.report(node.initializer, E.typeNameInitializeNotExpression(node.initializer.getText()))
       return false;
     }
 
