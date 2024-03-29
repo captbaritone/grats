@@ -48,6 +48,7 @@ export const UNION_TAG = "gqlUnion";
 export const INPUT_TAG = "gqlInput";
 
 export const CONTEXT_TAG = "gqlContext";
+export const INFO_TAG = "gqlInfo";
 export const IMPLEMENTS_TAG_DEPRECATED = "gqlImplements";
 export const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
 
@@ -61,6 +62,7 @@ export const ALL_TAGS = [
   UNION_TAG,
   INPUT_TAG,
   CONTEXT_TAG,
+  INFO_TAG,
 ];
 
 const DEPRECATED_TAG = "deprecated";
@@ -74,7 +76,6 @@ export type ExtractionSnapshot = {
   readonly unresolvedNames: Map<ts.EntityName, NameNode>;
   readonly nameDefinitions: Map<ts.DeclarationStatement, NameDefinition>;
   readonly contextReferences: Array<ts.Node>;
-  readonly contextDefinitions: Array<ContextNodeType>;
   readonly typesWithTypename: Set<string>;
   readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
 };
@@ -117,7 +118,6 @@ class Extractor {
   unresolvedNames: Map<ts.EntityName, NameNode> = new Map();
   nameDefinitions: Map<ts.DeclarationStatement, NameDefinition> = new Map();
   contextReferences: Array<ts.Node> = [];
-  contextDefinitions: Array<ContextNodeType> = [];
   typesWithTypename: Set<string> = new Set();
   interfaceDeclarations: Array<ts.InterfaceDeclaration> = [];
 
@@ -226,7 +226,20 @@ class Extractor {
               this.gql.name(node, "__context"),
               "CONTEXT",
             );
-            this.contextDefinitions.push(node);
+          }
+          break;
+        }
+        case INFO_TAG: {
+          if (
+            !(
+              ts.isTypeAliasDeclaration(node) ||
+              ts.isInterfaceDeclaration(node) ||
+              ts.isClassDeclaration(node)
+            )
+          ) {
+            this.report(node, E.infoTagOnWrongNode());
+          } else {
+            this.recordTypeName(node, this.gql.name(node, "__info"), "INFO");
           }
           break;
         }
@@ -292,7 +305,6 @@ class Extractor {
       unresolvedNames: this.unresolvedNames,
       nameDefinitions: this.nameDefinitions,
       contextReferences: this.contextReferences,
-      contextDefinitions: this.contextDefinitions,
       typesWithTypename: this.typesWithTypename,
       interfaceDeclarations: this.interfaceDeclarations,
     });
@@ -436,7 +448,7 @@ class Extractor {
       return this.report(node, E.functionFieldNotTopLevel());
     }
 
-    this.collectAbstractField(
+    this.collectExtensionField(
       node,
       name,
       funcName == null ? null : funcName.text,
@@ -490,10 +502,10 @@ class Extractor {
       exportName = className.text;
     }
 
-    this.collectAbstractField(node, name, exportName, methodName.text);
+    this.collectExtensionField(node, name, exportName, methodName.text);
   }
 
-  collectAbstractField(
+  collectExtensionField(
     node: ts.FunctionDeclaration | ts.MethodDeclaration,
     name: NameNode,
     exportName: string | null,
@@ -501,8 +513,9 @@ class Extractor {
   ) {
     const typeParam = node.parameters[0];
     if (typeParam == null) {
-      // TODO: Make error generic
-      this.errors.push(gqlErr(loc(name), E.invalidParentArgForFunctionField()));
+      this.errors.push(
+        gqlErr(loc(name), E.invalidParentArgForFunctionOrStaticMethodField()),
+      );
       return;
     }
 
@@ -510,10 +523,7 @@ class Extractor {
     if (typeName == null) return null;
 
     if (node.type == null) {
-      // TODO: Make error generic
-      this.errors.push(
-        gqlErr(loc(name), E.invalidReturnTypeForFunctionField()),
-      );
+      this.errors.push(gqlErr(loc(name), E.methodMissingType()));
       return;
     }
 
@@ -1256,7 +1266,6 @@ class Extractor {
 
       const deprecatedDirective = this.collectDeprecated(param);
 
-      // TODO: Validate default
       tsArgs.push({ kind: "positionalArg", name: param.name.text });
       gqlArgs.push(
         this.gql.inputValueDefinition(
@@ -1387,7 +1396,6 @@ class Extractor {
     defaults?: Map<string, ts.Expression> | null,
   ): InputValueDefinitionNode | null {
     if (!ts.isPropertySignature(node)) {
-      // TODO: How can I create this error?
       return this.report(node, E.argIsNotProperty());
     }
     if (!ts.isIdentifier(node.name)) {

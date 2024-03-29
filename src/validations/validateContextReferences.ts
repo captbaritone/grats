@@ -18,8 +18,9 @@ export function validateContextReferences(
   ctx: TypeContext,
   snapshot: ExtractionSnapshot,
 ): DiagnosticsWithoutLocationResult<void> {
-  const { contextReferences: references, contextDefinitions: definitions } =
-    snapshot;
+  const { contextReferences: references } = snapshot;
+
+  const definitions = ctx.contextDefinitions();
 
   if (definitions.length > 1) {
     return err([

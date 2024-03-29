@@ -48,6 +48,17 @@ export function nullThrows<T>(value: T | null | undefined): T {
   return value;
 }
 
+export function invariant(
+  condition: boolean,
+  message: string,
+): asserts condition {
+  if (!condition) {
+    throw new Error(
+      `Grats Error: "${message}" This error represents an error in Grats. Please report it.`,
+    );
+  }
+}
+
 export function innerType(type: TypeNode): NamedTypeNode {
   if (type.kind === Kind.NON_NULL_TYPE || type.kind === Kind.LIST_TYPE) {
     return innerType(type.type);

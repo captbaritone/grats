@@ -14,7 +14,7 @@ import { concatResults, ResultPipe } from "./utils/Result";
 import { ok, err } from "./utils/Result";
 import { Result } from "./utils/Result";
 import * as ts from "typescript";
-import { ContextNodeType, ExtractionSnapshot } from "./Extractor";
+import { ExtractionSnapshot } from "./Extractor";
 import { TypeContext } from "./TypeContext";
 import { validateSDL } from "graphql/validation/validate";
 import { ParsedCommandLineGrats } from "./gratsConfig";
@@ -30,7 +30,7 @@ import { mergeExtensions } from "./transforms/mergeExtensions";
 import { sortSchemaAst } from "./transforms/sortSchemaAst";
 import { validateSemanticNullability } from "./validations/validateSemanticNullability";
 import { resolveTypes } from "./transforms/resolveTypes";
-import { filterContextArgs } from "./transforms/filterContextArgs";
+import { filterArgs } from "./transforms/filterArgs";
 
 // Export the TypeScript plugin implementation used by
 // grats-ts-plugin
@@ -89,15 +89,16 @@ export function extractSchemaAndDoc(
       const validationResult = concatResults(
         validateMergedInterfaces(checker, snapshot.interfaceDeclarations),
         validateContextReferences(ctx, snapshot),
+        // TODO: validate info references
       );
-
-      const contextDef: ContextNodeType | null =
-        snapshot.contextDefinitions[0] ?? null;
 
       const docResult = new ResultPipe(validationResult)
         // Filter out any `implements` clauses that are not GraphQL interfaces.
         .map(() => filterNonGqlInterfaces(ctx, snapshot.definitions))
-        .map((definitions) => filterContextArgs(ctx, definitions, contextDef))
+        // Filter out any arguments that are context or info types.
+        .map((definitions) => filterArgs(ctx, definitions))
+        // Resolve all type references to their GraphQL types and materialize
+        // any generic type references.
         .andThen((definitions) => resolveTypes(ctx, definitions))
         // If you define a field on an interface using the functional style, we need to add
         // that field to each concrete type as well. This must be done after all types are created,
@@ -168,7 +169,6 @@ function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
     nameDefinitions: new Map(),
     unresolvedNames: new Map(),
     contextReferences: [],
-    contextDefinitions: [],
     typesWithTypename: new Set(),
     interfaceDeclarations: [],
   };
@@ -188,10 +188,6 @@ function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
 
     for (const contextReference of snapshot.contextReferences) {
       result.contextReferences.push(contextReference);
-    }
-
-    for (const contextDefinition of snapshot.contextDefinitions) {
-      result.contextDefinitions.push(contextDefinition);
     }
 
     for (const typeName of snapshot.typesWithTypename) {

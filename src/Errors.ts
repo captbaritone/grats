@@ -12,6 +12,7 @@ import {
   UNION_TAG,
   SPECIFIED_BY_TAG,
   CONTEXT_TAG,
+  INFO_TAG,
 } from "./Extractor";
 
 export const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
@@ -85,12 +86,8 @@ export function expectedUnionTypeReference() {
   return `Expected \`@${UNION_TAG}\` union members to be type references. Grats expects union members to be references to something annotated with \`@gqlType\`.`;
 }
 
-export function invalidParentArgForFunctionField() {
-  return `Expected \`@${FIELD_TAG}\` function to have a first argument representing the type to extend. If you don't need access to the parent object in the function, you can name the variable \`_\` to indicate that it is unused. e.g. \`function myField(_: ParentType) {}\``;
-}
-
-export function invalidReturnTypeForFunctionField() {
-  return 'Expected GraphQL field to have an explicit return type. This is needed to allow Grats to "see" the type of the field.';
+export function invalidParentArgForFunctionOrStaticMethodField() {
+  return `Expected \`@${FIELD_TAG}\` defined with a function or static method to have a first argument representing the type to extend. If you don't need access to the parent object in the resolver, you can name the variable \`_\` to indicate that it is unused. e.g. \`function myField(_: ParentType) {}\``;
 }
 
 export function functionFieldNotTopLevel() {
@@ -221,7 +218,7 @@ export function gqlEntityMissingName() {
 }
 
 export function methodMissingType() {
-  return "Expected GraphQL field methods to have an explicitly defined return type. Grats needs to be able to see the type of the field to generate its type in the GraphQL schema.";
+  return "Expected GraphQL field to have an explicitly defined return type. Grats needs to be able to see the type of the field to generate its type in the GraphQL schema.";
 }
 
 export function wrapperMissingTypeArg() {
@@ -388,8 +385,11 @@ export function multipleContextTypes() {
 }
 
 export function contextTagOnWrongNode() {
-  // TODO: Word this better
-  return `Expected \`@${CONTEXT_TAG}\` tag to be applied to a type alias declaration..`;
+  return `Expected \`@${CONTEXT_TAG}\` tag to be applied to a type alias, interface, or class declaration..`;
+}
+
+export function infoTagOnWrongNode() {
+  return `Expected \`@${INFO_TAG}\` tag to be applied to a type alias, interface, or class declaration..`;
 }
 
 export function multipleContextDefinitions() {

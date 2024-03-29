@@ -1,0 +1,23 @@
+-----------------
+INPUT
+----------------- 
+import { Info } from "../../../Types";
+
+/** @gqlType */
+class User {
+  /** @gqlField */
+  greeting(info: Info, ctx: Ctx, args: { someArg: string }): string {
+    return "Hello!";
+  }
+}
+
+/** @gqlContext */
+type Ctx = string;
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/info/infoContextAndArgsObjOutOfOrder.ts:6:40 - error: Unexpected type literal. Grats expects types in GraphQL positions to be scalar types, or reference a named GraphQL type directly. You may want to define a named GraphQL type elsewhere and reference it here.
+
+6   greeting(info: Info, ctx: Ctx, args: { someArg: string }): string {
+                                         ~~~~~~~~~~~~~~~~~~~

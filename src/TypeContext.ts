@@ -9,7 +9,7 @@ import * as ts from "typescript";
 import { gqlErr, DiagnosticResult, tsErr } from "./utils/DiagnosticError";
 import { err, ok } from "./utils/Result";
 import * as E from "./Errors";
-import { ExtractionSnapshot } from "./Extractor";
+import { ContextNodeType, ExtractionSnapshot } from "./Extractor";
 import { loc, nullThrows } from "./utils/helpers";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
@@ -23,7 +23,8 @@ export type NameDefinition = {
     | "SCALAR"
     | "INPUT_OBJECT"
     | "ENUM"
-    | "CONTEXT";
+    | "CONTEXT"
+    | "INFO";
 };
 
 type TsIdentifier = number;
@@ -46,6 +47,8 @@ export class TypeContext {
   _declarationToName: Map<ts.Declaration, NameDefinition> = new Map();
   _unresolvedNodes: Map<TsIdentifier, ts.EntityName> = new Map();
   _idToDeclaration: Map<TsIdentifier, ts.Declaration> = new Map();
+  _contextDefinitions: Array<ContextNodeType> = [];
+  _infoDefinitions: Array<ContextNodeType> = [];
 
   static fromSnapshot(
     checker: ts.TypeChecker,
@@ -72,6 +75,12 @@ export class TypeContext {
     name: NameNode,
     kind: NameDefinition["kind"],
   ) {
+    if (kind === "CONTEXT") {
+      this._contextDefinitions.push(node as ContextNodeType);
+    }
+    if (kind === "INFO") {
+      this._infoDefinitions.push(node as ContextNodeType);
+    }
     this._idToDeclaration.set(name.tsIdentifier, node);
     this._declarationToName.set(node, { name, kind });
   }
@@ -79,6 +88,14 @@ export class TypeContext {
   // Record that a type references `node`
   private _markUnresolvedType(node: ts.EntityName, name: NameNode) {
     this._unresolvedNodes.set(name.tsIdentifier, node);
+  }
+
+  contextDefinitions(): Array<ContextNodeType> {
+    return this._contextDefinitions;
+  }
+
+  infoDefinitions(): Array<ContextNodeType> {
+    return this._infoDefinitions;
   }
 
   findSymbolDeclaration(startSymbol: ts.Symbol): ts.Declaration | null {
@@ -140,7 +157,7 @@ export class TypeContext {
     }
     const definition = this._declarationToName.get(declaration);
     if (definition == null) {
-      throw new Error("Expected to find name definition.");
+      return err(gqlErr(loc(nameNode), E.unannotatedTypeReference()));
     }
     return ok(definition);
   }

@@ -236,11 +236,7 @@ class Codegen {
     methodName: string,
     signature: PropertyResolver,
   ) {
-    if (
-      signature.name == null &&
-      (signature.args == null ||
-        !signature.args.some((arg) => arg.kind === "positionalArg"))
-    ) {
+    if (signatureIsDefault(signature)) {
       // In these cases we can use the default resolver.
       return null;
     }
@@ -939,7 +935,10 @@ function getArgs(argSignatures: readonly ResolverArg[]): ts.Expression[] {
         return F.createIdentifier("source");
       case "context":
         return F.createIdentifier("context");
+      case "info":
+        return F.createIdentifier("info");
       default:
+        // @ts-expect-error
         throw new Error(`Unexpected arg kind: ${arg.kind}`);
     }
   });
@@ -965,4 +964,21 @@ function getArgCount(args: readonly ResolverArg[]): number {
     }
   }
   return argCount;
+}
+
+const EXPECTED_KINDS = ["argsObj", "context", "info"];
+
+// Tests if a resolver's signature is the default resolver signature
+// If it is, we don't need to define one in codegen, we can just let
+// graphql-js use the default resolver.
+// (args, context, info) => mixed
+function signatureIsDefault({ name, args }: PropertyResolver): boolean {
+  if (name != null) return false; // We need to call a different name
+  if (args == null) return true; // No args, default resolver is fine
+  for (let i = 0; i < args.length; i++) {
+    const expected = EXPECTED_KINDS[i];
+    if (expected == null) return false; // Too many args
+    if (args[i].kind !== EXPECTED_KINDS[i]) return false; // Wrong kind
+  }
+  return true; // Default resolver is fine!
 }
