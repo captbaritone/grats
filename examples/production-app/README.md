@@ -15,7 +15,7 @@ This example includes a relatively fully featured app to demonstrate how real-wo
 
 Dataloaders are attached to the per-request viewer context. This enables per-request caching while avoiding the risk of leaking data between requests/users.
 
-The viewer context is passed all the way through the app to the data layer. This would enable permission checking to be defined as close to the data as possible.
+The viewer context (VC) is passed all the way through the app to the data layer. This would enable permission checking to be defined as close to the data as possible. Additionally, the VC is stashed on each model instance, enabling the model create edges to other models without needing to get a new VC.
 
 ## Running the demo
 

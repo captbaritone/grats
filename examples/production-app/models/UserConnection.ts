@@ -28,7 +28,6 @@ export async function users(
   },
   ctx: Ctx,
 ): Promise<Connection<User>> {
-  const rows = await DB.selectUsers(ctx.vc);
-  const users = rows.map((row) => new User(row));
+  const users = await DB.selectUsers(ctx.vc);
   return connectionFromArray(users, args);
 }

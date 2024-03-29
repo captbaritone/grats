@@ -2,9 +2,6 @@ import { fromGlobalId, toGlobalId } from "graphql-relay";
 import { ID } from "grats";
 import { Query } from "./Roots";
 import { Ctx } from "../ViewerContext";
-import { User } from "../models/User";
-import { Post } from "../models/Post";
-import { Like } from "../models/Like";
 
 /**
  * Converts a globally unique ID into a local ID asserting
@@ -53,11 +50,11 @@ export async function node(
   // source of bugs.
   switch (type) {
     case "User":
-      return new User(await ctx.vc.getUserById(id));
+      return ctx.vc.getUserById(id);
     case "Post":
-      return new Post(await ctx.vc.getPostById(id));
+      return ctx.vc.getPostById(id);
     case "Like":
-      return new Like(await ctx.vc.getLikeById(id));
+      return ctx.vc.getLikeById(id);
     default:
       throw new Error(`Unknown typename: ${type}`);
   }

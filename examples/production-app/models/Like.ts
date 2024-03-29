@@ -24,15 +24,15 @@ export class Like extends Model<DB.LikeRow> implements GraphQLNode {
   /**
    * The user who liked the post.
    * @gqlField */
-  async liker(_args: unknown, ctx: Ctx): Promise<User> {
-    return new User(await ctx.vc.getUserById(this.row.userId));
+  async liker(): Promise<User> {
+    return this.vc.getUserById(this.row.userId);
   }
 
   /**
    * The post that was liked.
    * @gqlField */
-  async post(_args: unknown, ctx: Ctx): Promise<Post> {
-    return new Post(await ctx.vc.getPostById(this.row.postId));
+  async post(): Promise<Post> {
+    return this.vc.getPostById(this.row.postId);
   }
 }
 
@@ -59,5 +59,5 @@ export async function createLike(
 ): Promise<CreateLikePayload> {
   const id = getLocalTypeAssert(args.input.postId, "Post");
   await DB.createLike(ctx.vc, { ...args.input, userId: ctx.vc.userId() });
-  return { post: new Post(await ctx.vc.getPostById(id)) };
+  return { post: await ctx.vc.getPostById(id) };
 }
