@@ -6,7 +6,6 @@ import { Model } from "./Model";
 import { Mutation } from "../graphql/Roots";
 import { ID, Int } from "../../../dist/src";
 import { GqlDate } from "../graphql/CustomScalars";
-import { Like } from "./Like";
 import { LikeConnection } from "./LikeConnection";
 import { connectionFromArray } from "graphql-relay";
 
@@ -40,25 +39,21 @@ export class Post extends Model<DB.PostRow> implements GraphQLNode {
   /**
    * The author of the post. This cannot change after the post is created.
    * @gqlField */
-  async author(_args: unknown, ctx: Ctx): Promise<User> {
-    return new User(await ctx.vc.getUserById(this.row.authorId));
+  async author(): Promise<User> {
+    return this.vc.getUserById(this.row.authorId);
   }
 
   /**
    * All the likes this post has received.
    * **Note:** You can use this connection to access the number of likes.
    * @gqlField */
-  async likes(
-    args: {
-      first?: Int | null;
-      after?: string | null;
-      last?: Int | null;
-      before?: string | null;
-    },
-    ctx: Ctx,
-  ): Promise<LikeConnection> {
-    const rows = await DB.getLikesForPost(ctx.vc, this.row.id);
-    const likes = rows.map((row) => new Like(row));
+  async likes(args: {
+    first?: Int | null;
+    after?: string | null;
+    last?: Int | null;
+    before?: string | null;
+  }): Promise<LikeConnection> {
+    const likes = await DB.getLikesForPost(this.vc, this.row.id);
     return {
       ...connectionFromArray(likes, args),
       count: likes.length,
@@ -89,9 +84,9 @@ export async function createPost(
   args: { input: CreatePostInput },
   ctx: Ctx,
 ): Promise<CreatePostPayload> {
-  const row = await DB.createPost(ctx.vc, {
+  const post = await DB.createPost(ctx.vc, {
     ...args.input,
     authorId: getLocalTypeAssert(args.input.authorId, "User"),
   });
-  return { post: new Post(row) };
+  return { post };
 }

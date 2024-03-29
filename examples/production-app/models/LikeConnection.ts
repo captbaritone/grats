@@ -5,7 +5,6 @@ import { Query, Subscription } from "../graphql/Roots";
 import { Like } from "./Like";
 import { PageInfo } from "../graphql/Connection";
 import { connectionFromArray } from "graphql-relay";
-import { Post } from "./Post";
 import { PubSub } from "../PubSub";
 import { filter, map, pipe } from "graphql-yoga";
 import { getLocalTypeAssert } from "../graphql/Node";
@@ -53,8 +52,7 @@ export async function likes(
   },
   ctx: Ctx,
 ): Promise<LikeConnection> {
-  const rows = await DB.selectLikes(ctx.vc);
-  const likes = rows.map((row) => new Like(row));
+  const likes = await DB.selectLikes(ctx.vc);
   return {
     ...connectionFromArray(likes, args),
     count: likes.length,
@@ -71,11 +69,10 @@ export async function postLikes(
   ctx: Ctx,
 ): Promise<AsyncIterable<LikeConnection>> {
   const id = getLocalTypeAssert(args.postID, "Post");
-  const postRow = await ctx.vc.getPostById(id);
-  const post = new Post(postRow);
+  const post = await ctx.vc.getPostById(id);
   return pipe(
     PubSub.subscribe("postLiked"),
     filter((postId) => postId === id),
-    map(() => post.likes({}, ctx)),
+    map(() => post.likes({})),
   );
 }

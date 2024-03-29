@@ -12,7 +12,7 @@ export class Viewer {
    * The currently authenticated user.
    * @gqlField */
   async user(__: unknown, ctx: Ctx): Promise<User> {
-    return new User(await ctx.vc.getUserById(ctx.vc.userId()));
+    return ctx.vc.getUserById(ctx.vc.userId());
   }
 
   /**
@@ -27,7 +27,7 @@ export class Viewer {
     for (const row of rows) {
       // Simulate a slow algorithm
       await new Promise((resolve) => setTimeout(resolve, 500));
-      yield new Post(row);
+      yield new Post(ctx.vc, row);
     }
   }
   // --- Root Fields ---

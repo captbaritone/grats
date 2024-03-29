@@ -21,9 +21,8 @@ export class User extends Model<DB.UserRow> implements GraphQLNode {
   /**
    * All posts written by this user. Note that there is no guarantee of order.
    * @gqlField */
-  async posts(_: unknown, ctx: Ctx): Promise<Connection<Post>> {
-    const rows = await DB.selectPostsWhereAuthor(ctx.vc, this.row.id);
-    const posts = rows.map((row) => new Post(row));
+  async posts(): Promise<Connection<Post>> {
+    const posts = await DB.selectPostsWhereAuthor(this.vc, this.row.id);
     return connectionFromArray(posts, {});
   }
 }
@@ -49,6 +48,6 @@ export async function createUser(
   args: { input: CreateUserInput },
   ctx: Ctx,
 ): Promise<CreateUserPayload> {
-  const row = await DB.createUser(ctx.vc, args.input);
-  return { user: new User(row) };
+  const user = await DB.createUser(ctx.vc, args.input);
+  return { user };
 }
