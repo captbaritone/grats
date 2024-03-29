@@ -29,25 +29,25 @@ To run a specific test case, you can use the `--filter` flag and provide a
 substring match for the test fixture's path.
 
 ```
-
 pnpm run test --filter=import
-
 ```
 
 To update fixture files, you can use the `--write` flag.
 
 ```
-
 pnpm run test --write
+```
 
+Interactive mode will prompt you to update the fixture files one by one for each failing fixture test.
+
+```
+pnpm run test --interactive
 ```
 
 You an also get help with the CLI flags:
 
 ```
-
 pnpm run test --help
-
 ```
 
 All changes that affect the behavior of the tool, either new features of bug
