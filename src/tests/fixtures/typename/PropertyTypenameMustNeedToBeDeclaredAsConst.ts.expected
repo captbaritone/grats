@@ -7,11 +7,11 @@ export class User {
     /** @gqlField */
     name: string = "Alice";
   }
-
+  
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/typename/PropertyTypenameMustNeedToBeDeclaredAsConst.ts:3:16 - error: Expected \`__typename\` property initializer to be an expression with a const assertion. For example: \`__typename = "User" as const\`.
+src/tests/fixtures/typename/PropertyTypenameMustNeedToBeDeclaredAsConst.ts:3:18 - error: Expected `__typename` property initializer to be an expression with a const assertion. For example: `__typename = "User" as const`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.
 
-3   __typename = "User" ;
-                 ~~~~~~~
+3     __typename = "User";
+                   ~~~~~~
