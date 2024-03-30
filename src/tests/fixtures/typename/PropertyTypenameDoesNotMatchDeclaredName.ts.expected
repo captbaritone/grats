@@ -11,7 +11,7 @@ export class UserModel {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/typename/PropertyTypenameDoesNotMatchDeclaredName.ts:3:16 - error: Expected `__typename` property initializer to be `"User" as const`, found `"UserModel" as const`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.
+src/tests/fixtures/typename/PropertyTypenameDoesNotMatchDeclaredName.ts:3:16 - error: Expected `__typename` property initializer to be `"User"`, found `"UserModel"`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.
 
-3   __typename = "UserModel";
-                 ~~~~~~~~~~~
+3   __typename = "UserModel" as const;
+                 ~~~~~~~~~~~~~~~~~~~~
