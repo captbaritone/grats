@@ -15,3 +15,4 @@
 - [ ] Audit error messages to ensure they don't claim args must be objects
 - [ ] Validate that we don't have multiple @gqlInfo tags
 - [ ] Validate Info references
+- [ ] Do we need contextReferences in snapshot anymore?

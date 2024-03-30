@@ -1,0 +1,20 @@
+-----------------
+INPUT
+----------------- 
+import { Info } from "../../../Types";
+
+/** @gqlType */
+class User {
+  /** @gqlField */
+  greeting({ fieldName }: Info): string {
+    return `Hello from ${fieldName}!`;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/info/infoDestructured.ts:6:12 - error: Expected GraphQL field argument to have a name. For example: `someField: string`. Grats uses this name to determine the argument name to use in the derived GraphQL schema.
+
+6   greeting({ fieldName }: Info): string {
+             ~~~~~~~~~~~~~
