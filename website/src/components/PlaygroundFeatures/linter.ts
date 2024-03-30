@@ -5,7 +5,7 @@ import { codegen } from "grats/src/codegen";
 import { ReportableDiagnostics } from "grats/src/utils/DiagnosticError";
 import { printSDLWithoutMetadata } from "grats/src/printSchema";
 import { linter } from "@codemirror/lint";
-import { DocumentNode, GraphQLSchema, print } from "graphql";
+import { DocumentNode, GraphQLSchema } from "graphql";
 import GRATS_TYPE_DECLARATIONS from "!!raw-loader!grats/src/Types.ts";
 import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 
