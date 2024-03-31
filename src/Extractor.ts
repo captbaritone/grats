@@ -827,7 +827,7 @@ class Extractor {
   isValidTypeNameProperty(
     member: ts.ClassElement | ts.TypeElement,
     expectedName: string,
-  ) {
+  ): boolean {
     if (
       member.name == null ||
       !ts.isIdentifier(member.name) ||
@@ -851,7 +851,7 @@ class Extractor {
   isValidTypenamePropertyDeclaration(
     node: ts.PropertyDeclaration,
     expectedName: string,
-  ) {
+  ): boolean {
     // If we have a type annotation, we ask that it be a string literal.
     // That means, that if we have one, _and_ it's valid, we're done.
     // Otherwise we fall through to the initializer check.
@@ -859,23 +859,97 @@ class Extractor {
       return this.isValidTypenamePropertyType(node.type, expectedName);
     }
     if (node.initializer == null) {
-      this.report(node.name, E.typeNameMissingInitializer());
-      return false;
-    }
-
-    if (!ts.isStringLiteral(node.initializer)) {
-      this.report(node.initializer, E.typeNameInitializeNotString());
-      return false;
-    }
-
-    if (node.initializer.text !== expectedName) {
       this.report(
-        node.initializer,
-        E.typeNameInitializerWrong(expectedName, node.initializer.text),
+        node.name,
+        E.typeNameMissingInitializer(),
+        [],
+        this.fixTypenameProperty(node, expectedName),
       );
       return false;
     }
+
+    if (!ts.isAsExpression(node.initializer)) {
+      this.report(
+        node.initializer,
+        E.typeNameInitializeNotExpression(expectedName),
+        [],
+        this.fixTypenameProperty(node, expectedName),
+      );
+      return false;
+    }
+
+    if (!ts.isStringLiteral(node.initializer.expression)) {
+      this.report(
+        node.initializer.expression,
+        E.typeNameInitializeNotString(expectedName),
+        [],
+        this.fixTypenameProperty(node, expectedName),
+      );
+      return false;
+    }
+
+    if (node.initializer.expression.text !== expectedName) {
+      this.report(
+        node.initializer.expression,
+        E.typeNameInitializerWrong(
+          expectedName,
+          node.initializer.expression.text,
+        ),
+        [],
+        this.fixTypenameProperty(node, expectedName),
+      );
+      return false;
+    }
+
+    if (!ts.isTypeReferenceNode(node.initializer.type)) {
+      this.report(
+        node.initializer.type,
+        E.typeNameTypeNotReferenceNode(expectedName),
+        [],
+        this.fixTypenameProperty(node, expectedName),
+      );
+      return false;
+    }
+
+    if (!ts.isIdentifier(node.initializer.type.typeName)) {
+      this.report(
+        node.initializer.type.typeName,
+        E.typeNameTypeNameNotIdentifier(expectedName),
+        [],
+        this.fixTypenameProperty(node, expectedName),
+      );
+      return false;
+    }
+
+    if (node.initializer.type.typeName.escapedText !== "const") {
+      this.report(
+        node.initializer.type.typeName,
+        E.typeNameTypeNameNotConst(expectedName),
+        [],
+        this.fixTypenameProperty(node, expectedName),
+      );
+      return false;
+    }
+
     return true;
+  }
+
+  fixTypenameProperty(node: ts.Node, expectedName: string): ts.CodeFixAction {
+    return {
+      fixName: "fix-typename-property",
+      description: "Create Grats-compatible `__typename` property",
+      changes: [
+        Act.replaceNode(node, `__typename = "${expectedName}" as const;`),
+      ],
+    };
+  }
+
+  fixTypenameType(node: ts.Node, expectedName: string): ts.CodeFixAction {
+    return {
+      fixName: "fix-typename-type",
+      description: "Create Grats-compatible `__typename` type",
+      changes: [Act.replaceNode(node, `"${expectedName}"`)],
+    };
   }
 
   isValidTypenamePropertySignature(
@@ -883,7 +957,11 @@ class Extractor {
     expectedName: string,
   ) {
     if (node.type == null) {
-      this.report(node, E.typeNameMissingTypeAnnotation(expectedName));
+      this.report(node, E.typeNameMissingTypeAnnotation(expectedName), [], {
+        fixName: "add-typename-type",
+        description: "Add Grats-compatible `__typename` type",
+        changes: [Act.suffixNode(node, `: "${expectedName}"`)],
+      });
       return false;
     }
     return this.isValidTypenamePropertyType(node.type, expectedName);
@@ -891,11 +969,21 @@ class Extractor {
 
   isValidTypenamePropertyType(node: ts.TypeNode, expectedName: string) {
     if (!ts.isLiteralTypeNode(node) || !ts.isStringLiteral(node.literal)) {
-      this.report(node, E.typeNameTypeNotStringLiteral(expectedName));
+      this.report(
+        node,
+        E.typeNameTypeNotStringLiteral(expectedName),
+        [],
+        this.fixTypenameType(node, expectedName),
+      );
       return false;
     }
     if (node.literal.text !== expectedName) {
-      this.report(node, E.typeNameDoesNotMatchExpected(expectedName));
+      this.report(
+        node,
+        E.typeNameDoesNotMatchExpected(expectedName),
+        [],
+        this.fixTypenameType(node, expectedName),
+      );
       return false;
     }
     return true;

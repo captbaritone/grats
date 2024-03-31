@@ -6,21 +6,21 @@ export default class SomeType {
 
 /** @gqlType */
 class User {
-  __typename = "User";
+  __typename = "User" as const;
   /** @gqlField */
   name: string;
 }
 
 /** @gqlType */
 class Entity {
-  __typename = "Entity";
+  __typename = "Entity" as const;
   /** @gqlField */
   description: string;
 }
 
 /** @gqlType */
 class Admin {
-  __typename = "Admin";
+  __typename = "Admin" as const;
   /** @gqlField */
   description: string;
 }

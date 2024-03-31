@@ -15,14 +15,14 @@ type MyUnion = User | Post;
 
 /** @gqlType */
 class User {
-  __typename: "User";
+  __typename: "User" as const;
   /** @gqlField */
   name: string;
 }
 
 /** @gqlType */
 class Post {
-  __typename: "Post";
+  __typename: "Post" as const;
   /** @gqlField */
   content: string;
 
@@ -36,5 +36,5 @@ All the types referenced in the TypeScript union but be explicitly annotated wit
 :::
 
 :::note
-Grats will remind you to add a `__typename: "MyType"` property to all the types which are members of a union.
+Grats will remind you to add a `__typename: "MyType" as const` property to all the types which are members of a union.
 :::

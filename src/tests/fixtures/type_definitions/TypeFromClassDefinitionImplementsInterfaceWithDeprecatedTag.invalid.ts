@@ -9,7 +9,7 @@ interface Person {
  * @gqlImplements Person
  */
 export default class User {
-  readonly __typename = "User";
+  readonly __typename = "User" as const;
   /** @gqlField */
   hello: string;
 }

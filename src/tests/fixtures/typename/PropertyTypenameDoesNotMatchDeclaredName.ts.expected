@@ -3,7 +3,7 @@ INPUT
 ----------------- 
 /** @gqlType User */
 export class UserModel {
-  __typename = "UserModel";
+  __typename = "UserModel" as const;
   /** @gqlField */
   name: string = "Alice";
 }
@@ -11,7 +11,19 @@ export class UserModel {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/typename/PropertyTypenameDoesNotMatchDeclaredName.ts:3:16 - error: Expected `__typename` property initializer to be `"User"`, found `"UserModel"`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.
+-- Error Report --
+src/tests/fixtures/typename/PropertyTypenameDoesNotMatchDeclaredName.ts:3:16 - error: Expected `__typename` property initializer to be `"User"`, found `"UserModel"`. This is needed to ensure Grats can determine the type of this object during GraphQL execution.
 
-3   __typename = "UserModel";
+3   __typename = "UserModel" as const;
                  ~~~~~~~~~~~
+
+
+-- Code Action: "Create Grats-compatible `__typename` property" (fix-typename-property) --
+- Original
++ Fixed
+
+@@ -2,3 +2,3 @@
+  export class UserModel {
+-   __typename = "UserModel" as const;
++   __typename = "User" as const;
+    /** @gqlField */
