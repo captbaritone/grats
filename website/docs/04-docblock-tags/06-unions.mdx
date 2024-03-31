@@ -15,14 +15,14 @@ type MyUnion = User | Post;
 
 /** @gqlType */
 class User {
-  __typename: "User" as const;
+  __typename: "User";
   /** @gqlField */
   name: string;
 }
 
 /** @gqlType */
 class Post {
-  __typename: "Post" as const;
+  __typename: "Post";
   /** @gqlField */
   content: string;
 
