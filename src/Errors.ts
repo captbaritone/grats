@@ -152,30 +152,44 @@ export function typeNameNotDeclaration() {
 }
 
 const TYPENAME_CONTEXT =
-  "This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.";
+  "This is needed to ensure Grats can determine the type of this object during GraphQL execution.";
+
+function _typeNamePropertyExample(expectedName: string): string {
+  return `For example: \`__typename = "${expectedName}" as const\` or \`__typename: "${expectedName}";\`.`;
+}
 
 export function typeNameMissingInitializer() {
-  return `Expected \`__typename\` property to have an initializer or a string literal type. For example: \`__typename = "MyType"\` or \`__typename: "MyType";\`. ${TYPENAME_CONTEXT}`;
+  return `Expected \`__typename\` property to have an initializer or a string literal type.  ${TYPENAME_CONTEXT}`;
 }
 
-export function typeNameInitializeNotString() {
-  return `Expected \`__typename\` property initializer to be a string literal. For example: \`__typename = "MyType"\` or \`__typename: "MyType";\`. ${TYPENAME_CONTEXT}`;
+export function typeNameInitializeNotString(expectedName: string) {
+  return `Expected \`__typename\` property initializer to be a string literal. ${_typeNamePropertyExample(
+    expectedName,
+  )} ${TYPENAME_CONTEXT}`;
 }
 
-export function typeNameInitializeNotExpression(expected: string) {
-  return `Expected \`__typename\` property initializer to be an expression with a const assertion. For example: \`__typename = ${expected} as const\`. ${TYPENAME_CONTEXT}`;
+export function typeNameInitializeNotExpression(expectedName: string) {
+  return `Expected \`__typename\` property initializer to be an expression with a const assertion. ${_typeNamePropertyExample(
+    expectedName,
+  )} ${TYPENAME_CONTEXT}`;
 }
 
-export function typeNameTypeNotReferenceNode(expected) {
-  return `Expected \`__typename\` property must be correctly defined. For example: \`__typename = ${expected} as const\`. ${TYPENAME_CONTEXT}`;
+export function typeNameTypeNotReferenceNode(expectedName: string) {
+  return `Expected \`__typename\` property must be correctly defined. ${_typeNamePropertyExample(
+    expectedName,
+  )} ${TYPENAME_CONTEXT}`;
 }
 
-export function typeNameTypeNameNotIdentifier(expected) {
-  return `Expected \`__typename\` property name must be correctly specified. For example: \`__typename = ${expected} as const\`. ${TYPENAME_CONTEXT}`;
+export function typeNameTypeNameNotIdentifier(expectedName: string) {
+  return `Expected \`__typename\` property name must be correctly specified. ${_typeNamePropertyExample(
+    expectedName,
+  )} ${TYPENAME_CONTEXT}`;
 }
 
-export function typeNameTypeNameNotConst() {
-  return `Expected \`__typename\` property type name to be "const". ${TYPENAME_CONTEXT}`;
+export function typeNameTypeNameNotConst(expectedName: string) {
+  return `Expected \`__typename\` property type name to be "const". ${_typeNamePropertyExample(
+    expectedName,
+  )} ${TYPENAME_CONTEXT}`;
 }
 
 export function typeNameInitializerWrong(expected: string, actual: string) {
