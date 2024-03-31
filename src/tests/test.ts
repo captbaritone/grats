@@ -7,11 +7,18 @@ import {
 import * as ts from "typescript";
 import {
   buildASTSchema,
+  DocumentNode,
   graphql,
   GraphQLSchema,
+  Kind,
+  OperationDefinitionNode,
+  parse,
   print,
   printSchema,
   specifiedScalarTypes,
+  TypeInfo,
+  visit,
+  visitWithTypeInfo,
 } from "graphql";
 import { Command } from "commander";
 import { locate } from "../Locate";
@@ -28,6 +35,7 @@ import {
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
 import { applySDLHeader, applyTypeScriptHeader } from "../printSchema";
 import { extend } from "../utils/helpers";
+import { persist } from "../persist";
 
 const TS_VERSION = ts.version;
 
@@ -72,6 +80,7 @@ program
 const gratsDir = path.join(__dirname, "../..");
 const fixturesDir = path.join(__dirname, "fixtures");
 const integrationFixturesDir = path.join(__dirname, "integrationFixtures");
+const persistFixturesDir = path.join(__dirname, "persistFixtures");
 
 const testDirs = [
   {
@@ -171,6 +180,50 @@ const testDirs = [
 
         return `-- SDL --\n${sdl}\n-- TypeScript --\n${executableSchema}`;
       }
+    },
+  },
+  {
+    fixturesDir: persistFixturesDir,
+    testFilePattern: /\.ts$/,
+    ignoreFilePattern: null,
+    transformer: async (code, fileName): Promise<string | false> => {
+      const firstLine = code.split("\n")[0];
+      let options: Partial<ConfigOptions> = {
+        nullableByDefault: true,
+      };
+      if (firstLine.startsWith("// {")) {
+        const json = firstLine.slice(3);
+        const testOptions = JSON.parse(json);
+        options = { ...options, ...testOptions };
+      }
+      const filePath = `${persistFixturesDir}/${fileName}`;
+
+      const files = [filePath, path.join(__dirname, `../Types.ts`)];
+      const parsedOptions: ParsedCommandLineGrats = validateGratsOptions({
+        options: {
+          // Required to enable ts-node to locate function exports
+          rootDir: gratsDir,
+          outDir: "dist",
+          configFilePath: "tsconfig.json",
+        },
+        raw: {
+          grats: options,
+        },
+        errors: [],
+        fileNames: files,
+      });
+      const schemaResult = buildSchemaAndDocResult(parsedOptions);
+      if (schemaResult.kind === "ERROR") {
+        throw new Error(schemaResult.err.formatDiagnosticsWithContext());
+      }
+
+      const module = await import(filePath);
+      const operation = parse(module.OPERATION);
+      const first = operation.definitions[0];
+      if (!first || first.kind !== Kind.OPERATION_DEFINITION) {
+        throw new Error("Expected an operation definition");
+      }
+      return persist(schemaResult.value.schema, filePath, first);
     },
   },
   {
@@ -342,3 +395,23 @@ function formatDiagnosticsWithContext(
 }
 
 program.parse();
+
+function persistOperation(schema: GraphQLSchema, operation: DocumentNode) {
+  const persister = new OperationPersister(schema);
+  for (const def of operation.definitions) {
+    if (def.kind !== Kind.OPERATION_DEFINITION) {
+      throw new Error("Expected an operation definition");
+    }
+    persister.operation(def);
+  }
+
+  return;
+}
+
+class OperationPersister {
+  typeInfo: TypeInfo;
+  constructor(private schema: GraphQLSchema) {
+    this.typeInfo = new TypeInfo(schema);
+  }
+  operation(operation: OperationDefinitionNode) {}
+}
