@@ -14,4 +14,4 @@ OUTPUT
 src/tests/fixtures/typename/PropertyTypenameDoesNotMatchClassName.ts:3:16 - error: Expected `__typename` property initializer to be `"User"`, found `"Group"`. This lets Grats know that the GraphQL executor will be able to derive the type of the object at runtime.
 
 3   __typename = "Group" as const;
-                 ~~~~~~~~~~~~~~~~
+                 ~~~~~~~

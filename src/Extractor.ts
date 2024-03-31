@@ -864,30 +864,42 @@ class Extractor {
     }
 
     if (!ts.isAsExpression(node.initializer)) {
-      this.report(node.initializer, E.typeNameInitializeNotExpression(node.initializer.getText()))
+      this.report(
+        node.initializer,
+        E.typeNameInitializeNotExpression(node.initializer.getText()),
+      );
       return false;
     }
 
     if (!ts.isStringLiteral(node.initializer.expression)) {
       this.report(node.initializer.expression, E.typeNameInitializeNotString());
-      return false
+      return false;
     }
 
     if (node.initializer.expression.text !== expectedName) {
       this.report(
-        node.initializer,
-        E.typeNameInitializerWrong(expectedName, node.initializer.expression.text),
+        node.initializer.expression,
+        E.typeNameInitializerWrong(
+          expectedName,
+          node.initializer.expression.text,
+        ),
       );
-      return false
+      return false;
     }
 
     if (!ts.isTypeReferenceNode(node.initializer.type)) {
-      this.report(node.initializer.type, E.typeNameTypeNotReferenceNode(node.initializer.getText()));
+      this.report(
+        node.initializer.type,
+        E.typeNameTypeNotReferenceNode(node.initializer.getText()),
+      );
       return false;
     }
 
     if (!ts.isIdentifier(node.initializer.type.typeName)) {
-      this.report(node.initializer.type.typeName, E.typeNameTypeNameNotIdentifier(node.initializer.getText()));
+      this.report(
+        node.initializer.type.typeName,
+        E.typeNameTypeNameNotIdentifier(node.initializer.getText()),
+      );
       return false;
     }
 
