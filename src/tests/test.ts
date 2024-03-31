@@ -19,7 +19,6 @@ import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError";
 import { writeFileSync } from "fs";
 import { codegen } from "../codegen";
 import { diff } from "jest-diff";
-import { METADATA_DIRECTIVE_NAMES } from "../metadataDirectives";
 import * as semver from "semver";
 import {
   ConfigOptions,
@@ -28,6 +27,7 @@ import {
 } from "../gratsConfig";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
 import { applySDLHeader, applyTypeScriptHeader } from "../printSchema";
+import { extend } from "../utils/helpers";
 
 const TS_VERSION = ts.version;
 
@@ -44,7 +44,8 @@ program
     "-f, --filter <FILTER_REGEX>",
     "A regex to filter the tests to run. Only tests with a file path matching the regex will be run.",
   )
-  .action(async ({ filter, write }) => {
+  .option("-i, --interactive", "Run tests in interactive mode.")
+  .action(async ({ filter, write, interactive }) => {
     const filterRegex = filter ?? null;
     let failures = false;
     for (const {
@@ -61,7 +62,7 @@ program
         ignoreFilePattern,
         transformer,
       );
-      failures = !(await runner.run()) || failures;
+      failures = !(await runner.run({ interactive })) || failures;
     }
     if (failures) {
       process.exit(1);
@@ -71,7 +72,6 @@ program
 const gratsDir = path.join(__dirname, "../..");
 const fixturesDir = path.join(__dirname, "fixtures");
 const integrationFixturesDir = path.join(__dirname, "integrationFixtures");
-const codeActionFixturesDir = path.join(__dirname, "codeActions");
 
 const testDirs = [
   {
@@ -130,7 +130,7 @@ const testDirs = [
         compilerHost,
       );
       if (schemaResult.kind === "ERROR") {
-        return schemaResult.err.formatDiagnosticsWithContext();
+        return formatDiagnosticsWithContext(code, schemaResult.err);
       }
 
       const { schema, doc } = schemaResult.value;
@@ -156,9 +156,6 @@ const testDirs = [
         const docSansDirectives = {
           ...doc,
           definitions: doc.definitions.filter((def) => {
-            if (def.kind === "DirectiveDefinition") {
-              return !METADATA_DIRECTIVE_NAMES.has(def.name.value);
-            }
             if (def.kind === "ScalarTypeDefinition") {
               return !specifiedScalarTypes.some(
                 (scalar) => scalar.name === def.name.value,
@@ -174,119 +171,6 @@ const testDirs = [
 
         return `-- SDL --\n${sdl}\n-- TypeScript --\n${executableSchema}`;
       }
-    },
-  },
-  {
-    fixturesDir: codeActionFixturesDir,
-    testFilePattern: /\.ts$/,
-    ignoreFilePattern: null,
-    transformer: async (
-      code: string,
-      fileName: string,
-    ): Promise<string | false> => {
-      const firstLine = code.split("\n")[0];
-      let options: Partial<ConfigOptions> = {
-        nullableByDefault: true,
-        schemaHeader: null,
-        tsSchemaHeader: null,
-      };
-      if (firstLine.startsWith("// {")) {
-        const json = firstLine.slice(3);
-        const { tsVersion, ...testOptions } = JSON.parse(json);
-        if (tsVersion != null && !semver.satisfies(TS_VERSION, tsVersion)) {
-          console.log(
-            "Skipping test because TS version doesn't match",
-            tsVersion,
-            "does not match",
-            TS_VERSION,
-          );
-          return false;
-        }
-        options = { ...options, ...testOptions };
-      }
-
-      const filePath = `${codeActionFixturesDir}/${fileName}`;
-
-      const files = [filePath, path.join(__dirname, `../Types.ts`)];
-      let parsedOptions: ParsedCommandLineGrats;
-      try {
-        parsedOptions = validateGratsOptions({
-          options: {},
-          raw: {
-            grats: options,
-          },
-          errors: [],
-          fileNames: files,
-        });
-      } catch (e) {
-        return e.message;
-      }
-
-      // https://stackoverflow.com/a/66604532/1263117
-      const compilerHost = ts.createCompilerHost(
-        parsedOptions.options,
-        /* setParentNodes this is needed for finding jsDocs */
-        true,
-      );
-
-      const schemaResult = buildSchemaAndDocResultWithHost(
-        parsedOptions,
-        compilerHost,
-      );
-      if (schemaResult.kind !== "ERROR") {
-        throw new Error("Expected an error for code action test.");
-      }
-
-      if (schemaResult.err._diagnostics.length !== 1) {
-        throw new Error(
-          "FIXME! Expected exactly one error for code action test.",
-        );
-      }
-      const diagnostic = schemaResult.err._diagnostics[0];
-      if (diagnostic.fix == null) {
-        throw new Error(
-          "FIXME! Expected a fixable diagnostic for code action test.",
-        );
-      }
-      const changes = diagnostic.fix.changes;
-      if (changes.length !== 1) {
-        throw new Error(
-          "FIXME! Expected exactly one change for code action test.",
-        );
-      }
-      const change = changes[0];
-      if (!change.fileName.endsWith(filePath)) {
-        throw new Error(
-          "FIXME! Expected the change to be in the same file as the diagnostic.",
-        );
-      }
-      const textChanges = change.textChanges;
-      if (textChanges.length !== 1) {
-        throw new Error(
-          "FIXME! Expected exactly one text change for code action test.",
-        );
-      }
-
-      const head = code.slice(0, textChanges[0].span.start);
-      const tail = code.slice(
-        textChanges[0].span.start + textChanges[0].span.length,
-      );
-
-      const newCode = `${head}${textChanges[0].newText}${tail}`;
-
-      const noColor = (str: string) => str;
-
-      const diffOptions = {
-        aColor: noColor,
-        bColor: noColor,
-        changeColor: noColor,
-        commonColor: noColor,
-        patchColor: noColor,
-        contextLines: 3,
-        expand: false,
-      };
-
-      return diff(code, newCode, diffOptions) ?? "No diff";
     },
   },
   {
@@ -385,13 +269,76 @@ function printSDLFromSchemaWithoutDirectives(schema: GraphQLSchema): string {
     new GraphQLSchema({
       ...schema.toConfig(),
       directives: schema.getDirectives().filter((directive) => {
-        return (
-          !METADATA_DIRECTIVE_NAMES.has(directive.name) &&
-          directive.name !== SEMANTIC_NON_NULL_DIRECTIVE
-        );
+        return directive.name !== SEMANTIC_NON_NULL_DIRECTIVE;
       }),
     }),
   );
+}
+
+function formatDiagnosticsWithContext(
+  code: string,
+  diagnostics: ReportableDiagnostics,
+): string {
+  const formatted = diagnostics.formatDiagnosticsWithContext();
+
+  const actions: {
+    fixName: string;
+    description: string;
+    diff: string;
+  }[] = [];
+
+  for (const diagnostic of diagnostics._diagnostics) {
+    if (diagnostic.fix == null) {
+      continue;
+    }
+    const textChanges: ts.TextChange[] = [];
+    for (const change of diagnostic.fix.changes) {
+      extend(textChanges, change.textChanges);
+    }
+    let newCode = code;
+    // Process edits in reverse to avoid changing the span of subsequent edits
+    const reversed = textChanges.slice();
+    reversed.sort((a, b) => b.span.start - a.span.start);
+    for (const textChange of reversed) {
+      const head = newCode.slice(0, textChange.span.start);
+      const tail = newCode.slice(
+        textChange.span.start + textChange.span.length,
+      );
+      newCode = `${head}${textChange.newText}${tail}`;
+    }
+    const noColor = (str: string) => str;
+
+    const diffOptions = {
+      aAnnotation: "Original",
+      bAnnotation: "Fixed",
+      aColor: noColor,
+      bColor: noColor,
+      changeColor: noColor,
+      commonColor: noColor,
+      patchColor: noColor,
+      contextLines: 1,
+      expand: false,
+    };
+
+    const diffText = diff(code, newCode, diffOptions) ?? "No diff";
+    actions.push({
+      fixName: diagnostic.fix.fixName,
+      description: diagnostic.fix.description,
+      diff: diffText,
+    });
+  }
+
+  if (actions.length === 0) {
+    return formatted;
+  }
+
+  const actionText = actions
+    .map((action) => {
+      return `-- Code Action: "${action.description}" (${action.fixName}) --\n${action.diff}`;
+    })
+    .join("\n");
+
+  return `-- Error Report --\n${formatted}\n${actionText}`;
 }
 
 program.parse();

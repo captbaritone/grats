@@ -13,8 +13,18 @@ type Foo = {
 -----------------
 OUTPUT
 -----------------
+-- Error Report --
 src/tests/fixtures/user_error/KillsParentOnExceptionOnNonField.invalid.ts:1:6 - error: Unexpected `@killsParentOnException`. `@killsParentOnException` can only be used in field annotation docblocks. Perhaps you are missing a `@gqlField` tag?
 
 1 /** @killsParentOnException */
        ~~~~~~~~~~~~~~~~~~~~~~
 
+
+-- Code Action: "Remove @killsParentOnException tag" (remove-kills-parent-on-exception) --
+- Original
++ Fixed
+
+@@ -1,2 +1,2 @@
+- /** @killsParentOnException */
++ /** */
+  const foo = "bar";

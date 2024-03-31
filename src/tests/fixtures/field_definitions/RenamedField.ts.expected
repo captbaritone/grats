@@ -17,8 +17,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String @metadata(name: "somePropertyField")
-  salutaion: String @metadata(argCount: 0, name: "someMethodField")
+  greeting: String
+  salutaion: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
@@ -30,15 +30,15 @@ export function getSchema(): GraphQLSchema {
                 greeting: {
                     name: "greeting",
                     type: GraphQLString,
-                    resolve(source, args, context, info) {
+                    resolve(source) {
                         return source.somePropertyField;
                     }
                 },
                 salutaion: {
                     name: "salutaion",
                     type: GraphQLString,
-                    resolve(source, args, context, info) {
-                        return source.someMethodField(source, args, context, info);
+                    resolve(source) {
+                        return source.someMethodField();
                     }
                 }
             };

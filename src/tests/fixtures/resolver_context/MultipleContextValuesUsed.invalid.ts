@@ -1,7 +1,9 @@
+/** @gqlContext */
 type GratsContext = {
   greeting: string;
 };
 
+/** @gqlContext */
 type AlsoGratsContext = {
   greeting: string;
 };

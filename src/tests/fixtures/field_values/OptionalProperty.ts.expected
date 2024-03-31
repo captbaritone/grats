@@ -12,7 +12,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  hello: String @metadata
+  hello: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

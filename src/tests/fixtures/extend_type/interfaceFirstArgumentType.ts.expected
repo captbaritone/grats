@@ -23,12 +23,12 @@ OUTPUT
 -----------------
 -- SDL --
 interface IFoo {
-  bar: String @metadata
+  bar: String
   greeting: String
 }
 
 type SomeType {
-  foo: String @metadata
+  foo: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";

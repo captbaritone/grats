@@ -5,7 +5,7 @@ import { codegen } from "grats/src/codegen";
 import { ReportableDiagnostics } from "grats/src/utils/DiagnosticError";
 import { printSDLWithoutMetadata } from "grats/src/printSchema";
 import { linter } from "@codemirror/lint";
-import { DocumentNode, GraphQLSchema, print } from "graphql";
+import { DocumentNode, GraphQLSchema } from "graphql";
 import GRATS_TYPE_DECLARATIONS from "!!raw-loader!grats/src/Types.ts";
 import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 
@@ -65,7 +65,7 @@ function buildSchemaResultWithFsMap(fsMap, text: string, config) {
   }
 }
 
-export function createLinter(fsMap, view, config) {
+export function createLinter(fsMap, config) {
   return linter((codeMirrorView) => {
     const text = codeMirrorView.viewState.state.doc.toString();
 
@@ -101,7 +101,7 @@ export function createLinter(fsMap, view, config) {
     }
 
     const codegenOutput = computeCodegenOutput(result.value.schema);
-    const output = computeOutput(result.value.doc, view);
+    const output = computeOutput(result.value.doc);
 
     store.dispatch({
       type: "GRATS_EMITTED_NEW_RESULT",
@@ -113,14 +113,8 @@ export function createLinter(fsMap, view, config) {
   });
 }
 
-function computeOutput(
-  doc: DocumentNode,
-  view: { showGratsDirectives: boolean },
-): string {
-  if (!view.showGratsDirectives) {
-    return printSDLWithoutMetadata(doc);
-  }
-  return print(doc);
+function computeOutput(doc: DocumentNode): string {
+  return printSDLWithoutMetadata(doc);
 }
 
 function computeCodegenOutput(schema: GraphQLSchema): string {
@@ -135,22 +129,23 @@ function commentLines(text: string): string {
 }
 
 function gratsFixToCodeMirrorAction(fix) {
-  const change = fix.changes[0]?.textChanges[0];
-  if (change == null) {
+  const changes = [];
+  for (const tsChange of fix.changes) {
+    for (const textChange of tsChange.textChanges) {
+      changes.push({
+        from: textChange.span.start,
+        to: textChange.span.start + textChange.span.length,
+        insert: textChange.newText,
+      });
+    }
+  }
+  if (changes.length === 0) {
     return null;
   }
   return {
     name: fix.description,
     apply: (view) => {
-      view.dispatch({
-        changes: [
-          {
-            from: change.span.start,
-            to: change.span.start + change.span.length,
-            insert: change.newText,
-          },
-        ],
-      });
+      view.dispatch({ changes });
     },
   };
 }

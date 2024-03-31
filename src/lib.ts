@@ -14,7 +14,7 @@ import { concatResults, ResultPipe } from "./utils/Result";
 import { ok, err } from "./utils/Result";
 import { Result } from "./utils/Result";
 import * as ts from "typescript";
-import { ExtractionSnapshot } from "./Extractor";
+import { ContextNodeType, ExtractionSnapshot } from "./Extractor";
 import { TypeContext } from "./TypeContext";
 import { validateSDL } from "graphql/validation/validate";
 import { ParsedCommandLineGrats } from "./gratsConfig";
@@ -22,7 +22,6 @@ import { validateTypenames } from "./validations/validateTypenames";
 import { extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram";
 import { validateMergedInterfaces } from "./validations/validateMergedInterfaces";
 import { validateContextReferences } from "./validations/validateContextReferences";
-import { addMetadataDirectives } from "./metadataDirectives";
 import { addInterfaceFields } from "./transforms/addInterfaceFields";
 import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces";
 import { validateAsyncIterable } from "./validations/validateAsyncIterable";
@@ -31,6 +30,7 @@ import { mergeExtensions } from "./transforms/mergeExtensions";
 import { sortSchemaAst } from "./transforms/sortSchemaAst";
 import { validateSemanticNullability } from "./validations/validateSemanticNullability";
 import { resolveTypes } from "./transforms/resolveTypes";
+import { filterContextArgs } from "./transforms/filterContextArgs";
 
 // Export the TypeScript plugin implementation used by
 // grats-ts-plugin
@@ -88,15 +88,16 @@ export function extractSchemaAndDoc(
       // Collect validation errors
       const validationResult = concatResults(
         validateMergedInterfaces(checker, snapshot.interfaceDeclarations),
-        validateContextReferences(ctx, snapshot.contextReferences),
+        validateContextReferences(ctx, snapshot),
       );
 
+      const contextDef: ContextNodeType | null =
+        snapshot.contextDefinitions[0] ?? null;
+
       const docResult = new ResultPipe(validationResult)
-        // Add the metadata directive definitions to definitions
-        // found in the snapshot.
-        .map(() => addMetadataDirectives(snapshot.definitions))
         // Filter out any `implements` clauses that are not GraphQL interfaces.
-        .map((definitions) => filterNonGqlInterfaces(ctx, definitions))
+        .map(() => filterNonGqlInterfaces(ctx, snapshot.definitions))
+        .map((definitions) => filterContextArgs(ctx, definitions, contextDef))
         .andThen((definitions) => resolveTypes(ctx, definitions))
         // If you define a field on an interface using the functional style, we need to add
         // that field to each concrete type as well. This must be done after all types are created,
@@ -167,6 +168,7 @@ function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
     nameDefinitions: new Map(),
     unresolvedNames: new Map(),
     contextReferences: [],
+    contextDefinitions: [],
     typesWithTypename: new Set(),
     interfaceDeclarations: [],
   };
@@ -186,6 +188,10 @@ function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
 
     for (const contextReference of snapshot.contextReferences) {
       result.contextReferences.push(contextReference);
+    }
+
+    for (const contextDefinition of snapshot.contextDefinitions) {
+      result.contextDefinitions.push(contextDefinition);
     }
 
     for (const typeName of snapshot.typesWithTypename) {

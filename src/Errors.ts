@@ -11,6 +11,7 @@ import {
   TYPE_TAG,
   UNION_TAG,
   SPECIFIED_BY_TAG,
+  CONTEXT_TAG,
 } from "./Extractor";
 
 export const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
@@ -196,7 +197,7 @@ export function typeNameDoesNotMatchExpected(expected: string) {
 
 // TODO: Add code action
 export function argumentParamIsMissingType() {
-  return "Expected GraphQL field arguments to have an explicit type annotation. If there are no arguments, you can use `args: unknown`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
+  return "Expected GraphQL field arguments to have an explicit type annotation. If there are no arguments, you may omit the args argument. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
 }
 
 export function argumentParamIsNotObject() {
@@ -208,7 +209,11 @@ export function argIsNotProperty() {
 }
 
 export function argNameNotLiteral() {
-  return "Expected GraphQL field argument names to be a literal. For example: `{ someField: string }`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
+  return "Expected GraphQL field argument to have a name. For example: `{ someField: string }`. Grats needs to be able to see the name of the arguments to generate a GraphQL schema.";
+}
+
+export function positionalArgNameNotLiteral() {
+  return "Expected GraphQL field argument to have a name. For example: `someField: string`. Grats uses this name to determine the argument name to use in the derived GraphQL schema.";
 }
 
 export function argNotTyped() {
@@ -281,7 +286,7 @@ export function unsupportedTypeLiteral() {
 }
 
 export function unknownGraphQLType() {
-  return `Unknown GraphQL type. Grats doe not know how to map this type to a GraphQL type. You may want to define a named GraphQL type elsewhere and reference it here. If you think Grats should be able to infer a GraphQL type from this type, please file an issue.`;
+  return `Unknown GraphQL type. Grats does not know how to resolve this to a GraphQL type. You may want to define a named GraphQL type elsewhere and reference it here. If you think Grats should be able to infer a GraphQL type from this type, please file an issue.`;
 }
 
 export function pluralTypeMissingParameter() {
@@ -348,7 +353,6 @@ export function parameterWithoutModifiers() {
   ].join("");
 }
 
-// TODO: Add code action
 export function parameterPropertyNotPublic() {
   return [
     `Expected \`@${FIELD_TAG}\` parameter property to be public. Valid modifiers for \`@${FIELD_TAG}\` parameter properties are  \`public\` and \`readonly\`.\n\n`,
@@ -362,6 +366,11 @@ export function parameterPropertyMissingType() {
 
 export function invalidTypePassedToFieldFunction() {
   return `Unexpected type passed to \`@${FIELD_TAG}\` function. \`@${FIELD_TAG}\` functions can only be used to extend \`@${TYPE_TAG}\` and \`@${INTERFACE_TAG}\` types.`;
+}
+
+// TODO: Add code action
+export function unannotatedTypeReference() {
+  return "Expected a reference to a declaration with a `@gql*` docblock. Grats needs to determine which GraphQL type is being referenced in this location. This requires being able to resolve type references to their `@gql` annotated declaration.";
 }
 
 export function unresolvedTypeReference() {
@@ -394,6 +403,15 @@ export function multipleContextTypes() {
   return "Context argument's type does not match. Grats expects all resolvers that read the context argument to use the same type for that argument. Did you use the incorrect type in one of your resolvers?";
 }
 
+export function contextTagOnWrongNode() {
+  // TODO: Word this better
+  return `Expected \`@${CONTEXT_TAG}\` tag to be applied to a type alias declaration..`;
+}
+
+export function multipleContextDefinitions() {
+  return `Unexpected multiple \`@${CONTEXT_TAG}\` definitions. Only one type may be annotated with \`@${CONTEXT_TAG}\` in a Grats project.`;
+}
+
 export function graphQLNameHasLeadingNewlines(
   name: string,
   tagName: string,
@@ -405,27 +423,22 @@ export function graphQLTagNameHasWhitespace(tagName: string): string {
   return `Expected text following a \`@${tagName}\` tag to be a GraphQL name. If you intended this text to be a description, place it at the top of the docblock before any \`@tags\`.`;
 }
 
-// TODO: Add code action
 export function subscriptionFieldNotAsyncIterable() {
   return "Expected fields on `Subscription` to return an `AsyncIterable`. Fields on `Subscription` model a subscription, which is a stream of events. Grats expects fields on `Subscription` to return an `AsyncIterable` which can be used to model this stream.";
 }
 
-// TODO: Add code action
 export function operationTypeNotUnknown() {
   return "Operation types `Query`, `Mutation`, and `Subscription` must be defined as type aliases of `unknown`. E.g. `type Query = unknown`. This is because GraphQL servers do not have an agreed upon way to produce root values, and Grats errs on the side of safety. If you are trying to implement dependency injection, consider using the `context` argument passed to each resolver instead. If you have a strong use case for a concrete root value, please file an issue.";
 }
 
-// TODO: Add code action
 export function expectedNullableArgumentToBeOptional() {
   return "Expected nullable argument to _also_ be optional (`?`). graphql-js may omit properties on the argument object where an undefined GraphQL variable is passed, or if the argument is omitted in the operation text. To ensure your resolver is capable of handing this scenario, add a `?` to the end of the argument name to make it optional. e.g. `{greeting?: string | null}`";
 }
 
-// TODO: Add code action
 export function gqlTagInLineComment() {
   return `Unexpected Grats tag in line (\`//\`) comment. Grats looks for tags in JSDoc-style block comments. e.g. \`/** @gqlType */\`. For more information see: ${DOC_URLS.commentSyntax}`;
 }
 
-// TODO: Add code action
 export function gqlTagInNonJSDocBlockComment() {
   return `Unexpected Grats tag in non-JSDoc-style block comment. Grats only looks for tags in JSDoc-style block comments which start with \`/**\`. For more information see: ${DOC_URLS.commentSyntax}`;
 }
@@ -434,7 +447,6 @@ export function gqlTagInDetachedJSDocBlockComment() {
   return `Unexpected Grats tag in detached docblock. Grats was unable to determine which TypeScript declaration this docblock is associated with. Moving the docblock to a position with is unambiguously "above" the relevant declaration may help. For more information see: ${DOC_URLS.commentSyntax}`;
 }
 
-// TODO: Add code action
 export function gqlFieldTagOnInputType() {
   return `The tag \`@${FIELD_TAG}\` is not needed on fields of input types. All fields are automatically included as part of the input type. This tag can be safely removed.`;
 }
@@ -483,12 +495,10 @@ export function invalidFieldNonPublicAccessModifier(): string {
   return `Unexpected access modifier on \`@${FIELD_TAG}\` method. GraphQL fields must be able to be called by the GraphQL executor.`;
 }
 
-// TODO: Add code action
 export function invalidStaticModifier(): string {
   return `Unexpected \`static\` modifier on non-method \`@${FIELD_TAG}\`. \`static\` is only valid on method signatures.`;
 }
 
-// TODO: Add code action
 export function staticMethodOnNonClass(): string {
   return `Unexpected \`@${FIELD_TAG}\` \`static\` method on non-class declaration. Static method fields may only be declared on exported class declarations.`;
 }

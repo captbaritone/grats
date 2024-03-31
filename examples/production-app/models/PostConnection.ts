@@ -29,6 +29,6 @@ export async function posts(
   ctx: Ctx,
 ): Promise<Connection<Post>> {
   const rows = await DB.selectPosts(ctx.vc);
-  const posts = rows.map((row) => new Post(row));
+  const posts = rows.map((row) => new Post(ctx.vc, row));
   return connectionFromArray(posts, args);
 }

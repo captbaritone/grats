@@ -1,13 +1,9 @@
 import DataLoader from "dataloader";
-import {
-  LikeRow,
-  PostRow,
-  UserRow,
-  getPostsByIds,
-  getUsersByIds,
-  getLikesByIds,
-} from "./Database";
+import { getPostsByIds, getUsersByIds, getLikesByIds } from "./Database";
 import { YogaInitialContext } from "graphql-yoga";
+import { Post } from "./models/Post";
+import { User } from "./models/User";
+import { Like } from "./models/Like";
 
 /**
  * Viewer Context
@@ -20,22 +16,22 @@ import { YogaInitialContext } from "graphql-yoga";
  * through the entire request.
  */
 export class VC {
-  _postLoader: DataLoader<string, PostRow>;
-  _userLoader: DataLoader<string, UserRow>;
-  _likeLoader: DataLoader<string, LikeRow>;
+  _postLoader: DataLoader<string, Post>;
+  _userLoader: DataLoader<string, User>;
+  _likeLoader: DataLoader<string, Like>;
   _logs: string[] = [];
   constructor() {
     this._postLoader = new DataLoader((ids) => getPostsByIds(this, ids));
     this._userLoader = new DataLoader((ids) => getUsersByIds(this, ids));
     this._likeLoader = new DataLoader((ids) => getLikesByIds(this, ids));
   }
-  async getPostById(id: string): Promise<PostRow> {
+  async getPostById(id: string): Promise<Post> {
     return this._postLoader.load(id);
   }
-  async getUserById(id: string): Promise<UserRow> {
+  async getUserById(id: string): Promise<User> {
     return this._userLoader.load(id);
   }
-  async getLikeById(id: string): Promise<LikeRow> {
+  async getLikeById(id: string): Promise<Like> {
     return this._likeLoader.load(id);
   }
   userId(): string {
@@ -49,4 +45,5 @@ export class VC {
   }
 }
 
+/**  @gqlContext */
 export type Ctx = YogaInitialContext & { vc: VC };

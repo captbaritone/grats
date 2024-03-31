@@ -5,13 +5,11 @@ import ConfigBar from "../../components/PlaygroundFeatures/ConfigBar";
 import Layout from "@theme/Layout";
 import store from "../../components/PlaygroundFeatures/store";
 import { Provider } from "react-redux";
-import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 
 export default function Playground(): JSX.Element {
-  const { siteConfig } = useDocusaurusContext();
   return (
-    <Layout title={`Playground | ${siteConfig.title}`} noFooter>
+    <Layout title={`Playground`} noFooter>
       <BrowserOnly>
         {() => (
           <FillRemainingHeight minHeight={300}>

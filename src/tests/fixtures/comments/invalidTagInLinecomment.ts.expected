@@ -11,7 +11,8 @@ export default class Composer {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/comments/invalidTagInLinecomment.ts:1:4 - error: `@gqlTyp` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`.
+-- Error Report --
+src/tests/fixtures/comments/invalidTagInLinecomment.ts:1:4 - error: `@gqlTyp` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`, `@gqlContext`.
 
 1 // @gqlTyp
      ~~~~~~~
@@ -19,3 +20,13 @@ src/tests/fixtures/comments/invalidTagInLinecomment.ts:1:4 - error: Unexpected G
 
 1 // @gqlTyp
      ~~~~~~~
+
+
+-- Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment) --
+- Original
++ Fixed
+
+@@ -1,2 +1,2 @@
+- // @gqlTyp
++ /** @gqlTyp */
+  export default class Composer {

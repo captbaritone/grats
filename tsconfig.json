@@ -29,7 +29,6 @@
     "node_modules",
     "dist",
     "src/tests/fixtures",
-    "src/tests/codeActions",
     "docs",
     "examples",
     "website",

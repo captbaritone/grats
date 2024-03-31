@@ -1,0 +1,57 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class User {
+  /** @gqlField */
+  name: string = "John Doe";
+}
+
+/** @gqlField */
+export function greeting(user: User, ctx: Ctx): string {
+  if (ctx.id === "1") {
+    return `Hello, ${user.name}!`;
+  } else {
+    return "Unauthorized";
+  }
+}
+
+/** @gqlContext */
+type Ctx = {
+  id: string;
+};
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type User {
+  greeting: String
+  name: String
+}
+-- TypeScript --
+import { greeting as userGreetingResolver } from "./functionPositionalContextOnly";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    resolve(source, args, context) {
+                        return userGreetingResolver(source, context);
+                    }
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [UserType]
+    });
+}

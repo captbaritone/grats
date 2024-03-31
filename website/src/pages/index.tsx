@@ -42,7 +42,7 @@ export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
-      title={`${siteConfig.title}`}
+      title={siteConfig.title}
       description="Implementation-First GraphQL for TypeScript"
     >
       <HomepageHeader />

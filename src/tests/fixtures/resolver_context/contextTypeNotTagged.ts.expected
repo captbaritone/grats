@@ -1,0 +1,34 @@
+-----------------
+INPUT
+----------------- 
+type Ctx = {};
+
+/** @gqlType */
+class User {
+  /** @gqlField */
+  greeting(_args: unknown, _ctx: Ctx): string {
+    return "Hello";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+-- Error Report --
+src/tests/fixtures/resolver_context/contextTypeNotTagged.ts:6:34 - error: Add a @gqlContext tag
+
+6   greeting(_args: unknown, _ctx: Ctx): string {
+                                   ~~~
+
+  src/tests/fixtures/resolver_context/contextTypeNotTagged.ts:1:1
+    1 type Ctx = {};
+      ~~~~~~~~~~~~~~
+    This is the type declaration
+
+-- Code Action: "Tag context declaration with @gqlContext" (add-context-tag) --
+- Original
++ Fixed
+
+@@ -1,1 +1,2 @@
++ /** @gqlContext */
+  type Ctx = {};

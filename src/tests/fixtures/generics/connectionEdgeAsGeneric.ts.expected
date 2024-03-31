@@ -46,28 +46,28 @@ OUTPUT
 -----------------
 -- SDL --
 type Page {
-  name: String @metadata
+  name: String
 }
 
 type PageEdge {
-  cursor: String @metadata
-  node: Page @metadata
+  cursor: String
+  node: Page
 }
 
 type PageEdgeConnection {
-  edges: PageEdge @metadata
-  pageInfo: PageInfo @metadata
+  edges: PageEdge
+  pageInfo: PageInfo
 }
 
 type PageInfo {
-  endCursor: String @metadata
-  hasNextPage: Boolean @metadata
-  hasPreviousPage: Boolean @metadata
-  startCursor: String @metadata
+  endCursor: String
+  hasNextPage: Boolean
+  hasPreviousPage: Boolean
+  startCursor: String
 }
 
 type User {
-  pages: PageEdgeConnection @metadata
+  pages: PageEdgeConnection
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLBoolean } from "graphql";

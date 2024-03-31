@@ -1,0 +1,57 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class User {
+  /** @gqlField */
+  name: string = "John Doe";
+  /** @gqlField */
+  greeting(
+    /** @deprecated Prefer the default value */
+    greeting: string = "Hello",
+  ): string {
+    return `${greeting}, ${this.name}!`;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type User {
+  greeting(greeting: String! = "Hello" @deprecated(reason: "Prefer the default value")): String
+  name: String
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    args: {
+                        greeting: {
+                            deprecationReason: "Prefer the default value",
+                            name: "greeting",
+                            type: new GraphQLNonNull(GraphQLString),
+                            defaultValue: "Hello"
+                        }
+                    },
+                    resolve(source, args) {
+                        return source.greeting(args.greeting);
+                    }
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [UserType]
+    });
+}

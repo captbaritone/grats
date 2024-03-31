@@ -12,7 +12,8 @@ export default class Composer {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:1:4 - error: `@GQLtYPE` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`.
+-- Error Report --
+src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:1:4 - error: `@GQLtYPE` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`, `@gqlContext`.
 
 1 // @GQLtYPE
      ~~~~~~~~
@@ -20,7 +21,8 @@ src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:1:4 - error: Unexp
 
 1 // @GQLtYPE
      ~~~~~~~~
-src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:3:6 - error: `@gqlfield` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`.
+
+src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:3:6 - error: `@gqlfield` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`, `@gqlContext`.
 
 3   // @gqlfield
        ~~~~~~~~~
@@ -28,3 +30,22 @@ src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:3:6 - error: Unexp
 
 3   // @gqlfield
        ~~~~~~~~~
+
+
+-- Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment) --
+- Original
++ Fixed
+
+@@ -1,2 +1,2 @@
+- // @GQLtYPE
++ /** @GQLtYPE */
+  export default class Composer {
+-- Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment) --
+- Original
++ Fixed
+
+@@ -2,3 +2,3 @@
+  export default class Composer {
+-   // @gqlfield
++   /** @gqlfield */
+    url(): string {

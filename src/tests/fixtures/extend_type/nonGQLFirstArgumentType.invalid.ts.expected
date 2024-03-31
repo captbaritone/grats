@@ -16,7 +16,12 @@ export function greeting(query: Foo): string {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/extend_type/nonGQLFirstArgumentType.invalid.ts:9:33 - error: Unable to resolve type reference. In order to generate a GraphQL schema, Grats needs to determine which GraphQL type is being referenced. This requires being able to resolve type references to their `@gql` annotated declaration. However this reference could not be resolved. Is it possible that this type is not defined in this file?
+src/tests/fixtures/extend_type/nonGQLFirstArgumentType.invalid.ts:9:33 - error: Expected a reference to a declaration with a `@gql*` docblock. Grats needs to determine which GraphQL type is being referenced in this location. This requires being able to resolve type references to their `@gql` annotated declaration.
 
 9 export function greeting(query: Foo): string {
                                   ~~~
+
+  src/tests/fixtures/extend_type/nonGQLFirstArgumentType.invalid.ts:6:1
+    6 class Foo {}
+      ~~~~~~~~~~~~
+    Did you mean to add a `@gql*` docblock to this declaration?

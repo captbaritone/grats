@@ -17,7 +17,7 @@ OUTPUT
 -----------------
 -- SDL --
 type User {
-  name: String @deprecated @metadata(argCount: 0, name: "graphQLName")
+  name: String @deprecated
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
@@ -30,8 +30,8 @@ export function getSchema(): GraphQLSchema {
                     deprecationReason: "No longer supported",
                     name: "name",
                     type: GraphQLString,
-                    resolve(source, args, context, info) {
-                        return source.graphQLName(source, args, context, info);
+                    resolve(source) {
+                        return source.graphQLName();
                     }
                 }
             };

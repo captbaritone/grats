@@ -1,0 +1,30 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlField */
+async function greet(_: Query): Promise<string> {
+  return "Hello, World!";
+}
+
+/** @gqlType */
+type Query = unknown;
+
+-----------------
+OUTPUT
+-----------------
+-- Error Report --
+src/tests/fixtures/field_definitions/asyncFunctionFieldNotExported.invalid.ts:2:16 - error: Expected a `@gqlField` function to be a named export. Grats needs to import resolver functions into it's generated schema module, so the resolver function must be a named export.
+
+2 async function greet(_: Query): Promise<string> {
+                 ~~~~~
+
+
+-- Code Action: "Add export keyword to function with @gqlField" (add-export-keyword-to-function) --
+- Original
++ Fixed
+
+@@ -1,3 +1,3 @@
+  /** @gqlField */
+- async function greet(_: Query): Promise<string> {
++ export async function greet(_: Query): Promise<string> {
+    return "Hello, World!";

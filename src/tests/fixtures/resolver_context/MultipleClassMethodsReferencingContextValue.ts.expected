@@ -1,6 +1,7 @@
 -----------------
 INPUT
 ----------------- 
+/** @gqlContext */
 type GratsContext = {
   greeting: string;
 };
@@ -23,8 +24,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  alsoGreeting: String @metadata(argCount: 2)
-  greeting: String @metadata(argCount: 2)
+  alsoGreeting: String
+  greeting: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

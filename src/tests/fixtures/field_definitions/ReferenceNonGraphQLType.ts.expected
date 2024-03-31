@@ -12,7 +12,12 @@ class SomeType {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/field_definitions/ReferenceNonGraphQLType.ts:6:22 - error: Unable to resolve type reference. In order to generate a GraphQL schema, Grats needs to determine which GraphQL type is being referenced. This requires being able to resolve type references to their `@gql` annotated declaration. However this reference could not be resolved. Is it possible that this type is not defined in this file?
+src/tests/fixtures/field_definitions/ReferenceNonGraphQLType.ts:6:22 - error: Expected a reference to a declaration with a `@gql*` docblock. Grats needs to determine which GraphQL type is being referenced in this location. This requires being able to resolve type references to their `@gql` annotated declaration.
 
 6   somePropertyField: SomeUndefienedType;
                        ~~~~~~~~~~~~~~~~~~
+
+  src/tests/fixtures/field_definitions/ReferenceNonGraphQLType.ts:1:1
+    1 type SomeUndefienedType = string;
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Did you mean to add a `@gql*` docblock to this declaration?

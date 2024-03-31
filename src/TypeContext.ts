@@ -10,13 +10,20 @@ import { gqlErr, DiagnosticResult, tsErr } from "./utils/DiagnosticError";
 import { err, ok } from "./utils/Result";
 import * as E from "./Errors";
 import { ExtractionSnapshot } from "./Extractor";
-import { loc } from "./utils/helpers";
+import { loc, nullThrows } from "./utils/helpers";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
 export type NameDefinition = {
   name: NameNode;
-  kind: "TYPE" | "INTERFACE" | "UNION" | "SCALAR" | "INPUT_OBJECT" | "ENUM";
+  kind:
+    | "TYPE"
+    | "INTERFACE"
+    | "UNION"
+    | "SCALAR"
+    | "INPUT_OBJECT"
+    | "ENUM"
+    | "CONTEXT";
 };
 
 type TsIdentifier = number;
@@ -101,29 +108,14 @@ export class TypeContext {
     if (unresolved.value !== UNRESOLVED_REFERENCE_NAME) {
       return ok(unresolved);
     }
-    const typeReference = this.getEntityName(unresolved);
-    if (typeReference == null) {
-      throw new Error("Unexpected unresolved reference name.");
+    const typeReference = nullThrows(this.getEntityName(unresolved));
+
+    const nameResult = this.gqlNameForTsName(typeReference);
+    if (nameResult.kind === "ERROR") {
+      return err(nameResult.err);
     }
 
-    const declarationResult = this.tsDeclarationForTsName(typeReference);
-    if (declarationResult.kind === "ERROR") {
-      return err(declarationResult.err);
-    }
-    if (ts.isTypeParameterDeclaration(declarationResult.value)) {
-      return err(
-        gqlErr(
-          loc(unresolved),
-          "Type parameters are not supported in this context.",
-        ),
-      );
-    }
-
-    const nameDefinition = this._declarationToName.get(declarationResult.value);
-    if (nameDefinition == null) {
-      return err(gqlErr(loc(unresolved), E.unresolvedTypeReference()));
-    }
-    return ok({ ...unresolved, value: nameDefinition.name.value });
+    return ok({ ...unresolved, value: nameResult.value });
   }
 
   unresolvedNameIsGraphQL(unresolved: NameNode): boolean {
@@ -161,15 +153,27 @@ export class TypeContext {
     }
     if (ts.isTypeParameterDeclaration(declarationResult.value)) {
       return err(
-        tsErr(node, "Type parameter not valid", [
-          tsErr(declarationResult.value, "Defined here"),
-        ]),
+        tsErr(node, "Type parameters are not supported in this context."),
       );
     }
-
-    const nameDefinition = this._declarationToName.get(declarationResult.value);
+    const declaration = declarationResult.value;
+    const nameDefinition = this._declarationToName.get(declaration);
     if (nameDefinition == null) {
-      return err(tsErr(node, E.unresolvedTypeReference()));
+      // Special case here for built-ins where we omit the error location.
+      // This is really just to avoid unstable output in our tests, but in general it's not
+      // necessary to include this for built-ins.
+      const builtinNames = new Set(["Array", "Promise", "Iterable"]);
+      if (ts.isIdentifier(node) && builtinNames.has(node.text)) {
+        return err(tsErr(node, E.unannotatedTypeReference()));
+      }
+      return err(
+        tsErr(node, E.unannotatedTypeReference(), [
+          tsErr(
+            declaration,
+            "Did you mean to add a `@gql*` docblock to this declaration?",
+          ),
+        ]),
+      );
     }
     return ok(nameDefinition.name.value);
   }

@@ -15,6 +15,7 @@ import {
   ConstListValueNode,
   assertName,
   DefinitionNode,
+  Location,
 } from "graphql";
 import {
   tsErr,
@@ -33,6 +34,7 @@ import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
 import { extend, loc } from "./utils/helpers";
 import * as Act from "./CodeActions";
+import { FunctionResolver, ResolverArg } from "./IR";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -45,6 +47,7 @@ export const ENUM_TAG = "gqlEnum";
 export const UNION_TAG = "gqlUnion";
 export const INPUT_TAG = "gqlInput";
 
+export const CONTEXT_TAG = "gqlContext";
 export const IMPLEMENTS_TAG_DEPRECATED = "gqlImplements";
 export const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
 
@@ -57,6 +60,7 @@ export const ALL_TAGS = [
   ENUM_TAG,
   UNION_TAG,
   INPUT_TAG,
+  CONTEXT_TAG,
 ];
 
 const DEPRECATED_TAG = "deprecated";
@@ -70,12 +74,18 @@ export type ExtractionSnapshot = {
   readonly unresolvedNames: Map<ts.EntityName, NameNode>;
   readonly nameDefinitions: Map<ts.DeclarationStatement, NameDefinition>;
   readonly contextReferences: Array<ts.Node>;
+  readonly contextDefinitions: Array<ContextNodeType>;
   readonly typesWithTypename: Set<string>;
   readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
 };
 
 type FieldTypeContext = {
   kind: "OUTPUT" | "INPUT";
+};
+
+type ResolverArgs = {
+  gqlArgs: ReadonlyArray<InputValueDefinitionNode> | null;
+  tsArgs: ReadonlyArray<ResolverArg>;
 };
 
 /**
@@ -95,6 +105,11 @@ export function extract(
   return extractor.extract(sourceFile);
 }
 
+export type ContextNodeType =
+  | ts.TypeAliasDeclaration
+  | ts.InterfaceDeclaration
+  | ts.ClassDeclaration;
+
 class Extractor {
   definitions: DefinitionNode[] = [];
 
@@ -102,6 +117,7 @@ class Extractor {
   unresolvedNames: Map<ts.EntityName, NameNode> = new Map();
   nameDefinitions: Map<ts.DeclarationStatement, NameDefinition> = new Map();
   contextReferences: Array<ts.Node> = [];
+  contextDefinitions: Array<ContextNodeType> = [];
   typesWithTypename: Set<string> = new Set();
   interfaceDeclarations: Array<ts.InterfaceDeclaration> = [];
 
@@ -172,16 +188,48 @@ class Extractor {
             } else if (this.hasTag(parent, INPUT_TAG)) {
               // You don't need to add `@gqlField` to input types, but it's an
               // easy mistake to think you might need to. We report a helpful
-              // error in this case.
-              this.report(tag, E.gqlFieldTagOnInputType());
+              // error in this case and offer a fix.
+              const docblock = tag.parent;
+              const isOnlyTag =
+                ts.isJSDoc(docblock) &&
+                docblock.tags?.length === 1 &&
+                !docblock.comment;
+
+              const action = isOnlyTag
+                ? Act.removeNode(docblock)
+                : Act.removeNode(tag);
+              this.report(tag, E.gqlFieldTagOnInputType(), [], {
+                fixName: "remove-gql-field-from-input",
+                description: "Remove @gqlField tag",
+                changes: [action],
+              });
             } else if (
               !this.hasTag(parent, TYPE_TAG) &&
               !this.hasTag(parent, INTERFACE_TAG)
             ) {
-              this.report(tag, E.gqlFieldParentMissingTag());
+              this.report(tag.tagName, E.gqlFieldParentMissingTag());
             }
           }
           break;
+        case CONTEXT_TAG: {
+          if (
+            !(
+              ts.isTypeAliasDeclaration(node) ||
+              ts.isInterfaceDeclaration(node) ||
+              ts.isClassDeclaration(node)
+            )
+          ) {
+            this.report(node, E.contextTagOnWrongNode());
+          } else {
+            this.recordTypeName(
+              node,
+              this.gql.name(node, "__context"),
+              "CONTEXT",
+            );
+            this.contextDefinitions.push(node);
+          }
+          break;
+        }
         case KILLS_PARENT_ON_EXCEPTION_TAG: {
           if (!this.hasTag(node, FIELD_TAG)) {
             this.report(
@@ -244,6 +292,7 @@ class Extractor {
       unresolvedNames: this.unresolvedNames,
       nameDefinitions: this.nameDefinitions,
       contextReferences: this.contextReferences,
+      contextDefinitions: this.contextDefinitions,
       typesWithTypename: this.typesWithTypename,
       interfaceDeclarations: this.interfaceDeclarations,
     });
@@ -387,16 +436,12 @@ class Extractor {
       return this.report(node, E.functionFieldNotTopLevel());
     }
 
-    const tsModulePath = relativePath(node.getSourceFile().fileName);
-
-    const metadataDirective = this.gql.fieldMetadataDirective(node, {
-      tsModulePath,
-      name: null,
-      exportName: funcName == null ? null : funcName.text,
-      argCount: node.parameters.length,
-    });
-
-    this.collectAbstractField(node, name, metadataDirective);
+    this.collectAbstractField(
+      node,
+      name,
+      funcName == null ? null : funcName.text,
+      null,
+    );
   }
 
   staticMethodExtendType(node: ts.MethodDeclaration, tag: ts.JSDocTag) {
@@ -409,6 +454,10 @@ class Extractor {
     const classNode = node.parent;
     if (!ts.isClassDeclaration(classNode)) {
       return this.report(classNode, E.staticMethodOnNonClass());
+    }
+
+    if (!ts.isSourceFile(classNode.parent)) {
+      return this.report(classNode, E.staticMethodClassNotTopLevel());
     }
 
     let exportName: string | null = null;
@@ -441,38 +490,15 @@ class Extractor {
       exportName = className.text;
     }
 
-    if (!ts.isSourceFile(classNode.parent)) {
-      return this.report(classNode, E.staticMethodClassNotTopLevel());
-    }
-
-    const tsModulePath = relativePath(node.getSourceFile().fileName);
-
-    const metadataDirective = this.gql.fieldMetadataDirective(methodName, {
-      tsModulePath,
-      name: methodName.text,
-      exportName,
-      argCount: node.parameters.length,
-    });
-
-    this.collectAbstractField(node, name, metadataDirective);
+    this.collectAbstractField(node, name, exportName, methodName.text);
   }
 
   collectAbstractField(
     node: ts.FunctionDeclaration | ts.MethodDeclaration,
     name: NameNode,
-    metadataDirective: ConstDirectiveNode,
+    exportName: string | null,
+    methodName: string | null,
   ) {
-    let args: readonly InputValueDefinitionNode[] | null = null;
-    const argsParam = node.parameters[1];
-    if (argsParam != null) {
-      args = this.collectArgs(argsParam);
-    }
-
-    const context = node.parameters[2];
-    if (context != null) {
-      this.validateContextParameter(context);
-    }
-
     const typeParam = node.parameters[0];
     if (typeParam == null) {
       // TODO: Make error generic
@@ -494,28 +520,34 @@ class Extractor {
     const type = this.collectType(node.type, { kind: "OUTPUT" });
     if (type == null) return null;
 
-    const directives = [metadataDirective];
-
     const description = this.collectDescription(node);
+
+    const directives: ConstDirectiveNode[] = [];
     const deprecated = this.collectDeprecated(node);
     if (deprecated != null) {
       directives.push(deprecated);
     }
+    const tsModulePath = relativePath(node.getSourceFile().fileName);
 
-    const killsParentOnExceptionDirective =
-      this.killsParentOnExceptionDirective(node);
+    const args = this.collectArgs(node.parameters.slice(1));
 
-    if (killsParentOnExceptionDirective != null) {
-      directives.push(killsParentOnExceptionDirective);
-    }
+    const signature: FunctionResolver = {
+      kind: "function",
+      exportName,
+      tsModulePath,
+      methodName,
+      args: [{ kind: "source" }, ...args.tsArgs],
+    };
 
     const field = this.gql.fieldDefinition(
       node,
       name,
       type,
-      args,
+      args.gqlArgs,
       directives,
       description,
+      this.killsParentOnException(node),
+      signature,
     );
     this.definitions.push(
       this.gql.abstractFieldDefinition(node, typeName, field),
@@ -1032,18 +1064,15 @@ class Extractor {
           }
         }
       }
-      if (
-        ts.isMethodDeclaration(node) ||
-        ts.isMethodSignature(node) ||
-        ts.isGetAccessorDeclaration(node)
-      ) {
+      if (ts.isMethodDeclaration(node) || ts.isMethodSignature(node)) {
         const field = this.methodDeclaration(node);
         if (field != null) {
           fields.push(field);
         }
       } else if (
         ts.isPropertyDeclaration(node) ||
-        ts.isPropertySignature(node)
+        ts.isPropertySignature(node) ||
+        ts.isGetAccessorDeclaration(node)
       ) {
         const field = this.property(node);
         if (field) {
@@ -1080,7 +1109,11 @@ class Extractor {
     );
 
     if (notPublic != null) {
-      return this.report(notPublic, E.parameterPropertyNotPublic());
+      return this.report(notPublic, E.parameterPropertyNotPublic(), [], {
+        fixName: "make-parameter-property-public",
+        description: "Make parameter property public",
+        changes: [Act.replaceNode(notPublic, "public")],
+      });
     }
 
     const name = this.entityName(node, tag);
@@ -1097,14 +1130,7 @@ class Extractor {
       // https://www.typescriptlang.org/play?#code/MYGwhgzhAEBiD29oG8BQ1rHgOwgFwCcBXYPeAgCgAciAjEAS2BQDNEBfAShXdXaA
       return null;
     }
-    const directives = [
-      this.gql.fieldMetadataDirective(node.name, {
-        name: id.text == name.value ? null : id.text,
-        tsModulePath: null,
-        exportName: null,
-        argCount: null,
-      }),
-    ];
+    const directives: ConstDirectiveNode[] = [];
 
     const type = this.collectType(node.type, { kind: "OUTPUT" });
     if (type == null) return null;
@@ -1115,13 +1141,6 @@ class Extractor {
     }
     const description = this.collectDescription(node);
 
-    const killsParentOnExceptionDirective =
-      this.killsParentOnExceptionDirective(node);
-
-    if (killsParentOnExceptionDirective != null) {
-      directives.push(killsParentOnExceptionDirective);
-    }
-
     return this.gql.fieldDefinition(
       node,
       name,
@@ -1129,10 +1148,52 @@ class Extractor {
       null,
       directives,
       description,
+      this.killsParentOnException(node),
+      {
+        kind: "property",
+        name: id.text == name.value ? null : id.text,
+        args: null,
+      },
     );
   }
 
-  collectArgs(
+  /**
+   * Grats supports two ways of defining arguments. You may use the
+   * "traditional" approach where args are defined using an object literal. This
+   * matches what graphql-js does.
+   *
+   * The other approach is to define arguments as parameters to the function.
+   * This is more ergonomic, especially when you want to define default values,
+   * but may feel less familiar to those who are used to graphql-js.
+   *
+   * This method detects which is being used and delegates to the correct type
+   * of extraction.
+   */
+  collectArgs(params: Array<ts.ParameterDeclaration>): ResolverArgs {
+    if (params.length === 0) {
+      return { gqlArgs: null, tsArgs: [] };
+    }
+    const first = params[0];
+    if (
+      first.type == null ||
+      (first.type != null &&
+        (first.type.kind === ts.SyntaxKind.UnknownKeyword ||
+          ts.isTypeLiteralNode(first.type)))
+    ) {
+      const gqlArgs = this.collectArgsObj(params[0]);
+      const tsArgs: ResolverArg[] = [{ kind: "argsObj" }];
+      const context = params[1];
+      if (context != null) {
+        this.validateContextParameter(context);
+        tsArgs.push({ kind: "context" });
+      }
+      return { gqlArgs, tsArgs };
+    }
+
+    return this.collectArgsParams(params);
+  }
+
+  collectArgsObj(
     argsParam: ts.ParameterDeclaration,
   ): ReadonlyArray<InputValueDefinitionNode> | null {
     const args: InputValueDefinitionNode[] = [];
@@ -1160,6 +1221,76 @@ class Extractor {
       }
     }
     return args;
+  }
+
+  collectArgsParams(params: Array<ts.ParameterDeclaration>): ResolverArgs {
+    const gqlArgs: InputValueDefinitionNode[] = [];
+    const tsArgs: ResolverArg[] = [];
+    params.forEach((param) => {
+      if (!ts.isIdentifier(param.name)) {
+        return this.report(param.name, E.positionalArgNameNotLiteral());
+      }
+      if (param.type == null) {
+        return this.report(param.name, E.argNotTyped());
+      }
+      let type = this.collectType(param.type, { kind: "INPUT" });
+      if (type == null) return;
+      let defaultValue: ConstValueNode | null = null;
+      if (param.initializer) {
+        defaultValue = this.collectConstValue(param.initializer);
+      }
+
+      if (param.questionToken && defaultValue == null) {
+        // Question mark means we can handle the argument being undefined in the
+        // object literal, but if we are going to type the GraphQL arg as
+        // optional, the code must also be able to handle an explicit null.
+        //
+        // ... unless there is a default value. In that case, the default will be
+        // used argument is omitted or references an undefined variable.
+
+        // TODO: This will catch { a?: string } but not { a?: string | undefined }.
+        if (type.kind === Kind.NON_NULL_TYPE) {
+          return this.report(
+            param.questionToken,
+            E.nonNullTypeCannotBeOptional(),
+          );
+        }
+        type = this.gql.nullableType(type);
+      }
+
+      if (type.kind !== Kind.NON_NULL_TYPE && !param.questionToken) {
+        // If a field is passed an argument value, and that argument is not defined in the request,
+        // `graphql-js` will not define the argument property. Therefore we must ensure the argument
+        // is not just nullable, but optional.
+        return this.report(
+          param.name,
+          E.expectedNullableArgumentToBeOptional(),
+          [],
+          {
+            fixName: "add-question-token-to-arg",
+            description: "Make argument optional",
+            changes: [Act.suffixNode(param.name, "?")],
+          },
+        );
+      }
+      const description = this.collectDescription(param);
+
+      const deprecatedDirective = this.collectDeprecated(param);
+
+      // TODO: Validate default
+      tsArgs.push({ kind: "positionalArg", name: param.name.text });
+      gqlArgs.push(
+        this.gql.inputValueDefinition(
+          param,
+          this.gql.name(param.name, param.name.text),
+          type,
+          deprecatedDirective == null ? null : [deprecatedDirective],
+          defaultValue,
+          description,
+        ),
+      );
+    });
+    return { gqlArgs, tsArgs };
   }
 
   collectArgDefaults(node: ts.ObjectBindingPattern): ArgDefaults {
@@ -1295,7 +1426,16 @@ class Extractor {
       // If a field is passed an argument value, and that argument is not defined in the request,
       // `graphql-js` will not define the argument property. Therefore we must ensure the argument
       // is not just nullable, but optional.
-      return this.report(node.name, E.expectedNullableArgumentToBeOptional());
+      return this.report(
+        node.name,
+        E.expectedNullableArgumentToBeOptional(),
+        [],
+        {
+          fixName: "add-question-token-to-arg",
+          description: "Make argument optional",
+          changes: [Act.suffixNode(node.name, "?")],
+        },
+      );
     }
 
     let defaultValue: ConstValueNode | null = null;
@@ -1556,7 +1696,7 @@ class Extractor {
   }
 
   methodDeclaration(
-    node: ts.MethodDeclaration | ts.MethodSignature | ts.GetAccessorDeclaration,
+    node: ts.MethodDeclaration | ts.MethodSignature,
   ): FieldDefinitionNode | null {
     const tag = this.findTag(node, FIELD_TAG);
     if (tag == null) return null;
@@ -1594,49 +1734,35 @@ class Extractor {
     // We already reported an error
     if (type == null) return null;
 
-    let args: readonly InputValueDefinitionNode[] | null = null;
-    const argsParam = node.parameters[0];
-    if (argsParam != null) {
-      args = this.collectArgs(argsParam);
-    }
-
-    const context = node.parameters[1];
-    if (context != null) {
-      this.validateContextParameter(context);
+    const args = this.collectArgs(Array.from(node.parameters));
+    if (args == null) {
+      return null;
     }
 
     const description = this.collectDescription(node);
 
     const id = this.expectNameIdentifier(node.name);
     if (id == null) return null;
-    const directives = [
-      this.gql.fieldMetadataDirective(node.name, {
-        name: id.text === name.value ? null : id.text,
-        tsModulePath: null,
-        exportName: null,
-        argCount: isCallable(node) ? node.parameters.length : null,
-      }),
-    ];
+    const directives: ConstDirectiveNode[] = [];
 
     const deprecated = this.collectDeprecated(node);
     if (deprecated != null) {
       directives.push(deprecated);
     }
 
-    const killsParentOnExceptionDirective =
-      this.killsParentOnExceptionDirective(node);
-
-    if (killsParentOnExceptionDirective != null) {
-      directives.push(killsParentOnExceptionDirective);
-    }
-
     return this.gql.fieldDefinition(
       node,
       name,
       type,
-      args,
+      args.gqlArgs,
       directives,
       description,
+      this.killsParentOnException(node),
+      {
+        kind: "property",
+        args: args.tsArgs,
+        name: id.text === name.value ? null : id.text,
+      },
     );
   }
 
@@ -1723,7 +1849,10 @@ class Extractor {
   }
 
   property(
-    node: ts.PropertyDeclaration | ts.PropertySignature,
+    node:
+      | ts.PropertyDeclaration
+      | ts.PropertySignature
+      | ts.GetAccessorDeclaration,
   ): FieldDefinitionNode | null {
     const tag = this.findTag(node, FIELD_TAG);
     if (tag == null) return null;
@@ -1753,22 +1882,6 @@ class Extractor {
       directives.push(deprecated);
     }
 
-    directives.push(
-      this.gql.fieldMetadataDirective(node.name, {
-        name: id.text === name.value ? null : id.text,
-        exportName: null,
-        tsModulePath: null,
-        argCount: null,
-      }),
-    );
-
-    const killsParentOnExceptionDirective =
-      this.killsParentOnExceptionDirective(node);
-
-    if (killsParentOnExceptionDirective != null) {
-      directives.push(killsParentOnExceptionDirective);
-    }
-
     return this.gql.fieldDefinition(
       node,
       name,
@@ -1776,6 +1889,12 @@ class Extractor {
       null,
       directives,
       description,
+      this.killsParentOnException(node),
+      {
+        kind: "property",
+        args: null,
+        name: id.text === name.value ? null : id.text,
+      },
     );
   }
   // TODO: Support separate modes for input and output types
@@ -1940,19 +2059,15 @@ class Extractor {
   // the server to handle field level executions by simply returning null for
   // that field.
   // https://graphql.org/learn/best-practices/#nullability
-  killsParentOnExceptionDirective(
-    parentNode: ts.Node,
-  ): ConstDirectiveNode | null {
+  //
+  // Returns the location of the @killsParentOnException tag if found.
+  killsParentOnException(parentNode: ts.Node): Location | undefined {
     const tags = ts.getJSDocTags(parentNode);
-    const killsParentOnExceptions = tags.find(
+    const tag = tags.find(
       (tag) => tag.tagName.text === KILLS_PARENT_ON_EXCEPTION_TAG,
     );
-    if (killsParentOnExceptions) {
-      return this.gql.killsParentOnExceptionDirective(
-        killsParentOnExceptions.tagName,
-      );
-    }
-    return null;
+    if (tag == null) return;
+    return this.gql.loc(tag.tagName);
   }
 }
 
@@ -1969,12 +2084,6 @@ function graphQLNameValidationMessage(name: string): string | null {
 // contain a `*` surrounded by whitespace.
 function trimTrailingCommentLines(text: string) {
   return text.replace(/(\s*\n\s*\*?\s*)+$/, "");
-}
-
-function isCallable(
-  node: ts.MethodDeclaration | ts.MethodSignature | ts.GetAccessorDeclaration,
-): boolean {
-  return ts.isMethodDeclaration(node) || ts.isMethodSignature(node);
 }
 
 function isStaticMethod(node: ts.Node): node is ts.MethodDeclaration {

@@ -17,7 +17,7 @@ OUTPUT
 -----------------
 -- SDL --
 interface Foo {
-  id: String @metadata
+  id: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";

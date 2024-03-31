@@ -22,8 +22,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  hello1(greeting: String): String @metadata(argCount: 1)
-  hello2(greeting: String): String @metadata(argCount: 1)
+  hello1(greeting: String): String
+  hello2(greeting: String): String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
