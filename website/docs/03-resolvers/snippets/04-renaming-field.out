@@ -24,8 +24,8 @@ export function getSchema(): GraphQLSchema {
                 greeting: {
                     name: "greeting",
                     type: GraphQLString,
-                    resolve(source) {
-                        return source.getGreeting();
+                    resolve(source, args, context, info) {
+                        return source.getGreeting(source, args, context, info);
                     }
                 }
             };
