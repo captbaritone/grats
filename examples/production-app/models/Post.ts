@@ -13,7 +13,7 @@ import { connectionFromArray } from "graphql-relay";
  * A blog post.
  * @gqlType */
 export class Post extends Model<DB.PostRow> implements GraphQLNode {
-  __typename = "Post";
+  __typename = "Post" as const;
 
   /**
    * The editor-approved title of the post.

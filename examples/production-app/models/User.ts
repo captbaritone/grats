@@ -9,7 +9,7 @@ import { Connection } from "../graphql/Connection";
 
 /** @gqlType */
 export class User extends Model<DB.UserRow> implements GraphQLNode {
-  __typename = "User";
+  __typename = "User" as const;
 
   /**
    * User's name. **Note:** This field is not guaranteed to be unique.
