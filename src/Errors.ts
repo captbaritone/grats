@@ -167,12 +167,12 @@ export function typeNameInitializeNotExpression(expected: string) {
   return `Expected \`__typename\` property initializer to be an expression with a const assertion. For example: \`__typename = ${expected} as const\`. ${TYPENAME_CONTEXT}`;
 }
 
-export function typeNameTypeNotReferenceNode() {
-  return `Expected \`__typename\` property type to be a TypeReferenceNode. ${TYPENAME_CONTEXT}`;
+export function typeNameTypeNotReferenceNode(expected) {
+  return `Expected \`__typename\` property must be correctly defined. For example: \`__typename = ${expected} as const\`. ${TYPENAME_CONTEXT}`;
 }
 
-export function typeNameTypeNameNotIdentifier() {
-  return `Expected \`__typename\` property type name to be an Identifier. ${TYPENAME_CONTEXT}`;
+export function typeNameTypeNameNotIdentifier(expected) {
+  return `Expected \`__typename\` property name must be correctly specified. For example: \`__typename = ${expected} as const\`. ${TYPENAME_CONTEXT}`;
 }
 
 export function typeNameTypeNameNotConst() {
