@@ -88,6 +88,24 @@ You probably want to upgrade Grats in the Code Sandbox example:
 
 https://capt.dev/grats-sandbox
 
+## NPM Auth Token
+
+GitHub needs a special NPM token to be able to publish each commit's release. These expire regularly, so here's the steps to recreate them:
+
+1. Navigate to `https://www.npmjs.com/settings/captbaritone/tokens` and login
+2. Select the "Generate New Token" green button in the top left to spawn a dropdown
+3. Select "Granular Access Token"
+4. Fill in details
+   - _Package Scope_: Read and Write, only select packages: Grats
+   - _Organizations_: No access
+5. Select "Generate Token"
+6. Copy the token
+7. Navigate to `https://github.com/captbaritone/grats/settings/environments/951200327/edit`
+8. Scroll down to "Environment Secrets"
+9. Find the secret named `NPM_TOKEN` and click the "edit" icon
+10. Auth with security device as needed
+11. PAste in the token you copied in step 6
+
 ## Documentation Releases
 
 Documentation updates are automatically picked up by Netlify and published.
