@@ -827,7 +827,7 @@ class Extractor {
   isValidTypeNameProperty(
     member: ts.ClassElement | ts.TypeElement,
     expectedName: string,
-  ) {
+  ): boolean {
     if (
       member.name == null ||
       !ts.isIdentifier(member.name) ||
@@ -851,7 +851,7 @@ class Extractor {
   isValidTypenamePropertyDeclaration(
     node: ts.PropertyDeclaration,
     expectedName: string,
-  ) {
+  ): boolean {
     // If we have a type annotation, we ask that it be a string literal.
     // That means, that if we have one, _and_ it's valid, we're done.
     // Otherwise we fall through to the initializer check.
