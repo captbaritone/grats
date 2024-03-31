@@ -12,7 +12,7 @@ import { Post } from "./Post";
  * A reaction from a user indicating that they like a post.
  * @gqlType */
 export class Like extends Model<DB.LikeRow> implements GraphQLNode {
-  __typename = "Like";
+  __typename = "Like" as const;
 
   /**
    * The date and time at which the post was liked.
