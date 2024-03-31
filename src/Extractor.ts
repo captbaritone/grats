@@ -882,12 +882,12 @@ class Extractor {
     }
 
     if (!ts.isTypeReferenceNode(node.initializer.type)) {
-      this.report(node.initializer.type, E.typeNameTypeNotReferenceNode());
+      this.report(node.initializer.type, E.typeNameTypeNotReferenceNode(node.initializer.getText()));
       return false;
     }
 
     if (!ts.isIdentifier(node.initializer.type.typeName)) {
-      this.report(node.initializer.type.typeName, E.typeNameTypeNameNotIdentifier());
+      this.report(node.initializer.type.typeName, E.typeNameTypeNameNotIdentifier(node.initializer.getText()));
       return false;
     }
 
