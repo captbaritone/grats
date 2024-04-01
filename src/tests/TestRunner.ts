@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { diff } from "jest-diff";
+import { ask } from "./yesNo";
 
 type Transformer = (
   code: string,
@@ -47,9 +48,9 @@ export default class TestRunner {
   }
 
   // Returns true if the test passed
-  async run(): Promise<boolean> {
+  async run({ interactive }: { interactive: boolean }): Promise<boolean> {
     for (const fixture of this._testFixtures) {
-      await this._testFixture(fixture);
+      await this._testFixture(fixture, { interactive });
     }
     console.log("");
 
@@ -80,7 +81,10 @@ export default class TestRunner {
     return true;
   }
 
-  async _testFixture(fixture: string) {
+  async _testFixture(
+    fixture: string,
+    { interactive }: { interactive: boolean },
+  ) {
     const expectedFileName = fixture + ".expected";
     const expectedFilePath = path.join(this._fixturesDir, expectedFileName);
     if (this._otherFiles.has(expectedFileName)) {
@@ -115,7 +119,23 @@ OUTPUT
 ${actual}`;
 
     if (actualOutput !== expectedContent) {
-      if (this._write) {
+      if (interactive) {
+        console.error("FAILURE: " + displayName);
+        console.log(diff(expectedContent, actualOutput));
+        console.log("Fixture did not match.");
+        console.log(
+          `(You can rerun just this test with: \`pnpm run test --filter=${fixture}\`)`,
+        );
+        const write = await ask(
+          "Would you like to update this fixture file? (y/n)",
+        );
+        if (write) {
+          console.error("UPDATED: " + displayName);
+          fs.writeFileSync(expectedFilePath, actualOutput, "utf-8");
+        } else {
+          this._failureCount++;
+        }
+      } else if (this._write) {
         console.error("UPDATED: " + displayName);
         fs.writeFileSync(expectedFilePath, actualOutput, "utf-8");
       } else {

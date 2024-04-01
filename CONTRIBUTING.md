@@ -11,13 +11,13 @@ case and compare the output to corresponding `.expected.ts` file. If the
 output does not match the expected output, the test runner will fail.
 
 The tests in `src/tests/fixtures` are unit tests that test the behavior of the
-extraction. They extract GraphQL SDL from the file and write that as output.
+extraction and code generation. They extract GraphQL SDL, generated `schema.ts` or any associated errors and code actions from the file and write that as output.
 
 If the test includes a line like `// Locate: User.name` of `// Locate: SomeType`
 then the test runner will instead locate the given entity and write the location
 as output.
 
-The tests in `src/tests/integrationFixtures` are integration tests that test the _runtime_ behavior of the tool. They expect each file to be a `.ts` file with `@gql` docblock tags which exports a root query class as the named export `Query` and a GraphQL query text under the named export `query`. The test runner will execute the query against the root query class and emit the returned response JSON as the test output.
+The tests in `src/tests/integrationFixtures` are integration tests that test the _runtime_ behavior of the generated code. Each directory contains an `index.ts` file with `@gql` docblock tags which exports a root query class as the named export `Query` and a GraphQL query text under the named export `query`. The test runner will execute the query against the root query class and emit the returned response JSON as the test output.
 
 ```
 
@@ -29,25 +29,25 @@ To run a specific test case, you can use the `--filter` flag and provide a
 substring match for the test fixture's path.
 
 ```
-
 pnpm run test --filter=import
-
 ```
 
 To update fixture files, you can use the `--write` flag.
 
 ```
-
 pnpm run test --write
+```
 
+Interactive mode will prompt you to update the fixture files one by one for each failing fixture test.
+
+```
+pnpm run test --interactive
 ```
 
 You an also get help with the CLI flags:
 
 ```
-
 pnpm run test --help
-
 ```
 
 All changes that affect the behavior of the tool, either new features of bug
