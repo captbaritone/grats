@@ -52,7 +52,7 @@ export function codegen(schema: GraphQLSchema, destination: string): string {
   return codegen.print();
 }
 
-class Codegen {
+export class Codegen {
   _schema: GraphQLSchema;
   _destination: string;
   _imports: ts.Statement[] = [];

@@ -9,6 +9,7 @@ import {
   buildASTSchema,
   graphql,
   GraphQLSchema,
+  parse,
   print,
   printSchema,
   specifiedScalarTypes,
@@ -18,6 +19,7 @@ import { locate } from "../Locate";
 import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError";
 import { writeFileSync } from "fs";
 import { codegen } from "../codegen";
+import { queryCodegen } from "../queryCodegen";
 import { diff } from "jest-diff";
 import { METADATA_DIRECTIVE_NAMES } from "../metadataDirectives";
 import * as semver from "semver";
@@ -73,6 +75,7 @@ program
 const gratsDir = path.join(__dirname, "../..");
 const fixturesDir = path.join(__dirname, "fixtures");
 const integrationFixturesDir = path.join(__dirname, "integrationFixtures");
+const persistFixturesDir = path.join(__dirname, "persistFixtures");
 
 const testDirs = [
   {
@@ -249,6 +252,58 @@ const testDirs = [
       });
 
       return JSON.stringify(data, null, 2);
+    },
+  },
+  {
+    fixturesDir: persistFixturesDir,
+    testFilePattern: /\.ts$/,
+    transformer: async (
+      code: string,
+      fileName: string,
+    ): Promise<string | false> => {
+      const firstLine = code.split("\n")[0];
+      let options: Partial<ConfigOptions> = {
+        nullableByDefault: true,
+      };
+      if (firstLine.startsWith("// {")) {
+        const json = firstLine.slice(3);
+        const testOptions = JSON.parse(json);
+        options = { ...options, ...testOptions };
+      }
+      const filePath = `${persistFixturesDir}/${fileName}`;
+
+      const files = [filePath, path.join(__dirname, `../Types.ts`)];
+      const parsedOptions: ParsedCommandLineGrats = validateGratsOptions({
+        options: {
+          // Required to enable ts-node to locate function exports
+          rootDir: gratsDir,
+          outDir: "dist",
+          configFilePath: "tsconfig.json",
+        },
+        raw: {
+          grats: options,
+        },
+        errors: [],
+        fileNames: files,
+      });
+      const schemaResult = buildSchemaAndDocResult(parsedOptions);
+      if (schemaResult.kind === "ERROR") {
+        throw new Error(schemaResult.err.formatDiagnosticsWithContext());
+      }
+      const mod = await import(filePath);
+      if (mod.operation == null) {
+        throw new Error(
+          `Expected \`${filePath}\` to export a operation text as \`operation\``,
+        );
+      }
+
+      const operationDocument = parse(mod.operation, { noLocation: true });
+
+      const { schema } = schemaResult.value;
+
+      const tsQuery = queryCodegen(schema, operationDocument, "./");
+
+      return tsQuery;
     },
   },
 ];

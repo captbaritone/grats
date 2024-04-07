@@ -1,0 +1,12 @@
+query MyQuery {
+  me {
+    groups {
+      name {
+        description
+        members {
+          name
+        }
+      }
+    }
+  }
+}
