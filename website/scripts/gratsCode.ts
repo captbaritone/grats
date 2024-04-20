@@ -1,7 +1,7 @@
-const fs = require("fs");
-const { buildSchemaAndDocResult, codegen } = require("grats");
-const { printSDLWithoutMetadata } = require("grats");
-const glob = require("glob");
+import fs from "fs";
+import { buildSchemaAndDocResult, codegen } from "grats";
+import { printSDLWithoutMetadata, GratsConfig } from "grats";
+import glob from "glob";
 
 async function main() {
   const gratsFiles = glob.sync("**/*.grats.ts");
@@ -15,17 +15,22 @@ async function main() {
 
 main();
 
-function processFile(file) {
+function processFile(file: string) {
   const files = [file /*, `src/Types.ts`*/];
-  let options = {
+  const config: GratsConfig = {
     nullableByDefault: true,
     reportTypeScriptTypeErrors: true,
     importModuleSpecifierEnding: "",
+    graphqlSchema: "schema.graphql",
+    tsSchema: "schema.ts",
+    strictSemanticNullability: false,
+    schemaHeader: null,
+    tsSchemaHeader: null,
   };
   const parsedOptions = {
     options: {},
     raw: {
-      grats: options,
+      grats: config,
     },
     errors: [],
     fileNames: files,
@@ -38,7 +43,7 @@ function processFile(file) {
   }
 
   const { doc, schema } = schemaAndDocResult.value;
-  const typeScript = codegen(schema, options, file);
+  const typeScript = codegen(schema, config, file);
   const graphql = printSDLWithoutMetadata(doc);
 
   const fileContent = fs.readFileSync(file, "utf8");

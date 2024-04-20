@@ -250,6 +250,9 @@ importers:
       '@docusaurus/preset-classic':
         specifier: 2.4.3
         version: 2.4.3(@algolia/client-search@4.17.0)(@types/node@18.15.0)(eslint@8.36.0)(react-dom@17.0.2)(react@17.0.2)(ts-node@10.9.1)(typescript@5.0.2)
+      '@docusaurus/theme-classic':
+        specifier: 2.4.3
+        version: 2.4.3(@types/node@18.15.0)(eslint@8.36.0)(react-dom@17.0.2)(react@17.0.2)(ts-node@10.9.1)(typescript@5.0.2)
       '@docusaurus/theme-common':
         specifier: 2.4.3
         version: 2.4.3(@docusaurus/types@2.4.3)(@types/node@18.15.0)(eslint@8.36.0)(react-dom@17.0.2)(react@17.0.2)(ts-node@10.9.1)(typescript@5.0.2)
@@ -3502,7 +3505,7 @@ packages:
       '@docusaurus/types': 2.4.3(react-dom@17.0.2)(react@17.0.2)
       '@types/history': 4.7.11
       '@types/react': 18.0.33
-      '@types/react-router-config': 5.0.6
+      '@types/react-router-config': 5.0.11
       '@types/react-router-dom': 5.3.3
       react: 17.0.2
       react-dom: 17.0.2(react@17.0.2)
@@ -3539,7 +3542,7 @@ packages:
       tslib: 2.6.2
       unist-util-visit: 2.0.3
       utility-types: 3.10.0
-      webpack: 5.78.0
+      webpack: 5.90.3
     transitivePeerDependencies:
       - '@parcel/css'
       - '@swc/core'
@@ -3574,7 +3577,7 @@ packages:
       '@docusaurus/types': 2.4.3(react-dom@17.0.2)(react@17.0.2)
       '@docusaurus/utils': 2.4.3(@docusaurus/types@2.4.3)
       '@docusaurus/utils-validation': 2.4.3(@docusaurus/types@2.4.3)
-      '@types/react-router-config': 5.0.6
+      '@types/react-router-config': 5.0.11
       combine-promises: 1.1.0
       fs-extra: 10.1.0
       import-fresh: 3.3.0
@@ -3584,7 +3587,7 @@ packages:
       react-dom: 17.0.2(react@17.0.2)
       tslib: 2.6.2
       utility-types: 3.10.0
-      webpack: 5.78.0
+      webpack: 5.90.3
     transitivePeerDependencies:
       - '@parcel/css'
       - '@swc/core'
@@ -3621,7 +3624,7 @@ packages:
       react: 17.0.2
       react-dom: 17.0.2(react@17.0.2)
       tslib: 2.6.2
-      webpack: 5.78.0
+      webpack: 5.90.3
     transitivePeerDependencies:
       - '@parcel/css'
       - '@swc/core'
@@ -3891,11 +3894,11 @@ packages:
       '@docusaurus/utils-validation': 2.4.3(@docusaurus/types@2.4.3)
       '@mdx-js/react': 1.6.22(react@17.0.2)
       clsx: 1.2.1
-      copy-text-to-clipboard: 3.1.0
+      copy-text-to-clipboard: 3.2.0
       infima: 0.2.0-alpha.43
       lodash: 4.17.21
       nprogress: 0.2.0
-      postcss: 8.4.31
+      postcss: 8.4.35
       prism-react-renderer: 1.3.5(react@17.0.2)
       prismjs: 1.29.0
       react: 17.0.2
@@ -6849,6 +6852,14 @@ packages:
       '@types/react': 18.0.33
     dev: true
 
+  /@types/react-router-config@5.0.11:
+    resolution: {integrity: sha512-WmSAg7WgqW7m4x8Mt4N6ZyKz0BubSj/2tVUMsAHp+Yd2AMwcSbeFq9WympT19p5heCFmF97R9eD5uUR/t4HEqw==}
+    dependencies:
+      '@types/history': 4.7.11
+      '@types/react': 18.0.33
+      '@types/react-router': 5.1.20
+    dev: false
+
   /@types/react-router-config@5.0.6:
     resolution: {integrity: sha512-db1mx37a1EJDf1XeX8jJN7R3PZABmJQXR8r28yUjVMFSjkmnQo6X6pOEEmNl+Tp2gYQOGPdYbFIipBtdElZ3Yg==}
     dependencies:
@@ -9075,8 +9086,8 @@ packages:
       - supports-color
     dev: false
 
-  /copy-text-to-clipboard@3.1.0:
-    resolution: {integrity: sha512-PFM6BnjLnOON/lB3ta/Jg7Ywsv+l9kQGD4TWDCSlRBGmqnnTM5MrDkhAFgw+8HZt0wW6Q2BBE4cmy9sq+s9Qng==}
+  /copy-text-to-clipboard@3.2.0:
+    resolution: {integrity: sha512-RnJFp1XR/LOBDckxTib5Qjr/PMfkatD0MUCQgdpqS8MdKiNUzBjAQBEN6oUy+jW7LI93BBG3DtMB2KOOKpGs2Q==}
     engines: {node: '>=12'}
     dev: false
 
@@ -16508,7 +16519,7 @@ packages:
     dependencies:
       find-up: 5.0.0
       picocolors: 1.0.0
-      postcss: 8.4.31
+      postcss: 8.4.35
       strip-json-comments: 3.1.1
     dev: false
 
@@ -17484,7 +17495,7 @@ packages:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.25
       jest-worker: 27.5.1
-      schema-utils: 3.1.1
+      schema-utils: 3.3.0
       serialize-javascript: 6.0.1
       terser: 5.28.1
       webpack: 5.90.3
