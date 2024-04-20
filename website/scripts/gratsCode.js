@@ -20,6 +20,7 @@ function processFile(file) {
   let options = {
     nullableByDefault: true,
     reportTypeScriptTypeErrors: true,
+    importModuleSpecifierEnding: "",
   };
   const parsedOptions = {
     options: {},
@@ -37,7 +38,7 @@ function processFile(file) {
   }
 
   const { doc, schema } = schemaAndDocResult.value;
-  const typeScript = codegen(schema, file, options);
+  const typeScript = codegen(schema, options, file);
   const graphql = printSDLWithoutMetadata(doc);
 
   const fileContent = fs.readFileSync(file, "utf8");

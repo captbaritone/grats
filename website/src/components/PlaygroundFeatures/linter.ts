@@ -1,6 +1,6 @@
 import { createSystem, createVirtualCompilerHost } from "@typescript/vfs";
 import * as ts from "typescript";
-import { buildSchemaAndDocResultWithHost } from "grats/src/lib";
+import { buildSchemaAndDocResultWithHost, GratsConfig } from "grats/src/lib";
 import { codegen } from "grats/src/codegen";
 import { ReportableDiagnostics } from "grats/src/utils/DiagnosticError";
 import { printSDLWithoutMetadata } from "grats/src/printSchema";
@@ -26,7 +26,7 @@ if (ExecutionEnvironment.canUseDOM) {
   };
 }
 
-function buildSchemaResultWithFsMap(fsMap, text: string, config) {
+function buildSchemaResultWithFsMap(fsMap, text: string, config: GratsConfig) {
   fsMap.set("index.ts", text);
   fsMap.set(GRATS_PATH, GRATS_TYPE_DECLARATIONS);
   // TODO: Don't recreate the system each time!
@@ -65,7 +65,7 @@ function buildSchemaResultWithFsMap(fsMap, text: string, config) {
   }
 }
 
-export function createLinter(fsMap, view, config) {
+export function createLinter(fsMap, view, config: GratsConfig) {
   return linter((codeMirrorView) => {
     const text = codeMirrorView.viewState.state.doc.toString();
 
@@ -100,7 +100,7 @@ export function createLinter(fsMap, view, config) {
       });
     }
 
-    const codegenOutput = computeCodegenOutput(result.value.schema);
+    const codegenOutput = computeCodegenOutput(result.value.schema, config);
     const output = computeOutput(result.value.doc, view);
 
     store.dispatch({
@@ -123,8 +123,11 @@ function computeOutput(
   return print(doc);
 }
 
-function computeCodegenOutput(schema: GraphQLSchema): string {
-  return codegen(schema, "./schema.ts");
+function computeCodegenOutput(
+  schema: GraphQLSchema,
+  config: GratsConfig,
+): string {
+  return codegen(schema, config, "./schema.ts");
 }
 
 function commentLines(text: string): string {
