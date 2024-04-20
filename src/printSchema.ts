@@ -5,7 +5,7 @@ import {
   visit,
   specifiedScalarTypes,
 } from "graphql";
-import { ConfigOptions } from "./gratsConfig";
+import { GratsConfig } from "./gratsConfig";
 import { codegen } from "./codegen";
 import { METADATA_DIRECTIVE_NAMES } from "./metadataDirectives";
 
@@ -15,7 +15,7 @@ import { METADATA_DIRECTIVE_NAMES } from "./metadataDirectives";
  */
 export function printExecutableSchema(
   schema: GraphQLSchema,
-  config: ConfigOptions,
+  config: GratsConfig,
   destination: string,
 ): string {
   const code = codegen(schema, config, destination);
@@ -23,7 +23,7 @@ export function printExecutableSchema(
 }
 
 export function applyTypeScriptHeader(
-  config: ConfigOptions,
+  config: GratsConfig,
   code: string,
 ): string {
   return formatHeader(config.tsSchemaHeader, code);
@@ -33,15 +33,12 @@ export function applyTypeScriptHeader(
  * Prints SDL, potentially omitting directives depending upon the config.
  * Includes the user-defined (or default) header comment if provided.
  */
-export function printGratsSDL(
-  doc: DocumentNode,
-  config: ConfigOptions,
-): string {
+export function printGratsSDL(doc: DocumentNode, config: GratsConfig): string {
   const sdl = printSDLWithoutMetadata(doc);
   return applySDLHeader(config, sdl) + "\n";
 }
 
-export function applySDLHeader(config: ConfigOptions, sdl: string): string {
+export function applySDLHeader(config: GratsConfig, sdl: string): string {
   return formatHeader(config.schemaHeader, sdl);
 }
 

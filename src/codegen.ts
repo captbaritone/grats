@@ -37,7 +37,7 @@ import {
   createAssertNonNullHelper,
 } from "./codegenHelpers";
 import { extend, nullThrows } from "./utils/helpers";
-import { ConfigOptions } from "./gratsConfig.js";
+import { GratsConfig } from "./gratsConfig.js";
 
 const RESOLVER_ARGS = ["source", "args", "context", "info"];
 
@@ -47,7 +47,7 @@ const F = ts.factory;
 // GraphQLSchema implementing that schema.
 export function codegen(
   schema: GraphQLSchema,
-  config: ConfigOptions,
+  config: GratsConfig,
   destination: string,
 ): string {
   const codegen = new Codegen(schema, config, destination);
@@ -66,7 +66,7 @@ class Codegen {
 
   constructor(
     public _schema: GraphQLSchema,
-    public _config: ConfigOptions,
+    public _config: GratsConfig,
     public _destination: string,
   ) {}
 

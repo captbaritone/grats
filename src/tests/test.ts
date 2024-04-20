@@ -22,7 +22,7 @@ import { diff } from "jest-diff";
 import { METADATA_DIRECTIVE_NAMES } from "../metadataDirectives";
 import * as semver from "semver";
 import {
-  ConfigOptions,
+  GratsConfig,
   ParsedCommandLineGrats,
   validateGratsOptions,
 } from "../gratsConfig";
@@ -81,7 +81,7 @@ const testDirs = [
     ignoreFilePattern: null,
     transformer: (code: string, fileName: string): string | false => {
       const firstLine = code.split("\n")[0];
-      let options: Partial<ConfigOptions> = {
+      let config: Partial<GratsConfig> = {
         nullableByDefault: true,
         schemaHeader: null,
         tsSchemaHeader: null,
@@ -98,7 +98,7 @@ const testDirs = [
           );
           return false;
         }
-        options = { ...options, ...testOptions };
+        config = { ...config, ...testOptions };
       }
 
       const files = [
@@ -110,7 +110,7 @@ const testDirs = [
         parsedOptions = validateGratsOptions({
           options: {},
           raw: {
-            grats: options,
+            grats: config,
           },
           errors: [],
           fileNames: files,
@@ -186,13 +186,13 @@ const testDirs = [
       fileName: string,
     ): Promise<string | false> => {
       const firstLine = code.split("\n")[0];
-      let options: Partial<ConfigOptions> = {
+      let config: Partial<GratsConfig> = {
         nullableByDefault: true,
       };
       if (firstLine.startsWith("// {")) {
         const json = firstLine.slice(3);
         const testOptions = JSON.parse(json);
-        options = { ...options, ...testOptions };
+        config = { ...config, ...testOptions };
       }
       const filePath = `${integrationFixturesDir}/${fileName}`;
       const schemaPath = path.join(path.dirname(filePath), "schema.ts");
@@ -206,7 +206,7 @@ const testDirs = [
           configFilePath: "tsconfig.json",
         },
         raw: {
-          grats: options,
+          grats: config,
         },
         errors: [],
         fileNames: files,

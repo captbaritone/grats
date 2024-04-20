@@ -1,6 +1,6 @@
 import * as ts from "typescript";
 
-export type ConfigOptions = {
+export type GratsConfig = {
   // Where Grats should write your schema file. Path is relative to the
   // `tsconfig.json` file.
   graphqlSchema: string; // Defaults to `./schema.graphql`
@@ -56,7 +56,7 @@ export type ConfigOptions = {
 
 export type ParsedCommandLineGrats = Omit<ts.ParsedCommandLine, "raw"> & {
   raw: {
-    grats: ConfigOptions;
+    grats: GratsConfig;
   };
 };
 

@@ -15,7 +15,7 @@ import { locate } from "./Locate";
 import { printGratsSDL, printExecutableSchema } from "./printSchema";
 import * as ts from "typescript";
 import { ReportableDiagnostics } from "./utils/DiagnosticError";
-import { ConfigOptions, ParsedCommandLineGrats } from "./gratsConfig";
+import { GratsConfig, ParsedCommandLineGrats } from "./gratsConfig";
 
 const program = new Command();
 
@@ -116,16 +116,16 @@ function writeSchemaFilesAndReport(
 ) {
   const { schema, doc } = schemaAndDoc;
 
-  const gratsOptions: ConfigOptions = config.raw.grats;
+  const gratsConfig: GratsConfig = config.raw.grats;
 
-  const dest = resolve(dirname(configPath), gratsOptions.tsSchema);
-  const code = printExecutableSchema(schema, gratsOptions, dest);
+  const dest = resolve(dirname(configPath), gratsConfig.tsSchema);
+  const code = printExecutableSchema(schema, gratsConfig, dest);
   writeFileSync(dest, code);
   console.error(`Grats: Wrote TypeScript schema to \`${dest}\`.`);
 
-  const schemaStr = printGratsSDL(doc, gratsOptions);
+  const schemaStr = printGratsSDL(doc, gratsConfig);
 
-  const absOutput = resolve(dirname(configPath), gratsOptions.graphqlSchema);
+  const absOutput = resolve(dirname(configPath), gratsConfig.graphqlSchema);
   writeFileSync(absOutput, schemaStr);
   console.error(`Grats: Wrote schema to \`${absOutput}\`.`);
 }

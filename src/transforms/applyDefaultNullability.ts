@@ -9,7 +9,7 @@ import {
   makeSemanticNonNullDirective,
 } from "../publicDirectives";
 import { GraphQLConstructor } from "../GraphQLConstructor";
-import { ConfigOptions } from "../gratsConfig";
+import { GratsConfig } from "../gratsConfig";
 import { loc } from "../utils/helpers";
 
 /**
@@ -18,7 +18,7 @@ import { loc } from "../utils/helpers";
  */
 export function applyDefaultNullability(
   doc: DocumentNode,
-  { nullableByDefault, strictSemanticNullability }: ConfigOptions,
+  { nullableByDefault, strictSemanticNullability }: GratsConfig,
 ): DiagnosticsResult<DocumentNode> {
   const gql = new GraphQLConstructor();
   const errors: ts.DiagnosticWithLocation[] = [];

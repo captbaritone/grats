@@ -17,7 +17,7 @@ import * as ts from "typescript";
 import { ExtractionSnapshot } from "./Extractor";
 import { TypeContext } from "./TypeContext";
 import { validateSDL } from "graphql/validation/validate";
-import { ConfigOptions, ParsedCommandLineGrats } from "./gratsConfig";
+import { ParsedCommandLineGrats } from "./gratsConfig";
 import { validateTypenames } from "./validations/validateTypenames";
 import { extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram";
 import { validateMergedInterfaces } from "./validations/validateMergedInterfaces";
@@ -36,7 +36,7 @@ import { resolveTypes } from "./transforms/resolveTypes";
 // grats-ts-plugin
 export { initTsPlugin } from "./tsPlugin/initTsPlugin";
 
-export type GratsConfig = ConfigOptions;
+export { GratsConfig } from "./gratsConfig";
 
 export type SchemaAndDoc = {
   schema: GraphQLSchema;
