@@ -18,7 +18,7 @@ export function printExecutableSchema(
   config: ConfigOptions,
   destination: string,
 ): string {
-  const code = codegen(schema, destination);
+  const code = codegen(schema, config, destination);
   return applyTypeScriptHeader(config, code);
 }
 

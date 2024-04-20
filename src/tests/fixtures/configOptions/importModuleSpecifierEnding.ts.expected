@@ -1,0 +1,50 @@
+-----------------
+INPUT
+----------------- 
+// {"importModuleSpecifierEnding": ".js"}
+
+/** @gqlType */
+export default class SomeType {
+  /** @gqlField */
+  hello: string;
+}
+
+/** @gqlField */
+export function greeting(t: SomeType): string {
+  return t.hello + " world!";
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type SomeType {
+  greeting: String @metadata(argCount: 1, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/configOptions/importModuleSpecifierEnding.ts")
+  hello: String @metadata
+}
+-- TypeScript --
+import { greeting as someTypeGreetingResolver } from "./importModuleSpecifierEnding.js";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return someTypeGreetingResolver(source);
+                    }
+                },
+                hello: {
+                    name: "hello",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType]
+    });
+}

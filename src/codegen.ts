@@ -37,6 +37,7 @@ import {
   createAssertNonNullHelper,
 } from "./codegenHelpers";
 import { extend, nullThrows } from "./utils/helpers";
+import { ConfigOptions } from "./gratsConfig.js";
 
 const RESOLVER_ARGS = ["source", "args", "context", "info"];
 
@@ -44,8 +45,12 @@ const F = ts.factory;
 
 // Given a GraphQL SDL, returns the a string of TypeScript code that generates a
 // GraphQLSchema implementing that schema.
-export function codegen(schema: GraphQLSchema, destination: string): string {
-  const codegen = new Codegen(schema, destination);
+export function codegen(
+  schema: GraphQLSchema,
+  config: ConfigOptions,
+  destination: string,
+): string {
+  const codegen = new Codegen(schema, config, destination);
 
   codegen.schemaDeclarationExport();
 
@@ -53,18 +58,17 @@ export function codegen(schema: GraphQLSchema, destination: string): string {
 }
 
 class Codegen {
-  _schema: GraphQLSchema;
-  _destination: string;
   _imports: ts.Statement[] = [];
   _helpers: Map<string, ts.Statement> = new Map();
   _typeDefinitions: Set<string> = new Set();
   _graphQLImports: Set<string> = new Set();
   _statements: ts.Statement[] = [];
 
-  constructor(schema: GraphQLSchema, destination: string) {
-    this._schema = schema;
-    this._destination = destination;
-  }
+  constructor(
+    public _schema: GraphQLSchema,
+    public _config: ConfigOptions,
+    public _destination: string,
+  ) {}
 
   createBlockWithScope(closure: () => void): ts.Block {
     const initialStatements = this._statements;
@@ -225,8 +229,9 @@ class Codegen {
       const argCount = nullThrows(metadata.argCount);
 
       const abs = resolveRelativePath(module);
-      const relative = stripExt(
+      const relative = replaceExt(
         path.relative(path.dirname(this._destination), abs),
+        this._config.importModuleSpecifierEnding,
       );
 
       // Note: This name is guaranteed to be unique, but for static methods, it
@@ -878,9 +883,9 @@ function fieldDirective(
   return field.astNode?.directives?.find((d) => d.name.value === name) ?? null;
 }
 
-function stripExt(filePath: string): string {
+function replaceExt(filePath: string, newSuffix: string): string {
   const ext = path.extname(filePath);
-  return filePath.slice(0, -ext.length);
+  return filePath.slice(0, -ext.length) + newSuffix;
 }
 
 // Predicate function for filtering out null values

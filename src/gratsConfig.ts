@@ -45,6 +45,13 @@ export type ConfigOptions = {
   // headers or other information to the generated file. Set to `null` to omit
   // the default header.
   tsSchemaHeader: string | null; // Defaults to info about Grats
+
+  // This option allows you configure an extension that will be appended
+  // to the end of all import paths in the generated TypeScript schema file.
+  // When building a package that uses ES modules, import paths must not omit the
+  // file extension. In TypeScript code this generally means import paths must end
+  // with `.js`. If set to null, no ending will be appended.
+  importModuleSpecifierEnding: string; // Defaults to no ending, or ""
 };
 
 export type ParsedCommandLineGrats = Omit<ts.ParsedCommandLine, "raw"> & {
@@ -69,6 +76,7 @@ const VALID_CONFIG_KEYS = new Set([
   "reportTypeScriptTypeErrors",
   "schemaHeader",
   "tsSchemaHeader",
+  "importModuleSpecifierEnding",
 ]);
 
 // TODO: Make this return diagnostics
@@ -172,6 +180,14 @@ export function validateGratsOptions(
   ) {
     throw new Error(
       "Grats: The Grats config option `tsSchemaHeader` must be a string, an array of strings, or `null` if provided.",
+    );
+  }
+
+  if (gratsOptions.importModuleSpecifierEnding === undefined) {
+    gratsOptions.importModuleSpecifierEnding = "";
+  } else if (typeof gratsOptions.importModuleSpecifierEnding !== "string") {
+    throw new Error(
+      "Grats: The Grats config option `importModuleSpecifierEnding` must be a string if provided.",
     );
   }
 
