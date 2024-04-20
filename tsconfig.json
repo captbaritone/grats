@@ -23,7 +23,8 @@
     "downlevelIteration": true,
     "strictNullChecks": true,
     "declaration": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "strictPropertyInitialization": true
   },
   "exclude": [
     "node_modules",
