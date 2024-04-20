@@ -139,7 +139,7 @@ const testDirs = [
       // We run codegen here just ensure that it doesn't throw.
       const executableSchema = applyTypeScriptHeader(
         parsedOptions.raw.grats,
-        codegen(schema, `${fixturesDir}/${fileName}`),
+        codegen(schema, parsedOptions.raw.grats, `${fixturesDir}/${fileName}`),
       );
 
       const LOCATION_REGEX = /^\/\/ Locate: (.*)/;
@@ -218,7 +218,7 @@ const testDirs = [
 
       const { schema, doc } = schemaResult.value;
 
-      const tsSchema = codegen(schema, schemaPath);
+      const tsSchema = codegen(schema, parsedOptions.raw.grats, schemaPath);
 
       writeFileSync(schemaPath, tsSchema);
 

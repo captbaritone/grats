@@ -52,7 +52,14 @@ Grats has a few configuration options. They can be set under the `grats` key in 
     // of strings. These strings will be joined together.
     //
     // Set to `null` to omit the default header.
-    "tsSchemaHeader": "/** Copyright SomeCorp, 1998..." // Defaults to info about Grats
+    "tsSchemaHeader": "/** Copyright SomeCorp, 1998...", // Defaults to info about Grats
+
+    // This option allows you configure an extension that will be appended
+    // to the end of all import paths in the generated TypeScript schema file.
+    // When building a package that uses ES modules, import paths must not omit the
+    // file extension. In TypeScript code this generally means import paths must end
+    // with `.js`. If set to null, no ending will be appended.
+    "importModuleSpecifierEnding": ".js" // Defaults to no ending, or ""
   },
   "compilerOptions": {
     // ... TypeScript config...
