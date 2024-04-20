@@ -1,6 +1,6 @@
 {
   "label": "FAQ",
-  "collapsed": false,
-  "collapsible": false,
+  "collapsed": true,
+  "collapsible": true,
   "link": {}
 }

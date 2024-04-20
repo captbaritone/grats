@@ -1,0 +1,51 @@
+import { Int } from "grats";
+
+/** @gqlType */
+type Post = {
+  /** @gqlField */
+  id: Int; // <- Field named `id` of type `Int`
+  /** @gqlField */
+  title: string; // <- Field named `title` of type `String`
+  /** @gqlField */
+  body: string; // <- Field named `body` of type `String`
+  /** @gqlField */
+  published: boolean; // <- Field named `published` of type `Boolean`
+};
+
+=== SNIP ===
+type Post {
+  body: String
+  id: Int
+  published: Boolean
+  title: String
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLBoolean } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const PostType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Post",
+        fields() {
+            return {
+                body: {
+                    name: "body",
+                    type: GraphQLString
+                },
+                id: {
+                    name: "id",
+                    type: GraphQLInt
+                },
+                published: {
+                    name: "published",
+                    type: GraphQLBoolean
+                },
+                title: {
+                    name: "title",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [PostType]
+    });
+}
