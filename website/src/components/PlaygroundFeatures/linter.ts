@@ -26,7 +26,11 @@ if (ExecutionEnvironment.canUseDOM) {
   };
 }
 
-function buildSchemaResultWithFsMap(fsMap, text: string, config: GratsConfig) {
+function buildSchemaResultWithFsMap(
+  fsMap: Map<string, string>,
+  text: string,
+  config: GratsConfig,
+) {
   fsMap.set("index.ts", text);
   fsMap.set(GRATS_PATH, GRATS_TYPE_DECLARATIONS);
   // TODO: Don't recreate the system each time!
@@ -65,7 +69,11 @@ function buildSchemaResultWithFsMap(fsMap, text: string, config: GratsConfig) {
   }
 }
 
-export function createLinter(fsMap, view, config: GratsConfig) {
+export function createLinter(
+  fsMap: Map<string, string>,
+  view,
+  config: GratsConfig,
+) {
   return linter((codeMirrorView) => {
     const text = codeMirrorView.viewState.state.doc.toString();
 

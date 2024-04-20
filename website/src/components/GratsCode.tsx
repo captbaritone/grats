@@ -22,7 +22,7 @@ export default function GratsCode({ out, mode }: Props) {
       throw new Error("Expected children to be special grats code");
     }
     return chunks;
-  });
+  }, [out]);
 
   switch (mode) {
     case "ts":

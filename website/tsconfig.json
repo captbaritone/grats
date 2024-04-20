@@ -2,6 +2,16 @@
   // This file is not used in compilation. It is here just for a nice editor experience.
   "extends": "@tsconfig/docusaurus/tsconfig.json",
   "compilerOptions": {
-    "baseUrl": "."
-  }
+    "baseUrl": ".",
+    "skipLibCheck": true,
+    // typescript options here
+    "experimentalDecorators": true,
+    "outDir": "dist",
+    "downlevelIteration": true,
+    "strictNullChecks": true,
+    "declaration": true,
+    "resolveJsonModule": true,
+    "strictPropertyInitialization": true
+  },
+  "exclude": ["node_modules", "build", "**/*.grats.ts"]
 }

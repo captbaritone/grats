@@ -15,13 +15,14 @@ import { getConfig, getDoc, getView, onSelectorChange } from "../store";
 import { createSelector } from "reselect";
 import { Theme } from "./theme";
 import store, { useUrlState } from "../store";
+import { GratsConfig } from "grats";
 
 export default function InputView() {
   useEffect(() => {
     store.dispatch({ type: "SET_STATE_FROM_URL" });
   }, []);
   useUrlState(store);
-  const [ref, setRef] = useState(null);
+  const [ref, setRef] = useState<HTMLDivElement | null>(null);
   const fsMap = useFsMap();
   useEffect(() => {
     if (ref != null && fsMap != null) {
@@ -41,7 +42,7 @@ export default function InputView() {
 }
 
 function useFsMap() {
-  const [fsMap, setFsMap] = useState(null);
+  const [fsMap, setFsMap] = useState<Map<string, string> | null>(null);
 
   useEffect(() => {
     let unmounted = false;
@@ -71,9 +72,13 @@ async function createInputView(store, fsMap, left) {
   const state = store.getState();
 
   // Create a selector that memoizes the linter and closes over the fsMap
-  const getLinter = createSelector(getView, getConfig, (view, config) => {
-    return createLinter(fsMap, view, config);
-  });
+  const getLinter = createSelector(
+    getView,
+    getConfig,
+    (view, config: GratsConfig) => {
+      return createLinter(fsMap, view, config);
+    },
+  );
 
   const linter = getLinter(state);
 

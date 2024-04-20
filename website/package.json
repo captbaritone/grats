@@ -33,6 +33,7 @@
     "@graphql-tools/utils": "^9.2.1",
     "@mdx-js/react": "^1.6.22",
     "@types/node": "^18.15.0",
+    "@types/react": "^18",
     "@typescript/vfs": "1.5.0",
     "clsx": "^1.2.1",
     "cm6-graphql": "^0.0.3",
