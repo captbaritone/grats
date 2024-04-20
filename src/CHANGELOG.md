@@ -6,8 +6,9 @@ Changes in this section are not yet released. If you need access to these change
 
 - **Features**
   - Code actions are now available to automatically fix some errors. These are available in the playground as well as in the experimental TypeScript plugin
-  - We now require that `__typename = "SomeType"` include `as const` to ensure no other typename can be assigned. A code fix is available.
+  - We now require that `__typename = "SomeType"` include `as const` to ensure no other typename can be assigned. A code fix is available
   - Fields can now be defined using static methods, similar to how fields can be defined using functions
+  - Adds `importModuleSpecifierEnding` configuration option to enable users generating ES modules to add the `.js` file extension to import paths in the generated TypeScript schema file
 - **Bug Fixes**
   - Revert accidental breakage of the experimental TypeScript plugin
   - Fix a bug where we generated incorrect import paths on Windows
