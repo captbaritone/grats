@@ -290,7 +290,7 @@ class Codegen {
         valueExpression = F.createCallExpression(
           prop,
           undefined,
-          RESOLVER_ARGS.map((name) => {
+          RESOLVER_ARGS.slice(1).map((name) => {
             return F.createIdentifier(name);
           }),
         );

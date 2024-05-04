@@ -10,8 +10,9 @@ Changes in this section are not yet released. If you need access to these change
   - Fields can now be defined using static methods, similar to how fields can be defined using functions
   - Adds `importModuleSpecifierEnding` configuration option to enable users generating ES modules to add the `.js` file extension to import paths in the generated TypeScript schema file
 - **Bug Fixes**
-  - Revert accidental breakage of the experimental TypeScript plugin
-  - Fix a bug where we generated incorrect import paths on Windows
+  - Reverted accidental breakage of the experimental TypeScript plugin
+  - Fixed a bug where we generated incorrect import paths on Windows
+  - Fixed a bug where incorrect resolver arguments were passed to method resolvers which provided custom names
 
 ## 0.0.25
 

@@ -38,7 +38,7 @@ export function getSchema(): GraphQLSchema {
                     name: "salutaion",
                     type: GraphQLString,
                     resolve(source, args, context, info) {
-                        return source.someMethodField(source, args, context, info);
+                        return source.someMethodField(args, context, info);
                     }
                 }
             };

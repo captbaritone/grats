@@ -1,30 +1,12 @@
------------------
-INPUT
------------------ 
-/** @gqlType */
-export default class SomeType {
-  /** @gqlField greetz */
-  hello(args: { greeting: string }): string {
-    return `${args.greeting} world!`;
-  }
-}
-
------------------
-OUTPUT
------------------
--- SDL --
-type SomeType {
-  greetz(greeting: String!): String @metadata(argCount: 1, name: "hello")
-}
--- TypeScript --
+import { someType as querySomeTypeResolver } from "./index";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
             return {
-                greetz: {
-                    name: "greetz",
+                someName: {
+                    name: "someName",
                     type: GraphQLString,
                     args: {
                         greeting: {
@@ -33,13 +15,28 @@ export function getSchema(): GraphQLSchema {
                         }
                     },
                     resolve(source, args, context, info) {
-                        return source.hello(args, context, info);
+                        return source.someOtherName(args, context, info);
+                    }
+                }
+            };
+        }
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                someType: {
+                    name: "someType",
+                    type: SomeTypeType,
+                    resolve(source) {
+                        return querySomeTypeResolver(source);
                     }
                 }
             };
         }
     });
     return new GraphQLSchema({
-        types: [SomeTypeType]
+        query: QueryType,
+        types: [QueryType, SomeTypeType]
     });
 }
