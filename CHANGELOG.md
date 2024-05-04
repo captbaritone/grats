@@ -4,6 +4,8 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
+## 0.0.26
+
 - **Features**
   - Code actions are now available to automatically fix some errors. These are available in the playground as well as in the experimental TypeScript plugin
   - We now require that `__typename = "SomeType"` include `as const` to ensure no other typename can be assigned. A code fix is available
