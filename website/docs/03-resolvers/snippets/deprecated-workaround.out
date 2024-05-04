@@ -28,7 +28,7 @@ export function getSchema(): GraphQLSchema {
                     name: "name",
                     type: GraphQLString,
                     resolve(source, args, context, info) {
-                        return source.graphQLName(source, args, context, info);
+                        return source.graphQLName(args, context, info);
                     }
                 }
             };
