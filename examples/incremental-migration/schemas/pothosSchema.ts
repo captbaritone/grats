@@ -67,8 +67,15 @@ builder.objectType(Comment, {
     }),
     post: t.field({
       type: Post,
-      resolve: (comment) =>
-        [...Posts.values()].find((post) => post.id === comment.postId)!,
+      resolve: (comment) => {
+        const post = [...Posts.values()].find(
+          (post) => post.id === comment.postId,
+        );
+        if (post == null) {
+          throw new Error("Expected post");
+        }
+        return post;
+      },
     }),
   }),
 });
