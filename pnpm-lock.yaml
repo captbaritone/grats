@@ -124,7 +124,7 @@ importers:
         specifier: ^5.0.2
         version: 5.0.2
 
-  examples/incremental-migration-subgraph:
+  examples/incremental-migration:
     dependencies:
       '@faker-js/faker':
         specifier: ^8.4.1
@@ -4710,7 +4710,7 @@ packages:
     peerDependencies:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
     dependencies:
-      '@graphql-tools/utils': 10.0.8(graphql@16.8.1)
+      '@graphql-tools/utils': 10.2.0(graphql@16.8.1)
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
       '@repeaterjs/repeater': 3.0.5
       graphql: 16.8.1
@@ -11760,7 +11760,7 @@ packages:
       '@envelop/core': 5.0.0
       '@graphql-tools/executor': 1.2.0(graphql@16.8.1)
       '@graphql-tools/schema': 10.0.3(graphql@16.8.1)
-      '@graphql-tools/utils': 10.0.8(graphql@16.8.1)
+      '@graphql-tools/utils': 10.2.0(graphql@16.8.1)
       '@graphql-yoga/logger': 2.0.0
       '@graphql-yoga/subscription': 5.0.0
       '@whatwg-node/fetch': 0.9.14
