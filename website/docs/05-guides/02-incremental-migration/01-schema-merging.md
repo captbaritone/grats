@@ -1,7 +1,7 @@
 # Schema Merging
 
 :::tip
-A concrete example of this migration strategy in action can be found in our [Incremental Migration](../../05-examples/) example app.
+A concrete example of this migration strategy in action can be found in our [Incremental Migration](../../05-examples/index.mdx) example app.
 :::
 
 One incremental approach to migrating to Grats is Schema Merging. With this approach you allow your legacy solution and Grats to each create their own `GraphQLSchema` object. You then merge these two schemas together to create a new merged schema that includes both the existing schema and the Grats schema.
