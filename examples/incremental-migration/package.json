@@ -1,0 +1,43 @@
+{
+  "name": "grats-example-migration",
+  "version": "0.0.0",
+  "description": "Example server showcasing an incremental migration from Pothos to Grats",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsc && node dist/server.js",
+    "schema": "grats && tsc && node dist/schemas/mergedSchema.js",
+    "grats": "grats",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/captbaritone/grats.git"
+  },
+  "keywords": [
+    "graphql",
+    "grats",
+    "yoga",
+    "javascript",
+    "typescript",
+    "subscriptions",
+    "migration",
+    "pothos"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/captbaritone/grats/issues"
+  },
+  "homepage": "https://github.com/captbaritone/grats#readme",
+  "dependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "@graphql-tools/schema": "^10.0.3",
+    "@pothos/core": "^3.41.1",
+    "graphql": "16.8.1",
+    "graphql-yoga": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.10",
+    "grats": "workspace:*"
+  }
+}
