@@ -2,9 +2,9 @@
   "testCases": [
     {
       "name": "Simple query",
-      "query": "query { user(id: 3) { __typename } }",
+      "query": "query { user(id: 3) { fullName } }",
       "variables": {},
-      "expected": { "data": { "user": { "__typename": "User" } } }
+      "expected": { "data": { "user": { "fullName": "Loraine Swaniawski" } } }
     }
   ]
 }
