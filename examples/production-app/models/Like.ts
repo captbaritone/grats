@@ -58,6 +58,10 @@ export async function createLike(
   ctx: Ctx,
 ): Promise<CreateLikePayload> {
   const id = getLocalTypeAssert(args.input.postId, "Post");
-  await DB.createLike(ctx.vc, { ...args.input, userId: ctx.vc.userId() });
+  await DB.createLike(ctx.vc, {
+    ...args.input,
+    userId: ctx.vc.userId(),
+    postId: id,
+  });
   return { post: await ctx.vc.getPostById(id) };
 }
