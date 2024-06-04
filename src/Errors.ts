@@ -295,7 +295,7 @@ export function unsupportedTypeLiteral() {
 }
 
 export function unknownGraphQLType() {
-  return `Unknown GraphQL type. Grats doe not know how to map this type to a GraphQL type. You may want to define a named GraphQL type elsewhere and reference it here. If you think Grats should be able to infer a GraphQL type from this type, please file an issue.`;
+  return `Unknown GraphQL type. Grats does not know how to map this type to a GraphQL type. You may want to define a named GraphQL type elsewhere and reference it here. If you think Grats should be able to infer a GraphQL type from this type, please file an issue.`;
 }
 
 export function pluralTypeMissingParameter() {
