@@ -1,3 +1,4 @@
+import { version as gratsTsVersion } from "typescript";
 import type * as TS from "typescript/lib/tsserverlibrary";
 import { extract } from "../Extractor";
 import { FAKE_ERROR_CODE } from "../utils/DiagnosticError";
@@ -24,6 +25,24 @@ export function initTsPlugin(modules: { typescript: typeof TS }) {
       const x = info.languageService[k];
       // @ts-expect-error
       proxy[k] = (...args: Array<any>) => x.apply(info.languageService, args);
+    }
+
+    if (ts.version !== gratsTsVersion) {
+      proxy.getCompilerOptionsDiagnostics = (): TS.Diagnostic[] => {
+        const prev = info.languageService.getCompilerOptionsDiagnostics();
+        return [
+          ...prev,
+          {
+            category: ts.DiagnosticCategory.Error,
+            code: 0,
+            messageText: typeScriptVersionMismatch(ts.version),
+            file: undefined,
+            start: undefined,
+            length: undefined,
+          },
+        ];
+      };
+      return proxy;
     }
 
     proxy.getSyntacticDiagnostics = (filename): TS.DiagnosticWithLocation[] => {
@@ -102,4 +121,11 @@ export function initTsPlugin(modules: { typescript: typeof TS }) {
   }
 
   return { create };
+}
+
+function typeScriptVersionMismatch(extensionVersion: string) {
+  return `grats-plugin-ts error: The version of TypeScript picked up by Grats does not match the version used by VSCode.
+Grats is using ${gratsTsVersion} but VSCode is using ${extensionVersion}.
+This may be caused by a yarn.lock or package-lock.json which is pinning a different version of TypeScript for Grats than the version used by the rest of your project.
+See https://github.com/captbaritone/grats/issues/142> for more information.`;
 }
