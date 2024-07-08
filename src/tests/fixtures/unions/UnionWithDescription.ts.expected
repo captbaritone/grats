@@ -46,6 +46,7 @@ type User {
   name: String @metadata
 }
 -- TypeScript --
+import { SomeType as SomeTypeClass } from "./UnionWithDescription";
 import { GraphQLSchema, GraphQLUnionType, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const EntityType: GraphQLObjectType = new GraphQLObjectType({
@@ -75,7 +76,8 @@ export function getSchema(): GraphQLSchema {
         description: "One type to rule them all, and in a union bind them.",
         types() {
             return [EntityType, UserType];
-        }
+        },
+        resolveType
     });
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
@@ -91,4 +93,23 @@ export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         types: [ActorType, EntityType, SomeTypeType, UserType]
     });
+}
+const typeNameMap = new Map();
+typeNameMap.set(SomeTypeClass, "SomeType");
+
+function resolveType(obj: any): string {
+  if (typeof obj.__typename === "string") {
+    return obj.__typename;
+  }
+
+  let prototype = Object.getPrototypeOf(obj);
+  while (prototype) {
+    const name = typeNameMap.get(prototype.constructor);
+    if (name != null) {
+      return name;
+    }
+    prototype = Object.getPrototypeOf(prototype);
+  }
+
+  throw new Error("Cannot find type name");
 }

@@ -6,7 +6,7 @@ import {
   Location,
   parse,
 } from "graphql";
-import { uniqueId } from "./utils/helpers";
+import { nullThrows, uniqueId } from "./utils/helpers";
 
 /**
  * In most cases we can use directives to annotate constructs
@@ -155,6 +155,20 @@ export function parseFieldMetadataDirective(
     tsModulePath: getStringArg(directive, TS_MODULE_PATH_ARG),
     exportName: getStringArg(directive, EXPORT_NAME_ARG),
     argCount: getIntArg(directive, ARG_COUNT),
+  };
+}
+
+export function parseTypeExportedDirective(directive: ConstDirectiveNode): {
+  tsModulePath: string;
+  exportName: string;
+} {
+  if (directive.name.value !== EXPORTED_METADATA_DIRECTIVE) {
+    throw new Error(`Expected directive to be ${FIELD_METADATA_DIRECTIVE}`);
+  }
+
+  return {
+    tsModulePath: nullThrows(getStringArg(directive, TS_MODULE_PATH_ARG)),
+    exportName: nullThrows(getStringArg(directive, EXPORT_NAME_ARG)),
   };
 }
 

@@ -73,7 +73,8 @@ export function getSchema(): GraphQLSchema {
         name: "PageResult",
         types() {
             return [ErrType, PageType];
-        }
+        },
+        resolveType
     });
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
@@ -93,4 +94,22 @@ export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         types: [PageResultType, ErrType, PageType, SomeTypeType]
     });
+}
+const typeNameMap = new Map();
+
+function resolveType(obj: any): string {
+  if (typeof obj.__typename === "string") {
+    return obj.__typename;
+  }
+
+  let prototype = Object.getPrototypeOf(obj);
+  while (prototype) {
+    const name = typeNameMap.get(prototype.constructor);
+    if (name != null) {
+      return name;
+    }
+    prototype = Object.getPrototypeOf(prototype);
+  }
+
+  throw new Error("Cannot find type name");
 }

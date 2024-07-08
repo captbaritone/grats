@@ -27,8 +27,10 @@ import {
 import * as ts from "typescript";
 import * as path from "path";
 import {
+  EXPORTED_METADATA_DIRECTIVE,
   FIELD_METADATA_DIRECTIVE,
   parseFieldMetadataDirective,
+  parseTypeExportedDirective,
 } from "./metadataDirectives";
 import { resolveRelativePath } from "./gratsRoot";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "./publicDirectives";
@@ -43,6 +45,25 @@ const RESOLVER_ARGS = ["source", "args", "context", "info"];
 
 const F = ts.factory;
 
+const postlude = `
+function resolveType(obj: any): string {
+  if (typeof obj.__typename === "string") {
+    return obj.__typename;
+  }
+
+  let prototype = Object.getPrototypeOf(obj);
+  while (prototype) {
+    const name = typeNameMap.get(prototype.constructor);
+    if (name != null) {
+      return name;
+    }
+    prototype = Object.getPrototypeOf(prototype);
+  }
+
+  throw new Error("Cannot find type name");
+}
+`.trim();
+
 // Given a GraphQL SDL, returns the a string of TypeScript code that generates a
 // GraphQLSchema implementing that schema.
 export function codegen(
@@ -54,11 +75,13 @@ export function codegen(
 
   codegen.schemaDeclarationExport();
 
-  return codegen.print();
+  const code = codegen.print();
+  return `${code}\n${postlude}`;
 }
 
 class Codegen {
   _imports: ts.Statement[] = [];
+  _typeNameMappings: Array<{ className: string; typeName: string }> = [];
   _helpers: Map<string, ts.Statement> = new Map();
   _typeDefinitions: Set<string> = new Set();
   _graphQLImports: Set<string> = new Set();
@@ -189,6 +212,22 @@ class Codegen {
     const varName = `${obj.name}Type`;
     if (!this._typeDefinitions.has(varName)) {
       this._typeDefinitions.add(varName);
+      const exportedDirective = typeDirective(obj, EXPORTED_METADATA_DIRECTIVE);
+      if (exportedDirective != null) {
+        const exportedMetadata = parseTypeExportedDirective(exportedDirective);
+        const localName = `${obj.name}Class`;
+        this.importUserConstruct(
+          exportedMetadata.tsModulePath,
+          exportedMetadata.exportName,
+          localName,
+        );
+
+        this._typeNameMappings.push({
+          className: localName,
+          typeName: obj.name,
+        });
+      }
+
       this.constDeclaration(
         varName,
         F.createNewExpression(
@@ -213,6 +252,24 @@ class Codegen {
     ]);
   }
 
+  importUserConstruct(
+    tsModulePath: string,
+    exportName: string | null,
+    localName: string,
+  ): void {
+    const abs = resolveRelativePath(tsModulePath);
+    const relative = replaceExt(
+      path.relative(path.dirname(this._destination), abs),
+      this._config.importModuleSpecifierEnding,
+    );
+    const modulePath = `./${normalizeRelativePathToPosix(relative)}`;
+    if (exportName == null) {
+      this.importDefault(modulePath, localName);
+    } else {
+      this.import(modulePath, [{ name: exportName, as: localName }]);
+    }
+  }
+
   resolveMethod(
     field: GraphQLField<unknown, unknown>,
     methodName: string,
@@ -223,17 +280,7 @@ class Codegen {
     );
     const metadata = parseFieldMetadataDirective(metadataDirective);
     if (metadata.tsModulePath != null) {
-      const module = metadata.tsModulePath;
-
-      const exportName = metadata.exportName;
       const argCount = nullThrows(metadata.argCount);
-
-      const abs = resolveRelativePath(module);
-      const relative = replaceExt(
-        path.relative(path.dirname(this._destination), abs),
-        this._config.importModuleSpecifierEnding,
-      );
-
       // Note: This name is guaranteed to be unique, but for static methods, it
       // means we import the same class multiple times with multiple names.
       const resolverName = formatResolverFunctionVarName(
@@ -241,13 +288,11 @@ class Codegen {
         field.name,
       );
 
-      const modulePath = `./${normalizeRelativePathToPosix(relative)}`;
-
-      if (exportName == null) {
-        this.importDefault(modulePath, resolverName);
-      } else {
-        this.import(modulePath, [{ name: exportName, as: resolverName }]);
-      }
+      this.importUserConstruct(
+        metadata.tsModulePath,
+        metadata.exportName,
+        resolverName,
+      );
 
       const usedArgs = RESOLVER_ARGS.slice(0, argCount);
 
@@ -427,6 +472,7 @@ class Codegen {
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.fields(obj, true),
       this.interfaces(obj),
+      F.createShorthandPropertyAssignment("resolveType"),
     ]);
   }
 
@@ -464,6 +510,7 @@ class Codegen {
           ),
         ],
       ),
+      F.createShorthandPropertyAssignment("resolveType"),
     ]);
   }
 
@@ -864,6 +911,37 @@ class Codegen {
       [...this._graphQLImports].map((name) => ({ name })),
     );
 
+    this._statements.push(
+      F.createVariableStatement(
+        undefined,
+        F.createVariableDeclarationList(
+          [
+            F.createVariableDeclaration(
+              F.createIdentifier("typeNameMap"),
+              undefined,
+              undefined,
+              F.createNewExpression(F.createIdentifier("Map"), undefined, []),
+            ),
+          ],
+          ts.NodeFlags.Const,
+        ),
+      ),
+    );
+    for (const { className, typeName } of this._typeNameMappings) {
+      this._statements.push(
+        F.createExpressionStatement(
+          F.createCallExpression(
+            F.createPropertyAccessExpression(
+              F.createIdentifier("typeNameMap"),
+              F.createIdentifier("set"),
+            ),
+            undefined,
+            [F.createIdentifier(className), F.createStringLiteral(typeName)],
+          ),
+        ),
+      );
+    }
+
     return printer.printList(
       ts.ListFormat.MultiLine,
       F.createNodeArray([
@@ -881,6 +959,13 @@ function fieldDirective(
   name: string,
 ): ConstDirectiveNode | null {
   return field.astNode?.directives?.find((d) => d.name.value === name) ?? null;
+}
+
+function typeDirective(
+  t: GraphQLObjectType,
+  name: string,
+): ConstDirectiveNode | null {
+  return t.astNode?.directives?.find((d) => d.name.value === name) ?? null;
 }
 
 function replaceExt(filePath: string, newSuffix: string): string {

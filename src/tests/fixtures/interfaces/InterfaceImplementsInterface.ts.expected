@@ -49,7 +49,8 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString
                 }
             };
-        }
+        },
+        resolveType
     });
     const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Person",
@@ -60,7 +61,8 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString
                 }
             };
-        }
+        },
+        resolveType
     });
     const ActorType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Actor",
@@ -78,9 +80,28 @@ export function getSchema(): GraphQLSchema {
         },
         interfaces() {
             return [NodeType, PersonType];
-        }
+        },
+        resolveType
     });
     return new GraphQLSchema({
         types: [ActorType, NodeType, PersonType]
     });
+}
+const typeNameMap = new Map();
+
+function resolveType(obj: any): string {
+  if (typeof obj.__typename === "string") {
+    return obj.__typename;
+  }
+
+  let prototype = Object.getPrototypeOf(obj);
+  while (prototype) {
+    const name = typeNameMap.get(prototype.constructor);
+    if (name != null) {
+      return name;
+    }
+    prototype = Object.getPrototypeOf(prototype);
+  }
+
+  throw new Error("Cannot find type name");
 }

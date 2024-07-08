@@ -33,7 +33,6 @@ import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
 import { extend, loc } from "./utils/helpers";
 import * as Act from "./CodeActions";
-import { EXPORTED_METADATA_DIRECTIVE } from "./metadataDirectives.js";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -734,20 +733,22 @@ class Extractor {
     const interfaces = this.collectInterfaces(node);
     this.recordTypeName(node, name, "TYPE");
 
-    this.checkForTypenameProperty(node, name.value);
+    const hasTypeName = this.checkForTypenameProperty(node, name.value);
 
     let directives: ConstDirectiveNode[] | null = null;
-    const exported = node.modifiers?.find(
-      (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
-    );
 
-    if (exported != null) {
-      directives = [
-        this.gql.typeExportedDirective(exported, {
-          tsModulePath: relativePath(node.getSourceFile().fileName),
-          exportName: node.name.text,
-        }),
-      ];
+    if (!hasTypeName) {
+      const exported = node.modifiers?.find(
+        (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
+      );
+      if (exported != null) {
+        directives = [
+          this.gql.typeExportedDirective(exported, {
+            tsModulePath: relativePath(node.getSourceFile().fileName),
+            exportName: node.name.text,
+          }),
+        ];
+      }
     }
 
     this.definitions.push(
@@ -833,13 +834,15 @@ class Extractor {
   checkForTypenameProperty(
     node: ts.ClassDeclaration | ts.InterfaceDeclaration | ts.TypeLiteralNode,
     expectedName: string,
-  ) {
+  ): boolean {
     const hasTypename = node.members.some((member) => {
       return this.isValidTypeNameProperty(member, expectedName);
     });
     if (hasTypename) {
       this.typesWithTypename.add(expectedName);
+      return true;
     }
+    return false;
   }
 
   isValidTypeNameProperty(

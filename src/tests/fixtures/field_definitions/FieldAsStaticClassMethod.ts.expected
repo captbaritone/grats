@@ -27,6 +27,7 @@ type User @exported(exportName: "User", tsModulePath: "grats/src/tests/fixtures/
   name: String @metadata
 }
 -- TypeScript --
+import { User as UserClass } from "./FieldAsStaticClassMethod";
 import { User as queryGetUserResolver } from "./FieldAsStaticClassMethod";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
@@ -59,4 +60,23 @@ export function getSchema(): GraphQLSchema {
         query: QueryType,
         types: [QueryType, UserType]
     });
+}
+const typeNameMap = new Map();
+typeNameMap.set(UserClass, "User");
+
+function resolveType(obj: any): string {
+  if (typeof obj.__typename === "string") {
+    return obj.__typename;
+  }
+
+  let prototype = Object.getPrototypeOf(obj);
+  while (prototype) {
+    const name = typeNameMap.get(prototype.constructor);
+    if (name != null) {
+      return name;
+    }
+    prototype = Object.getPrototypeOf(prototype);
+  }
+
+  throw new Error("Cannot find type name");
 }

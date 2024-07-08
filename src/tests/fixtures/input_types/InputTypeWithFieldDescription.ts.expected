@@ -26,6 +26,7 @@ type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/f
   hello: String @metadata
 }
 -- TypeScript --
+import { SomeType as SomeTypeClass } from "./InputTypeWithFieldDescription";
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MyInputTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({
@@ -54,4 +55,23 @@ export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         types: [MyInputTypeType, SomeTypeType]
     });
+}
+const typeNameMap = new Map();
+typeNameMap.set(SomeTypeClass, "SomeType");
+
+function resolveType(obj: any): string {
+  if (typeof obj.__typename === "string") {
+    return obj.__typename;
+  }
+
+  let prototype = Object.getPrototypeOf(obj);
+  while (prototype) {
+    const name = typeNameMap.get(prototype.constructor);
+    if (name != null) {
+      return name;
+    }
+    prototype = Object.getPrototypeOf(prototype);
+  }
+
+  throw new Error("Cannot find type name");
 }
