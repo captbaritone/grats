@@ -4,6 +4,9 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
+- **Bug Fixes**
+  - The experimental TypeScript plugin will now report a diagnostics if it encounters a TypeScript version mismatch. (#143)
+
 ## 0.0.26
 
 - **Features**
