@@ -43,7 +43,7 @@ declare module "graphql" {
     hasTypeNameField: boolean;
     exported?: {
       tsModulePath: string;
-      exportName: string;
+      exportName: string | null;
     };
   }
   export interface UnionTypeDefinitionNode {

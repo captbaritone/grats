@@ -128,7 +128,7 @@ export class GraphQLConstructor {
     hasTypeNameField: boolean,
     exported: {
       tsModulePath: string;
-      exportName: string;
+      exportName: string | null;
     } | null,
   ): ObjectTypeDefinitionNode {
     return {

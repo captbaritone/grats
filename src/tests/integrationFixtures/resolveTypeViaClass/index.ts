@@ -7,7 +7,23 @@ interface GqlNode {
 }
 
 /** @gqlType */
+export default class DefaultNode implements GqlNode {
+  constructor(
+    /** @gqlField */
+    public id: ID,
+  ) {}
+}
+
+/** @gqlType */
 export class User implements GqlNode {
+  constructor(
+    /** @gqlField */
+    public id: ID,
+  ) {}
+}
+
+/** @gqlType RenamedNode */
+export class ThisNameGetsIgnored implements GqlNode {
   constructor(
     /** @gqlField */
     public id: ID,
@@ -38,6 +54,10 @@ export function node(_: Query, args: { id: ID }): GqlNode {
     return new User(id);
   } else if (id.startsWith("Guest:")) {
     return new Guest(id);
+  } else if (id.startsWith("DefaultNode:")) {
+    return new DefaultNode(id);
+  } else if (id.startsWith("RenamedNode:")) {
+    return new ThisNameGetsIgnored(id);
   } else if (id.startsWith("AlsoUser:")) {
     return new AlsoUser(id);
   } else {
@@ -54,6 +74,12 @@ export const query = /* GraphQL */ `
       __typename
     }
     guest: node(id: "Guest:1") {
+      __typename
+    }
+    defaultNode: node(id: "DefaultNode:1") {
+      __typename
+    }
+    renamedNode: node(id: "RenamedNode:1") {
       __typename
     }
   }
