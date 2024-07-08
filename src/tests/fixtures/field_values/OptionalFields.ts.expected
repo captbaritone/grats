@@ -25,7 +25,7 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType {
+type SomeType @exported {
   adieu: String @metadata(argCount: 0)
   farewell: String @metadata(argCount: 0)
   goodbye: String @metadata(argCount: 0)

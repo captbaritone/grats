@@ -12,7 +12,7 @@ export class User {
 OUTPUT
 -----------------
 -- SDL --
-type User {
+type User @exported {
   name: String @metadata
 }
 -- TypeScript --

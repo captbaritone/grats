@@ -19,7 +19,7 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType {
+type SomeType @exported {
   floatField(scale: Float! = 10): String @metadata(argCount: 1)
   intField(count: Int! = 10): String @metadata(argCount: 1)
 }

@@ -62,7 +62,7 @@ interface IPerson {
   name: String @metadata(argCount: 0) @semanticNonNull
 }
 
-type User implements IPerson {
+type User implements IPerson @exported {
   name: String @metadata(argCount: 0) @semanticNonNull
 }
 -- TypeScript --

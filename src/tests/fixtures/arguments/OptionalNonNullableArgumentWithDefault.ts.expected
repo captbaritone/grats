@@ -13,7 +13,7 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType {
+type SomeType @exported {
   hello(greeting: String! = "Hello"): String @metadata(argCount: 1)
 }
 -- TypeScript --

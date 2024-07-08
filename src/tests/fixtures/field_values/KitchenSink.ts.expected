@@ -68,7 +68,7 @@ type Group {
   name: String @metadata(argCount: 0)
 }
 
-type SomeType {
+type SomeType @exported {
   greetings(greeting: String!): [String!] @metadata(argCount: 1)
   greetings1(greeting: String!): [String!] @metadata(argCount: 1)
   greetings2(greeting: String!): [String!] @metadata(argCount: 1)

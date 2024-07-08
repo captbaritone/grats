@@ -17,7 +17,7 @@ export class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType {
+type SomeType @exported {
   greeting: String @metadata(argCount: 2)
 }
 -- TypeScript --

@@ -35,7 +35,7 @@ interface Person {
   hello: String @metadata
 }
 
-type User implements Node & Person {
+type User implements Node & Person @exported {
   hello: String @metadata
   id: String @metadata
 }

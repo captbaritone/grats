@@ -14,7 +14,7 @@ OUTPUT
 -- SDL --
 # Generated SDL
 # multi-line
-type SomeType {
+type SomeType @exported {
   hello: String @metadata
 }
 -- TypeScript --

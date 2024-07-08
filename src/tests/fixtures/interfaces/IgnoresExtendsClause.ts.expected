@@ -34,7 +34,7 @@ interface Actor {
   name: String @metadata
 }
 
-type SomeType {
+type SomeType @exported {
   me: User @metadata(argCount: 0)
 }
 

@@ -20,7 +20,7 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType {
+type SomeType @exported {
   someField1(greet: Boolean = false): String @metadata(argCount: 1)
   someField2(greet: Boolean = true): String @metadata(argCount: 1)
 }

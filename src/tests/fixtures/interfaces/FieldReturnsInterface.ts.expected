@@ -30,7 +30,7 @@ interface Person {
   name: String @metadata
 }
 
-type SomeType {
+type SomeType @exported {
   me: Person @metadata(argCount: 0)
 }
 

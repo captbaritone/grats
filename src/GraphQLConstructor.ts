@@ -122,6 +122,7 @@ export class GraphQLConstructor {
   objectTypeDefinition(
     node: ts.Node,
     name: NameNode,
+    directives: readonly ConstDirectiveNode[] | null,
     fields: FieldDefinitionNode[],
     interfaces: NamedTypeNode[] | null,
     description: StringValueNode | null,
@@ -130,7 +131,7 @@ export class GraphQLConstructor {
       kind: Kind.OBJECT_TYPE_DEFINITION,
       loc: loc(node),
       description: description ?? undefined,
-      directives: undefined,
+      directives: this._optionalList(directives),
       name,
       fields,
       interfaces: interfaces ?? undefined,

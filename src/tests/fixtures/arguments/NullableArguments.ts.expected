@@ -21,7 +21,7 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType {
+type SomeType @exported {
   hello1(greeting: String): String @metadata(argCount: 1)
   hello2(greeting: String): String @metadata(argCount: 1)
 }

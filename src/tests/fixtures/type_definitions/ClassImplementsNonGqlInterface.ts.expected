@@ -19,7 +19,7 @@ OUTPUT
 -----------------
 -- SDL --
 """The root of all evil."""
-type User {
+type User @exported {
   hello: String @metadata
 }
 -- TypeScript --

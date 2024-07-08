@@ -34,7 +34,7 @@ type Query {
   someField: SomeInputSomeClass @metadata(argCount: 1, exportName: "someField", tsModulePath: "grats/src/tests/fixtures/generics/genericOverArg.ts")
 }
 
-type SomeInputSomeClass {
+type SomeInputSomeClass @exported {
   someField(someArg: SomeInput): String @metadata(argCount: 1)
 }
 -- TypeScript --

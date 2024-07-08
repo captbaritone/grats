@@ -29,7 +29,7 @@ export class User {
 OUTPUT
 -----------------
 -- SDL --
-type User {
+type User @exported {
   greetings: [String!]! @metadata(argCount: 0)
   greetingsMaybe: [String]! @metadata(argCount: 0)
   maybeGreetings: [String!] @metadata(argCount: 0)

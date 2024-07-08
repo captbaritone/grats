@@ -65,6 +65,7 @@ declare module "graphql" {
 }
 
 export const FIELD_METADATA_DIRECTIVE = "metadata";
+export const EXPORTED_METADATA_DIRECTIVE = "exported";
 export const EXPORT_NAME_ARG = "exportName";
 export const FIELD_NAME_ARG = "name";
 export const TS_MODULE_PATH_ARG = "tsModulePath";
@@ -75,6 +76,7 @@ export const KILLS_PARENT_ON_EXCEPTION_DIRECTIVE = "killsParentOnException";
 
 export const METADATA_DIRECTIVE_NAMES = new Set([
   FIELD_METADATA_DIRECTIVE,
+  EXPORTED_METADATA_DIRECTIVE,
   KILLS_PARENT_ON_EXCEPTION_DIRECTIVE,
 ]);
 
@@ -99,6 +101,7 @@ export const DIRECTIVES_AST: DocumentNode = parse(`
       ${ARG_COUNT}: Int
     ) on FIELD_DEFINITION
     directive @${KILLS_PARENT_ON_EXCEPTION_DIRECTIVE} on FIELD_DEFINITION
+    directive @${EXPORTED_METADATA_DIRECTIVE} on OBJECT
 `);
 
 export function addMetadataDirectives(

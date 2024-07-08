@@ -23,7 +23,7 @@ enum MyEnum {
   VALID
 }
 
-type SomeType {
+type SomeType @exported {
   hello: MyEnum @metadata
 }
 -- TypeScript --

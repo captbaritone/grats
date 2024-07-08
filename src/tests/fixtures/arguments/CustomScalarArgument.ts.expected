@@ -18,7 +18,7 @@ OUTPUT
 -- SDL --
 scalar MyString
 
-type SomeType {
+type SomeType @exported {
   hello(greeting: MyString!): String @metadata(argCount: 1)
 }
 -- TypeScript --

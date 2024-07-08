@@ -38,7 +38,7 @@ type Entity {
   description: String @metadata
 }
 
-type SomeType {
+type SomeType @exported {
   me: Actor @metadata
 }
 

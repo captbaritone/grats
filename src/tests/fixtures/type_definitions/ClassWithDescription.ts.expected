@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 """The root of all evil."""
-type SomeType {
+type SomeType @exported {
   hello: String @metadata
 }
 -- TypeScript --

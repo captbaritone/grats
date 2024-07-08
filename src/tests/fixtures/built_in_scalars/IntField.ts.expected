@@ -15,7 +15,7 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType {
+type SomeType @exported {
   age: Int @metadata(argCount: 0)
 }
 -- TypeScript --

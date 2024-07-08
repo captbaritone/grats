@@ -735,10 +735,27 @@ class Extractor {
 
     this.checkForTypenameProperty(node, name.value);
 
+    let directives: ConstDirectiveNode[] | null = null;
+    const exported = node.modifiers?.find(
+      (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
+    );
+
+    if (exported != null) {
+      directives = [
+        this.gql.constDirective(
+          exported,
+          this.gql.name(exported, "exported"),
+          null,
+        ),
+      ];
+      // this.typesWithTypename.add(name.value);
+    }
+
     this.definitions.push(
       this.gql.objectTypeDefinition(
         node,
         name,
+        directives,
         fields,
         interfaces,
         description,
@@ -771,6 +788,7 @@ class Extractor {
       this.gql.objectTypeDefinition(
         node,
         name,
+        null,
         fields,
         interfaces,
         description,
@@ -805,6 +823,7 @@ class Extractor {
       this.gql.objectTypeDefinition(
         node,
         name,
+        null,
         fields,
         interfaces,
         description,

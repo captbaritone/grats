@@ -24,7 +24,7 @@ input MyInputType {
   someField: String @deprecated(reason: "Sweet, but stale")
 }
 
-type SomeType {
+type SomeType @exported {
   hello: String @metadata
 }
 -- TypeScript --

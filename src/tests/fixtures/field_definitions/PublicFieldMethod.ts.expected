@@ -13,7 +13,7 @@ export class User {
 OUTPUT
 -----------------
 -- SDL --
-type User {
+type User @exported {
   greet: String @metadata(argCount: 0)
 }
 -- TypeScript --

@@ -22,7 +22,7 @@ interface Person {
   hello: String @metadata
 }
 
-type User implements Person {
+type User implements Person @exported {
   hello: String @metadata
 }
 -- TypeScript --

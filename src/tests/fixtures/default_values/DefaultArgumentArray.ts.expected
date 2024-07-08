@@ -20,7 +20,7 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType {
+type SomeType @exported {
   someField1(inputs: [String!] = ["hello", "there"]): String @metadata(argCount: 1)
 }
 -- TypeScript --

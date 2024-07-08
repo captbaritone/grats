@@ -13,7 +13,7 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType {
+type SomeType @exported {
   b: [String!] @metadata
   c: [String!] @metadata
 }

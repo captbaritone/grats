@@ -22,7 +22,7 @@ input MyInputType {
   someField: String!
 }
 
-type SomeType {
+type SomeType @exported {
   hello: String @metadata
 }
 -- TypeScript --
