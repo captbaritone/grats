@@ -32,7 +32,7 @@ interface IPerson {
   name: String @deprecated(reason: "Not used anymore") @metadata
 }
 
-type SomeType @exported {
+type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/interfaces/InterfaceWithDeprecatedField.ts") {
   me: User @metadata(argCount: 0)
 }
 

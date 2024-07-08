@@ -13,7 +13,7 @@ export class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType @exported {
+type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/resolver_context/ContextValueTypedAsUnknown.ts") {
   greeting: String @metadata(argCount: 2)
 }
 -- TypeScript --

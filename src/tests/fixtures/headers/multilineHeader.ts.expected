@@ -14,7 +14,7 @@ OUTPUT
 -- SDL --
 # Generated SDL
 # multi-line
-type SomeType @exported {
+type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/headers/multilineHeader.ts") {
   hello: String @metadata
 }
 -- TypeScript --

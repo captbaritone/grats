@@ -39,7 +39,7 @@ export function getUser(_: SomeType): UserResolver {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType @exported {
+type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/examples/playground.ts") {
   getUser: User @metadata(argCount: 1, exportName: "getUser", tsModulePath: "grats/src/tests/fixtures/examples/playground.ts")
   me: User @metadata(argCount: 0)
   viewer: User @deprecated(reason: "Please use `me` instead.") @metadata(argCount: 0)

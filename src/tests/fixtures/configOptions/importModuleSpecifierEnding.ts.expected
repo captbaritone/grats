@@ -18,7 +18,7 @@ export function greeting(t: SomeType): string {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType @exported {
+type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/configOptions/importModuleSpecifierEnding.ts") {
   greeting: String @metadata(argCount: 1, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/configOptions/importModuleSpecifierEnding.ts")
   hello: String @metadata
 }

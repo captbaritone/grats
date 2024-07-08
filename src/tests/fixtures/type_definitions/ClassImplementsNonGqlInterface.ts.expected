@@ -19,7 +19,7 @@ OUTPUT
 -----------------
 -- SDL --
 """The root of all evil."""
-type User @exported {
+type User @exported(exportName: "User", tsModulePath: "grats/src/tests/fixtures/type_definitions/ClassImplementsNonGqlInterface.ts") {
   hello: String @metadata
 }
 -- TypeScript --

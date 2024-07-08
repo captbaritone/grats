@@ -14,7 +14,7 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType @exported {
+type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/field_values/non_default_nullable/NonNullablePromise.ts") {
   hello: String! @metadata(argCount: 0)
 }
 -- TypeScript --

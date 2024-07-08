@@ -18,7 +18,7 @@ OUTPUT
 -- SDL --
 scalar MyString
 
-type SomeType @exported {
+type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/arguments/CustomScalarArgument.ts") {
   hello(greeting: MyString!): String @metadata(argCount: 1)
 }
 -- TypeScript --

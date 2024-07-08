@@ -13,7 +13,7 @@ export class User {
 OUTPUT
 -----------------
 -- SDL --
-type User @exported {
+type User @exported(exportName: "User", tsModulePath: "grats/src/tests/fixtures/field_definitions/PublicFieldMethod.ts") {
   greet: String @metadata(argCount: 0)
 }
 -- TypeScript --

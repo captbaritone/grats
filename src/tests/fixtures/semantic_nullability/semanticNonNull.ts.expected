@@ -51,7 +51,7 @@ Passing a negative level or a level greater than the list dimension is an error.
 """
 directive @semanticNonNull(levels: [Int] = [0]) on FIELD_DEFINITION
 
-type User @exported {
+type User @exported(exportName: "User", tsModulePath: "grats/src/tests/fixtures/semantic_nullability/semanticNonNull.ts") {
   name: String @metadata(argCount: 0) @semanticNonNull
 }
 -- TypeScript --

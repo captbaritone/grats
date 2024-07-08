@@ -35,7 +35,7 @@ interface Person {
   hello: String @metadata
 }
 
-type User implements Node & Person @exported {
+type User implements Node & Person @exported(exportName: "User", tsModulePath: "grats/src/tests/fixtures/type_definitions/TypeFromClassDefinitionImplementsMultipleInterfaces.ts") {
   hello: String @metadata
   id: String @metadata
 }

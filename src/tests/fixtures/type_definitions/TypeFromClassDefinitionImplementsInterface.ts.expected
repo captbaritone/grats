@@ -22,7 +22,7 @@ interface Person {
   hello: String @metadata
 }
 
-type User implements Person @exported {
+type User implements Person @exported(exportName: "User", tsModulePath: "grats/src/tests/fixtures/type_definitions/TypeFromClassDefinitionImplementsInterface.ts") {
   hello: String @metadata
 }
 -- TypeScript --

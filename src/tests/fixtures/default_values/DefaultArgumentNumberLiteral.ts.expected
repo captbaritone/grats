@@ -19,7 +19,7 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType @exported {
+type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/default_values/DefaultArgumentNumberLiteral.ts") {
   floatField(scale: Float! = 10): String @metadata(argCount: 1)
   intField(count: Int! = 10): String @metadata(argCount: 1)
 }

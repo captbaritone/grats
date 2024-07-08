@@ -33,6 +33,7 @@ import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
 import { extend, loc } from "./utils/helpers";
 import * as Act from "./CodeActions";
+import { EXPORTED_METADATA_DIRECTIVE } from "./metadataDirectives.js";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -742,13 +743,11 @@ class Extractor {
 
     if (exported != null) {
       directives = [
-        this.gql.constDirective(
-          exported,
-          this.gql.name(exported, "exported"),
-          null,
-        ),
+        this.gql.typeExportedDirective(exported, {
+          tsModulePath: relativePath(node.getSourceFile().fileName),
+          exportName: node.name.text,
+        }),
       ];
-      // this.typesWithTypename.add(name.value);
     }
 
     this.definitions.push(

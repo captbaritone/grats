@@ -16,7 +16,7 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType @exported {
+type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/field_definitions/ParameterPropertyFieldDeprecated.ts") {
   hello: String @deprecated(reason: "Don't use this") @metadata
 }
 -- TypeScript --

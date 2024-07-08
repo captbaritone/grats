@@ -22,7 +22,7 @@ input MyInputType {
   someField: String!
 }
 
-type SomeType @exported {
+type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/input_types/InputTypeWithFieldDescription.ts") {
   hello: String @metadata
 }
 -- TypeScript --

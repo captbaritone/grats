@@ -31,7 +31,7 @@ type Page {
   name: String @metadata
 }
 
-type PageEdge @exported {
+type PageEdge @exported(exportName: "Edge", tsModulePath: "grats/src/tests/fixtures/generics/genericTypeUsingClass.ts") {
   cursor: String @metadata
   node: Page @metadata
 }

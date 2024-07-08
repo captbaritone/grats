@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 """The root of all evil."""
-type SomeType @exported {
+type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/type_definitions/ClassWithDescription.ts") {
   hello: String @metadata
 }
 -- TypeScript --

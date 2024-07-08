@@ -68,7 +68,7 @@ type Group {
   name: String @metadata(argCount: 0)
 }
 
-type SomeType @exported {
+type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/field_values/KitchenSink.ts") {
   greetings(greeting: String!): [String!] @metadata(argCount: 1)
   greetings1(greeting: String!): [String!] @metadata(argCount: 1)
   greetings2(greeting: String!): [String!] @metadata(argCount: 1)

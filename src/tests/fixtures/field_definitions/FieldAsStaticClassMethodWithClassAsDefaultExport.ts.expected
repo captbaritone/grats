@@ -23,7 +23,7 @@ type Query {
   getUser: User @metadata(argCount: 1, name: "getUser", tsModulePath: "grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethodWithClassAsDefaultExport.ts")
 }
 
-type User @exported {
+type User @exported(exportName: "User", tsModulePath: "grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethodWithClassAsDefaultExport.ts") {
   name: String @metadata
 }
 -- TypeScript --

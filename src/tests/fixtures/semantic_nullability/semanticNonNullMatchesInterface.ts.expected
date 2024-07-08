@@ -62,7 +62,7 @@ interface IPerson {
   name: String @metadata(argCount: 0) @semanticNonNull
 }
 
-type User implements IPerson @exported {
+type User implements IPerson @exported(exportName: "User", tsModulePath: "grats/src/tests/fixtures/semantic_nullability/semanticNonNullMatchesInterface.ts") {
   name: String @metadata(argCount: 0) @semanticNonNull
 }
 -- TypeScript --

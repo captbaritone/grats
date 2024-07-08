@@ -12,7 +12,7 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType @exported {
+type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/configOptions/nonNullableIsNull.invalid.ts") {
   hello: String @metadata
 }
 -- TypeScript --

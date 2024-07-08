@@ -21,7 +21,7 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType @exported {
+type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/arguments/NullableArguments.ts") {
   hello1(greeting: String): String @metadata(argCount: 1)
   hello2(greeting: String): String @metadata(argCount: 1)
 }

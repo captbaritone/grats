@@ -11,7 +11,7 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType @exported {
+type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/field_values/OptionalProperty.ts") {
   hello: String @metadata
 }
 -- TypeScript --

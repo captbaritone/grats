@@ -12,7 +12,7 @@ export class User {
 OUTPUT
 -----------------
 -- SDL --
-type User @exported {
+type User @exported(exportName: "User", tsModulePath: "grats/src/tests/fixtures/typename/PropertyTypename.ts") {
   name: String @metadata
 }
 -- TypeScript --

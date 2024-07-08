@@ -22,7 +22,7 @@ interface IPerson {
   name: String @metadata
 }
 
-type User implements IPerson @exported {
+type User implements IPerson @exported(exportName: "User", tsModulePath: "grats/src/tests/fixtures/typename/PropertySignatureTypename.ts") {
   name: String @metadata
 }
 -- TypeScript --

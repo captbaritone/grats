@@ -101,7 +101,17 @@ export const DIRECTIVES_AST: DocumentNode = parse(`
       ${ARG_COUNT}: Int
     ) on FIELD_DEFINITION
     directive @${KILLS_PARENT_ON_EXCEPTION_DIRECTIVE} on FIELD_DEFINITION
-    directive @${EXPORTED_METADATA_DIRECTIVE} on OBJECT
+    directive @${EXPORTED_METADATA_DIRECTIVE}(
+       """
+      Path of the TypeScript module to import if the field is a function.
+      """
+      ${TS_MODULE_PATH_ARG}: String
+      """
+      Export name of the field. For function fields this is the exported function name,
+      for static method fields, this is the exported class name.
+      """
+      ${EXPORT_NAME_ARG}: String
+    ) on OBJECT
 `);
 
 export function addMetadataDirectives(

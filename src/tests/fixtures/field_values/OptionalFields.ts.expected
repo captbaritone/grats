@@ -25,7 +25,7 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType @exported {
+type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/field_values/OptionalFields.ts") {
   adieu: String @metadata(argCount: 0)
   farewell: String @metadata(argCount: 0)
   goodbye: String @metadata(argCount: 0)
