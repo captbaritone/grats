@@ -1,0 +1,84 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface */
+interface A {
+  /** @gqlField */
+  aField: string;
+}
+
+/** @gqlInterface */
+interface B {
+  /** @gqlField */
+  bField: string;
+}
+
+/** @gqlInterface */
+interface C extends A, B {
+  aField: string;
+  bField: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+interface A {
+  aField: String @metadata
+}
+
+interface B {
+  bField: String @metadata
+}
+
+interface C implements A & B {
+  aField: String @metadata
+  bField: String @metadata
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const AType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "A",
+        fields() {
+            return {
+                aField: {
+                    name: "aField",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const BType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "B",
+        fields() {
+            return {
+                bField: {
+                    name: "bField",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const CType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "C",
+        fields() {
+            return {
+                aField: {
+                    name: "aField",
+                    type: GraphQLString
+                },
+                bField: {
+                    name: "bField",
+                    type: GraphQLString
+                }
+            };
+        },
+        interfaces() {
+            return [AType, BType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [AType, BType, CType]
+    });
+}
