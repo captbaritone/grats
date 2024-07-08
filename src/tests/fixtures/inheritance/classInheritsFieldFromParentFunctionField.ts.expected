@@ -1,0 +1,70 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class Parent {}
+
+/** @gqlField */
+export function parentField(_: Parent): string {
+  return "parentField";
+}
+
+/** @gqlType */
+export class Child extends Parent {
+  /** @gqlField */
+  childField: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Child {
+  childField: String @metadata
+  parentField: String @metadata(argCount: 1, exportName: "parentField", tsModulePath: "grats/src/tests/fixtures/inheritance/classInheritsFieldFromParentFunctionField.ts")
+}
+
+type Parent {
+  parentField: String @metadata(argCount: 1, exportName: "parentField", tsModulePath: "grats/src/tests/fixtures/inheritance/classInheritsFieldFromParentFunctionField.ts")
+}
+-- TypeScript --
+import { parentField as childParentFieldResolver } from "./classInheritsFieldFromParentFunctionField";
+import { parentField as parentParentFieldResolver } from "./classInheritsFieldFromParentFunctionField";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const ChildType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Child",
+        fields() {
+            return {
+                childField: {
+                    name: "childField",
+                    type: GraphQLString
+                },
+                parentField: {
+                    name: "parentField",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return childParentFieldResolver(source);
+                    }
+                }
+            };
+        }
+    });
+    const ParentType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Parent",
+        fields() {
+            return {
+                parentField: {
+                    name: "parentField",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return parentParentFieldResolver(source);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [ChildType, ParentType]
+    });
+}

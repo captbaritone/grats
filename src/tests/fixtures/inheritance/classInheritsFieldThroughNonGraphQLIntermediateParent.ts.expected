@@ -1,0 +1,62 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class Parent {
+  /** @gqlField */
+  parentField: string;
+}
+
+class Intermediate extends Parent {}
+
+/** @gqlType */
+export class Child extends Intermediate {
+  /** @gqlField */
+  childField: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Child {
+  childField: String @metadata
+  parentField: String @metadata
+}
+
+type Parent {
+  parentField: String @metadata
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const ChildType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Child",
+        fields() {
+            return {
+                childField: {
+                    name: "childField",
+                    type: GraphQLString
+                },
+                parentField: {
+                    name: "parentField",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const ParentType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Parent",
+        fields() {
+            return {
+                parentField: {
+                    name: "parentField",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [ChildType, ParentType]
+    });
+}

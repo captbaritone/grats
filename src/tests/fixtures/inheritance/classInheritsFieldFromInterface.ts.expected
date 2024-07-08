@@ -1,0 +1,65 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface */
+interface MyInterface {
+  /** @gqlField */
+  interfaceField: string;
+}
+
+/** @gqlType */
+export class MyType implements MyInterface {
+  __typename: "MyType" = "MyType";
+  interfaceField: string;
+  /** @gqlField */
+  typeField: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+interface MyInterface {
+  interfaceField: String @metadata
+}
+
+type MyType implements MyInterface {
+  interfaceField: String @metadata
+  typeField: String @metadata
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const MyInterfaceType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "MyInterface",
+        fields() {
+            return {
+                interfaceField: {
+                    name: "interfaceField",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const MyTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "MyType",
+        fields() {
+            return {
+                interfaceField: {
+                    name: "interfaceField",
+                    type: GraphQLString
+                },
+                typeField: {
+                    name: "typeField",
+                    type: GraphQLString
+                }
+            };
+        },
+        interfaces() {
+            return [MyInterfaceType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [MyInterfaceType, MyTypeType]
+    });
+}

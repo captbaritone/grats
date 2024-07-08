@@ -1,0 +1,76 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class Parent {
+  /**
+   * The description from the parent class
+   * @gqlField
+   * @deprecated
+   */
+  commonField: string;
+}
+
+/** @gqlType */
+export class Child extends Parent {
+  /** @gqlField */
+  childField: string;
+
+  /**
+   * The description from the child class
+   * @killsParentOnException
+   * @gqlField
+   */
+  commonField: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Child {
+  childField: String @metadata
+  """The description from the child class"""
+  commonField: String! @killsParentOnException @metadata
+}
+
+type Parent {
+  """The description from the parent class"""
+  commonField: String @deprecated @metadata
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const ChildType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Child",
+        fields() {
+            return {
+                childField: {
+                    name: "childField",
+                    type: GraphQLString
+                },
+                commonField: {
+                    description: "The description from the child class",
+                    name: "commonField",
+                    type: new GraphQLNonNull(GraphQLString)
+                }
+            };
+        }
+    });
+    const ParentType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Parent",
+        fields() {
+            return {
+                commonField: {
+                    description: "The description from the parent class",
+                    deprecationReason: "No longer supported",
+                    name: "commonField",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [ChildType, ParentType]
+    });
+}
