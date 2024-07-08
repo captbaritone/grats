@@ -1,0 +1,112 @@
+-----------------
+INPUT
+----------------- 
+import { ID } from "../../../Types";
+
+/** @gqlInterface */
+interface GqlNode {
+  /** @gqlField */
+  id: ID;
+}
+
+/** @gqlType */
+export class User implements GqlNode {
+  constructor(
+    /** @gqlField */
+    public id: ID,
+  ) {}
+}
+
+/** @gqlType */
+export class Guest implements GqlNode {
+  constructor(
+    /** @gqlField */
+    public id: ID,
+  ) {}
+}
+
+class AlsoUser extends User {
+  constructor(id: ID) {
+    super(id);
+  }
+}
+
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlField */
+export function node(_: Query, args: { id: ID }): GqlNode {
+  const { id } = args;
+  if (id.startsWith("User:")) {
+    return new User(id);
+  } else if (id.startsWith("Guest:")) {
+    return new Guest(id);
+  } else if (id.startsWith("AlsoUser:")) {
+    return new AlsoUser(id);
+  } else {
+    return new Guest(id);
+  }
+}
+
+export const query = /* GraphQL */ `
+  query {
+    user: node(id: "User:1") {
+      __typename
+    }
+    alsoUser: node(id: "AlsoUser:1") {
+      __typename
+    }
+    guest: node(id: "Guest:1") {
+      __typename
+    }
+  }
+`;
+
+-----------------
+OUTPUT
+-----------------
+{
+  "errors": [
+    {
+      "message": "Abstract type \"GqlNode\" must resolve to an Object type at runtime for field \"Query.node\". Either the \"GqlNode\" type should provide a \"resolveType\" function or each possible type should provide an \"isTypeOf\" function.",
+      "locations": [
+        {
+          "line": 3,
+          "column": 5
+        }
+      ],
+      "path": [
+        "user"
+      ]
+    },
+    {
+      "message": "Abstract type \"GqlNode\" must resolve to an Object type at runtime for field \"Query.node\". Either the \"GqlNode\" type should provide a \"resolveType\" function or each possible type should provide an \"isTypeOf\" function.",
+      "locations": [
+        {
+          "line": 6,
+          "column": 5
+        }
+      ],
+      "path": [
+        "alsoUser"
+      ]
+    },
+    {
+      "message": "Abstract type \"GqlNode\" must resolve to an Object type at runtime for field \"Query.node\". Either the \"GqlNode\" type should provide a \"resolveType\" function or each possible type should provide an \"isTypeOf\" function.",
+      "locations": [
+        {
+          "line": 9,
+          "column": 5
+        }
+      ],
+      "path": [
+        "guest"
+      ]
+    }
+  ],
+  "data": {
+    "user": null,
+    "alsoUser": null,
+    "guest": null
+  }
+}

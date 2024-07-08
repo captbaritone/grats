@@ -1,5 +1,6 @@
 import {
   ConstDirectiveNode,
+  GraphQLAbstractType,
   GraphQLArgument,
   GraphQLEnumType,
   GraphQLEnumValue,
@@ -27,10 +28,8 @@ import {
 import * as ts from "typescript";
 import * as path from "path";
 import {
-  EXPORTED_METADATA_DIRECTIVE,
   FIELD_METADATA_DIRECTIVE,
   parseFieldMetadataDirective,
-  parseTypeExportedDirective,
 } from "./metadataDirectives";
 import { resolveRelativePath } from "./gratsRoot";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "./publicDirectives";
@@ -76,7 +75,10 @@ export function codegen(
   codegen.schemaDeclarationExport();
 
   const code = codegen.print();
-  return `${code}\n${postlude}`;
+  if (codegen._usesResolveType) {
+    return `${code}\n${postlude}`;
+  }
+  return code;
 }
 
 class Codegen {
@@ -86,6 +88,7 @@ class Codegen {
   _typeDefinitions: Set<string> = new Set();
   _graphQLImports: Set<string> = new Set();
   _statements: ts.Statement[] = [];
+  _usesResolveType = false;
 
   constructor(
     public _schema: GraphQLSchema,
@@ -212,9 +215,8 @@ class Codegen {
     const varName = `${obj.name}Type`;
     if (!this._typeDefinitions.has(varName)) {
       this._typeDefinitions.add(varName);
-      const exportedDirective = typeDirective(obj, EXPORTED_METADATA_DIRECTIVE);
-      if (exportedDirective != null) {
-        const exportedMetadata = parseTypeExportedDirective(exportedDirective);
+      const exportedMetadata = nullThrows(obj.astNode).exported;
+      if (exportedMetadata != null) {
         const localName = `${obj.name}Class`;
         this.importUserConstruct(
           exportedMetadata.tsModulePath,
@@ -467,12 +469,13 @@ class Codegen {
   }
 
   interfaceTypeConfig(obj: GraphQLInterfaceType): ts.ObjectLiteralExpression {
+    this._schema.getPossibleTypes(obj);
     return this.objectLiteral([
       this.description(obj.description),
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.fields(obj, true),
       this.interfaces(obj),
-      F.createShorthandPropertyAssignment("resolveType"),
+      this.resolveType(obj),
     ]);
   }
 
@@ -495,6 +498,18 @@ class Codegen {
     return F.createIdentifier(varName);
   }
 
+  resolveType(obj: GraphQLAbstractType): ts.ShorthandPropertyAssignment | null {
+    const needsResolveType = this._schema
+      .getPossibleTypes(obj)
+      .some((t) => nullThrows(t.astNode).hasTypeNameField);
+    if (needsResolveType) {
+      this._usesResolveType = true;
+      return F.createShorthandPropertyAssignment("resolveType");
+    }
+    // Just use the default resolveType
+    return null;
+  }
+
   unionTypeConfig(obj: GraphQLUnionType): ts.ObjectLiteralExpression {
     return this.objectLiteral([
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
@@ -510,7 +525,7 @@ class Codegen {
           ),
         ],
       ),
-      F.createShorthandPropertyAssignment("resolveType"),
+      this.resolveType(obj),
     ]);
   }
 
@@ -911,35 +926,37 @@ class Codegen {
       [...this._graphQLImports].map((name) => ({ name })),
     );
 
-    this._statements.push(
-      F.createVariableStatement(
-        undefined,
-        F.createVariableDeclarationList(
-          [
-            F.createVariableDeclaration(
-              F.createIdentifier("typeNameMap"),
-              undefined,
-              undefined,
-              F.createNewExpression(F.createIdentifier("Map"), undefined, []),
-            ),
-          ],
-          ts.NodeFlags.Const,
-        ),
-      ),
-    );
-    for (const { className, typeName } of this._typeNameMappings) {
+    if (this._usesResolveType) {
       this._statements.push(
-        F.createExpressionStatement(
-          F.createCallExpression(
-            F.createPropertyAccessExpression(
-              F.createIdentifier("typeNameMap"),
-              F.createIdentifier("set"),
-            ),
-            undefined,
-            [F.createIdentifier(className), F.createStringLiteral(typeName)],
+        F.createVariableStatement(
+          undefined,
+          F.createVariableDeclarationList(
+            [
+              F.createVariableDeclaration(
+                F.createIdentifier("typeNameMap"),
+                undefined,
+                undefined,
+                F.createNewExpression(F.createIdentifier("Map"), undefined, []),
+              ),
+            ],
+            ts.NodeFlags.Const,
           ),
         ),
       );
+      for (const { className, typeName } of this._typeNameMappings) {
+        this._statements.push(
+          F.createExpressionStatement(
+            F.createCallExpression(
+              F.createPropertyAccessExpression(
+                F.createIdentifier("typeNameMap"),
+                F.createIdentifier("set"),
+              ),
+              undefined,
+              [F.createIdentifier(className), F.createStringLiteral(typeName)],
+            ),
+          ),
+        );
+      }
     }
 
     return printer.printList(
@@ -959,13 +976,6 @@ function fieldDirective(
   name: string,
 ): ConstDirectiveNode | null {
   return field.astNode?.directives?.find((d) => d.name.value === name) ?? null;
-}
-
-function typeDirective(
-  t: GraphQLObjectType,
-  name: string,
-): ConstDirectiveNode | null {
-  return t.astNode?.directives?.find((d) => d.name.value === name) ?? null;
 }
 
 function replaceExt(filePath: string, newSuffix: string): string {

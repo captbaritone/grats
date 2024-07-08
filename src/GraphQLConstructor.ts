@@ -40,7 +40,6 @@ import {
   ARG_COUNT,
   FIELD_METADATA_DIRECTIVE,
   EXPORT_NAME_ARG,
-  EXPORTED_METADATA_DIRECTIVE,
 } from "./metadataDirectives";
 import { uniqueId } from "./utils/helpers";
 import { TsLocatableNode } from "./utils/DiagnosticError";
@@ -100,40 +99,6 @@ export class GraphQLConstructor {
     );
   }
 
-  typeExportedDirective(
-    node: ts.Node,
-    metadata: {
-      tsModulePath: string | null;
-      exportName: string | null;
-    },
-  ): ConstDirectiveNode {
-    const args: ConstArgumentNode[] = [];
-    if (metadata.tsModulePath != null) {
-      args.push(
-        this.constArgument(
-          node,
-          this.name(node, TS_MODULE_PATH_ARG),
-          this.string(node, metadata.tsModulePath),
-        ),
-      );
-    }
-    if (metadata.exportName != null) {
-      args.push(
-        this.constArgument(
-          node,
-          this.name(node, EXPORT_NAME_ARG),
-          this.string(node, metadata.exportName),
-        ),
-      );
-    }
-
-    return this.constDirective(
-      node,
-      this.name(node, EXPORTED_METADATA_DIRECTIVE),
-      args,
-    );
-  }
-
   killsParentOnExceptionDirective(node: ts.Node): ConstDirectiveNode {
     return makeKillsParentOnExceptionDirective(loc(node));
   }
@@ -157,19 +122,24 @@ export class GraphQLConstructor {
   objectTypeDefinition(
     node: ts.Node,
     name: NameNode,
-    directives: readonly ConstDirectiveNode[] | null,
     fields: FieldDefinitionNode[],
     interfaces: NamedTypeNode[] | null,
     description: StringValueNode | null,
+    hasTypeNameField: boolean,
+    exported: {
+      tsModulePath: string;
+      exportName: string;
+    } | null,
   ): ObjectTypeDefinitionNode {
     return {
       kind: Kind.OBJECT_TYPE_DEFINITION,
       loc: loc(node),
       description: description ?? undefined,
-      directives: this._optionalList(directives),
       name,
       fields,
       interfaces: interfaces ?? undefined,
+      hasTypeNameField: hasTypeNameField,
+      exported: exported ?? undefined,
     };
   }
 

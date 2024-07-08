@@ -34,7 +34,7 @@ type Entity {
   description: String @metadata
 }
 
-type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/unions/DefineUnionType.ts") {
+type SomeType {
   me: Actor @metadata
 }
 

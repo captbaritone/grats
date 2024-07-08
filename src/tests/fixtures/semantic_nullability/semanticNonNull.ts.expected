@@ -51,7 +51,7 @@ Passing a negative level or a level greater than the list dimension is an error.
 """
 directive @semanticNonNull(levels: [Int] = [0]) on FIELD_DEFINITION
 
-type User @exported(exportName: "User", tsModulePath: "grats/src/tests/fixtures/semantic_nullability/semanticNonNull.ts") {
+type User {
   name: String @metadata(argCount: 0) @semanticNonNull
 }
 -- TypeScript --
@@ -81,23 +81,4 @@ export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         types: [UserType]
     });
-}
-const typeNameMap = new Map();
-typeNameMap.set(UserClass, "User");
-
-function resolveType(obj: any): string {
-  if (typeof obj.__typename === "string") {
-    return obj.__typename;
-  }
-
-  let prototype = Object.getPrototypeOf(obj);
-  while (prototype) {
-    const name = typeNameMap.get(prototype.constructor);
-    if (name != null) {
-      return name;
-    }
-    prototype = Object.getPrototypeOf(prototype);
-  }
-
-  throw new Error("Cannot find type name");
 }

@@ -23,7 +23,7 @@ type Query {
   getUser: User @metadata(argCount: 1, name: "getUser", tsModulePath: "grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethodWithClassAsDefaultExport.ts")
 }
 
-type User @exported(exportName: "User", tsModulePath: "grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethodWithClassAsDefaultExport.ts") {
+type User {
   name: String @metadata
 }
 -- TypeScript --
@@ -60,23 +60,4 @@ export function getSchema(): GraphQLSchema {
         query: QueryType,
         types: [QueryType, UserType]
     });
-}
-const typeNameMap = new Map();
-typeNameMap.set(UserClass, "User");
-
-function resolveType(obj: any): string {
-  if (typeof obj.__typename === "string") {
-    return obj.__typename;
-  }
-
-  let prototype = Object.getPrototypeOf(obj);
-  while (prototype) {
-    const name = typeNameMap.get(prototype.constructor);
-    if (name != null) {
-      return name;
-    }
-    prototype = Object.getPrototypeOf(prototype);
-  }
-
-  throw new Error("Cannot find type name");
 }

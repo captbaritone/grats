@@ -21,7 +21,7 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/arguments/NullableArguments.ts") {
+type SomeType {
   hello1(greeting: String): String @metadata(argCount: 1)
   hello2(greeting: String): String @metadata(argCount: 1)
 }
@@ -59,23 +59,4 @@ export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         types: [SomeTypeType]
     });
-}
-const typeNameMap = new Map();
-typeNameMap.set(SomeTypeClass, "SomeType");
-
-function resolveType(obj: any): string {
-  if (typeof obj.__typename === "string") {
-    return obj.__typename;
-  }
-
-  let prototype = Object.getPrototypeOf(obj);
-  while (prototype) {
-    const name = typeNameMap.get(prototype.constructor);
-    if (name != null) {
-      return name;
-    }
-    prototype = Object.getPrototypeOf(prototype);
-  }
-
-  throw new Error("Cannot find type name");
 }

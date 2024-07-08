@@ -19,11 +19,50 @@ export type MyUnion = User | Group;
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/typename/UnionMemberMissingTypename.ts:8:14 - error: Missing `__typename` on `Group`. The type `Group` is used in a union or interface, so it must have a `__typename` field.
+-- SDL --
+union MyUnion = Group | User
 
-8 export class Group {
-               ~~~~~
-src/tests/fixtures/typename/UnionMemberMissingTypename.ts:2:14 - error: Missing `__typename` on `User`. The type `User` is used in a union or interface, so it must have a `__typename` field.
+type Group {
+  name: String @metadata
+}
 
-2 export class User {
-               ~~~~
+type User {
+  name: String @metadata
+}
+-- TypeScript --
+import { Group as GroupClass } from "./UnionMemberMissingTypename";
+import { User as UserClass } from "./UnionMemberMissingTypename";
+import { GraphQLSchema, GraphQLUnionType, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const GroupType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Group",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const MyUnionType: GraphQLUnionType = new GraphQLUnionType({
+        name: "MyUnion",
+        types() {
+            return [GroupType, UserType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [MyUnionType, GroupType, UserType]
+    });
+}

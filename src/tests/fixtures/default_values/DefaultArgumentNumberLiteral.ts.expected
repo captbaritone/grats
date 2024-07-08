@@ -19,7 +19,7 @@ export default class SomeType {
 OUTPUT
 -----------------
 -- SDL --
-type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/default_values/DefaultArgumentNumberLiteral.ts") {
+type SomeType {
   floatField(scale: Float! = 10): String @metadata(argCount: 1)
   intField(count: Int! = 10): String @metadata(argCount: 1)
 }
@@ -59,23 +59,4 @@ export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         types: [SomeTypeType]
     });
-}
-const typeNameMap = new Map();
-typeNameMap.set(SomeTypeClass, "SomeType");
-
-function resolveType(obj: any): string {
-  if (typeof obj.__typename === "string") {
-    return obj.__typename;
-  }
-
-  let prototype = Object.getPrototypeOf(obj);
-  while (prototype) {
-    const name = typeNameMap.get(prototype.constructor);
-    if (name != null) {
-      return name;
-    }
-    prototype = Object.getPrototypeOf(prototype);
-  }
-
-  throw new Error("Cannot find type name");
 }

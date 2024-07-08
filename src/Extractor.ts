@@ -735,19 +735,16 @@ class Extractor {
 
     const hasTypeName = this.checkForTypenameProperty(node, name.value);
 
-    let directives: ConstDirectiveNode[] | null = null;
-
+    let exported: { tsModulePath: string; exportName: string } | null = null;
     if (!hasTypeName) {
-      const exported = node.modifiers?.find(
+      const isExported = node.modifiers?.find(
         (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
       );
-      if (exported != null) {
-        directives = [
-          this.gql.typeExportedDirective(exported, {
-            tsModulePath: relativePath(node.getSourceFile().fileName),
-            exportName: node.name.text,
-          }),
-        ];
+      if (isExported) {
+        exported = {
+          tsModulePath: relativePath(node.getSourceFile().fileName),
+          exportName: node.name.text,
+        };
       }
     }
 
@@ -755,10 +752,11 @@ class Extractor {
       this.gql.objectTypeDefinition(
         node,
         name,
-        directives,
         fields,
         interfaces,
         description,
+        hasTypeName,
+        exported,
       ),
     );
   }
@@ -782,16 +780,17 @@ class Extractor {
     const interfaces = this.collectInterfaces(node);
     this.recordTypeName(node, name, "TYPE");
 
-    this.checkForTypenameProperty(node, name.value);
+    const hasTypeName = this.checkForTypenameProperty(node, name.value);
 
     this.definitions.push(
       this.gql.objectTypeDefinition(
         node,
         name,
-        null,
         fields,
         interfaces,
         description,
+        hasTypeName,
+        null,
       ),
     );
   }
@@ -803,11 +802,13 @@ class Extractor {
     let fields: FieldDefinitionNode[] = [];
     let interfaces: NamedTypeNode[] | null = null;
 
+    let hasTypeName = false;
+
     if (ts.isTypeLiteralNode(node.type)) {
       this.validateOperationTypes(node.type, name.value);
       fields = this.collectFields(node.type.members);
       interfaces = this.collectInterfaces(node);
-      this.checkForTypenameProperty(node.type, name.value);
+      hasTypeName = this.checkForTypenameProperty(node.type, name.value);
     } else if (node.type.kind === ts.SyntaxKind.UnknownKeyword) {
       // This is fine, we just don't know what it is. This should be the expected
       // case for operation types such as `Query`, `Mutation`, and `Subscription`
@@ -823,10 +824,11 @@ class Extractor {
       this.gql.objectTypeDefinition(
         node,
         name,
-        null,
         fields,
         interfaces,
         description,
+        hasTypeName,
+        null,
       ),
     );
   }

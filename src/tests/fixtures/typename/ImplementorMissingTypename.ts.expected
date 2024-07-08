@@ -16,7 +16,44 @@ export interface IPerson {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/typename/ImplementorMissingTypename.ts:2:14 - error: Missing `__typename` on `User`. The type `User` is used in a union or interface, so it must have a `__typename` field.
+-- SDL --
+interface IPerson {
+  name: String @metadata
+}
 
-2 export class User implements IPerson {
-               ~~~~
+type User implements IPerson {
+  name: String @metadata
+}
+-- TypeScript --
+import { User as UserClass } from "./ImplementorMissingTypename";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "IPerson",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        },
+        interfaces() {
+            return [IPersonType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [IPersonType, UserType]
+    });
+}

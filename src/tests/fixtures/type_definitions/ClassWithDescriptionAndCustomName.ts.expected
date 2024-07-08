@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 """The root of all evil."""
-type SomeType @exported(exportName: "NotQuery", tsModulePath: "grats/src/tests/fixtures/type_definitions/ClassWithDescriptionAndCustomName.ts") {
+type SomeType {
   hello: String @metadata
 }
 -- TypeScript --
@@ -38,23 +38,4 @@ export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         types: [SomeTypeType]
     });
-}
-const typeNameMap = new Map();
-typeNameMap.set(SomeTypeClass, "SomeType");
-
-function resolveType(obj: any): string {
-  if (typeof obj.__typename === "string") {
-    return obj.__typename;
-  }
-
-  let prototype = Object.getPrototypeOf(obj);
-  while (prototype) {
-    const name = typeNameMap.get(prototype.constructor);
-    if (name != null) {
-      return name;
-    }
-    prototype = Object.getPrototypeOf(prototype);
-  }
-
-  throw new Error("Cannot find type name");
 }

@@ -31,7 +31,7 @@ type Page {
   name: String @metadata
 }
 
-type PageEdge @exported(exportName: "Edge", tsModulePath: "grats/src/tests/fixtures/generics/genericTypeUsingClass.ts") {
+type PageEdge {
   cursor: String @metadata
   node: Page @metadata
 }
@@ -88,23 +88,4 @@ export function getSchema(): GraphQLSchema {
         query: QueryType,
         types: [PageType, PageEdgeType, QueryType]
     });
-}
-const typeNameMap = new Map();
-typeNameMap.set(PageEdgeClass, "PageEdge");
-
-function resolveType(obj: any): string {
-  if (typeof obj.__typename === "string") {
-    return obj.__typename;
-  }
-
-  let prototype = Object.getPrototypeOf(obj);
-  while (prototype) {
-    const name = typeNameMap.get(prototype.constructor);
-    if (name != null) {
-      return name;
-    }
-    prototype = Object.getPrototypeOf(prototype);
-  }
-
-  throw new Error("Cannot find type name");
 }

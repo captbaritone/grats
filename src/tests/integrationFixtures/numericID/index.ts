@@ -18,11 +18,11 @@ export function hello(_: Query, args: { someID: ID }): string {
   return args.someID;
 }
 
-export const query = `
-    query SomeQuery($someID: ID!) {
-      hello(someID: $someID)
-    }
-  `;
+export const query = /* GraphQL */ `
+  query SomeQuery($someID: ID!) {
+    hello(someID: $someID)
+  }
+`;
 
 export const variables = {
   someID: 123,

@@ -41,11 +41,13 @@ export function validateTypenames(
             : E.genericTypeUsedAsUnionMember();
         errors.push(gqlErr(loc(ast.name), message));
       } else if (!hasTypename.has(implementor.name)) {
-        const err = gqlErr(
-          loc(ast.name),
-          E.concreteTypeMissingTypename(implementor.name),
-        );
-        errors.push(err);
+        if (nullThrows(implementor.astNode).exported == null) {
+          const err = gqlErr(
+            loc(ast.name),
+            E.concreteTypeMissingTypename(implementor.name),
+          );
+          errors.push(err);
+        }
       }
     }
   }

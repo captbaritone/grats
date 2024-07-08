@@ -40,7 +40,7 @@ interface Person {
   name: String @metadata
 }
 
-type SomeType @exported(exportName: "SomeType", tsModulePath: "grats/src/tests/fixtures/interfaces/ImplementsMultipleInterfaces.ts") {
+type SomeType {
   me: User @metadata(argCount: 0)
 }
 

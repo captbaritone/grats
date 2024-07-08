@@ -17,7 +17,7 @@ export function greeting(_: User, args: unknown, ctx: GratsContext): string {
 OUTPUT
 -----------------
 -- SDL --
-type User @exported(exportName: "User", tsModulePath: "grats/src/tests/fixtures/resolver_context/FunctionWithContextValue.ts") {
+type User {
   greeting: String @metadata(argCount: 3, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/resolver_context/FunctionWithContextValue.ts")
 }
 -- TypeScript --
@@ -42,23 +42,4 @@ export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         types: [UserType]
     });
-}
-const typeNameMap = new Map();
-typeNameMap.set(UserClass, "User");
-
-function resolveType(obj: any): string {
-  if (typeof obj.__typename === "string") {
-    return obj.__typename;
-  }
-
-  let prototype = Object.getPrototypeOf(obj);
-  while (prototype) {
-    const name = typeNameMap.get(prototype.constructor);
-    if (name != null) {
-      return name;
-    }
-    prototype = Object.getPrototypeOf(prototype);
-  }
-
-  throw new Error("Cannot find type name");
 }
