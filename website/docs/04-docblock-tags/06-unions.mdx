@@ -36,5 +36,5 @@ All the types referenced in the TypeScript union but be explicitly annotated wit
 :::
 
 :::note
-Grats will remind you to add a `__typename: "MyType" as const` property to all the types which are members of a union.
+Grats must be able to determine the typename of any type which members of a union. To achieve this Grats will validate that all member types either define a `__typename: "MyType" as const` property or are exported classes. Grats can use either to determin the typename at runtime.
 :::
