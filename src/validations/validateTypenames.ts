@@ -9,6 +9,7 @@ import {
 import {
   DiagnosticsWithoutLocationResult,
   gqlErr,
+  gqlRelated,
 } from "../utils/DiagnosticError";
 import { err, ok } from "../utils/Result";
 import { loc, nullThrows } from "../utils/helpers";
@@ -27,8 +28,6 @@ export function validateTypenames(
     isAbstractType,
   );
   for (const type of abstractTypes) {
-    // TODO: If we already implement resolveType, we don't need to check implementors
-
     const typeImplementors = schema.getPossibleTypes(type).filter(isType);
     for (const implementor of typeImplementors) {
       const ast = nullThrows(implementor.astNode);
@@ -40,14 +39,25 @@ export function validateTypenames(
             ? E.genericTypeImplementsInterface()
             : E.genericTypeUsedAsUnionMember();
         errors.push(gqlErr(loc(ast.name), message));
-      } else if (!hasTypename.has(implementor.name)) {
-        if (nullThrows(implementor.astNode).exported == null) {
-          const err = gqlErr(
-            loc(ast.name),
-            E.concreteTypeMissingTypename(implementor.name),
-          );
-          errors.push(err);
-        }
+      } else if (!hasTypename.has(implementor.name) && ast.exported == null) {
+        const message =
+          type instanceof GraphQLInterfaceType
+            ? E.concreteTypenameImplementingInterfaceCannotBeResolved(
+                implementor.name,
+                type.name,
+              )
+            : E.concreteTypenameInUnionCannotBeResolved(
+                implementor.name,
+                type.name,
+              );
+
+        const err = gqlErr(loc(ast.name), message, [
+          gqlRelated(
+            loc(nullThrows(type.astNode).name),
+            `${type.name} is defined here:`,
+          ),
+        ]);
+        errors.push(err);
       }
     }
   }

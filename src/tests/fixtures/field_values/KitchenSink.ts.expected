@@ -81,7 +81,6 @@ type User {
   name: String @metadata(argCount: 0)
 }
 -- TypeScript --
-import { SomeType as SomeTypeClass } from "./KitchenSink";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({

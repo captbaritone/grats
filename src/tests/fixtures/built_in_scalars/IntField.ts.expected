@@ -19,7 +19,6 @@ type SomeType {
   age: Int @metadata(argCount: 0)
 }
 -- TypeScript --
-import { SomeType as SomeTypeClass } from "./IntField";
 import { GraphQLSchema, GraphQLObjectType, GraphQLInt } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

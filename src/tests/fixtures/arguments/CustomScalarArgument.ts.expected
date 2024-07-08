@@ -22,7 +22,6 @@ type SomeType {
   hello(greeting: MyString!): String @metadata(argCount: 1)
 }
 -- TypeScript --
-import { SomeType as SomeTypeClass } from "./CustomScalarArgument";
 import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MyStringType: GraphQLScalarType = new GraphQLScalarType({

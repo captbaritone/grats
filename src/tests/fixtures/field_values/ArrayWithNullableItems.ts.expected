@@ -17,7 +17,6 @@ type SomeType {
   hello: [String] @metadata(argCount: 0)
 }
 -- TypeScript --
-import { SomeType as SomeTypeClass } from "./ArrayWithNullableItems";
 import { GraphQLSchema, GraphQLObjectType, GraphQLList, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

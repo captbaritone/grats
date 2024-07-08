@@ -481,8 +481,18 @@ export function genericTypeImplementsInterface(): string {
   return `Unexpected \`implements\` on generic \`${TYPE_TAG}\`. Generic types may not currently declare themselves as implementing interfaces. Grats requires that all types which implement an interface define a \`__typename\` field typed as a string literal matching the type's name. Since generic types are synthesized into multiple types with different names, Grats cannot ensure they have a correct \`__typename\` property and thus declare themselves as interface implementors.`;
 }
 
-export function concreteTypeMissingTypename(implementor: string): string {
-  return `Missing \`__typename\` on \`${implementor}\`. The type \`${implementor}\` is used in a union or interface, so it must have a \`__typename\` field.`;
+export function concreteTypenameImplementingInterfaceCannotBeResolved(
+  implementor: string,
+  interfaceName: string,
+): string {
+  return `Cannot resolve typename. The type \`${implementor}\` implements \`${interfaceName}\`, so it must either have a \`__typename\` property or be an exported class.`;
+}
+
+export function concreteTypenameInUnionCannotBeResolved(
+  implementor: string,
+  unionName: string,
+): string {
+  return `Cannot resolve typename. The type \`${implementor}\` is a member of \`${unionName}\`, so it must either have a \`__typename\` property or be an exported class.`;
 }
 
 // TODO: Add code action

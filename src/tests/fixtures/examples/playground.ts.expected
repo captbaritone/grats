@@ -51,7 +51,6 @@ type User {
   name: String @metadata
 }
 -- TypeScript --
-import { SomeType as SomeTypeClass } from "./playground";
 import { getUser as someTypeGetUserResolver } from "./playground";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {

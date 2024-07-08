@@ -20,7 +20,6 @@ type SomeType {
 -- TypeScript --
 // Generated TS
 // multi-line
-import { SomeType as SomeTypeClass } from "./multilineHeader";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

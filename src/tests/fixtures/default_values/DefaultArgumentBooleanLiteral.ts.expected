@@ -25,7 +25,6 @@ type SomeType {
   someField2(greet: Boolean = true): String @metadata(argCount: 1)
 }
 -- TypeScript --
-import { SomeType as SomeTypeClass } from "./DefaultArgumentBooleanLiteral";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLBoolean } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

@@ -18,7 +18,6 @@ type SomeType {
   hello: String @deprecated(reason: "Use something else.") @metadata
 }
 -- TypeScript --
-import { SomeType as SomeTypeClass } from "./DeprecatedPropertyField";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

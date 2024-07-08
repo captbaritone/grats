@@ -15,7 +15,6 @@ type SomeType {
   hello: String @metadata
 }
 -- TypeScript --
-import { SomeType as SomeTypeClass } from "./OptionalProperty";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

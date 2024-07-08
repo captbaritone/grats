@@ -17,7 +17,6 @@ type SomeType {
   hello(greeting: String! = "Hello"): String @metadata(argCount: 1)
 }
 -- TypeScript --
-import { SomeType as SomeTypeClass } from "./OptionalNonNullableArgumentWithDefault";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

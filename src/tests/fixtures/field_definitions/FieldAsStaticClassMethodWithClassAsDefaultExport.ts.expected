@@ -27,7 +27,6 @@ type User {
   name: String @metadata
 }
 -- TypeScript --
-import { User as UserClass } from "./FieldAsStaticClassMethodWithClassAsDefaultExport";
 import queryGetUserResolver from "./FieldAsStaticClassMethodWithClassAsDefaultExport";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {

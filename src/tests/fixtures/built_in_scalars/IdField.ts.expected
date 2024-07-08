@@ -19,7 +19,6 @@ type SomeType {
   id: ID @metadata(argCount: 0)
 }
 -- TypeScript --
-import { SomeType as SomeTypeClass } from "./IdField";
 import { GraphQLSchema, GraphQLObjectType, GraphQLID } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

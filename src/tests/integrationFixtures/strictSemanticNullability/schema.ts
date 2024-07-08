@@ -19,8 +19,7 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString
                 }
             };
-        },
-        resolveType
+        }
     });
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
@@ -96,22 +95,4 @@ export function getSchema(): GraphQLSchema {
         subscription: SubscriptionType,
         types: [IPersonType, QueryType, SubscriptionType, UserType]
     });
-}
-const typeNameMap = new Map();
-
-function resolveType(obj: any): string {
-  if (typeof obj.__typename === "string") {
-    return obj.__typename;
-  }
-
-  let prototype = Object.getPrototypeOf(obj);
-  while (prototype) {
-    const name = typeNameMap.get(prototype.constructor);
-    if (name != null) {
-      return name;
-    }
-    prototype = Object.getPrototypeOf(prototype);
-  }
-
-  throw new Error("Cannot find type name");
 }

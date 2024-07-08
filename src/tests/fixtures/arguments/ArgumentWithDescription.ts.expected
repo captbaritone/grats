@@ -23,7 +23,6 @@ type SomeType {
   ): String @metadata(argCount: 1)
 }
 -- TypeScript --
-import { SomeType as SomeTypeClass } from "./ArgumentWithDescription";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

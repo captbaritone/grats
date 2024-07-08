@@ -42,7 +42,6 @@ type User implements Person {
   name: String @metadata
 }
 -- TypeScript --
-import { SomeType as SomeTypeClass } from "./ImplementsInterfaceWithTypeParam";
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
@@ -54,8 +53,7 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString
                 }
             };
-        },
-        resolveType
+        }
     });
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
@@ -85,23 +83,4 @@ export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         types: [PersonType, SomeTypeType, UserType]
     });
-}
-const typeNameMap = new Map();
-typeNameMap.set(SomeTypeClass, "SomeType");
-
-function resolveType(obj: any): string {
-  if (typeof obj.__typename === "string") {
-    return obj.__typename;
-  }
-
-  let prototype = Object.getPrototypeOf(obj);
-  while (prototype) {
-    const name = typeNameMap.get(prototype.constructor);
-    if (name != null) {
-      return name;
-    }
-    prototype = Object.getPrototypeOf(prototype);
-  }
-
-  throw new Error("Cannot find type name");
 }

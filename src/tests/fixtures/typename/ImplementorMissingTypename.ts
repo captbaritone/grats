@@ -1,5 +1,5 @@
 /** @gqlType */
-export class User implements IPerson {
+class User implements IPerson {
   /** @gqlField */
   name: string = "Alice";
 }

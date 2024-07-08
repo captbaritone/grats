@@ -17,7 +17,6 @@ type SomeType {
   greetz(greeting: String!): String @metadata(argCount: 1, name: "hello")
 }
 -- TypeScript --
-import { SomeType as SomeTypeClass } from "./RenamedFieldWithArgs";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

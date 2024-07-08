@@ -1,11 +1,11 @@
 /** @gqlType */
-export class User {
+class User {
   /** @gqlField */
   name: string = "Alice";
 }
 
 /** @gqlType */
-export class Group {
+class Group {
   /** @gqlField */
   name: string = "Alice Fan Club";
 }

@@ -26,7 +26,6 @@ type SomeType {
   hello: String @metadata
 }
 -- TypeScript --
-import { SomeType as SomeTypeClass } from "./InputTypeWithFieldDescription";
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MyInputTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({

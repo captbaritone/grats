@@ -39,29 +39,11 @@ import {
 } from "./codegenHelpers";
 import { extend, nullThrows } from "./utils/helpers";
 import { GratsConfig } from "./gratsConfig.js";
+import { naturalCompare } from "./utils/naturalCompare";
 
 const RESOLVER_ARGS = ["source", "args", "context", "info"];
 
 const F = ts.factory;
-
-const postlude = `
-function resolveType(obj: any): string {
-  if (typeof obj.__typename === "string") {
-    return obj.__typename;
-  }
-
-  let prototype = Object.getPrototypeOf(obj);
-  while (prototype) {
-    const name = typeNameMap.get(prototype.constructor);
-    if (name != null) {
-      return name;
-    }
-    prototype = Object.getPrototypeOf(prototype);
-  }
-
-  throw new Error("Cannot find type name");
-}
-`.trim();
 
 // Given a GraphQL SDL, returns the a string of TypeScript code that generates a
 // GraphQLSchema implementing that schema.
@@ -74,21 +56,16 @@ export function codegen(
 
   codegen.schemaDeclarationExport();
 
-  const code = codegen.print();
-  if (codegen._usesResolveType) {
-    return `${code}\n${postlude}`;
-  }
-  return code;
+  return codegen.print();
 }
 
 class Codegen {
   _imports: ts.Statement[] = [];
-  _typeNameMappings: Array<{ className: string; typeName: string }> = [];
+  _typeNameMappings: Map<string, string> = new Map();
   _helpers: Map<string, ts.Statement> = new Map();
   _typeDefinitions: Set<string> = new Set();
   _graphQLImports: Set<string> = new Set();
   _statements: ts.Statement[] = [];
-  _usesResolveType = false;
 
   constructor(
     public _schema: GraphQLSchema,
@@ -215,20 +192,6 @@ class Codegen {
     const varName = `${obj.name}Type`;
     if (!this._typeDefinitions.has(varName)) {
       this._typeDefinitions.add(varName);
-      const exportedMetadata = nullThrows(obj.astNode).exported;
-      if (exportedMetadata != null) {
-        const localName = `${obj.name}Class`;
-        this.importUserConstruct(
-          exportedMetadata.tsModulePath,
-          exportedMetadata.exportName,
-          localName,
-        );
-
-        this._typeNameMappings.push({
-          className: localName,
-          typeName: obj.name,
-        });
-      }
 
       this.constDeclaration(
         varName,
@@ -499,11 +462,29 @@ class Codegen {
   }
 
   resolveType(obj: GraphQLAbstractType): ts.ShorthandPropertyAssignment | null {
-    const needsResolveType = this._schema
-      .getPossibleTypes(obj)
-      .some((t) => nullThrows(t.astNode).hasTypeNameField);
+    let needsResolveType = false;
+    for (const t of this._schema.getPossibleTypes(obj)) {
+      const ast = nullThrows(t.astNode);
+      if (ast.hasTypeNameField) {
+        continue;
+      }
+
+      const exportedMetadata = ast.exported;
+      if (exportedMetadata != null) {
+        if (!this._typeNameMappings.has(t.name)) {
+          const localName = `${t.name}Class`;
+          this.importUserConstruct(
+            exportedMetadata.tsModulePath,
+            exportedMetadata.exportName,
+            localName,
+          );
+
+          this._typeNameMappings.set(t.name, localName);
+        }
+        needsResolveType = true;
+      }
+    }
     if (needsResolveType) {
-      this._usesResolveType = true;
       return F.createShorthandPropertyAssignment("resolveType");
     }
     // Just use the default resolveType
@@ -911,6 +892,137 @@ class Codegen {
     );
   }
 
+  resolveTypeFunctionDeclaration(): ts.FunctionDeclaration {
+    return F.createFunctionDeclaration(
+      undefined,
+      undefined,
+      "resolveType",
+      undefined,
+      [
+        F.createParameterDeclaration(
+          undefined,
+          undefined,
+          "obj",
+          undefined,
+          F.createTypeReferenceNode("any"),
+        ),
+      ],
+      F.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+      F.createBlock(
+        [
+          F.createIfStatement(
+            F.createBinaryExpression(
+              F.createTypeOfExpression(
+                F.createPropertyAccessExpression(
+                  F.createIdentifier("obj"),
+                  F.createIdentifier("__typename"),
+                ),
+              ),
+              ts.SyntaxKind.EqualsEqualsEqualsToken,
+              F.createStringLiteral("string"),
+            ),
+            F.createBlock(
+              [
+                F.createReturnStatement(
+                  F.createPropertyAccessExpression(
+                    F.createIdentifier("obj"),
+                    F.createIdentifier("__typename"),
+                  ),
+                ),
+              ],
+              true,
+            ),
+          ),
+          F.createVariableStatement(
+            undefined,
+            F.createVariableDeclarationList(
+              [
+                F.createVariableDeclaration(
+                  F.createIdentifier("prototype"),
+                  undefined,
+                  undefined,
+                  F.createCallExpression(
+                    F.createPropertyAccessExpression(
+                      F.createIdentifier("Object"),
+                      F.createIdentifier("getPrototypeOf"),
+                    ),
+                    undefined,
+                    [F.createIdentifier("obj")],
+                  ),
+                ),
+              ],
+              ts.NodeFlags.Let,
+            ),
+          ),
+          F.createWhileStatement(
+            F.createIdentifier("prototype"),
+            F.createBlock(
+              [
+                F.createVariableStatement(
+                  undefined,
+                  F.createVariableDeclarationList(
+                    [
+                      F.createVariableDeclaration(
+                        F.createIdentifier("name"),
+                        undefined,
+                        undefined,
+                        F.createCallExpression(
+                          F.createPropertyAccessExpression(
+                            F.createIdentifier("typeNameMap"),
+                            F.createIdentifier("get"),
+                          ),
+                          undefined,
+                          [
+                            F.createPropertyAccessExpression(
+                              F.createIdentifier("prototype"),
+                              F.createIdentifier("constructor"),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    ts.NodeFlags.Const,
+                  ),
+                ),
+                F.createIfStatement(
+                  F.createBinaryExpression(
+                    F.createIdentifier("name"),
+                    ts.SyntaxKind.ExclamationEqualsToken,
+                    F.createNull(),
+                  ),
+                  F.createBlock(
+                    [F.createReturnStatement(F.createIdentifier("name"))],
+                    true,
+                  ),
+                ),
+                F.createExpressionStatement(
+                  F.createAssignment(
+                    F.createIdentifier("prototype"),
+                    F.createCallExpression(
+                      F.createPropertyAccessExpression(
+                        F.createIdentifier("Object"),
+                        F.createIdentifier("getPrototypeOf"),
+                      ),
+                      undefined,
+                      [F.createIdentifier("prototype")],
+                    ),
+                  ),
+                ),
+              ],
+              true,
+            ),
+          ),
+          F.createThrowStatement(
+            F.createNewExpression(F.createIdentifier("Error"), undefined, [
+              F.createStringLiteral("Cannot find type name."),
+            ]),
+          ),
+        ],
+        true,
+      ),
+    );
+  }
+
   print(): string {
     const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
     const sourceFile = ts.createSourceFile(
@@ -926,7 +1038,7 @@ class Codegen {
       [...this._graphQLImports].map((name) => ({ name })),
     );
 
-    if (this._usesResolveType) {
+    if (this._typeNameMappings.size > 0) {
       this._statements.push(
         F.createVariableStatement(
           undefined,
@@ -943,7 +1055,13 @@ class Codegen {
           ),
         ),
       );
-      for (const { className, typeName } of this._typeNameMappings) {
+
+      const typeNameEntries = Array.from(this._typeNameMappings.entries());
+      typeNameEntries.sort(([aTypeName], [bTypeName]) =>
+        naturalCompare(aTypeName, bTypeName),
+      );
+
+      for (const [typeName, className] of typeNameEntries) {
         this._statements.push(
           F.createExpressionStatement(
             F.createCallExpression(
@@ -957,6 +1075,7 @@ class Codegen {
           ),
         );
       }
+      this._statements.push(this.resolveTypeFunctionDeclaration());
     }
 
     return printer.printList(

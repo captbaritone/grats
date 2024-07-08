@@ -27,7 +27,6 @@ type SomeType {
   hello: MyEnum @metadata
 }
 -- TypeScript --
-import { SomeType as SomeTypeClass } from "./EnumFromUnionTypeWithVariantWithDescription";
 import { GraphQLSchema, GraphQLEnumType, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MyEnumType: GraphQLEnumType = new GraphQLEnumType({

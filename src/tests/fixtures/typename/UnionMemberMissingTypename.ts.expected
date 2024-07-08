@@ -2,13 +2,13 @@
 INPUT
 ----------------- 
 /** @gqlType */
-export class User {
+class User {
   /** @gqlField */
   name: string = "Alice";
 }
 
 /** @gqlType */
-export class Group {
+class Group {
   /** @gqlField */
   name: string = "Alice Fan Club";
 }
@@ -19,50 +19,21 @@ export type MyUnion = User | Group;
 -----------------
 OUTPUT
 -----------------
--- SDL --
-union MyUnion = Group | User
+src/tests/fixtures/typename/UnionMemberMissingTypename.ts:8:7 - error: Cannot resolve typename. The type `Group` is a member of `MyUnion`, so it must either have a `__typename` property or be an exported class.
 
-type Group {
-  name: String @metadata
-}
+8 class Group {
+        ~~~~~
 
-type User {
-  name: String @metadata
-}
--- TypeScript --
-import { Group as GroupClass } from "./UnionMemberMissingTypename";
-import { User as UserClass } from "./UnionMemberMissingTypename";
-import { GraphQLSchema, GraphQLUnionType, GraphQLObjectType, GraphQLString } from "graphql";
-export function getSchema(): GraphQLSchema {
-    const GroupType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Group",
-        fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
-        name: "User",
-        fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const MyUnionType: GraphQLUnionType = new GraphQLUnionType({
-        name: "MyUnion",
-        types() {
-            return [GroupType, UserType];
-        }
-    });
-    return new GraphQLSchema({
-        types: [MyUnionType, GroupType, UserType]
-    });
-}
+  src/tests/fixtures/typename/UnionMemberMissingTypename.ts:14:13
+    14 export type MyUnion = User | Group;
+                   ~~~~~~~
+    MyUnion is defined here:
+src/tests/fixtures/typename/UnionMemberMissingTypename.ts:2:7 - error: Cannot resolve typename. The type `User` is a member of `MyUnion`, so it must either have a `__typename` property or be an exported class.
+
+2 class User {
+        ~~~~
+
+  src/tests/fixtures/typename/UnionMemberMissingTypename.ts:14:13
+    14 export type MyUnion = User | Group;
+                   ~~~~~~~
+    MyUnion is defined here:

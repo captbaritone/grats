@@ -19,7 +19,6 @@ type SomeType {
   ratio: Float @metadata(argCount: 0)
 }
 -- TypeScript --
-import { SomeType as SomeTypeClass } from "./FloatFieldAliasedImport";
 import { GraphQLSchema, GraphQLObjectType, GraphQLFloat } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

@@ -18,7 +18,6 @@ type SomeType {
 }
 -- TypeScript --
 // Generated TS
-import { SomeType as SomeTypeClass } from "./customHeaders";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

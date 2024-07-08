@@ -66,47 +66,15 @@ export const query = /* GraphQL */ `
 OUTPUT
 -----------------
 {
-  "errors": [
-    {
-      "message": "Abstract type \"GqlNode\" must resolve to an Object type at runtime for field \"Query.node\". Either the \"GqlNode\" type should provide a \"resolveType\" function or each possible type should provide an \"isTypeOf\" function.",
-      "locations": [
-        {
-          "line": 3,
-          "column": 5
-        }
-      ],
-      "path": [
-        "user"
-      ]
-    },
-    {
-      "message": "Abstract type \"GqlNode\" must resolve to an Object type at runtime for field \"Query.node\". Either the \"GqlNode\" type should provide a \"resolveType\" function or each possible type should provide an \"isTypeOf\" function.",
-      "locations": [
-        {
-          "line": 6,
-          "column": 5
-        }
-      ],
-      "path": [
-        "alsoUser"
-      ]
-    },
-    {
-      "message": "Abstract type \"GqlNode\" must resolve to an Object type at runtime for field \"Query.node\". Either the \"GqlNode\" type should provide a \"resolveType\" function or each possible type should provide an \"isTypeOf\" function.",
-      "locations": [
-        {
-          "line": 9,
-          "column": 5
-        }
-      ],
-      "path": [
-        "guest"
-      ]
-    }
-  ],
   "data": {
-    "user": null,
-    "alsoUser": null,
-    "guest": null
+    "user": {
+      "__typename": "User"
+    },
+    "alsoUser": {
+      "__typename": "User"
+    },
+    "guest": {
+      "__typename": "Guest"
+    }
   }
 }

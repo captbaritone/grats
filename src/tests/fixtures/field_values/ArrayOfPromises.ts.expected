@@ -18,7 +18,6 @@ type SomeType {
   c: [String!] @metadata
 }
 -- TypeScript --
-import { SomeType as SomeTypeClass } from "./ArrayOfPromises";
 import { GraphQLSchema, GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

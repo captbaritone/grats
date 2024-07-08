@@ -17,7 +17,6 @@ type User {
   greet: String @metadata(argCount: 0)
 }
 -- TypeScript --
-import { User as UserClass } from "./PublicFieldMethod";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({

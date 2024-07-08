@@ -36,7 +36,6 @@ type User {
   maybeGreetingsMaybe: [String] @metadata(argCount: 0)
 }
 -- TypeScript --
-import { User as UserClass } from "./NonSubscriptionClassWithAsyncIterable";
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({

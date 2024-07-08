@@ -38,7 +38,6 @@ type SomeInputSomeClass {
   someField(someArg: SomeInput): String @metadata(argCount: 1)
 }
 -- TypeScript --
-import { SomeClass as SomeInputSomeClassClass } from "./genericOverArg";
 import { someField as querySomeFieldResolver } from "./genericOverArg";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInputObjectType, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
