@@ -4,6 +4,8 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
+- **Features**
+  - If a `@gqlType` which is used in an abstract type is defined using an exported `class`, an explicit `__typename` property is no-longer required. Grats can now generate code to infer the `__typename` based on the class definition. (#144)
 - **Bug Fixes**
   - The experimental TypeScript plugin will now report a diagnostics if it encounters a TypeScript version mismatch. (#143)
 
