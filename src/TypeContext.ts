@@ -249,4 +249,83 @@ export class TypeContext {
     }
     return entityName;
   }
+
+  // Given the name of a class or interface, return all the parent classes and
+  // interfaces.
+  getAllParentsForName(name: ts.Identifier): Set<NameDefinition> {
+    const symbol = this.checker.getSymbolAtLocation(name);
+    if (symbol == null) {
+      return new Set();
+    }
+    return this.getAllParents(symbol);
+  }
+
+  /*
+   * Walk the inheritance chain and collect all the parent classes and
+   * interfaces.
+   *
+   * NOTE! Recursion order here is important and part of our documented
+   * behavior. We do an ordered breadth-first traversal to ensure that
+   * if a class implements multiple interfaces, and those interfaces each
+   * implement the same field, we'll inherit the field implementation from
+   * the first interface in the list.
+   *
+   * Normally JavaScript/TypeScript avoid this issue by implementing only
+   * _single_ inheritance, but because we allow inheriting fields from
+   * interfaces, and TypeScript allows classes (and interfaces!) to
+   * implement/extend multiple interfaces, we must handle this multi-inheritance
+   * issue.
+   *
+   * The approach taken here is modeled after Python's MRO (Method Resolution
+   * Order) algorithm.
+   *
+   * https://docs.python.org/3/howto/mro.html
+   *
+   * TODO: Actually read that paper and see if that's the approach we want to
+   * take then implement it.
+   */
+  getAllParents(
+    symbol: ts.Symbol,
+    parents: Set<NameDefinition> = new Set(),
+  ): Set<NameDefinition> {
+    if (symbol.declarations == null) {
+      return parents;
+    }
+
+    for (const declaration of symbol.declarations) {
+      const heritage = getHeritage(declaration);
+      if (heritage == null) {
+        continue;
+      }
+      for (const heritageClause of heritage) {
+        for (const type of heritageClause.types) {
+          const typeSymbol = this.checker.getSymbolAtLocation(type.expression);
+          if (typeSymbol == null || typeSymbol.declarations == null) {
+            continue;
+          }
+          for (const decl of typeSymbol.declarations) {
+            const name = this._declarationToName.get(decl);
+            if (name != null) {
+              parents.add(name);
+            }
+          }
+          // Recurse to find the parents of the parent.
+          this.getAllParents(typeSymbol, parents);
+        }
+      }
+    }
+    return parents;
+  }
+}
+
+function getHeritage(
+  declaration: ts.Declaration,
+): ts.NodeArray<ts.HeritageClause> | null {
+  if (
+    ts.isClassDeclaration(declaration) ||
+    ts.isInterfaceDeclaration(declaration)
+  ) {
+    return declaration.heritageClauses ?? null;
+  }
+  return null;
 }
