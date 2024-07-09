@@ -9,7 +9,7 @@ import {
   gqlRelated,
 } from "../utils/DiagnosticError";
 import { err, ok } from "../utils/Result";
-import { extend, nullThrows } from "../utils/helpers";
+import { nullThrows } from "../utils/helpers";
 import { FIELD_TAG } from "../Extractor";
 
 /**

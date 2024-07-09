@@ -14,9 +14,6 @@ import {
   ObjectTypeDefinitionNode,
 } from "graphql";
 import { NameDefinition, TypeContext } from "../TypeContext";
-import { DiagnosticsResult } from "../utils/DiagnosticError";
-import { ok } from "../utils/Result";
-import { extend } from "../utils/helpers";
 
 /**
  * If a class or interface extends or implements another class or interface, we
