@@ -4,7 +4,6 @@ import Group from "./Group";
 
 /** @gqlType User */
 export default class UserResolver implements IPerson {
-  __typename = "User" as const;
   /** @gqlField */
   name(): string {
     return "Alice";
