@@ -5,14 +5,12 @@ interface MyInterface {
 }
 
 /** @gqlType */
-class Parent implements MyInterface {
-  __typename: string = "Parent" as const;
+export class Parent implements MyInterface {
   parentField: string;
 }
 
 /** @gqlType */
 export class Child extends Parent {
-  __typename: "Child" = "Child";
   /** @gqlField */
   childField: string;
 }

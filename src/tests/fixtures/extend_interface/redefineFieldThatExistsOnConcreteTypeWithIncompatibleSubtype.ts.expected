@@ -1,0 +1,45 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface */
+interface IPerson {
+  name: string;
+  /** @gqlField */
+  hello: string;
+}
+
+/**
+ * As defined on the interface
+ * @killsParentOnException
+ * @gqlField */
+export function greeting(person: IPerson): string {
+  return `Hello ${person.name}!`;
+}
+
+/** @gqlType */
+class User implements IPerson {
+  __typename: "User";
+  name: string;
+  /** @gqlField */
+  hello: string;
+
+  /**
+   * As defined on the concrete type
+   * @gqlField */
+  greeting(): string {
+    return `Hello ${this.name}!`;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/extend_interface/redefineFieldThatExistsOnConcreteTypeWithIncompatibleSubtype.ts:10:5 - error: Interface field IPerson.greeting expects type String! but User.greeting is type String.
+
+10  * @killsParentOnException
+       ~~~~~~~~~~~~~~~~~~~~~~
+
+  src/tests/fixtures/extend_interface/redefineFieldThatExistsOnConcreteTypeWithIncompatibleSubtype.ts:26:15
+    26   greeting(): string {
+                     ~~~~~~
+    Related location
