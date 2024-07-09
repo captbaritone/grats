@@ -83,7 +83,9 @@ export type ExtractionSnapshot = {
   readonly unresolvedNames: Map<ts.EntityName, NameNode>;
   readonly nameDefinitions: Map<ts.DeclarationStatement, NameDefinition>;
   readonly typesWithTypename: Set<string>;
-  readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
+  readonly interfaceDeclarations: Array<
+    ts.InterfaceDeclaration | ts.ClassDeclaration
+  >;
 };
 
 type FieldTypeContext = {
@@ -114,7 +116,8 @@ class Extractor {
   unresolvedNames: Map<ts.EntityName, NameNode> = new Map();
   nameDefinitions: Map<ts.DeclarationStatement, NameDefinition> = new Map();
   typesWithTypename: Set<string> = new Set();
-  interfaceDeclarations: Array<ts.InterfaceDeclaration> = [];
+  interfaceDeclarations: Array<ts.InterfaceDeclaration | ts.ClassDeclaration> =
+    [];
 
   errors: ts.DiagnosticWithLocation[] = [];
   gql: GraphQLConstructor;
@@ -319,7 +322,9 @@ class Extractor {
   }
 
   extractInterface(node: ts.Node, tag: ts.JSDocTag) {
-    if (ts.isInterfaceDeclaration(node)) {
+    if (ts.isClassDeclaration(node)) {
+      this.interfaceTypeDeclaration(node, tag);
+    } else if (ts.isInterfaceDeclaration(node)) {
       this.interfaceInterfaceDeclaration(node, tag);
     } else {
       this.report(tag, E.invalidInterfaceTagUsage());
@@ -1288,6 +1293,32 @@ class Extractor {
     node: ts.InterfaceDeclaration,
     tag: ts.JSDocTag,
   ) {
+    const name = this.entityName(node, tag);
+    if (name == null || name.value == null) {
+      return;
+    }
+
+    this.interfaceDeclarations.push(node);
+
+    const description = this.collectDescription(node);
+    const interfaces = this.collectInterfaces(node);
+
+    const fields = this.collectFields(node.members);
+
+    this.recordTypeName(node, name, "INTERFACE");
+
+    this.definitions.push(
+      this.gql.interfaceTypeDefinition(
+        node,
+        name,
+        fields,
+        interfaces,
+        description,
+      ),
+    );
+  }
+
+  interfaceTypeDeclaration(node: ts.ClassDeclaration, tag: ts.JSDocTag) {
     const name = this.entityName(node, tag);
     if (name == null || name.value == null) {
       return;

@@ -1,0 +1,109 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface */
+interface MyInterface {
+  /** @gqlField */
+  parentField: string;
+}
+
+/** @gqlType */
+export class Parent implements MyInterface {
+  parentField: string;
+}
+
+/** @gqlType */
+export class Child extends Parent {
+  /** @gqlField */
+  childField: string;
+}
+
+// Note: We use `export` on the above classes to avoid issues with `__typename` being required to be a string literal
+// on both which would clash.
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+interface MyInterface {
+  parentField: String @metadata
+}
+
+type Child implements MyInterface {
+  childField: String @metadata
+  parentField: String @metadata
+}
+
+type Parent implements MyInterface {
+  parentField: String @metadata
+}
+-- TypeScript --
+import { Child as ChildClass } from "./classInheritsInterfaceFromParentButIsMissingTypeName.invalid";
+import { Parent as ParentClass } from "./classInheritsInterfaceFromParentButIsMissingTypeName.invalid";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const MyInterfaceType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "MyInterface",
+        fields() {
+            return {
+                parentField: {
+                    name: "parentField",
+                    type: GraphQLString
+                }
+            };
+        },
+        resolveType
+    });
+    const ChildType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Child",
+        fields() {
+            return {
+                childField: {
+                    name: "childField",
+                    type: GraphQLString
+                },
+                parentField: {
+                    name: "parentField",
+                    type: GraphQLString
+                }
+            };
+        },
+        interfaces() {
+            return [MyInterfaceType];
+        }
+    });
+    const ParentType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Parent",
+        fields() {
+            return {
+                parentField: {
+                    name: "parentField",
+                    type: GraphQLString
+                }
+            };
+        },
+        interfaces() {
+            return [MyInterfaceType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [MyInterfaceType, ChildType, ParentType]
+    });
+}
+const typeNameMap = new Map();
+typeNameMap.set(ChildClass, "Child");
+typeNameMap.set(ParentClass, "Parent");
+function resolveType(obj: any): string {
+    if (typeof obj.__typename === "string") {
+        return obj.__typename;
+    }
+    let prototype = Object.getPrototypeOf(obj);
+    while (prototype) {
+        const name = typeNameMap.get(prototype.constructor);
+        if (name != null) {
+            return name;
+        }
+        prototype = Object.getPrototypeOf(prototype);
+    }
+    throw new Error("Cannot find type name.");
+}

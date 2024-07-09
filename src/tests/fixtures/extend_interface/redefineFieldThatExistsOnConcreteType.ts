@@ -5,7 +5,9 @@ interface IPerson {
   hello: string;
 }
 
-/** @gqlField */
+/**
+ * As defined on the interface
+ * @gqlField */
 export function greeting(person: IPerson): string {
   return `Hello ${person.name}!`;
 }
@@ -17,7 +19,9 @@ class User implements IPerson {
   /** @gqlField */
   hello: string;
 
-  /** @gqlField */
+  /**
+   * As defined on the concrete type
+   * @gqlField */
   greeting(): string {
     return `Hello ${this.name}!`;
   }
