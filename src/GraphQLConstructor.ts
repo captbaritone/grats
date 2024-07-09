@@ -125,15 +125,21 @@ export class GraphQLConstructor {
     fields: FieldDefinitionNode[],
     interfaces: NamedTypeNode[] | null,
     description: StringValueNode | null,
+    hasTypeNameField: boolean,
+    exported: {
+      tsModulePath: string;
+      exportName: string | null;
+    } | null,
   ): ObjectTypeDefinitionNode {
     return {
       kind: Kind.OBJECT_TYPE_DEFINITION,
       loc: loc(node),
       description: description ?? undefined,
-      directives: undefined,
       name,
       fields,
       interfaces: interfaces ?? undefined,
+      hasTypeNameField: hasTypeNameField,
+      exported: exported ?? undefined,
     };
   }
 

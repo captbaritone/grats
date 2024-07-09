@@ -733,7 +733,24 @@ class Extractor {
     const interfaces = this.collectInterfaces(node);
     this.recordTypeName(node, name, "TYPE");
 
-    this.checkForTypenameProperty(node, name.value);
+    const hasTypeName = this.checkForTypenameProperty(node, name.value);
+
+    let exported: { tsModulePath: string; exportName: string | null } | null =
+      null;
+    if (!hasTypeName) {
+      const isExported = node.modifiers?.find(
+        (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
+      );
+      const isDefault = node.modifiers?.find(
+        (modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword,
+      );
+      if (isExported) {
+        exported = {
+          tsModulePath: relativePath(node.getSourceFile().fileName),
+          exportName: isDefault ? null : node.name.text,
+        };
+      }
+    }
 
     this.definitions.push(
       this.gql.objectTypeDefinition(
@@ -742,6 +759,8 @@ class Extractor {
         fields,
         interfaces,
         description,
+        hasTypeName,
+        exported,
       ),
     );
   }
@@ -765,7 +784,7 @@ class Extractor {
     const interfaces = this.collectInterfaces(node);
     this.recordTypeName(node, name, "TYPE");
 
-    this.checkForTypenameProperty(node, name.value);
+    const hasTypeName = this.checkForTypenameProperty(node, name.value);
 
     this.definitions.push(
       this.gql.objectTypeDefinition(
@@ -774,6 +793,8 @@ class Extractor {
         fields,
         interfaces,
         description,
+        hasTypeName,
+        null,
       ),
     );
   }
@@ -785,11 +806,13 @@ class Extractor {
     let fields: FieldDefinitionNode[] = [];
     let interfaces: NamedTypeNode[] | null = null;
 
+    let hasTypeName = false;
+
     if (ts.isTypeLiteralNode(node.type)) {
       this.validateOperationTypes(node.type, name.value);
       fields = this.collectFields(node.type.members);
       interfaces = this.collectInterfaces(node);
-      this.checkForTypenameProperty(node.type, name.value);
+      hasTypeName = this.checkForTypenameProperty(node.type, name.value);
     } else if (node.type.kind === ts.SyntaxKind.UnknownKeyword) {
       // This is fine, we just don't know what it is. This should be the expected
       // case for operation types such as `Query`, `Mutation`, and `Subscription`
@@ -808,6 +831,8 @@ class Extractor {
         fields,
         interfaces,
         description,
+        hasTypeName,
+        null,
       ),
     );
   }
@@ -815,13 +840,15 @@ class Extractor {
   checkForTypenameProperty(
     node: ts.ClassDeclaration | ts.InterfaceDeclaration | ts.TypeLiteralNode,
     expectedName: string,
-  ) {
+  ): boolean {
     const hasTypename = node.members.some((member) => {
       return this.isValidTypeNameProperty(member, expectedName);
     });
     if (hasTypename) {
       this.typesWithTypename.add(expectedName);
+      return true;
     }
+    return false;
   }
 
   isValidTypeNameProperty(

@@ -1,5 +1,6 @@
 import {
   ConstDirectiveNode,
+  GraphQLAbstractType,
   GraphQLArgument,
   GraphQLEnumType,
   GraphQLEnumValue,
@@ -38,6 +39,7 @@ import {
 } from "./codegenHelpers";
 import { extend, nullThrows } from "./utils/helpers";
 import { GratsConfig } from "./gratsConfig.js";
+import { naturalCompare } from "./utils/naturalCompare";
 
 const RESOLVER_ARGS = ["source", "args", "context", "info"];
 
@@ -59,6 +61,7 @@ export function codegen(
 
 class Codegen {
   _imports: ts.Statement[] = [];
+  _typeNameMappings: Map<string, string> = new Map();
   _helpers: Map<string, ts.Statement> = new Map();
   _typeDefinitions: Set<string> = new Set();
   _graphQLImports: Set<string> = new Set();
@@ -189,6 +192,7 @@ class Codegen {
     const varName = `${obj.name}Type`;
     if (!this._typeDefinitions.has(varName)) {
       this._typeDefinitions.add(varName);
+
       this.constDeclaration(
         varName,
         F.createNewExpression(
@@ -213,6 +217,24 @@ class Codegen {
     ]);
   }
 
+  importUserConstruct(
+    tsModulePath: string,
+    exportName: string | null,
+    localName: string,
+  ): void {
+    const abs = resolveRelativePath(tsModulePath);
+    const relative = replaceExt(
+      path.relative(path.dirname(this._destination), abs),
+      this._config.importModuleSpecifierEnding,
+    );
+    const modulePath = `./${normalizeRelativePathToPosix(relative)}`;
+    if (exportName == null) {
+      this.importDefault(modulePath, localName);
+    } else {
+      this.import(modulePath, [{ name: exportName, as: localName }]);
+    }
+  }
+
   resolveMethod(
     field: GraphQLField<unknown, unknown>,
     methodName: string,
@@ -223,17 +245,7 @@ class Codegen {
     );
     const metadata = parseFieldMetadataDirective(metadataDirective);
     if (metadata.tsModulePath != null) {
-      const module = metadata.tsModulePath;
-
-      const exportName = metadata.exportName;
       const argCount = nullThrows(metadata.argCount);
-
-      const abs = resolveRelativePath(module);
-      const relative = replaceExt(
-        path.relative(path.dirname(this._destination), abs),
-        this._config.importModuleSpecifierEnding,
-      );
-
       // Note: This name is guaranteed to be unique, but for static methods, it
       // means we import the same class multiple times with multiple names.
       const resolverName = formatResolverFunctionVarName(
@@ -241,13 +253,11 @@ class Codegen {
         field.name,
       );
 
-      const modulePath = `./${normalizeRelativePathToPosix(relative)}`;
-
-      if (exportName == null) {
-        this.importDefault(modulePath, resolverName);
-      } else {
-        this.import(modulePath, [{ name: exportName, as: resolverName }]);
-      }
+      this.importUserConstruct(
+        metadata.tsModulePath,
+        metadata.exportName,
+        resolverName,
+      );
 
       const usedArgs = RESOLVER_ARGS.slice(0, argCount);
 
@@ -422,11 +432,13 @@ class Codegen {
   }
 
   interfaceTypeConfig(obj: GraphQLInterfaceType): ts.ObjectLiteralExpression {
+    this._schema.getPossibleTypes(obj);
     return this.objectLiteral([
       this.description(obj.description),
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.fields(obj, true),
       this.interfaces(obj),
+      this.resolveType(obj),
     ]);
   }
 
@@ -449,6 +461,36 @@ class Codegen {
     return F.createIdentifier(varName);
   }
 
+  resolveType(obj: GraphQLAbstractType): ts.ShorthandPropertyAssignment | null {
+    let needsResolveType = false;
+    for (const t of this._schema.getPossibleTypes(obj)) {
+      const ast = nullThrows(t.astNode);
+      if (ast.hasTypeNameField) {
+        continue;
+      }
+
+      const exportedMetadata = ast.exported;
+      if (exportedMetadata != null) {
+        if (!this._typeNameMappings.has(t.name)) {
+          const localName = `${t.name}Class`;
+          this.importUserConstruct(
+            exportedMetadata.tsModulePath,
+            exportedMetadata.exportName,
+            localName,
+          );
+
+          this._typeNameMappings.set(t.name, localName);
+        }
+        needsResolveType = true;
+      }
+    }
+    if (needsResolveType) {
+      return F.createShorthandPropertyAssignment("resolveType");
+    }
+    // Just use the default resolveType
+    return null;
+  }
+
   unionTypeConfig(obj: GraphQLUnionType): ts.ObjectLiteralExpression {
     return this.objectLiteral([
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
@@ -464,6 +506,7 @@ class Codegen {
           ),
         ],
       ),
+      this.resolveType(obj),
     ]);
   }
 
@@ -849,6 +892,137 @@ class Codegen {
     );
   }
 
+  resolveTypeFunctionDeclaration(): ts.FunctionDeclaration {
+    return F.createFunctionDeclaration(
+      undefined,
+      undefined,
+      "resolveType",
+      undefined,
+      [
+        F.createParameterDeclaration(
+          undefined,
+          undefined,
+          "obj",
+          undefined,
+          F.createTypeReferenceNode("any"),
+        ),
+      ],
+      F.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+      F.createBlock(
+        [
+          F.createIfStatement(
+            F.createBinaryExpression(
+              F.createTypeOfExpression(
+                F.createPropertyAccessExpression(
+                  F.createIdentifier("obj"),
+                  F.createIdentifier("__typename"),
+                ),
+              ),
+              ts.SyntaxKind.EqualsEqualsEqualsToken,
+              F.createStringLiteral("string"),
+            ),
+            F.createBlock(
+              [
+                F.createReturnStatement(
+                  F.createPropertyAccessExpression(
+                    F.createIdentifier("obj"),
+                    F.createIdentifier("__typename"),
+                  ),
+                ),
+              ],
+              true,
+            ),
+          ),
+          F.createVariableStatement(
+            undefined,
+            F.createVariableDeclarationList(
+              [
+                F.createVariableDeclaration(
+                  F.createIdentifier("prototype"),
+                  undefined,
+                  undefined,
+                  F.createCallExpression(
+                    F.createPropertyAccessExpression(
+                      F.createIdentifier("Object"),
+                      F.createIdentifier("getPrototypeOf"),
+                    ),
+                    undefined,
+                    [F.createIdentifier("obj")],
+                  ),
+                ),
+              ],
+              ts.NodeFlags.Let,
+            ),
+          ),
+          F.createWhileStatement(
+            F.createIdentifier("prototype"),
+            F.createBlock(
+              [
+                F.createVariableStatement(
+                  undefined,
+                  F.createVariableDeclarationList(
+                    [
+                      F.createVariableDeclaration(
+                        F.createIdentifier("name"),
+                        undefined,
+                        undefined,
+                        F.createCallExpression(
+                          F.createPropertyAccessExpression(
+                            F.createIdentifier("typeNameMap"),
+                            F.createIdentifier("get"),
+                          ),
+                          undefined,
+                          [
+                            F.createPropertyAccessExpression(
+                              F.createIdentifier("prototype"),
+                              F.createIdentifier("constructor"),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    ts.NodeFlags.Const,
+                  ),
+                ),
+                F.createIfStatement(
+                  F.createBinaryExpression(
+                    F.createIdentifier("name"),
+                    ts.SyntaxKind.ExclamationEqualsToken,
+                    F.createNull(),
+                  ),
+                  F.createBlock(
+                    [F.createReturnStatement(F.createIdentifier("name"))],
+                    true,
+                  ),
+                ),
+                F.createExpressionStatement(
+                  F.createAssignment(
+                    F.createIdentifier("prototype"),
+                    F.createCallExpression(
+                      F.createPropertyAccessExpression(
+                        F.createIdentifier("Object"),
+                        F.createIdentifier("getPrototypeOf"),
+                      ),
+                      undefined,
+                      [F.createIdentifier("prototype")],
+                    ),
+                  ),
+                ),
+              ],
+              true,
+            ),
+          ),
+          F.createThrowStatement(
+            F.createNewExpression(F.createIdentifier("Error"), undefined, [
+              F.createStringLiteral("Cannot find type name."),
+            ]),
+          ),
+        ],
+        true,
+      ),
+    );
+  }
+
   print(): string {
     const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
     const sourceFile = ts.createSourceFile(
@@ -863,6 +1037,46 @@ class Codegen {
       "graphql",
       [...this._graphQLImports].map((name) => ({ name })),
     );
+
+    if (this._typeNameMappings.size > 0) {
+      this._statements.push(
+        F.createVariableStatement(
+          undefined,
+          F.createVariableDeclarationList(
+            [
+              F.createVariableDeclaration(
+                F.createIdentifier("typeNameMap"),
+                undefined,
+                undefined,
+                F.createNewExpression(F.createIdentifier("Map"), undefined, []),
+              ),
+            ],
+            ts.NodeFlags.Const,
+          ),
+        ),
+      );
+
+      const typeNameEntries = Array.from(this._typeNameMappings.entries());
+      typeNameEntries.sort(([aTypeName], [bTypeName]) =>
+        naturalCompare(aTypeName, bTypeName),
+      );
+
+      for (const [typeName, className] of typeNameEntries) {
+        this._statements.push(
+          F.createExpressionStatement(
+            F.createCallExpression(
+              F.createPropertyAccessExpression(
+                F.createIdentifier("typeNameMap"),
+                F.createIdentifier("set"),
+              ),
+              undefined,
+              [F.createIdentifier(className), F.createStringLiteral(typeName)],
+            ),
+          ),
+        );
+      }
+      this._statements.push(this.resolveTypeFunctionDeclaration());
+    }
 
     return printer.printList(
       ts.ListFormat.MultiLine,

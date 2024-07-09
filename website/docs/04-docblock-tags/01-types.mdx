@@ -84,7 +84,5 @@ See [Interfaces](./05-interfaces.mdx) for more information about defining interf
 :::
 
 :::note
-If your type implements a GraphQL interface or is a member of a GraphQL
-union, Grats will remind you to add a `__typename: "MyType" as const` property to your
-class, type or interface.
+Grats must be able to determine the typename of any type which implements an interface. To achieve this Grats will validate that all implementors of an interface either define a `__typename: "MyType" as const` property or are exported classes. Grats can use either to determin the typename at runtime.
 :::

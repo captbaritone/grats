@@ -40,6 +40,11 @@ declare module "graphql" {
      * generic type resolution.
      */
     wasSynthesized?: boolean;
+    hasTypeNameField: boolean;
+    exported?: {
+      tsModulePath: string;
+      exportName: string | null;
+    };
   }
   export interface UnionTypeDefinitionNode {
     /**

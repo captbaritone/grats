@@ -2,13 +2,13 @@
 INPUT
 ----------------- 
 /** @gqlType */
-export class User {
+class User {
   /** @gqlField */
   name: string = "Alice";
 }
 
 /** @gqlType */
-export class Group {
+class Group {
   /** @gqlField */
   name: string = "Alice Fan Club";
 }
@@ -19,11 +19,21 @@ export type MyUnion = User | Group;
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/typename/UnionMemberMissingTypename.ts:8:14 - error: Missing `__typename` on `Group`. The type `Group` is used in a union or interface, so it must have a `__typename` field.
+src/tests/fixtures/typename/UnionMemberMissingTypename.ts:8:7 - error: Cannot resolve typename. The type `Group` is a member of `MyUnion`, so it must either have a `__typename` property or be an exported class.
 
-8 export class Group {
-               ~~~~~
-src/tests/fixtures/typename/UnionMemberMissingTypename.ts:2:14 - error: Missing `__typename` on `User`. The type `User` is used in a union or interface, so it must have a `__typename` field.
+8 class Group {
+        ~~~~~
 
-2 export class User {
-               ~~~~
+  src/tests/fixtures/typename/UnionMemberMissingTypename.ts:14:13
+    14 export type MyUnion = User | Group;
+                   ~~~~~~~
+    MyUnion is defined here:
+src/tests/fixtures/typename/UnionMemberMissingTypename.ts:2:7 - error: Cannot resolve typename. The type `User` is a member of `MyUnion`, so it must either have a `__typename` property or be an exported class.
+
+2 class User {
+        ~~~~
+
+  src/tests/fixtures/typename/UnionMemberMissingTypename.ts:14:13
+    14 export type MyUnion = User | Group;
+                   ~~~~~~~
+    MyUnion is defined here:

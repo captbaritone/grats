@@ -8,7 +8,6 @@ interface Person {
 // highlight-start
 export class User implements Person {
   // highlight-end
-  __typename: "User";
   /** @gqlField */
   name: string;
 }
@@ -22,6 +21,7 @@ type User implements Person {
   name: String
 }
 === SNIP ===
+import { User as UserClass } from "./01-types-implement-interface.grats";
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
@@ -33,7 +33,8 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString
                 }
             };
-        }
+        },
+        resolveType
     });
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
@@ -52,4 +53,20 @@ export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         types: [PersonType, UserType]
     });
+}
+const typeNameMap = new Map();
+typeNameMap.set(UserClass, "User");
+function resolveType(obj: any): string {
+    if (typeof obj.__typename === "string") {
+        return obj.__typename;
+    }
+    let prototype = Object.getPrototypeOf(obj);
+    while (prototype) {
+        const name = typeNameMap.get(prototype.constructor);
+        if (name != null) {
+            return name;
+        }
+        prototype = Object.getPrototypeOf(prototype);
+    }
+    throw new Error("Cannot find type name.");
 }
