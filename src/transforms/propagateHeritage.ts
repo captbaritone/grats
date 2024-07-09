@@ -10,7 +10,6 @@ import {
   DocumentNode,
   FieldDefinitionNode,
   Kind,
-  NameNode,
   NamedTypeNode,
 } from "graphql";
 import { NameDefinition, TypeContext } from "../TypeContext";
@@ -141,6 +140,8 @@ export function propagateHeritage(
             interfaces,
             fields: Array.from(fieldsMap.values()),
           });
+        } else {
+          newDefinitions.push(def);
         }
         break;
       }
