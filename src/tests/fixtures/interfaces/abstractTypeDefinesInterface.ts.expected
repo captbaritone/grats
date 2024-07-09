@@ -1,0 +1,76 @@
+-----------------
+INPUT
+----------------- 
+import { ID } from "../../../Types";
+
+/** @gqlInterface Node */
+abstract class GraphQLNode {
+  __typename: string;
+  localId: string;
+
+  /**
+   * @gqlField
+   * @killsParentOnException
+   */
+  id(): ID {
+    return window.btoa(this.__typename + ":" + this.localId);
+  }
+}
+
+/** @gqlType */
+class User extends GraphQLNode {
+  __typename: "User";
+  constructor(
+    public localId: string,
+    /** @gqlField */
+    public name: string,
+  ) {
+    super();
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+interface Node {
+  id: ID! @killsParentOnException @metadata(argCount: 0)
+}
+
+type User {
+  id: ID! @killsParentOnException @metadata(argCount: 0)
+  name: String @metadata
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLNonNull, GraphQLID, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Node",
+        fields() {
+            return {
+                id: {
+                    name: "id",
+                    type: new GraphQLNonNull(GraphQLID)
+                }
+            };
+        }
+    });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                id: {
+                    name: "id",
+                    type: new GraphQLNonNull(GraphQLID)
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [NodeType, UserType]
+    });
+}

@@ -1,0 +1,93 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface Node */
+interface GqlNode {
+  /** @gqlField */
+  id: string;
+}
+
+/** @gqlInterface */
+interface Person extends GqlNode {
+  id: string;
+  /** @gqlField */
+  name: string;
+}
+
+/** @gqlInterface */
+class Actor implements GqlNode, Person {
+  id: string;
+  name: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+interface Actor implements Node & Person {
+  id: String @metadata
+  name: String @metadata
+}
+
+interface Node {
+  id: String @metadata
+}
+
+interface Person implements Node {
+  id: String @metadata
+  name: String @metadata
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Node",
+        fields() {
+            return {
+                id: {
+                    name: "id",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Person",
+        fields() {
+            return {
+                id: {
+                    name: "id",
+                    type: GraphQLString
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        },
+        interfaces() {
+            return [NodeType];
+        }
+    });
+    const ActorType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Actor",
+        fields() {
+            return {
+                id: {
+                    name: "id",
+                    type: GraphQLString
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        },
+        interfaces() {
+            return [NodeType, PersonType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [ActorType, NodeType, PersonType]
+    });
+}

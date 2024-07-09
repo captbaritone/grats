@@ -116,8 +116,8 @@ export function extractSchemaAndDoc(
         .andThen((doc) => applyDefaultNullability(doc, config))
         // Merge any `extend` definitions into their base definitions.
         .map((doc) => mergeExtensions(doc))
-        // TODO
-        .andThen((definitions) => propagateHeritage(ctx, definitions))
+        // Add fields from extended classes and implemented interfaces.
+        .map((doc) => propagateHeritage(ctx, doc))
         // Sort the definitions in the document to ensure a stable output.
         .map((doc) => sortSchemaAst(doc))
         .result();

@@ -1,0 +1,79 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface */
+interface IPerson {
+  name: string;
+  /** @gqlField */
+  hello: string;
+}
+
+/** @gqlField */
+export function greeting(person: IPerson): string {
+  return `Hello ${person.name}!`;
+}
+
+/** @gqlInterface */
+interface User extends IPerson {
+  __typename: "User";
+  name: string;
+  /** @gqlField */
+  hello: string;
+
+  /** @gqlField */
+  greeting(): string;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+interface IPerson {
+  greeting: String @metadata(argCount: 1, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/redefineFiledThatExistsOnImplementingInterface.ts")
+  hello: String @metadata
+}
+
+interface User implements IPerson {
+  greeting: String @metadata(argCount: 0)
+  hello: String @metadata
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "IPerson",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString
+                },
+                hello: {
+                    name: "hello",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const UserType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "User",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString
+                },
+                hello: {
+                    name: "hello",
+                    type: GraphQLString
+                }
+            };
+        },
+        interfaces() {
+            return [IPersonType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [IPersonType, UserType]
+    });
+}
