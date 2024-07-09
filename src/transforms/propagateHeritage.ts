@@ -18,18 +18,40 @@ import { DiagnosticsResult } from "../utils/DiagnosticError";
 import { ok } from "../utils/Result";
 import { extend } from "../utils/helpers";
 
+/**
+ * If a class or interface extends or implements another class or interface, we
+ * should also (recursively!) inherit all of the parent's GraphQL fields and interfaces.
+ *
+ * This function adds all fields and interfaces from parent classes and interfaces to the
+ * child class or interface.
+ */
 export function propagateHeritage(
   ctx: TypeContext,
   documentNode: DocumentNode,
-): DiagnosticsResult<DocumentNode> {
+): DocumentNode {
   const propagator = new HeritagePropagator(ctx, documentNode);
   return propagator.propagateHeritage();
 }
 
 class HeritagePropagator {
-  constructor(private ctx: TypeContext, private documentNode: DocumentNode) {}
+  _definitionsByName: Map<
+    string,
+    InterfaceTypeDefinitionNode | ObjectTypeDefinitionNode
+  > = new Map();
 
-  propagateHeritage(): DiagnosticsResult<DocumentNode> {
+  constructor(private ctx: TypeContext, private documentNode: DocumentNode) {
+    for (const def of this.documentNode.definitions) {
+      switch (def.kind) {
+        case Kind.INTERFACE_TYPE_DEFINITION:
+        case Kind.OBJECT_TYPE_DEFINITION: {
+          this._definitionsByName.set(def.name.value, def);
+          break;
+        }
+      }
+    }
+  }
+
+  propagateHeritage(): DocumentNode {
     const newDefinitions = this.documentNode.definitions.map((def) => {
       switch (def.kind) {
         case Kind.INTERFACE_TYPE_DEFINITION:
@@ -39,7 +61,7 @@ class HeritagePropagator {
             ts.isClassDeclaration(declaration) ||
             ts.isInterfaceDeclaration(declaration)
           ) {
-            return this.newMethod(def, declaration);
+            return this.propagateHeritageForDefinition(def, declaration);
           }
           return def;
         }
@@ -47,10 +69,10 @@ class HeritagePropagator {
           return def;
       }
     });
-    return ok({ ...this.documentNode, definitions: newDefinitions });
+    return { ...this.documentNode, definitions: newDefinitions };
   }
 
-  newMethod(
+  propagateHeritageForDefinition(
     def: InterfaceTypeDefinitionNode | ObjectTypeDefinitionNode,
     declaration: ts.ClassDeclaration | ts.InterfaceDeclaration,
   ): InterfaceTypeDefinitionNode | ObjectTypeDefinitionNode {
@@ -96,14 +118,42 @@ class HeritagePropagator {
       }
     }
 
-    return {
-      ...def,
-      interfaces,
-      fields: [...(def.fields ?? []), ...fieldsMap.values()],
-    };
+    const parentFields = fieldsMap.values();
+
+    const fields =
+      def.fields == null ? [...parentFields] : [...def.fields, ...parentFields];
+
+    return { ...def, interfaces, fields };
   }
 
-  getAllParents(symbol: ts.Symbol, parents: Set<NameDefinition> = new Set()) {
+  /*
+   * Walk the inheritance chain and collect all the parent classes and
+   * interfaces.
+   *
+   * NOTE! Recursion order here is important and part of our documented
+   * behavior. We do an ordered breadth-first traversal to ensure that
+   * if a class implements multiple interfaces, and those interfaces each
+   * implement the same field, we'll inherit the field implementation from
+   * the first interface in the list.
+   *
+   * Normally JavaScript/TypeScript avoid this issue by implementing only
+   * _single_ inheritance, but because we allow inheriting fields from
+   * interfaces, and TypeScript allows classes (and interfaces!) to
+   * implement/extend multiple interfaces, we must handle this multi-inheritance
+   * issue.
+   *
+   * The approach taken here is modeled after Python's MRO (Method Resolution
+   * Order) algorithm.
+   *
+   * https://docs.python.org/3/howto/mro.html
+   *
+   * TODO: Actually read that paper and see if that's the approach we want to
+   * take then implement it.
+   */
+  getAllParents(
+    symbol: ts.Symbol,
+    parents: Set<NameDefinition> = new Set(),
+  ): Set<NameDefinition> {
     if (symbol.declarations == null) {
       return parents;
     }
@@ -119,13 +169,11 @@ class HeritagePropagator {
               const typeSymbol = this.ctx.checker.getSymbolAtLocation(
                 type.expression,
               );
-              if (typeSymbol != null) {
-                if (typeSymbol.declarations != null) {
-                  for (const decl of typeSymbol.declarations) {
-                    const name = this.ctx._declarationToName.get(decl);
-                    if (name != null) {
-                      parents.add(name);
-                    }
+              if (typeSymbol != null && typeSymbol.declarations != null) {
+                for (const decl of typeSymbol.declarations) {
+                  const name = this.ctx._declarationToName.get(decl);
+                  if (name != null) {
+                    parents.add(name);
                   }
                 }
                 this.getAllParents(typeSymbol, parents);
@@ -138,35 +186,13 @@ class HeritagePropagator {
     return parents;
   }
 
-  fieldsForType(name: NameDefinition): FieldDefinitionNode[] {
-    const fields: FieldDefinitionNode[] = [];
-    for (const def of this.documentNode.definitions) {
-      switch (def.kind) {
-        case Kind.INTERFACE_TYPE_DEFINITION:
-        case Kind.OBJECT_TYPE_DEFINITION: {
-          if (def.fields != null && def.name.value === name.name.value) {
-            extend(fields, def.fields);
-          }
-          break;
-        }
-      }
-    }
-    return fields;
+  fieldsForType(name: NameDefinition): readonly FieldDefinitionNode[] {
+    const def = this._definitionsByName.get(name.name.value);
+    return def == null ? [] : def.fields ?? [];
   }
 
-  interfacesForType(name: NameDefinition): NamedTypeNode[] {
-    const interfaces: NamedTypeNode[] = [];
-    for (const def of this.documentNode.definitions) {
-      switch (def.kind) {
-        case Kind.INTERFACE_TYPE_DEFINITION:
-        case Kind.OBJECT_TYPE_DEFINITION: {
-          if (def.interfaces != null && def.name.value === name.name.value) {
-            extend(interfaces, def.interfaces);
-          }
-          break;
-        }
-      }
-    }
-    return interfaces;
+  interfacesForType(name: NameDefinition): readonly NamedTypeNode[] {
+    const def = this._definitionsByName.get(name.name.value);
+    return def == null ? [] : def.interfaces ?? [];
   }
 }

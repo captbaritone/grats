@@ -1,0 +1,22 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface */
+interface Query {
+  /** @gqlField */
+  field: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/interfaces/interfaceNamedQuery.invalid.ts:2:1 - error: Query root type must be Object type, it cannot be Query.
+
+2 interface Query {
+  ~~~~~~~~~~~~~~~~~
+3   /** @gqlField */
+  ~~~~~~~~~~~~~~~~~~
+4   field: string;
+  ~~~~~~~~~~~~~~~~
+5 }
+  ~

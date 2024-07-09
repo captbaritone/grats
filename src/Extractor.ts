@@ -71,9 +71,7 @@ export type ExtractionSnapshot = {
   readonly nameDefinitions: Map<ts.DeclarationStatement, NameDefinition>;
   readonly contextReferences: Array<ts.Node>;
   readonly typesWithTypename: Set<string>;
-  readonly interfaceDeclarations: Array<
-    ts.InterfaceDeclaration | ts.ClassDeclaration
-  >;
+  readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
 };
 
 type FieldTypeContext = {
@@ -105,8 +103,7 @@ class Extractor {
   nameDefinitions: Map<ts.DeclarationStatement, NameDefinition> = new Map();
   contextReferences: Array<ts.Node> = [];
   typesWithTypename: Set<string> = new Set();
-  interfaceDeclarations: Array<ts.InterfaceDeclaration | ts.ClassDeclaration> =
-    [];
+  interfaceDeclarations: Array<ts.InterfaceDeclaration> = [];
 
   errors: ts.DiagnosticWithLocation[] = [];
   gql: GraphQLConstructor;
@@ -287,7 +284,7 @@ class Extractor {
 
   extractInterface(node: ts.Node, tag: ts.JSDocTag) {
     if (ts.isClassDeclaration(node)) {
-      this.interfaceTypeDeclaration(node, tag);
+      this.interfaceClassDeclaration(node, tag);
     } else if (ts.isInterfaceDeclaration(node)) {
       this.interfaceInterfaceDeclaration(node, tag);
     } else {
@@ -1129,19 +1126,27 @@ class Extractor {
     );
   }
 
-  interfaceTypeDeclaration(node: ts.ClassDeclaration, tag: ts.JSDocTag) {
+  interfaceClassDeclaration(node: ts.ClassDeclaration, tag: ts.JSDocTag) {
+    if (node.name == null) {
+      return this.report(node, E.typeTagOnUnnamedClass());
+    }
+
     const name = this.entityName(node, tag);
     if (name == null || name.value == null) {
       return;
     }
 
-    this.interfaceDeclarations.push(node);
-
     const description = this.collectDescription(node);
+
+    const fieldMembers = node.members.filter((member) => {
+      // Static methods are handled when we encounter the tag at our top-level
+      // traversal, similar to how functions are handled. We filter them out here to ensure
+      // we don't double-visit them.
+      return !isStaticMethod(member);
+    });
+
+    const fields = this.collectFields(fieldMembers);
     const interfaces = this.collectInterfaces(node);
-
-    const fields = this.collectFields(node.members);
-
     this.recordTypeName(node, name, "INTERFACE");
 
     this.definitions.push(
