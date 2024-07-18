@@ -8,7 +8,6 @@ interface Person {
 // highlight-start
 interface User extends Person {
   // highlight-end
-  /** @gqlField */
   name: string;
 
   /** @gqlField */

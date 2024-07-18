@@ -2,7 +2,7 @@
  * A description of my interface.
  * @gqlInterface MyInterfaceName
  */
-interface MyClass {
+interface MyInterface {
   /** @gqlField */
   someField: string;
 }
