@@ -14,7 +14,7 @@ GraphQL types can be defined by placing a `@gqlType` docblock directly before a:
 - Interface declaration
 - Type alias of a literal type or `unknown`
 
-If model your GraphQL resolvers using classes, simply add a `@gqlType` docblock
+To model your GraphQL resolvers using classes, simply add a `@gqlType` docblock
 before the class containing that type's resolvers.
 
 <GratsCode out={TypesClass} mode="ts" />
@@ -25,6 +25,10 @@ using `@gqlType` on an interface, Grats will treat it as a GraphQL type and not
 an interface.
 
 <GratsCode out={TypesInterface} mode="ts" />
+
+:::info
+Types declared using TypeScript classes or interfaces will inherit GraphQL fields and interfaces from all classes/interfaces they extend/implement.
+:::
 
 Finally, if your types are represented in your code by named types, simply add a
 `@gqlType` docblock before the type alias which describes that type.
@@ -73,7 +77,7 @@ Will generate the following GraphQL schema:
 
 <GratsCode out={TypesInterfaceImplementInterface} mode="gql" />
 
-#### Type Alias
+### Type Alias
 
 Types declared using a type alias _may not_ implement a GraphQL interface. Instead, we recommend using a TypeScript interface to model your GraphQL type.
 
@@ -84,5 +88,5 @@ See [Interfaces](./05-interfaces.mdx) for more information about defining interf
 :::
 
 :::note
-Grats must be able to determine the typename of any type which implements an interface. To achieve this Grats will validate that all implementors of an interface either define a `__typename: "MyType" as const` property or are exported classes. Grats can use either to determin the typename at runtime.
+Grats must be able to determine the typename of any type which implements an interface. To achieve this Grats will validate that all implementors of an interface either define a `__typename: "MyType" as const` property or are exported classes. Grats can use either to determine the typename at runtime.
 :::

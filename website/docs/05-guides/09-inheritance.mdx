@@ -1,0 +1,35 @@
+# Inheritance
+
+Because Grats marries the worlds of TypeScript and GraphQL ends up implementing a version of inheritance that is something of a hybrid between the two. This guide explains the principles of inheritance in Grats and shows practical examples of how it works in practice.
+
+Lets start with a reminder of how inheritnace works in TypeScript and GraphQL respectively and then we'll see how Grats combines the two.
+
+## TypeScript Inheritance
+
+TypeScript implemenets single inheritance, meaning that a class can only inherit from at most one other class. This is done using the `extends` keyword. When a class extends another class, it inherits all the fields and methods of the parent class. Note that this works recursively.
+
+Classes in TypeScript may also implement interfaces. While a class may implement multiple interfaces, the interfaces are simply type-checking contracts and do not add any fields or methods to the class.
+
+## GraphQL Inheritance
+
+GraphQL does not have any notion of inheritance. While GraphQL types and interfacs can implement interfaces, implementing an interface does not automatically add any fields to the type. It's simply a type-checking contract, and each type or interface must explicitly define the fields required by any interfaces it implements.
+
+Similarly, if a type implements an iterface with itself implements a second interface, the type must explicitly declare that it also implements that second interface, or else it will trigger a validation error.
+
+## Grats Inheritance
+
+Grats tries to match the semantics of TypeScript as much as possible while still generating a valid GraphQL schema.
+
+If a `@gqlType` class extends another class, Grats will automatically infer that any fields marked as `@gqlField` in the parent class should also be exposed in the child class.
+
+Similarly, if a `@gqlType` class implements interfaces, Grats will automatically infer that any fields marked as `@gqlField` in any of those interface should also be exposed on the class.
+
+Both of these are done recursively, so if a parent class implements an interface which extends another interface, the child class will inherit all the fields from both interfaces.
+
+### Overrides/Precedence
+
+In terms of runtime behavior, the code being executed is TypeScript and thus will match TypeScript's semantics. Methods on a child class will override methods on a parent class.
+
+If a field or method is marked as a `@gqlField` on both a parent class and a child class, the child class will take precedence. This can be useful if you want the child class to have a different GraphQL declaration from its parent. For example, you might want to add a different description, or one might be deprecated while the other is not, or the child might have a return type which is a subtype of the parent's return type.
+
+### Function style fields
