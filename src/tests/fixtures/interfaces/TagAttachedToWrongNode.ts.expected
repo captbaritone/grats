@@ -7,7 +7,7 @@ function Foo() {}
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/interfaces/TagAttachedToWrongNode.ts:1:5 - error: `@gqlInterface` can only be used on interface declarations. e.g. `interface MyInterface {}`
+src/tests/fixtures/interfaces/TagAttachedToWrongNode.ts:1:5 - error: `@gqlInterface` can only be used on interface or abstract class declarations. e.g. `interface MyInterface {}` or `abstract class MyInterface {}`
 
 1 /** @gqlInterface Person */
       ~~~~~~~~~~~~~~~~~~~~~

@@ -1,0 +1,31 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface */
+export class User {
+  /** @gqlField */
+  name: string;
+
+  /** @gqlField */
+  static getUser(_: Query): User {
+    return new User();
+  }
+}
+
+/** @gqlType */
+type Query = unknown;
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/field_definitions/FieldAsStaticClassMethodOnClassInterface.ts:2:1 - error: Expected `@gqlInterface` class to be abstract. `@gqlInterface` can only be used on interface or abstract class declarations. e.g. `interface MyInterface {}` or `abstract class MyInterface {}`
+
+  2 export class User {
+    ~~~~~~~~~~~~~~~~~~~
+  3   /** @gqlField */
+    ~~~~~~~~~~~~~~~~~~
+... 
+  9   }
+    ~~~
+ 10 }
+    ~

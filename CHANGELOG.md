@@ -4,8 +4,11 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
+- **Breaking**
+  - GraphQL types and interfaces defined with TypeScript classes or interfaces will now inherit fields/interfaces from their inheritance/implementation chains. This means that if you define a GraphQL field on a parent class/interface, it will be inherited by the child class/interface. Previously each type/interface needed to independently mark the field as a `@gqlField`. (#145)
 - **Features**
   - If a `@gqlType` which is used in an abstract type is defined using an exported `class`, an explicit `__typename` property is no-longer required. Grats can now generate code to infer the `__typename` based on the class definition. (#144)
+  - TypeScript classes (and abstract classes) can now be used to define GraphQL interfaces. (#145)
 - **Bug Fixes**
   - The experimental TypeScript plugin will now report a diagnostics if it encounters a TypeScript version mismatch. (#143)
 

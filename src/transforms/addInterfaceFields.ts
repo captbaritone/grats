@@ -9,44 +9,36 @@ import {
   gqlRelated,
 } from "../utils/DiagnosticError";
 import { err, ok } from "../utils/Result";
-import { InterfaceMap, computeInterfaceMap } from "../InterfaceGraph";
-import { extend, nullThrows, uniqueId } from "../utils/helpers";
+import { nullThrows } from "../utils/helpers";
 import { FIELD_TAG } from "../Extractor";
-import { FIELD_METADATA_DIRECTIVE } from "../metadataDirectives";
 
 /**
  * Grats allows you to define GraphQL fields on TypeScript interfaces using
- * function syntax. This allows you to define a shared implementation for
- * all types that implement the interface.
+ * function syntax. This means when we extract a function field we don't know
+ * yet if it is extending a type or an interface.
  *
- * This transform takes those abstract field definitions, and adds them to
- * the concrete types that implement the interface.
+ * This transform takes those abstract field definitions, transforms them into
+ * either object type extensions or interface type extensions.
  */
 export function addInterfaceFields(
   ctx: TypeContext,
   docs: DefinitionNode[],
 ): DiagnosticsResult<DefinitionNode[]> {
-  const newDocs: DefinitionNode[] = [];
   const errors: ts.DiagnosticWithLocation[] = [];
 
-  const interfaceGraph = computeInterfaceMap(ctx, docs);
-
-  for (const doc of docs) {
+  const newDocs = docs.map((doc) => {
     if (doc.kind === Kind.OBJECT_TYPE_EXTENSION && doc.mayBeInterface) {
-      const abstractDocResults = addAbstractFieldDefinition(
-        ctx,
-        doc,
-        interfaceGraph,
-      );
+      const abstractDocResults = addAbstractFieldDefinition(ctx, doc);
       if (abstractDocResults.kind === "ERROR") {
         errors.push(abstractDocResults.err);
+        return doc;
       } else {
-        extend(newDocs, abstractDocResults.value);
+        return abstractDocResults.value;
       }
     } else {
-      newDocs.push(doc);
+      return doc;
     }
-  }
+  });
   if (errors.length > 0) {
     return err(errors);
   }
@@ -58,9 +50,7 @@ export function addInterfaceFields(
 function addAbstractFieldDefinition(
   ctx: TypeContext,
   doc: ObjectTypeExtensionNode,
-  interfaceGraph: InterfaceMap,
-): DiagnosticResult<DefinitionNode[]> {
-  const newDocs: DefinitionNode[] = [];
+): DiagnosticResult<DefinitionNode> {
   const definitionResult = ctx.gqlNameDefinitionForGqlName(doc.name);
 
   if (definitionResult.kind === "ERROR") {
@@ -72,56 +62,19 @@ function addAbstractFieldDefinition(
 
   switch (nameDefinition.kind) {
     case "TYPE":
-      // Extending a type, is just adding a field to it.
-      newDocs.push({
+      return ok({
         kind: Kind.OBJECT_TYPE_EXTENSION,
         name: doc.name,
         fields: [field],
         loc: doc.loc,
       });
-      break;
     case "INTERFACE": {
-      // Extending an interface is a bit more complicated. We need to add the field
-      // to the interface, and to each type that implements the interface.
-
-      // The interface field definition is not executable, so we don't
-      // need to annotate it with the details of the implementation.
-      const directives = field.directives?.filter((directive) => {
-        return directive.name.value !== FIELD_METADATA_DIRECTIVE;
-      });
-      newDocs.push({
+      return ok({
         kind: Kind.INTERFACE_TYPE_EXTENSION,
         name: doc.name,
-        fields: [{ ...field, directives }],
+        fields: [field],
+        loc: doc.loc,
       });
-
-      for (const implementor of interfaceGraph.get(nameDefinition.name.value)) {
-        const name = {
-          kind: Kind.NAME,
-          value: implementor.name,
-          loc: doc.loc, // Bit of a lie, but I don't see a better option.
-          tsIdentifier: uniqueId(),
-        } as const;
-        switch (implementor.kind) {
-          case "TYPE":
-            newDocs.push({
-              kind: Kind.OBJECT_TYPE_EXTENSION,
-              name,
-              fields: [field],
-              loc: doc.loc,
-            });
-            break;
-          case "INTERFACE":
-            newDocs.push({
-              kind: Kind.INTERFACE_TYPE_EXTENSION,
-              name,
-              fields: [{ ...field, directives }],
-              loc: doc.loc,
-            });
-            break;
-        }
-      }
-      break;
     }
     default: {
       // Extending any other type of definition is not supported.
@@ -138,5 +91,4 @@ function addAbstractFieldDefinition(
       );
     }
   }
-  return ok(newDocs);
 }

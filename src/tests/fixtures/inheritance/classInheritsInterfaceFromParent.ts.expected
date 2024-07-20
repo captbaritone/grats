@@ -1,0 +1,59 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface */
+interface MyInterface {
+  /** @gqlField */
+  parentField: string;
+}
+
+/** @gqlType */
+export class Parent implements MyInterface {
+  parentField: string;
+}
+
+/** @gqlType */
+export class Child extends Parent {
+  /** @gqlField */
+  childField: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/inheritance/classInheritsInterfaceFromParent.ts:4:3 - error: Interface field MyInterface.parentField expected but Child does not provide it.
+
+4   parentField: string;
+    ~~~~~~~~~~~~~~~~~~~~
+
+  src/tests/fixtures/inheritance/classInheritsInterfaceFromParent.ts:13:1
+    13 export class Child extends Parent {
+       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    14   /** @gqlField */
+       ~~~~~~~~~~~~~~~~~~
+    15   childField: string;
+       ~~~~~~~~~~~~~~~~~~~~~
+    16 }
+       ~
+    Related location
+src/tests/fixtures/inheritance/classInheritsInterfaceFromParent.ts:8:1 - error: Type Parent must define one or more fields.
+
+ 8 export class Parent implements MyInterface {
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 9   parentField: string;
+   ~~~~~~~~~~~~~~~~~~~~~~
+10 }
+   ~
+src/tests/fixtures/inheritance/classInheritsInterfaceFromParent.ts:4:3 - error: Interface field MyInterface.parentField expected but Parent does not provide it.
+
+4   parentField: string;
+    ~~~~~~~~~~~~~~~~~~~~
+
+  src/tests/fixtures/inheritance/classInheritsInterfaceFromParent.ts:8:1
+     8 export class Parent implements MyInterface {
+       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     9   parentField: string;
+       ~~~~~~~~~~~~~~~~~~~~~~
+    10 }
+       ~
+    Related location

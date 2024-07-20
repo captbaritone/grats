@@ -1,0 +1,36 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface */
+interface MyInterface {
+  /** @gqlField */
+  interfaceField: string;
+}
+
+/** @gqlType */
+export class MyType implements MyInterface {
+  __typename: "MyType" = "MyType";
+  interfaceField: string;
+  /** @gqlField */
+  typeField: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/inheritance/classInheritsFieldFromInterface.ts:4:3 - error: Interface field MyInterface.interfaceField expected but MyType does not provide it.
+
+4   interfaceField: string;
+    ~~~~~~~~~~~~~~~~~~~~~~~
+
+  src/tests/fixtures/inheritance/classInheritsFieldFromInterface.ts:8:1
+      8 export class MyType implements MyInterface {
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      9   __typename: "MyType" = "MyType";
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ... 
+     12   typeField: string;
+        ~~~~~~~~~~~~~~~~~~~~
+     13 }
+        ~
+    Related location

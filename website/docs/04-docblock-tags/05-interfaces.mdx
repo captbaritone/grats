@@ -1,5 +1,6 @@
 import GratsCode from "@site/src/components/GratsCode";
 import InterfaceDeclaration from "!!raw-loader!./snippets/04-interface-declaration.out";
+import InterfaceClassDeclaration from "!!raw-loader!./snippets/04-interface-class-declaration.out";
 import NodeInterface from "!!raw-loader!./snippets/04-merged-interface-renaming.out";
 import InterfaceImplementingInterface from "!!raw-loader!./snippets/04-interface-implement-interface.out";
 import InterfaceFieldCommonImpl from "!!raw-loader!./snippets/04-interface-field-common-impl.out";
@@ -9,12 +10,21 @@ import InterfaceFieldCommonImpl from "!!raw-loader!./snippets/04-interface-field
 GraphQL interfaces can be defined by placing a `@gqlInterface` docblock directly before an:
 
 - Interface declaration
+- Class declaration
+
+To model your GraphQL interface using classes, simply add a `@gqlInterface` docblock
+before the class. Note that with this approach, implementors of the interface will also inherit the field methods.
+
+<GratsCode out={InterfaceClassDeclaration} mode="ts" />
+
+If your types are represented in your code by TypeScript interfaces, simply add a
+`@gqlType` docblock before the interface representing that type. Note that by
+using `@gqlType` on an interface, Grats will treat it as a GraphQL type and not
+an interface.
 
 <GratsCode out={InterfaceDeclaration} mode="ts" />
 
-## Shared Field Implementation
-
-If you wish to define field which has a single implementation that is shared by all implementors, you can use the [function style of `@gqlField`](./02-fields.mdx#functional-style-fields) to define the field. This will automatically add the field to all implementors of the interface.
+If you wish to provide shared implementations for fields in an interface defined in this way, you can use the [functional style fields](./02-fields.mdx#functional-style-fields).
 
 <GratsCode out={InterfaceFieldCommonImpl} mode="both" />
 
@@ -32,10 +42,8 @@ Which will generate the following GraphQL schema:
 
 <GratsCode out={InterfaceImplementingInterface} mode="gql" />
 
----
-
-:::note
-Each implementor of an interface must declare define all the fields required by the interface with `/** @gqlField */`. This means that if you have an interface that implements another interface, you must define all the fields required by both interfaces.
+:::info
+Interfaces will inherit GraphQL fields and interfaces from all interfaces they extend.
 :::
 
 ## Merged Interfaces

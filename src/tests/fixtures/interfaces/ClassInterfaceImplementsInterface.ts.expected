@@ -1,0 +1,35 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface Node */
+interface GqlNode {
+  /** @gqlField */
+  id: string;
+}
+
+/** @gqlInterface */
+interface Person extends GqlNode {
+  id: string;
+  /** @gqlField */
+  name: string;
+}
+
+/** @gqlInterface */
+class Actor implements GqlNode, Person {
+  id: string;
+  name: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/interfaces/ClassInterfaceImplementsInterface.ts:15:1 - error: Expected `@gqlInterface` class to be abstract. `@gqlInterface` can only be used on interface or abstract class declarations. e.g. `interface MyInterface {}` or `abstract class MyInterface {}`
+
+15 class Actor implements GqlNode, Person {
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+16   id: string;
+   ~~~~~~~~~~~~~
+17   name: string;
+   ~~~~~~~~~~~~~~~
+18 }
+   ~
