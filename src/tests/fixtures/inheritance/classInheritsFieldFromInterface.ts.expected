@@ -18,48 +18,19 @@ export class MyType implements MyInterface {
 -----------------
 OUTPUT
 -----------------
--- SDL --
-interface MyInterface {
-  interfaceField: String @metadata
-}
+src/tests/fixtures/inheritance/classInheritsFieldFromInterface.ts:4:3 - error: Interface field MyInterface.interfaceField expected but MyType does not provide it.
 
-type MyType implements MyInterface {
-  interfaceField: String @metadata
-  typeField: String @metadata
-}
--- TypeScript --
-import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
-export function getSchema(): GraphQLSchema {
-    const MyInterfaceType: GraphQLInterfaceType = new GraphQLInterfaceType({
-        name: "MyInterface",
-        fields() {
-            return {
-                interfaceField: {
-                    name: "interfaceField",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const MyTypeType: GraphQLObjectType = new GraphQLObjectType({
-        name: "MyType",
-        fields() {
-            return {
-                interfaceField: {
-                    name: "interfaceField",
-                    type: GraphQLString
-                },
-                typeField: {
-                    name: "typeField",
-                    type: GraphQLString
-                }
-            };
-        },
-        interfaces() {
-            return [MyInterfaceType];
-        }
-    });
-    return new GraphQLSchema({
-        types: [MyInterfaceType, MyTypeType]
-    });
-}
+4   interfaceField: string;
+    ~~~~~~~~~~~~~~~~~~~~~~~
+
+  src/tests/fixtures/inheritance/classInheritsFieldFromInterface.ts:8:1
+      8 export class MyType implements MyInterface {
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      9   __typename: "MyType" = "MyType";
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ... 
+     12   typeField: string;
+        ~~~~~~~~~~~~~~~~~~~~
+     13 }
+        ~
+    Related location

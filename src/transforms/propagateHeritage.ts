@@ -75,7 +75,7 @@ class HeritagePropagator {
     declaration: ts.ClassDeclaration | ts.InterfaceDeclaration,
   ): InterfaceTypeDefinitionNode | ObjectTypeDefinitionNode {
     const name = nullThrows(declaration.name);
-    const parentTypes = this.ctx.getAllParentsForName(name);
+    const parentTypes = this.ctx.getAllParentClassesForName(name);
 
     // Build up fields
     const fieldsMap = new Map<string, FieldDefinitionNode>();

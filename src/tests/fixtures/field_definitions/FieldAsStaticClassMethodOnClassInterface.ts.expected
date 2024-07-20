@@ -18,45 +18,14 @@ type Query = unknown;
 -----------------
 OUTPUT
 -----------------
--- SDL --
-interface User {
-  name: String @metadata
-}
+src/tests/fixtures/field_definitions/FieldAsStaticClassMethodOnClassInterface.ts:2:1 - error: Expected `@gqlInterface` class to be abstract. `@gqlInterface` can only be used on interface or abstract class declarations. e.g. `interface MyInterface {}` or `abstract class MyInterface {}`
 
-type Query {
-  getUser: User @metadata(argCount: 1, exportName: "User", name: "getUser", tsModulePath: "grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethodOnClassInterface.ts")
-}
--- TypeScript --
-import { User as queryGetUserResolver } from "./FieldAsStaticClassMethodOnClassInterface";
-import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType, GraphQLString } from "graphql";
-export function getSchema(): GraphQLSchema {
-    const UserType: GraphQLInterfaceType = new GraphQLInterfaceType({
-        name: "User",
-        fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const QueryType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Query",
-        fields() {
-            return {
-                getUser: {
-                    name: "getUser",
-                    type: UserType,
-                    resolve(source) {
-                        return queryGetUserResolver.getUser(source);
-                    }
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        query: QueryType,
-        types: [UserType, QueryType]
-    });
-}
+  2 export class User {
+    ~~~~~~~~~~~~~~~~~~~
+  3   /** @gqlField */
+    ~~~~~~~~~~~~~~~~~~
+... 
+  9   }
+    ~~~
+ 10 }
+    ~
