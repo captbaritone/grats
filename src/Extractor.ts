@@ -1316,6 +1316,12 @@ class Extractor {
   }
 
   interfaceClassDeclaration(node: ts.ClassDeclaration, tag: ts.JSDocTag) {
+    const isAbstract = node.modifiers?.some((modifier) => {
+      return modifier.kind === ts.SyntaxKind.AbstractKeyword;
+    });
+    if (!isAbstract) {
+      return this.report(node, E.interfaceClassNotAbstract());
+    }
     if (node.name == null) {
       return this.report(node, E.typeTagOnUnnamedClass());
     }

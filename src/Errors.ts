@@ -66,6 +66,10 @@ export function invalidInterfaceTagUsage() {
   return `\`@${INTERFACE_TAG}\` can only be used on interface or abstract class declarations. e.g. \`interface MyInterface {}\` or \`abstract class MyInterface {}\``;
 }
 
+export function interfaceClassNotAbstract() {
+  return `Expected \`@${INTERFACE_TAG}\` class to be abstract. \`@${INTERFACE_TAG}\` can only be used on interface or abstract class declarations. e.g. \`interface MyInterface {}\` or \`abstract class MyInterface {}\``;
+}
+
 export function invalidEnumTagUsage() {
   return `\`@${ENUM_TAG}\` can only be used on enum declarations or TypeScript unions. e.g. \`enum MyEnum {}\` or \`type MyEnum = "foo" | "bar"\``;
 }

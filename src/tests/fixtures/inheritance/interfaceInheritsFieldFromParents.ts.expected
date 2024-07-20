@@ -22,63 +22,43 @@ interface C extends A, B {
 -----------------
 OUTPUT
 -----------------
--- SDL --
-interface A {
-  aField: String @metadata
-}
+src/tests/fixtures/inheritance/interfaceInheritsFieldFromParents.ts:14:1 - error: Type C must define one or more fields.
 
-interface B {
-  bField: String @metadata
-}
+14 interface C extends A, B {
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~
+15   aField: string;
+   ~~~~~~~~~~~~~~~~~
+16   bField: string;
+   ~~~~~~~~~~~~~~~~~
+17 }
+   ~
+src/tests/fixtures/inheritance/interfaceInheritsFieldFromParents.ts:4:3 - error: Interface field A.aField expected but C does not provide it.
 
-interface C implements A & B {
-  aField: String @metadata
-  bField: String @metadata
-}
--- TypeScript --
-import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
-export function getSchema(): GraphQLSchema {
-    const AType: GraphQLInterfaceType = new GraphQLInterfaceType({
-        name: "A",
-        fields() {
-            return {
-                aField: {
-                    name: "aField",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const BType: GraphQLInterfaceType = new GraphQLInterfaceType({
-        name: "B",
-        fields() {
-            return {
-                bField: {
-                    name: "bField",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const CType: GraphQLInterfaceType = new GraphQLInterfaceType({
-        name: "C",
-        fields() {
-            return {
-                aField: {
-                    name: "aField",
-                    type: GraphQLString
-                },
-                bField: {
-                    name: "bField",
-                    type: GraphQLString
-                }
-            };
-        },
-        interfaces() {
-            return [AType, BType];
-        }
-    });
-    return new GraphQLSchema({
-        types: [AType, BType, CType]
-    });
-}
+4   aField: string;
+    ~~~~~~~~~~~~~~~
+
+  src/tests/fixtures/inheritance/interfaceInheritsFieldFromParents.ts:14:1
+    14 interface C extends A, B {
+       ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    15   aField: string;
+       ~~~~~~~~~~~~~~~~~
+    16   bField: string;
+       ~~~~~~~~~~~~~~~~~
+    17 }
+       ~
+    Related location
+src/tests/fixtures/inheritance/interfaceInheritsFieldFromParents.ts:10:3 - error: Interface field B.bField expected but C does not provide it.
+
+10   bField: string;
+     ~~~~~~~~~~~~~~~
+
+  src/tests/fixtures/inheritance/interfaceInheritsFieldFromParents.ts:14:1
+    14 interface C extends A, B {
+       ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    15   aField: string;
+       ~~~~~~~~~~~~~~~~~
+    16   bField: string;
+       ~~~~~~~~~~~~~~~~~
+    17 }
+       ~
+    Related location

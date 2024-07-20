@@ -21,11 +21,11 @@ OUTPUT
 -- SDL --
 type Child {
   childField: String @metadata
-  parentField: String @metadata(argCount: 1, exportName: "parentField", tsModulePath: "grats/src/tests/fixtures/inheritance/classInheritsFieldFromParentFunctionField.ts")
+  parentField: String @metadata(exportName: "parentField", tsModulePath: "grats/src/tests/fixtures/inheritance/classInheritsFieldFromParentFunctionField.ts")
 }
 
 type Parent {
-  parentField: String @metadata(argCount: 1, exportName: "parentField", tsModulePath: "grats/src/tests/fixtures/inheritance/classInheritsFieldFromParentFunctionField.ts")
+  parentField: String @metadata(exportName: "parentField", tsModulePath: "grats/src/tests/fixtures/inheritance/classInheritsFieldFromParentFunctionField.ts")
 }
 -- TypeScript --
 import { parentField as childParentFieldResolver } from "./classInheritsFieldFromParentFunctionField";

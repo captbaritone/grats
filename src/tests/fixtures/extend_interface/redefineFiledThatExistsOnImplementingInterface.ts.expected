@@ -29,12 +29,12 @@ OUTPUT
 -----------------
 -- SDL --
 interface IPerson {
-  greeting: String @metadata(argCount: 1, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/redefineFiledThatExistsOnImplementingInterface.ts")
+  greeting: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/redefineFiledThatExistsOnImplementingInterface.ts")
   hello: String @metadata
 }
 
 interface User implements IPerson {
-  greeting: String @metadata(argCount: 0)
+  greeting: String @metadata
   hello: String @metadata
 }
 -- TypeScript --

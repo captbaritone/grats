@@ -36,13 +36,13 @@ OUTPUT
 -- SDL --
 interface IPerson {
   """As defined on the interface"""
-  greeting: String @metadata(argCount: 1, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/redefineFieldThatExistsOnConcreteType.ts")
+  greeting: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/redefineFieldThatExistsOnConcreteType.ts")
   hello: String @metadata
 }
 
 type User implements IPerson {
   """As defined on the concrete type"""
-  greeting: String @metadata(argCount: 0)
+  greeting: String @metadata
   hello: String @metadata
 }
 -- TypeScript --

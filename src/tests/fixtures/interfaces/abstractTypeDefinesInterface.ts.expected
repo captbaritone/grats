@@ -34,11 +34,11 @@ OUTPUT
 -----------------
 -- SDL --
 interface Node {
-  id: ID! @killsParentOnException @metadata(argCount: 0)
+  id: ID! @killsParentOnException @metadata
 }
 
 type User {
-  id: ID! @killsParentOnException @metadata(argCount: 0)
+  id: ID! @killsParentOnException @metadata
   name: String @metadata
 }
 -- TypeScript --

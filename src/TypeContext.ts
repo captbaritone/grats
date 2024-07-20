@@ -252,39 +252,18 @@ export class TypeContext {
 
   // Given the name of a class or interface, return all the parent classes and
   // interfaces.
-  getAllParentsForName(name: ts.Identifier): Set<NameDefinition> {
+  getAllParentClassesForName(name: ts.Identifier): Set<NameDefinition> {
     const symbol = this.checker.getSymbolAtLocation(name);
     if (symbol == null) {
       return new Set();
     }
-    return this.getAllParents(symbol);
+    return this.getAllParentClasses(symbol);
   }
 
   /*
-   * Walk the inheritance chain and collect all the parent classes and
-   * interfaces.
-   *
-   * NOTE! Recursion order here is important and part of our documented
-   * behavior. We do an ordered breadth-first traversal to ensure that
-   * if a class implements multiple interfaces, and those interfaces each
-   * implement the same field, we'll inherit the field implementation from
-   * the first interface in the list.
-   *
-   * Normally JavaScript/TypeScript avoid this issue by implementing only
-   * _single_ inheritance, but because we allow inheriting fields from
-   * interfaces, and TypeScript allows classes (and interfaces!) to
-   * implement/extend multiple interfaces, we must handle this multi-inheritance
-   * issue.
-   *
-   * The approach taken here is modeled after Python's MRO (Method Resolution
-   * Order) algorithm.
-   *
-   * https://docs.python.org/3/howto/mro.html
-   *
-   * TODO: Actually read that paper and see if that's the approach we want to
-   * take then implement it.
+   * Walk the inheritance chain and collect all the parent classes.
    */
-  getAllParents(
+  getAllParentClasses(
     symbol: ts.Symbol,
     parents: Set<NameDefinition> = new Set(),
   ): Set<NameDefinition> {
@@ -293,11 +272,11 @@ export class TypeContext {
     }
 
     for (const declaration of symbol.declarations) {
-      const heritage = getHeritage(declaration);
-      if (heritage == null) {
+      const extendsClauses = getClassExtendClauses(declaration);
+      if (extendsClauses == null) {
         continue;
       }
-      for (const heritageClause of heritage) {
+      for (const heritageClause of extendsClauses) {
         for (const type of heritageClause.types) {
           const typeSymbol = this.checker.getSymbolAtLocation(type.expression);
           if (typeSymbol == null || typeSymbol.declarations == null) {
@@ -310,7 +289,7 @@ export class TypeContext {
             }
           }
           // Recurse to find the parents of the parent.
-          this.getAllParents(typeSymbol, parents);
+          this.getAllParentClasses(typeSymbol, parents);
         }
       }
     }
@@ -318,14 +297,17 @@ export class TypeContext {
   }
 }
 
-function getHeritage(
+function getClassExtendClauses(
   declaration: ts.Declaration,
-): ts.NodeArray<ts.HeritageClause> | null {
-  if (
-    ts.isClassDeclaration(declaration) ||
-    ts.isInterfaceDeclaration(declaration)
-  ) {
-    return declaration.heritageClauses ?? null;
+): ts.HeritageClause[] | null {
+  if (ts.isClassDeclaration(declaration)) {
+    const { heritageClauses } = declaration;
+    if (heritageClauses == null) {
+      return null;
+    }
+    return heritageClauses.filter(
+      (clause) => clause.token === ts.SyntaxKind.ExtendsKeyword,
+    );
   }
   return null;
 }
