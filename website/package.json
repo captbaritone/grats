@@ -60,7 +60,7 @@
     "@docusaurus/tsconfig": "3.4.0",
     "@types/react": "^18.2.29",
     "graphql-relay": "^0.10.0",
-    "ts-node": "^10.9.1",
+    "ts-node": "^10.9.2",
     "typescript": "5.5.4"
   },
   "browserslist": {

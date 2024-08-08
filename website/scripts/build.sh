@@ -8,13 +8,13 @@ cd "$(dirname "$0")/.."
 
 # Build grats in the parent directory, using pnpm 
 cd ..
-pnpm build
+pnpm run build
 cd website
 
 # Rebuild/validate the grats code used in the website
-pnpm grats
+pnpm run grats
 # Error if any of these changes have not been committed
 git diff --exit-code || (echo "Uncommitted changes detected." && exit 1)
 
 # Build the website
-pnpm build
+pnpm run build
