@@ -25,12 +25,29 @@ input CreateLikeInput {
 
 input CreatePostInput {
   authorId: ID!
-  content: String!
+  content: PostContentInput!
   title: String!
 }
 
 input CreateUserInput {
   name: String!
+}
+
+"""Models a node in a Markdown AST"""
+input MarkdownNode @oneOf {
+  blockquote: String
+  h1: String
+  h2: String
+  h3: String
+  li: [String!]
+  p: String
+  ul: [String!]
+}
+
+"""Post content. Could be pure text, or Markdown"""
+input PostContentInput @oneOf {
+  markdown: [MarkdownNode!]
+  string: String
 }
 
 type CreateLikePayload {
