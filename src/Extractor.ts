@@ -681,7 +681,6 @@ class Extractor {
     if (!ts.isTypeAliasDeclaration(node)) {
       return this.report(node, E.oneOfNotOnTypeAlias());
     }
-    // FIXME: Check graphql-js version
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
