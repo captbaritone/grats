@@ -12,6 +12,7 @@
     "moduleResolution": "NodeNext",
     "target": "esnext",
     "lib": ["esnext"],
-    "strict": true
+    "strict": true,
+    "skipLibCheck": true
   }
 }
