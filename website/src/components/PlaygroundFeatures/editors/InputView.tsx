@@ -46,7 +46,7 @@ function useFsMap() {
 
   useEffect(() => {
     let unmounted = false;
-    const shouldCache = true;
+    const shouldCache = false;
     createDefaultMapFromCDN(
       { target: ts.ScriptTarget.ES2021, lib: ["es2021"] },
       ts.version,
@@ -55,6 +55,17 @@ function useFsMap() {
       lzstring,
     ).then((fsMap) => {
       if (!unmounted) {
+        // There's some bug/mismatch where the files that are expected by our version of
+        // TypeScript don't exactly match those included in/accessible by the
+        // `@typescript/vfs` package. If it's missing a file it crashes, so we'll
+        // include them as empty for now. Their actual contents are just a few very
+        // obscure APIs, so it's probably fine to just leave them for now.
+        for (const fileName of [
+          "/lib.es2016.intl.d.ts",
+          "/lib.dom.asynciterable.d.ts",
+        ]) {
+          fsMap.set(fileName, "");
+        }
         setFsMap(fsMap);
       }
     });

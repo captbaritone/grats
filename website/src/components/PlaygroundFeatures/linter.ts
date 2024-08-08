@@ -11,7 +11,7 @@ import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 
 import store from "./store";
 
-const GRATS_PATH = "node_modules/grats/src/index.ts";
+const GRATS_PATH = "/node_modules/grats/src/index.ts";
 
 if (ExecutionEnvironment.canUseDOM) {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -40,9 +40,7 @@ function buildSchemaResultWithFsMap(
     allowJs: true,
     baseUrl: "./",
     paths: { grats: [GRATS_PATH] },
-    // TODO: Which other files should be included here?
-    // For some reason `[...fsMap.keys()]` doesn't work.
-    lib: ["/lib.es2021.full.d.ts", "/lib.es2018.promise.d.ts"],
+    lib: [...fsMap.keys()],
   };
   const host = createVirtualCompilerHost(system, compilerOpts, ts);
 
@@ -59,6 +57,7 @@ function buildSchemaResultWithFsMap(
     return buildSchemaAndDocResultWithHost(parsedOptions, host.compilerHost);
   } catch (e) {
     const message = `Grats playground bug encountered. Please report this error:\n\n ${e.stack}`;
+    throw e;
     return {
       kind: "ERROR",
       err: {

@@ -41,6 +41,6 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "grats": "workspace:*",
-    "typescript": "^5.0.2"
+    "typescript": "^5.5.4"
   }
 }

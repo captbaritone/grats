@@ -16,7 +16,7 @@
   "devDependencies": {
     "@types/node": "^18.14.6",
     "grats": "workspace:*",
-    "typescript": "^5.0.2"
+    "typescript": "^5.5.4"
   },
   "keywords": [],
   "author": ""
