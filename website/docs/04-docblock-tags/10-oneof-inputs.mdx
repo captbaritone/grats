@@ -1,0 +1,38 @@
+import GratsCode from "@site/src/components/GratsCode";
+import OneOf from "!!raw-loader!./snippets/10-one-of-input.out";
+import OneOfDescription from "!!raw-loader!./snippets/10-one-of-input-descriptions.out";
+import OneOfExhaustive from "!!raw-loader!./snippets/10-one-of-input-exhaustive.out";
+
+# OneOf Input
+
+OneOf input types are an experimental GraphQL feature, currently a [draft stage RFC](https://github.com/graphql/graphql-spec/pull/825), which lets you define an input type where exactly one of the fields must be provided. This can be useful for modeling structures similar to [unions](./06-unions.mdx) but for input types.
+
+OneOf inputs can be defined by placing both `@gqlInput` and `@oneOf` in a docblock directly before a:
+
+- Type alias of a union of object literal types
+
+The union must be a union of object types, and each object type must have exactly one property whose value is a valid [input type](./09-inputs.mdx). You can think of each member of the union as modeling one of the possible values the user might provide as a valid input.
+
+:::info
+OneOf is not supported in versions of graphql-js earlier than `v16.9.0`. If you are using an older version of graphql-js, you will need to upgrade to use this feature.
+:::
+
+<GratsCode out={OneOf} mode="both" />
+
+## OneOf input field descriptions
+
+TypeScript does not support docblocks "attach" to a member of a union. Therefore, if you want to provide a description for a field of a OneOf input, place it above the field, within the object literal:
+
+<GratsCode out={OneOfDescription} mode="both" />
+
+## Working with OneOf inputs
+
+When handling one of these types in TypeScript it is a best practice to use an exhaustive switch. This way, if you add a new option to the union, TypeScript will trigger an error in all the locations where you handle the union.
+
+_As of TypeScript 5.3.0_, TypeScript supports a pattern called [Switch True Narrowing](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-3.html#switch-true-narrowing) which can be used to ensure that you have handled all the possible options in this type of union. It looks like this:
+
+<GratsCode out={OneOfExhaustive} mode="both" />
+
+:::note
+Grats is open to supporting other syntaxes for defining OneOf inputs. If you have a syntax that you find more intuitive, please [open an issue](https://github.com/captbaritone/grats/issues/new).
+:::

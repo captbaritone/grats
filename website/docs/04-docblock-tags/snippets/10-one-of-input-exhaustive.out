@@ -1,0 +1,120 @@
+/**
+ * @gqlInput
+ * @oneOf
+ */
+export type UserBy = { email: string } | { username: string };
+
+/** @gqlField */
+export function getUser(_: Query, args: { by: UserBy }): User {
+  // highlight-start
+  switch (true) {
+    case "email" in args.by:
+      return User.fromEmail(args.by.email);
+    case "username" in args.by:
+      return User.fromUsername(args.by.username);
+    default: {
+      // This line will error if an unhandled option is added to the union
+      const _exhaustive: never = args.by;
+      throw new Error(`Unhandled case: ${JSON.stringify(args.by)}`);
+    }
+  }
+  // highlight-end
+}
+// trim-start
+
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlType */
+class User {
+  constructor(
+    /** @gqlField */
+    public email?: string,
+    /** @gqlField */
+    public username?: string,
+  ) {}
+
+  static fromEmail(email: string): User {
+    return new User(email, undefined);
+  }
+
+  static fromUsername(username: string): User {
+    return new User(undefined, username);
+  }
+}
+// trim-end
+
+=== SNIP ===
+input UserBy @oneOf {
+  email: String
+  username: String
+}
+
+type Query {
+  getUser(by: UserBy!): User
+}
+
+type User {
+  email: String
+  username: String
+}
+=== SNIP ===
+import { getUser as queryGetUserResolver } from "./10-one-of-input-exhaustive.grats";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLInputObjectType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                email: {
+                    name: "email",
+                    type: GraphQLString
+                },
+                username: {
+                    name: "username",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const UserByType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        name: "UserBy",
+        fields() {
+            return {
+                email: {
+                    name: "email",
+                    type: GraphQLString
+                },
+                username: {
+                    name: "username",
+                    type: GraphQLString
+                }
+            };
+        },
+        isOneOf: true
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                getUser: {
+                    name: "getUser",
+                    type: UserType,
+                    args: {
+                        by: {
+                            name: "by",
+                            type: new GraphQLNonNull(UserByType)
+                        }
+                    },
+                    resolve(source, args) {
+                        return queryGetUserResolver(source, args);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [UserByType, QueryType, UserType]
+    });
+}

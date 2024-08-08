@@ -1,0 +1,35 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * @gqlInput
+ * @oneOf
+ */
+export type Greeting = { firstName: string };
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+input Greeting @oneOf {
+  firstName: String
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLInputObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const GreetingType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        name: "Greeting",
+        fields() {
+            return {
+                firstName: {
+                    name: "firstName",
+                    type: GraphQLString
+                }
+            };
+        },
+        isOneOf: true
+    });
+    return new GraphQLSchema({
+        types: [GreetingType]
+    });
+}

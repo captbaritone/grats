@@ -556,11 +556,15 @@ class Codegen {
   }
 
   inputTypeConfig(obj: GraphQLInputObjectType): ts.ObjectLiteralExpression {
-    return this.objectLiteral([
+    const properties = [
       this.description(obj.description),
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.inputFields(obj),
-    ]);
+    ];
+    if (obj.isOneOf) {
+      properties.push(F.createPropertyAssignment("isOneOf", F.createTrue()));
+    }
+    return this.objectLiteral(properties);
   }
 
   inputFields(obj: GraphQLInputObjectType): ts.MethodDeclaration {

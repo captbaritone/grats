@@ -15,7 +15,9 @@ import {
   ConstListValueNode,
   assertName,
   DefinitionNode,
+  version as graphqlJSVersion,
 } from "graphql";
+import { gte as semverGte } from "semver";
 import {
   tsErr,
   tsRelated,
@@ -61,6 +63,9 @@ export const ALL_TAGS = [
 
 const DEPRECATED_TAG = "deprecated";
 export const SPECIFIED_BY_TAG = "specifiedBy";
+export const ONE_OF_TAG = "oneOf";
+// https://github.com/graphql/graphql-js/releases/tag/v16.9.0
+const ONE_OF_MIN_GRAPHQL_JS_VERSION = "16.9.0";
 const OPERATION_TYPES = new Set(["Query", "Mutation", "Subscription"]);
 
 type ArgDefaults = Map<string, ts.Expression>;
@@ -145,9 +150,15 @@ class Extractor {
         case ENUM_TAG:
           this.extractEnum(node, tag);
           break;
-        case INPUT_TAG:
-          this.extractInput(node, tag);
+        case INPUT_TAG: {
+          const oneOf = this.findTag(node, ONE_OF_TAG);
+          if (oneOf != null) {
+            this.extractOneOfInputType(node, tag, oneOf);
+          } else {
+            this.extractInput(node, tag);
+          }
           break;
+        }
         case UNION_TAG:
           this.extractUnion(node, tag);
           break;
@@ -654,6 +665,100 @@ class Extractor {
         deprecatedDirective == null ? null : [deprecatedDirective],
         description,
       ),
+    );
+  }
+
+  extractOneOfInputType(node: ts.Node, tag: ts.JSDocTag, oneOf: ts.JSDocTag) {
+    if (!semverGte(graphqlJSVersion, ONE_OF_MIN_GRAPHQL_JS_VERSION)) {
+      return this.report(
+        oneOf,
+        E.oneOfNotSupportedGraphql(
+          ONE_OF_MIN_GRAPHQL_JS_VERSION,
+          graphqlJSVersion,
+        ),
+      );
+    }
+    if (!ts.isTypeAliasDeclaration(node)) {
+      return this.report(node, E.oneOfNotOnTypeAlias());
+    }
+    // FIXME: Check graphql-js version
+    const name = this.entityName(node, tag);
+    if (name == null) return null;
+
+    const description = this.collectDescription(node);
+    this.recordTypeName(node, name, "INPUT_OBJECT");
+
+    const fields: InputValueDefinitionNode[] = [];
+    switch (true) {
+      case ts.isUnionTypeNode(node.type): {
+        for (const member of node.type.types) {
+          const field = this.collectOneOfInputField(member);
+          if (field != null) {
+            fields.push(field);
+          }
+        }
+        break;
+      }
+      case ts.isTypeLiteralNode(node.type): {
+        const field = this.collectOneOfInputField(node.type);
+        if (field != null) {
+          fields.push(field);
+        }
+        break;
+      }
+      default:
+        return this.report(node, E.oneOfNotOnUnion());
+    }
+
+    const directives = [
+      this.gql.constDirective(node, this.gql.name(oneOf, ONE_OF_TAG), []),
+    ];
+
+    const deprecatedDirective = this.collectDeprecated(node);
+    if (deprecatedDirective != null) {
+      directives.push(deprecatedDirective);
+    }
+    this.definitions.push(
+      this.gql.inputObjectTypeDefinition(
+        node,
+        name,
+        fields,
+        directives,
+        description,
+      ),
+    );
+  }
+
+  collectOneOfInputField(node: ts.TypeNode): InputValueDefinitionNode | null {
+    if (!ts.isTypeLiteralNode(node) || node.members.length !== 1) {
+      return this.report(node, E.oneOfFieldNotTypeLiteralWithOneProperty());
+    }
+
+    const property = node.members[0];
+    if (!ts.isPropertySignature(property)) {
+      return this.report(property, E.oneOfFieldNotTypeLiteralWithOneProperty());
+    }
+
+    if (property.type == null) {
+      return this.report(property, E.oneOfPropertyMissingTypeAnnotation());
+    }
+
+    const description = this.collectDescription(property);
+    const name = this.expectNameIdentifier(property.name);
+    if (name == null) return null;
+
+    const inner = this.collectType(property.type, { kind: "INPUT" });
+    if (inner == null) return null;
+
+    // All fields must be nullable since only one will be present at a time.
+    const type = this.gql.nullableType(inner);
+    return this.gql.inputValueDefinition(
+      node,
+      this.gql.name(name, name.text),
+      type,
+      [],
+      null,
+      description,
     );
   }
 
