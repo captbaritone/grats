@@ -12,6 +12,10 @@
   background: linear-gradient(165deg, #3178c6, #e10098);
 }
 
+.titleShadow {
+  text-shadow: var(--text-shadow-glow);
+}
+
 @media screen and (max-width: 996px) {
   .heroBanner {
     padding: 2rem;

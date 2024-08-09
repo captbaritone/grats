@@ -15,6 +15,7 @@
   --ifm-color-primary-lightest: #5fa6e1;
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --text-shadow-glow: 0 0 8px rgba(0, 0, 0, 0.3), 0 0 4px rgba(0, 0, 0, 0.2);
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
@@ -27,6 +28,8 @@
   --ifm-color-primary-lighter: #f051b4;
   --ifm-color-primary-lightest: #f36fbd;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --text-shadow-glow: 0 0 5px rgba(255, 255, 255, 0.15),
+    0 0 3px rgba(255, 255, 255, 0.1);
 }
 
 .cm-editor {
@@ -40,4 +43,11 @@
 /* See prism.magicComments in docusorus config */
 .code-trimmed-line {
   display: none;
+}
+
+iframe[src*="youtube"] {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  padding-bottom: 10px;
 }

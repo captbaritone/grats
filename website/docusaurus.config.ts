@@ -76,12 +76,12 @@ const config: Config = {
     // image: "img/docusaurus-social-card.jpg",
     navbar: {
       title: "Grats",
-      /*
-        logo: {
-          alt: "Grats Logo",
-          src: "img/logo.svg",
-        },
-        */
+      logo: {
+        alt: "Grats",
+        src: "img/logo.svg",
+        target: "_self",
+        style: {},
+      },
       items: [
         {
           type: "docSidebar",

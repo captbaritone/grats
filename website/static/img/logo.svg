@@ -1,0 +1,22 @@
+<svg width="140" height="140" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad45" x1="25.00000000000001%" y1="6.698729810778062%" x2="74.99999999999999%" y2="93.30127018922194%">
+      <stop offset="0%" style="stop-color: rgb(53, 142, 241); stop-opacity: 1;"></stop>
+      <stop offset="100%" style="stop-color: rgb(53, 142, 241); stop-opacity: 1;"></stop>
+    </linearGradient>
+    <linearGradient id="grad180" x1="85.35533905932738%" y1="14.64466094067263%" x2="14.644660940672622%" y2="85.35533905932738%">
+      <stop offset="0%" style="stop-color: rgb(49, 120, 198); stop-opacity: 1;"></stop>
+      <stop offset="100%" style="stop-color: rgb(49, 120, 198); stop-opacity: 1;"></stop>
+    </linearGradient>
+    <linearGradient id="grad0" x1="0%" y1="49.99999999999999%" x2="100%" y2="50.00000000000001%">
+      <stop offset="0%" style="stop-color: rgb(53, 142, 241); stop-opacity: 1;"></stop>
+      <stop offset="100%" style="stop-color: rgb(53, 142, 241); stop-opacity: 1;"></stop>
+    </linearGradient>
+  </defs>
+  <polygon points="26.69872981077806, 45.000000000000014 70, 70 70, 120 26.698729810778076, 95.00000000000001" opacity="1" fill="url(#grad180)"></polygon>
+  <polygon points="26.69872981077806, 45.000000000000014 70, 20 113.30127018922194, 45.000000000000014 70, 70" opacity="1" fill="url(#grad45)"></polygon>
+  <polygon points="113.30127018922194, 45.000000000000014 113.30127018922194, 95 70, 120 70, 70" opacity="1" fill="url(#grad0)"></polygon>
+  <circle cx="70" cy="70" r="12" fill="rgb(196 56 150)"></circle>
+  <circle cx="70" cy="20" r="12" fill="rgb(196 56 150)"></circle>
+  <polyline points="70, 70 113.30127018922194, 45.000000000000014 113.30127018922194, 95 70, 120 26.698729810778076, 95.00000000000001 26.69872981077806, 45.000000000000014 70, 20" stroke="rgb(196 56 150)" stroke-width="12" fill="none"></polyline>
+</svg>

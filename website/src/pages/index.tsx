@@ -7,14 +7,19 @@ import Layout from "@theme/Layout";
 import HomepageFeatures from "@site/src/components/HomepageFeatures";
 
 import styles from "./index.module.css";
+import { GratsLogo } from "./logo";
 
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
   return (
     <header className={clsx("hero hero--primary", styles.heroBanner)}>
       <div className="container">
-        <h1 className="hero__title">{siteConfig.title}</h1>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
+        <h1 className={clsx("hero__title", styles.titleShadow)}>
+          {siteConfig.title}
+        </h1>
+        <p className={clsx("hero__subtitle", styles.titleShadow)}>
+          {siteConfig.tagline}
+        </p>
         <div style={{ display: "flex", justifyContent: "center", gap: "2em" }}>
           <div className={styles.buttons}>
             <Link
