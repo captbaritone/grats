@@ -23,7 +23,7 @@ input MyInputType {
 }
 
 type User {
-  myField(input: MyInputType!): String @metadata(argCount: 1)
+  myField(input: MyInputType!): String @metadata
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";

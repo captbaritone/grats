@@ -34,7 +34,7 @@ type PageEdge {
   cursor: String @metadata
   node: Page @metadata
   """Re-expose title directly on the edge"""
-  title: String @metadata(argCount: 1, exportName: "title", tsModulePath: "grats/src/tests/fixtures/generics/defineFieldOnGeneric.ts")
+  title: String @metadata(exportName: "title", tsModulePath: "grats/src/tests/fixtures/generics/defineFieldOnGeneric.ts")
 }
 -- TypeScript --
 import { title as pageEdgeTitleResolver } from "./defineFieldOnGeneric";

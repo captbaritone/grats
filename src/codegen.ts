@@ -244,8 +244,9 @@ class Codegen {
       fieldDirective(field, FIELD_METADATA_DIRECTIVE),
     );
     const metadata = parseFieldMetadataDirective(metadataDirective);
+    const fieldAst = nullThrows(field.astNode);
     if (metadata.tsModulePath != null) {
-      const argCount = nullThrows(metadata.argCount);
+      const argCount = fieldAst.resolverParams?.length ?? 0;
       // Note: This name is guaranteed to be unique, but for static methods, it
       // means we import the same class multiple times with multiple names.
       const resolverName = formatResolverFunctionVarName(
@@ -296,7 +297,7 @@ class Codegen {
 
       let valueExpression: ts.Expression = prop;
 
-      if (metadata.argCount != null) {
+      if (fieldAst.resolverParams != null) {
         valueExpression = F.createCallExpression(
           prop,
           undefined,

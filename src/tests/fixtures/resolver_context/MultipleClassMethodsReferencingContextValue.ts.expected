@@ -23,8 +23,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  alsoGreeting: String @metadata(argCount: 2)
-  greeting: String @metadata(argCount: 2)
+  alsoGreeting: String @metadata
+  greeting: String @metadata
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

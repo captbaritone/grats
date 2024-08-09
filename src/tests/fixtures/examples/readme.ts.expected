@@ -35,13 +35,13 @@ OUTPUT
 -----------------
 -- SDL --
 type Query {
-  me: User @metadata(argCount: 1, exportName: "me", tsModulePath: "grats/src/tests/fixtures/examples/readme.ts")
-  viewer: User @deprecated(reason: "Please use `me` instead.") @metadata(argCount: 1, exportName: "viewer", tsModulePath: "grats/src/tests/fixtures/examples/readme.ts")
+  me: User @metadata(exportName: "me", tsModulePath: "grats/src/tests/fixtures/examples/readme.ts")
+  viewer: User @deprecated(reason: "Please use `me` instead.") @metadata(exportName: "viewer", tsModulePath: "grats/src/tests/fixtures/examples/readme.ts")
 }
 
 """A user in our kick-ass system!"""
 type User {
-  greeting(salutation: String!): String @metadata(argCount: 1)
+  greeting(salutation: String!): String @metadata
   name: String @metadata
 }
 -- TypeScript --

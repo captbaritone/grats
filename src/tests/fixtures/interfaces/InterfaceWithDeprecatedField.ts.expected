@@ -33,7 +33,7 @@ interface IPerson {
 }
 
 type SomeType {
-  me: User @metadata(argCount: 0)
+  me: User @metadata
 }
 
 type User implements IPerson {

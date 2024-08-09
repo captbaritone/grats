@@ -33,8 +33,9 @@ import { GraphQLConstructor } from "./GraphQLConstructor";
 import { relativePath } from "./gratsRoot";
 import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
-import { extend, loc } from "./utils/helpers";
+import { extend, loc, nullThrows } from "./utils/helpers";
 import * as Act from "./CodeActions";
+import { FieldParam } from "./metadataDirectives.js";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -417,10 +418,14 @@ class Extractor {
       tsModulePath,
       name: null,
       exportName: funcName == null ? null : funcName.text,
-      argCount: node.parameters.length,
     });
 
-    this.collectAbstractField(node, name, metadataDirective);
+    this.collectAbstractField(
+      node,
+      name,
+      metadataDirective,
+      resolverParamsFromCount(node.parameters.length),
+    );
   }
 
   staticMethodExtendType(node: ts.MethodDeclaration, tag: ts.JSDocTag) {
@@ -475,16 +480,21 @@ class Extractor {
       tsModulePath,
       name: methodName.text,
       exportName,
-      argCount: node.parameters.length,
     });
 
-    this.collectAbstractField(node, name, metadataDirective);
+    this.collectAbstractField(
+      node,
+      name,
+      metadataDirective,
+      resolverParamsFromCount(node.parameters.length),
+    );
   }
 
   collectAbstractField(
     node: ts.FunctionDeclaration | ts.MethodDeclaration,
     name: NameNode,
     metadataDirective: ConstDirectiveNode,
+    resolverParams: FieldParam[],
   ) {
     let args: readonly InputValueDefinitionNode[] | null = null;
     const argsParam = node.parameters[1];
@@ -540,6 +550,7 @@ class Extractor {
       args,
       directives,
       description,
+      resolverParams,
     );
     this.definitions.push(
       this.gql.abstractFieldDefinition(node, typeName, field),
@@ -1317,7 +1328,6 @@ class Extractor {
         name: id.text == name.value ? null : id.text,
         tsModulePath: null,
         exportName: null,
-        argCount: null,
       }),
     ];
 
@@ -1344,6 +1354,7 @@ class Extractor {
       null,
       directives,
       description,
+      null,
     );
   }
 
@@ -1838,7 +1849,6 @@ class Extractor {
         name: id.text === name.value ? null : id.text,
         tsModulePath: null,
         exportName: null,
-        argCount: isCallable(node) ? node.parameters.length : null,
       }),
     ];
 
@@ -1861,6 +1871,7 @@ class Extractor {
       args,
       directives,
       description,
+      isCallable(node) ? resolverParamsFromCount(node.parameters.length) : null,
     );
   }
 
@@ -1982,7 +1993,6 @@ class Extractor {
         name: id.text === name.value ? null : id.text,
         exportName: null,
         tsModulePath: null,
-        argCount: null,
       }),
     );
 
@@ -2000,6 +2010,7 @@ class Extractor {
       null,
       directives,
       description,
+      null,
     );
   }
   // TODO: Support separate modes for input and output types
@@ -2243,4 +2254,16 @@ function getFieldParent(node: ts.Node): ts.Node | null {
   }
 
   return null;
+}
+
+const DEFAULT_PARAM_ORDER: FieldParam[] = ["source", "args", "context", "info"];
+
+function resolverParamsFromCount(argCount: number): FieldParam[] {
+  const params: FieldParam[] = [];
+  let i = 0;
+  while (i < argCount) {
+    params.push(nullThrows(DEFAULT_PARAM_ORDER[i]));
+    i++;
+  }
+  return params;
 }

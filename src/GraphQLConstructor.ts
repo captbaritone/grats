@@ -37,9 +37,9 @@ import {
   makeKillsParentOnExceptionDirective,
   TS_MODULE_PATH_ARG,
   FIELD_NAME_ARG,
-  ARG_COUNT,
   FIELD_METADATA_DIRECTIVE,
   EXPORT_NAME_ARG,
+  FieldParam,
 } from "./metadataDirectives";
 import { uniqueId } from "./utils/helpers";
 import { TsLocatableNode } from "./utils/DiagnosticError";
@@ -51,7 +51,6 @@ export class GraphQLConstructor {
       tsModulePath: string | null;
       name: string | null;
       exportName: string | null;
-      argCount: number | null;
     },
   ): ConstDirectiveNode {
     const args: ConstArgumentNode[] = [];
@@ -79,15 +78,6 @@ export class GraphQLConstructor {
           node,
           this.name(node, EXPORT_NAME_ARG),
           this.string(node, metadata.exportName),
-        ),
-      );
-    }
-    if (metadata.argCount != null) {
-      args.push(
-        this.constArgument(
-          node,
-          this.name(node, ARG_COUNT),
-          this.int(node, metadata.argCount.toString()),
         ),
       );
     }
@@ -201,6 +191,7 @@ export class GraphQLConstructor {
     args: readonly InputValueDefinitionNode[] | null,
     directives: readonly ConstDirectiveNode[],
     description: StringValueNode | null,
+    resolverParams: FieldParam[] | null,
   ): FieldDefinitionNode {
     return {
       kind: Kind.FIELD_DEFINITION,
@@ -210,6 +201,7 @@ export class GraphQLConstructor {
       type,
       arguments: args ?? undefined,
       directives: this._optionalList(directives),
+      resolverParams: resolverParams ?? undefined,
     };
   }
 

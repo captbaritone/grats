@@ -28,7 +28,7 @@ type SomeType {
   """Number 1 greeting."""
   greeting: String @metadata(name: "somePropertyField")
   """Number 1 salutation."""
-  salutaion: String @metadata(argCount: 0, name: "someMethodField")
+  salutaion: String @metadata(name: "someMethodField")
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

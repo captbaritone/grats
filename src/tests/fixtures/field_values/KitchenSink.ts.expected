@@ -64,21 +64,21 @@ OUTPUT
 -- SDL --
 type Group {
   description: String @metadata
-  members: [User!] @metadata(argCount: 0)
-  name: String @metadata(argCount: 0)
+  members: [User!] @metadata
+  name: String @metadata
 }
 
 type SomeType {
-  greetings(greeting: String!): [String!] @metadata(argCount: 1)
-  greetings1(greeting: String!): [String!] @metadata(argCount: 1)
-  greetings2(greeting: String!): [String!] @metadata(argCount: 1)
-  hello(greeting: String!): String @metadata(argCount: 1)
-  me: User @metadata(argCount: 0)
+  greetings(greeting: String!): [String!] @metadata
+  greetings1(greeting: String!): [String!] @metadata
+  greetings2(greeting: String!): [String!] @metadata
+  hello(greeting: String!): String @metadata
+  me: User @metadata
 }
 
 type User {
-  groups: [Group!] @metadata(argCount: 0)
-  name: String @metadata(argCount: 0)
+  groups: [Group!] @metadata
+  name: String @metadata
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull } from "graphql";
