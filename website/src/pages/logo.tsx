@@ -1,10 +1,7 @@
-import { Line } from "@codemirror/state";
-import { off } from "process";
-
 const TS_BLUE = "#3178C6";
-const TS_MID = "#235A97";
+const _TS_MID = "#235A97";
 const TS_LIGHT = "#358EF1";
-const TS_DARK = "#00273F";
+const _TS_DARK = "#00273F";
 const GRAPHQL_RHODAMINE = "#E10098";
 const GRAPHQL_MID = "rgb(196 56 150)";
 
@@ -52,9 +49,8 @@ export function GratsLogo({ opacity = 1 }) {
   const center = offset({ x: 50, y: 50 });
 
   const tsLinesColor = GRAPHQL_MID;
-  const gqlColor = GRAPHQL_RHODAMINE;
+  const _gqlColor = GRAPHQL_RHODAMINE;
 
-  const gqlWidth = 8;
   const tsWidth = 12;
 
   const showGradient = true;
@@ -103,29 +99,6 @@ export function GratsLogo({ opacity = 1 }) {
             opacity={opacity}
             fill={`url(#${gradient0})`}
             points={[upperRight, lowerRight, bottom, center]}
-          />
-        </>
-      )}
-
-      {false && (
-        <>
-          <Polyline
-            points={[upperRight, top]}
-            stroke={gqlColor}
-            strokeWidth={gqlWidth}
-            fill="none"
-          />
-          <Polyline
-            points={[center, upperLeft]}
-            stroke={gqlColor}
-            strokeWidth={gqlWidth}
-            fill="none"
-          />
-          <Polyline
-            points={[center, bottom]}
-            stroke={gqlColor}
-            strokeWidth={gqlWidth}
-            fill="none"
           />
         </>
       )}
