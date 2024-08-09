@@ -475,6 +475,60 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
+    const MarkdownNodeType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        description: "Models a node in a Markdown AST",
+        name: "MarkdownNode",
+        fields() {
+            return {
+                blockquote: {
+                    name: "blockquote",
+                    type: GraphQLString
+                },
+                h1: {
+                    name: "h1",
+                    type: GraphQLString
+                },
+                h2: {
+                    name: "h2",
+                    type: GraphQLString
+                },
+                h3: {
+                    name: "h3",
+                    type: GraphQLString
+                },
+                li: {
+                    name: "li",
+                    type: new GraphQLList(new GraphQLNonNull(GraphQLString))
+                },
+                p: {
+                    name: "p",
+                    type: GraphQLString
+                },
+                ul: {
+                    name: "ul",
+                    type: new GraphQLList(new GraphQLNonNull(GraphQLString))
+                }
+            };
+        },
+        isOneOf: true
+    });
+    const PostContentInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        description: "Post content. Could be pure text, or Markdown",
+        name: "PostContentInput",
+        fields() {
+            return {
+                markdown: {
+                    name: "markdown",
+                    type: new GraphQLList(new GraphQLNonNull(MarkdownNodeType))
+                },
+                string: {
+                    name: "string",
+                    type: GraphQLString
+                }
+            };
+        },
+        isOneOf: true
+    });
     const CreatePostInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
         name: "CreatePostInput",
         fields() {
@@ -485,7 +539,7 @@ export function getSchema(): GraphQLSchema {
                 },
                 content: {
                     name: "content",
-                    type: new GraphQLNonNull(GraphQLString)
+                    type: new GraphQLNonNull(PostContentInputType)
                 },
                 title: {
                     name: "title",
@@ -593,6 +647,6 @@ export function getSchema(): GraphQLSchema {
         query: QueryType,
         mutation: MutationType,
         subscription: SubscriptionType,
-        types: [DateType, NodeType, CreateLikeInputType, CreatePostInputType, CreateUserInputType, CreateLikePayloadType, CreatePostPayloadType, CreateUserPayloadType, LikeType, LikeConnectionType, LikeEdgeType, MutationType, PageInfoType, PostType, PostConnectionType, PostEdgeType, QueryType, SubscriptionType, UserType, UserConnectionType, UserEdgeType, ViewerType]
+        types: [DateType, NodeType, CreateLikeInputType, CreatePostInputType, CreateUserInputType, MarkdownNodeType, PostContentInputType, CreateLikePayloadType, CreatePostPayloadType, CreateUserPayloadType, LikeType, LikeConnectionType, LikeEdgeType, MutationType, PageInfoType, PostType, PostConnectionType, PostEdgeType, QueryType, SubscriptionType, UserType, UserConnectionType, UserEdgeType, ViewerType]
     });
 }

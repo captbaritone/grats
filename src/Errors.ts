@@ -511,3 +511,22 @@ export function staticMethodOnNonClass(): string {
 export function staticMethodClassWithNamedExportNotNamed(): string {
   return `Expected \`@${FIELD_TAG}\` static method's class to be named if exported without the \`default\` keyword.`;
 }
+
+export function oneOfNotSupportedGraphql(
+  requiredVersion: string,
+  foundVersion: string,
+): string {
+  return `OneOf input types are only supported in \`graphql@${requiredVersion}\` and later but Grats found \`graphql@${foundVersion}\`. Please upgrade your version of graphql-js in order to use this feature.`;
+}
+
+export function oneOfNotOnUnion(): string {
+  return "Expected the type of a @gqlInput with @oneOf to be attached to a TypeScript union.";
+}
+
+export function oneOfFieldNotTypeLiteralWithOneProperty(): string {
+  return "Expected each member of a @oneOf @gqlInput to be a TypeScript object literal with exactly one property.";
+}
+
+export function oneOfPropertyMissingTypeAnnotation(): string {
+  return "Expected each property of a @oneOf @gqlInput to have a type annotation.";
+}

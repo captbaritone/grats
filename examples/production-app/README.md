@@ -10,6 +10,7 @@ This example includes a relatively fully featured app to demonstrate how real-wo
 - Subscriptions - See `Subscription.postLikes` in `models/LikeConnection.ts`
 - `@stream` - For expensive lists like `Viewer.feed` in `models/Viewer.ts`
 - Custom scalars - See `Date` defined in `graphql/CustomScalars.ts`
+- OneOf input types for modeling Markdown content in `models/Post.ts`
 
 ## Implementation notes
 

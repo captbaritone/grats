@@ -6,6 +6,7 @@ Changes in this section are not yet released. If you need access to these change
 
 - **Features**
   - If a `@gqlType` which is used in an abstract type is defined using an exported `class`, an explicit `__typename` property is no-longer required. Grats can now generate code to infer the `__typename` based on the class definition. (#144)
+  - Support for `@oneOf` on input types. This allows you to define a discriminated union of input types. (#146)
 - **Bug Fixes**
   - The experimental TypeScript plugin will now report a diagnostics if it encounters a TypeScript version mismatch. (#143)
 

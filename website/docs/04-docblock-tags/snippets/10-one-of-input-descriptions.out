@@ -1,0 +1,46 @@
+/**
+ * @gqlInput
+ * @oneOf
+ */
+export type UserBy =
+  | {
+      /** Fetch the user by email */
+      email: string;
+    }
+  | {
+      /** Fetch the user by username */
+      username: string;
+    };
+
+=== SNIP ===
+input UserBy @oneOf {
+  """Fetch the user by email"""
+  email: String
+  """Fetch the user by username"""
+  username: String
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLInputObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const UserByType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        name: "UserBy",
+        fields() {
+            return {
+                email: {
+                    description: "Fetch the user by email",
+                    name: "email",
+                    type: GraphQLString
+                },
+                username: {
+                    description: "Fetch the user by username",
+                    name: "username",
+                    type: GraphQLString
+                }
+            };
+        },
+        isOneOf: true
+    });
+    return new GraphQLSchema({
+        types: [UserByType]
+    });
+}
