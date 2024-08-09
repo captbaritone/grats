@@ -311,16 +311,16 @@ class Codegen {
         );
       }
 
-      console.log(fieldAst.resolverParams);
-
-      const wrapperParams: string[] = extractUsedParams([
-        "source",
-        ...(fieldAst.resolverParams ?? []),
-      ]);
+      const usedWrapperParams: FieldParam[] = ["source"];
+      if (fieldAst.resolverParams != null) {
+        // Push with ... is safe because resolverParams is known to be
+        // a small array.
+        usedWrapperParams.push(...fieldAst.resolverParams);
+      }
 
       return this.method(
         methodName,
-        wrapperParams.map((name) => this.param(name)),
+        extractUsedParams(usedWrapperParams).map((name) => this.param(name)),
         [F.createReturnStatement(valueExpression)],
       );
     }

@@ -33,7 +33,7 @@ import { GraphQLConstructor } from "./GraphQLConstructor";
 import { relativePath } from "./gratsRoot";
 import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
-import { extend, loc, nullThrows } from "./utils/helpers";
+import { extend, loc } from "./utils/helpers";
 import * as Act from "./CodeActions";
 import { FieldParam } from "./metadataDirectives.js";
 
@@ -420,12 +420,7 @@ class Extractor {
       exportName: funcName == null ? null : funcName.text,
     });
 
-    this.collectAbstractField(
-      node,
-      name,
-      metadataDirective,
-      resolverParamsFromCount(node.parameters.length),
-    );
+    this.collectAbstractField(node, name, metadataDirective);
   }
 
   staticMethodExtendType(node: ts.MethodDeclaration, tag: ts.JSDocTag) {
@@ -482,29 +477,30 @@ class Extractor {
       exportName,
     });
 
-    this.collectAbstractField(
-      node,
-      name,
-      metadataDirective,
-      resolverParamsFromCount(node.parameters.length),
-    );
+    this.collectAbstractField(node, name, metadataDirective);
   }
 
   collectAbstractField(
     node: ts.FunctionDeclaration | ts.MethodDeclaration,
     name: NameNode,
     metadataDirective: ConstDirectiveNode,
-    resolverParams: FieldParam[],
   ) {
+    const resolverParams: FieldParam[] = ["source"];
     let args: readonly InputValueDefinitionNode[] | null = null;
     const argsParam = node.parameters[1];
     if (argsParam != null) {
+      resolverParams.push("args");
       args = this.collectArgs(argsParam);
     }
 
     const context = node.parameters[2];
     if (context != null) {
+      resolverParams.push("context");
       this.validateContextParameter(context);
+    }
+
+    if (node.parameters[3] != null) {
+      resolverParams.push("info");
     }
 
     const typeParam = node.parameters[0];
@@ -2261,16 +2257,4 @@ function getFieldParent(node: ts.Node): ts.Node | null {
   }
 
   return null;
-}
-
-const DEFAULT_PARAM_ORDER: FieldParam[] = ["source", "args", "context", "info"];
-
-function resolverParamsFromCount(argCount: number): FieldParam[] {
-  const params: FieldParam[] = [];
-  let i = 0;
-  while (i < argCount) {
-    params.push(nullThrows(DEFAULT_PARAM_ORDER[i]));
-    i++;
-  }
-  return params;
 }
