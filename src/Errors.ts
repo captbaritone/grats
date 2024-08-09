@@ -519,12 +519,8 @@ export function oneOfNotSupportedGraphql(
   return `OneOf input types are only supported in \`graphql@${requiredVersion}\` and later but Grats found \`graphql@${foundVersion}\`. Please upgrade your version of graphql-js in order to use this feature.`;
 }
 
-export function oneOfNotOnTypeAlias(): string {
-  return "Expected @oneOf @gqlInput to be on a type alias.";
-}
-
 export function oneOfNotOnUnion(): string {
-  return "Expected the type of a @oneOf @gqlInput to be a TypeScript union.";
+  return "Expected the type of a @gqlInput with @oneOf to be attached to a TypeScript union.";
 }
 
 export function oneOfFieldNotTypeLiteralWithOneProperty(): string {

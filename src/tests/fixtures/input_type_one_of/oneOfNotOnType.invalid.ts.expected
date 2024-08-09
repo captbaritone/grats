@@ -10,7 +10,7 @@ export class Greeting {}
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/input_type_one_of/oneOfNotOnType.invalid.ts:5:1 - error: Expected @oneOf @gqlInput to be on a type alias.
+src/tests/fixtures/input_type_one_of/oneOfNotOnType.invalid.ts:5:1 - error: Expected the type of a @gqlInput with @oneOf to be attached to a TypeScript union.
 
 5 export class Greeting {}
   ~~~~~~~~~~~~~~~~~~~~~~~~
