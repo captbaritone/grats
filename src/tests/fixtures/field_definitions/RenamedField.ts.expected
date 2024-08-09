@@ -30,15 +30,15 @@ export function getSchema(): GraphQLSchema {
                 greeting: {
                     name: "greeting",
                     type: GraphQLString,
-                    resolve(source, args, context, info) {
+                    resolve(source) {
                         return source.somePropertyField;
                     }
                 },
                 salutaion: {
                     name: "salutaion",
                     type: GraphQLString,
-                    resolve(source, args, context, info) {
-                        return source.someMethodField(args, context, info);
+                    resolve(source) {
+                        return source.someMethodField();
                     }
                 }
             };

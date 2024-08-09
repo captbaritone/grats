@@ -8,7 +8,7 @@ export function getSchema(): GraphQLSchema {
                 hello: {
                     name: "hello",
                     type: GraphQLString,
-                    resolve(source, args, context, info) {
+                    resolve(source) {
                         return source.NOT_THIS;
                     }
                 }

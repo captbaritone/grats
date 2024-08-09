@@ -14,8 +14,8 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     },
-                    resolve(source, args, context, info) {
-                        return source.someOtherName(args, context, info);
+                    resolve(source, args, context) {
+                        return source.someOtherName(args, context);
                     }
                 }
             };

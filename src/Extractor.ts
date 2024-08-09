@@ -1829,15 +1829,22 @@ class Extractor {
     // We already reported an error
     if (type == null) return null;
 
+    const resolverParams: FieldParam[] = [];
     let args: readonly InputValueDefinitionNode[] | null = null;
     const argsParam = node.parameters[0];
     if (argsParam != null) {
+      resolverParams.push("args");
       args = this.collectArgs(argsParam);
     }
 
     const context = node.parameters[1];
     if (context != null) {
+      resolverParams.push("context");
       this.validateContextParameter(context);
+    }
+
+    if (node.parameters[2] != null) {
+      resolverParams.push("info");
     }
 
     const description = this.collectDescription(node);
@@ -1871,7 +1878,7 @@ class Extractor {
       args,
       directives,
       description,
-      isCallable(node) ? resolverParamsFromCount(node.parameters.length) : null,
+      isCallable(node) ? resolverParams : null,
     );
   }
 
