@@ -1,6 +1,7 @@
 -----------------
 INPUT
 ----------------- 
+/** @gqlContext */
 type GratsContext = {
   greeting: string;
 };
@@ -8,7 +9,7 @@ type GratsContext = {
 /** @gqlType */
 export class SomeType {
   /** @gqlField */
-  greeting(args: unknown, ctx: GratsContext): string {
+  greeting(ctx: GratsContext): string {
     return ctx.greeting;
   }
 }
@@ -29,7 +30,10 @@ export function getSchema(): GraphQLSchema {
             return {
                 greeting: {
                     name: "greeting",
-                    type: GraphQLString
+                    type: GraphQLString,
+                    resolve(source, _args, context) {
+                        return source.greeting(context);
+                    }
                 }
             };
         }

@@ -11,7 +11,7 @@ export class Viewer {
   /**
    * The currently authenticated user.
    * @gqlField */
-  async user(__: unknown, ctx: Ctx): Promise<User> {
+  async user(ctx: Ctx): Promise<User> {
     return ctx.vc.getUserById(ctx.vc.userId());
   }
 
@@ -22,7 +22,7 @@ export class Viewer {
    * It is recommended to use `@stream` to avoid blocking the client.
    * @gqlField
    */
-  async *feed(_: unknown, ctx: Ctx): AsyncIterable<Post> {
+  async *feed(ctx: Ctx): AsyncIterable<Post> {
     const rows = await DB.selectPosts(ctx.vc);
     for (const row of rows) {
       // Simulate a slow algorithm

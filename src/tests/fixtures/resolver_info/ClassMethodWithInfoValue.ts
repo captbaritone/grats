@@ -1,7 +1,9 @@
+import { GqlInfo } from "../../../Types";
+
 /** @gqlType */
 export class SomeType {
   /** @gqlField greeting */
-  greetz(args: unknown, ctx: unknown, info): string {
+  greetz(info: GqlInfo): string {
     return "Hello";
   }
 }

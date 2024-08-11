@@ -1,0 +1,19 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class SomeType {
+  /** @gqlField */
+  hello(args: unknown): string {
+    console.log("hello");
+    return "Hello world!";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/arguments/NoArgsWithUnknown.invalid.ts:4:15 - error: Unexpected `unknown` type for resolver argument. If a resolver argument is not needed by the resolver, it may be omitted.
+
+4   hello(args: unknown): string {
+                ~~~~~~~

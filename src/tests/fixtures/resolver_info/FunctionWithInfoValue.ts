@@ -1,5 +1,7 @@
+import { GqlInfo } from "../../../Types";
+
 /** @gqlField */
-export function greetz(_: Query, args: unknown, ctx: unknown, info): string {
+export function greetz(_: Query, info: GqlInfo): string {
   return "Hello";
 }
 

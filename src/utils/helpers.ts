@@ -39,6 +39,17 @@ export function uniqueId() {
   return i++;
 }
 
+export function invariant(
+  condition: unknown,
+  message: string,
+): asserts condition {
+  if (!condition) {
+    throw new Error(
+      `Grats Error. Invariant failed: ${message}. This error represents an error in Grats. Please report it.`,
+    );
+  }
+}
+
 export function nullThrows<T>(value: T | null | undefined): T {
   if (value == null) {
     throw new Error(

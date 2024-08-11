@@ -11,6 +11,8 @@ import {
   TYPE_TAG,
   UNION_TAG,
   SPECIFIED_BY_TAG,
+  CONTEXT_TAG,
+  INFO_TAG,
 } from "./Extractor";
 
 export const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
@@ -208,9 +210,8 @@ export function typeNameDoesNotMatchExpected(expected: string) {
   return `Expected \`__typename\` property to be \`"${expected}"\`. ${TYPENAME_CONTEXT}`;
 }
 
-// TODO: Add code action
-export function argumentParamIsMissingType() {
-  return "Expected GraphQL field arguments to have an explicit type annotation. If there are no arguments, you can use `args: unknown`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
+export function resolverParamIsMissingType() {
+  return "Missing type annotation for resolver argument. Expected all resolver arguments to have an explicit type annotation. Grats needs to be able to see the type of the arguments to generate an executable GraphQL schema.";
 }
 
 export function argumentParamIsNotObject() {
@@ -399,8 +400,22 @@ export function expectedTypeAnnotationOnContextToHaveDeclaration() {
   return "Unable to locate the declaration of the context parameter's type. Grats validates that your context parameter is type-safe by checking all context values reference the same type declaration. Did you forget to import or define this type?";
 }
 
-export function unexpectedParamSpreadForContextParam() {
-  return "Unexpected spread parameter in context parameter position. Grats expects the context parameter to be a single, explicitly-typed argument.";
+export function unexpectedParamSpreadForResolverParam() {
+  return "Unexpected spread argument in resolver. Grats expects all resolver arguments to be a single, explicitly-typed argument.";
+}
+
+export function resolverParamIsUnknown() {
+  // TODO: Give guidance that this is a change?
+  return "Unexpected `unknown` type for resolver argument. If a resolver argument is not needed by the resolver, it may be omitted.";
+}
+
+export function resolverParamIsNever() {
+  // TODO: Give guidance that this is a change?
+  return "Unexpected `never` type for resolver argument. If a resolver argument is not needed by the resolver, it may be omitted.";
+}
+
+export function unexpectedResolverParamType() {
+  return "Unexpected type for resolver argument. Resolver arguments must be typed with either an object literal (`{}`) or a reference to a named type.";
 }
 
 export function multipleContextTypes() {
@@ -529,4 +544,20 @@ export function oneOfFieldNotTypeLiteralWithOneProperty(): string {
 
 export function oneOfPropertyMissingTypeAnnotation(): string {
   return "Expected each property of a @oneOf @gqlInput to have a type annotation.";
+}
+
+export function contextTagOnNonDeclaration(): string {
+  return `Invalid \`@${CONTEXT_TAG}\` tag annotation. Expected the \`@${CONTEXT_TAG}\` tag to be attached to a type, interface or class declaration.`;
+}
+
+export function duplicateContextTag(): string {
+  return `Unexpected duplicate \`@${CONTEXT_TAG}\` tag. Only one type in a project may be annotated with the \`@${CONTEXT_TAG}\`.`;
+}
+
+export function userDefinedInfoTag(): string {
+  return `Unexpected user-defined \`@${INFO_TAG}\` tag. Use the type \`GqlInfo\` exported from \`grats\`: \`import { GqlInfo } from "grats";\`.`;
+}
+
+export function invalidResolverParamType(): string {
+  return "Unexpected GraphQL type used as resolver parameter. Resolver input arguments must be specified as a single `args` object literal: `args: {argName: ArgType}`.";
 }

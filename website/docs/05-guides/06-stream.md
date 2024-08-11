@@ -14,7 +14,7 @@ class Viewer {
    * It is recommended to use `@stream` to avoid blocking the client.
    * @gqlField
    */
-  async *feed(_: unknown, ctx: Ctx): AsyncIterable<Post> {
+  async *feed(ctx: Ctx): AsyncIterable<Post> {
     const rows = await DB.selectPosts(ctx.vc);
     for (const row of rows) {
       // Simulate a slow algorithm

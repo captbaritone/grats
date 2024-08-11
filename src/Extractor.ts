@@ -35,7 +35,7 @@ import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
 import { extend, loc } from "./utils/helpers";
 import * as Act from "./CodeActions";
-import { FieldParam } from "./metadataDirectives.js";
+import { UnresolvedResolverParam } from "./metadataDirectives.js";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -47,6 +47,9 @@ export const INTERFACE_TAG = "gqlInterface";
 export const ENUM_TAG = "gqlEnum";
 export const UNION_TAG = "gqlUnion";
 export const INPUT_TAG = "gqlInput";
+
+export const CONTEXT_TAG = "gqlContext";
+export const INFO_TAG = "gqlInfo";
 
 export const IMPLEMENTS_TAG_DEPRECATED = "gqlImplements";
 export const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
@@ -75,7 +78,6 @@ export type ExtractionSnapshot = {
   readonly definitions: DefinitionNode[];
   readonly unresolvedNames: Map<ts.EntityName, NameNode>;
   readonly nameDefinitions: Map<ts.DeclarationStatement, NameDefinition>;
-  readonly contextReferences: Array<ts.Node>;
   readonly typesWithTypename: Set<string>;
   readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
 };
@@ -107,7 +109,6 @@ class Extractor {
   // Snapshot data
   unresolvedNames: Map<ts.EntityName, NameNode> = new Map();
   nameDefinitions: Map<ts.DeclarationStatement, NameDefinition> = new Map();
-  contextReferences: Array<ts.Node> = [];
   typesWithTypename: Set<string> = new Set();
   interfaceDeclarations: Array<ts.InterfaceDeclaration> = [];
 
@@ -207,6 +208,24 @@ class Extractor {
             }
           }
           break;
+        case CONTEXT_TAG: {
+          if (!ts.isDeclarationStatement(node)) {
+            this.report(tag, E.contextTagOnNonDeclaration());
+          } else {
+            const name = this.gql.name(tag, "CONTEXT_DUMMY_NAME");
+            this.recordTypeName(node, name, "CONTEXT");
+          }
+          break;
+        }
+        case INFO_TAG: {
+          if (!ts.isTypeAliasDeclaration(node)) {
+            this.report(tag, E.userDefinedInfoTag());
+          } else {
+            const name = this.gql.name(tag, "INFO_DUMMY_NAME");
+            this.recordTypeName(node, name, "INFO");
+          }
+          break;
+        }
         case KILLS_PARENT_ON_EXCEPTION_TAG: {
           if (!this.hasTag(node, FIELD_TAG)) {
             this.report(
@@ -268,7 +287,6 @@ class Extractor {
       definitions: this.definitions,
       unresolvedNames: this.unresolvedNames,
       nameDefinitions: this.nameDefinitions,
-      contextReferences: this.contextReferences,
       typesWithTypename: this.typesWithTypename,
       interfaceDeclarations: this.interfaceDeclarations,
     });
@@ -485,30 +503,16 @@ class Extractor {
     name: NameNode,
     metadataDirective: ConstDirectiveNode,
   ) {
-    const resolverParams: FieldParam[] = ["source"];
-    let args: readonly InputValueDefinitionNode[] | null = null;
-    const argsParam = node.parameters[1];
-    if (argsParam != null) {
-      resolverParams.push("args");
-      args = this.collectArgs(argsParam);
-    }
-
-    const context = node.parameters[2];
-    if (context != null) {
-      resolverParams.push("context");
-      this.validateContextParameter(context);
-    }
-
-    if (node.parameters[3] != null) {
-      resolverParams.push("info");
-    }
-
-    const typeParam = node.parameters[0];
+    const [typeParam, ...restParams] = node.parameters;
     if (typeParam == null) {
       // TODO: Make error generic
       this.errors.push(gqlErr(loc(name), E.invalidParentArgForFunctionField()));
       return;
     }
+
+    const paramResults = this.resolverParams(restParams);
+    if (paramResults == null) return null;
+    const { resolverParams, args } = paramResults;
 
     const typeName = this.typeReferenceFromParam(typeParam);
     if (typeName == null) return null;
@@ -546,7 +550,7 @@ class Extractor {
       args,
       directives,
       description,
-      resolverParams,
+      [{ kind: "named", name: "source" }, ...resolverParams],
     );
     this.definitions.push(
       this.gql.abstractFieldDefinition(node, typeName, field),
@@ -1361,7 +1365,7 @@ class Extractor {
 
     const argsType = argsParam.type;
     if (argsType == null) {
-      return this.report(argsParam, E.argumentParamIsMissingType());
+      return this.report(argsParam, E.resolverParamIsMissingType());
     }
     if (argsType.kind === ts.SyntaxKind.UnknownKeyword) {
       return [];
@@ -1755,37 +1759,6 @@ class Extractor {
     return this.gql.name(id, id.text);
   }
 
-  // Ensure the type of the ctx param resolves to the declaration
-  // annotated with `@gqlContext`.
-  validateContextParameter(node: ts.ParameterDeclaration) {
-    if (node.type == null) {
-      return this.report(node, E.expectedTypeAnnotationOnContext());
-    }
-
-    if (node.type.kind === ts.SyntaxKind.UnknownKeyword) {
-      // If the user just needs to define the argument to get to a later parameter,
-      // they can use `ctx: unknown` to safely avoid triggering a Grats error.
-      return;
-    }
-
-    if (!ts.isTypeReferenceNode(node.type)) {
-      return this.report(
-        node.type,
-        E.expectedTypeAnnotationOfReferenceOnContext(),
-      );
-    }
-
-    // Check for ...
-    if (node.dotDotDotToken != null) {
-      return this.report(
-        node.dotDotDotToken,
-        E.unexpectedParamSpreadForContextParam(),
-      );
-    }
-
-    this.contextReferences.push(node.type.typeName);
-  }
-
   methodDeclaration(
     node: ts.MethodDeclaration | ts.MethodSignature | ts.GetAccessorDeclaration,
   ): FieldDefinitionNode | null {
@@ -1825,23 +1798,9 @@ class Extractor {
     // We already reported an error
     if (type == null) return null;
 
-    const resolverParams: FieldParam[] = [];
-    let args: readonly InputValueDefinitionNode[] | null = null;
-    const argsParam = node.parameters[0];
-    if (argsParam != null) {
-      resolverParams.push("args");
-      args = this.collectArgs(argsParam);
-    }
-
-    const context = node.parameters[1];
-    if (context != null) {
-      resolverParams.push("context");
-      this.validateContextParameter(context);
-    }
-
-    if (node.parameters[2] != null) {
-      resolverParams.push("info");
-    }
+    const paramResults = this.resolverParams(node.parameters);
+    if (paramResults == null) return null;
+    const { resolverParams, args } = paramResults;
 
     const description = this.collectDescription(node);
 
@@ -1876,6 +1835,57 @@ class Extractor {
       description,
       isCallable(node) ? resolverParams : null,
     );
+  }
+
+  resolverParams(parameters: ReadonlyArray<ts.ParameterDeclaration>): {
+    resolverParams: UnresolvedResolverParam[];
+    args: readonly InputValueDefinitionNode[] | null;
+  } | null {
+    const resolverParams: UnresolvedResolverParam[] = [];
+
+    let args: readonly InputValueDefinitionNode[] | null = null;
+
+    for (const param of parameters) {
+      if (param.dotDotDotToken != null) {
+        return this.report(
+          param.dotDotDotToken,
+          E.unexpectedParamSpreadForResolverParam(),
+        );
+      }
+      if (param.type == null) {
+        return this.report(param, E.resolverParamIsMissingType());
+      }
+      if (ts.isTypeLiteralNode(param.type)) {
+        if (args != null) {
+          // FIXME
+          return this.report(param, "Unexpected second argument.");
+        }
+        resolverParams.push({ kind: "named", name: "args" });
+        args = this.collectArgs(param);
+        continue;
+      }
+      if (ts.isTypeReferenceNode(param.type)) {
+        const namedTypeNode = this.gql.namedType(
+          param.type,
+          UNRESOLVED_REFERENCE_NAME,
+        );
+        this.markUnresolvedType(param.type.typeName, namedTypeNode.name);
+        resolverParams.push({ kind: "unresolved", namedTypeNode });
+        continue;
+      }
+      // We handle a few special cases of unexpected types here to provide
+      // more helpful error messages.
+      if (param.type.kind === ts.SyntaxKind.UnknownKeyword) {
+        // TODO: Offer code action?
+        return this.report(param.type, E.resolverParamIsUnknown());
+      }
+      if (param.type.kind === ts.SyntaxKind.NeverKeyword) {
+        // TODO: Offer code action?
+        return this.report(param.type, E.resolverParamIsNever());
+      }
+      return this.report(param.type, E.unexpectedResolverParamType());
+    }
+    return { resolverParams, args };
   }
 
   modifiersAreValidForField(

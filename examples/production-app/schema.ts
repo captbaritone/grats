@@ -311,12 +311,18 @@ export function getSchema(): GraphQLSchema {
                 feed: {
                     description: "An \"algorithmically generated\" feed of posts.\n\n**Note:** Due to the extreme complexity of this algorithm, it can be slow.\nIt is recommended to use `@stream` to avoid blocking the client.",
                     name: "feed",
-                    type: new GraphQLList(new GraphQLNonNull(PostType))
+                    type: new GraphQLList(new GraphQLNonNull(PostType)),
+                    resolve(source, _args, context) {
+                        return source.feed(context);
+                    }
                 },
                 user: {
                     description: "The currently authenticated user.",
                     name: "user",
-                    type: UserType
+                    type: UserType,
+                    resolve(source, _args, context) {
+                        return source.user(context);
+                    }
                 }
             };
         }

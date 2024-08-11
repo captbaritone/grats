@@ -12,7 +12,7 @@ export class SomeType {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/resolver_context/ContextValueTypedAsString.invalid.ts:4:32 - error: Expected context parameter's type to be a type reference. Grats validates that your context parameter is type-safe by checking that all context values reference the same type declaration.
+src/tests/fixtures/resolver_context/ContextValueTypedAsString.invalid.ts:4:18 - error: Unexpected `unknown` type for resolver argument. If a resolver argument is not needed by the resolver, it may be omitted.
 
 4   greeting(args: unknown, ctx: string): string {
-                                 ~~~~~~
+                   ~~~~~~~

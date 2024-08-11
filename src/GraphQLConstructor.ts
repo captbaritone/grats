@@ -39,7 +39,7 @@ import {
   FIELD_NAME_ARG,
   FIELD_METADATA_DIRECTIVE,
   EXPORT_NAME_ARG,
-  FieldParam,
+  UnresolvedResolverParam,
 } from "./metadataDirectives";
 import { uniqueId } from "./utils/helpers";
 import { TsLocatableNode } from "./utils/DiagnosticError";
@@ -191,7 +191,7 @@ export class GraphQLConstructor {
     args: readonly InputValueDefinitionNode[] | null,
     directives: readonly ConstDirectiveNode[],
     description: StringValueNode | null,
-    resolverParams: FieldParam[] | null,
+    resolverParams: UnresolvedResolverParam[] | null,
   ): FieldDefinitionNode {
     return {
       kind: Kind.FIELD_DEFINITION,

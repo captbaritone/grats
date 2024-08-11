@@ -4,6 +4,7 @@ import {
   DocumentNode,
   Kind,
   Location,
+  NamedTypeNode,
   parse,
 } from "graphql";
 import { uniqueId } from "./utils/helpers";
@@ -71,9 +72,13 @@ declare module "graphql" {
     /**
      * Grats metadata: Indicates the params expected by the field resolver and their order
      */
-    resolverParams?: FieldParam[];
+    resolverParams?: UnresolvedResolverParam[];
   }
 }
+
+export type UnresolvedResolverParam =
+  | { kind: "named"; name: FieldParam }
+  | { kind: "unresolved"; namedTypeNode: NamedTypeNode };
 
 export type FieldParam = "source" | "args" | "context" | "info";
 

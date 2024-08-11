@@ -1,0 +1,24 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInput */
+type Greeting = {
+  name: string;
+  salutation: string;
+};
+
+/** @gqlType */
+export default class SomeType {
+  /** @gqlField */
+  hello(greeting: Greeting): string {
+    return `${greeting.salutation} ${greeting.name}!`;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/arguments/GqlTypeUsedAsPositionalArg.ts:10:19 - error: Unexpected GraphQL type used as resolver parameter. Resolver input arguments must be specified as a single `args` object literal: `args: {argName: ArgType}`.
+
+10   hello(greeting: Greeting): string {
+                     ~~~~~~~~
