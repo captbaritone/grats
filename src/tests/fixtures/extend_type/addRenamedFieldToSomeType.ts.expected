@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  hello: String @metadata(argCount: 1, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_type/addRenamedFieldToSomeType.ts")
+  hello: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_type/addRenamedFieldToSomeType.ts")
 }
 -- TypeScript --
 import { greeting as someTypeHelloResolver } from "./addRenamedFieldToSomeType";

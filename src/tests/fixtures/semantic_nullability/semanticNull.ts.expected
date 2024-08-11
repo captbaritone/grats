@@ -55,7 +55,7 @@ Passing a negative level or a level greater than the list dimension is an error.
 directive @semanticNonNull(levels: [Int] = [0]) on FIELD_DEFINITION
 
 type User {
-  name: String @metadata(argCount: 0)
+  name: String @metadata
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

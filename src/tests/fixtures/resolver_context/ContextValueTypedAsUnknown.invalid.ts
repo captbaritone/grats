@@ -1,7 +1,7 @@
 /** @gqlType */
 export class SomeType {
   /** @gqlField */
-  greeting(args: unknown, ctx: { greeting: string }): string {
+  greeting(ctx: unknown): string {
     return ctx.greeting;
   }
 }

@@ -21,7 +21,6 @@ import { ParsedCommandLineGrats } from "./gratsConfig";
 import { validateTypenames } from "./validations/validateTypenames";
 import { extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram";
 import { validateMergedInterfaces } from "./validations/validateMergedInterfaces";
-import { validateContextReferences } from "./validations/validateContextReferences";
 import { addMetadataDirectives } from "./metadataDirectives";
 import { addInterfaceFields } from "./transforms/addInterfaceFields";
 import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces";
@@ -29,8 +28,10 @@ import { validateAsyncIterable } from "./validations/validateAsyncIterable";
 import { applyDefaultNullability } from "./transforms/applyDefaultNullability";
 import { mergeExtensions } from "./transforms/mergeExtensions";
 import { sortSchemaAst } from "./transforms/sortSchemaAst";
+import { validateDuplicateContextOrInfo } from "./validations/validateDuplicateContextOrInfo";
 import { validateSemanticNullability } from "./validations/validateSemanticNullability";
 import { resolveTypes } from "./transforms/resolveTypes";
+import { resolveResolverParams } from "./transforms/resolveResolverParams";
 
 // Export the TypeScript plugin implementation used by
 // grats-ts-plugin
@@ -90,7 +91,7 @@ export function extractSchemaAndDoc(
       // Collect validation errors
       const validationResult = concatResults(
         validateMergedInterfaces(checker, snapshot.interfaceDeclarations),
-        validateContextReferences(ctx, snapshot.contextReferences),
+        validateDuplicateContextOrInfo(ctx),
       );
 
       const docResult = new ResultPipe(validationResult)
@@ -99,6 +100,7 @@ export function extractSchemaAndDoc(
         .map(() => addMetadataDirectives(snapshot.definitions))
         // Filter out any `implements` clauses that are not GraphQL interfaces.
         .map((definitions) => filterNonGqlInterfaces(ctx, definitions))
+        .andThen((definitions) => resolveResolverParams(ctx, definitions))
         .andThen((definitions) => resolveTypes(ctx, definitions))
         // If you define a field on an interface using the functional style, we need to add
         // that field to each concrete type as well. This must be done after all types are created,
@@ -168,7 +170,6 @@ function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
     definitions: [],
     nameDefinitions: new Map(),
     unresolvedNames: new Map(),
-    contextReferences: [],
     typesWithTypename: new Set(),
     interfaceDeclarations: [],
   };
@@ -184,10 +185,6 @@ function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
 
     for (const [node, typeName] of snapshot.unresolvedNames) {
       result.unresolvedNames.set(node, typeName);
-    }
-
-    for (const contextReference of snapshot.contextReferences) {
-      result.contextReferences.push(contextReference);
     }
 
     for (const typeName of snapshot.typesWithTypename) {

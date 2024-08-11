@@ -29,6 +29,7 @@ import * as ts from "typescript";
 import * as path from "path";
 import {
   FIELD_METADATA_DIRECTIVE,
+  FieldParam,
   parseFieldMetadataDirective,
 } from "./metadataDirectives";
 import { resolveRelativePath } from "./gratsRoot";
@@ -37,11 +38,11 @@ import {
   ASSERT_NON_NULL_HELPER,
   createAssertNonNullHelper,
 } from "./codegenHelpers";
-import { extend, nullThrows } from "./utils/helpers";
+import { extend, invariant, nullThrows } from "./utils/helpers";
 import { GratsConfig } from "./gratsConfig.js";
 import { naturalCompare } from "./utils/naturalCompare";
 
-const RESOLVER_ARGS = ["source", "args", "context", "info"];
+const RESOLVER_ARGS: FieldParam[] = ["source", "args", "context", "info"];
 
 const F = ts.factory;
 
@@ -244,8 +245,17 @@ class Codegen {
       fieldDirective(field, FIELD_METADATA_DIRECTIVE),
     );
     const metadata = parseFieldMetadataDirective(metadataDirective);
+    const fieldAst = nullThrows(field.astNode);
+    const resolverParams: FieldParam[] | undefined =
+      fieldAst.resolverParams?.map((param) => {
+        invariant(
+          param.kind === "named",
+          "Expected resolver param to have been resolved.",
+        );
+        return param.name;
+      });
+
     if (metadata.tsModulePath != null) {
-      const argCount = nullThrows(metadata.argCount);
       // Note: This name is guaranteed to be unique, but for static methods, it
       // means we import the same class multiple times with multiple names.
       const resolverName = formatResolverFunctionVarName(
@@ -259,8 +269,6 @@ class Codegen {
         resolverName,
       );
 
-      const usedArgs = RESOLVER_ARGS.slice(0, argCount);
-
       let resolverAccess: ts.Expression = F.createIdentifier(resolverName);
 
       if (metadata.name != null) {
@@ -270,9 +278,15 @@ class Codegen {
         );
       }
 
+      // Params expected by the user-defined resolver function.
+      const usedResolverParams = resolverParams ?? [];
+
+      // Params passed to the default resolver function.
+      const wrapperParams: string[] = extractUsedParams(usedResolverParams);
+
       return this.method(
         methodName,
-        usedArgs.map((name) => {
+        wrapperParams.map((name) => {
           return this.param(name);
         }),
         [
@@ -280,7 +294,7 @@ class Codegen {
             F.createCallExpression(
               resolverAccess,
               undefined,
-              usedArgs.map((name) => {
+              usedResolverParams.map((name) => {
                 return F.createIdentifier(name);
               }),
             ),
@@ -288,27 +302,36 @@ class Codegen {
         ],
       );
     }
-    if (metadata.name != null) {
+    const defaultParams =
+      resolverParams == null || paramsAreInDefaultOrder(resolverParams);
+    if (metadata.name != null || !defaultParams) {
       const prop = F.createPropertyAccessExpression(
         F.createIdentifier("source"),
-        F.createIdentifier(metadata.name),
+        F.createIdentifier(metadata.name ?? field.name),
       );
 
       let valueExpression: ts.Expression = prop;
 
-      if (metadata.argCount != null) {
+      if (resolverParams != null) {
         valueExpression = F.createCallExpression(
           prop,
           undefined,
-          RESOLVER_ARGS.slice(1).map((name) => {
+          resolverParams.map((name) => {
             return F.createIdentifier(name);
           }),
         );
       }
 
+      const usedWrapperParams: FieldParam[] = ["source"];
+      if (resolverParams != null) {
+        // Push with ... is safe because resolverParams is known to be
+        // a small array.
+        usedWrapperParams.push(...resolverParams);
+      }
+
       return this.method(
         methodName,
-        RESOLVER_ARGS.map((name) => this.param(name)),
+        extractUsedParams(usedWrapperParams).map((name) => this.param(name)),
         [F.createReturnStatement(valueExpression)],
       );
     }
@@ -1092,6 +1115,33 @@ class Codegen {
       sourceFile,
     );
   }
+}
+
+// Here we try to avoid including unused args.
+//
+// Unused trailing args are trimmed, unused intermediate args are prefixed with
+// an underscore.
+function extractUsedParams(resolverParams: FieldParam[]): string[] {
+  const wrapperArgs: string[] = [];
+
+  let adding = false;
+  for (let i = RESOLVER_ARGS.length - 1; i >= 0; i--) {
+    const name = RESOLVER_ARGS[i];
+    const used = resolverParams.includes(name);
+    if (used) {
+      adding = true;
+    }
+    if (!adding) {
+      continue;
+    }
+
+    wrapperArgs.unshift(used ? name : `_${name}`);
+  }
+  return wrapperArgs;
+}
+
+function paramsAreInDefaultOrder(params: FieldParam[]) {
+  return params.every((param, i) => param === RESOLVER_ARGS[i + 1]);
 }
 
 function fieldDirective(

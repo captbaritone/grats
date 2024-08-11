@@ -1,6 +1,7 @@
 -----------------
 INPUT
 ----------------- 
+/** @gqlContext */
 type GratsContext = {
   greeting: string;
 };
@@ -9,7 +10,7 @@ type GratsContext = {
 export class User {}
 
 /** @gqlField */
-export function greeting(_: User, args: unknown, ctx: GratsContext): string {
+export function greeting(_: User, ctx: GratsContext): string {
   return ctx.greeting;
 }
 
@@ -18,7 +19,7 @@ OUTPUT
 -----------------
 -- SDL --
 type User {
-  greeting: String @metadata(argCount: 3, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/resolver_context/FunctionWithContextValue.ts")
+  greeting: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/resolver_context/FunctionWithContextValue.ts")
 }
 -- TypeScript --
 import { greeting as userGreetingResolver } from "./FunctionWithContextValue";
@@ -31,8 +32,8 @@ export function getSchema(): GraphQLSchema {
                 greeting: {
                     name: "greeting",
                     type: GraphQLString,
-                    resolve(source, args, context) {
-                        return userGreetingResolver(source, args, context);
+                    resolve(source, _args, context) {
+                        return userGreetingResolver(source, context);
                     }
                 }
             };

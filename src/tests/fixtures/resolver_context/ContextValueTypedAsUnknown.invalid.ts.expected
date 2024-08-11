@@ -1,0 +1,18 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export class SomeType {
+  /** @gqlField */
+  greeting(ctx: unknown): string {
+    return ctx.greeting;
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/resolver_context/ContextValueTypedAsUnknown.invalid.ts:4:17 - error: Unexpected `unknown` type for resolver argument. If a resolver argument is not needed by the resolver, it may be omitted.
+
+4   greeting(ctx: unknown): string {
+                  ~~~~~~~

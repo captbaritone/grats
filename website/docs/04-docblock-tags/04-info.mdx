@@ -1,0 +1,26 @@
+# Info
+
+In addition to the [arguments](./03-arguments.mdx), and [context](./04-context.mdx) objects, each resolver method/function may also access the [info](https://graphql.org/learn/execution/#root-fields--resolvers) object. The `info` object contains information about the current execution state, including the field name, field type, and the AST node for the field. It's most commonly used to implement advanced features such as optimizations.
+
+Grats will detect any resolver parameter that is typed using the `GqlInfo` type exported by Grats:
+
+```ts
+import { GqlInfo } from "grats";
+
+/** @gqlField */
+// highlight-start
+export function greeting(_: Query, info: GqlInfo): User {
+  // highlight-end
+  return `Greetings from the ${info.fieldName} field!`;
+}
+```
+
+For an example of using the `info` object to implement a look-ahead optimization, see the look-ahead optimization for Connections to use count query for requests that only read count in `graphql/gqlUtils.ts` in the [Production App Example](../05-examples/10-production-app.md).
+
+:::warning
+You must use the `GqlInfo` exported by Grats, not the `GraphQLResolveInfo` type from `graphql-js`. While they are the same TypeScript type, Grats cannot statically "see" the `graphql-js` type, so it will not be able to pass the `GraphQLResolveInfo` object to your resolver.
+:::
+
+:::tip
+Unlike `graphql-js`, Grats does not require that the info object be passed as a specific positional argument to the resolver. You can place the info object anywhere in the argument list, as long as you use the `GqlInfo` type exported by Grats, and Grats will ensure that the info object is passed to the resolver in that position.
+:::

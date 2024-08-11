@@ -1,0 +1,64 @@
+-----------------
+INPUT
+----------------- 
+import { GqlInfo } from "../../../Types";
+
+/** @gqlType */
+export class SomeType {
+  /** @gqlField */
+  someField: string;
+
+  /** @gqlField greeting */
+  static greetz(_: Query, info: GqlInfo): string {
+    return "Hello";
+  }
+}
+
+/** @gqlType */
+type Query = unknown;
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Query {
+  greeting: String @metadata(exportName: "SomeType", name: "greetz", tsModulePath: "grats/src/tests/fixtures/resolver_info/StaticMethodWithInfoValue.ts")
+}
+
+type SomeType {
+  someField: String @metadata
+}
+-- TypeScript --
+import { SomeType as queryGreetingResolver } from "./StaticMethodWithInfoValue";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    resolve(source, _args, _context, info) {
+                        return queryGreetingResolver.greetz(source, info);
+                    }
+                }
+            };
+        }
+    });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                someField: {
+                    name: "someField",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType, SomeTypeType]
+    });
+}

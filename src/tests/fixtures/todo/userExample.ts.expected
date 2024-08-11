@@ -27,12 +27,12 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  me: User @metadata(argCount: 1, exportName: "me", tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts")
+  me: User @metadata(exportName: "me", tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts")
 }
 
 type User {
   firstName: String @metadata
-  fullName: String @metadata(argCount: 1, exportName: "fullName", tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts")
+  fullName: String @metadata(exportName: "fullName", tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts")
   lastName: String @metadata
 }
 -- TypeScript --

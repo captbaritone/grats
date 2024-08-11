@@ -20,7 +20,7 @@ OUTPUT
 -----------------
 -- SDL --
 type Query {
-  getUser: User @metadata(argCount: 1, exportName: "User", name: "getUser", tsModulePath: "grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethod.ts")
+  getUser: User @metadata(exportName: "User", name: "getUser", tsModulePath: "grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethod.ts")
 }
 
 type User {

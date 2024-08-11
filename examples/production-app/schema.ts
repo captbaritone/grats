@@ -81,6 +81,9 @@ export function getSchema(): GraphQLSchema {
                             name: "last",
                             type: GraphQLInt
                         }
+                    },
+                    resolve(source, args, _context, info) {
+                        return source.likes(args, info);
                     }
                 },
                 publishedAt: {
@@ -180,7 +183,28 @@ export function getSchema(): GraphQLSchema {
                 posts: {
                     description: "All posts written by this user. Note that there is no guarantee of order.",
                     name: "posts",
-                    type: PostConnectionType
+                    type: PostConnectionType,
+                    args: {
+                        after: {
+                            name: "after",
+                            type: GraphQLString
+                        },
+                        before: {
+                            name: "before",
+                            type: GraphQLString
+                        },
+                        first: {
+                            name: "first",
+                            type: GraphQLInt
+                        },
+                        last: {
+                            name: "last",
+                            type: GraphQLInt
+                        }
+                    },
+                    resolve(source, args, _context, info) {
+                        return source.posts(args, info);
+                    }
                 }
             };
         },
@@ -311,12 +335,18 @@ export function getSchema(): GraphQLSchema {
                 feed: {
                     description: "An \"algorithmically generated\" feed of posts.\n\n**Note:** Due to the extreme complexity of this algorithm, it can be slow.\nIt is recommended to use `@stream` to avoid blocking the client.",
                     name: "feed",
-                    type: new GraphQLList(new GraphQLNonNull(PostType))
+                    type: new GraphQLList(new GraphQLNonNull(PostType)),
+                    resolve(source, _args, context) {
+                        return source.feed(context);
+                    }
                 },
                 user: {
                     description: "The currently authenticated user.",
                     name: "user",
-                    type: UserType
+                    type: UserType,
+                    resolve(source, _args, context) {
+                        return source.user(context);
+                    }
                 }
             };
         }
@@ -347,8 +377,8 @@ export function getSchema(): GraphQLSchema {
                             type: GraphQLInt
                         }
                     },
-                    resolve(source, args, context) {
-                        return queryLikesResolver(source, args, context);
+                    resolve(source, args, context, info) {
+                        return queryLikesResolver(source, args, context, info);
                     }
                 },
                 node: {
@@ -401,8 +431,8 @@ export function getSchema(): GraphQLSchema {
                             type: GraphQLInt
                         }
                     },
-                    resolve(source, args, context) {
-                        return queryPostsResolver(source, args, context);
+                    resolve(source, args, context, info) {
+                        return queryPostsResolver(source, args, context, info);
                     }
                 },
                 users: {
@@ -427,8 +457,8 @@ export function getSchema(): GraphQLSchema {
                             type: GraphQLInt
                         }
                     },
-                    resolve(source, args, context) {
-                        return queryUsersResolver(source, args, context);
+                    resolve(source, args, context, info) {
+                        return queryUsersResolver(source, args, context, info);
                     }
                 },
                 viewer: {
@@ -633,8 +663,8 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     },
-                    subscribe(source, args, context) {
-                        return subscriptionPostLikesResolver(source, args, context);
+                    subscribe(source, args, context, info) {
+                        return subscriptionPostLikesResolver(source, args, context, info);
                     },
                     resolve(payload) {
                         return payload;

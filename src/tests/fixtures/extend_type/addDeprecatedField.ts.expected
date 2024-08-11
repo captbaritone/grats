@@ -19,7 +19,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String @deprecated(reason: "Because reasons") @metadata(argCount: 1, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_type/addDeprecatedField.ts")
+  greeting: String @deprecated(reason: "Because reasons") @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_type/addDeprecatedField.ts")
 }
 -- TypeScript --
 import { greeting as someTypeGreetingResolver } from "./addDeprecatedField";

@@ -47,11 +47,11 @@ interface IThing {
 }
 
 type Admin implements IPerson & IThing {
-  greeting: String @metadata(argCount: 1, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts")
+  greeting: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts")
 }
 
 type User implements IPerson & IThing {
-  greeting: String @metadata(argCount: 1, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts")
+  greeting: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts")
 }
 -- TypeScript --
 import { greeting as adminGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";

@@ -4,7 +4,7 @@ INPUT
 /** @gqlType */
 export class SomeType {
   /** @gqlField */
-  greeting(args: unknown, ctx: string): string {
+  greeting(ctx: string): string {
     return ctx;
   }
 }
@@ -12,7 +12,7 @@ export class SomeType {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/resolver_context/ContextValueTypedAsString.invalid.ts:4:32 - error: Expected context parameter's type to be a type reference. Grats validates that your context parameter is type-safe by checking that all context values reference the same type declaration.
+src/tests/fixtures/resolver_context/ContextValueTypedAsString.invalid.ts:4:17 - error: Unexpected type for resolver argument. Resolver arguments must be typed with either an object literal (`{}`) or a reference to a named type.
 
-4   greeting(args: unknown, ctx: string): string {
-                                 ~~~~~~
+4   greeting(ctx: string): string {
+                  ~~~~~~

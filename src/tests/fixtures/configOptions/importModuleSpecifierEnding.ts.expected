@@ -19,7 +19,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String @metadata(argCount: 1, exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/configOptions/importModuleSpecifierEnding.ts")
+  greeting: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/configOptions/importModuleSpecifierEnding.ts")
   hello: String @metadata
 }
 -- TypeScript --

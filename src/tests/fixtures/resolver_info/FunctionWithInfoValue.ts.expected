@@ -1,0 +1,43 @@
+-----------------
+INPUT
+----------------- 
+import { GqlInfo } from "../../../Types";
+
+/** @gqlField */
+export function greetz(_: Query, info: GqlInfo): string {
+  return "Hello";
+}
+
+/** @gqlType */
+type Query = unknown;
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Query {
+  greetz: String @metadata(exportName: "greetz", tsModulePath: "grats/src/tests/fixtures/resolver_info/FunctionWithInfoValue.ts")
+}
+-- TypeScript --
+import { greetz as queryGreetzResolver } from "./FunctionWithInfoValue";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                greetz: {
+                    name: "greetz",
+                    type: GraphQLString,
+                    resolve(source, _args, _context, info) {
+                        return queryGreetzResolver(source, info);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType]
+    });
+}

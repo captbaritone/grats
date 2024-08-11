@@ -4,6 +4,7 @@ import {
   DocumentNode,
   Kind,
   Location,
+  NamedTypeNode,
   parse,
 } from "graphql";
 import { uniqueId } from "./utils/helpers";
@@ -67,13 +68,24 @@ declare module "graphql" {
      */
     mayBeInterface?: boolean;
   }
+  export interface FieldDefinitionNode {
+    /**
+     * Grats metadata: Indicates the params expected by the field resolver and their order
+     */
+    resolverParams?: UnresolvedResolverParam[];
+  }
 }
+
+export type UnresolvedResolverParam =
+  | { kind: "named"; name: FieldParam }
+  | { kind: "unresolved"; namedTypeNode: NamedTypeNode };
+
+export type FieldParam = "source" | "args" | "context" | "info";
 
 export const FIELD_METADATA_DIRECTIVE = "metadata";
 export const EXPORT_NAME_ARG = "exportName";
 export const FIELD_NAME_ARG = "name";
 export const TS_MODULE_PATH_ARG = "tsModulePath";
-export const ARG_COUNT = "argCount";
 export const ASYNC_ITERABLE_ARG = "asyncIterable";
 
 export const KILLS_PARENT_ON_EXCEPTION_DIRECTIVE = "killsParentOnException";
@@ -98,10 +110,6 @@ export const DIRECTIVES_AST: DocumentNode = parse(`
       for static method fields, this is the exported class name.
       """
       ${EXPORT_NAME_ARG}: String
-      """
-      Number of arguments. No value means property access
-      """
-      ${ARG_COUNT}: Int
     ) on FIELD_DEFINITION
     directive @${KILLS_PARENT_ON_EXCEPTION_DIRECTIVE} on FIELD_DEFINITION
 `);
@@ -116,7 +124,6 @@ export type FieldMetadata = {
   tsModulePath: string | null;
   name: string | null;
   exportName: string | null;
-  argCount: number | null;
 };
 
 export function makeKillsParentOnExceptionDirective(
@@ -146,7 +153,6 @@ export function parseFieldMetadataDirective(
     name: getStringArg(directive, FIELD_NAME_ARG),
     tsModulePath: getStringArg(directive, TS_MODULE_PATH_ARG),
     exportName: getStringArg(directive, EXPORT_NAME_ARG),
-    argCount: getIntArg(directive, ARG_COUNT),
   };
 }
 
@@ -164,20 +170,4 @@ function getStringArg(
   }
 
   return arg.value.value;
-}
-
-function getIntArg(
-  directive: ConstDirectiveNode,
-  argName: string,
-): number | null {
-  const arg = directive.arguments?.find((arg) => arg.name.value === argName);
-  if (!arg) {
-    return null;
-  }
-
-  if (arg.value.kind !== Kind.INT) {
-    throw new Error(`Expected argument ${argName} to be an int`);
-  }
-
-  return parseInt(arg.value.value, 10);
 }

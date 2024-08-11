@@ -1,34 +1,40 @@
 # Context
 
-After the [arguments object](./03-arguments.mdx), each resolver method/function is passed a [context value](https://graphql.org/learn/execution/#root-fields-resolvers). Context is the standard way to implement dependency injection for GraphQL resolvers. Typically the context value will be an object including the current request, information about the requesting user, as well as a database connection and per-request caches, such as [DataLoaders](https://github.com/graphql/dataloader).
+In addition to the [arguments object](./03-arguments.mdx), each resolver method/function may also access a [context value](https://graphql.org/learn/execution/#root-fields--resolvers). Context is the standard way to implement dependency injection for GraphQL resolvers. Typically the context value will be an object including the current request, information about the requesting user, as well as a database connection and per-request caches, such as [DataLoaders](https://github.com/graphql/dataloader).
 
-Because GraphQL invokes resolver functions dynamically, there are generally no static calls to your resolver methods/functions that are visible to TypeScript. This means that there is no typecheck that can confirm that the context argument is typed correctly.
-
-Grats helps to mitigate this risk by alidating that **every resolver that specifies a context argument references _the same definition_ for the context value's type**. This at least ensures all your resolvers match.
+To define the context object type, you must use the `@gqlContext` tag. This tag should be placed directly above the type definition for your context object.
 
 ```ts
+/** @gqlContext */
+type GQLCtx = {
+  req: Request;
+  userID: string;
+  db: Database;
+};
+```
+
+Grats will detect any resolver parameter that is typed using the `@gqlContext` type and ensure that the context object is passed to the resolver in that position:
+
+```ts
+// trim-start
+/** @gqlContext */
 type GQLCtx = {
   req: Request;
   userID: string;
   db: Database;
 };
 
+// trim-end
 /** @gqlField */
 // highlight-start
-export function me(_: Query, args: unknown, ctx: GQLCtx): User {
+export function me(_: Query, ctx: GQLCtx): User {
   // highlight-end
   return ctx.db.users.getById(ctx.userID);
 }
 ```
 
-The context argument is passed as the third argument of resolver _functions_ and the second argument of resolver _methods_. If your resolver does not need access to the context object, you can omit the context argument.
-
 :::tip
-If you need to access the context object in your resolver, but your field does not define any args, you can type your args parameter as `unknown`.
-:::
-
-:::info
-Due to limitations in the TypeScript compiler, Grats is not able to [structurally](https://en.wikipedia.org/wiki/Structural_type_system) typecheck the context value. Instead is simply checks that every resolver that specifies a context argument references the same _type definition_.
+Unlike `graphql-js`, Grats does not require that the context object be passed as a specific positional argument to the resolver. You can place the context object anywhere in the argument list, as long as the type is annotated with the `@gqlContext` type.
 :::
 
 ## Constructing your context object
@@ -36,5 +42,5 @@ Due to limitations in the TypeScript compiler, Grats is not able to [structurall
 The mechanism by which you construct your context object will vary depending upon the GraphQL server library you are using. See your GraphQL server library's documentation for more information.
 
 :::caution
-Grats can ensure that every resolver is expecting the same context type, but it cannot ensure that the context value you construct and pass in matches that type. **It is up to you to ensure that your context value is constructed correctly and passed to the GraphQL execution engine.**
+Grats can ensure that every resolver is expecting the annotated context type, but it cannot ensure that the context value you construct and pass in matches that type. **It is up to you to ensure that your context value is constructed correctly and passed to the GraphQL execution engine.**
 :::

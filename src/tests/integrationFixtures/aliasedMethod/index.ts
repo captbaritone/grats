@@ -1,3 +1,4 @@
+/** @gqlContext */
 type GraphqlContext = {};
 
 /** @gqlType */

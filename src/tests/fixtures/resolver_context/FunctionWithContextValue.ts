@@ -1,3 +1,4 @@
+/** @gqlContext */
 type GratsContext = {
   greeting: string;
 };
@@ -6,6 +7,6 @@ type GratsContext = {
 export class User {}
 
 /** @gqlField */
-export function greeting(_: User, args: unknown, ctx: GratsContext): string {
+export function greeting(_: User, ctx: GratsContext): string {
   return ctx.greeting;
 }

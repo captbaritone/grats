@@ -16,7 +16,15 @@ export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
 export type NameDefinition = {
   name: NameNode;
-  kind: "TYPE" | "INTERFACE" | "UNION" | "SCALAR" | "INPUT_OBJECT" | "ENUM";
+  kind:
+    | "TYPE"
+    | "INTERFACE"
+    | "UNION"
+    | "SCALAR"
+    | "INPUT_OBJECT"
+    | "ENUM"
+    | "CONTEXT"
+    | "INFO";
 };
 
 type TsIdentifier = number;
@@ -72,6 +80,10 @@ export class TypeContext {
   // Record that a type references `node`
   private _markUnresolvedType(node: ts.EntityName, name: NameNode) {
     this._unresolvedNodes.set(name.tsIdentifier, node);
+  }
+
+  allNameDefinitions(): Iterable<NameDefinition> {
+    return this._declarationToName.values();
   }
 
   findSymbolDeclaration(startSymbol: ts.Symbol): ts.Declaration | null {
@@ -148,7 +160,7 @@ export class TypeContext {
     }
     const definition = this._declarationToName.get(declaration);
     if (definition == null) {
-      throw new Error("Expected to find name definition.");
+      return err(gqlErr(loc(nameNode), E.unresolvedTypeReference()));
     }
     return ok(definition);
   }
