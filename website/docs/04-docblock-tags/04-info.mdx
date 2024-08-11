@@ -15,6 +15,8 @@ export function greeting(_: Query, info: GqlInfo): User {
 }
 ```
 
+For an example of using the `info` object to implement a look-ahead optimization, see the look-ahead optimization for Connections to use count query for requests that only read count in `graphql/gqlUtils.ts` in the [Production App Example](../05-examples/10-production-app.md).
+
 :::warning
 You must use the `GqlInfo` exported by Grats, not the `GraphQLResolveInfo` type from `graphql-js`. While they are the same TypeScript type, Grats cannot statically "see" the `graphql-js` type, so it will not be able to pass the `GraphQLResolveInfo` object to your resolver.
 :::

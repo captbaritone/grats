@@ -184,7 +184,7 @@ type User implements Node {
   """
   All posts written by this user. Note that there is no guarantee of order.
   """
-  posts: PostConnection
+  posts(after: String, before: String, first: Int, last: Int): PostConnection
 }
 
 type UserConnection {

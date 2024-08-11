@@ -81,6 +81,9 @@ export function getSchema(): GraphQLSchema {
                             name: "last",
                             type: GraphQLInt
                         }
+                    },
+                    resolve(source, args, _context, info) {
+                        return source.likes(args, info);
                     }
                 },
                 publishedAt: {
@@ -180,7 +183,28 @@ export function getSchema(): GraphQLSchema {
                 posts: {
                     description: "All posts written by this user. Note that there is no guarantee of order.",
                     name: "posts",
-                    type: PostConnectionType
+                    type: PostConnectionType,
+                    args: {
+                        after: {
+                            name: "after",
+                            type: GraphQLString
+                        },
+                        before: {
+                            name: "before",
+                            type: GraphQLString
+                        },
+                        first: {
+                            name: "first",
+                            type: GraphQLInt
+                        },
+                        last: {
+                            name: "last",
+                            type: GraphQLInt
+                        }
+                    },
+                    resolve(source, args, _context, info) {
+                        return source.posts(args, info);
+                    }
                 }
             };
         },
@@ -353,8 +377,8 @@ export function getSchema(): GraphQLSchema {
                             type: GraphQLInt
                         }
                     },
-                    resolve(source, args, context) {
-                        return queryLikesResolver(source, args, context);
+                    resolve(source, args, context, info) {
+                        return queryLikesResolver(source, args, context, info);
                     }
                 },
                 node: {
@@ -407,8 +431,8 @@ export function getSchema(): GraphQLSchema {
                             type: GraphQLInt
                         }
                     },
-                    resolve(source, args, context) {
-                        return queryPostsResolver(source, args, context);
+                    resolve(source, args, context, info) {
+                        return queryPostsResolver(source, args, context, info);
                     }
                 },
                 users: {
@@ -433,8 +457,8 @@ export function getSchema(): GraphQLSchema {
                             type: GraphQLInt
                         }
                     },
-                    resolve(source, args, context) {
-                        return queryUsersResolver(source, args, context);
+                    resolve(source, args, context, info) {
+                        return queryUsersResolver(source, args, context, info);
                     }
                 },
                 viewer: {
@@ -639,8 +663,8 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     },
-                    subscribe(source, args, context) {
-                        return subscriptionPostLikesResolver(source, args, context);
+                    subscribe(source, args, context, info) {
+                        return subscriptionPostLikesResolver(source, args, context, info);
                     },
                     resolve(payload) {
                         return payload;

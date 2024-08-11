@@ -4,10 +4,10 @@ import { GraphQLNode, getLocalTypeAssert } from "../graphql/Node";
 import { User } from "./User";
 import { Model } from "./Model";
 import { Mutation } from "../graphql/Roots";
-import { ID, Int } from "../../../dist/src";
+import { GqlInfo, ID, Int } from "../../../dist/src";
 import { GqlDate } from "../graphql/CustomScalars";
 import { LikeConnection } from "./LikeConnection";
-import { connectionFromArray } from "graphql-relay";
+import { connectionFromSelectOrCount } from "../graphql/gqlUtils.js";
 
 /**
  * A blog post.
@@ -47,17 +47,21 @@ export class Post extends Model<DB.PostRow> implements GraphQLNode {
    * All the likes this post has received.
    * **Note:** You can use this connection to access the number of likes.
    * @gqlField */
-  async likes(args: {
-    first?: Int | null;
-    after?: string | null;
-    last?: Int | null;
-    before?: string | null;
-  }): Promise<LikeConnection> {
-    const likes = await DB.getLikesForPost(this.vc, this.row.id);
-    return {
-      ...connectionFromArray(likes, args),
-      count: likes.length,
-    };
+  async likes(
+    args: {
+      first?: Int | null;
+      after?: string | null;
+      last?: Int | null;
+      before?: string | null;
+    },
+    info: GqlInfo,
+  ): Promise<LikeConnection> {
+    return connectionFromSelectOrCount(
+      () => DB.getLikesForPost(this.vc, this.row.id),
+      () => DB.getLikesCountForPost(this.vc, this.row.id),
+      args,
+      info,
+    );
   }
 }
 

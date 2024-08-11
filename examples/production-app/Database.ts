@@ -83,9 +83,15 @@ const MOCK_LIKES: LikeRow[] = [
   { id: "5", userId: "3", postId: "3", createdAt: new Date("2021-01-05") },
 ];
 
-export async function selectPosts(vc: VC): Promise<Array<PostRow>> {
+export async function selectPosts(vc: VC): Promise<Array<Post>> {
   vc.log("DB query: selectPosts");
-  return MOCK_POSTS;
+  return MOCK_POSTS.map((row) => new Post(vc, row));
+}
+
+// Mimicking a `count` query, which in a real database would be more efficient
+export async function selectPostsCount(vc: VC): Promise<number> {
+  vc.log("DB query: selectPostsCount");
+  return MOCK_POSTS.length;
 }
 
 export async function createPost(
@@ -113,6 +119,15 @@ export async function selectPostsWhereAuthor(
   });
 }
 
+// Mimicking a `count` query, which in a real database would be more efficient
+export async function selectPostsWhereAuthorCount(
+  vc: VC,
+  authorId: string,
+): Promise<number> {
+  vc.log(`DB query: selectPostsWhereAuthorCount: ${authorId}`);
+  return MOCK_POSTS.filter((post) => post.authorId === authorId).length;
+}
+
 export async function getPostsByIds(
   vc: VC,
   ids: readonly string[],
@@ -127,6 +142,12 @@ export async function getPostsByIds(
 export async function selectUsers(vc: VC): Promise<Array<User>> {
   vc.log("DB query: selectUsers");
   return MOCK_USERS.map((row) => new User(vc, row));
+}
+
+// Mimicking a `count` query, which in a real database would be more efficient
+export async function selectUsersCount(vc: VC): Promise<number> {
+  vc.log("DB query: selectUsersCount");
+  return MOCK_USERS.length;
 }
 
 export async function createUser(
@@ -154,6 +175,12 @@ export async function getUsersByIds(
 export async function selectLikes(vc: VC): Promise<Array<Like>> {
   vc.log("DB query: selectLikes");
   return MOCK_LIKES.map((row) => new Like(vc, row));
+}
+
+// Mimicking a `count` query, which in a real database would be more efficient
+export async function selectLikesCount(vc: VC): Promise<number> {
+  vc.log("DB query: selectLikesCount");
+  return MOCK_LIKES.length;
 }
 
 export async function createLike(
@@ -204,6 +231,15 @@ export async function getLikesForPost(vc: VC, postId: string): Promise<Like[]> {
   return MOCK_LIKES.filter((like) => like.postId === postId).map((row) => {
     return new Like(vc, row);
   });
+}
+
+// Mimicking a `count` query, which in a real database would be more efficient
+export async function getLikesCountForPost(
+  vc: VC,
+  postId: string,
+): Promise<number> {
+  vc.log(`DB query: getLikesCountForPost: ${postId}`);
+  return MOCK_LIKES.filter((like) => like.postId === postId).length;
 }
 
 function nullThrows<T>(value: T | null | undefined): T {

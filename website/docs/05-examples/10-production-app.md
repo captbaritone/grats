@@ -13,6 +13,7 @@ This example includes a relatively fully featured app to demonstrate how real-wo
 - `@stream` - For expensive lists like `Viewer.feed` in `models/Viewer.ts`
 - Custom scalars - See `Date` defined in `graphql/CustomScalars.ts`
 - [OneOf input types](../04-docblock-tags/10-oneof-inputs.mdx) for modeling Markdown content in `models/Post.ts`
+- Look-ahead optimization for Connections to use count query for requests that only read count in `graphql/gqlUtils.ts`.
 
 ## Implementation notes
 

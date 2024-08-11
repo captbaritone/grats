@@ -1,10 +1,10 @@
-import { Int } from "grats";
+import { GqlInfo, Int } from "grats";
 import * as DB from "../Database";
 import { Ctx } from "../ViewerContext";
 import { Query } from "../graphql/Roots";
 import { User } from "./User";
 import { Connection } from "../graphql/Connection";
-import { connectionFromArray } from "graphql-relay";
+import { connectionFromSelectOrCount } from "../graphql/gqlUtils.js";
 
 /**
  * Convenience field to get the nodes from a connection.
@@ -27,7 +27,12 @@ export async function users(
     before?: string | null;
   },
   ctx: Ctx,
+  info: GqlInfo,
 ): Promise<Connection<User>> {
-  const users = await DB.selectUsers(ctx.vc);
-  return connectionFromArray(users, args);
+  return connectionFromSelectOrCount(
+    () => DB.selectUsers(ctx.vc),
+    () => DB.selectUsersCount(ctx.vc),
+    args,
+    info,
+  );
 }
