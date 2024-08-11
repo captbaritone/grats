@@ -1358,10 +1358,6 @@ class Extractor {
     );
   }
 
-  collectArgs(
-    argsType: ts.TypeLiteralNode,
-  ): ReadonlyArray<InputValueDefinitionNode> | null {}
-
   collectArgDefaults(node: ts.ObjectBindingPattern): ArgDefaults {
     const defaults = new Map();
     for (const element of node.elements) {
