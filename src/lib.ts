@@ -10,7 +10,7 @@ import {
   ReportableDiagnostics,
   graphQlErrorToDiagnostic,
 } from "./utils/DiagnosticError";
-import { ResultPipe } from "./utils/Result";
+import { concatResults, ResultPipe } from "./utils/Result";
 import { ok, err } from "./utils/Result";
 import { Result } from "./utils/Result";
 import * as ts from "typescript";
@@ -28,6 +28,7 @@ import { validateAsyncIterable } from "./validations/validateAsyncIterable";
 import { applyDefaultNullability } from "./transforms/applyDefaultNullability";
 import { mergeExtensions } from "./transforms/mergeExtensions";
 import { sortSchemaAst } from "./transforms/sortSchemaAst";
+import { validateDuplicateContextOrInfo } from "./validations/validateDuplicateContextOrInfo";
 import { validateSemanticNullability } from "./validations/validateSemanticNullability";
 import { resolveTypes } from "./transforms/resolveTypes";
 import { resolveResolverParams } from "./transforms/resolveResolverParams";
@@ -88,9 +89,9 @@ export function extractSchemaAndDoc(
       const ctx = TypeContext.fromSnapshot(checker, snapshot);
 
       // Collect validation errors
-      const validationResult = validateMergedInterfaces(
-        checker,
-        snapshot.interfaceDeclarations,
+      const validationResult = concatResults(
+        validateMergedInterfaces(checker, snapshot.interfaceDeclarations),
+        validateDuplicateContextOrInfo(ctx),
       );
 
       const docResult = new ResultPipe(validationResult)
