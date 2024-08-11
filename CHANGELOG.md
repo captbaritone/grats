@@ -4,16 +4,25 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
+- **Features**
+  - ...
+- **Bug Fixes**
+  - ...
+
+## 0.0.27
+
+Version `0.0.27` comes with a number of new features as well as some minor breaking changes.
+
 - **Breaking**
-  - Resolver parameters `args`, `context`, and `info` may now be used in any order, and are all optional. To enable this flexibility there are three small breaking changes, all of which will be reported with helpful errors when you run `grats`:
+  - Resolver parameters `args`, `context`, and `info` may now be used in any order, and are all optional. To enable this flexibility there are three small breaking changes, all of which will be reported with helpful errors when you run `grats` [#143](https://github.com/captbaritone/grats/pull/147):
     - The declaration of the type/class you use as your GraphQL context must now be annotated with `@gqlContext` to be recognized by Grats.
     - If you access the `info` object in a resolver, you must type it using `GqlInfo` exported from `grats`.
     - Unused `args` and `context` resolver parameters must now be omitted instead of being typed as `unknown`.
 - **Features**
-  - If a `@gqlType` which is used in an abstract type is defined using an exported `class`, an explicit `__typename` property is no-longer required. Grats can now generate code to infer the `__typename` based on the class definition. (#144)
-  - Support for `@oneOf` on input types. This allows you to define a discriminated union of input types. (#146)
+  - If a `@gqlType` which is used in an abstract type is defined using an exported `class`, an explicit `__typename` property is no-longer required. Grats can now generate code to infer the `__typename` based on the class definition. [#144](https://github.com/captbaritone/grats/pull/144)
+  - Support for [`@oneOf`](https://grats.capt.dev/docs/docblock-tags/oneof-inputs) on input types. This allows you to define a discriminated union of input types. [#146](https://github.com/captbaritone/grats/pull/146)
 - **Bug Fixes**
-  - The experimental TypeScript plugin will now report a diagnostics if it encounters a TypeScript version mismatch. (#143)
+  - The experimental TypeScript plugin will now report a diagnostics if it encounters a TypeScript version mismatch. [#143](https://github.com/captbaritone/grats/pull/143)
 
 ## 0.0.26
 
