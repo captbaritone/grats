@@ -33,6 +33,13 @@ function buildSchemaResultWithFsMap(
 ) {
   fsMap.set("index.ts", text);
   fsMap.set(GRATS_PATH, GRATS_TYPE_DECLARATIONS);
+  fsMap.set(
+    "/node_modules/graphql/index.ts",
+    `
+    export type GraphQLResolveInfo = any;
+    `,
+  );
+  // fsMap.set(GRATS_PACKAGE_JSON_PATH, GRATS_PACKAGE_JSON);
   // TODO: Don't recreate the system each time!
   const system = createSystem(fsMap);
 
@@ -91,20 +98,27 @@ export function createLinter(
         typescript: output,
       });
 
-      return result.err._diagnostics.map((diagnostic) => {
-        const actions = [];
-        if (diagnostic.fix) {
-          const action = gratsFixToCodeMirrorAction(diagnostic.fix);
-          actions.push(action);
-        }
-        return {
-          from: diagnostic.start,
-          to: diagnostic.start + diagnostic.length,
-          severity: "error",
-          message: diagnostic.messageText,
-          actions,
-        };
-      });
+      return result.err._diagnostics
+        .filter((diagnostic) => {
+          if (diagnostic.file == null) {
+            return false;
+          }
+          return diagnostic.file.fileName === "index.ts";
+        })
+        .map((diagnostic) => {
+          const actions = [];
+          if (diagnostic.fix) {
+            const action = gratsFixToCodeMirrorAction(diagnostic.fix);
+            actions.push(action);
+          }
+          return {
+            from: diagnostic.start,
+            to: diagnostic.start + diagnostic.length,
+            severity: "error",
+            message: diagnostic.messageText,
+            actions,
+          };
+        });
     }
 
     const codegenOutput = computeCodegenOutput(result.value.schema, config);
