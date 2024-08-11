@@ -214,8 +214,8 @@ export function resolverParamIsMissingType() {
   return "Missing type annotation for resolver argument. Expected all resolver arguments to have an explicit type annotation. Grats needs to be able to see the type of the arguments to generate an executable GraphQL schema.";
 }
 
-export function argumentParamIsNotObject() {
-  return "Expected GraphQL field arguments to be typed using an inline literal object: `{someField: string}`. If there are no arguments, you can use `args: unknown`. Grats needs to be able to see the type of the arguments to generate a GraphQL schema.";
+export function multipleResolverTypeLiterals() {
+  return "Unexpected multiple resolver parameters typed with an object literal. Grats assumes a resolver parameter typed with object literals describes the GraphQL arguments. Therefore only one such parameter is permitted.";
 }
 
 export function argIsNotProperty() {

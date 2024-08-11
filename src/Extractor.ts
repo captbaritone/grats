@@ -1359,34 +1359,8 @@ class Extractor {
   }
 
   collectArgs(
-    argsParam: ts.ParameterDeclaration,
-  ): ReadonlyArray<InputValueDefinitionNode> | null {
-    const args: InputValueDefinitionNode[] = [];
-
-    const argsType = argsParam.type;
-    if (argsType == null) {
-      return this.report(argsParam, E.resolverParamIsMissingType());
-    }
-    if (argsType.kind === ts.SyntaxKind.UnknownKeyword) {
-      return [];
-    }
-    if (!ts.isTypeLiteralNode(argsType)) {
-      return this.report(argsType, E.argumentParamIsNotObject());
-    }
-
-    let defaults: ArgDefaults | null = null;
-    if (ts.isObjectBindingPattern(argsParam.name)) {
-      defaults = this.collectArgDefaults(argsParam.name);
-    }
-
-    for (const member of argsType.members) {
-      const arg = this.collectArg(member, defaults);
-      if (arg != null) {
-        args.push(arg);
-      }
-    }
-    return args;
-  }
+    argsType: ts.TypeLiteralNode,
+  ): ReadonlyArray<InputValueDefinitionNode> | null {}
 
   collectArgDefaults(node: ts.ObjectBindingPattern): ArgDefaults {
     const defaults = new Map();
@@ -1843,7 +1817,10 @@ class Extractor {
   } | null {
     const resolverParams: UnresolvedResolverParam[] = [];
 
-    let args: readonly InputValueDefinitionNode[] | null = null;
+    let args: {
+      param: ts.ParameterDeclaration;
+      inputs: InputValueDefinitionNode[];
+    } | null = null;
 
     for (const param of parameters) {
       if (param.dotDotDotToken != null) {
@@ -1857,11 +1834,24 @@ class Extractor {
       }
       if (ts.isTypeLiteralNode(param.type)) {
         if (args != null) {
-          // FIXME
-          return this.report(param, "Unexpected second argument.");
+          return this.report(param, E.multipleResolverTypeLiterals(), [
+            tsRelated(args.param, "Previous type literal"),
+          ]);
         }
         resolverParams.push({ kind: "named", name: "args" });
-        args = this.collectArgs(param);
+        args = { param, inputs: [] };
+
+        let defaults: ArgDefaults | null = null;
+        if (ts.isObjectBindingPattern(param.name)) {
+          defaults = this.collectArgDefaults(param.name);
+        }
+
+        for (const member of param.type.members) {
+          const arg = this.collectArg(member, defaults);
+          if (arg != null) {
+            args.inputs.push(arg);
+          }
+        }
         continue;
       }
       if (ts.isTypeReferenceNode(param.type)) {
@@ -1885,7 +1875,7 @@ class Extractor {
       }
       return this.report(param.type, E.unexpectedResolverParamType());
     }
-    return { resolverParams, args };
+    return { resolverParams, args: args ? args.inputs : null };
   }
 
   modifiersAreValidForField(
