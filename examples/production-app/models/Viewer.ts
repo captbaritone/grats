@@ -27,7 +27,7 @@ export class Viewer {
     for (const row of rows) {
       // Simulate a slow algorithm
       await new Promise((resolve) => setTimeout(resolve, 500));
-      yield new Post(ctx.vc, row);
+      yield row;
     }
   }
   // --- Root Fields ---
