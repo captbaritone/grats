@@ -5,7 +5,7 @@
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
 - **Features**
-  - ...
+  - Functional fields can now be defined using exported arrow functions.
 - **Bug Fixes**
   - ...
 

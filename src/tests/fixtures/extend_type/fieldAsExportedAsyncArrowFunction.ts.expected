@@ -1,0 +1,42 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class SomeType {
+  // No fields
+}
+
+/** @gqlField */
+export const greeting = async (_: SomeType): Promise<string> => {
+  return `Hello World`;
+};
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type SomeType {
+  greeting: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_type/fieldAsExportedAsyncArrowFunction.ts")
+}
+-- TypeScript --
+import { greeting as someTypeGreetingResolver } from "./fieldAsExportedAsyncArrowFunction";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return someTypeGreetingResolver(source);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType]
+    });
+}

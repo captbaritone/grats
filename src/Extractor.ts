@@ -167,6 +167,8 @@ class Extractor {
         case FIELD_TAG:
           if (ts.isFunctionDeclaration(node)) {
             this.functionDeclarationExtendType(node, tag);
+          } else if (ts.isVariableStatement(node)) {
+            this.variableStatementExtendType(node, tag);
           } else if (isStaticMethod(node)) {
             this.staticMethodExtendType(node, tag);
           } else {
@@ -418,6 +420,71 @@ class Extractor {
     );
   }
 
+  variableStatementExtendType(node: ts.VariableStatement, tag: ts.JSDocTag) {
+    if (node.declarationList.declarations.length !== 1) {
+      return this.report(
+        node,
+        E.exportedFieldVariableMultipleDeclarations(
+          node.declarationList.declarations.length,
+        ),
+      );
+    }
+    const declaration = node.declarationList.declarations[0];
+
+    if (!(node.declarationList.flags & ts.NodeFlags.Const)) {
+      // Looks like there's no good way to find the location range of the `let`
+      // or `var` keyword.
+      return this.report(
+        node.declarationList,
+        E.exportedArrowFunctionNotConst(),
+      );
+    }
+
+    const funcName = this.expectNameIdentifier(declaration.name);
+    const name = this.entityName(declaration, tag);
+    if (name == null) return null;
+
+    if (!ts.isSourceFile(node.parent)) {
+      return this.report(node, E.fieldVariableNotTopLevelExported());
+    }
+
+    const tsModulePath = relativePath(node.getSourceFile().fileName);
+
+    const metadataDirective = this.gql.fieldMetadataDirective(node, {
+      tsModulePath,
+      name: null,
+      exportName: funcName == null ? null : funcName.text,
+    });
+
+    if (declaration.initializer == null) {
+      return this.report(node, E.fieldVariableIsNotArrowFunction());
+    }
+
+    if (!ts.isArrowFunction(declaration.initializer)) {
+      return this.report(node, E.fieldVariableIsNotArrowFunction());
+    }
+
+    const isExported = node.modifiers?.some((modifier) => {
+      return modifier.kind === ts.SyntaxKind.ExportKeyword;
+    });
+
+    if (!isExported) {
+      return this.report(
+        declaration.name,
+        E.fieldVariableNotTopLevelExported(),
+        [],
+        {
+          fixName: "add-export-keyword-to-arrow-function",
+          description:
+            "Add export keyword to exported arrow function with @gqlField",
+          changes: [Act.prefixNode(node, "export ")],
+        },
+      );
+    }
+
+    this.collectAbstractField(declaration.initializer, name, metadataDirective);
+  }
+
   functionDeclarationExtendType(
     node: ts.FunctionDeclaration,
     tag: ts.JSDocTag,
@@ -499,7 +566,7 @@ class Extractor {
   }
 
   collectAbstractField(
-    node: ts.FunctionDeclaration | ts.MethodDeclaration,
+    node: ts.FunctionDeclaration | ts.MethodDeclaration | ts.ArrowFunction,
     name: NameNode,
     metadataDirective: ConstDirectiveNode,
   ) {
@@ -1677,6 +1744,7 @@ class Extractor {
       | ts.EnumDeclaration
       | ts.TypeAliasDeclaration
       | ts.FunctionDeclaration
+      | ts.VariableDeclaration
       | ts.ParameterDeclaration,
     tag: ts.JSDocTag,
   ) {

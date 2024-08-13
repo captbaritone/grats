@@ -561,3 +561,19 @@ export function userDefinedInfoTag(): string {
 export function invalidResolverParamType(): string {
   return "Unexpected GraphQL type used as resolver parameter. Resolver input arguments must be specified as a single `args` object literal: `args: {argName: ArgType}`.";
 }
+
+export function exportedArrowFunctionNotConst(): string {
+  return `Expected \`@${FIELD_TAG}\` arrow function to be declared as \`const\`.`;
+}
+
+export function exportedFieldVariableMultipleDeclarations(n: number): string {
+  return `Expected only one declaration when defining a \`@${FIELD_TAG}\`, found ${n}.`;
+}
+
+export function fieldVariableNotTopLevelExported(): string {
+  return `Expected \`@${FIELD_TAG}\` to be an exported top-level declaration. Grats needs to import resolver functions into it's generated schema module, so the resolver function must be exported from the module.`;
+}
+
+export function fieldVariableIsNotArrowFunction(): string {
+  return `Expected \`@${FIELD_TAG}\` on variable declaration to be attached to an arrow function.`;
+}
