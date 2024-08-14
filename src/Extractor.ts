@@ -1442,6 +1442,8 @@ class Extractor {
   collectConstValue(node: ts.Expression): ConstValueNode | null {
     if (ts.isStringLiteral(node)) {
       return this.gql.string(node, node.text);
+    } else if (ts.isNoSubstitutionTemplateLiteral(node)) {
+      return this.gql.string(node, node.text);
     } else if (ts.isNumericLiteral(node)) {
       return node.text.includes(".")
         ? this.gql.float(node, node.text)
