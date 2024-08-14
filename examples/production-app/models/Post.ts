@@ -148,13 +148,13 @@ function serializeContent(content: PostContentInput): string {
  * @gqlField */
 export async function createPost(
   _: Mutation,
-  args: { input: CreatePostInput },
+  input: CreatePostInput,
   ctx: Ctx,
 ): Promise<CreatePostPayload> {
   const post = await DB.createPost(ctx.vc, {
-    ...args.input,
-    content: serializeContent(args.input.content),
-    authorId: getLocalTypeAssert(args.input.authorId, "User"),
+    ...input,
+    content: serializeContent(input.content),
+    authorId: getLocalTypeAssert(input.authorId, "User"),
   });
   return { post };
 }

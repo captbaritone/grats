@@ -58,9 +58,9 @@ type CreateUserPayload = {
  * @gqlField */
 export async function createUser(
   _: Mutation,
-  args: { input: CreateUserInput },
+  input: CreateUserInput,
   ctx: Ctx,
 ): Promise<CreateUserPayload> {
-  const user = await DB.createUser(ctx.vc, args.input);
+  const user = await DB.createUser(ctx.vc, input);
   return { user };
 }

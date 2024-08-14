@@ -1,58 +1,57 @@
 # Arguments
 
-If you wish to define arguments for a field, you must define your argument types explicitly using a type literal in your function or method signature. This allows Grats to "see" the types being used.
+Any resolver argument that is typed with a valid GraphQL type will be inferred as a GraphQL argument. Grats will automatically generate the appropriate schema definition based on the type of the argument and its name.
 
 ```ts
-/** @gqlField */
-// highlight-start
-myField(args: { greeting: string }): string {
-// highlight-end
-  return `${args.greeting} World`;
-}
-```
-
-## Functional style fields
-
-In functional style fields, the arguments object must follow the source object. The first argument is the instance of the base type being extended.
-
-```ts
-/** @gqlField */
-export function userById(_: Query, args: { id: string }): User {
-  return DB.getUserById(args.id);
-}
-```
-
-## Default values
-
-Default values for arguments can be defined by using the `=` operator with destructuring. Note that you must perform the destructuring in the argument list, not in the function body:
-
-```ts
-class MyClass {
+/** @gqlType */
+class MyType {
   /** @gqlField */
-  myField({ greeting = "Hello" }: { greeting: string }): string {
+  // highlight-start
+  myField(greeting: string): string {
+    // highlight-end
     return `${greeting} World`;
   }
 }
 ```
 
-Deeply nested default values can also be defined:
+## Functional style fields
+
+In functional style fields, _the source object must always be the first argument_, so GraphQL arguments must come after the source object.
+
+```ts
+/** @gqlField */
+export function userById(_: Query, id: string): User {
+  return DB.getUserById(id);
+}
+```
+
+## Default values
+
+TypeScript default values will be used to infer the default value for the argument in the schema. Note that the default value must be parasable as a valid GraphQL literal.
 
 ```ts
 class MyClass {
   /** @gqlField */
-  myField({
-    greeting = { salutation: "Sup" },
-  }: {
-    greeting: GreetingConfig;
-  }): string {
-    return `${greeting.salutation} World`;
+  myField(greeting: string = "Hello"): string {
+    return `${greeting} World`;
   }
 }
+```
 
-/** @gqlInput */
-type GreetingConfig = {
-  salutation: string;
-};
+## Deprecated arguments
+
+Optional arguments can be marked as `@deprecated` by using the `@deprecated` JSDoc tag:
+
+```ts
+class MyClass {
+  /** @gqlField */
+  myField(
+    /** @deprecated Unused! */
+    greeting?: string | null,
+  ): string {
+    return `Hello World`;
+  }
+}
 ```
 
 ## Nullable arguments
@@ -67,7 +66,7 @@ The one exception is if your argument has a default value. In that case, you may
 
 ```ts
 /** @gqlField */
-export function greeting(_: Query, { name: "Max" }: { name?: string }): string {
+export function greeting(_: Query, name?: string = "Max"): string {
   return `Hello, ${name}`;
 }
 ```
@@ -82,9 +81,34 @@ type Query {
 
 Note that the `name` argument is marked as non-nullable in the schema. This means the user may not pass an explicit `null`, but if the argument is omitted, the default value will be used.
 
-## Deprecated arguments
+## Object-map style fields
 
-Optional arguments can be marked as `@deprecated` by using the `@deprecated` JSDoc tag:
+If you wish to match the `graphql-js` resolver signature more directly, you may also define your arguments using a single object argument. The argument may appear in any position, but may not be combined with positional GraphQL arguments. _This is not Grats' recommended style, but it is fully supported_.
+
+```ts
+/** @gqlType */
+class MyType {
+  /** @gqlField */
+  // highlight-start
+  myField(args: { greeting: string }): string {
+    // highlight-end
+    return `${args.greeting} World`;
+  }
+}
+```
+
+Default values in this style can be defined by using the `=` operator with destructuring. Note that you must perform the destructuring in the argument list, not in the function body:
+
+```ts
+class MyClass {
+  /** @gqlField */
+  myField({ greeting = "Hello" }: { greeting: string }): string {
+    return `${greeting} World`;
+  }
+}
+```
+
+Like positional arguments, object-map arguments can be marked as `@deprecated` by using the `@deprecated` JSDoc tag:
 
 ```ts
 class MyClass {
@@ -97,5 +121,3 @@ class MyClass {
   }
 }
 ```
-
-import ts from "typescript";

@@ -6,7 +6,7 @@ class User {
   name: string;
 
   /** @gqlField */
-  greet(args: { greeting: string }): string {
-    return `${args.greeting}, ${this.name}`;
+  greet(greeting: string): string {
+    return `${greeting}, ${this.name}`;
   }
 }

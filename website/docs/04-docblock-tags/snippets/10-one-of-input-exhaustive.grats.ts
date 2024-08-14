@@ -5,17 +5,17 @@
 export type UserBy = { email: string } | { username: string };
 
 /** @gqlField */
-export function getUser(_: Query, args: { by: UserBy }): User {
+export function getUser(_: Query, by: UserBy): User {
   // highlight-start
   switch (true) {
-    case "email" in args.by:
-      return User.fromEmail(args.by.email);
-    case "username" in args.by:
-      return User.fromUsername(args.by.username);
+    case "email" in by:
+      return User.fromEmail(by.email);
+    case "username" in by:
+      return User.fromUsername(by.username);
     default: {
       // This line will error if an unhandled option is added to the union
-      const _exhaustive: never = args.by;
-      throw new Error(`Unhandled case: ${JSON.stringify(args.by)}`);
+      const _exhaustive: never = by;
+      throw new Error(`Unhandled case: ${JSON.stringify(by)}`);
     }
   }
   // highlight-end

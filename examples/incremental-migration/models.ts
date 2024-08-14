@@ -18,8 +18,8 @@ faker.seed(123);
 type Query = unknown;
 
 /** @gqlField */
-export function user(_: Query, args: { id: ID }): User | undefined {
-  return Users.get(args.id);
+export function user(_: Query, id: ID): User | undefined {
+  return Users.get(id);
 }
 
 /** @gqlType */

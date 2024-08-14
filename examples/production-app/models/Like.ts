@@ -54,12 +54,12 @@ type CreateLikePayload = {
  * @gqlField */
 export async function createLike(
   _: Mutation,
-  args: { input: CreateLikeInput },
+  input: CreateLikeInput,
   ctx: Ctx,
 ): Promise<CreateLikePayload> {
-  const id = getLocalTypeAssert(args.input.postId, "Post");
+  const id = getLocalTypeAssert(input.postId, "Post");
   await DB.createLike(ctx.vc, {
-    ...args.input,
+    ...input,
     userId: ctx.vc.userId(),
     postId: id,
   });

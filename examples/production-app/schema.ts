@@ -615,7 +615,7 @@ export function getSchema(): GraphQLSchema {
                         }
                     },
                     resolve(source, args, context) {
-                        return mutationCreateLikeResolver(source, args, context);
+                        return mutationCreateLikeResolver(source, args.input, context);
                     }
                 },
                 createPost: {
@@ -629,7 +629,7 @@ export function getSchema(): GraphQLSchema {
                         }
                     },
                     resolve(source, args, context) {
-                        return mutationCreatePostResolver(source, args, context);
+                        return mutationCreatePostResolver(source, args.input, context);
                     }
                 },
                 createUser: {
@@ -643,7 +643,7 @@ export function getSchema(): GraphQLSchema {
                         }
                     },
                     resolve(source, args, context) {
-                        return mutationCreateUserResolver(source, args, context);
+                        return mutationCreateUserResolver(source, args.input, context);
                     }
                 }
             };
@@ -664,7 +664,7 @@ export function getSchema(): GraphQLSchema {
                         }
                     },
                     subscribe(source, args, context, info) {
-                        return subscriptionPostLikesResolver(source, args, context, info);
+                        return subscriptionPostLikesResolver(source, args.postID, context, info);
                     },
                     resolve(payload) {
                         return payload;

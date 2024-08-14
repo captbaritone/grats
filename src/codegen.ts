@@ -31,6 +31,7 @@ import {
   FIELD_METADATA_DIRECTIVE,
   FieldParam,
   parseFieldMetadataDirective,
+  ResolvedResolverParam,
 } from "./metadataDirectives";
 import { resolveRelativePath } from "./gratsRoot";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "./publicDirectives";
@@ -38,7 +39,7 @@ import {
   ASSERT_NON_NULL_HELPER,
   createAssertNonNullHelper,
 } from "./codegenHelpers";
-import { extend, invariant, nullThrows } from "./utils/helpers";
+import { extend, nullThrows } from "./utils/helpers";
 import { GratsConfig } from "./gratsConfig.js";
 import { naturalCompare } from "./utils/naturalCompare";
 
@@ -246,13 +247,19 @@ class Codegen {
     );
     const metadata = parseFieldMetadataDirective(metadataDirective);
     const fieldAst = nullThrows(field.astNode);
-    const resolverParams: FieldParam[] | undefined =
+    const resolverParams: ResolvedResolverParam[] | undefined =
       fieldAst.resolverParams?.map((param) => {
-        invariant(
-          param.kind === "named",
-          "Expected resolver param to have been resolved.",
-        );
-        return param.name;
+        switch (param.kind) {
+          case "named":
+          case "positionalArg":
+            return param;
+          case "unresolved":
+            throw new Error("Expected resolver param to have been resolved.");
+          default: {
+            const _exhaustive: never = param;
+            throw new Error("Unexpected param kind");
+          }
+        }
       });
 
     if (metadata.tsModulePath != null) {
@@ -295,7 +302,7 @@ class Codegen {
               resolverAccess,
               undefined,
               usedResolverParams.map((name) => {
-                return F.createIdentifier(name);
+                return this.resolverParam(name);
               }),
             ),
           ),
@@ -317,12 +324,14 @@ class Codegen {
           prop,
           undefined,
           resolverParams.map((name) => {
-            return F.createIdentifier(name);
+            return this.resolverParam(name);
           }),
         );
       }
 
-      const usedWrapperParams: FieldParam[] = ["source"];
+      const usedWrapperParams: ResolvedResolverParam[] = [
+        { kind: "named", name: "source" },
+      ];
       if (resolverParams != null) {
         // Push with ... is safe because resolverParams is known to be
         // a small array.
@@ -339,6 +348,24 @@ class Codegen {
     // If the resolver name matches the field name, and the field is not backed by a function,
     // we can just use the default resolver.
     return null;
+  }
+
+  // Either `args`, `context`, `info`, or a positional argument like
+  // `args.someArg`.
+  resolverParam(param: ResolvedResolverParam): ts.Expression {
+    switch (param.kind) {
+      case "named":
+        return F.createIdentifier(param.name);
+      case "positionalArg":
+        return F.createPropertyAccessExpression(
+          F.createIdentifier("args"),
+          F.createIdentifier(param.inputDefinition.name.value),
+        );
+      default: {
+        const _exhaustive: never = param;
+        throw new Error("Unexpected param kind");
+      }
+    }
   }
 
   // If a field is smantically non-null, we need to wrap the resolver in a
@@ -1121,13 +1148,18 @@ class Codegen {
 //
 // Unused trailing args are trimmed, unused intermediate args are prefixed with
 // an underscore.
-function extractUsedParams(resolverParams: FieldParam[]): string[] {
+function extractUsedParams(resolverParams: ResolvedResolverParam[]): string[] {
   const wrapperArgs: string[] = [];
 
   let adding = false;
   for (let i = RESOLVER_ARGS.length - 1; i >= 0; i--) {
     const name = RESOLVER_ARGS[i];
-    const used = resolverParams.includes(name);
+    const used = resolverParams.some((param) => {
+      return (
+        (param.kind === "named" && param.name === name) ||
+        (param.kind === "positionalArg" && name) === "args"
+      );
+    });
     if (used) {
       adding = true;
     }
@@ -1140,8 +1172,10 @@ function extractUsedParams(resolverParams: FieldParam[]): string[] {
   return wrapperArgs;
 }
 
-function paramsAreInDefaultOrder(params: FieldParam[]) {
-  return params.every((param, i) => param === RESOLVER_ARGS[i + 1]);
+function paramsAreInDefaultOrder(params: ResolvedResolverParam[]) {
+  return params.every((param, i) => {
+    return param.kind === "named" && param.name === RESOLVER_ARGS[i + 1];
+  });
 }
 
 function fieldDirective(

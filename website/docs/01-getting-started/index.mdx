@@ -40,8 +40,8 @@ class User {
   name: string = "Alice";
 
   /** @gqlField */
-  greeting(args: { salutation: string }): string {
-    return `${args.salutation}, ${this.name}`;
+  greeting(salutation: string): string {
+    return `${salutation}, ${this.name}`;
   }
 }
 ```
@@ -74,8 +74,8 @@ type User = {
 };
 
 /** @gqlField */
-export function greeting(user: User, args: { salutation: string }): string {
-  return `${args.salutation}, ${user.name}`;
+export function greeting(user: User, salutation: string): string {
+  return `${salutation}, ${user.name}`;
 }
 ```
 

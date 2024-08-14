@@ -2,8 +2,8 @@
 class User {
   _bestFriendID: number;
   /** @gqlField */
-  bestFriend(args: { order: string }, context: GqlContext): User {
-    return context.db.getSortedFriends(this._bestFriendID, args.order);
+  bestFriend(order: string, context: GqlContext): User {
+    return context.db.getSortedFriends(this._bestFriendID, order);
   }
 }
 
@@ -31,6 +31,9 @@ export function getSchema(): GraphQLSchema {
                             name: "order",
                             type: new GraphQLNonNull(GraphQLString)
                         }
+                    },
+                    resolve(source, args, context) {
+                        return source.bestFriend(args.order, context);
                     }
                 }
             };

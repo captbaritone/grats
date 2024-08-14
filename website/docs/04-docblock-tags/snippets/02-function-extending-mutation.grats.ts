@@ -12,6 +12,6 @@ type User = {
 
 // trim-end
 /** @gqlField */
-export function deleteUser(_: Mutation, args: { id: string }): boolean {
-  return DB.deleteUser(args.id);
+export function deleteUser(_: Mutation, id: string): boolean {
+  return DB.deleteUser(id);
 }

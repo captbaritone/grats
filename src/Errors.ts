@@ -304,7 +304,7 @@ export function pluralTypeMissingParameter() {
 }
 
 export function expectedNameIdentifier() {
-  return "Expected an name identifier. Grats expected to find a name here which it could use to derive the GraphQL name.";
+  return "Expected a name identifier. Grats expected to find a name here which it could use to derive the GraphQL name.";
 }
 
 // TODO: Add code action
@@ -576,4 +576,17 @@ export function fieldVariableNotTopLevelExported(): string {
 
 export function fieldVariableIsNotArrowFunction(): string {
   return `Expected \`@${FIELD_TAG}\` on variable declaration to be attached to an arrow function.`;
+}
+
+export function positionalResolverArgDoesNotHaveName(): string {
+  return "Expected resolver argument to have a name. Grats needs to be able to see the name of the argument in order to derive a GraphQL argument name.";
+}
+
+export function positionalArgAndArgsObject(): string {
+  return "Unexpected arguments object in resolver that is also using positional GraphQL arguments. Grats expects that either all GraphQL arguments will be defined in a single object, or that all GraphQL arguments will be defined using positional arguments. The two strategies may not be combined.";
+}
+
+export function contextOrInfoUsedInGraphQLPosition(kind: "CONTEXT" | "INFO") {
+  const tag = kind === "CONTEXT" ? CONTEXT_TAG : INFO_TAG;
+  return `Cannot use \`${tag}\` as a type in GraphQL type position.`;
 }
