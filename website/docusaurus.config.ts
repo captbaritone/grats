@@ -72,6 +72,10 @@ const config: Config = {
   ],
 
   themeConfig: {
+    metadata: [
+      { name: "og:image", content: "https://grats.capt.dev/img/grats-og.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
     // Replace with your project's social card
     // image: "img/docusaurus-social-card.jpg",
     navbar: {
