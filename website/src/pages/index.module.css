@@ -8,6 +8,8 @@
   text-align: center;
   position: relative;
   overflow: hidden;
+  /* Get it? We're transitioning from TypeScript Blue to GraphQL Rhodamine. */
+  background: linear-gradient(165deg, #3178c6, #e10098);
 }
 
 @media screen and (max-width: 996px) {
