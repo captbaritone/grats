@@ -12,37 +12,28 @@ export default function HomepageFeatures(): JSX.Element {
     <section className={styles.features}>
       <div className="container">
         <div className="row">
-          <div className="col col--8 col--offset-2">
-            <h2 className="text--center margin-bottom--xl">
-              The simplest way to build a GraphQL server in TypeScript
-            </h2>
-          </div>
-        </div>
-        <div className="row">
           <div className="col">
             <h2>No Duplication</h2>
             <p>
-              Your TypeScript resolvers are <i>already annotated</i> with type
-              information. Grats uses those <i>existing types</i> to determine
-              your GraphQL schema.
+              Grats uses your <strong>existing TypeScript types</strong> to
+              derive your GraphQL schema.
             </p>
           </div>
           <div className="col">
             <h2>No Conflicts</h2>
             <p>
-              When your implementation <i>is</i> your schema, there's no need
-              for clever TypeScript tricks to validate that your code and schema
-              match.
+              Since your implementation <i>is</i> your schema, there's{" "}
+              <strong>no need to validate</strong> that they match.
             </p>
           </div>
           <div className="col">
-            <h2>No Library Code</h2>
+            <h2>No Runtime</h2>
             <p>
-              Grats extracts your schema at <strong>build time</strong> from
-              docblock hints. No Grats code is needed at runtime.
+              Grats extracts an executable graphql-js schema at{" "}
+              <strong>build time</strong>. No Grats code is needed at runtime.
             </p>
           </div>
-          <div className="col col--8 margin-top--xl margin-bottom--xl col--offset-2">
+          <div className="col col--8 margin-top--lg margin-bottom--lg col--offset-2">
             <Tabs>
               <TabItem value="oop" label="Object Oriented">
                 <Example out={HomepageExample} />
@@ -54,7 +45,7 @@ export default function HomepageFeatures(): JSX.Element {
           </div>
         </div>
         <div className="row">
-          <div className="col col--10 text--right margin-bottom--xl">
+          <div className="col col--10 text--right margin-bottom--lg">
             <div className={styles.buttons}>
               <Link
                 className="button button--primary button--lg"

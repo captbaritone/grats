@@ -45,7 +45,7 @@ function HomepageHeader() {
 
 export default function Home(): JSX.Element {
   return (
-    <Layout description="Implementation-First GraphQL for TypeScript">
+    <Layout description="The cleanest way to build a TypeScript GraphQL server">
       <HomepageHeader />
       <main>
         <HomepageFeatures />

@@ -7,7 +7,7 @@ const darkCodeTheme = themes.dracula;
 
 const config: Config = {
   title: "Grats",
-  tagline: "Implementation-First GraphQL for TypeScript",
+  tagline: "The cleanest way to build a TypeScript GraphQL server",
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here
