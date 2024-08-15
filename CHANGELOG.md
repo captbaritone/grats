@@ -4,6 +4,10 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
+## 0.0.28
+
+Version `0.0.28` comes with a number of new features and should not have any breaking changes relative to `0.0.27`. The new features:
+
 ### Positional Arguments
 
 Field arguments can now be defined using regular TypeScript arguments rather requiring all GraphQL arguments to be grouped together in a single object.
