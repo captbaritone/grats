@@ -1931,20 +1931,6 @@ class Extractor {
       const inputDefinition = this.collectParamArg(param);
       if (inputDefinition == null) return null;
       resolverParams.push({ kind: "unresolved", inputDefinition });
-      /*
-      }
-      // We handle a few special cases of unexpected types here to provide
-      // more helpful error messages.
-      if (param.type.kind === ts.SyntaxKind.UnknownKeyword) {
-        // TODO: Offer code action?
-        return this.report(param.type, E.resolverParamIsUnknown());
-      }
-      if (param.type.kind === ts.SyntaxKind.NeverKeyword) {
-        // TODO: Offer code action?
-        return this.report(param.type, E.resolverParamIsNever());
-      }
-      return this.report(param.type, E.unexpectedResolverParamType());
-      */
     }
     return { resolverParams, args: args ? args.inputs : null };
   }

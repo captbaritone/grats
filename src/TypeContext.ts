@@ -10,12 +10,11 @@ import {
   gqlErr,
   DiagnosticResult,
   tsErr,
-  tsRelated,
   gqlRelated,
 } from "./utils/DiagnosticError";
 import { err, ok } from "./utils/Result";
 import * as E from "./Errors";
-import { CONTEXT_TAG, ExtractionSnapshot, INFO_TAG } from "./Extractor";
+import { ExtractionSnapshot } from "./Extractor";
 import { loc } from "./utils/helpers";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
