@@ -48,6 +48,20 @@ export const userById = (_: Query, id: string): User => {
 };
 ```
 
+### Backtick strings
+
+Backtick strings are now correctly parsed as strings literals, as long as they are not used as template strings. For example `\`Hello\`` in the following example:
+
+```ts
+/** @gqlType */
+class Query {
+  /** @gqlField */
+  greeting(_: Query, salutation: string = `Hello`): string {
+    return `${salutation} World`;
+  }
+}
+```
+
 ## 0.0.27
 
 Version `0.0.27` comes with a number of new features as well as some minor breaking changes.
