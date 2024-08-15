@@ -12,6 +12,6 @@ type User = {
 
 // trim-end
 /** @gqlField */
-export function userById(_: Query, args: { id: string }): User {
-  return DB.getUserById(args.id);
+export function userById(_: Query, id: string): User {
+  return DB.getUserById(id);
 }

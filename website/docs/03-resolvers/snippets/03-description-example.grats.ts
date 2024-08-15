@@ -8,10 +8,10 @@ class User {
    * their first visit.
    * @gqlField
    */
-  hello(args: {
+  hello(
     /** The salutation to use */
-    greeting: string;
-  }): string {
-    return `${args.greeting} World`;
+    greeting: string,
+  ): string {
+    return `${greeting} World`;
   }
 }

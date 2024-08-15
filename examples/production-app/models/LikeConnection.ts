@@ -67,11 +67,11 @@ export async function likes(
  * @gqlField */
 export async function postLikes(
   _: Subscription,
-  args: { postID: string },
+  postID: string,
   ctx: Ctx,
   info: GqlInfo,
 ): Promise<AsyncIterable<LikeConnection>> {
-  const id = getLocalTypeAssert(args.postID, "Post");
+  const id = getLocalTypeAssert(postID, "Post");
   const post = await ctx.vc.getPostById(id);
   return pipe(
     PubSub.subscribe("postLiked"),

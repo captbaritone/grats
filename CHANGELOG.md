@@ -4,10 +4,63 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
-- **Features**
-  - Functional fields can now be defined using exported arrow functions.
-- **Bug Fixes**
-  - ...
+### Positional Arguments
+
+Field arguments can now be defined using regular TypeScript arguments rather requiring all GraphQL arguments to be grouped together in a single object.
+
+```ts
+/** @gqlType */
+class Query {
+  /** @gqlField */
+  userById(_: Query, id: string): User {
+    return DB.getUserById(id);
+  }
+}
+```
+
+The improved ergonomics of this approach are especially evident when defining arguments with default values:
+
+```ts
+/** @gqlType */
+class Query {
+  // OLD STYLE
+  /** @gqlField */
+  greeting(_: Query, { salutation = "Hello" }: { salutation: string }): string {
+    return `${salutation} World`;
+  }
+
+  // NEW STYLE
+  /** @gqlField */
+  greeting(_: Query, salutation: string = "Hello"): string {
+    return `${salutation} World`;
+  }
+}
+```
+
+### Arrow function fields
+
+Fields can now be defined using arrow functions:
+
+```ts
+/** @gqlField */
+export const userById = (_: Query, id: string): User => {
+  return DB.getUserById(id);
+};
+```
+
+### Backtick strings
+
+Backtick strings are now correctly parsed as strings literals, as long as they are not used as template strings. For example `\`Hello\`` in the following example:
+
+```ts
+/** @gqlType */
+class Query {
+  /** @gqlField */
+  greeting(_: Query, salutation: string = `Hello`): string {
+    return `${salutation} World`;
+  }
+}
+```
 
 ## 0.0.27
 

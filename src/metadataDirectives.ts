@@ -1,13 +1,19 @@
+import * as ts from "typescript";
 import {
   ConstDirectiveNode,
+  ConstValueNode,
   DefinitionNode,
   DocumentNode,
+  InputValueDefinitionNode,
   Kind,
   Location,
-  NamedTypeNode,
+  NameNode,
   parse,
+  StringValueNode,
+  TypeNode,
 } from "graphql";
 import { uniqueId } from "./utils/helpers";
+import { DiagnosticResult } from "./utils/DiagnosticError.js";
 
 /**
  * In most cases we can use directives to annotate constructs
@@ -76,9 +82,44 @@ declare module "graphql" {
   }
 }
 
+/**
+ * At extraction time we don't know if a resolver arg is context, info, or a
+ * positional GraphQL argument. If it's a positional argument, we need to ensure
+ * it has a valid name. If it's just info or context, it's fine if it doesn't
+ * have a name e.g. (destructured).
+ */
+export interface InputValueDefinitionNodeOrResolverArg {
+  readonly kind: Kind.INPUT_VALUE_DEFINITION;
+  readonly loc: Location;
+  readonly description?: StringValueNode;
+  // This is the only property that is different.
+  readonly name: DiagnosticResult<NameNode>;
+  readonly type: TypeNode;
+  readonly defaultValue?: ConstValueNode;
+  readonly directives?: ReadonlyArray<ConstDirectiveNode>;
+}
+
 export type UnresolvedResolverParam =
-  | { kind: "named"; name: FieldParam }
-  | { kind: "unresolved"; namedTypeNode: NamedTypeNode };
+  | NamedFieldParam
+  | PositionalFieldParam
+  | Unresolved;
+
+export type ResolvedResolverParam = NamedFieldParam | PositionalFieldParam;
+
+export type NamedFieldParam = {
+  kind: "named";
+  // Used by diagnostics to point to the source of the param
+  sourceNode?: ts.Node;
+  name: FieldParam;
+};
+export type PositionalFieldParam = {
+  kind: "positionalArg";
+  inputDefinition: InputValueDefinitionNode;
+};
+export type Unresolved = {
+  kind: "unresolved";
+  inputDefinition: InputValueDefinitionNodeOrResolverArg;
+};
 
 export type FieldParam = "source" | "args" | "context" | "info";
 

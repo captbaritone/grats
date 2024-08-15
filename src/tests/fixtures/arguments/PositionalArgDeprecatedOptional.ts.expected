@@ -10,8 +10,11 @@ type Greeting = {
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
-  hello(greeting: Greeting): string {
-    return `${greeting.salutation} ${greeting.name}!`;
+  hello(
+    /** @deprecated Unused! */
+    greeting?: Greeting | null,
+  ): string {
+    return `Hullo`;
   }
 }
 
@@ -25,7 +28,7 @@ input Greeting {
 }
 
 type SomeType {
-  hello(greeting: Greeting!): String @metadata
+  hello(greeting: Greeting @deprecated(reason: "Unused!")): String @metadata
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";
@@ -54,8 +57,9 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString,
                     args: {
                         greeting: {
+                            deprecationReason: "Unused!",
                             name: "greeting",
-                            type: new GraphQLNonNull(GreetingType)
+                            type: GreetingType
                         }
                     },
                     resolve(source, args) {

@@ -6,7 +6,12 @@ import {
   UnionTypeDefinitionNode,
 } from "graphql";
 import * as ts from "typescript";
-import { gqlErr, DiagnosticResult, tsErr } from "./utils/DiagnosticError";
+import {
+  gqlErr,
+  DiagnosticResult,
+  tsErr,
+  gqlRelated,
+} from "./utils/DiagnosticError";
 import { err, ok } from "./utils/Result";
 import * as E from "./Errors";
 import { ExtractionSnapshot } from "./Extractor";
@@ -135,6 +140,15 @@ export class TypeContext {
     if (nameDefinition == null) {
       return err(gqlErr(loc(unresolved), E.unresolvedTypeReference()));
     }
+    if (nameDefinition.kind === "CONTEXT" || nameDefinition.kind === "INFO") {
+      return err(
+        gqlErr(
+          loc(unresolved),
+          E.contextOrInfoUsedInGraphQLPosition(nameDefinition.kind),
+          [gqlRelated(loc(nameDefinition.name), "Defined here")],
+        ),
+      );
+    }
     return ok({ ...unresolved, value: nameDefinition.name.value });
   }
 
@@ -182,6 +196,13 @@ export class TypeContext {
     const nameDefinition = this._declarationToName.get(declarationResult.value);
     if (nameDefinition == null) {
       return err(tsErr(node, E.unresolvedTypeReference()));
+    }
+    if (nameDefinition.kind === "CONTEXT" || nameDefinition.kind === "INFO") {
+      return err(
+        tsErr(node, E.contextOrInfoUsedInGraphQLPosition(nameDefinition.kind), [
+          gqlRelated(loc(nameDefinition.name), "Defined here"),
+        ]),
+      );
     }
     return ok(nameDefinition.name.value);
   }

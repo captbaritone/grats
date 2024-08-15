@@ -7,6 +7,6 @@ type User = {
 };
 
 /** @gqlField */
-export function greet(user: User, args: { greeting: string }): string {
-  return `${args.greeting}, ${user.name}`;
+export function greet(user: User, greeting: string): string {
+  return `${greeting}, ${user.name}`;
 }

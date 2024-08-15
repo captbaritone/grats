@@ -4,12 +4,8 @@ type User = {
 };
 
 /** @gqlField */
-export function friends(
-  user: User,
-  args: { order: string },
-  context: GqlContext,
-): User {
-  return context.db.getSortedFriends(user._bestFriendID, args.order);
+export function friends(user: User, order: string, context: GqlContext): User {
+  return context.db.getSortedFriends(user._bestFriendID, order);
 }
 
 /** @gqlContext */
@@ -39,7 +35,7 @@ export function getSchema(): GraphQLSchema {
                         }
                     },
                     resolve(source, args, context) {
-                        return userFriendsResolver(source, args, context);
+                        return userFriendsResolver(source, args.order, context);
                     }
                 }
             };

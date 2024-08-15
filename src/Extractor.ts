@@ -23,6 +23,7 @@ import {
   tsRelated,
   DiagnosticsResult,
   gqlErr,
+  DiagnosticResult,
 } from "./utils/DiagnosticError";
 import { err, ok } from "./utils/Result";
 import * as ts from "typescript";
@@ -33,9 +34,12 @@ import { GraphQLConstructor } from "./GraphQLConstructor";
 import { relativePath } from "./gratsRoot";
 import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
-import { extend, loc } from "./utils/helpers";
+import { extend, invariant, loc } from "./utils/helpers";
 import * as Act from "./CodeActions";
-import { UnresolvedResolverParam } from "./metadataDirectives.js";
+import {
+  InputValueDefinitionNodeOrResolverArg,
+  UnresolvedResolverParam,
+} from "./metadataDirectives.js";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -617,7 +621,10 @@ class Extractor {
       args,
       directives,
       description,
-      [{ kind: "named", name: "source" }, ...resolverParams],
+      [
+        { kind: "named", name: "source", sourceNode: typeParam },
+        ...resolverParams,
+      ],
     );
     this.definitions.push(
       this.gql.abstractFieldDefinition(node, typeName, field),
@@ -1904,7 +1911,7 @@ class Extractor {
             tsRelated(args.param, "Previous type literal"),
           ]);
         }
-        resolverParams.push({ kind: "named", name: "args" });
+        resolverParams.push({ kind: "named", name: "args", sourceNode: param });
         args = { param, inputs: [] };
 
         let defaults: ArgDefaults | null = null;
@@ -1920,28 +1927,68 @@ class Extractor {
         }
         continue;
       }
-      if (ts.isTypeReferenceNode(param.type)) {
-        const namedTypeNode = this.gql.namedType(
-          param.type,
-          UNRESOLVED_REFERENCE_NAME,
-        );
-        this.markUnresolvedType(param.type.typeName, namedTypeNode.name);
-        resolverParams.push({ kind: "unresolved", namedTypeNode });
-        continue;
-      }
-      // We handle a few special cases of unexpected types here to provide
-      // more helpful error messages.
-      if (param.type.kind === ts.SyntaxKind.UnknownKeyword) {
-        // TODO: Offer code action?
-        return this.report(param.type, E.resolverParamIsUnknown());
-      }
-      if (param.type.kind === ts.SyntaxKind.NeverKeyword) {
-        // TODO: Offer code action?
-        return this.report(param.type, E.resolverParamIsNever());
-      }
-      return this.report(param.type, E.unexpectedResolverParamType());
+
+      const inputDefinition = this.collectParamArg(param);
+      if (inputDefinition == null) return null;
+      resolverParams.push({ kind: "unresolved", inputDefinition });
     }
     return { resolverParams, args: args ? args.inputs : null };
+  }
+
+  collectParamArg(
+    param: ts.ParameterDeclaration,
+  ): InputValueDefinitionNodeOrResolverArg | null {
+    invariant(param.type != null, "Expected type annotation");
+
+    // This param might be info or context, in which case we don't need a name,
+    // or it might be a GraphQL argument, in which case we _do_ need a name.
+    // However, we don't know which we have until a later phase where were are
+    // type-aware.
+    // By modeling the name as a diagnostic result, we can defer the decision
+    // of whether the name is required until we have more information.
+    let name: DiagnosticResult<NameNode> = ts.isIdentifier(param.name)
+      ? ok(this.gql.name(param.name, param.name.text))
+      : err(tsErr(param.name, E.positionalResolverArgDoesNotHaveName()));
+
+    const type = this.collectType(param.type, { kind: "INPUT" });
+    if (type == null) return null;
+
+    let defaultValue: ConstValueNode | null = null;
+
+    if (param.initializer != null) {
+      defaultValue = this.collectConstValue(param.initializer);
+    }
+
+    if (param.questionToken) {
+      // Question mark means we can handle the argument being undefined in the
+      // object literal, but if we are going to type the GraphQL arg as
+      // optional, the code must also be able to handle an explicit null.
+      //
+      // In the object map args case we have to consider the possibility of a
+      // default value, but TS does not allow default value for optional args,
+      // so TS will take care of that for us.
+      if (type.kind === Kind.NON_NULL_TYPE) {
+        // This is only a problem if the type turns out to be a GraphQL type.
+        // If it's info or context, it's fine. So, we defer the error until
+        // later when we try to use this as a GraphQL type.
+        if (name.kind === "OK") {
+          name = err(
+            tsErr(param.questionToken, E.nonNullTypeCannotBeOptional()),
+          );
+        }
+      }
+    }
+
+    const deprecated = this.collectDeprecated(param);
+
+    return this.gql.inputValueDefinitionOrResolverArg(
+      param,
+      name,
+      type,
+      deprecated == null ? null : [deprecated],
+      defaultValue,
+      this.collectDescription(param),
+    );
   }
 
   modifiersAreValidForField(

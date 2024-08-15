@@ -39,7 +39,7 @@ export function getSchema(): GraphQLSchema {
                         }
                     },
                     resolve(source, args) {
-                        return queryUserResolver(source, args);
+                        return queryUserResolver(source, args.id);
                     }
                 }
             };

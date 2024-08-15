@@ -40,9 +40,10 @@ import {
   FIELD_METADATA_DIRECTIVE,
   EXPORT_NAME_ARG,
   UnresolvedResolverParam,
+  InputValueDefinitionNodeOrResolverArg,
 } from "./metadataDirectives";
 import { uniqueId } from "./utils/helpers";
-import { TsLocatableNode } from "./utils/DiagnosticError";
+import { DiagnosticResult, TsLocatableNode } from "./utils/DiagnosticError";
 
 export class GraphQLConstructor {
   fieldMetadataDirective(
@@ -221,6 +222,25 @@ export class GraphQLConstructor {
     defaultValue: ConstValueNode | null,
     description: StringValueNode | null,
   ): InputValueDefinitionNode {
+    return {
+      kind: Kind.INPUT_VALUE_DEFINITION,
+      loc: loc(node),
+      description: description ?? undefined,
+      name,
+      type,
+      defaultValue: defaultValue ?? undefined,
+      directives: this._optionalList(directives),
+    };
+  }
+
+  inputValueDefinitionOrResolverArg(
+    node: ts.Node,
+    name: DiagnosticResult<NameNode>,
+    type: TypeNode,
+    directives: readonly ConstDirectiveNode[] | null,
+    defaultValue: ConstValueNode | null,
+    description: StringValueNode | null,
+  ): InputValueDefinitionNodeOrResolverArg {
     return {
       kind: Kind.INPUT_VALUE_DEFINITION,
       loc: loc(node),
