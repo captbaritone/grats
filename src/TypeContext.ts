@@ -272,7 +272,7 @@ export class TypeContext {
     }
 
     for (const declaration of symbol.declarations) {
-      const extendsClauses = getClassExtendClauses(declaration);
+      const extendsClauses = getClassHeritageClauses(declaration);
       if (extendsClauses == null) {
         continue;
       }
@@ -297,17 +297,11 @@ export class TypeContext {
   }
 }
 
-function getClassExtendClauses(
+function getClassHeritageClauses(
   declaration: ts.Declaration,
-): ts.HeritageClause[] | null {
+): ts.NodeArray<ts.HeritageClause> | null {
   if (ts.isClassDeclaration(declaration)) {
-    const { heritageClauses } = declaration;
-    if (heritageClauses == null) {
-      return null;
-    }
-    return heritageClauses.filter(
-      (clause) => clause.token === ts.SyntaxKind.ExtendsKeyword,
-    );
+    return declaration.heritageClauses ?? null;
   }
   return null;
 }
