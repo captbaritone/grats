@@ -319,7 +319,9 @@ class Extractor {
   }
 
   extractInterface(node: ts.Node, tag: ts.JSDocTag) {
-    if (ts.isInterfaceDeclaration(node)) {
+    if (ts.isClassDeclaration(node)) {
+      this.interfaceClassDeclaration(node, tag);
+    } else if (ts.isInterfaceDeclaration(node)) {
       this.interfaceInterfaceDeclaration(node, tag);
     } else {
       this.report(tag, E.invalidInterfaceTagUsage());
@@ -1300,6 +1302,46 @@ class Extractor {
 
     const fields = this.collectFields(node.members);
 
+    this.recordTypeName(node, name, "INTERFACE");
+
+    this.definitions.push(
+      this.gql.interfaceTypeDefinition(
+        node,
+        name,
+        fields,
+        interfaces,
+        description,
+      ),
+    );
+  }
+
+  interfaceClassDeclaration(node: ts.ClassDeclaration, tag: ts.JSDocTag) {
+    const isAbstract = node.modifiers?.some((modifier) => {
+      return modifier.kind === ts.SyntaxKind.AbstractKeyword;
+    });
+    if (!isAbstract) {
+      return this.report(node, E.interfaceClassNotAbstract());
+    }
+    if (node.name == null) {
+      return this.report(node, E.typeTagOnUnnamedClass());
+    }
+
+    const name = this.entityName(node, tag);
+    if (name == null || name.value == null) {
+      return;
+    }
+
+    const description = this.collectDescription(node);
+
+    const fieldMembers = node.members.filter((member) => {
+      // Static methods are handled when we encounter the tag at our top-level
+      // traversal, similar to how functions are handled. We filter them out here to ensure
+      // we don't double-visit them.
+      return !isStaticMethod(member);
+    });
+
+    const fields = this.collectFields(fieldMembers);
+    const interfaces = this.collectInterfaces(node);
     this.recordTypeName(node, name, "INTERFACE");
 
     this.definitions.push(

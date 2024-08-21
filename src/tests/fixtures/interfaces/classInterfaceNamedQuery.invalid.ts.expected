@@ -1,0 +1,22 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface */
+class Query {
+  /** @gqlField */
+  field: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/interfaces/classInterfaceNamedQuery.invalid.ts:2:1 - error: Expected `@gqlInterface` class to be abstract. `@gqlInterface` can only be used on interface or abstract class declarations. e.g. `interface MyInterface {}` or `abstract class MyInterface {}`
+
+2 class Query {
+  ~~~~~~~~~~~~~
+3   /** @gqlField */
+  ~~~~~~~~~~~~~~~~~~
+4   field: string;
+  ~~~~~~~~~~~~~~~~
+5 }
+  ~

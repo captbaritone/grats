@@ -249,4 +249,59 @@ export class TypeContext {
     }
     return entityName;
   }
+
+  // Given the name of a class or interface, return all the parent classes and
+  // interfaces.
+  getAllParentClassesForName(name: ts.Identifier): Set<NameDefinition> {
+    const symbol = this.checker.getSymbolAtLocation(name);
+    if (symbol == null) {
+      return new Set();
+    }
+    return this.getAllParentClasses(symbol);
+  }
+
+  /*
+   * Walk the inheritance chain and collect all the parent classes.
+   */
+  getAllParentClasses(
+    symbol: ts.Symbol,
+    parents: Set<NameDefinition> = new Set(),
+  ): Set<NameDefinition> {
+    if (symbol.declarations == null) {
+      return parents;
+    }
+
+    for (const declaration of symbol.declarations) {
+      const extendsClauses = getClassHeritageClauses(declaration);
+      if (extendsClauses == null) {
+        continue;
+      }
+      for (const heritageClause of extendsClauses) {
+        for (const type of heritageClause.types) {
+          const typeSymbol = this.checker.getSymbolAtLocation(type.expression);
+          if (typeSymbol == null || typeSymbol.declarations == null) {
+            continue;
+          }
+          for (const decl of typeSymbol.declarations) {
+            const name = this._declarationToName.get(decl);
+            if (name != null) {
+              parents.add(name);
+            }
+          }
+          // Recurse to find the parents of the parent.
+          this.getAllParentClasses(typeSymbol, parents);
+        }
+      }
+    }
+    return parents;
+  }
+}
+
+function getClassHeritageClauses(
+  declaration: ts.Declaration,
+): ts.NodeArray<ts.HeritageClause> | null {
+  if (ts.isClassDeclaration(declaration)) {
+    return declaration.heritageClauses ?? null;
+  }
+  return null;
 }

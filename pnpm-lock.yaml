@@ -14,6 +14,9 @@ importers:
       graphql:
         specifier: ^16.9.0
         version: 16.9.0
+      semver:
+        specifier: ^7.5.4
+        version: 7.5.4
       typescript:
         specifier: 5.5.4
         version: 5.5.4
@@ -51,9 +54,6 @@ importers:
       process:
         specifier: ^0.11.10
         version: 0.11.10
-      semver:
-        specifier: ^7.5.4
-        version: 7.5.4
       ts-node:
         specifier: ^10.9.1
         version: 10.9.1(@types/node@18.15.0)(typescript@5.5.4)

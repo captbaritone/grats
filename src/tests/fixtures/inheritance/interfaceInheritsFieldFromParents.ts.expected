@@ -1,0 +1,64 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlInterface */
+interface A {
+  /** @gqlField */
+  aField: string;
+}
+
+/** @gqlInterface */
+interface B {
+  /** @gqlField */
+  bField: string;
+}
+
+/** @gqlInterface */
+interface C extends A, B {
+  aField: string;
+  bField: string;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/inheritance/interfaceInheritsFieldFromParents.ts:14:1 - error: Type C must define one or more fields.
+
+14 interface C extends A, B {
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~
+15   aField: string;
+   ~~~~~~~~~~~~~~~~~
+16   bField: string;
+   ~~~~~~~~~~~~~~~~~
+17 }
+   ~
+src/tests/fixtures/inheritance/interfaceInheritsFieldFromParents.ts:4:3 - error: Interface field A.aField expected but C does not provide it.
+
+4   aField: string;
+    ~~~~~~~~~~~~~~~
+
+  src/tests/fixtures/inheritance/interfaceInheritsFieldFromParents.ts:14:1
+    14 interface C extends A, B {
+       ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    15   aField: string;
+       ~~~~~~~~~~~~~~~~~
+    16   bField: string;
+       ~~~~~~~~~~~~~~~~~
+    17 }
+       ~
+    Related location
+src/tests/fixtures/inheritance/interfaceInheritsFieldFromParents.ts:10:3 - error: Interface field B.bField expected but C does not provide it.
+
+10   bField: string;
+     ~~~~~~~~~~~~~~~
+
+  src/tests/fixtures/inheritance/interfaceInheritsFieldFromParents.ts:14:1
+    14 interface C extends A, B {
+       ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    15   aField: string;
+       ~~~~~~~~~~~~~~~~~
+    16   bField: string;
+       ~~~~~~~~~~~~~~~~~
+    17 }
+       ~
+    Related location

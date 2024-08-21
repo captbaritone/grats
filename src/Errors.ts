@@ -63,7 +63,11 @@ export function invalidScalarTagUsage() {
 }
 
 export function invalidInterfaceTagUsage() {
-  return `\`@${INTERFACE_TAG}\` can only be used on interface declarations. e.g. \`interface MyInterface {}\``;
+  return `\`@${INTERFACE_TAG}\` can only be used on interface or abstract class declarations. e.g. \`interface MyInterface {}\` or \`abstract class MyInterface {}\``;
+}
+
+export function interfaceClassNotAbstract() {
+  return `Expected \`@${INTERFACE_TAG}\` class to be abstract. \`@${INTERFACE_TAG}\` can only be used on interface or abstract class declarations. e.g. \`interface MyInterface {}\` or \`abstract class MyInterface {}\``;
 }
 
 export function invalidEnumTagUsage() {

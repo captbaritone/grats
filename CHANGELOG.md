@@ -4,6 +4,11 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
+- **Breaking**
+  - GraphQL types and interfaces defined with TypeScript classes or interfaces will now inherit fields/interfaces from their inheritance/implementation chains. This means that if you define a GraphQL field on a parent class/interface, it will be inherited by the child class/interface. Previously each type/interface needed to independently mark the field as a `@gqlField`. (#145)
+- **Features**
+  - TypeScript classes (and abstract classes) can now be used to define GraphQL interfaces. (#145)
+
 ## 0.0.28
 
 Version `0.0.28` comes with a number of new features and should not have any breaking changes relative to `0.0.27`. The new features:

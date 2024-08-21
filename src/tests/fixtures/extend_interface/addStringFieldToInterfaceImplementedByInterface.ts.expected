@@ -37,87 +37,32 @@ class Admin implements IPerson, IThing {
 -----------------
 OUTPUT
 -----------------
--- SDL --
-interface IPerson implements IThing {
-  greeting: String
-}
+src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts:15:1 - error: Type IPerson must define one or more fields.
 
-interface IThing {
-  greeting: String
-}
+15 interface IPerson extends IThing {
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+16   name: string;
+   ~~~~~~~~~~~~~~~
+17   // Should have greeting added
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+18 }
+   ~
+src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts:2:1 - error: Interface field IThing.greeting expected but IPerson does not provide it.
 
-type Admin implements IPerson & IThing {
-  greeting: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts")
-}
+2 export function greeting(thing: IThing): string {
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3   return `Hello ${thing.name}!`;
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4 }
+  ~
 
-type User implements IPerson & IThing {
-  greeting: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts")
-}
--- TypeScript --
-import { greeting as adminGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";
-import { greeting as userGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";
-import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
-export function getSchema(): GraphQLSchema {
-    const IThingType: GraphQLInterfaceType = new GraphQLInterfaceType({
-        name: "IThing",
-        fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
-        name: "IPerson",
-        fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString
-                }
-            };
-        },
-        interfaces() {
-            return [IThingType];
-        }
-    });
-    const AdminType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Admin",
-        fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString,
-                    resolve(source) {
-                        return adminGreetingResolver(source);
-                    }
-                }
-            };
-        },
-        interfaces() {
-            return [IPersonType, IThingType];
-        }
-    });
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
-        name: "User",
-        fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString,
-                    resolve(source) {
-                        return userGreetingResolver(source);
-                    }
-                }
-            };
-        },
-        interfaces() {
-            return [IPersonType, IThingType];
-        }
-    });
-    return new GraphQLSchema({
-        types: [IPersonType, IThingType, AdminType, UserType]
-    });
-}
+  src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts:15:1
+    15 interface IPerson extends IThing {
+       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    16   name: string;
+       ~~~~~~~~~~~~~~~
+    17   // Should have greeting added
+       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    18 }
+       ~
+    Related location
