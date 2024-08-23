@@ -78,12 +78,7 @@ To publish a new release:
 Update `CHANGELOG.md` with the new version number and a summary of the changes.
 
 ```bash
-pnpm i
-pnpm run build
-pnpm version patch # or minor or major
-pnpm publish
-git push --tags
-git push origin
+./scripts/release.sh
 ```
 
 You probably want to upgrade Grats in the Code Sandbox example:
