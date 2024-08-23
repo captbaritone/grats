@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { Location } from "graphql";
+import * as E from "./Errors";
+import { GraphQLObjectType, Location } from "graphql";
 import { getParsedTsConfig } from "./";
 import {
   SchemaAndDoc,
@@ -14,8 +15,12 @@ import { version } from "../package.json";
 import { locate } from "./Locate";
 import { printGratsSDL, printExecutableSchema } from "./printSchema";
 import * as ts from "typescript";
-import { ReportableDiagnostics } from "./utils/DiagnosticError";
+import {
+  locationlessErr,
+  ReportableDiagnostics,
+} from "./utils/DiagnosticError";
 import { GratsConfig, ParsedCommandLineGrats } from "./gratsConfig";
+import { err, ok, Result } from "./utils/Result";
 
 const program = new Command();
 
@@ -44,16 +49,9 @@ program
     "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",
   )
   .action((entity, { tsconfig }) => {
-    const { config } = getTsConfigOrReportAndExit(tsconfig);
+    const { config } = handleDiagnostics(getTsConfig(tsconfig));
 
-    const schemaAndDocResult = buildSchemaAndDocResult(config);
-    if (schemaAndDocResult.kind === "ERROR") {
-      console.error(
-        schemaAndDocResult.err.formatDiagnosticsWithColorAndContext(),
-      );
-      process.exit(1);
-    }
-    const { schema } = schemaAndDocResult.value;
+    const { schema } = handleDiagnostics(buildSchemaAndDocResultForCli(config));
 
     const loc = locate(schema, entity);
     if (loc.kind === "ERROR") {
@@ -69,7 +67,7 @@ program.parse();
  * Run the compiler in watch mode.
  */
 function startWatchMode(tsconfig: string) {
-  const { config, configPath } = getTsConfigOrReportAndExit(tsconfig);
+  const { config, configPath } = handleDiagnostics(getTsConfig(tsconfig));
   const watchHost = ts.createWatchCompilerHost(
     configPath,
     {},
@@ -91,19 +89,37 @@ function startWatchMode(tsconfig: string) {
 }
 
 /**
+ * Like `buildSchemaAndDocResult` but applies a few additional validations that
+ * are considered helpful for CLI usage, like warning if you have no types defined..
+ */
+
+function buildSchemaAndDocResultForCli(
+  config: ParsedCommandLineGrats,
+): Result<SchemaAndDoc, ReportableDiagnostics> {
+  const result = buildSchemaAndDocResult(config);
+  if (result.kind === "ERROR") {
+    return result;
+  }
+  const types = Object.values(result.value.schema.getTypeMap());
+  if (!types.some((t) => t instanceof GraphQLObjectType)) {
+    return err(
+      ReportableDiagnostics.fromDiagnostics([
+        locationlessErr(E.noTypesDefined()),
+      ]),
+    );
+  }
+
+  return result;
+}
+
+/**
  * Run the compiler performing a single build.
  */
 function runBuild(tsconfig: string) {
-  const { config, configPath } = getTsConfigOrReportAndExit(tsconfig);
-  const schemaAndDocResult = buildSchemaAndDocResult(config);
-  if (schemaAndDocResult.kind === "ERROR") {
-    console.error(
-      schemaAndDocResult.err.formatDiagnosticsWithColorAndContext(),
-    );
-    process.exit(1);
-  }
+  const { config, configPath } = handleDiagnostics(getTsConfig(tsconfig));
+  const schemaAndDoc = handleDiagnostics(buildSchemaAndDocResultForCli(config));
 
-  writeSchemaFilesAndReport(schemaAndDocResult.value, config, configPath);
+  writeSchemaFilesAndReport(schemaAndDoc, config, configPath);
 }
 
 /**
@@ -138,22 +154,42 @@ function reportDiagnostics(diagnostics: ts.Diagnostic[]) {
   console.error(reportable.formatDiagnosticsWithColorAndContext());
 }
 
+/**
+ * Utility function to report diagnostics to the console.
+ */
+function handleDiagnostics<T>(result: Result<T, ReportableDiagnostics>): T {
+  if (result.kind === "ERROR") {
+    console.error(result.err.formatDiagnosticsWithColorAndContext());
+    process.exit(1);
+  }
+  return result.value;
+}
+
 // Locate and read the tsconfig.json file
-function getTsConfigOrReportAndExit(tsconfig?: string): {
-  configPath: string;
-  config: ParsedCommandLineGrats;
-} {
+function getTsConfig(tsconfig?: string): Result<
+  {
+    configPath: string;
+    config: ParsedCommandLineGrats;
+  },
+  ReportableDiagnostics
+> {
   const configPath =
     tsconfig || ts.findConfigFile(process.cwd(), ts.sys.fileExists);
   if (configPath == null) {
-    throw new Error("Grats: Could not find tsconfig.json");
+    return err(
+      ReportableDiagnostics.fromDiagnostics([
+        locationlessErr(
+          `Grats: Could not find \`tsconfig.json\` searching in ${process.cwd()}`,
+        ),
+      ]),
+    );
+    process.exit(1);
   }
   const optionsResult = getParsedTsConfig(configPath);
   if (optionsResult.kind === "ERROR") {
-    console.error(optionsResult.err.formatDiagnosticsWithColorAndContext());
-    process.exit(1);
+    return err(optionsResult.err);
   }
-  return { configPath, config: optionsResult.value };
+  return ok({ configPath, config: optionsResult.value });
 }
 
 // Format a location for printing to the console. Tools like VS Code and iTerm

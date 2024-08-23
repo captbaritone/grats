@@ -594,3 +594,7 @@ export function contextOrInfoUsedInGraphQLPosition(kind: "CONTEXT" | "INFO") {
 export function typeWithNoFields(kind: string, typeName: string) {
   return `${kind} \`${typeName}\` must define one or more fields.\n\nAdd a field by adding \`/** @${FIELD_TAG} */\` above a field, property, attribute or method of this type, or above a function that has \`${typeName}\` as its first argument.`;
 }
+
+export function noTypesDefined() {
+  return `Grats could not find any GraphQL types defined in this project.\n\nDeclare a type by adding a \`/** @${TYPE_TAG} */\` docblock above a class, interface, or type alias declaration. Grats looks for docblock tags in any TypeScript file included in your TypeScript project.`;
+}

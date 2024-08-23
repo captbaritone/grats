@@ -113,6 +113,18 @@ export function graphQlErrorToDiagnostic(error: GraphQLError): ts.Diagnostic {
   };
 }
 
+export function locationlessErr(message: string): ts.Diagnostic {
+  return {
+    messageText: message,
+    file: undefined,
+    code: FAKE_ERROR_CODE,
+    category: ts.DiagnosticCategory.Error,
+    start: undefined,
+    length: undefined,
+    source: "Grats",
+  };
+}
+
 export function gqlErr(
   item: { loc?: Location },
   message: string,
