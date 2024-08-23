@@ -4,6 +4,11 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
+- **Features**
+  - Custom error messages when types or interfaces are missing fields which suggests adding a `@gqlField` docblock tag.
+- **Bug Fixes**
+  - Include `semver` as dependency in `package.json` which was accidentally only included as a dev dependency.
+
 ## 0.0.28
 
 Version `0.0.28` comes with a number of new features and should not have any breaking changes relative to `0.0.27`. The new features:
