@@ -13,7 +13,6 @@ import {
 import { DiagnosticsResult, gqlErr } from "../utils/DiagnosticError";
 import { err, ok } from "../utils/Result";
 import * as E from "../Errors";
-import { loc } from "../utils/helpers";
 
 /**
  * Ensure that all fields on `Subscription` return an AsyncIterable and transform
@@ -45,9 +44,7 @@ export function validateAsyncIterable(
     const inner = innerType(field.type); // Remove any non-null wrapper types
 
     if (inner.kind !== Kind.LIST_TYPE || !inner.isAsyncIterable) {
-      errors.push(
-        gqlErr(loc(field.type), E.subscriptionFieldNotAsyncIterable()),
-      );
+      errors.push(gqlErr(field.type, E.subscriptionFieldNotAsyncIterable()));
       return field;
     }
 

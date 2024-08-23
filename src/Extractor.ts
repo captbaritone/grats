@@ -34,7 +34,7 @@ import { GraphQLConstructor } from "./GraphQLConstructor";
 import { relativePath } from "./gratsRoot";
 import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
-import { extend, invariant, loc } from "./utils/helpers";
+import { extend, invariant } from "./utils/helpers";
 import * as Act from "./CodeActions";
 import {
   InputValueDefinitionNodeOrResolverArg,
@@ -577,7 +577,7 @@ class Extractor {
     const [typeParam, ...restParams] = node.parameters;
     if (typeParam == null) {
       // TODO: Make error generic
-      this.errors.push(gqlErr(loc(name), E.invalidParentArgForFunctionField()));
+      this.errors.push(gqlErr(name, E.invalidParentArgForFunctionField()));
       return;
     }
 
@@ -590,9 +590,7 @@ class Extractor {
 
     if (node.type == null) {
       // TODO: Make error generic
-      this.errors.push(
-        gqlErr(loc(name), E.invalidReturnTypeForFunctionField()),
-      );
+      this.errors.push(gqlErr(name, E.invalidReturnTypeForFunctionField()));
       return;
     }
 

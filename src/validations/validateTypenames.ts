@@ -12,7 +12,7 @@ import {
   gqlRelated,
 } from "../utils/DiagnosticError";
 import { err, ok } from "../utils/Result";
-import { loc, nullThrows } from "../utils/helpers";
+import { nullThrows } from "../utils/helpers";
 import * as E from "../Errors";
 
 /**
@@ -38,7 +38,7 @@ export function validateTypenames(
           type instanceof GraphQLInterfaceType
             ? E.genericTypeImplementsInterface()
             : E.genericTypeUsedAsUnionMember();
-        errors.push(gqlErr(loc(ast.name), message));
+        errors.push(gqlErr(ast.name, message));
       } else if (!hasTypename.has(implementor.name) && ast.exported == null) {
         const message =
           type instanceof GraphQLInterfaceType
@@ -51,9 +51,9 @@ export function validateTypenames(
                 type.name,
               );
 
-        const err = gqlErr(loc(ast.name), message, [
+        const err = gqlErr(ast.name, message, [
           gqlRelated(
-            loc(nullThrows(type.astNode).name),
+            nullThrows(type.astNode).name,
             `${type.name} is defined here:`,
           ),
         ]);

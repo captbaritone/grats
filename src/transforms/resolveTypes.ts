@@ -23,7 +23,7 @@ import {
   gqlErr,
   tsErr,
 } from "../utils/DiagnosticError";
-import { extend, loc as getLoc, nullThrows } from "../utils/helpers";
+import { extend, nullThrows } from "../utils/helpers";
 import * as E from "../Errors";
 
 type Template = {
@@ -280,8 +280,8 @@ class TemplateExtractor {
     }
     if (definition.kind === Kind.OBJECT_TYPE_DEFINITION) {
       if (definition.interfaces && definition.interfaces.length > 0) {
-        const loc = getLoc(definition.interfaces[0].name);
-        this._errors.push(gqlErr(loc, E.genericTypeImplementsInterface()));
+        const item = definition.interfaces[0].name;
+        this._errors.push(gqlErr(item, E.genericTypeImplementsInterface()));
       }
     }
     this._templates.set(declaration, {

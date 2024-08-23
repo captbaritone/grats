@@ -1,5 +1,3 @@
-import { Location } from "graphql";
-
 export class DefaultMap<K, V> {
   _map: Map<K, V> = new Map();
   constructor(private readonly getDefault: () => V) {}
@@ -18,13 +16,6 @@ export function extend<T>(a: T[], b: readonly T[]) {
   for (const item of b) {
     a.push(item);
   }
-}
-
-export function loc(item: { loc?: Location }): Location {
-  if (item.loc == null) {
-    throw new Error("Expected item to have loc");
-  }
-  return item.loc;
 }
 
 export function astNode<T>(item: { astNode?: T | undefined | null }): T {

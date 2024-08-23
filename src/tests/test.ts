@@ -151,7 +151,7 @@ const testDirs = [
         }
 
         return new ReportableDiagnostics(compilerHost, [
-          gqlErr(locResult.value, "Located here"),
+          gqlErr({ loc: locResult.value }, "Located here"),
         ]).formatDiagnosticsWithContext();
       } else {
         const docSansDirectives = {

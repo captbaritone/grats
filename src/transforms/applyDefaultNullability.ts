@@ -10,7 +10,7 @@ import {
 } from "../publicDirectives";
 import { GraphQLConstructor } from "../GraphQLConstructor";
 import { GratsConfig } from "../gratsConfig";
-import { loc } from "../utils/helpers";
+import { nullThrows } from "../utils/helpers";
 
 /**
  * Grats has options to make all fields nullable by default to conform to
@@ -32,13 +32,13 @@ export function applyDefaultNullability(
         // You can only use @killsParentOnException if nullableByDefault is on.
         if (!nullableByDefault) {
           errors.push(
-            gqlErr(loc(killsParent), E.killsParentOnExceptionWithWrongConfig()),
+            gqlErr(killsParent, E.killsParentOnExceptionWithWrongConfig()),
           );
         }
         // You can't use @killsParentOnException if it's been typed as nullable
         if (t.type.kind !== Kind.NON_NULL_TYPE) {
           errors.push(
-            gqlErr(loc(killsParent), E.killsParentOnExceptionOnNullable()),
+            gqlErr(killsParent, E.killsParentOnExceptionOnNullable()),
           );
         }
         // Set the location of the NON_NULL_TYPE wrapper to the location of the
@@ -50,7 +50,9 @@ export function applyDefaultNullability(
         const type = gql.nullableType(t.type);
         let directives = t.directives ?? [];
         if (strictSemanticNullability) {
-          const semanticNullability = makeSemanticNonNullDirective(loc(t.type));
+          const semanticNullability = makeSemanticNonNullDirective(
+            nullThrows(t.type.loc),
+          );
           directives = [...directives, semanticNullability];
         }
         return { ...t, directives, type };

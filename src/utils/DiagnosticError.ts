@@ -90,9 +90,7 @@ export function graphQlErrorToDiagnostic(error: GraphQLError): ts.Diagnostic {
           if (relatedNode.loc == null) {
             continue;
           }
-          relatedInformation.push(
-            gqlRelated(relatedNode.loc, "Related location"),
-          );
+          relatedInformation.push(gqlRelated(relatedNode, "Related location"));
         }
       }
     }
@@ -116,10 +114,14 @@ export function graphQlErrorToDiagnostic(error: GraphQLError): ts.Diagnostic {
 }
 
 export function gqlErr(
-  loc: Location,
+  item: { loc?: Location },
   message: string,
   relatedInformation?: ts.DiagnosticRelatedInformation[],
 ): ts.DiagnosticWithLocation {
+  if (item.loc == null) {
+    throw new Error("Expected item to have loc");
+  }
+  const loc = item.loc;
   return {
     messageText: message,
     file: graphqlSourceToSourceFile(loc.source),
@@ -133,9 +135,13 @@ export function gqlErr(
 }
 
 export function gqlRelated(
-  loc: Location,
+  item: { loc?: Location },
   message: string,
 ): ts.DiagnosticRelatedInformation {
+  if (item.loc == null) {
+    throw new Error("Expected item to have loc");
+  }
+  const loc = item.loc;
   return {
     category: ts.DiagnosticCategory.Message,
     code: FAKE_ERROR_CODE,

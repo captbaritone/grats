@@ -13,7 +13,7 @@ import {
 import { err, ok } from "../utils/Result";
 import { GratsConfig } from "../gratsConfig";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
-import { astNode, loc } from "../utils/helpers";
+import { astNode } from "../utils/helpers";
 
 /**
  * Ensure that all semantically non-nullable fields on an interface are also
@@ -59,14 +59,9 @@ export function validateSemanticNullability(
         if (typeSemanticNonNull == null) {
           errors.push(
             gqlErr(
-              loc(interfaceSemanticNonNull),
+              interfaceSemanticNonNull,
               `Interface field \`${implementor.name}.${implementorField.name}\` expects a non-nullable type but \`${interfaceType.name}.${interfaceField.name}\` is nullable.`,
-              [
-                gqlRelated(
-                  loc(astNode(implementorField).type),
-                  "Related location",
-                ),
-              ],
+              [gqlRelated(astNode(implementorField).type, "Related location")],
             ),
           );
         }

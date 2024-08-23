@@ -590,3 +590,7 @@ export function contextOrInfoUsedInGraphQLPosition(kind: "CONTEXT" | "INFO") {
   const tag = kind === "CONTEXT" ? CONTEXT_TAG : INFO_TAG;
   return `Cannot use \`${tag}\` as a type in GraphQL type position.`;
 }
+
+export function typeWithNoFields(kind: string, typeName: string) {
+  return `${kind} \`${typeName}\` must define one or more fields.\n\nAdd a field by adding \`/** @${FIELD_TAG} */\` above a field, property, attribute or method of this type, or above a function that has \`${typeName}\` as its first argument.`;
+}

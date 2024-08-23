@@ -6,7 +6,7 @@ import {
   Location,
 } from "graphql";
 import { Result, err, ok } from "./utils/Result";
-import { loc } from "./utils/helpers";
+import { nullThrows } from "./utils/helpers";
 
 type EntityName = {
   parent: string;
@@ -36,7 +36,7 @@ export function locate(
         `Grats bug: Cannot find location of type \`${entity.parent}\`.`,
       );
     }
-    return ok(loc(type.astNode.name));
+    return ok(nullThrows(type.astNode.name.loc));
   }
 
   if (
@@ -63,7 +63,7 @@ export function locate(
       `Grats bug: Cannot find location of field \`${entity.field}\` on type \`${entity.parent}\`.`,
     );
   }
-  return ok(loc(field.astNode.name));
+  return ok(nullThrows(field.astNode.name.loc));
 }
 
 const ENTITY_NAME_REGEX = /^([A-Za-z0-9_]+)(?:\.([A-Za-z0-9_]+))?$/;

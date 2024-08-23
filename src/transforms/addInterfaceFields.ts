@@ -125,13 +125,11 @@ function addAbstractFieldDefinition(
     }
     default: {
       // Extending any other type of definition is not supported.
-      const loc = nullThrows(doc.name.loc);
-      const relatedLoc = nullThrows(nameDefinition.name.loc);
 
       return err(
-        gqlErr(loc, E.invalidTypePassedToFieldFunction(), [
+        gqlErr(doc.name, E.invalidTypePassedToFieldFunction(), [
           gqlRelated(
-            relatedLoc,
+            nameDefinition.name,
             `This is the type that was passed to \`@${FIELD_TAG}\`.`,
           ),
         ]),

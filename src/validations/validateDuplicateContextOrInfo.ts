@@ -6,7 +6,6 @@ import {
   gqlErr,
   gqlRelated,
 } from "../utils/DiagnosticError";
-import { loc } from "../utils/helpers";
 import * as E from "../Errors";
 
 export function validateDuplicateContextOrInfo(
@@ -20,9 +19,9 @@ export function validateDuplicateContextOrInfo(
       case "CONTEXT":
         if (ctxDefinition != null) {
           errors.push(
-            gqlErr(loc(namedDefinition.name), E.duplicateContextTag(), [
+            gqlErr(namedDefinition.name, E.duplicateContextTag(), [
               gqlRelated(
-                loc(ctxDefinition.name),
+                ctxDefinition.name,
                 "`@gqlContext` previously defined here.",
               ),
             ]),
@@ -33,9 +32,7 @@ export function validateDuplicateContextOrInfo(
         break;
       case "INFO":
         if (infoDefinition != null) {
-          errors.push(
-            gqlErr(loc(namedDefinition.name), E.userDefinedInfoTag()),
-          );
+          errors.push(gqlErr(namedDefinition.name, E.userDefinedInfoTag()));
           continue;
         }
         infoDefinition = namedDefinition;

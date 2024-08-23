@@ -32,6 +32,7 @@ import { validateDuplicateContextOrInfo } from "./validations/validateDuplicateC
 import { validateSemanticNullability } from "./validations/validateSemanticNullability";
 import { resolveTypes } from "./transforms/resolveTypes";
 import { resolveResolverParams } from "./transforms/resolveResolverParams";
+import { customSpecValidations } from "./validations/customSpecValidations";
 
 // Export the TypeScript plugin implementation used by
 // grats-ts-plugin
@@ -115,6 +116,9 @@ export function extractSchemaAndDoc(
         .andThen((doc) => applyDefaultNullability(doc, config))
         // Merge any `extend` definitions into their base definitions.
         .map((doc) => mergeExtensions(doc))
+        // Perform custom validations that reimplement spec validation rules
+        // with more tailored error messages.
+        .andThen((doc) => customSpecValidations(doc))
         // Sort the definitions in the document to ensure a stable output.
         .map((doc) => sortSchemaAst(doc))
         .result();

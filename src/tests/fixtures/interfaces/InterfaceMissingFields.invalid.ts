@@ -1,0 +1,2 @@
+/** @gqlInterface */
+interface SomeType {}

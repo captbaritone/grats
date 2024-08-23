@@ -15,7 +15,6 @@ import {
 import { err, ok } from "./utils/Result";
 import * as E from "./Errors";
 import { ExtractionSnapshot } from "./Extractor";
-import { loc } from "./utils/helpers";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
@@ -130,7 +129,7 @@ export class TypeContext {
     if (ts.isTypeParameterDeclaration(declarationResult.value)) {
       return err(
         gqlErr(
-          loc(unresolved),
+          unresolved,
           "Type parameters are not supported in this context.",
         ),
       );
@@ -138,14 +137,14 @@ export class TypeContext {
 
     const nameDefinition = this._declarationToName.get(declarationResult.value);
     if (nameDefinition == null) {
-      return err(gqlErr(loc(unresolved), E.unresolvedTypeReference()));
+      return err(gqlErr(unresolved, E.unresolvedTypeReference()));
     }
     if (nameDefinition.kind === "CONTEXT" || nameDefinition.kind === "INFO") {
       return err(
         gqlErr(
-          loc(unresolved),
+          unresolved,
           E.contextOrInfoUsedInGraphQLPosition(nameDefinition.kind),
-          [gqlRelated(loc(nameDefinition.name), "Defined here")],
+          [gqlRelated(nameDefinition.name, "Defined here")],
         ),
       );
     }
@@ -170,11 +169,11 @@ export class TypeContext {
 
     const declaration = this.maybeTsDeclarationForTsName(referenceNode);
     if (declaration == null) {
-      return err(gqlErr(loc(nameNode), E.unresolvedTypeReference()));
+      return err(gqlErr(nameNode, E.unresolvedTypeReference()));
     }
     const definition = this._declarationToName.get(declaration);
     if (definition == null) {
-      return err(gqlErr(loc(nameNode), E.unresolvedTypeReference()));
+      return err(gqlErr(nameNode, E.unresolvedTypeReference()));
     }
     return ok(definition);
   }
@@ -200,7 +199,7 @@ export class TypeContext {
     if (nameDefinition.kind === "CONTEXT" || nameDefinition.kind === "INFO") {
       return err(
         tsErr(node, E.contextOrInfoUsedInGraphQLPosition(nameDefinition.kind), [
-          gqlRelated(loc(nameDefinition.name), "Defined here"),
+          gqlRelated(nameDefinition.name, "Defined here"),
         ]),
       );
     }

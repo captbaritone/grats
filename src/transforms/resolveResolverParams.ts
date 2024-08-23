@@ -13,7 +13,7 @@ import {
   gqlRelated,
   tsErr,
 } from "../utils/DiagnosticError";
-import { loc, nullThrows } from "../utils/helpers";
+import { nullThrows } from "../utils/helpers";
 import {
   NamedFieldParam,
   PositionalFieldParam,
@@ -77,7 +77,7 @@ class ResolverParamsResolver {
       this.errors.push(
         tsErr(nullThrows(args.sourceNode), E.positionalArgAndArgsObject(), [
           gqlRelated(
-            loc(positionalArgs[0].inputDefinition),
+            positionalArgs[0].inputDefinition,
             "Positional GraphQL argument defined here",
           ),
         ]),
