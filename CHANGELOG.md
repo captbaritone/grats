@@ -7,8 +7,7 @@ Changes in this section are not yet released. If you need access to these change
 - **Features**
   - Custom error messages when types or interfaces are missing fields which suggests adding a `@gqlField` docblock tag.
   - Custom error message when your project has no types defined. Intended to help guide new users.
-- **Bug Fixes**
-  -
+- ## **Bug Fixes**
 
 ## 0.0.29
 
