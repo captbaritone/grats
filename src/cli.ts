@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import * as E from "./Errors";
-import { GraphQLObjectType, Location } from "graphql";
+import { GraphQLNamedType, GraphQLObjectType, Location } from "graphql";
 import { getParsedTsConfig } from "./";
 import {
   SchemaAndDoc,
@@ -88,6 +88,10 @@ function startWatchMode(tsconfig: string) {
   ts.createWatchProgram(watchHost);
 }
 
+function isUserDefinedType(type: GraphQLNamedType): boolean {
+  return type instanceof GraphQLObjectType && !type.name.startsWith("__");
+}
+
 /**
  * Like `buildSchemaAndDocResult` but applies a few additional validations that
  * are considered helpful for CLI usage, like warning if you have no types defined..
@@ -101,7 +105,7 @@ function buildSchemaAndDocResultForCli(
     return result;
   }
   const types = Object.values(result.value.schema.getTypeMap());
-  if (!types.some((t) => t instanceof GraphQLObjectType)) {
+  if (!types.some((t) => isUserDefinedType(t))) {
     return err(
       ReportableDiagnostics.fromDiagnostics([
         locationlessErr(E.noTypesDefined()),
@@ -173,17 +177,14 @@ function getTsConfig(tsconfig?: string): Result<
   },
   ReportableDiagnostics
 > {
-  const configPath =
-    tsconfig || ts.findConfigFile(process.cwd(), ts.sys.fileExists);
+  const cwd = process.cwd();
+  const configPath = tsconfig || ts.findConfigFile(cwd, ts.sys.fileExists);
   if (configPath == null) {
     return err(
       ReportableDiagnostics.fromDiagnostics([
-        locationlessErr(
-          `Grats: Could not find \`tsconfig.json\` searching in ${process.cwd()}`,
-        ),
+        locationlessErr(E.tsConfigNotFound(cwd)),
       ]),
     );
-    process.exit(1);
   }
   const optionsResult = getParsedTsConfig(configPath);
   if (optionsResult.kind === "ERROR") {

@@ -15,10 +15,6 @@ export { codegen } from "./codegen";
 export function getParsedTsConfig(
   configFile: string,
 ): Result<ParsedCommandLineGrats, ReportableDiagnostics> {
-  if (!configFile) {
-    throw new Error("Grats: Could not find tsconfig.json");
-  }
-
   // https://github.com/microsoft/TypeScript/blob/46d70d79cd0dd00d19e4c617d6ebb25e9f3fc7de/src/compiler/watch.ts#L216
   const configFileHost: ts.ParseConfigFileHost = ts.sys as any;
   const parsed = ts.getParsedCommandLineOfConfigFile(

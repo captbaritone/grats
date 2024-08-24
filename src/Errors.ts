@@ -592,9 +592,13 @@ export function contextOrInfoUsedInGraphQLPosition(kind: "CONTEXT" | "INFO") {
 }
 
 export function typeWithNoFields(kind: string, typeName: string) {
-  return `${kind} \`${typeName}\` must define one or more fields.\n\nAdd a field by adding \`/** @${FIELD_TAG} */\` above a field, property, attribute or method of this type, or above a function that has \`${typeName}\` as its first argument.`;
+  return `${kind} \`${typeName}\` must define one or more fields.\n\nDefine a field by adding \`/** @${FIELD_TAG} */\` above a field, property, attribute or method of this type, or above a function that has \`${typeName}\` as its first argument.`;
 }
 
 export function noTypesDefined() {
-  return `Grats could not find any GraphQL types defined in this project.\n\nDeclare a type by adding a \`/** @${TYPE_TAG} */\` docblock above a class, interface, or type alias declaration. Grats looks for docblock tags in any TypeScript file included in your TypeScript project.`;
+  return `Grats could not find any GraphQL types defined in this project.\n\nDeclare a type by adding a \`/** @${TYPE_TAG} */\` docblock above a class, interface, or type alias declaration.\nGrats looks for docblock tags in any TypeScript file included in your TypeScript project.`;
+}
+
+export function tsConfigNotFound(cwd: string) {
+  return `Grats: Could not find \`tsconfig.json\` searching in ${cwd}.\n\nSee https://www.typescriptlang.org/download/ for instructors on how to add TypeScript to your project. Then run \`npx tsc --init\` to create a \`tsconfig.json\` file.`;
 }
