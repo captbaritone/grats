@@ -11,6 +11,7 @@ import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 import { buildSchemaAndDocResultWithHost } from "grats/src/lib";
 import GRATS_TYPE_DECLARATIONS from "!!raw-loader!grats/src/Types.ts";
 import { createSelector } from "reselect";
+import { print } from "graphql";
 import { printSDLWithoutMetadata } from "grats/src/printSchema";
 import store from "./store";
 
