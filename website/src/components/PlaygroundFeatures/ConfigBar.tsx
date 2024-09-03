@@ -2,6 +2,7 @@ import React from "react";
 import store, {
   getNullableByDefault,
   getOutputOption,
+  getSemanticNullability,
   getShowGratsDirectives,
   useAppSelector,
 } from "./store";
@@ -11,6 +12,7 @@ import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 
 export default function ConfigBar(): JSX.Element {
   const nullableByDefault = useAppSelector(getNullableByDefault);
+  const semanticNullability = useAppSelector(getSemanticNullability);
   const showGratsDirectives = useAppSelector(getShowGratsDirectives);
   const outputOption = useAppSelector(getOutputOption);
   const { gitHash } = useDocusaurusContext().siteConfig.customFields as {
@@ -44,7 +46,20 @@ export default function ConfigBar(): JSX.Element {
                 });
               }}
             />
-            Make fields nullable by default
+            Nullable by default
+          </Label>
+          <Label>
+            <input
+              checked={semanticNullability}
+              type="checkbox"
+              onChange={(e) => {
+                store.dispatch({
+                  type: "SEMANTIC_NULLABILITY_INPUT_CHANGED",
+                  value: e.target.checked,
+                });
+              }}
+            />
+            Semantic nullability
           </Label>
         </ConfigBlock>
         <div style={{ display: "flex", gap: "1em" }}>

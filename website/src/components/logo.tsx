@@ -5,38 +5,51 @@ const _TS_DARK = "#00273F";
 const GRAPHQL_RHODAMINE = "#E10098";
 const GRAPHQL_MID = "rgb(196 56 150)";
 
-const OFFSET = 20;
+export const OFFSET = 20;
 
-function calculateHexagonPoints(): { x: number; y: number }[] {
-  const width = 100;
-  const height = 100;
+export function GratsLogoWithName() {
+  return (
+    <svg
+      width={100 + OFFSET * 2}
+      height={130 + OFFSET * 2}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <GratsLogoImpl />
+      <polyline
+        points="80,40 60,50 80,60"
+        fill="none"
+        stroke={GRAPHQL_RHODAMINE}
+        strokeWidth={10}
+      />
 
-  const centerX = width / 2;
-  const centerY = height / 2;
-
-  const radius = height / 2;
-
-  const points: { x: number; y: number }[] = [];
-
-  // Calculate the angle offset (30 degrees in radians)
-  const angleOffset = Math.PI / 6;
-
-  // Calculate the points of the hexagon
-  for (let i = 0; i < 6; i++) {
-    const angle = (i * Math.PI) / 3 + angleOffset;
-    const x = centerX + radius * Math.cos(angle);
-    const y = centerY + radius * Math.sin(angle);
-    points.push({ x, y });
-  }
-
-  return points;
+      <text
+        x="50%"
+        y="140"
+        font-family="Arial"
+        font-size="24"
+        fill={TS_BLUE}
+        text-anchor="middle"
+        alignment-baseline="middle"
+      >
+        Grats
+      </text>
+    </svg>
+  );
 }
 
-function offset(pos) {
-  return { x: pos.x + OFFSET, y: pos.y + OFFSET };
+export function GratsLogo() {
+  return (
+    <svg
+      width={100 + OFFSET * 2}
+      height={100 + OFFSET * 2}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <GratsLogoImpl />
+    </svg>
+  );
 }
 
-export function GratsLogo({ opacity = 1 }) {
+export function GratsLogoImpl({ opacity = 1 }) {
   // Compute points of the hexagon with points
   // at the middle top and bottom
   const points = calculateHexagonPoints().map(offset);
@@ -58,11 +71,7 @@ export function GratsLogo({ opacity = 1 }) {
   const gradient0 = "grad0";
   const gradient45 = "grad45";
   return (
-    <svg
-      width={100 + OFFSET * 2}
-      height={100 + OFFSET * 2}
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <>
       <defs>
         <LinearGradient
           angle={120}
@@ -121,7 +130,7 @@ export function GratsLogo({ opacity = 1 }) {
           fill="none"
         />
       </>
-    </svg>
+    </>
   );
 }
 
@@ -166,4 +175,33 @@ function LinearGradient({ angle, startColor, endColor, id }) {
       <stop offset="100%" style={{ stopColor: endColor, stopOpacity: 1 }} />
     </linearGradient>
   );
+}
+
+function calculateHexagonPoints(): { x: number; y: number }[] {
+  const width = 100;
+  const height = 100;
+
+  const centerX = width / 2;
+  const centerY = height / 2;
+
+  const radius = height / 2;
+
+  const points: { x: number; y: number }[] = [];
+
+  // Calculate the angle offset (30 degrees in radians)
+  const angleOffset = Math.PI / 6;
+
+  // Calculate the points of the hexagon
+  for (let i = 0; i < 6; i++) {
+    const angle = (i * Math.PI) / 3 + angleOffset;
+    const x = centerX + radius * Math.cos(angle);
+    const y = centerY + radius * Math.sin(angle);
+    points.push({ x, y });
+  }
+
+  return points;
+}
+
+function offset(pos) {
+  return { x: pos.x + OFFSET, y: pos.y + OFFSET };
 }
