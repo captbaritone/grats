@@ -9,6 +9,7 @@ export type State = {
   doc: string;
   config: {
     nullableByDefault: boolean;
+    strictSemanticNullability: boolean;
     reportTypeScriptTypeErrors: boolean;
   };
   view: {
@@ -40,6 +41,10 @@ export type Action =
     }
   | {
       type: "DEFAULT_NULLABLE_INPUT_CHANGED";
+      value: boolean;
+    }
+  | {
+      type: "SEMANTIC_NULLABILITY_INPUT_CHANGED";
       value: boolean;
     }
   | {
@@ -84,14 +89,32 @@ function reducer(state: State = stateFromUrl(), action: Action) {
           outputOption: action.value,
         },
       };
-    case "DEFAULT_NULLABLE_INPUT_CHANGED":
+    case "DEFAULT_NULLABLE_INPUT_CHANGED": {
+      const strictSemanticNullability = action.value
+        ? state.config.strictSemanticNullability
+        : false;
       return {
         ...state,
         config: {
           ...state.config,
+          strictSemanticNullability,
           nullableByDefault: action.value,
         },
       };
+    }
+    case "SEMANTIC_NULLABILITY_INPUT_CHANGED": {
+      const nullableByDefault = action.value
+        ? true
+        : state.config.nullableByDefault;
+      return {
+        ...state,
+        config: {
+          ...state.config,
+          nullableByDefault,
+          strictSemanticNullability: action.value,
+        },
+      };
+    }
     case "GRATS_EMITTED_NEW_RESULT":
       return {
         ...state,
@@ -174,6 +197,10 @@ export function getGratsTypeScriptResult(state: State): string | null {
 
 export function getNullableByDefault(state): boolean {
   return state.config.nullableByDefault;
+}
+
+export function getSemanticNullability(state): boolean {
+  return state.config.strictSemanticNullability;
 }
 
 export function getShowGratsDirectives(state): boolean {

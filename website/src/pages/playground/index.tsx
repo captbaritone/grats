@@ -7,11 +7,8 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 import FillRemainingHeight from "../../components/PlaygroundFeatures/FillRemainingHeight";
 import { bindGratsToStore } from "../../components/PlaygroundFeatures/gratsStoreBindings";
 import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
-const InputEditor = React.lazy(
-  () => import("../../components/MonacoPlayground/InputEditor"),
-);
-const OutputEditor = React.lazy(
-  () => import("../../components/MonacoPlayground/OutputEditor"),
+const BothEditors = React.lazy(
+  () => import("../../components/MonacoPlayground/BothEditors"),
 );
 
 if (ExecutionEnvironment.canUseDOM) {
@@ -68,8 +65,7 @@ export default function EditorView() {
                       </div>
                     }
                   >
-                    <InputEditor />
-                    <OutputEditor />
+                    <BothEditors />
                   </Suspense>
                 </div>
               </div>
