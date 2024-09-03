@@ -57,7 +57,9 @@ const ResizableComponent = ({ children }) => {
     const updateDimensions = () => {
       if (ref.current) {
         setDimensions({
+          // @ts-ignore
           width: ref.current.offsetWidth,
+          // @ts-ignore
           height: ref.current.offsetHeight,
         });
       }

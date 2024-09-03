@@ -14,7 +14,7 @@ import { createSelector } from "reselect";
 import { printSDLWithoutMetadata } from "grats/src/printSchema";
 import store from "./store";
 
-const SHOULD_CACHE = false;
+const SHOULD_CACHE = true;
 const GRATS_PATH = "/node_modules/grats/src/index.ts";
 
 if (ExecutionEnvironment.canUseDOM) {

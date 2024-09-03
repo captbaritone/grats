@@ -1,14 +1,25 @@
-import React from "react";
-import InputView from "../../components/PlaygroundFeatures/editors/InputView";
-import OutputView from "../../components/PlaygroundFeatures/editors/OutputView";
-import ConfigBar from "../../components/PlaygroundFeatures/ConfigBar";
 import Layout from "@theme/Layout";
-import store from "../../components/PlaygroundFeatures/store";
+import React, { Suspense } from "react";
+import ConfigBar from "../../components/PlaygroundFeatures/ConfigBar";
+import store, { useUrlState } from "../../components/PlaygroundFeatures/store";
 import { Provider } from "react-redux";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 import FillRemainingHeight from "../../components/PlaygroundFeatures/FillRemainingHeight";
+import { bindGratsToStore } from "../../components/PlaygroundFeatures/gratsStoreBindings";
+import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
+const InputEditor = React.lazy(
+  () => import("../../components/MonacoPlayground/InputEditor"),
+);
+const OutputEditor = React.lazy(
+  () => import("../../components/MonacoPlayground/OutputEditor"),
+);
 
-export default function Playground(): JSX.Element {
+if (ExecutionEnvironment.canUseDOM) {
+  bindGratsToStore();
+}
+
+export default function EditorView() {
+  useUrlState(store);
   return (
     <Layout title={`Playground`} noFooter>
       <BrowserOnly>
@@ -35,8 +46,31 @@ export default function Playground(): JSX.Element {
                     overflow: "scroll",
                   }}
                 >
-                  <InputView />
-                  <OutputView />
+                  <Suspense
+                    fallback={
+                      <div
+                        style={{
+                          height: "100%",
+                          width: "100%",
+                          display: "flex",
+                        }}
+                      >
+                        <div
+                          style={{
+                            margin: "auto",
+                            flexDirection: "column",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          Loading...
+                        </div>
+                      </div>
+                    }
+                  >
+                    <InputEditor />
+                    <OutputEditor />
+                  </Suspense>
                 </div>
               </div>
             </Provider>

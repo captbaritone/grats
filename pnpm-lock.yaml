@@ -263,24 +263,6 @@ importers:
       '@algolia/client-search':
         specifier: ^4.17.0
         version: 4.17.0
-      '@codemirror/commands':
-        specifier: ^6.2.2
-        version: 6.2.2
-      '@codemirror/lang-javascript':
-        specifier: ^6.1.4
-        version: 6.1.4
-      '@codemirror/language':
-        specifier: ^6.6.0
-        version: 6.6.0
-      '@codemirror/lint':
-        specifier: ^6.2.0
-        version: 6.2.0
-      '@codemirror/state':
-        specifier: ^6.2.0
-        version: 6.2.0
-      '@codemirror/view':
-        specifier: ^6.9.3
-        version: 6.9.3
       '@docusaurus/core':
         specifier: 3.4.0
         version: 3.4.0(@docusaurus/types@3.4.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(eslint@8.36.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(typescript@5.5.4)
@@ -317,18 +299,12 @@ importers:
       clsx:
         specifier: ^1.2.1
         version: 1.2.1
-      cm6-graphql:
-        specifier: ^0.0.3
-        version: 0.0.3(@codemirror/language@6.6.0)
       glob:
         specifier: ^9.3.4
         version: 9.3.4
       graphql:
         specifier: ^16.6.0
         version: 16.6.0
-      graphql-language-service:
-        specifier: ^5.1.2
-        version: 5.1.3(graphql@16.6.0)
       grats:
         specifier: workspace:*
         version: link:..
@@ -1308,32 +1284,6 @@ packages:
   '@bugsnag/safe-json-stringify@6.0.0':
     resolution: {integrity: sha512-htzFO1Zc57S8kgdRK9mLcPVTW1BY2ijfH7Dk2CeZmspTWKdKqSo1iwmqrq2WtRjFlo8aRZYgLX0wFrDXF/9DLA==}
 
-  '@codemirror/autocomplete@6.4.2':
-    resolution: {integrity: sha512-8WE2xp+D0MpWEv5lZ6zPW1/tf4AGb358T5GWYiKEuCP8MvFfT3tH2mIF9Y2yr2e3KbHuSvsVhosiEyqCpiJhZQ==}
-    peerDependencies:
-      '@codemirror/language': ^6.0.0
-      '@codemirror/state': ^6.0.0
-      '@codemirror/view': ^6.0.0
-      '@lezer/common': ^1.0.0
-
-  '@codemirror/commands@6.2.2':
-    resolution: {integrity: sha512-s9lPVW7TxXrI/7voZ+HmD/yiAlwAYn9PH5SUVSUhsxXHhv4yl5eZ3KLntSoTynfdgVYM0oIpccQEWRBQgmNZyw==}
-
-  '@codemirror/lang-javascript@6.1.4':
-    resolution: {integrity: sha512-OxLf7OfOZBTMRMi6BO/F72MNGmgOd9B0vetOLvHsDACFXayBzW8fm8aWnDM0yuy68wTK03MBf4HbjSBNRG5q7A==}
-
-  '@codemirror/language@6.6.0':
-    resolution: {integrity: sha512-cwUd6lzt3MfNYOobdjf14ZkLbJcnv4WtndYaoBkbor/vF+rCNguMPK0IRtvZJG4dsWiaWPcK8x1VijhvSxnstg==}
-
-  '@codemirror/lint@6.2.0':
-    resolution: {integrity: sha512-KVCECmR2fFeYBr1ZXDVue7x3q5PMI0PzcIbA+zKufnkniMBo1325t0h1jM85AKp8l3tj67LRxVpZfgDxEXlQkg==}
-
-  '@codemirror/state@6.2.0':
-    resolution: {integrity: sha512-69QXtcrsc3RYtOtd+GsvczJ319udtBf1PTrr2KbLWM/e2CXUPnh0Nz9AUo8WfhSQ7GeL8dPVNUmhQVgpmuaNGA==}
-
-  '@codemirror/view@6.9.3':
-    resolution: {integrity: sha512-BJ5mvEIhFM+SrNwc5X8pLIvMM9ffjkviVbxpg84Xk2OE8ZyKaEbId8kX+nAYEEso7+qnbwsXe1bkAHsasebMow==}
-
   '@colors/colors@1.5.0':
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
     engines: {node: '>=0.1.90'}
@@ -2020,18 +1970,6 @@ packages:
 
   '@leichtgewicht/ip-codec@2.0.4':
     resolution: {integrity: sha512-Hcv+nVC0kZnQ3tD9GVu5xSMR4VVYOteQIr/hwFPVEvPdlXqgGEuRjiheChHgdM+JyqdgNcmzZOX/tnl0JOiI7A==}
-
-  '@lezer/common@1.0.2':
-    resolution: {integrity: sha512-SVgiGtMnMnW3ActR8SXgsDhw7a0w0ChHSYAyAUxxrOiJ1OqYWEKk/xJd84tTSPo1mo6DXLObAJALNnd0Hrv7Ng==}
-
-  '@lezer/highlight@1.1.4':
-    resolution: {integrity: sha512-IECkFmw2l7sFcYXrV8iT9GeY4W0fU4CxX0WMwhmhMIVjoDdD1Hr6q3G2NqVtLg/yVe5n7i4menG3tJ2r4eCrPQ==}
-
-  '@lezer/javascript@1.4.1':
-    resolution: {integrity: sha512-Hqx36DJeYhKtdpc7wBYPR0XF56ZzIp0IkMO/zNNj80xcaFOV4Oj/P7TQc/8k2TxNhzl7tV5tXS8ZOCPbT4L3nA==}
-
-  '@lezer/lr@1.3.3':
-    resolution: {integrity: sha512-JPQe3mwJlzEVqy67iQiiGozhcngbO8QBgpqZM6oL1Wj/dXckrEexpBLeFkq0edtW5IqnPRFxA24BHJni8Js69w==}
 
   '@lukeed/ms@2.0.1':
     resolution: {integrity: sha512-Xs/4RZltsAL7pkvaNStUQt7netTkyxrS0K+RILcVr3TRMS/ToOg4I6uNfhB9SlGsnWBym4U+EaXq0f0cEMNkHA==}
@@ -3892,11 +3830,6 @@ packages:
     resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
     engines: {node: '>=6'}
 
-  cm6-graphql@0.0.3:
-    resolution: {integrity: sha512-ZN5xtt7Em3y3xZvACGVoFp5GN1Mvts1A9UH38ZHjal2ICJOx/o8ljMk1WlIz0ZGNV4rY7uUdVH7qxyIBTYU+RQ==}
-    peerDependencies:
-      '@codemirror/language': 6.0.0
-
   code-point-at@1.1.0:
     resolution: {integrity: sha512-RpAVKQA5T63xEj6/giIbUEtZwJ4UFIc3ZtvEkiaUERylqe8xb5IvqcgOurZLahv93CLKfxcw5YI+DZcUBRyLXA==}
     engines: {node: '>=0.10.0'}
@@ -4133,9 +4066,6 @@ packages:
 
   create-require@1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
-
-  crelt@1.0.5:
-    resolution: {integrity: sha512-+BO9wPPi+DWTDcNYhr/W90myha8ptzftZT+LwcmUbbok0rcP/fequmFYCw8NMoH7pkAZQzU78b3kYrlua5a9eA==}
 
   cron-parser@4.8.1:
     resolution: {integrity: sha512-jbokKWGcyU4gl6jAfX97E1gDpY12DJ1cLJZmoDzaAln/shZ+S3KBFBuA2Q6WeUN4gJf/8klnV1EfvhA2lK5IRQ==}
@@ -5399,12 +5329,6 @@ packages:
     engines: {node: '>=12'}
     peerDependencies:
       graphql: '>=0.11 <=16'
-
-  graphql-language-service@5.1.3:
-    resolution: {integrity: sha512-01KZLExoF53i8a2Jhgt+nVGsm9O2+jmDdwms4THSxCY+gU9FukF6X4pPLO2Gk7qZ6CVcInM8+IQx/ph4AOTOLA==}
-    hasBin: true
-    peerDependencies:
-      graphql: ^15.5.0 || ^16.0.0
 
   graphql-relay@0.10.0:
     resolution: {integrity: sha512-44yBuw2/DLNEiMypbNZBt1yMDbBmyVPVesPywnteGGALiBmdyy1JP8jSg8ClLePg8ZZxk0O4BLhd1a6U/1jDOQ==}
@@ -7011,9 +6935,6 @@ packages:
   nth-check@2.1.1:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
 
-  nullthrows@1.1.1:
-    resolution: {integrity: sha512-2vPPEi+Z7WqML2jZYddDIfy5Dqb0r2fze2zTxNNknZaFpVHU3mFB3R+DWeJWGVx0ecvttSGlJTI+WG+8Z4cDWw==}
-
   number-is-nan@1.0.1:
     resolution: {integrity: sha512-4jbtZXNAsfZbAHiiqjLPBiCl16dES1zI4Hpzzxw61Tk+loF+sBDBKx1ICKKKwIqQ7M0mFn1TmkN7euSncWgHiQ==}
     engines: {node: '>=0.10.0'}
@@ -8542,9 +8463,6 @@ packages:
     peerDependencies:
       webpack: ^5.27.0
 
-  style-mod@4.0.2:
-    resolution: {integrity: sha512-C4myMmRTO8iaC5Gg+N1ftK2WT4eXUTMAa+HEFPPrfVeO/NtqLTtAmV1HbqnuGtLwCek44Ra76fdGUkSqjiMPcQ==}
-
   style-to-object@0.4.4:
     resolution: {integrity: sha512-HYNoHZa2GorYNyqiCaBgsxvcJIn7OHq6inEga+E6Ke3m5JkoqpQbnFssk4jwe+K7AhGa2fcha4wSOf1Kn01dMg==}
 
@@ -9102,12 +9020,6 @@ packages:
 
   vfile@6.0.2:
     resolution: {integrity: sha512-zND7NlS8rJYb/sPqkb13ZvbbUoExdbi4w3SfRrMq6R3FvnLQmmfpajJNITuuYm6AZ5uao9vy4BAos3EXBPf2rg==}
-
-  vscode-languageserver-types@3.17.3:
-    resolution: {integrity: sha512-SYU4z1dL0PyIMd4Vj8YOqFvHu7Hz/enbWtpfnVbJHU4Nd1YNYx8u0ennumc6h48GQNeOLxmwySmnADouT/AuZA==}
-
-  w3c-keyname@2.2.6:
-    resolution: {integrity: sha512-f+fciywl1SJEniZHD6H+kUO8gOnwIr7f4ijKA6+ZvJFjeGi1r4PDLl53Ayud9O/rk64RqgoQine0feoeOU0kXg==}
 
   wait-port@1.0.4:
     resolution: {integrity: sha512-w8Ftna3h6XSFWWc2JC5gZEgp64nz8bnaTp5cvzbJSZ53j+omktWTDdwXxEF0jM8YveviLgFWvNGrSvRHnkyHyw==}
@@ -10523,53 +10435,6 @@ snapshots:
 
   '@bugsnag/safe-json-stringify@6.0.0': {}
 
-  '@codemirror/autocomplete@6.4.2(@codemirror/language@6.6.0)(@codemirror/state@6.2.0)(@codemirror/view@6.9.3)(@lezer/common@1.0.2)':
-    dependencies:
-      '@codemirror/language': 6.6.0
-      '@codemirror/state': 6.2.0
-      '@codemirror/view': 6.9.3
-      '@lezer/common': 1.0.2
-
-  '@codemirror/commands@6.2.2':
-    dependencies:
-      '@codemirror/language': 6.6.0
-      '@codemirror/state': 6.2.0
-      '@codemirror/view': 6.9.3
-      '@lezer/common': 1.0.2
-
-  '@codemirror/lang-javascript@6.1.4':
-    dependencies:
-      '@codemirror/autocomplete': 6.4.2(@codemirror/language@6.6.0)(@codemirror/state@6.2.0)(@codemirror/view@6.9.3)(@lezer/common@1.0.2)
-      '@codemirror/language': 6.6.0
-      '@codemirror/lint': 6.2.0
-      '@codemirror/state': 6.2.0
-      '@codemirror/view': 6.9.3
-      '@lezer/common': 1.0.2
-      '@lezer/javascript': 1.4.1
-
-  '@codemirror/language@6.6.0':
-    dependencies:
-      '@codemirror/state': 6.2.0
-      '@codemirror/view': 6.9.3
-      '@lezer/common': 1.0.2
-      '@lezer/highlight': 1.1.4
-      '@lezer/lr': 1.3.3
-      style-mod: 4.0.2
-
-  '@codemirror/lint@6.2.0':
-    dependencies:
-      '@codemirror/state': 6.2.0
-      '@codemirror/view': 6.9.3
-      crelt: 1.0.5
-
-  '@codemirror/state@6.2.0': {}
-
-  '@codemirror/view@6.9.3':
-    dependencies:
-      '@codemirror/state': 6.2.0
-      style-mod: 4.0.2
-      w3c-keyname: 2.2.6
-
   '@colors/colors@1.5.0': {}
 
   '@colors/colors@1.6.0': {}
@@ -11759,21 +11624,6 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.4.14
 
   '@leichtgewicht/ip-codec@2.0.4': {}
-
-  '@lezer/common@1.0.2': {}
-
-  '@lezer/highlight@1.1.4':
-    dependencies:
-      '@lezer/common': 1.0.2
-
-  '@lezer/javascript@1.4.1':
-    dependencies:
-      '@lezer/highlight': 1.1.4
-      '@lezer/lr': 1.3.3
-
-  '@lezer/lr@1.3.3':
-    dependencies:
-      '@lezer/common': 1.0.2
 
   '@lukeed/ms@2.0.1': {}
 
@@ -14156,10 +14006,6 @@ snapshots:
 
   clsx@2.1.1: {}
 
-  cm6-graphql@0.0.3(@codemirror/language@6.6.0):
-    dependencies:
-      '@codemirror/language': 6.6.0
-
   code-point-at@1.1.0: {}
 
   collapse-white-space@2.1.0: {}
@@ -14419,8 +14265,6 @@ snapshots:
       readable-stream: 3.6.2
 
   create-require@1.1.1: {}
-
-  crelt@1.0.5: {}
 
   cron-parser@4.8.1:
     dependencies:
@@ -15942,12 +15786,6 @@ snapshots:
   graphql-http@1.22.0(graphql@16.8.1):
     dependencies:
       graphql: 16.8.1
-
-  graphql-language-service@5.1.3(graphql@16.6.0):
-    dependencies:
-      graphql: 16.6.0
-      nullthrows: 1.1.1
-      vscode-languageserver-types: 3.17.3
 
   graphql-relay@0.10.0(graphql@16.6.0):
     dependencies:
@@ -18132,8 +17970,6 @@ snapshots:
     dependencies:
       boolbase: 1.0.0
 
-  nullthrows@1.1.1: {}
-
   number-is-nan@1.0.1: {}
 
   object-assign@4.1.1: {}
@@ -19948,8 +19784,6 @@ snapshots:
     dependencies:
       webpack: 5.78.0
 
-  style-mod@4.0.2: {}
-
   style-to-object@0.4.4:
     dependencies:
       inline-style-parser: 0.1.1
@@ -20493,10 +20327,6 @@ snapshots:
       '@types/unist': 3.0.2
       unist-util-stringify-position: 4.0.0
       vfile-message: 4.0.2
-
-  vscode-languageserver-types@3.17.3: {}
-
-  w3c-keyname@2.2.6: {}
 
   wait-port@1.0.4:
     dependencies:

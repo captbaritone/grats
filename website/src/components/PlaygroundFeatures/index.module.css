@@ -9,14 +9,6 @@ body {
   margin: 0;
 }
 
-.cm-editor {
-  height: 100%;
-  width: 100%;
-}
-.cm-scroller {
-  overflow: auto;
-}
-
 #format-button {
   background-color: #eee;
   border: 1px solid #ccc;
