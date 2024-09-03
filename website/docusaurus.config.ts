@@ -37,7 +37,10 @@ const config: Config = {
     gitHash: process.env.REACT_APP_GIT_HASH,
   },
 
-  plugins: [require.resolve("./plugins/webpack.js")],
+  plugins: [
+    require.resolve("./plugins/webpack.js"),
+    // require.resolve("./plugins/monaco-editor.js"),
+  ],
 
   presets: [
     [
