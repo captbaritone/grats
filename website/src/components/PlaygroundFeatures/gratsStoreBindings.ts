@@ -57,13 +57,6 @@ export async function bindGratsToStore() {
   store.dispatch({ type: "TS_LOADED", system, fsMap });
 }
 
-function commentLines(text: string): string {
-  return text
-    .split("\n")
-    .map((line) => `# ${line}`)
-    .join("\n");
-}
-
 export const getTs = (state: State) => state.ts;
 
 export const getBuild = createSelector(

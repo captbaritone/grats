@@ -46,7 +46,12 @@ export default function InputEditor() {
       {
         provideCodeActions: (model, _range, _context, _token) => {
           const actions = codeActionsForDiagnostics(text, model, diagnostics);
-          return { actions: actions, dispose: () => {} };
+          return {
+            actions: actions,
+            dispose: () => {
+              // noop
+            },
+          };
         },
       },
     );
