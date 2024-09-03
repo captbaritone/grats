@@ -51,7 +51,7 @@
     "raw-loader": "^4.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-monaco-editor": "^0.56.1",
+    "react-monaco-editor": "^0.55.0",
     "react-redux": "^8.0.5",
     "redux": "^4.2.1",
     "reselect": "^4.1.7",

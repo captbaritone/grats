@@ -1,4 +1,5 @@
-import { getConfig, getDoc, getView } from "./store";
+import { getConfig, getDoc, getView, State } from "./store";
+import { codegen } from "grats/src/codegen";
 import * as ts from "typescript";
 import lzstring from "lz-string";
 import {
@@ -11,6 +12,7 @@ import { buildSchemaAndDocResultWithHost } from "grats/src/lib";
 import GRATS_TYPE_DECLARATIONS from "!!raw-loader!grats/src/Types.ts";
 import { createSelector } from "reselect";
 import { printSDLWithoutMetadata } from "grats/src/printSchema";
+import store from "./store";
 
 const SHOULD_CACHE = false;
 const GRATS_PATH = "/node_modules/grats/src/index.ts";
@@ -51,37 +53,7 @@ export async function bindGratsToStore() {
 
   const system = createSystem(fsMap);
 
-  const getBuild = createSelector(getDoc, getConfig, (doc, config) => {
-    return build(fsMap, system, doc, config);
-  });
-
-  const getErrorText = createSelector(getBuild, (build) => {
-    if (build.kind === "ERROR") {
-      const errorText = build.err.formatDiagnosticsWithContext();
-      return `# ERROR MESSAGE\n# =============\n\n${commentLines(errorText)}`;
-    }
-    return null;
-  });
-
-  const getDiagnostics = createSelector(getBuild, (build) => {
-    if (build.kind === "ERROR") {
-      return build.err._diagnostics;
-    }
-    return [];
-  });
-
-  const getSchemaText = createSelector(getBuild, getView, (build, view) => {
-    if (build.kind === "OK") {
-      const doc = build.value.doc;
-      if (!view.showGratsDirectives) {
-        return printSDLWithoutMetadata(doc);
-      }
-      return print(doc);
-    }
-    return null;
-  });
-
-  return { getBuild, getErrorText, getDiagnostics, getSchemaText };
+  store.dispatch({ type: "TS_LOADED", system, fsMap });
 }
 
 function commentLines(text: string): string {
@@ -90,6 +62,67 @@ function commentLines(text: string): string {
     .map((line) => `# ${line}`)
     .join("\n");
 }
+
+export const getTs = (state: State) => state.ts;
+
+export const getBuild = createSelector(
+  getTs,
+  getDoc,
+  getConfig,
+  (ts, doc, config) => {
+    if (ts == null) return null;
+
+    return build(ts.fsMap, ts.system, doc, config);
+  },
+);
+
+export const getErrorText = createSelector(getBuild, (build) => {
+  if (build == null) return null;
+
+  if (build.kind === "ERROR") {
+    return build.err.formatDiagnosticsWithContext();
+  }
+  return null;
+});
+
+export const getDiagnostics = createSelector(getBuild, (build) => {
+  if (build == null) return [];
+
+  if (build.kind === "ERROR") {
+    return build.err._diagnostics;
+  }
+  return [];
+});
+
+export const getSchemaText = createSelector(
+  getBuild,
+  getView,
+  (build, view) => {
+    if (build == null) return "";
+
+    if (build.kind === "OK") {
+      const doc = build.value.doc;
+      if (!view.showGratsDirectives) {
+        return printSDLWithoutMetadata(doc);
+      }
+      return print(doc);
+    }
+    return null;
+  },
+);
+
+export const getTsSchema = createSelector(
+  getBuild,
+  getConfig,
+  (build, config) => {
+    if (build == null) return "";
+
+    if (build.kind === "OK") {
+      return codegen(build.value.schema, config, "./schema.ts");
+    }
+    return null;
+  },
+);
 
 function build(fsMap, system, text, config) {
   fsMap.set("index.ts", text);

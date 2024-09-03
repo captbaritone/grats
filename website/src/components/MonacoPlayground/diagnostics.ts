@@ -1,6 +1,6 @@
 import { languages } from "monaco-editor";
 import { monaco as Monaco } from "react-monaco-editor";
-import { FixableDiagnostic } from "../../../../../src/utils/DiagnosticError";
+import { FixableDiagnostic } from "../../../../src/utils/DiagnosticError";
 
 export function codeActionsForDiagnostics(
   text: string,

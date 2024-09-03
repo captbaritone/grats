@@ -19,6 +19,10 @@ export type State = {
     graphql: string;
     typescript: string;
   };
+  ts: {
+    system: any;
+    fsMap: Map<string, string>;
+  } | null;
   VERSION: number;
 };
 
@@ -50,6 +54,11 @@ export type Action =
   | {
       type: "OUTPUT_VIEW_SELECTION_CHANGED";
       value: "sdl" | "typescript";
+    }
+  | {
+      type: "TS_LOADED";
+      system: any;
+      fsMap: Map<string, string>;
     };
 
 function reducer(state: State = stateFromUrl(), action: Action) {
@@ -95,6 +104,15 @@ function reducer(state: State = stateFromUrl(), action: Action) {
       return {
         ...state,
         doc: action.value,
+      };
+    }
+    case "TS_LOADED": {
+      return {
+        ...state,
+        ts: {
+          system: action.system,
+          fsMap: action.fsMap,
+        },
       };
     }
     default: {
@@ -190,7 +208,7 @@ export type SerializableState = {
 
 // TODO: Avoid recomputing
 export function getSerializabelState(state: State): SerializableState {
-  const { gratsResult, ...serializableState } = state;
+  const { gratsResult, ts, ...serializableState } = state;
   return serializableState;
 }
 

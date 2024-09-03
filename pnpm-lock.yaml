@@ -363,8 +363,8 @@ importers:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)
       react-monaco-editor:
-        specifier: ^0.56.1
-        version: 0.56.1(@types/react@18.0.33)(monaco-editor@0.51.0)(react@18.2.0)
+        specifier: ^0.55.0
+        version: 0.55.0(@types/react@18.0.33)(monaco-editor@0.51.0)(react@18.2.0)
       react-redux:
         specifier: ^8.0.5
         version: 8.0.5(@types/react-dom@18.0.0)(@types/react@18.0.33)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(redux@4.2.1)
@@ -7824,11 +7824,11 @@ packages:
       react-loadable: '*'
       webpack: '>=4.41.1 || 5.x'
 
-  react-monaco-editor@0.56.1:
-    resolution: {integrity: sha512-L2/QjVK+C95zqvl19ACo5ftg3MWAL0ku4zaMzcgt8LO2mhH2gIDfHr1sIZYY7LaKdriWq4EUO6pIdnQDswZ9gA==}
+  react-monaco-editor@0.55.0:
+    resolution: {integrity: sha512-GdEP0Q3Rn1dczfKEEyY08Nes5plWwIYU4sWRBQO0+jsQWQsKMHKCC6+hPRwR7G/4aA3V/iU9jSmWPzVJYMVFSQ==}
     peerDependencies:
       '@types/react': '>=16 <= 18'
-      monaco-editor: ^0.50.0
+      monaco-editor: ^0.44.0
       react: '>=16 <= 18'
 
   react-redux@8.0.5:
@@ -19128,7 +19128,7 @@ snapshots:
       react-loadable: '@docusaurus/react-loadable@6.0.0(react@18.2.0)'
       webpack: 5.90.3
 
-  react-monaco-editor@0.56.1(@types/react@18.0.33)(monaco-editor@0.51.0)(react@18.2.0):
+  react-monaco-editor@0.55.0(@types/react@18.0.33)(monaco-editor@0.51.0)(react@18.2.0):
     dependencies:
       '@types/react': 18.0.33
       monaco-editor: 0.51.0
