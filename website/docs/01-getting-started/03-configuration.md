@@ -2,6 +2,10 @@
 
 Grats has a few configuration options. They can be set under the `grats` key in your in your project's `tsconfig.json` file:
 
+:::warning
+TypeScript does not include user-defined config options when processing the [`extends`](https://www.typescriptlang.org/tsconfig/#extends) config option. If you are using `extends` in your `tsconfig.json`, you will need to copy the `grats` config into each final extending `tsconfig.json` file.
+:::
+
 ```json
 {
   "grats": {
