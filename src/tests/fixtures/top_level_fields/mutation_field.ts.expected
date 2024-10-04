@@ -1,0 +1,38 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlMutationField */
+export function goodbye(): string {
+  return "Goodbye, World!";
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Mutation {
+  goodbye: String @metadata(exportName: "goodbye", tsModulePath: "grats/src/tests/fixtures/top_level_fields/mutation_field.ts")
+}
+-- TypeScript --
+import { goodbye as mutationGoodbyeResolver } from "./mutation_field";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const MutationType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Mutation",
+        fields() {
+            return {
+                goodbye: {
+                    name: "goodbye",
+                    type: GraphQLString,
+                    resolve() {
+                        return mutationGoodbyeResolver();
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        mutation: MutationType,
+        types: [MutationType]
+    });
+}

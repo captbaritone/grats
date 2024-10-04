@@ -13,7 +13,7 @@ export default class Composer {
 OUTPUT
 -----------------
 -- Error Report --
-src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:1:4 - error: `@GQLtYPE` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`.
+src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:1:4 - error: `@GQLtYPE` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlQueryField`, `@gqlMutationField`, `@gqlSubscriptionField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`.
 
 1 // @GQLtYPE
      ~~~~~~~~
@@ -22,7 +22,7 @@ src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:1:4 - error: Unexp
 1 // @GQLtYPE
      ~~~~~~~~
 
-src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:3:6 - error: `@gqlfield` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`.
+src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:3:6 - error: `@gqlfield` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlQueryField`, `@gqlMutationField`, `@gqlSubscriptionField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`.
 
 3   // @gqlfield
        ~~~~~~~~~

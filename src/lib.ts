@@ -4,6 +4,7 @@ import {
   GraphQLSchema,
   Kind,
   validateSchema,
+  visit,
 } from "graphql";
 import {
   DiagnosticsWithoutLocationResult,
@@ -110,6 +111,33 @@ export function extractSchemaAndDoc(
         // Convert the definitions into a DocumentNode
         .map((definitions) => ({ kind: Kind.DOCUMENT, definitions } as const))
         // Ensure all subscription fields return an AsyncIterable.
+        .map((doc) => {
+          const definedTypes = new Set<string>();
+          visit(doc, {
+            ObjectTypeDefinition(node) {
+              definedTypes.add(node.name.value);
+            },
+          });
+          const missingTypes = new Set<string>();
+          for (const rootType of snapshot.rootTypes) {
+            if (!definedTypes.has(rootType)) {
+              missingTypes.add(rootType);
+            }
+          }
+          if (missingTypes.size > 0) {
+            return visit(doc, {
+              Document(d) {
+                const rootTypes = Array.from(missingTypes).map((rootType) => ({
+                  kind: Kind.OBJECT_TYPE_DEFINITION,
+                  name: { kind: Kind.NAME, value: rootType },
+                  fields: [],
+                }));
+                return { ...d, definitions: [...d.definitions, ...rootTypes] };
+              },
+            });
+          }
+          return doc;
+        })
         .andThen((doc) => validateAsyncIterable(doc))
         // Apply default nullability to fields and arguments, and detect any misuse of
         // `@killsParentOnException`.
@@ -176,6 +204,7 @@ function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
     unresolvedNames: new Map(),
     typesWithTypename: new Set(),
     interfaceDeclarations: [],
+    rootTypes: new Set(),
   };
 
   for (const snapshot of snapshots) {
@@ -197,6 +226,10 @@ function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
 
     for (const interfaceDeclaration of snapshot.interfaceDeclarations) {
       result.interfaceDeclarations.push(interfaceDeclaration);
+    }
+
+    for (const rootType of snapshot.rootTypes) {
+      result.rootTypes.add(rootType);
     }
   }
 

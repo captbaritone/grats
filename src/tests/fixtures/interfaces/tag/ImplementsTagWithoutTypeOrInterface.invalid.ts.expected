@@ -9,7 +9,7 @@ function hello() {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/interfaces/tag/ImplementsTagWithoutTypeOrInterface.invalid.ts:1:6 - error: `@gqlImplements` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`.
+src/tests/fixtures/interfaces/tag/ImplementsTagWithoutTypeOrInterface.invalid.ts:1:6 - error: `@gqlImplements` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlQueryField`, `@gqlMutationField`, `@gqlSubscriptionField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`.
 
 1 /** @gqlImplements Node */
        ~~~~~~~~~~~~~

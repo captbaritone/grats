@@ -1,0 +1,38 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlQueryField */
+export function greeting(): string {
+  return "Hello, World!";
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Query {
+  greeting: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/top_level_fields/query_field.ts")
+}
+-- TypeScript --
+import { greeting as queryGreetingResolver } from "./query_field";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    resolve() {
+                        return queryGreetingResolver();
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType]
+    });
+}

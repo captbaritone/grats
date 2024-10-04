@@ -98,6 +98,7 @@ class ResolverParamsResolver {
 
   transformParam(param: UnresolvedResolverParam): UnresolvedResolverParam {
     switch (param.kind) {
+      case "topLevelParentType":
       case "named":
       case "positionalArg":
         return param;

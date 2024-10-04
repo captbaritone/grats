@@ -100,11 +100,17 @@ export interface InputValueDefinitionNodeOrResolverArg {
 }
 
 export type UnresolvedResolverParam =
+  | TopLevelParentType
   | NamedFieldParam
   | PositionalFieldParam
   | Unresolved;
 
 export type ResolvedResolverParam = NamedFieldParam | PositionalFieldParam;
+
+export type TopLevelParentType = {
+  kind: "topLevelParentType";
+  name: string;
+};
 
 export type NamedFieldParam = {
   kind: "named";

@@ -1,0 +1,15 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlSubscriptionField */
+export function goodbye(): string {
+  return "Goodbye, World!";
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/top_level_fields/subsription_field_returns_scalar.invalid.ts:2:28 - error: Expected fields on `Subscription` to return an `AsyncIterable`. Fields on `Subscription` model a subscription, which is a stream of events. Grats expects fields on `Subscription` to return an `AsyncIterable` which can be used to model this stream.
+
+2 export function goodbye(): string {
+                             ~~~~~~

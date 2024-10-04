@@ -46,6 +46,9 @@ export const LIBRARY_NAME = "Grats";
 
 export const TYPE_TAG = "gqlType";
 export const FIELD_TAG = "gqlField";
+export const QUERY_FIELD_TAG = "gqlQueryField";
+export const MUTATION_FIELD_TAG = "gqlMutationField";
+export const SUBSCRIPTION_FIELD_TAG = "gqlSubscriptionField";
 export const SCALAR_TAG = "gqlScalar";
 export const INTERFACE_TAG = "gqlInterface";
 export const ENUM_TAG = "gqlEnum";
@@ -62,6 +65,9 @@ export const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
 export const ALL_TAGS = [
   TYPE_TAG,
   FIELD_TAG,
+  QUERY_FIELD_TAG,
+  MUTATION_FIELD_TAG,
+  SUBSCRIPTION_FIELD_TAG,
   SCALAR_TAG,
   INTERFACE_TAG,
   ENUM_TAG,
@@ -74,7 +80,7 @@ export const SPECIFIED_BY_TAG = "specifiedBy";
 export const ONE_OF_TAG = "oneOf";
 // https://github.com/graphql/graphql-js/releases/tag/v16.9.0
 const ONE_OF_MIN_GRAPHQL_JS_VERSION = "16.9.0";
-const OPERATION_TYPES = new Set(["Query", "Mutation", "Subscription"]);
+export const OPERATION_TYPES = new Set(["Query", "Mutation", "Subscription"]);
 
 type ArgDefaults = Map<string, ts.Expression>;
 
@@ -84,6 +90,7 @@ export type ExtractionSnapshot = {
   readonly nameDefinitions: Map<ts.DeclarationStatement, NameDefinition>;
   readonly typesWithTypename: Set<string>;
   readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
+  readonly rootTypes: Set<string>;
 };
 
 type FieldTypeContext = {
@@ -118,6 +125,7 @@ class Extractor {
 
   errors: ts.DiagnosticWithLocation[] = [];
   gql: GraphQLConstructor;
+  rootTypes: Set<string> = new Set();
 
   constructor() {
     this.gql = new GraphQLConstructor();
@@ -169,50 +177,16 @@ class Extractor {
           this.extractUnion(node, tag);
           break;
         case FIELD_TAG:
-          if (ts.isFunctionDeclaration(node)) {
-            this.functionDeclarationExtendType(node, tag);
-          } else if (ts.isVariableStatement(node)) {
-            this.variableStatementExtendType(node, tag);
-          } else if (isStaticMethod(node)) {
-            this.staticMethodExtendType(node, tag);
-          } else {
-            // Non-function fields must be defined as a decent of something that
-            // is annotated with @gqlType or @gqlInterface.
-            //
-            // The actual field will get extracted when we traverse the parent, but
-            // we need to report an error if the parent is not a valid type or is not
-            // annotated with @gqlType or @gqlInterface. Otherwise, the user may get
-            // confused as to why the field is not showing up in the schema.
-            const parent = getFieldParent(node);
-
-            // If there was no valid parent, report an error.
-            if (parent === null) {
-              this.reportUnhandled(node, "field", E.fieldTagOnWrongNode());
-            } else if (this.hasTag(parent, INPUT_TAG)) {
-              // You don't need to add `@gqlField` to input types, but it's an
-              // easy mistake to think you might need to. We report a helpful
-              // error in this case and offer a fix.
-              const docblock = tag.parent;
-              const isOnlyTag =
-                ts.isJSDoc(docblock) &&
-                docblock.tags?.length === 1 &&
-                !docblock.comment;
-
-              const action = isOnlyTag
-                ? Act.removeNode(docblock)
-                : Act.removeNode(tag);
-              this.report(tag, E.gqlFieldTagOnInputType(), [], {
-                fixName: "remove-gql-field-from-input",
-                description: "Remove @gqlField tag",
-                changes: [action],
-              });
-            } else if (
-              !this.hasTag(parent, TYPE_TAG) &&
-              !this.hasTag(parent, INTERFACE_TAG)
-            ) {
-              this.report(tag.tagName, E.gqlFieldParentMissingTag());
-            }
-          }
+          this.extractField(node, tag);
+          break;
+        case QUERY_FIELD_TAG:
+          this.extractTopLevelField(node, tag, "Query");
+          break;
+        case MUTATION_FIELD_TAG:
+          this.extractTopLevelField(node, tag, "Mutation");
+          break;
+        case SUBSCRIPTION_FIELD_TAG:
+          this.extractTopLevelField(node, tag, "Subscription");
           break;
         case CONTEXT_TAG: {
           if (!ts.isDeclarationStatement(node)) {
@@ -295,7 +269,77 @@ class Extractor {
       nameDefinitions: this.nameDefinitions,
       typesWithTypename: this.typesWithTypename,
       interfaceDeclarations: this.interfaceDeclarations,
+      rootTypes: this.rootTypes,
     });
+  }
+
+  extractTopLevelField(
+    node: ts.Node,
+    tag: ts.JSDocTag,
+    parentTypeName: string,
+  ) {
+    this.rootTypes.add(parentTypeName);
+    const typeNameNode = this.gql.name(tag, parentTypeName);
+    if (ts.isFunctionDeclaration(node)) {
+      this.functionDeclarationExtendType(node, tag, typeNameNode);
+    } else if (ts.isVariableStatement(node)) {
+      this.variableStatementExtendType(node, tag, typeNameNode);
+    } else if (isStaticMethod(node)) {
+      this.staticMethodExtendType(node, tag, typeNameNode);
+    } else {
+      this.reportUnhandled(
+        node,
+        "field",
+        E.topLevelFieldTagOnWrongNode(tag.tagName.text),
+      );
+    }
+  }
+
+  extractField(node: ts.Node, tag: ts.JSDocTag) {
+    if (ts.isFunctionDeclaration(node)) {
+      this.functionDeclarationExtendType(node, tag, null);
+    } else if (ts.isVariableStatement(node)) {
+      this.variableStatementExtendType(node, tag, null);
+    } else if (isStaticMethod(node)) {
+      this.staticMethodExtendType(node, tag, null);
+    } else {
+      // Non-function fields must be defined as a decent of something that
+      // is annotated with @gqlType or @gqlInterface.
+      //
+      // The actual field will get extracted when we traverse the parent, but
+      // we need to report an error if the parent is not a valid type or is not
+      // annotated with @gqlType or @gqlInterface. Otherwise, the user may get
+      // confused as to why the field is not showing up in the schema.
+      const parent = getFieldParent(node);
+
+      // If there was no valid parent, report an error.
+      if (parent === null) {
+        this.reportUnhandled(node, "field", E.fieldTagOnWrongNode());
+      } else if (this.hasTag(parent, INPUT_TAG)) {
+        // You don't need to add `@gqlField` to input types, but it's an
+        // easy mistake to think you might need to. We report a helpful
+        // error in this case and offer a fix.
+        const docblock = tag.parent;
+        const isOnlyTag =
+          ts.isJSDoc(docblock) &&
+          docblock.tags?.length === 1 &&
+          !docblock.comment;
+
+        const action = isOnlyTag
+          ? Act.removeNode(docblock)
+          : Act.removeNode(tag);
+        this.report(tag, E.gqlFieldTagOnInputType(), [], {
+          fixName: "remove-gql-field-from-input",
+          description: "Remove @gqlField tag",
+          changes: [action],
+        });
+      } else if (
+        !this.hasTag(parent, TYPE_TAG) &&
+        !this.hasTag(parent, INTERFACE_TAG)
+      ) {
+        this.report(tag.tagName, E.gqlFieldParentMissingTag());
+      }
+    }
   }
 
   extractType(node: ts.Node, tag: ts.JSDocTag) {
@@ -424,7 +468,11 @@ class Extractor {
     );
   }
 
-  variableStatementExtendType(node: ts.VariableStatement, tag: ts.JSDocTag) {
+  variableStatementExtendType(
+    node: ts.VariableStatement,
+    tag: ts.JSDocTag,
+    parentTypeName: NameNode | null,
+  ) {
     if (node.declarationList.declarations.length !== 1) {
       return this.report(
         node,
@@ -486,12 +534,18 @@ class Extractor {
       );
     }
 
-    this.collectAbstractField(declaration.initializer, name, metadataDirective);
+    this.collectAbstractField(
+      declaration.initializer,
+      name,
+      metadataDirective,
+      parentTypeName,
+    );
   }
 
   functionDeclarationExtendType(
     node: ts.FunctionDeclaration,
     tag: ts.JSDocTag,
+    parentTypeName: NameNode | null,
   ) {
     const funcName = this.namedFunctionExportName(node);
     const name = this.entityName(node, tag);
@@ -509,10 +563,14 @@ class Extractor {
       exportName: funcName == null ? null : funcName.text,
     });
 
-    this.collectAbstractField(node, name, metadataDirective);
+    this.collectAbstractField(node, name, metadataDirective, parentTypeName);
   }
 
-  staticMethodExtendType(node: ts.MethodDeclaration, tag: ts.JSDocTag) {
+  staticMethodExtendType(
+    node: ts.MethodDeclaration,
+    tag: ts.JSDocTag,
+    parentTypeName: NameNode | null,
+  ) {
     const methodName = this.expectNameIdentifier(node.name);
     if (methodName == null) return null;
 
@@ -566,27 +624,42 @@ class Extractor {
       exportName,
     });
 
-    this.collectAbstractField(node, name, metadataDirective);
+    this.collectAbstractField(node, name, metadataDirective, parentTypeName);
   }
 
   collectAbstractField(
     node: ts.FunctionDeclaration | ts.MethodDeclaration | ts.ArrowFunction,
     name: NameNode,
     metadataDirective: ConstDirectiveNode,
+    parentTypeName: NameNode | null,
   ) {
-    const [typeParam, ...restParams] = node.parameters;
-    if (typeParam == null) {
-      // TODO: Make error generic
-      this.errors.push(gqlErr(name, E.invalidParentArgForFunctionField()));
-      return;
+    let params: Array<ts.ParameterDeclaration> = Array.from(node.parameters);
+
+    const unresolvedParams: UnresolvedResolverParam[] = [];
+
+    if (parentTypeName == null) {
+      const [typeParam, ...restParams] = node.parameters;
+
+      if (typeParam == null) {
+        // TODO: Make error generic
+        this.errors.push(gqlErr(name, E.invalidParentArgForFunctionField()));
+        return;
+      }
+      unresolvedParams.push({
+        kind: "named",
+        name: "source",
+        sourceNode: typeParam,
+      });
+
+      parentTypeName = this.typeReferenceFromParam(typeParam);
+      if (parentTypeName == null) return null;
+      params = restParams;
     }
 
-    const paramResults = this.resolverParams(restParams);
+    const paramResults = this.resolverParams(params);
     if (paramResults == null) return null;
     const { resolverParams, args } = paramResults;
-
-    const typeName = this.typeReferenceFromParam(typeParam);
-    if (typeName == null) return null;
+    extend(unresolvedParams, resolverParams);
 
     if (node.type == null) {
       // TODO: Make error generic
@@ -612,6 +685,8 @@ class Extractor {
       directives.push(killsParentOnExceptionDirective);
     }
 
+    extend(resolverParams, resolverParams);
+
     const field = this.gql.fieldDefinition(
       node,
       name,
@@ -619,13 +694,10 @@ class Extractor {
       args,
       directives,
       description,
-      [
-        { kind: "named", name: "source", sourceNode: typeParam },
-        ...resolverParams,
-      ],
+      unresolvedParams,
     );
     this.definitions.push(
-      this.gql.abstractFieldDefinition(node, typeName, field),
+      this.gql.abstractFieldDefinition(node, parentTypeName, field),
     );
   }
 

@@ -1,0 +1,41 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlSubscriptionField */
+export async function* goodbye(): AsyncIterable<string> {
+  yield "Goodbye, World!";
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Subscription {
+  goodbye: String @metadata(exportName: "goodbye", tsModulePath: "grats/src/tests/fixtures/top_level_fields/subsription_field.ts")
+}
+-- TypeScript --
+import { goodbye as subscriptionGoodbyeResolver } from "./subsription_field";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Subscription",
+        fields() {
+            return {
+                goodbye: {
+                    name: "goodbye",
+                    type: GraphQLString,
+                    subscribe() {
+                        return subscriptionGoodbyeResolver();
+                    },
+                    resolve(payload) {
+                        return payload;
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        subscription: SubscriptionType,
+        types: [SubscriptionType]
+    });
+}

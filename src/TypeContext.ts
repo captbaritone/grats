@@ -164,6 +164,12 @@ export class TypeContext {
   ): DiagnosticResult<NameDefinition> {
     const referenceNode = this.getEntityName(nameNode);
     if (referenceNode == null) {
+      // In the case of root types coming from @gqlQueryField and friends, these
+      // might already be resolved.
+      if (nameNode.value !== UNRESOLVED_REFERENCE_NAME) {
+        // throw new Error("Expected unresolved reference name.");
+        return ok({ name: nameNode, kind: "TYPE", loc: nameNode.loc });
+      }
       throw new Error("Expected to find reference node for name node.");
     }
 
