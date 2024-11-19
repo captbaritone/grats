@@ -65,7 +65,15 @@ Strict Semantic Nullability can be enabled in your Grats config within your `tsc
 Grats aims to let the community experiment with Strict Semantic Nullability, this involves supporting some of the proposed RFC, but not all of it. In particular:
 
 - Grats does not support using introspection to determine if a field is semantically non-null
-- Grats does not support declaring items within a list as being semantically non-null
+- Grats does not support declaring items within a list as being semantically non-null.
+
+:::info
+Grats does not support marking list items as semantically non-null because most resolvers are not written in such a way that indiviudal items in the list can error in a way that does not result in the list resolver itself throwing. Generally this can only happen if you return an `Iterable` and it throws when calling `next()`.
+:::
+
+## Runtime Validation
+
+When Strict Semantic Nullability is enabled, Grats will insert runtime validation to ensure that fields marked as semantically non-null never return null. This validation will throw an error if the field returns null, indicating that the field is in an error state. This is nessesary because TypeScript is not fully sound, and it is possible to return null from a function that is typed as non-nullable:
 
 ```typescript
 /** @gqlField */
@@ -83,3 +91,5 @@ export function aString(_: Query): string {
 - [Apollo's specification for this directive](https://specs.apollo.dev/nullability/v0.2/)
 - [Support for `@SemanticNonNull` in Apollo Kotlin](https://www.apollographql.com/docs/kotlin/v4/advanced/nullability/#handle-semantic-non-null-with-semanticnonnull) added in [4.0.0-beta.3](https://github.com/apollographql/apollo-kotlin/releases/tag/v4.0.0-beta.3)
 - [Example project showing this feature used with experimental support in Relay](https://github.com/captbaritone/grats-relay-example/pull/1)
+- [Semantic Nullability - A Path Toward Safe NonNull Fields](https://www.youtube.com/watch?v=kVYlplb1gKk) - My talk at GraphQL Conf. 2024 explaining Semantic Nullability
+- [Awesome Semantic Nullability](https://github.com/captbaritone/awesome-semantic-nullability/) - A list of projects and tools that support or implement Strict Semantic Nullability
