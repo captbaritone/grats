@@ -32,7 +32,7 @@ export function getSchema(): GraphQLSchema {
                 id: {
                     description: "A globally unique opaque identifier for a node. Can be used to fetch the the\nnode with the `node` or `nodes` fields.\n\nSee: https://graphql.org/learn/global-object-identification/",
                     name: "id",
-                    type: GraphQLID
+                    type: new GraphQLNonNull(GraphQLID)
                 }
             };
         }
@@ -55,7 +55,7 @@ export function getSchema(): GraphQLSchema {
                 id: {
                     description: "A globally unique opaque identifier for a node. Can be used to fetch the the\nnode with the `node` or `nodes` fields.\n\nSee: https://graphql.org/learn/global-object-identification/",
                     name: "id",
-                    type: GraphQLID,
+                    type: new GraphQLNonNull(GraphQLID),
                     resolve(source) {
                         return postIdResolver(source);
                     }
@@ -170,7 +170,7 @@ export function getSchema(): GraphQLSchema {
                 id: {
                     description: "A globally unique opaque identifier for a node. Can be used to fetch the the\nnode with the `node` or `nodes` fields.\n\nSee: https://graphql.org/learn/global-object-identification/",
                     name: "id",
-                    type: GraphQLID,
+                    type: new GraphQLNonNull(GraphQLID),
                     resolve(source) {
                         return userIdResolver(source);
                     }
@@ -225,7 +225,7 @@ export function getSchema(): GraphQLSchema {
                 id: {
                     description: "A globally unique opaque identifier for a node. Can be used to fetch the the\nnode with the `node` or `nodes` fields.\n\nSee: https://graphql.org/learn/global-object-identification/",
                     name: "id",
-                    type: GraphQLID,
+                    type: new GraphQLNonNull(GraphQLID),
                     resolve(source) {
                         return likeIdResolver(source);
                     }
