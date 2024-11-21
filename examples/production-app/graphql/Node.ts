@@ -30,7 +30,7 @@ export interface GraphQLNode {
  * See: https://graphql.org/learn/global-object-identification/
  *
  * @gqlField
- * @killsParentOnExceptions */
+ * @killsParentOnException */
 export function id(node: GraphQLNode): ID {
   return toGlobalId(node.__typename, node.localID());
 }

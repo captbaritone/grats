@@ -16,7 +16,7 @@ interface Node {
   
   See: https://graphql.org/learn/global-object-identification/
   """
-  id: ID
+  id: ID!
 }
 
 input CreateLikeInput {
@@ -72,7 +72,7 @@ type Like implements Node {
   
   See: https://graphql.org/learn/global-object-identification/
   """
-  id: ID
+  id: ID!
   """The user who liked the post."""
   liker: User
   """The post that was liked."""
@@ -124,7 +124,7 @@ type Post implements Node {
   
   See: https://graphql.org/learn/global-object-identification/
   """
-  id: ID
+  id: ID!
   """
   All the likes this post has received.
   **Note:** You can use this connection to access the number of likes.
@@ -178,7 +178,7 @@ type User implements Node {
   
   See: https://graphql.org/learn/global-object-identification/
   """
-  id: ID
+  id: ID!
   """User's name. **Note:** This field is not guaranteed to be unique."""
   name: String
   """
