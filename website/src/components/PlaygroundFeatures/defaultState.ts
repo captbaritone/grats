@@ -42,6 +42,7 @@ export const DEFAULT_STATE: State = {
     outputOption: "sdl",
     showGratsDirectives: false,
   },
+  ts: null,
   gratsResult: null,
   VERSION: URL_VERSION,
 };

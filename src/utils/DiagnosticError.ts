@@ -2,7 +2,7 @@ import { GraphQLError, Location, Source } from "graphql";
 import * as ts from "typescript";
 import { Result } from "./Result";
 
-type FixableDiagnostic = ts.Diagnostic & {
+export type FixableDiagnostic = ts.Diagnostic & {
   fix?: ts.CodeFixAction;
 };
 export type FixableDiagnosticWithLocation = ts.DiagnosticWithLocation & {

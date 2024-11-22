@@ -1,13 +1,22 @@
-import React, { useLayoutEffect, useState } from "react";
-import InputView from "../../components/PlaygroundFeatures/editors/InputView";
-import OutputView from "../../components/PlaygroundFeatures/editors/OutputView";
-import ConfigBar from "../../components/PlaygroundFeatures/ConfigBar";
 import Layout from "@theme/Layout";
-import store from "../../components/PlaygroundFeatures/store";
+import React, { Suspense } from "react";
+import ConfigBar from "../../components/PlaygroundFeatures/ConfigBar";
+import store, { useUrlState } from "../../components/PlaygroundFeatures/store";
 import { Provider } from "react-redux";
 import BrowserOnly from "@docusaurus/BrowserOnly";
+import FillRemainingHeight from "../../components/PlaygroundFeatures/FillRemainingHeight";
+import { bindGratsToStore } from "../../components/PlaygroundFeatures/gratsStoreBindings";
+import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
+const BothEditors = React.lazy(
+  () => import("../../components/MonacoPlayground/BothEditors"),
+);
 
-export default function Playground(): JSX.Element {
+if (ExecutionEnvironment.canUseDOM) {
+  bindGratsToStore();
+}
+
+export default function EditorView() {
+  useUrlState(store);
   return (
     <Layout title={`Playground`} noFooter>
       <BrowserOnly>
@@ -34,8 +43,30 @@ export default function Playground(): JSX.Element {
                     overflow: "scroll",
                   }}
                 >
-                  <InputView />
-                  <OutputView />
+                  <Suspense
+                    fallback={
+                      <div
+                        style={{
+                          height: "100%",
+                          width: "100%",
+                          display: "flex",
+                        }}
+                      >
+                        <div
+                          style={{
+                            margin: "auto",
+                            flexDirection: "column",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          Loading...
+                        </div>
+                      </div>
+                    }
+                  >
+                    <BothEditors />
+                  </Suspense>
                 </div>
               </div>
             </Provider>
@@ -43,37 +74,5 @@ export default function Playground(): JSX.Element {
         )}
       </BrowserOnly>
     </Layout>
-  );
-}
-
-// On mount, measures the window height and current vertical offset, and
-// renders children into a div that stretches to the bottom of the viewport.
-function FillRemainingHeight({ children, minHeight }) {
-  const [containerRef, setContainerRef] = useState(null);
-  const [height, setHeight] = useState(null);
-  useLayoutEffect(() => {
-    if (containerRef == null) {
-      return;
-    }
-
-    function updateSize() {
-      const verticalOffset = containerRef.getBoundingClientRect().y;
-      const available = Math.max(
-        window.innerHeight - verticalOffset,
-        minHeight,
-      );
-      setHeight(available);
-    }
-
-    updateSize();
-
-    window.addEventListener("resize", updateSize);
-    return () => window.removeEventListener("resize", updateSize);
-  }, [containerRef, minHeight]);
-
-  return (
-    <div style={{ height }} ref={setContainerRef}>
-      {height != null && children}
-    </div>
   );
 }
