@@ -1,5 +1,7 @@
 {
-  "grats": {},
+  "grats": {
+    "EXPERIMENTAL__includeResolverDirective": true
+  },
   "compilerOptions": {
     "outDir": "dist",
     "module": "NodeNext",
