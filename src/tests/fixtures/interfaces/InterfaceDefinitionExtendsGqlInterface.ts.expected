@@ -34,17 +34,17 @@ OUTPUT
 -----------------
 -- SDL --
 interface Mammal {
-  legs: Int @metadata
+  legs: Int
 }
 
 interface Person implements Mammal {
-  legs: Int @metadata
-  name: String @metadata
+  legs: Int
+  name: String
 }
 
 interface User implements Mammal & Person {
-  legs: Int @metadata
-  name: String @metadata
+  legs: Int
+  name: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLInt, GraphQLString } from "graphql";

@@ -14,7 +14,7 @@ OUTPUT
 -- SDL --
 # Generated SDL
 type SomeType {
-  hello: String @metadata
+  hello: String @resolver(kind: {property: {}})
 }
 -- TypeScript --
 // Generated TS

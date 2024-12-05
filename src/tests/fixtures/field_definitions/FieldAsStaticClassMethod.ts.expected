@@ -20,11 +20,11 @@ OUTPUT
 -----------------
 -- SDL --
 type Query {
-  getUser: User @metadata(exportName: "User", name: "getUser", tsModulePath: "grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethod.ts")
+  getUser: User @resolver(kind: {staticMethod: {path: "grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethod.ts", name: "getUser", exportName: "User", arguments: [{source: true}]}})
 }
 
 type User {
-  name: String @metadata
+  name: String @resolver(kind: {property: {}})
 }
 -- TypeScript --
 import { User as queryGetUserResolver } from "./FieldAsStaticClassMethod";

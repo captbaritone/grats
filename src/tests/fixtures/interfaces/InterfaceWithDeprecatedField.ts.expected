@@ -29,15 +29,15 @@ OUTPUT
 -----------------
 -- SDL --
 interface IPerson {
-  name: String @deprecated(reason: "Not used anymore") @metadata
+  name: String @deprecated(reason: "Not used anymore")
 }
 
 type SomeType {
-  me: User @metadata
+  me: User @resolver(kind: {method: {arguments: []}})
 }
 
 type User implements IPerson {
-  name: String @metadata
+  name: String @resolver(kind: {property: {}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";

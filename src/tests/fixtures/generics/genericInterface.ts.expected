@@ -29,17 +29,17 @@ OUTPUT
 -----------------
 -- SDL --
 interface DogFriendly {
-  to: Dog @metadata
+  to: Dog
 }
 
 type Dog {
-  bestFriend: DogFriendly @metadata
-  name: String @metadata
+  bestFriend: DogFriendly @resolver(kind: {property: {}})
+  name: String @resolver(kind: {property: {}})
 }
 
 type User implements DogFriendly {
-  name: String @metadata
-  to: Dog @metadata
+  name: String @resolver(kind: {property: {}})
+  to: Dog @resolver(kind: {property: {}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLObjectType, GraphQLString } from "graphql";

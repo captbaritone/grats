@@ -17,7 +17,7 @@ OUTPUT
 -----------------
 -- SDL --
 type User {
-  name: String @deprecated @metadata(name: "graphQLName")
+  name: String @deprecated @resolver(kind: {method: {name: "graphQLName", arguments: []}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

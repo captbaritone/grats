@@ -15,7 +15,7 @@ OUTPUT
 # Generated SDL
 # multi-line
 type SomeType {
-  hello: String @metadata
+  hello: String @resolver(kind: {property: {}})
 }
 -- TypeScript --
 // Generated TS

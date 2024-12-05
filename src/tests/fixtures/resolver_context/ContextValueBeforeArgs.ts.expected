@@ -17,7 +17,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting(fallbackGreeting: String!): String @metadata
+  greeting(fallbackGreeting: String!): String @resolver(kind: {method: {arguments: [{context: true}, {argumentsObject: true}]}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";

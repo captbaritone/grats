@@ -33,7 +33,7 @@ OUTPUT
 -- SDL --
 """Sup"""
 type SomeType {
-  name: String @metadata
+  name: String @resolver(kind: {property: {}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

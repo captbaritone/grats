@@ -18,7 +18,7 @@ OUTPUT
 -- SDL --
 type SomeType {
   """Greet the world!"""
-  hello: String @metadata
+  hello: String @resolver(kind: {method: {arguments: []}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

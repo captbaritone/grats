@@ -132,23 +132,23 @@ input ResolverArgument @oneOf {
   """
   The source object. This is what graphql-js resolvers expect in the first position.
   """
-  source: bool
+  source: Boolean
 
   """
   An object map containing all the GraphQL arguments.
   This is what graphql-js resolvers expect in the second position.
   """
-  argumentsObject: bool
+  argumentsObject: Boolean
 
   """
   The GraphQL execution context. This is what graphql-js resolvers expect in the third position.
   """
-  context: bool
+  context: Boolean
 
   """
   The GraphQL "info" object. This is what graphql-js resolvers expect in the fourth position.
   """
-  information: bool
+  information: Boolean
 
   """
   The single GraphQL argument with the given name. This allows resolvers to access individual arguments as positional arguments instead of always needing to access them as a single object map.

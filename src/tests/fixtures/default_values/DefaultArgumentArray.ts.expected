@@ -21,7 +21,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  someField1(inputs: [String!] = ["hello", "there"]): String @metadata
+  someField1(inputs: [String!] = ["hello", "there"]): String @resolver(kind: {method: {arguments: [{argumentsObject: true}]}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull } from "graphql";

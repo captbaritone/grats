@@ -28,7 +28,7 @@ input Greeting {
 }
 
 type SomeType {
-  hello(greeting: Greeting! = {name: "Alice", salutation: "Hullo"} @deprecated(reason: "Unused!")): String @metadata
+  hello(greeting: Greeting! = {name: "Alice", salutation: "Hullo"} @deprecated(reason: "Unused!")): String @resolver(kind: {method: {arguments: [{named: true}]}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";

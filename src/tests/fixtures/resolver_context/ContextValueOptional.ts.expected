@@ -20,7 +20,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String @metadata
+  greeting: String @resolver(kind: {method: {arguments: [{context: true}]}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

@@ -25,12 +25,12 @@ OUTPUT
 -----------------
 -- SDL --
 type Query {
-  getUser: User @metadata(exportName: "User", name: "getUser", tsModulePath: "grats/src/tests/fixtures/field_definitions/MultipleFieldsAsStaticClassMethods.ts")
-  getUsers: [User!] @metadata(exportName: "User", name: "getUsers", tsModulePath: "grats/src/tests/fixtures/field_definitions/MultipleFieldsAsStaticClassMethods.ts")
+  getUser: User @resolver(kind: {staticMethod: {path: "grats/src/tests/fixtures/field_definitions/MultipleFieldsAsStaticClassMethods.ts", name: "getUser", exportName: "User", arguments: [{source: true}]}})
+  getUsers: [User!] @resolver(kind: {staticMethod: {path: "grats/src/tests/fixtures/field_definitions/MultipleFieldsAsStaticClassMethods.ts", name: "getUsers", exportName: "User", arguments: [{source: true}]}})
 }
 
 type User {
-  name: String @metadata
+  name: String @resolver(kind: {property: {}})
 }
 -- TypeScript --
 import { User as queryGetUserResolver } from "./MultipleFieldsAsStaticClassMethods";

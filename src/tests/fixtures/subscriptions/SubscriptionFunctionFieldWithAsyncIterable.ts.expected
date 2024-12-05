@@ -40,10 +40,10 @@ OUTPUT
 -----------------
 -- SDL --
 type Subscription {
-  greetings: String! @metadata(exportName: "greetings", tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts")
-  greetingsMaybe: String @metadata(exportName: "greetingsMaybe", tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts")
-  maybeGreetings: String @metadata(exportName: "maybeGreetings", tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts")
-  maybeGreetingsMaybe: String @metadata(exportName: "maybeGreetingsMaybe", tsModulePath: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts")
+  greetings: String! @resolver(kind: {function: {path: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts", exportName: "greetings", arguments: [{source: true}]}})
+  greetingsMaybe: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts", exportName: "greetingsMaybe", arguments: [{source: true}]}})
+  maybeGreetings: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts", exportName: "maybeGreetings", arguments: [{source: true}]}})
+  maybeGreetingsMaybe: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts", exportName: "maybeGreetingsMaybe", arguments: [{source: true}]}})
 }
 -- TypeScript --
 import { greetings as subscriptionGreetingsResolver } from "./SubscriptionFunctionFieldWithAsyncIterable";

@@ -17,7 +17,7 @@ OUTPUT
 scalar MyUrl
 
 type SomeType {
-  hello: String @metadata
+  hello: String @resolver(kind: {property: {}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType, GraphQLString } from "graphql";

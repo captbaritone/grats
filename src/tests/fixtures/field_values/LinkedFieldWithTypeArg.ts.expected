@@ -28,12 +28,12 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  me: User @metadata
+  me: User @resolver(kind: {method: {arguments: []}})
 }
 
 type User {
-  friends: [User!] @metadata
-  name: String @metadata
+  friends: [User!] @resolver(kind: {method: {arguments: []}})
+  name: String @resolver(kind: {method: {arguments: []}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLString } from "graphql";

@@ -38,8 +38,8 @@ import { extend, invariant } from "./utils/helpers";
 import * as Act from "./CodeActions";
 import {
   InputValueDefinitionNodeOrResolverArg,
-  UnresolvedResolverParam,
-} from "./metadataDirectives.js";
+  ResolverArgument,
+} from "./resolverDirective";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -452,19 +452,10 @@ class Extractor {
       return this.report(node, E.fieldVariableNotTopLevelExported());
     }
 
-    const tsModulePath = relativePath(node.getSourceFile().fileName);
-
-    const metadataDirective = this.gql.fieldMetadataDirective(node, {
-      tsModulePath,
-      name: null,
-      exportName: funcName == null ? null : funcName.text,
-    });
-
-    if (declaration.initializer == null) {
-      return this.report(node, E.fieldVariableIsNotArrowFunction());
-    }
-
-    if (!ts.isArrowFunction(declaration.initializer)) {
+    if (
+      declaration.initializer == null ||
+      !ts.isArrowFunction(declaration.initializer)
+    ) {
       return this.report(node, E.fieldVariableIsNotArrowFunction());
     }
 
@@ -486,7 +477,7 @@ class Extractor {
       );
     }
 
-    this.collectAbstractField(declaration.initializer, name, metadataDirective);
+    this.collectAbstractField(declaration.initializer, funcName, null, name);
   }
 
   functionDeclarationExtendType(
@@ -501,15 +492,7 @@ class Extractor {
       return this.report(node, E.functionFieldNotTopLevel());
     }
 
-    const tsModulePath = relativePath(node.getSourceFile().fileName);
-
-    const metadataDirective = this.gql.fieldMetadataDirective(node, {
-      tsModulePath,
-      name: null,
-      exportName: funcName == null ? null : funcName.text,
-    });
-
-    this.collectAbstractField(node, name, metadataDirective);
+    this.collectAbstractField(node, funcName, null, name);
   }
 
   staticMethodExtendType(node: ts.MethodDeclaration, tag: ts.JSDocTag) {
@@ -528,7 +511,7 @@ class Extractor {
       return this.report(classNode, E.staticMethodClassNotTopLevel());
     }
 
-    let exportName: string | null = null;
+    let exportName: ts.Identifier | null = null;
 
     const isExported = classNode.modifiers?.some((modifier) => {
       return modifier.kind === ts.SyntaxKind.ExportKeyword;
@@ -555,24 +538,17 @@ class Extractor {
       const className = this.expectNameIdentifier(classNode.name);
       if (className == null) return null;
 
-      exportName = className.text;
+      exportName = className;
     }
 
-    const tsModulePath = relativePath(node.getSourceFile().fileName);
-
-    const metadataDirective = this.gql.fieldMetadataDirective(methodName, {
-      tsModulePath,
-      name: methodName.text,
-      exportName,
-    });
-
-    this.collectAbstractField(node, name, metadataDirective);
+    this.collectAbstractField(node, exportName, methodName, name);
   }
 
   collectAbstractField(
     node: ts.FunctionDeclaration | ts.MethodDeclaration | ts.ArrowFunction,
+    exportName: ts.Identifier | null,
+    methodName: ts.Identifier | null,
     name: NameNode,
-    metadataDirective: ConstDirectiveNode,
   ) {
     const [typeParam, ...restParams] = node.parameters;
     if (typeParam == null) {
@@ -597,7 +573,9 @@ class Extractor {
     const type = this.collectType(node.type, { kind: "OUTPUT" });
     if (type == null) return null;
 
-    const directives = [metadataDirective];
+    const tsModulePath = relativePath(node.getSourceFile().fileName);
+
+    const directives: ConstDirectiveNode[] = [];
 
     const description = this.collectDescription(node);
     const deprecated = this.collectDeprecated(node);
@@ -619,10 +597,22 @@ class Extractor {
       args,
       directives,
       description,
-      [
-        { kind: "named", name: "source", sourceNode: typeParam },
-        ...resolverParams,
-      ],
+      methodName == null
+        ? {
+            kind: "function",
+            path: tsModulePath,
+            exportName: exportName == null ? null : exportName.text,
+            arguments: [{ kind: "source", node: typeParam }, ...resolverParams],
+            node,
+          }
+        : {
+            kind: "staticMethod",
+            path: tsModulePath,
+            exportName: exportName == null ? null : exportName.text,
+            arguments: [{ kind: "source", node: typeParam }, ...resolverParams],
+            name: methodName.text,
+            node,
+          },
     );
     this.definitions.push(
       this.gql.abstractFieldDefinition(node, typeName, field),
@@ -1395,13 +1385,7 @@ class Extractor {
       // https://www.typescriptlang.org/play?#code/MYGwhgzhAEBiD29oG8BQ1rHgOwgFwCcBXYPeAgCgAciAjEAS2BQDNEBfAShXdXaA
       return null;
     }
-    const directives = [
-      this.gql.fieldMetadataDirective(node.name, {
-        name: id.text == name.value ? null : id.text,
-        tsModulePath: null,
-        exportName: null,
-      }),
-    ];
+    const directives: ConstDirectiveNode[] = [];
 
     const type = this.collectType(node.type, { kind: "OUTPUT" });
     if (type == null) return null;
@@ -1426,7 +1410,11 @@ class Extractor {
       null,
       directives,
       description,
-      null,
+      {
+        kind: "property",
+        name: id.text,
+        node,
+      },
     );
   }
 
@@ -1851,13 +1839,7 @@ class Extractor {
 
     const id = this.expectNameIdentifier(node.name);
     if (id == null) return null;
-    const directives = [
-      this.gql.fieldMetadataDirective(node.name, {
-        name: id.text === name.value ? null : id.text,
-        tsModulePath: null,
-        exportName: null,
-      }),
-    ];
+    const directives: ConstDirectiveNode[] = [];
 
     const deprecated = this.collectDeprecated(node);
     if (deprecated != null) {
@@ -1878,15 +1860,26 @@ class Extractor {
       args,
       directives,
       description,
-      isCallable(node) ? resolverParams : null,
+      isCallable(node)
+        ? {
+            kind: "method",
+            name: id.text === name.value ? null : id.text,
+            arguments: resolverParams,
+            node,
+          }
+        : {
+            kind: "property",
+            name: id.text === name.value ? null : id.text,
+            node,
+          },
     );
   }
 
   resolverParams(parameters: ReadonlyArray<ts.ParameterDeclaration>): {
-    resolverParams: UnresolvedResolverParam[];
+    resolverParams: ResolverArgument[];
     args: readonly InputValueDefinitionNode[] | null;
   } | null {
-    const resolverParams: UnresolvedResolverParam[] = [];
+    const resolverParams: ResolverArgument[] = [];
 
     let args: {
       param: ts.ParameterDeclaration;
@@ -1909,7 +1902,7 @@ class Extractor {
             tsRelated(args.param, "Previous type literal"),
           ]);
         }
-        resolverParams.push({ kind: "named", name: "args", sourceNode: param });
+        resolverParams.push({ kind: "argumentsObject", node: param });
         args = { param, inputs: [] };
 
         let defaults: ArgDefaults | null = null;
@@ -1928,7 +1921,7 @@ class Extractor {
 
       const inputDefinition = this.collectParamArg(param);
       if (inputDefinition == null) return null;
-      resolverParams.push({ kind: "unresolved", inputDefinition });
+      resolverParams.push({ kind: "unresolved", inputDefinition, node: param });
     }
     return { resolverParams, args: args ? args.inputs : null };
   }
@@ -2102,14 +2095,6 @@ class Extractor {
       directives.push(deprecated);
     }
 
-    directives.push(
-      this.gql.fieldMetadataDirective(node.name, {
-        name: id.text === name.value ? null : id.text,
-        exportName: null,
-        tsModulePath: null,
-      }),
-    );
-
     const killsParentOnExceptionDirective =
       this.killsParentOnExceptionDirective(node);
 
@@ -2124,7 +2109,11 @@ class Extractor {
       null,
       directives,
       description,
-      null,
+      {
+        kind: "property",
+        name: id.text === name.value ? null : id.text,
+        node,
+      },
     );
   }
   // TODO: Support separate modes for input and output types

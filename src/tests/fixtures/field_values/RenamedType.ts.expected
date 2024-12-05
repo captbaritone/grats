@@ -18,11 +18,11 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  me: User @metadata
+  me: User @resolver(kind: {property: {}})
 }
 
 type User {
-  name: String @metadata
+  name: String @resolver(kind: {property: {}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

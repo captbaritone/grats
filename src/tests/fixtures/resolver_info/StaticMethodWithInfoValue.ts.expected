@@ -22,11 +22,11 @@ OUTPUT
 -----------------
 -- SDL --
 type Query {
-  greeting: String @metadata(exportName: "SomeType", name: "greetz", tsModulePath: "grats/src/tests/fixtures/resolver_info/StaticMethodWithInfoValue.ts")
+  greeting: String @resolver(kind: {staticMethod: {path: "grats/src/tests/fixtures/resolver_info/StaticMethodWithInfoValue.ts", name: "greetz", exportName: "SomeType", arguments: [{source: true}, {information: true}]}})
 }
 
 type SomeType {
-  someField: String @metadata
+  someField: String @resolver(kind: {property: {}})
 }
 -- TypeScript --
 import { SomeType as queryGreetingResolver } from "./StaticMethodWithInfoValue";

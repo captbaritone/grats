@@ -10,16 +10,15 @@ import { err, ok } from "../utils/Result";
 import {
   DiagnosticsResult,
   FixableDiagnosticWithLocation,
-  gqlRelated,
   tsErr,
+  tsRelated,
 } from "../utils/DiagnosticError";
 import { nullThrows } from "../utils/helpers";
 import {
-  NamedFieldParam,
-  PositionalFieldParam,
-  Unresolved,
-  UnresolvedResolverParam,
-} from "../metadataDirectives.js";
+  NamedResolverArgument,
+  ResolverArgument,
+  UnresolvedResolverArgument,
+} from "../resolverDirective";
 import * as E from "../Errors";
 import { GraphQLConstructor } from "../GraphQLConstructor";
 
@@ -56,28 +55,30 @@ class ResolverParamsResolver {
   }
 
   private transformField(field: FieldDefinitionNode): FieldDefinitionNode {
-    if (field.resolverParams == null) {
+    const resolver = nullThrows(field.resolver);
+
+    if (resolver.kind === "property" || resolver.arguments == null) {
       return field;
     }
+
     // Resolve all the params individually
-    const resolverParams: UnresolvedResolverParam[] = field.resolverParams.map(
-      (param) => this.transformParam(param),
+    const resolverParams: ResolverArgument[] = resolver.arguments.map((param) =>
+      this.transformParam(param),
     );
 
     // Now we check to see if the params are a valid combination...
     const args = resolverParams.find(
-      (param): param is NamedFieldParam =>
-        param.kind === "named" && param.name === "args",
+      (param) => param.kind === "argumentsObject",
     );
-    const positionalArgs: PositionalFieldParam[] = resolverParams.filter(
-      (param) => param.kind === "positionalArg",
+    const positionalArgs: NamedResolverArgument[] = resolverParams.filter(
+      (param) => param.kind === "named",
     );
 
     if (args != null && positionalArgs.length > 0) {
       this.errors.push(
-        tsErr(nullThrows(args.sourceNode), E.positionalArgAndArgsObject(), [
-          gqlRelated(
-            positionalArgs[0].inputDefinition,
+        tsErr(nullThrows(args.node), E.positionalArgAndArgsObject(), [
+          tsRelated(
+            positionalArgs[0].node,
             "Positional GraphQL argument defined here",
           ),
         ]),
@@ -93,13 +94,21 @@ class ResolverParamsResolver {
       fieldArgs.push(positionalArg.inputDefinition);
     }
 
-    return { ...field, arguments: fieldArgs, resolverParams };
+    const newResolver = {
+      ...resolver,
+      arguments: resolverParams,
+    };
+
+    return { ...field, arguments: fieldArgs, resolver: newResolver };
   }
 
-  transformParam(param: UnresolvedResolverParam): UnresolvedResolverParam {
+  transformParam(param: ResolverArgument): ResolverArgument {
     switch (param.kind) {
       case "named":
-      case "positionalArg":
+      case "argumentsObject":
+      case "information":
+      case "context":
+      case "source":
         return param;
       case "unresolved": {
         const unwrappedType = this.gql.nullableType(param.inputDefinition.type);
@@ -116,9 +125,9 @@ class ResolverParamsResolver {
           }
           switch (resolved.value.kind) {
             case "CONTEXT":
-              return { kind: "named", name: "context" };
+              return { kind: "context", node: param.node };
             case "INFO":
-              return { kind: "named", name: "info" };
+              return { kind: "information", node: param.node };
             default: {
               // We'll assume it's supposed to be a positional arg.
               return this.resolveToPositionalArg(param) ?? param;
@@ -130,22 +139,26 @@ class ResolverParamsResolver {
         return this.resolveToPositionalArg(param) ?? param;
       }
       default: {
-        const _exhaustive: never = param;
-        throw new Error("Unexpected param kind");
+        // @ts-expect-error
+        throw new Error(`Unexpected param kind ${param.kind}`);
       }
     }
   }
-  resolveToPositionalArg(unresolved: Unresolved): PositionalFieldParam | null {
+  resolveToPositionalArg(
+    unresolved: UnresolvedResolverArgument,
+  ): ResolverArgument | null {
     if (unresolved.inputDefinition.name.kind === "ERROR") {
       this.errors.push(unresolved.inputDefinition.name.err);
       return null;
     }
     return {
-      kind: "positionalArg",
+      kind: "named",
+      name: unresolved.inputDefinition.name.value.value,
       inputDefinition: {
         ...unresolved.inputDefinition,
         name: unresolved.inputDefinition.name.value,
       },
+      node: unresolved.node,
     };
   }
 }
