@@ -52,6 +52,19 @@ export type GratsConfig = {
   // file extension. In TypeScript code this generally means import paths must end
   // with `.js`. If set to null, no ending will be appended.
   importModuleSpecifierEnding: string; // Defaults to no ending, or ""
+
+  // EXPERIMENTAL: THIS OPTION WILL BE RENAMED OR REMOVED IN A FUTURE RELEASE
+  // Include the `@resolver` directive in the generated SDL.
+  // This directive describes the TypeScript type of the resolver
+  // function/property/method. It is intended to allow other tools to use Grats' analysis
+  // for other purposes. For example:
+  // - Generating a GraphQL Tools' style resolver map instead of a GraphQLSchema
+  // - Instead of generating resolvers using codegen, create generic resolver
+  //   that dynamically determines how to resolve fields
+  //
+  // The design of this feature is still not formalized it can be expected to
+  // change in a future release.
+  EXPERIMENTAL__includeResolverDirective: boolean; // Default: false
 };
 
 export type ParsedCommandLineGrats = Omit<ts.ParsedCommandLine, "raw"> & {
@@ -77,6 +90,7 @@ const VALID_CONFIG_KEYS = new Set([
   "schemaHeader",
   "tsSchemaHeader",
   "importModuleSpecifierEnding",
+  "EXPERIMENTAL__includeResolverDirective",
 ]);
 
 // TODO: Make this return diagnostics
@@ -188,6 +202,16 @@ export function validateGratsOptions(
   } else if (typeof gratsOptions.importModuleSpecifierEnding !== "string") {
     throw new Error(
       "Grats: The Grats config option `importModuleSpecifierEnding` must be a string if provided.",
+    );
+  }
+
+  if (gratsOptions.EXPERIMENTAL__includeResolverDirective === undefined) {
+    gratsOptions.EXPERIMENTAL__includeResolverDirective = false;
+  } else if (
+    typeof gratsOptions.EXPERIMENTAL__includeResolverDirective !== "boolean"
+  ) {
+    throw new Error(
+      "Grats: The Grats config option `EXPERIMENTAL__includeResolverDirective` must be a boolean if provided.",
     );
   }
 

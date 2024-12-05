@@ -18,11 +18,11 @@ OUTPUT
 -----------------
 -- SDL --
 type OtherType {
-  wrapper: Wrapper @metadata
+  wrapper: Wrapper @resolver(kind: {property: {}})
 }
 
 type Wrapper {
-  value: String @metadata
+  value: String @resolver(kind: {property: {}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

@@ -20,7 +20,7 @@ OUTPUT
 -- SDL --
 type SomeType {
   """Best field ever!"""
-  greeting: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_type/addFieldWithDescription.ts")
+  greeting: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/extend_type/addFieldWithDescription.ts", exportName: "greeting", arguments: [{source: true}]}})
 }
 -- TypeScript --
 import { greeting as someTypeGreetingResolver } from "./addFieldWithDescription";

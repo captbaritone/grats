@@ -22,8 +22,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  hello1(greeting: String): String @metadata
-  hello2(greeting: String): String @metadata
+  hello1(greeting: String): String @resolver(kind: {method: {arguments: [{argumentsObject: true}]}})
+  hello2(greeting: String): String @resolver(kind: {method: {arguments: [{argumentsObject: true}]}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

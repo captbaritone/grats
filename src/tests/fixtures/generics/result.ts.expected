@@ -31,15 +31,15 @@ OUTPUT
 union PageResult = Err | Page
 
 type Err {
-  message: String @metadata
+  message: String @resolver(kind: {property: {}})
 }
 
 type Page {
-  name: String @metadata
+  name: String @resolver(kind: {property: {}})
 }
 
 type SomeType {
-  pageResult: PageResult @metadata
+  pageResult: PageResult @resolver(kind: {property: {}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLUnionType, GraphQLObjectType, GraphQLString } from "graphql";

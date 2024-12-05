@@ -49,3 +49,16 @@ export function nullThrows<T>(value: T | null | undefined): T {
   }
   return value;
 }
+
+// Noop tagged template literal
+export function graphql(strings: TemplateStringsArray, ...values: any[]) {
+  // Combine the template literal parts into a single string
+  let query = strings[0];
+  values.forEach((value, index) => {
+    query += value + strings[index + 1];
+  });
+
+  // For simplicity, return the query as a string
+  // In practice, you'd parse it into a GraphQL AST using a library like graphql-js
+  return query.trim();
+}

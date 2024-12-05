@@ -1,19 +1,17 @@
-import * as ts from "typescript";
 import {
   ConstDirectiveNode,
-  ConstValueNode,
   DefinitionNode,
   DocumentNode,
-  InputValueDefinitionNode,
   Kind,
   Location,
-  NameNode,
   parse,
-  StringValueNode,
-  TypeNode,
 } from "graphql";
-import { uniqueId } from "./utils/helpers";
-import { DiagnosticResult } from "./utils/DiagnosticError.js";
+import { graphql, uniqueId } from "./utils/helpers";
+import {
+  Resolver,
+  RESOLVER_DIRECTIVE_SDL,
+  RESOLVER_INPUT_NAMES,
+} from "./resolverDirective";
 
 /**
  * In most cases we can use directives to annotate constructs
@@ -74,85 +72,33 @@ declare module "graphql" {
      */
     mayBeInterface?: boolean;
   }
+
   export interface FieldDefinitionNode {
     /**
-     * Grats metadata: Indicates the params expected by the field resolver and their order
+     * Grats metadata: Describes the backing resolver for a field. Eventually
+     * this gets transformed into a @resolver directive. However, we delay doing
+     * that to avoid repeated parsing, and to allow for unresolved types early
+     * on during compilation.
      */
-    resolverParams?: UnresolvedResolverParam[];
+    resolver?: Resolver;
   }
 }
 
-/**
- * At extraction time we don't know if a resolver arg is context, info, or a
- * positional GraphQL argument. If it's a positional argument, we need to ensure
- * it has a valid name. If it's just info or context, it's fine if it doesn't
- * have a name e.g. (destructured).
- */
-export interface InputValueDefinitionNodeOrResolverArg {
-  readonly kind: Kind.INPUT_VALUE_DEFINITION;
-  readonly loc: Location;
-  readonly description?: StringValueNode;
-  // This is the only property that is different.
-  readonly name: DiagnosticResult<NameNode>;
-  readonly type: TypeNode;
-  readonly defaultValue?: ConstValueNode;
-  readonly directives?: ReadonlyArray<ConstDirectiveNode>;
-}
-
-export type UnresolvedResolverParam =
-  | NamedFieldParam
-  | PositionalFieldParam
-  | Unresolved;
-
-export type ResolvedResolverParam = NamedFieldParam | PositionalFieldParam;
-
-export type NamedFieldParam = {
-  kind: "named";
-  // Used by diagnostics to point to the source of the param
-  sourceNode?: ts.Node;
-  name: FieldParam;
-};
-export type PositionalFieldParam = {
-  kind: "positionalArg";
-  inputDefinition: InputValueDefinitionNode;
-};
-export type Unresolved = {
-  kind: "unresolved";
-  inputDefinition: InputValueDefinitionNodeOrResolverArg;
-};
-
-export type FieldParam = "source" | "args" | "context" | "info";
-
-export const FIELD_METADATA_DIRECTIVE = "metadata";
-export const EXPORT_NAME_ARG = "exportName";
-export const FIELD_NAME_ARG = "name";
-export const TS_MODULE_PATH_ARG = "tsModulePath";
+export const FIELD_RESOLVER_DIRECTIVE = "resolver";
 export const ASYNC_ITERABLE_ARG = "asyncIterable";
 
 export const KILLS_PARENT_ON_EXCEPTION_DIRECTIVE = "killsParentOnException";
 
 export const METADATA_DIRECTIVE_NAMES = new Set([
-  FIELD_METADATA_DIRECTIVE,
   KILLS_PARENT_ON_EXCEPTION_DIRECTIVE,
+  FIELD_RESOLVER_DIRECTIVE,
 ]);
 
-export const DIRECTIVES_AST: DocumentNode = parse(`
-    directive @${FIELD_METADATA_DIRECTIVE}(
-      """
-      Name of property/method/function. Defaults to field name.
-      """
-      ${FIELD_NAME_ARG}: String
-      """
-      Path of the TypeScript module to import if the field is a function.
-      """
-      ${TS_MODULE_PATH_ARG}: String
-      """
-      Export name of the field. For function fields this is the exported function name,
-      for static method fields, this is the exported class name.
-      """
-      ${EXPORT_NAME_ARG}: String
-    ) on FIELD_DEFINITION
-    directive @${KILLS_PARENT_ON_EXCEPTION_DIRECTIVE} on FIELD_DEFINITION
+export const METADATA_INPUT_NAMES = new Set(RESOLVER_INPUT_NAMES);
+
+export const DIRECTIVES_AST: DocumentNode = parse(graphql`
+  directive @${KILLS_PARENT_ON_EXCEPTION_DIRECTIVE} on FIELD_DEFINITION
+  ${RESOLVER_DIRECTIVE_SDL}
 `);
 
 export function addMetadataDirectives(
@@ -160,12 +106,6 @@ export function addMetadataDirectives(
 ): Array<DefinitionNode> {
   return [...DIRECTIVES_AST.definitions, ...definitions];
 }
-
-export type FieldMetadata = {
-  tsModulePath: string | null;
-  name: string | null;
-  exportName: string | null;
-};
 
 export function makeKillsParentOnExceptionDirective(
   loc: Location,
@@ -181,34 +121,4 @@ export function makeKillsParentOnExceptionDirective(
     },
     arguments: [],
   };
-}
-
-export function parseFieldMetadataDirective(
-  directive: ConstDirectiveNode,
-): FieldMetadata {
-  if (directive.name.value !== FIELD_METADATA_DIRECTIVE) {
-    throw new Error(`Expected directive to be ${FIELD_METADATA_DIRECTIVE}`);
-  }
-
-  return {
-    name: getStringArg(directive, FIELD_NAME_ARG),
-    tsModulePath: getStringArg(directive, TS_MODULE_PATH_ARG),
-    exportName: getStringArg(directive, EXPORT_NAME_ARG),
-  };
-}
-
-function getStringArg(
-  directive: ConstDirectiveNode,
-  argName: string,
-): string | null {
-  const arg = directive.arguments?.find((arg) => arg.name.value === argName);
-  if (!arg) {
-    return null;
-  }
-
-  if (arg.value.kind !== Kind.STRING) {
-    throw new Error(`Expected argument ${argName} to be a string`);
-  }
-
-  return arg.value.value;
 }

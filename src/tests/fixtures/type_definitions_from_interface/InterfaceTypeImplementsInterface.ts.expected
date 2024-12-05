@@ -22,12 +22,12 @@ OUTPUT
 -----------------
 -- SDL --
 interface HasName {
-  name: String @metadata
+  name: String
 }
 
 type User implements HasName {
-  hello: String @metadata
-  name: String @metadata
+  hello: String @resolver(kind: {property: {}})
+  name: String @resolver(kind: {property: {}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";

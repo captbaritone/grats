@@ -20,11 +20,11 @@ OUTPUT
 -----------------
 -- SDL --
 interface Person {
-  name: String @metadata
+  name: String
 }
 
 type User implements Person {
-  name: String @metadata
+  name: String @resolver(kind: {property: {}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";

@@ -23,7 +23,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_type/optionalModelType.ts")
+  greeting: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/extend_type/optionalModelType.ts", exportName: "greeting", arguments: [{source: true}]}})
 }
 -- TypeScript --
 import { greeting as someTypeGreetingResolver } from "./optionalModelType";

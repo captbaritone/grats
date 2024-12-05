@@ -2,38 +2,41 @@
 INPUT
 ----------------- 
 /** @gqlType */
-export default class SomeType {
-  /** @gqlField greetz */
-  hello(args: { greeting: string }): string {
-    return `${args.greeting} world!`;
-  }
+class SomeType {
+  // No fields
 }
+
+/** @gqlField */
+export const greeting = (_: SomeType, name: string): string => {
+  return `Hello ${name}`;
+};
 
 -----------------
 OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greetz(greeting: String!): String @resolver(kind: {method: {name: "hello", arguments: [{argumentsObject: true}]}})
+  greeting(name: String!): String @resolver(kind: {function: {path: "grats/src/tests/fixtures/extend_type/fieldAsExportedArrowFunctionPositionalArgs.ts", exportName: "greeting", arguments: [{source: true}, {named: true}]}})
 }
 -- TypeScript --
+import { greeting as someTypeGreetingResolver } from "./fieldAsExportedArrowFunctionPositionalArgs";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
             return {
-                greetz: {
-                    name: "greetz",
+                greeting: {
+                    name: "greeting",
                     type: GraphQLString,
                     args: {
-                        greeting: {
-                            name: "greeting",
+                        name: {
+                            name: "name",
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     },
                     resolve(source, args) {
-                        return source.hello(args);
+                        return someTypeGreetingResolver(source, args.name);
                     }
                 }
             };

@@ -31,15 +31,15 @@ OUTPUT
 -----------------
 -- SDL --
 interface Actor {
-  name: String @metadata
+  name: String
 }
 
 type SomeType {
-  me: User @metadata
+  me: User @resolver(kind: {method: {arguments: []}})
 }
 
 type User implements Actor {
-  name: String @metadata
+  name: String @resolver(kind: {property: {}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";

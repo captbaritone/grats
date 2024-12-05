@@ -14,7 +14,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/type_definitions_from_alias/AliasOfUnknownDefinesType.ts")
+  greeting: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/type_definitions_from_alias/AliasOfUnknownDefinesType.ts", exportName: "greeting", arguments: [{source: true}]}})
 }
 -- TypeScript --
 import { greeting as someTypeGreetingResolver } from "./AliasOfUnknownDefinesType";

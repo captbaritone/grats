@@ -27,12 +27,7 @@ import {
 } from "graphql";
 import * as ts from "typescript";
 import * as path from "path";
-import {
-  FIELD_METADATA_DIRECTIVE,
-  FieldParam,
-  parseFieldMetadataDirective,
-  ResolvedResolverParam,
-} from "./metadataDirectives";
+import { METADATA_INPUT_NAMES } from "./metadataDirectives";
 import { resolveRelativePath } from "./gratsRoot";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "./publicDirectives";
 import {
@@ -42,8 +37,9 @@ import {
 import { extend, nullThrows } from "./utils/helpers";
 import { GratsConfig } from "./gratsConfig.js";
 import { naturalCompare } from "./utils/naturalCompare";
+import { Resolver, ResolverArgument } from "./resolverDirective";
 
-const RESOLVER_ARGS: FieldParam[] = ["source", "args", "context", "info"];
+const RESOLVER_ARGS: string[] = ["source", "args", "context", "info"];
 
 const F = ts.factory;
 
@@ -135,7 +131,8 @@ class Codegen {
           type.name === "Int" ||
           type.name === "Float" ||
           type.name === "Boolean" ||
-          type.name === "ID"
+          type.name === "ID" ||
+          METADATA_INPUT_NAMES.has(type.name)
         );
       })
       .map((type) => this.typeReference(type));
@@ -237,134 +234,178 @@ class Codegen {
     }
   }
 
+  /**
+   * TODO: Derive this from the actual directive?
+   */
+  resolverSignature(field: GraphQLField<unknown, unknown>): Resolver {
+    return nullThrows(field.astNode?.resolver);
+  }
+
+  isDefaultResolverSignature(
+    field: GraphQLField<unknown, unknown>,
+    signature: Resolver,
+  ): boolean {
+    switch (signature.kind) {
+      case "property":
+        return signature.name == null || field.name === signature.name;
+      case "method":
+        if (signature.name != null && field.name !== signature.name) {
+          return false;
+        }
+        if (signature.arguments == null || signature.arguments.length === 0) {
+          return true;
+        }
+        return signature.arguments.every((arg, i) => {
+          switch (i) {
+            case 0:
+              return arg.kind === "argumentsObject";
+            // TODO: More?
+            default:
+              return false;
+          }
+        });
+      case "function":
+        return false;
+      case "staticMethod":
+        return false;
+    }
+  }
+
   resolveMethod(
     field: GraphQLField<unknown, unknown>,
     methodName: string,
     parentTypeName: string,
   ): ts.MethodDeclaration | null {
-    const metadataDirective = nullThrows(
-      fieldDirective(field, FIELD_METADATA_DIRECTIVE),
-    );
-    const metadata = parseFieldMetadataDirective(metadataDirective);
-    const fieldAst = nullThrows(field.astNode);
-    const resolverParams: ResolvedResolverParam[] | undefined =
-      fieldAst.resolverParams?.map((param) => {
-        switch (param.kind) {
-          case "named":
-          case "positionalArg":
-            return param;
-          case "unresolved":
-            throw new Error("Expected resolver param to have been resolved.");
-          default: {
-            const _exhaustive: never = param;
-            throw new Error("Unexpected param kind");
-          }
-        }
-      });
-
-    if (metadata.tsModulePath != null) {
-      // Note: This name is guaranteed to be unique, but for static methods, it
-      // means we import the same class multiple times with multiple names.
-      const resolverName = formatResolverFunctionVarName(
-        parentTypeName,
-        field.name,
-      );
-
-      this.importUserConstruct(
-        metadata.tsModulePath,
-        metadata.exportName,
-        resolverName,
-      );
-
-      let resolverAccess: ts.Expression = F.createIdentifier(resolverName);
-
-      if (metadata.name != null) {
-        resolverAccess = F.createPropertyAccessExpression(
-          resolverAccess,
-          F.createIdentifier(metadata.name),
-        );
-      }
-
-      // Params expected by the user-defined resolver function.
-      const usedResolverParams = resolverParams ?? [];
-
-      // Params passed to the default resolver function.
-      const wrapperParams: string[] = extractUsedParams(usedResolverParams);
-
-      return this.method(
-        methodName,
-        wrapperParams.map((name) => {
-          return this.param(name);
-        }),
-        [
-          F.createReturnStatement(
-            F.createCallExpression(
-              resolverAccess,
-              undefined,
-              usedResolverParams.map((name) => {
-                return this.resolverParam(name);
-              }),
+    const signature = this.resolverSignature(field);
+    if (this.isDefaultResolverSignature(field, signature)) {
+      return null;
+    }
+    switch (signature.kind) {
+      case "property":
+        return this.method(
+          methodName,
+          [this.param("source")],
+          [
+            F.createReturnStatement(
+              F.createPropertyAccessExpression(
+                F.createIdentifier("source"),
+                F.createIdentifier(signature.name ?? field.name),
+              ),
             ),
+          ],
+        );
+      case "method": {
+        return this.method(
+          methodName,
+          extractUsedParams(signature.arguments ?? [], true).map((name) =>
+            this.param(name),
           ),
-        ],
-      );
-    }
-    const defaultParams =
-      resolverParams == null || paramsAreInDefaultOrder(resolverParams);
-    if (metadata.name != null || !defaultParams) {
-      const prop = F.createPropertyAccessExpression(
-        F.createIdentifier("source"),
-        F.createIdentifier(metadata.name ?? field.name),
-      );
-
-      let valueExpression: ts.Expression = prop;
-
-      if (resolverParams != null) {
-        valueExpression = F.createCallExpression(
-          prop,
-          undefined,
-          resolverParams.map((name) => {
-            return this.resolverParam(name);
-          }),
+          [
+            F.createReturnStatement(
+              F.createCallExpression(
+                F.createPropertyAccessExpression(
+                  F.createIdentifier("source"),
+                  F.createIdentifier(signature.name ?? field.name),
+                ),
+                [],
+                (signature.arguments ?? []).map((arg) => {
+                  return this.resolverParam(arg);
+                }),
+              ),
+            ),
+          ],
         );
       }
-
-      const usedWrapperParams: ResolvedResolverParam[] = [
-        { kind: "named", name: "source" },
-      ];
-      if (resolverParams != null) {
-        // Push with ... is safe because resolverParams is known to be
-        // a small array.
-        usedWrapperParams.push(...resolverParams);
+      case "function": {
+        const resolverName = formatResolverFunctionVarName(
+          parentTypeName,
+          field.name,
+        );
+        this.importUserConstruct(
+          signature.path,
+          signature.exportName,
+          resolverName,
+        );
+        return this.method(
+          methodName,
+          extractUsedParams(signature.arguments ?? [], true).map((name) =>
+            this.param(name),
+          ),
+          [
+            F.createReturnStatement(
+              F.createCallExpression(
+                F.createIdentifier(resolverName),
+                undefined,
+                (signature.arguments ?? []).map((arg) => {
+                  return this.resolverParam(arg);
+                }),
+              ),
+            ),
+          ],
+        );
       }
-
-      return this.method(
-        methodName,
-        extractUsedParams(usedWrapperParams).map((name) => this.param(name)),
-        [F.createReturnStatement(valueExpression)],
-      );
+      case "staticMethod": {
+        // Note: This name is guaranteed to be unique, but for static methods, it
+        // means we import the same class multiple times with multiple names.
+        const resolverName = formatResolverFunctionVarName(
+          parentTypeName,
+          field.name,
+        );
+        this.importUserConstruct(
+          signature.path,
+          signature.exportName,
+          resolverName,
+        );
+        return this.method(
+          methodName,
+          extractUsedParams(signature.arguments ?? [], true).map((name) =>
+            this.param(name),
+          ),
+          [
+            F.createReturnStatement(
+              F.createCallExpression(
+                F.createPropertyAccessExpression(
+                  F.createIdentifier(resolverName),
+                  F.createIdentifier(signature.name),
+                ),
+                undefined,
+                (signature.arguments ?? []).map((arg) => {
+                  return this.resolverParam(arg);
+                }),
+              ),
+            ),
+          ],
+        );
+      }
+      default:
+        // @ts-expect-error
+        throw new Error(`Unexpected resolver kind ${signature.kind}`);
     }
-
-    // If the resolver name matches the field name, and the field is not backed by a function,
-    // we can just use the default resolver.
-    return null;
   }
-
   // Either `args`, `context`, `info`, or a positional argument like
   // `args.someArg`.
-  resolverParam(param: ResolvedResolverParam): ts.Expression {
-    switch (param.kind) {
+  resolverParam(arg: ResolverArgument): ts.Expression {
+    switch (arg.kind) {
+      case "argumentsObject":
+        return F.createIdentifier("args");
+      case "context":
+        return F.createIdentifier("context");
+      case "information":
+        return F.createIdentifier("info");
+      case "source":
+        return F.createIdentifier("source");
       case "named":
-        return F.createIdentifier(param.name);
-      case "positionalArg":
         return F.createPropertyAccessExpression(
           F.createIdentifier("args"),
-          F.createIdentifier(param.inputDefinition.name.value),
+          F.createIdentifier(arg.name),
         );
-      default: {
-        const _exhaustive: never = param;
-        throw new Error("Unexpected param kind");
-      }
+      case "unresolved":
+        throw new Error(
+          `Unexpected unresolved resolver argument during codegen`,
+        );
+      default:
+        // @ts-expect-error
+        throw new Error(`Unexpected resolver kind ${arg.kind}`);
     }
   }
 
@@ -1148,18 +1189,27 @@ class Codegen {
 //
 // Unused trailing args are trimmed, unused intermediate args are prefixed with
 // an underscore.
-function extractUsedParams(resolverParams: ResolvedResolverParam[]): string[] {
+function extractUsedParams(
+  resolverParams: ResolverArgument[],
+  includeSource: boolean = false,
+): string[] {
   const wrapperArgs: string[] = [];
 
   let adding = false;
   for (let i = RESOLVER_ARGS.length - 1; i >= 0; i--) {
     const name = RESOLVER_ARGS[i];
-    const used = resolverParams.some((param) => {
-      return (
-        (param.kind === "named" && param.name === name) ||
-        (param.kind === "positionalArg" && name) === "args"
-      );
-    });
+    const used =
+      resolverParams.some((param) => {
+        return (
+          (param.kind === "named" && name === "args") ||
+          (param.kind === "argumentsObject" && name === "args") ||
+          (param.kind === "context" && name === "context") ||
+          (param.kind === "information" && name === "info") ||
+          (param.kind === "source" && name === "source")
+        );
+      }) ||
+      (name === "source" && includeSource);
+
     if (used) {
       adding = true;
     }
@@ -1170,12 +1220,6 @@ function extractUsedParams(resolverParams: ResolvedResolverParam[]): string[] {
     wrapperArgs.unshift(used ? name : `_${name}`);
   }
   return wrapperArgs;
-}
-
-function paramsAreInDefaultOrder(params: ResolvedResolverParam[]) {
-  return params.every((param, i) => {
-    return param.kind === "named" && param.name === RESOLVER_ARGS[i + 1];
-  });
 }
 
 function fieldDirective(

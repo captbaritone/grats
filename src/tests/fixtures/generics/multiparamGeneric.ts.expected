@@ -33,15 +33,15 @@ OUTPUT
 union PageErrResult = Err | Page
 
 type Err {
-  error: String @metadata
+  error: String @resolver(kind: {property: {}})
 }
 
 type Page {
-  title: String @metadata
+  title: String @resolver(kind: {property: {}})
 }
 
 type Query {
-  pageResult: PageErrResult @metadata(exportName: "pageResult", tsModulePath: "grats/src/tests/fixtures/generics/multiparamGeneric.ts")
+  pageResult: PageErrResult @resolver(kind: {function: {path: "grats/src/tests/fixtures/generics/multiparamGeneric.ts", exportName: "pageResult", arguments: [{source: true}]}})
 }
 -- TypeScript --
 import { pageResult as queryPageResultResolver } from "./multiparamGeneric";

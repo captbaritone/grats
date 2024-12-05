@@ -25,6 +25,7 @@ import {
 } from "../utils/DiagnosticError";
 import { extend, nullThrows } from "../utils/helpers";
 import * as E from "../Errors";
+import { METADATA_INPUT_NAMES } from "../metadataDirectives";
 
 type Template = {
   declarationTemplate: TypeDefinitionNode;
@@ -342,8 +343,9 @@ function mayReferenceGenerics(
   return (
     definition.kind === Kind.OBJECT_TYPE_DEFINITION ||
     definition.kind === Kind.UNION_TYPE_DEFINITION ||
-    definition.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION ||
-    definition.kind === Kind.INTERFACE_TYPE_DEFINITION
+    definition.kind === Kind.INTERFACE_TYPE_DEFINITION ||
+    (definition.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION &&
+      !METADATA_INPUT_NAMES.has(definition.name.value))
   );
 }
 

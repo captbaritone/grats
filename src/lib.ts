@@ -4,6 +4,7 @@ import {
   GraphQLSchema,
   Kind,
   validateSchema,
+  visit,
 } from "graphql";
 import {
   DiagnosticsWithoutLocationResult,
@@ -33,6 +34,8 @@ import { validateSemanticNullability } from "./validations/validateSemanticNulla
 import { resolveTypes } from "./transforms/resolveTypes";
 import { resolveResolverParams } from "./transforms/resolveResolverParams";
 import { customSpecValidations } from "./validations/customSpecValidations";
+import { GraphQLConstructor } from "./GraphQLConstructor";
+import { nullThrows } from "./utils/helpers";
 
 // Export the TypeScript plugin implementation used by
 // grats-ts-plugin
@@ -119,6 +122,24 @@ export function extractSchemaAndDoc(
         // Perform custom validations that reimplement spec validation rules
         // with more tailored error messages.
         .andThen((doc) => customSpecValidations(doc))
+        .map((doc) => {
+          return visit(doc, {
+            [Kind.OBJECT_TYPE_DEFINITION](object) {
+              const fields = object.fields?.map((field) => {
+                const gql = new GraphQLConstructor();
+                const resolverDirective = gql.fieldResolverDirective(
+                  nullThrows(field.resolver),
+                );
+                const directives =
+                  field.directives == null
+                    ? [resolverDirective]
+                    : [...field.directives, resolverDirective];
+                return { ...field, directives };
+              });
+              return { ...object, fields };
+            },
+          });
+        })
         // Sort the definitions in the document to ensure a stable output.
         .map((doc) => sortSchemaAst(doc))
         .result();

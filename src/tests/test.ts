@@ -19,7 +19,10 @@ import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError";
 import { writeFileSync } from "fs";
 import { codegen } from "../codegen";
 import { diff } from "jest-diff";
-import { METADATA_DIRECTIVE_NAMES } from "../metadataDirectives";
+import {
+  METADATA_DIRECTIVE_NAMES,
+  METADATA_INPUT_NAMES,
+} from "../metadataDirectives";
 import * as semver from "semver";
 import {
   GratsConfig,
@@ -164,6 +167,9 @@ const testDirs = [
               return !specifiedScalarTypes.some(
                 (scalar) => scalar.name === def.name.value,
               );
+            }
+            if (def.kind === "InputObjectTypeDefinition") {
+              return !METADATA_INPUT_NAMES.has(def.name.value);
             }
             return true;
           }),

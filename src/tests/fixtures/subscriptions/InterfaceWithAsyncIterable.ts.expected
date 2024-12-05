@@ -12,7 +12,7 @@ OUTPUT
 -----------------
 -- SDL --
 interface NotSubscription {
-  greetings: [String!] @metadata
+  greetings: [String!]
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLList, GraphQLNonNull, GraphQLString } from "graphql";

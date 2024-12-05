@@ -236,6 +236,7 @@ export class TypeContext {
     const name = definition.name;
     const declaration = this._idToDeclaration.get(name.tsIdentifier);
     if (!declaration) {
+      console.log(definition);
       throw new Error(`Could not find declaration for ${name.value}`);
     }
     return declaration;

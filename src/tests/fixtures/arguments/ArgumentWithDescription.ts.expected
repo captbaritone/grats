@@ -20,7 +20,7 @@ type SomeType {
   hello(
     """The greeting to use."""
     greeting: String!
-  ): String @metadata
+  ): String @resolver(kind: {method: {arguments: [{argumentsObject: true}]}})
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
