@@ -3,10 +3,10 @@ import { createYoga } from "graphql-yoga";
 import { VC } from "./ViewerContext";
 import { addGraphQLScalarSerialization } from "./graphql/CustomScalars";
 import { useDeferStream } from "@graphql-yoga/plugin-defer-stream";
-import { buildSchema } from "graphql";
+import { makeExecutableSchema } from "@graphql-tools/schema";
+import { getResolverMap } from "./schema";
 import path from "node:path";
 import fs from "node:fs";
-import { setResolvers } from "./resolverDirective";
 
 const SDL_PATH = path.join(__dirname, "../schema.graphql");
 
@@ -15,8 +15,10 @@ main();
 async function main() {
   const SDL = fs.readFileSync(SDL_PATH, "utf-8");
 
-  const schema = buildSchema(SDL);
-  await setResolvers(schema);
+  const schema = makeExecutableSchema({
+    typeDefs: SDL,
+    resolvers: getResolverMap(),
+  });
 
   addGraphQLScalarSerialization(schema);
 

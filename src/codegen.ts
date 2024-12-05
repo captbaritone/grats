@@ -1,40 +1,19 @@
 import {
   ConstDirectiveNode,
   GraphQLAbstractType,
-  GraphQLArgument,
-  GraphQLEnumType,
-  GraphQLEnumValue,
   GraphQLField,
-  GraphQLInputField,
-  GraphQLInputObjectType,
-  GraphQLInputType,
-  GraphQLInterfaceType,
   GraphQLObjectType,
-  GraphQLOutputType,
-  GraphQLScalarType,
   GraphQLSchema,
-  GraphQLUnionType,
-  isEnumType,
-  isInputObjectType,
-  isInputType,
-  isInterfaceType,
-  isListType,
-  isNonNullType,
-  isObjectType,
-  isOutputType,
-  isScalarType,
-  isUnionType,
 } from "graphql";
 import * as ts from "typescript";
 import * as path from "path";
-import { METADATA_INPUT_NAMES } from "./metadataDirectives";
 import { resolveRelativePath } from "./gratsRoot";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "./publicDirectives";
 import {
   ASSERT_NON_NULL_HELPER,
   createAssertNonNullHelper,
 } from "./codegenHelpers";
-import { extend, nullThrows } from "./utils/helpers";
+import { nullThrows } from "./utils/helpers";
 import { GratsConfig } from "./gratsConfig.js";
 import { naturalCompare } from "./utils/naturalCompare";
 import { Resolver, ResolverArgument } from "./resolverDirective";
@@ -52,7 +31,7 @@ export function codegen(
 ): string {
   const codegen = new Codegen(schema, config, destination);
 
-  codegen.schemaDeclarationExport();
+  codegen.resolverMapExport();
 
   return codegen.print();
 }
@@ -62,7 +41,7 @@ class Codegen {
   _typeNameMappings: Map<string, string> = new Map();
   _helpers: Map<string, ts.Statement> = new Map();
   _typeDefinitions: Set<string> = new Set();
-  _graphQLImports: Set<string> = new Set();
+  _graphQLToolsUtilsImports: Set<string> = new Set();
   _statements: ts.Statement[] = [];
 
   constructor(
@@ -80,140 +59,55 @@ class Codegen {
     return block;
   }
 
-  graphQLImport(name: string): ts.Identifier {
-    this._graphQLImports.add(name);
+  graphQLToolsUtilsImport(name: string): ts.Identifier {
+    this._graphQLToolsUtilsImports.add(name);
     return F.createIdentifier(name);
   }
 
-  graphQLTypeImport(name: string): ts.TypeReferenceNode {
-    this._graphQLImports.add(name);
-    return F.createTypeReferenceNode(name);
+  graphQLTypeImport(
+    name: string,
+    typeArguments?: readonly ts.TypeNode[],
+  ): ts.TypeReferenceNode {
+    this._graphQLToolsUtilsImports.add(name);
+    return F.createTypeReferenceNode(name, typeArguments);
   }
 
-  schemaDeclarationExport(): void {
+  resolverMapExport(): void {
     this.functionDeclaration(
-      "getSchema",
+      "getResolverMap",
       [F.createModifier(ts.SyntaxKind.ExportKeyword)],
-      this.graphQLTypeImport("GraphQLSchema"),
+      // TODO[x]: Import resolver map type
+      this.graphQLTypeImport("IResolvers"),
       this.createBlockWithScope(() => {
         this._statements.push(
-          F.createReturnStatement(
-            F.createNewExpression(
-              this.graphQLImport("GraphQLSchema"),
-              [],
-              [this.schemaConfig()],
-            ),
-          ),
+          F.createReturnStatement(this.objectLiteral(this.types())),
         );
       }),
     );
   }
 
-  schemaConfig(): ts.ObjectLiteralExpression {
-    return this.objectLiteral([
-      this.description(this._schema.description),
-      this.query(),
-      this.mutation(),
-      this.subscription(),
-      this.types(),
-    ]);
-  }
-
-  types(): ts.PropertyAssignment {
-    const types = Object.values(this._schema.getTypeMap())
+  types(): ts.ObjectLiteralElementLike[] {
+    return Object.values(this._schema.getTypeMap())
       .filter((type) => {
-        return !(
-          type.name.startsWith("__") ||
-          type.name.startsWith("Introspection") ||
-          type.name.startsWith("Schema") ||
-          // Built in primitives
-          type.name === "String" ||
-          type.name === "Int" ||
-          type.name === "Float" ||
-          type.name === "Boolean" ||
-          type.name === "ID" ||
-          METADATA_INPUT_NAMES.has(type.name)
-        );
+        return type instanceof GraphQLObjectType && !type.name.startsWith("__");
       })
-      .map((type) => this.typeReference(type));
-    return F.createPropertyAssignment(
-      "types",
-      F.createArrayLiteralExpression(types),
-    );
+      .map((type: GraphQLObjectType) => {
+        return this.typeObject(type);
+      })
+      .filter(isNonNull);
   }
 
-  deprecated(
-    obj:
-      | GraphQLField<unknown, unknown>
-      | GraphQLEnumValue
-      | GraphQLArgument
-      | GraphQLInputField,
-  ): ts.PropertyAssignment | null {
-    if (!obj.deprecationReason) return null;
-    return F.createPropertyAssignment(
-      "deprecationReason",
-      F.createStringLiteral(obj.deprecationReason),
-    );
-  }
+  objectType(obj: GraphQLObjectType): ts.Expression | null {
+    const fields = Object.entries(obj.getFields())
+      .map(([_, field]) => {
+        return this.resolver(field, obj.name);
+      })
+      .filter(isNonNull);
 
-  description(
-    description: string | null | undefined,
-  ): ts.PropertyAssignment | null {
-    if (!description) return null;
-    return F.createPropertyAssignment(
-      "description",
-      F.createStringLiteral(description),
-    );
-  }
-
-  query(): ts.PropertyAssignment | null {
-    const query = this._schema.getQueryType();
-    if (!query) return null;
-    return F.createPropertyAssignment("query", this.objectType(query));
-  }
-
-  mutation(): ts.PropertyAssignment | null {
-    const mutation = this._schema.getMutationType();
-    if (!mutation) return null;
-    return F.createPropertyAssignment("mutation", this.objectType(mutation));
-  }
-
-  subscription(): ts.PropertyAssignment | null {
-    const subscription = this._schema.getSubscriptionType();
-    if (!subscription) return null;
-    return F.createPropertyAssignment(
-      "subscription",
-      this.objectType(subscription),
-    );
-  }
-
-  objectType(obj: GraphQLObjectType): ts.Expression {
-    const varName = `${obj.name}Type`;
-    if (!this._typeDefinitions.has(varName)) {
-      this._typeDefinitions.add(varName);
-
-      this.constDeclaration(
-        varName,
-        F.createNewExpression(
-          this.graphQLImport("GraphQLObjectType"),
-          [],
-          [this.objectTypeConfig(obj)],
-        ),
-        // We need to explicitly specify the type due to circular references in
-        // the definition.
-        F.createTypeReferenceNode("GraphQLObjectType"),
-      );
+    if (fields.length === 0) {
+      return null;
     }
-    return F.createIdentifier(varName);
-  }
-
-  objectTypeConfig(obj: GraphQLObjectType): ts.ObjectLiteralExpression {
-    return this.objectLiteral([
-      F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
-      this.description(obj.description),
-      this.fields(obj, false),
-      this.interfaces(obj),
-    ]);
+    return this.objectLiteral(fields);
   }
 
   importUserConstruct(
@@ -458,98 +352,13 @@ class Codegen {
       [
         F.createReturnStatement(
           F.createCallExpression(
-            this.graphQLImport("defaultFieldResolver"),
+            this.graphQLToolsUtilsImport("defaultFieldResolver"),
             undefined,
             RESOLVER_ARGS.map((name) => F.createIdentifier(name)),
           ),
         ),
       ],
     );
-  }
-
-  fields(
-    obj: GraphQLObjectType | GraphQLInterfaceType,
-    isInterface: boolean,
-  ): ts.MethodDeclaration {
-    const fields = Object.entries(obj.getFields()).map(([name, field]) => {
-      return F.createPropertyAssignment(
-        name,
-        this.fieldConfig(field, obj.name, isInterface),
-      );
-    });
-
-    return this.method(
-      "fields",
-      [],
-      [F.createReturnStatement(this.objectLiteral(fields))],
-    );
-  }
-
-  interfaces(
-    obj: GraphQLObjectType | GraphQLInterfaceType,
-  ): ts.MethodDeclaration | null {
-    const interfaces = obj.getInterfaces();
-    if (!interfaces.length) return null;
-    return this.method(
-      "interfaces",
-      [],
-      [
-        F.createReturnStatement(
-          F.createArrayLiteralExpression(
-            interfaces.map((i) => this.interfaceType(i)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  interfaceType(obj: GraphQLInterfaceType): ts.Expression {
-    const varName = `${obj.name}Type`;
-    if (!this._typeDefinitions.has(varName)) {
-      this._typeDefinitions.add(varName);
-      this.constDeclaration(
-        varName,
-        F.createNewExpression(
-          this.graphQLImport("GraphQLInterfaceType"),
-          [],
-          [this.interfaceTypeConfig(obj)],
-        ),
-        // We need to explicitly specify the type due to circular references in
-        // the definition.
-        F.createTypeReferenceNode(this.graphQLImport("GraphQLInterfaceType")),
-      );
-    }
-    return F.createIdentifier(varName);
-  }
-
-  interfaceTypeConfig(obj: GraphQLInterfaceType): ts.ObjectLiteralExpression {
-    this._schema.getPossibleTypes(obj);
-    return this.objectLiteral([
-      this.description(obj.description),
-      F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
-      this.fields(obj, true),
-      this.interfaces(obj),
-      this.resolveType(obj),
-    ]);
-  }
-
-  unionType(obj: GraphQLUnionType): ts.Expression {
-    const varName = `${obj.name}Type`;
-    if (!this._typeDefinitions.has(varName)) {
-      this._typeDefinitions.add(varName);
-      this.constDeclaration(
-        varName,
-        F.createNewExpression(
-          this.graphQLImport("GraphQLUnionType"),
-          [],
-          [this.unionTypeConfig(obj)],
-        ),
-        // We need to explicitly specify the type due to circular references in
-        // the definition.
-        F.createTypeReferenceNode(this.graphQLImport("GraphQLUnionType")),
-      );
-    }
-    return F.createIdentifier(varName);
   }
 
   resolveType(obj: GraphQLAbstractType): ts.ShorthandPropertyAssignment | null {
@@ -582,219 +391,31 @@ class Codegen {
     return null;
   }
 
-  unionTypeConfig(obj: GraphQLUnionType): ts.ObjectLiteralExpression {
-    return this.objectLiteral([
-      F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
-      this.description(obj.description),
-      this.method(
-        "types",
-        [],
-        [
-          F.createReturnStatement(
-            F.createArrayLiteralExpression(
-              obj.getTypes().map((t) => this.typeReference(t)),
-            ),
-          ),
-        ],
-      ),
-      this.resolveType(obj),
-    ]);
-  }
-
-  customScalarType(obj: GraphQLScalarType): ts.Expression {
-    const varName = `${obj.name}Type`;
-    if (!this._typeDefinitions.has(varName)) {
-      this._typeDefinitions.add(varName);
-      this.constDeclaration(
-        varName,
-        F.createNewExpression(
-          this.graphQLImport("GraphQLScalarType"),
-          [],
-          [this.customScalarTypeConfig(obj)],
-        ),
-        // We need to explicitly specify the type due to circular references in
-        // the definition.
-        F.createTypeReferenceNode(this.graphQLImport("GraphQLScalarType")),
-      );
-    }
-    return F.createIdentifier(varName);
-  }
-
-  customScalarTypeConfig(obj: GraphQLScalarType): ts.ObjectLiteralExpression {
-    return this.objectLiteral([
-      this.description(obj.description),
-      F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
-    ]);
-  }
-
-  inputType(obj: GraphQLInputObjectType): ts.Expression {
-    const varName = `${obj.name}Type`;
-    if (!this._typeDefinitions.has(varName)) {
-      this._typeDefinitions.add(varName);
-      this.constDeclaration(
-        varName,
-        F.createNewExpression(
-          this.graphQLImport("GraphQLInputObjectType"),
-          [],
-          [this.inputTypeConfig(obj)],
-        ),
-        // We need to explicitly specify the type due to circular references in
-        // the definition.
-        F.createTypeReferenceNode(this.graphQLImport("GraphQLInputObjectType")),
-      );
-    }
-    return F.createIdentifier(varName);
-  }
-
-  inputTypeConfig(obj: GraphQLInputObjectType): ts.ObjectLiteralExpression {
-    const properties = [
-      this.description(obj.description),
-      F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
-      this.inputFields(obj),
-    ];
-    if (obj.isOneOf) {
-      properties.push(F.createPropertyAssignment("isOneOf", F.createTrue()));
-    }
-    return this.objectLiteral(properties);
-  }
-
-  inputFields(obj: GraphQLInputObjectType): ts.MethodDeclaration {
-    const fields = Object.entries(obj.getFields()).map(([name, field]) => {
-      return F.createPropertyAssignment(name, this.inputFieldConfig(field));
-    });
-
-    return this.method(
-      "fields",
-      [],
-      [F.createReturnStatement(this.objectLiteral(fields))],
-    );
-  }
-
-  inputFieldConfig(field: GraphQLInputField): ts.Expression {
-    return this.objectLiteral([
-      this.description(field.description),
-      this.deprecated(field),
-      F.createPropertyAssignment("name", F.createStringLiteral(field.name)),
-      F.createPropertyAssignment("type", this.typeReference(field.type)),
-    ]);
-  }
-
-  fieldConfig(
+  resolver(
     field: GraphQLField<unknown, unknown>,
     parentTypeName: string,
-    isInterface: boolean,
-  ): ts.ObjectLiteralExpression {
-    const props = [
-      this.description(field.description),
-      this.deprecated(field),
-      F.createPropertyAssignment("name", F.createStringLiteral(field.name)),
-      F.createPropertyAssignment("type", this.typeReference(field.type)),
-      field.args.length
-        ? F.createPropertyAssignment("args", this.argMap(field.args))
-        : null,
-    ];
-
-    if (!isInterface) {
-      extend(props, this.fieldMethods(field, parentTypeName));
-    }
-
-    return this.objectLiteral(props);
-  }
-
-  fieldMethods(
-    field: GraphQLField<unknown, unknown>,
-    parentTypeName: string,
-  ): Array<ts.ObjectLiteralElementLike | null> {
+  ): ts.ObjectLiteralElementLike | null {
     // Note: We assume the default name is used here. When custom operation types are supported
     // we'll need to update this.
-    if (parentTypeName !== "Subscription") {
-      const resolve = this.resolveMethod(field, "resolve", parentTypeName);
-      return [this.maybeApplySemanticNullRuntimeCheck(field, resolve)];
-    }
-    return [
-      // TODO: Maybe avoid adding `assertNonNull` for subscription resolvers?
-      this.resolveMethod(field, "subscribe", parentTypeName),
-      // Identity function (method?)
-      this.maybeApplySemanticNullRuntimeCheck(
-        field,
-        this.method(
-          "resolve",
-          [this.param("payload")],
-          [F.createReturnStatement(F.createIdentifier("payload"))],
-        ),
-      ),
-    ];
+    // if (parentTypeName !== "Subscription") {
+    const resolve = this.resolveMethod(field, field.name, parentTypeName);
+    return this.maybeApplySemanticNullRuntimeCheck(field, resolve);
+    //  }
+    throw new Error("TODO: Implement subscription resolvers");
+    // return [
+    //   // TODO: Maybe avoid adding `assertNonNull` for subscription resolvers?
+    //   this.resolveMethod(field, "subscribe", parentTypeName),
+    //   // Identity function (method?)
+    //   this.maybeApplySemanticNullRuntimeCheck(
+    //     field,
+    //     this.method(
+    //       "resolve",
+    //       [this.param("payload")],
+    //       [F.createReturnStatement(F.createIdentifier("payload"))],
+    //     ),
+    //   ),
+    // ];
   }
-
-  argMap(args: ReadonlyArray<GraphQLArgument>): ts.ObjectLiteralExpression {
-    return this.objectLiteral(
-      args.map((arg) =>
-        F.createPropertyAssignment(arg.name, this.argConfig(arg)),
-      ),
-    );
-  }
-
-  argConfig(arg: GraphQLArgument): ts.Expression {
-    return this.objectLiteral([
-      this.description(arg.description),
-      this.deprecated(arg),
-      F.createPropertyAssignment("name", F.createStringLiteral(arg.name)),
-      F.createPropertyAssignment("type", this.typeReference(arg.type)),
-      // TODO: arg.defaultValue seems to be missing for complex objects
-      arg.defaultValue !== undefined
-        ? F.createPropertyAssignment(
-            "defaultValue",
-            this.defaultValue(arg.defaultValue),
-          )
-        : null,
-      // TODO: DefaultValue
-      // TODO: Deprecated
-    ]);
-  }
-
-  enumType(obj: GraphQLEnumType): ts.Expression {
-    const varName = `${obj.name}Type`;
-    if (!this._typeDefinitions.has(varName)) {
-      this._typeDefinitions.add(varName);
-      this.constDeclaration(
-        varName,
-        F.createNewExpression(
-          this.graphQLImport("GraphQLEnumType"),
-          [],
-          [this.enumTypeConfig(obj)],
-        ),
-        // We need to explicitly specify the type due to circular references in
-        // the definition.
-        F.createTypeReferenceNode(this.graphQLImport("GraphQLEnumType")),
-      );
-    }
-    return F.createIdentifier(varName);
-  }
-
-  enumTypeConfig(obj: GraphQLEnumType): ts.ObjectLiteralExpression {
-    return this.objectLiteral([
-      this.description(obj.description),
-      F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
-      this.enumValues(obj),
-    ]);
-  }
-
-  enumValues(obj: GraphQLEnumType): ts.PropertyAssignment {
-    const values = obj.getValues().map((value) => {
-      return F.createPropertyAssignment(value.name, this.enumValue(value));
-    });
-
-    return F.createPropertyAssignment("values", this.objectLiteral(values));
-  }
-
-  enumValue(obj: GraphQLEnumValue): ts.Expression {
-    return this.objectLiteral([
-      this.description(obj.description),
-      this.deprecated(obj),
-      F.createPropertyAssignment("value", F.createStringLiteral(obj.name)),
-    ]);
-  }
-
   defaultValue(value: any) {
     switch (typeof value) {
       case "string":
@@ -822,51 +443,17 @@ class Codegen {
     }
   }
 
-  typeReference(t: GraphQLOutputType | GraphQLInputType): ts.Expression {
-    if (isNonNullType(t)) {
-      return F.createNewExpression(
-        this.graphQLImport("GraphQLNonNull"),
-        [],
-        [this.typeReference(t.ofType)],
-      );
-    } else if (isListType(t)) {
-      if (!(isInputType(t.ofType) || isOutputType(t.ofType))) {
-        // I think this is just a TS type and TS can't prove that this never happens.
-        throw new Error(`TODO: unhandled type ${t}`);
-      }
-      return F.createNewExpression(
-        this.graphQLImport("GraphQLList"),
-        [],
-        [this.typeReference(t.ofType)],
-      );
-    } else if (isInterfaceType(t)) {
-      return this.interfaceType(t);
-    } else if (isObjectType(t)) {
-      return this.objectType(t);
-    } else if (isUnionType(t)) {
-      return this.unionType(t);
-    } else if (isInputObjectType(t)) {
-      return this.inputType(t);
-    } else if (isEnumType(t)) {
-      return this.enumType(t);
-    } else if (isScalarType(t)) {
-      switch (t.name) {
-        case "String":
-          return this.graphQLImport("GraphQLString");
-        case "Int":
-          return this.graphQLImport("GraphQLInt");
-        case "Float":
-          return this.graphQLImport("GraphQLFloat");
-        case "Boolean":
-          return this.graphQLImport("GraphQLBoolean");
-        case "ID":
-          return this.graphQLImport("GraphQLID");
-        default:
-          return this.customScalarType(t);
-      }
-    } else {
-      throw new Error(`TODO: unhandled type ${t}`);
+  typeObject(type: GraphQLObjectType): ts.PropertyAssignment | null {
+    const resolvers = Object.entries(type.getFields())
+      .map(([_, field]) => {
+        return this.resolver(field, type.name);
+      })
+      .filter(isNonNull);
+    if (resolvers.length === 0) {
+      return null;
     }
+    const resolversObj = this.objectLiteral(resolvers);
+    return F.createPropertyAssignment(type.name, resolversObj);
   }
 
   constDeclaration(
@@ -1129,8 +716,8 @@ class Codegen {
     );
 
     this.import(
-      "graphql",
-      [...this._graphQLImports].map((name) => ({ name })),
+      "@graphql-tools/utils",
+      [...this._graphQLToolsUtilsImports].map((name) => ({ name })),
     );
 
     if (this._typeNameMappings.size > 0) {
