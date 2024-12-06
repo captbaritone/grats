@@ -19,7 +19,7 @@ OUTPUT
 -----------------
 -- SDL --
 type User {
-  greeting: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/resolver_context/FunctionWithContextValue.ts", exportName: "greeting", arguments: [{source: true}, {context: true}]}})
+  greeting: String
 }
 -- TypeScript --
 import { greeting as userGreetingResolver } from "./FunctionWithContextValue";

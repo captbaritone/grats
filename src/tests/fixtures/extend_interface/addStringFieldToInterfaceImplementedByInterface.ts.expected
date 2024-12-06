@@ -47,11 +47,11 @@ interface IThing {
 }
 
 type Admin implements IPerson & IThing {
-  greeting: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts", exportName: "greeting", arguments: [{source: true}]}})
+  greeting: String
 }
 
 type User implements IPerson & IThing {
-  greeting: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts", exportName: "greeting", arguments: [{source: true}]}})
+  greeting: String
 }
 -- TypeScript --
 import { greeting as adminGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";

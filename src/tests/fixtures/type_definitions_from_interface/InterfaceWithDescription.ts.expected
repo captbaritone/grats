@@ -17,7 +17,7 @@ OUTPUT
 -- SDL --
 """The root of all evil."""
 type SomeType {
-  hello: String @resolver(kind: {property: {}})
+  hello: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

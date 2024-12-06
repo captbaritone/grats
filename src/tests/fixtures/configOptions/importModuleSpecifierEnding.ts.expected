@@ -19,8 +19,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/configOptions/importModuleSpecifierEnding.ts", exportName: "greeting", arguments: [{source: true}]}})
-  hello: String @resolver(kind: {property: {}})
+  greeting: String
+  hello: String
 }
 -- TypeScript --
 import { greeting as someTypeGreetingResolver } from "./importModuleSpecifierEnding.js";

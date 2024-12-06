@@ -14,7 +14,7 @@ OUTPUT
 -----------------
 -- SDL --
 type Query {
-  foo: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/type_definitions_from_alias/QueryAsAliasOfUnknown.ts", exportName: "foo", arguments: [{source: true}]}})
+  foo: String
 }
 -- TypeScript --
 import { foo as queryFooResolver } from "./QueryAsAliasOfUnknown";

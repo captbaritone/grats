@@ -26,16 +26,16 @@ OUTPUT
 -----------------
 -- SDL --
 type Baz {
-  bazField: BazBar @resolver(kind: {property: {}})
+  bazField: BazBar
 }
 
 type BazBar {
-  anotherField: BazFoo @resolver(kind: {property: {}})
+  anotherField: BazFoo
 }
 
 type BazFoo {
-  baz: Baz @resolver(kind: {property: {}})
-  someField: BazBar @resolver(kind: {property: {}})
+  baz: Baz
+  someField: BazBar
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType } from "graphql";

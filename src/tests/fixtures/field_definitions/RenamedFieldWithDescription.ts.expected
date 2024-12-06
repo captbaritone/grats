@@ -26,9 +26,9 @@ OUTPUT
 -- SDL --
 type SomeType {
   """Number 1 greeting."""
-  greeting: String @resolver(kind: {property: {name: "somePropertyField"}})
+  greeting: String
   """Number 1 salutation."""
-  salutaion: String @resolver(kind: {method: {name: "someMethodField", arguments: []}})
+  salutaion: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

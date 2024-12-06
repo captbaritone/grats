@@ -41,11 +41,11 @@ interface Person {
 }
 
 type SomeType {
-  me: User @resolver(kind: {method: {arguments: []}})
+  me: User
 }
 
 type User implements Actor & Person {
-  name: String @resolver(kind: {property: {}})
+  name: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";

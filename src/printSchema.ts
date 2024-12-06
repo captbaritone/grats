@@ -7,10 +7,8 @@ import {
 } from "graphql";
 import { GratsConfig } from "./gratsConfig";
 import { codegen } from "./codegen";
-import {
-  METADATA_DIRECTIVE_NAMES,
-  METADATA_INPUT_NAMES,
-} from "./metadataDirectives";
+import { METADATA_DIRECTIVE_NAMES } from "./metadataDirectives";
+import { Resolvers } from "./resolverSchema";
 
 /**
  * Prints code for a TypeScript module that exports a GraphQLSchema.
@@ -18,10 +16,11 @@ import {
  */
 export function printExecutableSchema(
   schema: GraphQLSchema,
+  resolvers: Resolvers,
   config: GratsConfig,
   destination: string,
 ): string {
-  const code = codegen(schema, config, destination);
+  const code = codegen(schema, resolvers, config, destination);
   return applyTypeScriptHeader(config, code);
 }
 
@@ -37,10 +36,7 @@ export function applyTypeScriptHeader(
  * Includes the user-defined (or default) header comment if provided.
  */
 export function printGratsSDL(doc: DocumentNode, config: GratsConfig): string {
-  const sdl = printSDLWithoutMetadata(
-    doc,
-    config.EXPERIMENTAL__includeResolverDirective,
-  );
+  const sdl = printSDLWithoutMetadata(doc);
   return applySDLHeader(config, sdl) + "\n";
 }
 
@@ -48,28 +44,13 @@ export function applySDLHeader(config: GratsConfig, sdl: string): string {
   return formatHeader(config.schemaHeader, sdl);
 }
 
-export function printSDLWithoutMetadata(
-  doc: DocumentNode,
-  includeResolver: boolean = false,
-): string {
+export function printSDLWithoutMetadata(doc: DocumentNode): string {
   const trimmed = visit(doc, {
     DirectiveDefinition(t) {
-      if (includeResolver && t.name.value === "resolver") {
-        return t;
-      }
       return METADATA_DIRECTIVE_NAMES.has(t.name.value) ? null : t;
     },
     Directive(t) {
-      if (includeResolver && t.name.value === "resolver") {
-        return t;
-      }
       return METADATA_DIRECTIVE_NAMES.has(t.name.value) ? null : t;
-    },
-    InputObjectTypeDefinition(t) {
-      if (!includeResolver && METADATA_INPUT_NAMES.has(t.name.value)) {
-        return null;
-      }
-      return t;
     },
     ScalarTypeDefinition(t) {
       return specifiedScalarTypes.some((scalar) => scalar.name === t.name.value)

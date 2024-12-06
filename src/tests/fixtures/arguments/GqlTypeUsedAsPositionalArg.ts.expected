@@ -25,7 +25,7 @@ input Greeting {
 }
 
 type SomeType {
-  hello(greeting: Greeting!): String @resolver(kind: {method: {arguments: [{named: true}]}})
+  hello(greeting: Greeting!): String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";

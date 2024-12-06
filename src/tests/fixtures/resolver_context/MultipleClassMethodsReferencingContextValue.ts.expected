@@ -24,8 +24,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  alsoGreeting: String @resolver(kind: {method: {arguments: [{context: true}]}})
-  greeting: String @resolver(kind: {method: {arguments: [{context: true}]}})
+  alsoGreeting: String
+  greeting: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

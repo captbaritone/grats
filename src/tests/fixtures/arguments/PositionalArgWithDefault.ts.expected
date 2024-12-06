@@ -14,7 +14,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  hello(greeting: String! = "Hello"): String @resolver(kind: {method: {arguments: [{named: true}]}})
+  hello(greeting: String! = "Hello"): String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";

@@ -39,13 +39,13 @@ interface IPerson {
 }
 
 type Admin implements IPerson {
-  greeting: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts", exportName: "greeting", arguments: [{source: true}]}})
-  hello: String @resolver(kind: {property: {}})
+  greeting: String
+  hello: String
 }
 
 type User implements IPerson {
-  greeting: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterface.ts", exportName: "greeting", arguments: [{source: true}]}})
-  hello: String @resolver(kind: {property: {}})
+  greeting: String
+  hello: String
 }
 -- TypeScript --
 import { greeting as adminGreetingResolver } from "./addStringFieldToInterface";

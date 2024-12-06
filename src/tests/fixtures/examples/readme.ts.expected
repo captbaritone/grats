@@ -35,14 +35,14 @@ OUTPUT
 -----------------
 -- SDL --
 type Query {
-  me: User @resolver(kind: {function: {path: "grats/src/tests/fixtures/examples/readme.ts", exportName: "me", arguments: [{source: true}]}})
-  viewer: User @deprecated(reason: "Please use `me` instead.") @resolver(kind: {function: {path: "grats/src/tests/fixtures/examples/readme.ts", exportName: "viewer", arguments: [{source: true}]}})
+  me: User
+  viewer: User @deprecated(reason: "Please use `me` instead.")
 }
 
 """A user in our kick-ass system!"""
 type User {
-  greeting(salutation: String!): String @resolver(kind: {method: {arguments: [{argumentsObject: true}]}})
-  name: String @resolver(kind: {property: {}})
+  greeting(salutation: String!): String
+  name: String
 }
 -- TypeScript --
 import { me as queryMeResolver } from "./readme";

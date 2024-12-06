@@ -31,11 +31,11 @@ input SomeInput {
 }
 
 type Query {
-  someField: SomeInputSomeClass @resolver(kind: {function: {path: "grats/src/tests/fixtures/generics/genericOverArg.ts", exportName: "someField", arguments: [{source: true}]}})
+  someField: SomeInputSomeClass
 }
 
 type SomeInputSomeClass {
-  someField(someArg: SomeInput): String @resolver(kind: {method: {arguments: [{argumentsObject: true}]}})
+  someField(someArg: SomeInput): String
 }
 -- TypeScript --
 import { someField as querySomeFieldResolver } from "./genericOverArg";

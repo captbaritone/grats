@@ -33,16 +33,16 @@ OUTPUT
 union PageResult = Err | Page
 
 type Err {
-  message: String @resolver(kind: {property: {}})
+  message: String
 }
 
 type Page {
-  name: String @resolver(kind: {property: {}})
+  name: String
 }
 
 type SomeType {
-  alsoPageResult: PageResult @resolver(kind: {property: {}})
-  pageResult: PageResult @resolver(kind: {property: {}})
+  alsoPageResult: PageResult
+  pageResult: PageResult
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLUnionType, GraphQLObjectType, GraphQLString } from "graphql";

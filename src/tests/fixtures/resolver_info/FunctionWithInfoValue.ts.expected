@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 type Query {
-  greetz: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/resolver_info/FunctionWithInfoValue.ts", exportName: "greetz", arguments: [{source: true}, {information: true}]}})
+  greetz: String
 }
 -- TypeScript --
 import { greetz as queryGreetzResolver } from "./FunctionWithInfoValue";

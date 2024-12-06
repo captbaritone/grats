@@ -23,7 +23,7 @@ input MyInputType {
 }
 
 type User {
-  myField(input: MyInputType!): String @resolver(kind: {method: {arguments: [{argumentsObject: true}]}})
+  myField(input: MyInputType!): String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";

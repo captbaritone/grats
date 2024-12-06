@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 type Cat {
-  catSound: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/extend_type/functionFieldOnTypeDefinedWithInterface.ts", exportName: "catSound", arguments: [{source: true}]}})
+  catSound: String
 }
 -- TypeScript --
 import { catSound as catCatSoundResolver } from "./functionFieldOnTypeDefinedWithInterface";

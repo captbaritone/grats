@@ -63,22 +63,22 @@ OUTPUT
 -----------------
 -- SDL --
 type Group {
-  description: String @resolver(kind: {property: {}})
-  members: [User!] @resolver(kind: {method: {arguments: []}})
-  name: String @resolver(kind: {method: {arguments: []}})
+  description: String
+  members: [User!]
+  name: String
 }
 
 type SomeType {
-  greetings(greeting: String!): [String!] @resolver(kind: {method: {arguments: [{argumentsObject: true}]}})
-  greetings1(greeting: String!): [String!] @resolver(kind: {method: {arguments: [{argumentsObject: true}]}})
-  greetings2(greeting: String!): [String!] @resolver(kind: {method: {arguments: [{argumentsObject: true}]}})
-  hello(greeting: String!): String @resolver(kind: {method: {arguments: [{argumentsObject: true}]}})
-  me: User @resolver(kind: {method: {arguments: []}})
+  greetings(greeting: String!): [String!]
+  greetings1(greeting: String!): [String!]
+  greetings2(greeting: String!): [String!]
+  hello(greeting: String!): String
+  me: User
 }
 
 type User {
-  groups: [Group!] @resolver(kind: {method: {arguments: []}})
-  name: String @resolver(kind: {method: {arguments: []}})
+  groups: [Group!]
+  name: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull } from "graphql";

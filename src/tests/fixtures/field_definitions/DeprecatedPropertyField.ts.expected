@@ -15,7 +15,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  hello: String @deprecated(reason: "Use something else.") @resolver(kind: {property: {}})
+  hello: String @deprecated(reason: "Use something else.")
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

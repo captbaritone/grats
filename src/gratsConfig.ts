@@ -54,17 +54,10 @@ export type GratsConfig = {
   importModuleSpecifierEnding: string; // Defaults to no ending, or ""
 
   // EXPERIMENTAL: THIS OPTION WILL BE RENAMED OR REMOVED IN A FUTURE RELEASE
-  // Include the `@resolver` directive in the generated SDL.
-  // This directive describes the TypeScript type of the resolver
-  // function/property/method. It is intended to allow other tools to use Grats' analysis
-  // for other purposes. For example:
-  // - Generating a GraphQL Tools' style resolver map instead of a GraphQLSchema
-  // - Instead of generating resolvers using codegen, create generic resolver
-  //   that dynamically determines how to resolve fields
-  //
-  // The design of this feature is still not formalized it can be expected to
-  // change in a future release.
-  EXPERIMENTAL__includeResolverDirective: boolean; // Default: false
+  // Emit a JSON file alongside the generated schema file which contains the
+  // resolver signatures for each field. Useful for alternate implementations
+  // of codegen, such as generating a GraphQL-style Resolver Map.
+  EXPERIMENTAL__emitResolverSignatures: boolean; // Default: false
 };
 
 export type ParsedCommandLineGrats = Omit<ts.ParsedCommandLine, "raw"> & {
@@ -90,7 +83,7 @@ const VALID_CONFIG_KEYS = new Set([
   "schemaHeader",
   "tsSchemaHeader",
   "importModuleSpecifierEnding",
-  "EXPERIMENTAL__includeResolverDirective",
+  "EXPERIMENTAL__emitResolverSignatures",
 ]);
 
 // TODO: Make this return diagnostics
@@ -205,13 +198,13 @@ export function validateGratsOptions(
     );
   }
 
-  if (gratsOptions.EXPERIMENTAL__includeResolverDirective === undefined) {
-    gratsOptions.EXPERIMENTAL__includeResolverDirective = false;
+  if (gratsOptions.EXPERIMENTAL__emitResolverSignatures === undefined) {
+    gratsOptions.EXPERIMENTAL__emitResolverSignatures = false;
   } else if (
-    typeof gratsOptions.EXPERIMENTAL__includeResolverDirective !== "boolean"
+    typeof gratsOptions.EXPERIMENTAL__emitResolverSignatures !== "boolean"
   ) {
     throw new Error(
-      "Grats: The Grats config option `EXPERIMENTAL__includeResolverDirective` must be a boolean if provided.",
+      "Grats: The Grats config option `EXPERIMENTAL__emitResolverSignatures` must be a boolean if provided.",
     );
   }
 

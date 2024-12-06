@@ -7,11 +7,7 @@ import {
   parse,
 } from "graphql";
 import { graphql, uniqueId } from "./utils/helpers";
-import {
-  Resolver,
-  RESOLVER_DIRECTIVE_SDL,
-  RESOLVER_INPUT_NAMES,
-} from "./resolverDirective";
+import { Resolver } from "./resolverDirective";
 
 /**
  * In most cases we can use directives to annotate constructs
@@ -94,11 +90,8 @@ export const METADATA_DIRECTIVE_NAMES = new Set([
   FIELD_RESOLVER_DIRECTIVE,
 ]);
 
-export const METADATA_INPUT_NAMES = new Set(RESOLVER_INPUT_NAMES);
-
 export const DIRECTIVES_AST: DocumentNode = parse(graphql`
   directive @${KILLS_PARENT_ON_EXCEPTION_DIRECTIVE} on FIELD_DEFINITION
-  ${RESOLVER_DIRECTIVE_SDL}
 `);
 
 export function addMetadataDirectives(

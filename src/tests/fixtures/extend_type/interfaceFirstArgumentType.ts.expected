@@ -28,7 +28,7 @@ interface IFoo {
 }
 
 type SomeType {
-  foo: String @resolver(kind: {property: {}})
+  foo: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";

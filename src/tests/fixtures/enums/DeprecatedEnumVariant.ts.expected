@@ -30,7 +30,7 @@ enum Enum {
 }
 
 type SomeType {
-  hello: String @resolver(kind: {property: {}})
+  hello: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLEnumType, GraphQLObjectType, GraphQLString } from "graphql";

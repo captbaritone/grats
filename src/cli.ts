@@ -134,12 +134,12 @@ function writeSchemaFilesAndReport(
   config: ParsedCommandLineGrats,
   configPath: string,
 ) {
-  const { schema, doc } = schemaAndDoc;
+  const { schema, doc, resolvers } = schemaAndDoc;
 
   const gratsConfig: GratsConfig = config.raw.grats;
 
   const dest = resolve(dirname(configPath), gratsConfig.tsSchema);
-  const code = printExecutableSchema(schema, gratsConfig, dest);
+  const code = printExecutableSchema(schema, resolvers, gratsConfig, dest);
   writeFileSync(dest, code);
   console.error(`Grats: Wrote TypeScript schema to \`${dest}\`.`);
 
@@ -148,6 +148,15 @@ function writeSchemaFilesAndReport(
   const absOutput = resolve(dirname(configPath), gratsConfig.graphqlSchema);
   writeFileSync(absOutput, schemaStr);
   console.error(`Grats: Wrote schema to \`${absOutput}\`.`);
+
+  if (config.raw.grats.EXPERIMENTAL__emitResolverSignatures) {
+    const absOutput = resolve(
+      dirname(configPath),
+      gratsConfig.graphqlSchema.replace(/\.graphql$/, ".json"),
+    );
+    writeFileSync(absOutput, schemaStr);
+    console.error(`Grats: Wrote resolver signatures to \`${absOutput}\`.`);
+  }
 }
 
 /**

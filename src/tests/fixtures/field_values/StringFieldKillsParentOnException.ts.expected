@@ -17,7 +17,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  hello: String! @killsParentOnException @resolver(kind: {method: {arguments: []}})
+  hello: String! @killsParentOnException
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString } from "graphql";

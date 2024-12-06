@@ -19,7 +19,7 @@ enum MyEnum {
 }
 
 type SomeType {
-  hello: MyEnum @resolver(kind: {property: {}})
+  hello: MyEnum
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLEnumType, GraphQLObjectType } from "graphql";

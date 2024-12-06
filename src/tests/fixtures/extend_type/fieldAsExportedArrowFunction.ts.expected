@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/extend_type/fieldAsExportedArrowFunction.ts", exportName: "greeting", arguments: [{source: true}]}})
+  greeting: String
 }
 -- TypeScript --
 import { greeting as someTypeGreetingResolver } from "./fieldAsExportedArrowFunction";

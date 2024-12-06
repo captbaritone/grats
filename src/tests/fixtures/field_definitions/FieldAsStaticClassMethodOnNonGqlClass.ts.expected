@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 type Query {
-  greet: String @resolver(kind: {staticMethod: {path: "grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethodOnNonGqlClass.ts", name: "greet", exportName: "SomeClass", arguments: [{source: true}]}})
+  greet: String
 }
 -- TypeScript --
 import { SomeClass as queryGreetResolver } from "./FieldAsStaticClassMethodOnNonGqlClass";

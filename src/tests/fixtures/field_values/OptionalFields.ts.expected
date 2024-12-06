@@ -26,10 +26,10 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  adieu: String @resolver(kind: {method: {arguments: []}})
-  farewell: String @resolver(kind: {method: {arguments: []}})
-  goodbye: String @resolver(kind: {method: {arguments: []}})
-  hello: String @resolver(kind: {method: {arguments: []}})
+  adieu: String
+  farewell: String
+  goodbye: String
+  hello: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

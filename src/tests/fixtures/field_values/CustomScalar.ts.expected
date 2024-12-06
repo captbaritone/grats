@@ -19,7 +19,7 @@ OUTPUT
 scalar MyString
 
 type SomeType {
-  hello: MyString @resolver(kind: {method: {arguments: []}})
+  hello: MyString
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType } from "graphql";

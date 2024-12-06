@@ -19,7 +19,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  hello(greeting: String @deprecated(reason: "Not used anymore")): String @resolver(kind: {method: {arguments: [{argumentsObject: true}]}})
+  hello(greeting: String @deprecated(reason: "Not used anymore")): String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

@@ -26,8 +26,8 @@ interface HasName {
 }
 
 type User implements HasName {
-  hello: String @resolver(kind: {property: {}})
-  name: String @resolver(kind: {property: {}})
+  hello: String
+  name: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";

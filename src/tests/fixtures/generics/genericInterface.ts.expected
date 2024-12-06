@@ -33,13 +33,13 @@ interface DogFriendly {
 }
 
 type Dog {
-  bestFriend: DogFriendly @resolver(kind: {property: {}})
-  name: String @resolver(kind: {property: {}})
+  bestFriend: DogFriendly
+  name: String
 }
 
 type User implements DogFriendly {
-  name: String @resolver(kind: {property: {}})
-  to: Dog @resolver(kind: {property: {}})
+  name: String
+  to: Dog
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLObjectType, GraphQLString } from "graphql";

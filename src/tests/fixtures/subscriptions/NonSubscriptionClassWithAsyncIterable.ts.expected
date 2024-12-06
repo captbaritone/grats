@@ -30,10 +30,10 @@ OUTPUT
 -----------------
 -- SDL --
 type User {
-  greetings: [String!]! @resolver(kind: {method: {arguments: []}})
-  greetingsMaybe: [String]! @resolver(kind: {method: {arguments: []}})
-  maybeGreetings: [String!] @resolver(kind: {method: {arguments: []}})
-  maybeGreetingsMaybe: [String] @resolver(kind: {method: {arguments: []}})
+  greetings: [String!]!
+  greetingsMaybe: [String]!
+  maybeGreetings: [String!]
+  maybeGreetingsMaybe: [String]
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLString } from "graphql";

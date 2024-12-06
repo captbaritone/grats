@@ -27,13 +27,13 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  me: User @resolver(kind: {function: {path: "grats/src/tests/fixtures/todo/userExample.ts", exportName: "me", arguments: [{source: true}]}})
+  me: User
 }
 
 type User {
-  firstName: String @resolver(kind: {property: {}})
-  fullName: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/todo/userExample.ts", exportName: "fullName", arguments: [{source: true}]}})
-  lastName: String @resolver(kind: {property: {}})
+  firstName: String
+  fullName: String
+  lastName: String
 }
 -- TypeScript --
 import { fullName as userFullNameResolver } from "./userExample";

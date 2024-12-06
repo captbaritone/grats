@@ -27,14 +27,14 @@ OUTPUT
 -----------------
 -- SDL --
 type Page {
-  title: String @resolver(kind: {property: {}})
+  title: String
 }
 
 type PageEdge {
-  cursor: String @resolver(kind: {property: {}})
-  node: Page @resolver(kind: {property: {}})
+  cursor: String
+  node: Page
   """Re-expose title directly on the edge"""
-  title: String @resolver(kind: {function: {path: "grats/src/tests/fixtures/generics/defineFieldOnGeneric.ts", exportName: "title", arguments: [{source: true}]}})
+  title: String
 }
 -- TypeScript --
 import { title as pageEdgeTitleResolver } from "./defineFieldOnGeneric";

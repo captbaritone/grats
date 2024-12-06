@@ -35,15 +35,15 @@ OUTPUT
 union Actor = Entity | User
 
 type Entity {
-  description: String @resolver(kind: {property: {}})
+  description: String
 }
 
 type SomeType {
-  me: Actor @resolver(kind: {property: {}})
+  me: Actor
 }
 
 type User {
-  name: String @resolver(kind: {property: {}})
+  name: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLUnionType, GraphQLObjectType, GraphQLString } from "graphql";

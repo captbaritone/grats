@@ -36,8 +36,8 @@ interface Person {
 }
 
 type User implements Node & Person {
-  hello: String @resolver(kind: {property: {}})
-  id: String @resolver(kind: {property: {}})
+  hello: String
+  id: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";

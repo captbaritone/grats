@@ -63,7 +63,7 @@ interface IPerson {
 }
 
 type User implements IPerson {
-  name: String @resolver(kind: {method: {arguments: []}}) @semanticNonNull
+  name: String @semanticNonNull
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType, defaultFieldResolver } from "graphql";

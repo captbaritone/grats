@@ -31,11 +31,11 @@ interface Person {
 }
 
 type SomeType {
-  me: Person @resolver(kind: {method: {arguments: []}})
+  me: Person
 }
 
 type User implements Person {
-  name: String @resolver(kind: {property: {}})
+  name: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";

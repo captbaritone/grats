@@ -17,7 +17,7 @@ OUTPUT
 scalar CustomName
 
 type SomeType {
-  hello: String @resolver(kind: {property: {}})
+  hello: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType, GraphQLString } from "graphql";

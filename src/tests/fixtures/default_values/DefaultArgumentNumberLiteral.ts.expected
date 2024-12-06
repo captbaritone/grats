@@ -20,8 +20,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  floatField(scale: Float! = 10): String @resolver(kind: {method: {arguments: [{argumentsObject: true}]}})
-  intField(count: Int! = 10): String @resolver(kind: {method: {arguments: [{argumentsObject: true}]}})
+  floatField(scale: Float! = 10): String
+  intField(count: Int! = 10): String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLFloat, GraphQLInt } from "graphql";

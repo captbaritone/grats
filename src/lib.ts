@@ -4,7 +4,6 @@ import {
   GraphQLSchema,
   Kind,
   validateSchema,
-  visit,
 } from "graphql";
 import {
   DiagnosticsWithoutLocationResult,
@@ -34,8 +33,8 @@ import { validateSemanticNullability } from "./validations/validateSemanticNulla
 import { resolveTypes } from "./transforms/resolveTypes";
 import { resolveResolverParams } from "./transforms/resolveResolverParams";
 import { customSpecValidations } from "./validations/customSpecValidations";
-import { GraphQLConstructor } from "./GraphQLConstructor";
-import { nullThrows } from "./utils/helpers";
+import { makeResolverSignature } from "./transforms/makeResolverSignature";
+import { Resolvers } from "./resolverSchema";
 
 // Export the TypeScript plugin implementation used by
 // grats-ts-plugin
@@ -46,6 +45,7 @@ export { GratsConfig } from "./gratsConfig";
 export type SchemaAndDoc = {
   schema: GraphQLSchema;
   doc: DocumentNode;
+  resolvers: Resolvers;
 };
 
 // Construct a schema, using GraphQL schema language
@@ -122,24 +122,6 @@ export function extractSchemaAndDoc(
         // Perform custom validations that reimplement spec validation rules
         // with more tailored error messages.
         .andThen((doc) => customSpecValidations(doc))
-        .map((doc) => {
-          return visit(doc, {
-            [Kind.OBJECT_TYPE_DEFINITION](object) {
-              const fields = object.fields?.map((field) => {
-                const gql = new GraphQLConstructor();
-                const resolverDirective = gql.fieldResolverDirective(
-                  nullThrows(field.resolver),
-                );
-                const directives =
-                  field.directives == null
-                    ? [resolverDirective]
-                    : [...field.directives, resolverDirective];
-                return { ...field, directives };
-              });
-              return { ...object, fields };
-            },
-          });
-        })
         // Sort the definitions in the document to ensure a stable output.
         .map((doc) => sortSchemaAst(doc))
         .result();
@@ -148,6 +130,7 @@ export function extractSchemaAndDoc(
         return docResult;
       }
       const doc = docResult.value;
+      const resolvers = makeResolverSignature(doc);
 
       // Build and validate the schema with regards to the GraphQL spec.
       return (
@@ -157,7 +140,7 @@ export function extractSchemaAndDoc(
           .andThen((schema) => validateTypenames(schema, typesWithTypename))
           .andThen((schema) => validateSemanticNullability(schema, config))
           // Combine the schema and document into a single result.
-          .map((schema) => ({ schema, doc }))
+          .map((schema) => ({ schema, doc, resolvers }))
           .result()
       );
     })

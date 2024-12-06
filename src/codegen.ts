@@ -27,7 +27,6 @@ import {
 } from "graphql";
 import * as ts from "typescript";
 import * as path from "path";
-import { METADATA_INPUT_NAMES } from "./metadataDirectives";
 import { resolveRelativePath } from "./gratsRoot";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "./publicDirectives";
 import {
@@ -37,7 +36,11 @@ import {
 import { extend, nullThrows } from "./utils/helpers";
 import { GratsConfig } from "./gratsConfig.js";
 import { naturalCompare } from "./utils/naturalCompare";
-import { Resolver, ResolverArgument } from "./resolverDirective";
+import {
+  ResolverArgument,
+  ResolverDefinition,
+  Resolvers,
+} from "./resolverSchema";
 
 const RESOLVER_ARGS: string[] = ["source", "args", "context", "info"];
 
@@ -47,10 +50,11 @@ const F = ts.factory;
 // GraphQLSchema implementing that schema.
 export function codegen(
   schema: GraphQLSchema,
+  resolvers: Resolvers,
   config: GratsConfig,
   destination: string,
 ): string {
-  const codegen = new Codegen(schema, config, destination);
+  const codegen = new Codegen(schema, resolvers, config, destination);
 
   codegen.schemaDeclarationExport();
 
@@ -67,6 +71,7 @@ class Codegen {
 
   constructor(
     public _schema: GraphQLSchema,
+    public _resolvers: Resolvers,
     public _config: GratsConfig,
     public _destination: string,
   ) {}
@@ -131,8 +136,7 @@ class Codegen {
           type.name === "Int" ||
           type.name === "Float" ||
           type.name === "Boolean" ||
-          type.name === "ID" ||
-          METADATA_INPUT_NAMES.has(type.name)
+          type.name === "ID"
         );
       })
       .map((type) => this.typeReference(type));
@@ -234,16 +238,9 @@ class Codegen {
     }
   }
 
-  /**
-   * TODO: Derive this from the actual directive?
-   */
-  resolverSignature(field: GraphQLField<unknown, unknown>): Resolver {
-    return nullThrows(field.astNode?.resolver);
-  }
-
   isDefaultResolverSignature(
     field: GraphQLField<unknown, unknown>,
-    signature: Resolver,
+    signature: ResolverDefinition,
   ): boolean {
     switch (signature.kind) {
       case "property":
@@ -276,7 +273,7 @@ class Codegen {
     methodName: string,
     parentTypeName: string,
   ): ts.MethodDeclaration | null {
-    const signature = this.resolverSignature(field);
+    const signature = this._resolvers.types[parentTypeName][field.name];
     if (this.isDefaultResolverSignature(field, signature)) {
       return null;
     }
@@ -398,10 +395,6 @@ class Codegen {
         return F.createPropertyAccessExpression(
           F.createIdentifier("args"),
           F.createIdentifier(arg.name),
-        );
-      case "unresolved":
-        throw new Error(
-          `Unexpected unresolved resolver argument during codegen`,
         );
       default:
         // @ts-expect-error

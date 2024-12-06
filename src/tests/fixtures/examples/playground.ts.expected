@@ -40,15 +40,15 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  getUser: User @resolver(kind: {function: {path: "grats/src/tests/fixtures/examples/playground.ts", exportName: "getUser", arguments: [{source: true}]}})
-  me: User @resolver(kind: {method: {arguments: []}})
-  viewer: User @deprecated(reason: "Please use `me` instead.") @resolver(kind: {method: {arguments: []}})
+  getUser: User
+  me: User
+  viewer: User @deprecated(reason: "Please use `me` instead.")
 }
 
 """A user in our kick-ass system!"""
 type User {
-  greeting(salutation: String!): String @resolver(kind: {method: {arguments: [{argumentsObject: true}]}})
-  name: String @resolver(kind: {property: {}})
+  greeting(salutation: String!): String
+  name: String
 }
 -- TypeScript --
 import { getUser as someTypeGetUserResolver } from "./playground";

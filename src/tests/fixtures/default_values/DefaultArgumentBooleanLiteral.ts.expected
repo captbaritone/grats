@@ -21,8 +21,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  someField1(greet: Boolean = false): String @resolver(kind: {method: {arguments: [{argumentsObject: true}]}})
-  someField2(greet: Boolean = true): String @resolver(kind: {method: {arguments: [{argumentsObject: true}]}})
+  someField1(greet: Boolean = false): String
+  someField2(greet: Boolean = true): String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLBoolean } from "graphql";

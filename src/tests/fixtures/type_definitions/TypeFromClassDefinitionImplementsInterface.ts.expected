@@ -23,7 +23,7 @@ interface Person {
 }
 
 type User implements Person {
-  hello: String @resolver(kind: {property: {}})
+  hello: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";

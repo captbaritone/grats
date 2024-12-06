@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  age: Int @resolver(kind: {method: {arguments: []}})
+  age: Int
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLInt } from "graphql";
