@@ -1,38 +1,5 @@
-import { actuallyReturnsAsyncNull as queryActuallyReturnsAsyncNullResolver } from "./index";
-import { actuallyReturnsNull as queryActuallyReturnsNullResolver } from "./index";
-import { me as queryMeResolver } from "./index";
-import { names as subscriptionNamesResolver } from "./index";
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, defaultFieldResolver, GraphQLInterfaceType } from "graphql";
-async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
-    const awaited = await value;
-    if (awaited == null)
-        throw new Error("Cannot return null for semantically non-nullable field.");
-    return awaited;
-}
-async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
-    const awaited = await value;
-    if (awaited == null)
-        throw new Error("Cannot return null for semantically non-nullable field.");
-    return awaited;
-}
-async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
-    const awaited = await value;
-    if (awaited == null)
-        throw new Error("Cannot return null for semantically non-nullable field.");
-    return awaited;
-}
-async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
-    const awaited = await value;
-    if (awaited == null)
-        throw new Error("Cannot return null for semantically non-nullable field.");
-    return awaited;
-}
-async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
-    const awaited = await value;
-    if (awaited == null)
-        throw new Error("Cannot return null for semantically non-nullable field.");
-    return awaited;
-}
+import { actuallyReturnsAsyncNull as queryActuallyReturnsAsyncNullResolver, actuallyReturnsNull as queryActuallyReturnsNullResolver, me as queryMeResolver, names as subscriptionNamesResolver } from "./index";
+import { defaultFieldResolver, GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInterfaceType } from "graphql";
 async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
     const awaited = await value;
     if (awaited == null)

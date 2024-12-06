@@ -55,7 +55,7 @@ type User {
   name: String @semanticNonNull
 }
 -- TypeScript --
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, defaultFieldResolver } from "graphql";
+import { defaultFieldResolver, GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
     const awaited = await value;
     if (awaited == null)

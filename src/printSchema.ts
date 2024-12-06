@@ -6,9 +6,10 @@ import {
   specifiedScalarTypes,
 } from "graphql";
 import { GratsConfig } from "./gratsConfig";
-import { codegen } from "./codegen";
+import { codegen } from "./codegen/schemaCodegen";
 import { METADATA_DIRECTIVE_NAMES } from "./metadataDirectives";
 import { Resolvers } from "./resolverSchema";
+import { resolverMapCodegen } from "./codegen/resolverMapCodegen";
 
 /**
  * Prints code for a TypeScript module that exports a GraphQLSchema.
@@ -20,7 +21,9 @@ export function printExecutableSchema(
   config: GratsConfig,
   destination: string,
 ): string {
-  const code = codegen(schema, resolvers, config, destination);
+  const code = config.EXPERIMENTAL__emitResolverMap
+    ? resolverMapCodegen(schema, resolvers, config, destination)
+    : codegen(schema, resolvers, config, destination);
   return applyTypeScriptHeader(config, code);
 }
 

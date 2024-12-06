@@ -54,8 +54,7 @@ type User implements IPerson & IThing {
   greeting: String
 }
 -- TypeScript --
-import { greeting as adminGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";
-import { greeting as userGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";
+import { greeting as adminGreetingResolver, greeting as userGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const IThingType: GraphQLInterfaceType = new GraphQLInterfaceType({

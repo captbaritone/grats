@@ -45,8 +45,7 @@ type User {
   name: String
 }
 -- TypeScript --
-import { me as queryMeResolver } from "./readme";
-import { viewer as queryViewerResolver } from "./readme";
+import { me as queryMeResolver, viewer as queryViewerResolver } from "./readme";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({

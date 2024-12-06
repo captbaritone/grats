@@ -17,7 +17,7 @@ import { Command } from "commander";
 import { locate } from "../Locate";
 import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError";
 import { writeFileSync } from "fs";
-import { codegen } from "../codegen";
+import { codegen } from "../codegen/schemaCodegen";
 import { diff } from "jest-diff";
 import { METADATA_DIRECTIVE_NAMES } from "../metadataDirectives";
 import * as semver from "semver";

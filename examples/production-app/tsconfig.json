@@ -1,6 +1,7 @@
 {
   "grats": {
-    "EXPERIMENTAL__emitResolverSignatures": true
+    "EXPERIMENTAL__emitResolverSignatures": true,
+    "strictSemanticNullability": true
   },
   "compilerOptions": {
     "outDir": "dist",

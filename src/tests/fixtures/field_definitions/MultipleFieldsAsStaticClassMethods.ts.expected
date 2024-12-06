@@ -33,8 +33,7 @@ type User {
   name: String
 }
 -- TypeScript --
-import { User as queryGetUserResolver } from "./MultipleFieldsAsStaticClassMethods";
-import { User as queryGetUsersResolver } from "./MultipleFieldsAsStaticClassMethods";
+import { User as queryGetUserResolver, User as queryGetUsersResolver } from "./MultipleFieldsAsStaticClassMethods";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({

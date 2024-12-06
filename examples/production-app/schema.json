@@ -1,5 +1,4 @@
 {
-  "$schema": "../../src/resolverSchema.json",
   "types": {
     "CreateLikePayload": {
       "post": {

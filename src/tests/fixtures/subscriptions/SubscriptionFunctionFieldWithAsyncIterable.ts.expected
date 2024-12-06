@@ -46,10 +46,7 @@ type Subscription {
   maybeGreetingsMaybe: String
 }
 -- TypeScript --
-import { greetings as subscriptionGreetingsResolver } from "./SubscriptionFunctionFieldWithAsyncIterable";
-import { greetingsMaybe as subscriptionGreetingsMaybeResolver } from "./SubscriptionFunctionFieldWithAsyncIterable";
-import { maybeGreetings as subscriptionMaybeGreetingsResolver } from "./SubscriptionFunctionFieldWithAsyncIterable";
-import { maybeGreetingsMaybe as subscriptionMaybeGreetingsMaybeResolver } from "./SubscriptionFunctionFieldWithAsyncIterable";
+import { greetings as subscriptionGreetingsResolver, greetingsMaybe as subscriptionGreetingsMaybeResolver, maybeGreetings as subscriptionMaybeGreetingsResolver, maybeGreetingsMaybe as subscriptionMaybeGreetingsMaybeResolver } from "./SubscriptionFunctionFieldWithAsyncIterable";
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({

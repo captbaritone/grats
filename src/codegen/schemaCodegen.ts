@@ -1,5 +1,4 @@
 import {
-  ConstDirectiveNode,
   GraphQLAbstractType,
   GraphQLArgument,
   GraphQLEnumType,
@@ -26,24 +25,12 @@ import {
   isUnionType,
 } from "graphql";
 import * as ts from "typescript";
-import * as path from "path";
-import { resolveRelativePath } from "./gratsRoot";
-import { SEMANTIC_NON_NULL_DIRECTIVE } from "./publicDirectives";
-import {
-  ASSERT_NON_NULL_HELPER,
-  createAssertNonNullHelper,
-} from "./codegenHelpers";
-import { extend, nullThrows } from "./utils/helpers";
-import { GratsConfig } from "./gratsConfig.js";
-import { naturalCompare } from "./utils/naturalCompare";
-import {
-  ResolverArgument,
-  ResolverDefinition,
-  Resolvers,
-} from "./resolverSchema";
-import TSAstBuilder from "./utils/TSAstBuilder";
-
-const RESOLVER_ARGS: string[] = ["source", "args", "context", "info"];
+import { extend, nullThrows } from "../utils/helpers";
+import { GratsConfig } from "../gratsConfig.js";
+import { naturalCompare } from "../utils/naturalCompare";
+import TSAstBuilder from "./TSAstBuilder";
+import ResolverCodegen from "./resolverCodegen";
+import { Resolvers } from "../resolverSchema";
 
 const F = ts.factory;
 
@@ -63,18 +50,21 @@ export function codegen(
 }
 
 class Codegen {
-  ts: TSAstBuilder = new TSAstBuilder();
+  ts: TSAstBuilder;
+  resolvers: ResolverCodegen;
   _typeNameMappings: Map<string, string> = new Map();
-  _helpers: Set<string> = new Set();
   _typeDefinitions: Set<string> = new Set();
   _graphQLImports: Set<string> = new Set();
 
   constructor(
     public _schema: GraphQLSchema,
-    public _resolvers: Resolvers,
-    public _config: GratsConfig,
-    public _destination: string,
-  ) {}
+    _resolvers: Resolvers,
+    config: GratsConfig,
+    destination: string,
+  ) {
+    this.ts = new TSAstBuilder(destination, config.importModuleSpecifierEnding);
+    this.resolvers = new ResolverCodegen(this.ts, _resolvers);
+  }
 
   graphQLImport(name: string): ts.Identifier {
     this._graphQLImports.add(name);
@@ -211,247 +201,6 @@ class Codegen {
     ]);
   }
 
-  importUserConstruct(
-    tsModulePath: string,
-    exportName: string | null,
-    localName: string,
-  ): void {
-    const abs = resolveRelativePath(tsModulePath);
-    const relative = replaceExt(
-      path.relative(path.dirname(this._destination), abs),
-      this._config.importModuleSpecifierEnding,
-    );
-    const modulePath = `./${normalizeRelativePathToPosix(relative)}`;
-    if (exportName == null) {
-      this.ts.importDefault(modulePath, localName);
-    } else {
-      this.ts.import(modulePath, [{ name: exportName, as: localName }]);
-    }
-  }
-
-  isDefaultResolverSignature(
-    field: GraphQLField<unknown, unknown>,
-    signature: ResolverDefinition,
-  ): boolean {
-    switch (signature.kind) {
-      case "property":
-        return signature.name == null || field.name === signature.name;
-      case "method":
-        if (signature.name != null && field.name !== signature.name) {
-          return false;
-        }
-        if (signature.arguments == null || signature.arguments.length === 0) {
-          return true;
-        }
-        return signature.arguments.every((arg, i) => {
-          switch (i) {
-            case 0:
-              return arg.kind === "argumentsObject";
-            // TODO: More?
-            default:
-              return false;
-          }
-        });
-      case "function":
-        return false;
-      case "staticMethod":
-        return false;
-    }
-  }
-
-  resolveMethod(
-    field: GraphQLField<unknown, unknown>,
-    methodName: string,
-    parentTypeName: string,
-  ): ts.MethodDeclaration | null {
-    const signature = this._resolvers.types[parentTypeName][field.name];
-    if (this.isDefaultResolverSignature(field, signature)) {
-      return null;
-    }
-    switch (signature.kind) {
-      case "property":
-        return this.ts.method(
-          methodName,
-          [this.ts.param("source")],
-          [
-            F.createReturnStatement(
-              F.createPropertyAccessExpression(
-                F.createIdentifier("source"),
-                F.createIdentifier(signature.name ?? field.name),
-              ),
-            ),
-          ],
-        );
-      case "method": {
-        return this.ts.method(
-          methodName,
-          extractUsedParams(signature.arguments ?? [], true).map((name) =>
-            this.ts.param(name),
-          ),
-          [
-            F.createReturnStatement(
-              F.createCallExpression(
-                F.createPropertyAccessExpression(
-                  F.createIdentifier("source"),
-                  F.createIdentifier(signature.name ?? field.name),
-                ),
-                [],
-                (signature.arguments ?? []).map((arg) => {
-                  return this.resolverParam(arg);
-                }),
-              ),
-            ),
-          ],
-        );
-      }
-      case "function": {
-        const resolverName = formatResolverFunctionVarName(
-          parentTypeName,
-          field.name,
-        );
-        this.importUserConstruct(
-          signature.path,
-          signature.exportName,
-          resolverName,
-        );
-        return this.ts.method(
-          methodName,
-          extractUsedParams(signature.arguments ?? [], true).map((name) =>
-            this.ts.param(name),
-          ),
-          [
-            F.createReturnStatement(
-              F.createCallExpression(
-                F.createIdentifier(resolverName),
-                undefined,
-                (signature.arguments ?? []).map((arg) => {
-                  return this.resolverParam(arg);
-                }),
-              ),
-            ),
-          ],
-        );
-      }
-      case "staticMethod": {
-        // Note: This name is guaranteed to be unique, but for static methods, it
-        // means we import the same class multiple times with multiple names.
-        const resolverName = formatResolverFunctionVarName(
-          parentTypeName,
-          field.name,
-        );
-        this.importUserConstruct(
-          signature.path,
-          signature.exportName,
-          resolverName,
-        );
-        return this.ts.method(
-          methodName,
-          extractUsedParams(signature.arguments ?? [], true).map((name) =>
-            this.ts.param(name),
-          ),
-          [
-            F.createReturnStatement(
-              F.createCallExpression(
-                F.createPropertyAccessExpression(
-                  F.createIdentifier(resolverName),
-                  F.createIdentifier(signature.name),
-                ),
-                undefined,
-                (signature.arguments ?? []).map((arg) => {
-                  return this.resolverParam(arg);
-                }),
-              ),
-            ),
-          ],
-        );
-      }
-      default:
-        // @ts-expect-error
-        throw new Error(`Unexpected resolver kind ${signature.kind}`);
-    }
-  }
-  // Either `args`, `context`, `info`, or a positional argument like
-  // `args.someArg`.
-  resolverParam(arg: ResolverArgument): ts.Expression {
-    switch (arg.kind) {
-      case "argumentsObject":
-        return F.createIdentifier("args");
-      case "context":
-        return F.createIdentifier("context");
-      case "information":
-        return F.createIdentifier("info");
-      case "source":
-        return F.createIdentifier("source");
-      case "named":
-        return F.createPropertyAccessExpression(
-          F.createIdentifier("args"),
-          F.createIdentifier(arg.name),
-        );
-      default:
-        // @ts-expect-error
-        throw new Error(`Unexpected resolver kind ${arg.kind}`);
-    }
-  }
-
-  // If a field is smantically non-null, we need to wrap the resolver in a
-  // runtime check to ensure that the resolver does not return null.
-  maybeApplySemanticNullRuntimeCheck(
-    field: GraphQLField<unknown, unknown>,
-    method_: ts.MethodDeclaration | null,
-  ): ts.MethodDeclaration | null {
-    const semanticNonNull = fieldDirective(field, SEMANTIC_NON_NULL_DIRECTIVE);
-    if (semanticNonNull == null) {
-      return method_;
-    }
-
-    if (!this._helpers.has(ASSERT_NON_NULL_HELPER)) {
-      this._helpers.add(ASSERT_NON_NULL_HELPER);
-      this.ts.addHelper(createAssertNonNullHelper());
-    }
-
-    const method = method_ ?? this.defaultResolverMethod();
-
-    const bodyStatements = method.body?.statements;
-    if (bodyStatements == null || bodyStatements.length === 0) {
-      throw new Error(`Expected method to have a body`);
-    }
-    let foundReturn = false;
-    const newBodyStatements = bodyStatements.map((statement) => {
-      if (ts.isReturnStatement(statement)) {
-        foundReturn = true;
-        // We need to wrap the return statement in a call to the runtime check
-        return F.createReturnStatement(
-          F.createCallExpression(
-            F.createIdentifier(ASSERT_NON_NULL_HELPER),
-            [],
-            [nullThrows(statement.expression)],
-          ),
-        );
-      }
-      return statement;
-    });
-    if (!foundReturn) {
-      throw new Error(`Expected method to have a return statement`);
-    }
-    return { ...method, body: F.createBlock(newBodyStatements, true) };
-  }
-
-  defaultResolverMethod(): ts.MethodDeclaration {
-    return this.ts.method(
-      "resolve",
-      RESOLVER_ARGS.map((name) => this.ts.param(name)),
-      [
-        F.createReturnStatement(
-          F.createCallExpression(
-            this.graphQLImport("defaultFieldResolver"),
-            undefined,
-            RESOLVER_ARGS.map((name) => F.createIdentifier(name)),
-          ),
-        ),
-      ],
-    );
-  }
-
   fields(
     obj: GraphQLObjectType | GraphQLInterfaceType,
     isInterface: boolean,
@@ -549,7 +298,7 @@ class Codegen {
       if (exportedMetadata != null) {
         if (!this._typeNameMappings.has(t.name)) {
           const localName = `${t.name}Class`;
-          this.importUserConstruct(
+          this.ts.importUserConstruct(
             exportedMetadata.tsModulePath,
             exportedMetadata.exportName,
             localName,
@@ -693,20 +442,31 @@ class Codegen {
     // Note: We assume the default name is used here. When custom operation types are supported
     // we'll need to update this.
     if (parentTypeName !== "Subscription") {
-      const resolve = this.resolveMethod(field, "resolve", parentTypeName);
-      return [this.maybeApplySemanticNullRuntimeCheck(field, resolve)];
+      const resolve = this.resolvers.resolveMethod(
+        field.name,
+        "resolve",
+        parentTypeName,
+      );
+      return [
+        this.resolvers.maybeApplySemanticNullRuntimeCheck(
+          field,
+          resolve,
+          "resolve",
+        ),
+      ];
     }
     return [
       // TODO: Maybe avoid adding `assertNonNull` for subscription resolvers?
-      this.resolveMethod(field, "subscribe", parentTypeName),
+      this.resolvers.resolveMethod(field.name, "subscribe", parentTypeName),
       // Identity function (method?)
-      this.maybeApplySemanticNullRuntimeCheck(
+      this.resolvers.maybeApplySemanticNullRuntimeCheck(
         field,
         this.ts.method(
           "resolve",
           [this.ts.param("payload")],
           [F.createReturnStatement(F.createIdentifier("payload"))],
         ),
+        "resolve",
       ),
     ];
   }
@@ -1033,67 +793,4 @@ class Codegen {
 
     return this.ts.print();
   }
-}
-
-// Here we try to avoid including unused args.
-//
-// Unused trailing args are trimmed, unused intermediate args are prefixed with
-// an underscore.
-function extractUsedParams(
-  resolverParams: ResolverArgument[],
-  includeSource: boolean = false,
-): string[] {
-  const wrapperArgs: string[] = [];
-
-  let adding = false;
-  for (let i = RESOLVER_ARGS.length - 1; i >= 0; i--) {
-    const name = RESOLVER_ARGS[i];
-    const used =
-      resolverParams.some((param) => {
-        return (
-          (param.kind === "named" && name === "args") ||
-          (param.kind === "argumentsObject" && name === "args") ||
-          (param.kind === "context" && name === "context") ||
-          (param.kind === "information" && name === "info") ||
-          (param.kind === "source" && name === "source")
-        );
-      }) ||
-      (name === "source" && includeSource);
-
-    if (used) {
-      adding = true;
-    }
-    if (!adding) {
-      continue;
-    }
-
-    wrapperArgs.unshift(used ? name : `_${name}`);
-  }
-  return wrapperArgs;
-}
-
-function fieldDirective(
-  field: GraphQLField<unknown, unknown>,
-  name: string,
-): ConstDirectiveNode | null {
-  return field.astNode?.directives?.find((d) => d.name.value === name) ?? null;
-}
-
-function replaceExt(filePath: string, newSuffix: string): string {
-  const ext = path.extname(filePath);
-  return filePath.slice(0, -ext.length) + newSuffix;
-}
-
-function formatResolverFunctionVarName(
-  parentTypeName: string,
-  fieldName: string,
-): string {
-  const parent = parentTypeName[0].toLowerCase() + parentTypeName.slice(1);
-  const field = fieldName[0].toUpperCase() + fieldName.slice(1);
-  return `${parent}${field}Resolver`;
-}
-
-// https://github.com/sindresorhus/slash/blob/98b618f5a3bfcb5dd374b204868818845b87bb2f/index.js#L8C9-L8C33
-function normalizeRelativePathToPosix(unknownPath: string): string {
-  return unknownPath.replace(/\\/g, "/");
 }

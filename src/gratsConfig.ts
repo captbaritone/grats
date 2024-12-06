@@ -58,6 +58,12 @@ export type GratsConfig = {
   // resolver signatures for each field. Useful for alternate implementations
   // of codegen, such as generating a GraphQL-style Resolver Map.
   EXPERIMENTAL__emitResolverSignatures: boolean; // Default: false
+
+  // EXPERIMENTAL: THIS OPTION WILL BE RENAMED OR REMOVED IN A FUTURE RELEASE
+  // Instead of emitting a TypeScript file which creates a GraphQLSchema, emit
+  // a TypeScript file which creates a GraphQL Tools style Resolver Map.
+  // https://the-guild.dev/graphql/tools/docs/resolvers#resolver-map
+  EXPERIMENTAL__emitResolverMap: boolean; // Default: false
 };
 
 export type ParsedCommandLineGrats = Omit<ts.ParsedCommandLine, "raw"> & {
@@ -205,6 +211,14 @@ export function validateGratsOptions(
   ) {
     throw new Error(
       "Grats: The Grats config option `EXPERIMENTAL__emitResolverSignatures` must be a boolean if provided.",
+    );
+  }
+
+  if (gratsOptions.EXPERIMENTAL__emitResolverMap === undefined) {
+    gratsOptions.EXPERIMENTAL__emitResolverMap = false;
+  } else if (typeof gratsOptions.EXPERIMENTAL__emitResolverMap !== "boolean") {
+    throw new Error(
+      "Grats: The Grats config option `EXPERIMENTAL__emitResolverMap` must be a boolean if provided.",
     );
   }
 
