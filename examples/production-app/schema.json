@@ -1,0 +1,432 @@
+{
+  "$schema": "../../src/resolverSchema.json",
+  "types": {
+    "CreateLikePayload": {
+      "post": {
+        "kind": "property",
+        "name": null
+      }
+    },
+    "CreatePostPayload": {
+      "post": {
+        "kind": "property",
+        "name": null
+      }
+    },
+    "CreateUserPayload": {
+      "user": {
+        "kind": "property",
+        "name": null
+      }
+    },
+    "Like": {
+      "createdAt": {
+        "kind": "method",
+        "name": null,
+        "arguments": []
+      },
+      "id": {
+        "kind": "function",
+        "path": "examples/production-app/graphql/Node.ts",
+        "exportName": "id",
+        "arguments": [
+          {
+            "kind": "source"
+          }
+        ]
+      },
+      "liker": {
+        "kind": "method",
+        "name": null,
+        "arguments": []
+      },
+      "post": {
+        "kind": "method",
+        "name": null,
+        "arguments": []
+      }
+    },
+    "LikeConnection": {
+      "count": {
+        "kind": "property",
+        "name": null
+      },
+      "edges": {
+        "kind": "property",
+        "name": null
+      },
+      "nodes": {
+        "kind": "function",
+        "path": "examples/production-app/models/LikeConnection.ts",
+        "exportName": "nodes",
+        "arguments": [
+          {
+            "kind": "source"
+          }
+        ]
+      },
+      "pageInfo": {
+        "kind": "property",
+        "name": null
+      }
+    },
+    "LikeEdge": {
+      "cursor": {
+        "kind": "property",
+        "name": null
+      },
+      "node": {
+        "kind": "property",
+        "name": null
+      }
+    },
+    "Mutation": {
+      "createLike": {
+        "kind": "function",
+        "path": "examples/production-app/models/Like.ts",
+        "exportName": "createLike",
+        "arguments": [
+          {
+            "kind": "source"
+          },
+          {
+            "kind": "named",
+            "name": "input"
+          },
+          {
+            "kind": "context"
+          }
+        ]
+      },
+      "createPost": {
+        "kind": "function",
+        "path": "examples/production-app/models/Post.ts",
+        "exportName": "createPost",
+        "arguments": [
+          {
+            "kind": "source"
+          },
+          {
+            "kind": "named",
+            "name": "input"
+          },
+          {
+            "kind": "context"
+          }
+        ]
+      },
+      "createUser": {
+        "kind": "function",
+        "path": "examples/production-app/models/User.ts",
+        "exportName": "createUser",
+        "arguments": [
+          {
+            "kind": "source"
+          },
+          {
+            "kind": "named",
+            "name": "input"
+          },
+          {
+            "kind": "context"
+          }
+        ]
+      }
+    },
+    "PageInfo": {
+      "endCursor": {
+        "kind": "property",
+        "name": null
+      },
+      "hasNextPage": {
+        "kind": "property",
+        "name": null
+      },
+      "hasPreviousPage": {
+        "kind": "property",
+        "name": null
+      },
+      "startCursor": {
+        "kind": "property",
+        "name": null
+      }
+    },
+    "Post": {
+      "author": {
+        "kind": "method",
+        "name": null,
+        "arguments": []
+      },
+      "content": {
+        "kind": "method",
+        "name": null,
+        "arguments": []
+      },
+      "id": {
+        "kind": "function",
+        "path": "examples/production-app/graphql/Node.ts",
+        "exportName": "id",
+        "arguments": [
+          {
+            "kind": "source"
+          }
+        ]
+      },
+      "likes": {
+        "kind": "method",
+        "name": null,
+        "arguments": [
+          {
+            "kind": "argumentsObject"
+          },
+          {
+            "kind": "information"
+          }
+        ]
+      },
+      "publishedAt": {
+        "kind": "method",
+        "name": null,
+        "arguments": []
+      },
+      "title": {
+        "kind": "method",
+        "name": null,
+        "arguments": []
+      }
+    },
+    "PostConnection": {
+      "edges": {
+        "kind": "property",
+        "name": null
+      },
+      "nodes": {
+        "kind": "function",
+        "path": "examples/production-app/models/PostConnection.ts",
+        "exportName": "nodes",
+        "arguments": [
+          {
+            "kind": "source"
+          }
+        ]
+      },
+      "pageInfo": {
+        "kind": "property",
+        "name": null
+      }
+    },
+    "PostEdge": {
+      "cursor": {
+        "kind": "property",
+        "name": null
+      },
+      "node": {
+        "kind": "property",
+        "name": null
+      }
+    },
+    "Query": {
+      "likes": {
+        "kind": "function",
+        "path": "examples/production-app/models/LikeConnection.ts",
+        "exportName": "likes",
+        "arguments": [
+          {
+            "kind": "source"
+          },
+          {
+            "kind": "argumentsObject"
+          },
+          {
+            "kind": "context"
+          },
+          {
+            "kind": "information"
+          }
+        ]
+      },
+      "node": {
+        "kind": "function",
+        "path": "examples/production-app/graphql/Node.ts",
+        "exportName": "node",
+        "arguments": [
+          {
+            "kind": "source"
+          },
+          {
+            "kind": "argumentsObject"
+          },
+          {
+            "kind": "context"
+          }
+        ]
+      },
+      "nodes": {
+        "kind": "function",
+        "path": "examples/production-app/graphql/Node.ts",
+        "exportName": "nodes",
+        "arguments": [
+          {
+            "kind": "source"
+          },
+          {
+            "kind": "argumentsObject"
+          },
+          {
+            "kind": "context"
+          }
+        ]
+      },
+      "posts": {
+        "kind": "function",
+        "path": "examples/production-app/models/PostConnection.ts",
+        "exportName": "posts",
+        "arguments": [
+          {
+            "kind": "source"
+          },
+          {
+            "kind": "argumentsObject"
+          },
+          {
+            "kind": "context"
+          },
+          {
+            "kind": "information"
+          }
+        ]
+      },
+      "users": {
+        "kind": "function",
+        "path": "examples/production-app/models/UserConnection.ts",
+        "exportName": "users",
+        "arguments": [
+          {
+            "kind": "source"
+          },
+          {
+            "kind": "argumentsObject"
+          },
+          {
+            "kind": "context"
+          },
+          {
+            "kind": "information"
+          }
+        ]
+      },
+      "viewer": {
+        "kind": "staticMethod",
+        "path": "examples/production-app/models/Viewer.ts",
+        "exportName": "Viewer",
+        "name": "viewer",
+        "arguments": [
+          {
+            "kind": "source"
+          }
+        ]
+      }
+    },
+    "Subscription": {
+      "postLikes": {
+        "kind": "function",
+        "path": "examples/production-app/models/LikeConnection.ts",
+        "exportName": "postLikes",
+        "arguments": [
+          {
+            "kind": "source"
+          },
+          {
+            "kind": "named",
+            "name": "postID"
+          },
+          {
+            "kind": "context"
+          },
+          {
+            "kind": "information"
+          }
+        ]
+      }
+    },
+    "User": {
+      "id": {
+        "kind": "function",
+        "path": "examples/production-app/graphql/Node.ts",
+        "exportName": "id",
+        "arguments": [
+          {
+            "kind": "source"
+          }
+        ]
+      },
+      "name": {
+        "kind": "method",
+        "name": null,
+        "arguments": []
+      },
+      "posts": {
+        "kind": "method",
+        "name": null,
+        "arguments": [
+          {
+            "kind": "argumentsObject"
+          },
+          {
+            "kind": "information"
+          }
+        ]
+      }
+    },
+    "UserConnection": {
+      "edges": {
+        "kind": "property",
+        "name": null
+      },
+      "nodes": {
+        "kind": "function",
+        "path": "examples/production-app/models/UserConnection.ts",
+        "exportName": "nodes",
+        "arguments": [
+          {
+            "kind": "source"
+          }
+        ]
+      },
+      "pageInfo": {
+        "kind": "property",
+        "name": null
+      }
+    },
+    "UserEdge": {
+      "cursor": {
+        "kind": "property",
+        "name": null
+      },
+      "node": {
+        "kind": "property",
+        "name": null
+      }
+    },
+    "Viewer": {
+      "feed": {
+        "kind": "method",
+        "name": null,
+        "arguments": [
+          {
+            "kind": "context"
+          }
+        ]
+      },
+      "user": {
+        "kind": "method",
+        "name": null,
+        "arguments": [
+          {
+            "kind": "context"
+          }
+        ]
+      }
+    }
+  }
+}

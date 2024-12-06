@@ -154,7 +154,7 @@ function writeSchemaFilesAndReport(
       dirname(configPath),
       gratsConfig.graphqlSchema.replace(/\.graphql$/, ".json"),
     );
-    writeFileSync(absOutput, schemaStr);
+    writeFileSync(absOutput, JSON.stringify(resolvers, null, 2));
     console.error(`Grats: Wrote resolver signatures to \`${absOutput}\`.`);
   }
 }
