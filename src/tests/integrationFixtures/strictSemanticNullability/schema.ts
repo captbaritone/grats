@@ -9,6 +9,36 @@ async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
         throw new Error("Cannot return null for semantically non-nullable field.");
     return awaited;
 }
+async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
+    const awaited = await value;
+    if (awaited == null)
+        throw new Error("Cannot return null for semantically non-nullable field.");
+    return awaited;
+}
+async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
+    const awaited = await value;
+    if (awaited == null)
+        throw new Error("Cannot return null for semantically non-nullable field.");
+    return awaited;
+}
+async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
+    const awaited = await value;
+    if (awaited == null)
+        throw new Error("Cannot return null for semantically non-nullable field.");
+    return awaited;
+}
+async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
+    const awaited = await value;
+    if (awaited == null)
+        throw new Error("Cannot return null for semantically non-nullable field.");
+    return awaited;
+}
+async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
+    const awaited = await value;
+    if (awaited == null)
+        throw new Error("Cannot return null for semantically non-nullable field.");
+    return awaited;
+}
 export function getSchema(): GraphQLSchema {
     const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IPerson",

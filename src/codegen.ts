@@ -41,6 +41,7 @@ import {
   ResolverDefinition,
   Resolvers,
 } from "./resolverSchema";
+import TSAstBuilder from "./utils/TSAstBuilder";
 
 const RESOLVER_ARGS: string[] = ["source", "args", "context", "info"];
 
@@ -62,12 +63,11 @@ export function codegen(
 }
 
 class Codegen {
-  _imports: ts.Statement[] = [];
+  ts: TSAstBuilder = new TSAstBuilder();
   _typeNameMappings: Map<string, string> = new Map();
-  _helpers: Map<string, ts.Statement> = new Map();
+  _helpers: Set<string> = new Set();
   _typeDefinitions: Set<string> = new Set();
   _graphQLImports: Set<string> = new Set();
-  _statements: ts.Statement[] = [];
 
   constructor(
     public _schema: GraphQLSchema,
@@ -75,15 +75,6 @@ class Codegen {
     public _config: GratsConfig,
     public _destination: string,
   ) {}
-
-  createBlockWithScope(closure: () => void): ts.Block {
-    const initialStatements = this._statements;
-    this._statements = [];
-    closure();
-    const block = F.createBlock(this._statements, true);
-    this._statements = initialStatements;
-    return block;
-  }
 
   graphQLImport(name: string): ts.Identifier {
     this._graphQLImports.add(name);
@@ -96,12 +87,12 @@ class Codegen {
   }
 
   schemaDeclarationExport(): void {
-    this.functionDeclaration(
+    this.ts.functionDeclaration(
       "getSchema",
       [F.createModifier(ts.SyntaxKind.ExportKeyword)],
       this.graphQLTypeImport("GraphQLSchema"),
-      this.createBlockWithScope(() => {
-        this._statements.push(
+      this.ts.createBlockWithScope(() => {
+        this.ts.addStatement(
           F.createReturnStatement(
             F.createNewExpression(
               this.graphQLImport("GraphQLSchema"),
@@ -115,7 +106,7 @@ class Codegen {
   }
 
   schemaConfig(): ts.ObjectLiteralExpression {
-    return this.objectLiteral([
+    return this.ts.objectLiteral([
       this.description(this._schema.description),
       this.query(),
       this.mutation(),
@@ -196,7 +187,7 @@ class Codegen {
     if (!this._typeDefinitions.has(varName)) {
       this._typeDefinitions.add(varName);
 
-      this.constDeclaration(
+      this.ts.constDeclaration(
         varName,
         F.createNewExpression(
           this.graphQLImport("GraphQLObjectType"),
@@ -212,7 +203,7 @@ class Codegen {
   }
 
   objectTypeConfig(obj: GraphQLObjectType): ts.ObjectLiteralExpression {
-    return this.objectLiteral([
+    return this.ts.objectLiteral([
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.description(obj.description),
       this.fields(obj, false),
@@ -232,9 +223,9 @@ class Codegen {
     );
     const modulePath = `./${normalizeRelativePathToPosix(relative)}`;
     if (exportName == null) {
-      this.importDefault(modulePath, localName);
+      this.ts.importDefault(modulePath, localName);
     } else {
-      this.import(modulePath, [{ name: exportName, as: localName }]);
+      this.ts.import(modulePath, [{ name: exportName, as: localName }]);
     }
   }
 
@@ -279,9 +270,9 @@ class Codegen {
     }
     switch (signature.kind) {
       case "property":
-        return this.method(
+        return this.ts.method(
           methodName,
-          [this.param("source")],
+          [this.ts.param("source")],
           [
             F.createReturnStatement(
               F.createPropertyAccessExpression(
@@ -292,10 +283,10 @@ class Codegen {
           ],
         );
       case "method": {
-        return this.method(
+        return this.ts.method(
           methodName,
           extractUsedParams(signature.arguments ?? [], true).map((name) =>
-            this.param(name),
+            this.ts.param(name),
           ),
           [
             F.createReturnStatement(
@@ -323,10 +314,10 @@ class Codegen {
           signature.exportName,
           resolverName,
         );
-        return this.method(
+        return this.ts.method(
           methodName,
           extractUsedParams(signature.arguments ?? [], true).map((name) =>
-            this.param(name),
+            this.ts.param(name),
           ),
           [
             F.createReturnStatement(
@@ -353,10 +344,10 @@ class Codegen {
           signature.exportName,
           resolverName,
         );
-        return this.method(
+        return this.ts.method(
           methodName,
           extractUsedParams(signature.arguments ?? [], true).map((name) =>
-            this.param(name),
+            this.ts.param(name),
           ),
           [
             F.createReturnStatement(
@@ -414,7 +405,8 @@ class Codegen {
     }
 
     if (!this._helpers.has(ASSERT_NON_NULL_HELPER)) {
-      this._helpers.set(ASSERT_NON_NULL_HELPER, createAssertNonNullHelper());
+      this._helpers.add(ASSERT_NON_NULL_HELPER);
+      this.ts.addHelper(createAssertNonNullHelper());
     }
 
     const method = method_ ?? this.defaultResolverMethod();
@@ -445,9 +437,9 @@ class Codegen {
   }
 
   defaultResolverMethod(): ts.MethodDeclaration {
-    return this.method(
+    return this.ts.method(
       "resolve",
-      RESOLVER_ARGS.map((name) => this.param(name)),
+      RESOLVER_ARGS.map((name) => this.ts.param(name)),
       [
         F.createReturnStatement(
           F.createCallExpression(
@@ -471,10 +463,10 @@ class Codegen {
       );
     });
 
-    return this.method(
+    return this.ts.method(
       "fields",
       [],
-      [F.createReturnStatement(this.objectLiteral(fields))],
+      [F.createReturnStatement(this.ts.objectLiteral(fields))],
     );
   }
 
@@ -483,7 +475,7 @@ class Codegen {
   ): ts.MethodDeclaration | null {
     const interfaces = obj.getInterfaces();
     if (!interfaces.length) return null;
-    return this.method(
+    return this.ts.method(
       "interfaces",
       [],
       [
@@ -500,7 +492,7 @@ class Codegen {
     const varName = `${obj.name}Type`;
     if (!this._typeDefinitions.has(varName)) {
       this._typeDefinitions.add(varName);
-      this.constDeclaration(
+      this.ts.constDeclaration(
         varName,
         F.createNewExpression(
           this.graphQLImport("GraphQLInterfaceType"),
@@ -517,7 +509,7 @@ class Codegen {
 
   interfaceTypeConfig(obj: GraphQLInterfaceType): ts.ObjectLiteralExpression {
     this._schema.getPossibleTypes(obj);
-    return this.objectLiteral([
+    return this.ts.objectLiteral([
       this.description(obj.description),
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.fields(obj, true),
@@ -530,7 +522,7 @@ class Codegen {
     const varName = `${obj.name}Type`;
     if (!this._typeDefinitions.has(varName)) {
       this._typeDefinitions.add(varName);
-      this.constDeclaration(
+      this.ts.constDeclaration(
         varName,
         F.createNewExpression(
           this.graphQLImport("GraphQLUnionType"),
@@ -576,10 +568,10 @@ class Codegen {
   }
 
   unionTypeConfig(obj: GraphQLUnionType): ts.ObjectLiteralExpression {
-    return this.objectLiteral([
+    return this.ts.objectLiteral([
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.description(obj.description),
-      this.method(
+      this.ts.method(
         "types",
         [],
         [
@@ -598,7 +590,7 @@ class Codegen {
     const varName = `${obj.name}Type`;
     if (!this._typeDefinitions.has(varName)) {
       this._typeDefinitions.add(varName);
-      this.constDeclaration(
+      this.ts.constDeclaration(
         varName,
         F.createNewExpression(
           this.graphQLImport("GraphQLScalarType"),
@@ -614,7 +606,7 @@ class Codegen {
   }
 
   customScalarTypeConfig(obj: GraphQLScalarType): ts.ObjectLiteralExpression {
-    return this.objectLiteral([
+    return this.ts.objectLiteral([
       this.description(obj.description),
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
     ]);
@@ -624,7 +616,7 @@ class Codegen {
     const varName = `${obj.name}Type`;
     if (!this._typeDefinitions.has(varName)) {
       this._typeDefinitions.add(varName);
-      this.constDeclaration(
+      this.ts.constDeclaration(
         varName,
         F.createNewExpression(
           this.graphQLImport("GraphQLInputObjectType"),
@@ -648,7 +640,7 @@ class Codegen {
     if (obj.isOneOf) {
       properties.push(F.createPropertyAssignment("isOneOf", F.createTrue()));
     }
-    return this.objectLiteral(properties);
+    return this.ts.objectLiteral(properties);
   }
 
   inputFields(obj: GraphQLInputObjectType): ts.MethodDeclaration {
@@ -656,15 +648,15 @@ class Codegen {
       return F.createPropertyAssignment(name, this.inputFieldConfig(field));
     });
 
-    return this.method(
+    return this.ts.method(
       "fields",
       [],
-      [F.createReturnStatement(this.objectLiteral(fields))],
+      [F.createReturnStatement(this.ts.objectLiteral(fields))],
     );
   }
 
   inputFieldConfig(field: GraphQLInputField): ts.Expression {
-    return this.objectLiteral([
+    return this.ts.objectLiteral([
       this.description(field.description),
       this.deprecated(field),
       F.createPropertyAssignment("name", F.createStringLiteral(field.name)),
@@ -691,7 +683,7 @@ class Codegen {
       extend(props, this.fieldMethods(field, parentTypeName));
     }
 
-    return this.objectLiteral(props);
+    return this.ts.objectLiteral(props);
   }
 
   fieldMethods(
@@ -710,9 +702,9 @@ class Codegen {
       // Identity function (method?)
       this.maybeApplySemanticNullRuntimeCheck(
         field,
-        this.method(
+        this.ts.method(
           "resolve",
-          [this.param("payload")],
+          [this.ts.param("payload")],
           [F.createReturnStatement(F.createIdentifier("payload"))],
         ),
       ),
@@ -720,7 +712,7 @@ class Codegen {
   }
 
   argMap(args: ReadonlyArray<GraphQLArgument>): ts.ObjectLiteralExpression {
-    return this.objectLiteral(
+    return this.ts.objectLiteral(
       args.map((arg) =>
         F.createPropertyAssignment(arg.name, this.argConfig(arg)),
       ),
@@ -728,7 +720,7 @@ class Codegen {
   }
 
   argConfig(arg: GraphQLArgument): ts.Expression {
-    return this.objectLiteral([
+    return this.ts.objectLiteral([
       this.description(arg.description),
       this.deprecated(arg),
       F.createPropertyAssignment("name", F.createStringLiteral(arg.name)),
@@ -749,7 +741,7 @@ class Codegen {
     const varName = `${obj.name}Type`;
     if (!this._typeDefinitions.has(varName)) {
       this._typeDefinitions.add(varName);
-      this.constDeclaration(
+      this.ts.constDeclaration(
         varName,
         F.createNewExpression(
           this.graphQLImport("GraphQLEnumType"),
@@ -765,7 +757,7 @@ class Codegen {
   }
 
   enumTypeConfig(obj: GraphQLEnumType): ts.ObjectLiteralExpression {
-    return this.objectLiteral([
+    return this.ts.objectLiteral([
       this.description(obj.description),
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.enumValues(obj),
@@ -777,11 +769,11 @@ class Codegen {
       return F.createPropertyAssignment(value.name, this.enumValue(value));
     });
 
-    return F.createPropertyAssignment("values", this.objectLiteral(values));
+    return F.createPropertyAssignment("values", this.ts.objectLiteral(values));
   }
 
   enumValue(obj: GraphQLEnumValue): ts.Expression {
-    return this.objectLiteral([
+    return this.ts.objectLiteral([
       this.description(obj.description),
       this.deprecated(obj),
       F.createPropertyAssignment("value", F.createStringLiteral(obj.name)),
@@ -804,7 +796,7 @@ class Codegen {
             value.map((v) => this.defaultValue(v)),
           );
         } else {
-          return this.objectLiteral(
+          return this.ts.objectLiteral(
             Object.entries(value).map(([k, v]) =>
               F.createPropertyAssignment(k, this.defaultValue(v)),
             ),
@@ -860,124 +852,6 @@ class Codegen {
     } else {
       throw new Error(`TODO: unhandled type ${t}`);
     }
-  }
-
-  constDeclaration(
-    name: string,
-    initializer: ts.Expression,
-    type?: ts.TypeNode,
-  ): void {
-    this._statements.push(
-      F.createVariableStatement(
-        undefined,
-        F.createVariableDeclarationList(
-          [
-            F.createVariableDeclaration(
-              F.createIdentifier(name),
-              undefined,
-              type,
-              initializer,
-            ),
-          ],
-          ts.NodeFlags.Const,
-        ),
-      ),
-    );
-  }
-
-  functionDeclaration(
-    name: string,
-    modifiers: ts.Modifier[] | undefined,
-    type: ts.TypeNode | undefined,
-    body: ts.Block,
-  ): void {
-    this._statements.push(
-      F.createFunctionDeclaration(
-        modifiers,
-        undefined,
-        name,
-        undefined,
-        [],
-        type,
-        body,
-      ),
-    );
-  }
-
-  // Helper to allow for nullable elements.
-  objectLiteral(
-    properties: Array<ts.ObjectLiteralElementLike | null>,
-  ): ts.ObjectLiteralExpression {
-    return F.createObjectLiteralExpression(properties.filter(isNonNull), true);
-  }
-
-  // Helper for the common case.
-  method(
-    name: string,
-    params: ts.ParameterDeclaration[],
-    statements: ts.Statement[],
-  ): ts.MethodDeclaration {
-    return F.createMethodDeclaration(
-      undefined,
-      undefined,
-      name,
-      undefined,
-      undefined,
-      params,
-      undefined,
-      F.createBlock(statements, true),
-    );
-  }
-
-  // Helper for the common case of a single string argument.
-  param(name: string, type?: ts.TypeNode): ts.ParameterDeclaration {
-    return F.createParameterDeclaration(
-      undefined,
-      undefined,
-      name,
-      undefined,
-      type,
-      undefined,
-    );
-  }
-
-  import(from: string, names: { name: string; as?: string }[]) {
-    const namedImports = names.map((name) => {
-      if (name.as) {
-        return F.createImportSpecifier(
-          false,
-          F.createIdentifier(name.name),
-          F.createIdentifier(name.as),
-        );
-      } else {
-        return F.createImportSpecifier(
-          false,
-          undefined,
-          F.createIdentifier(name.name),
-        );
-      }
-    });
-    this._imports.push(
-      F.createImportDeclaration(
-        undefined,
-        F.createImportClause(
-          false,
-          undefined,
-          F.createNamedImports(namedImports),
-        ),
-        F.createStringLiteral(from),
-      ),
-    );
-  }
-
-  importDefault(from: string, as: string) {
-    this._imports.push(
-      F.createImportDeclaration(
-        undefined,
-        F.createImportClause(false, F.createIdentifier(as), undefined),
-        F.createStringLiteral(from),
-      ),
-    );
   }
 
   resolveTypeFunctionDeclaration(): ts.FunctionDeclaration {
@@ -1112,22 +986,13 @@ class Codegen {
   }
 
   print(): string {
-    const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
-    const sourceFile = ts.createSourceFile(
-      "tempFile.ts",
-      "",
-      ts.ScriptTarget.Latest,
-      false,
-      ts.ScriptKind.TS,
-    );
-
-    this.import(
+    this.ts.import(
       "graphql",
       [...this._graphQLImports].map((name) => ({ name })),
     );
 
     if (this._typeNameMappings.size > 0) {
-      this._statements.push(
+      this.ts.addStatement(
         F.createVariableStatement(
           undefined,
           F.createVariableDeclarationList(
@@ -1150,7 +1015,7 @@ class Codegen {
       );
 
       for (const [typeName, className] of typeNameEntries) {
-        this._statements.push(
+        this.ts.addStatement(
           F.createExpressionStatement(
             F.createCallExpression(
               F.createPropertyAccessExpression(
@@ -1163,18 +1028,10 @@ class Codegen {
           ),
         );
       }
-      this._statements.push(this.resolveTypeFunctionDeclaration());
+      this.ts.addStatement(this.resolveTypeFunctionDeclaration());
     }
 
-    return printer.printList(
-      ts.ListFormat.MultiLine,
-      F.createNodeArray([
-        ...this._imports,
-        ...this._helpers.values(),
-        ...this._statements,
-      ]),
-      sourceFile,
-    );
+    return this.ts.print();
   }
 }
 
@@ -1225,12 +1082,6 @@ function fieldDirective(
 function replaceExt(filePath: string, newSuffix: string): string {
   const ext = path.extname(filePath);
   return filePath.slice(0, -ext.length) + newSuffix;
-}
-
-// Predicate function for filtering out null values
-// Includes TypeScript refinement for narrowing the type
-function isNonNull<T>(value: T | null | undefined): value is T {
-  return value != null;
 }
 
 function formatResolverFunctionVarName(
