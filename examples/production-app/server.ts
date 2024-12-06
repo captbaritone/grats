@@ -1,40 +1,22 @@
 import { createServer } from "node:http";
 import { createYoga } from "graphql-yoga";
+import { getSchema } from "./schema";
 import { VC } from "./ViewerContext";
 import { addGraphQLScalarSerialization } from "./graphql/CustomScalars";
 import { useDeferStream } from "@graphql-yoga/plugin-defer-stream";
-import { buildSchema } from "graphql";
-import path from "node:path";
-import fs from "node:fs";
-import { setResolvers } from "./resolverDirective";
 
-const SDL_PATH = path.join(__dirname, "../schema.graphql");
+const schema = getSchema();
 
-main();
+addGraphQLScalarSerialization(schema);
 
-async function main() {
-  const SDL = fs.readFileSync(SDL_PATH, "utf-8");
-  const signatures = fs.readFileSync(
-    SDL_PATH.replace(/\.graphql$/, ".json"),
-    "utf-8",
-  );
+const yoga = createYoga({
+  schema,
+  context: () => ({ vc: new VC() }),
+  plugins: [useDeferStream()],
+});
 
-  const schema = buildSchema(SDL);
-  await setResolvers(schema, JSON.parse(signatures));
+const server = createServer(yoga);
 
-  addGraphQLScalarSerialization(schema);
-
-  const yoga = createYoga({
-    schema,
-    context: () => ({ vc: new VC() }),
-    plugins: [useDeferStream()],
-  });
-
-  const server = createServer(yoga);
-
-  server.listen(4000, () => {
-    console.log(
-      "Running a GraphQL API server at http://localhost:4000/graphql",
-    );
-  });
-}
+server.listen(4000, () => {
+  console.log("Running a GraphQL API server at http://localhost:4000/graphql");
+});

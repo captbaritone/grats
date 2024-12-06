@@ -1,3 +1,7 @@
+// Note: An example of replacing codegen with a dynamic default resolve powered
+// by this JSON schema:
+// https://gist.github.com/captbaritone/f66d0355645a32494da368d0448b9d7a
+
 export interface Resolvers {
   types: Record<string, Record<string, ResolverDefinition>>;
 }

@@ -21,9 +21,6 @@ importers:
         specifier: 5.5.4
         version: 5.5.4
     devDependencies:
-      '@graphql-tools/utils':
-        specifier: ^9.2.1
-        version: 9.2.1(graphql@16.9.0)
       '@types/node':
         specifier: ^18.14.6
         version: 18.15.0
@@ -11599,12 +11596,6 @@ snapshots:
       graphql: 16.8.1
       tslib: 2.5.0
 
-  '@graphql-tools/utils@9.2.1(graphql@16.9.0)':
-    dependencies:
-      '@graphql-typed-document-node/core': 3.1.2(graphql@16.9.0)
-      graphql: 16.9.0
-      tslib: 2.5.0
-
   '@graphql-typed-document-node/core@3.1.2(graphql@16.6.0)':
     dependencies:
       graphql: 16.6.0
@@ -11612,10 +11603,6 @@ snapshots:
   '@graphql-typed-document-node/core@3.1.2(graphql@16.8.1)':
     dependencies:
       graphql: 16.8.1
-
-  '@graphql-typed-document-node/core@3.1.2(graphql@16.9.0)':
-    dependencies:
-      graphql: 16.9.0
 
   '@graphql-typed-document-node/core@3.2.0(graphql@16.8.1)':
     dependencies:

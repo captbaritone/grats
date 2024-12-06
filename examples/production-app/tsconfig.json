@@ -1,8 +1,5 @@
 {
-  "grats": {
-    "EXPERIMENTAL__emitResolverSignatures": true,
-    "strictSemanticNullability": true
-  },
+  "grats": {},
   "compilerOptions": {
     "outDir": "dist",
     "module": "NodeNext",

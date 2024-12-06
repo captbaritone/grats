@@ -6,7 +6,7 @@ import {
   Location,
   parse,
 } from "graphql";
-import { graphql, uniqueId } from "./utils/helpers";
+import { uniqueId } from "./utils/helpers";
 import { Resolver } from "./resolverDirective";
 
 /**
@@ -90,7 +90,7 @@ export const METADATA_DIRECTIVE_NAMES = new Set([
   FIELD_RESOLVER_DIRECTIVE,
 ]);
 
-export const DIRECTIVES_AST: DocumentNode = parse(graphql`
+export const DIRECTIVES_AST: DocumentNode = parse(`
   directive @${KILLS_PARENT_ON_EXCEPTION_DIRECTIVE} on FIELD_DEFINITION
 `);
 
