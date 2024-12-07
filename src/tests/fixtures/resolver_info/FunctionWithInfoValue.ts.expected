@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 type Query {
-  greetz: String @metadata(exportName: "greetz", tsModulePath: "grats/src/tests/fixtures/resolver_info/FunctionWithInfoValue.ts")
+  greetz: String
 }
 -- TypeScript --
 import { greetz as queryGreetzResolver } from "./FunctionWithInfoValue";

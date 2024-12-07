@@ -3,7 +3,6 @@ import { DiagnosticsResult, gqlErr } from "../utils/DiagnosticError";
 import { err, ok } from "../utils/Result";
 import * as ts from "typescript";
 import * as E from "../Errors";
-import { KILLS_PARENT_ON_EXCEPTION_DIRECTIVE } from "../metadataDirectives";
 import {
   addSemanticNonNullDirective,
   makeSemanticNonNullDirective,
@@ -24,9 +23,7 @@ export function applyDefaultNullability(
   const errors: ts.DiagnosticWithLocation[] = [];
   const newDoc = visit(doc, {
     [Kind.FIELD_DEFINITION]: (t) => {
-      const killsParent = t.directives?.find(
-        (d) => d.name.value === KILLS_PARENT_ON_EXCEPTION_DIRECTIVE,
-      );
+      const killsParent = t.killsParentOnException;
 
       if (killsParent) {
         // You can only use @killsParentOnException if nullableByDefault is on.

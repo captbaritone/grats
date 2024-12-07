@@ -19,7 +19,7 @@ OUTPUT
 scalar MyString
 
 type SomeType {
-  hello(greeting: MyString!): String @metadata
+  hello(greeting: MyString!): String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";

@@ -31,7 +31,7 @@ type SomeType {
   hello(
     """How to greet the user"""
     greeting: Greeting!
-  ): String @metadata
+  ): String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";

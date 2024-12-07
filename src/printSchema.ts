@@ -6,8 +6,9 @@ import {
   specifiedScalarTypes,
 } from "graphql";
 import { GratsConfig } from "./gratsConfig";
-import { codegen } from "./codegen";
-import { METADATA_DIRECTIVE_NAMES } from "./metadataDirectives";
+import { codegen } from "./codegen/schemaCodegen";
+import { Metadata } from "./metadata";
+import { resolverMapCodegen } from "./codegen/resolverMapCodegen";
 
 /**
  * Prints code for a TypeScript module that exports a GraphQLSchema.
@@ -15,10 +16,13 @@ import { METADATA_DIRECTIVE_NAMES } from "./metadataDirectives";
  */
 export function printExecutableSchema(
   schema: GraphQLSchema,
+  resolvers: Metadata,
   config: GratsConfig,
   destination: string,
 ): string {
-  const code = codegen(schema, config, destination);
+  const code = config.EXPERIMENTAL__emitResolverMap
+    ? resolverMapCodegen(schema, resolvers, config, destination)
+    : codegen(schema, resolvers, config, destination);
   return applyTypeScriptHeader(config, code);
 }
 
@@ -44,12 +48,6 @@ export function applySDLHeader(config: GratsConfig, sdl: string): string {
 
 export function printSDLWithoutMetadata(doc: DocumentNode): string {
   const trimmed = visit(doc, {
-    DirectiveDefinition(t) {
-      return METADATA_DIRECTIVE_NAMES.has(t.name.value) ? null : t;
-    },
-    Directive(t) {
-      return METADATA_DIRECTIVE_NAMES.has(t.name.value) ? null : t;
-    },
     ScalarTypeDefinition(t) {
       return specifiedScalarTypes.some((scalar) => scalar.name === t.name.value)
         ? null

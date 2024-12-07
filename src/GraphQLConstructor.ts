@@ -33,67 +33,14 @@ import {
   ObjectTypeExtensionNode,
 } from "graphql";
 import * as ts from "typescript";
-import {
-  makeKillsParentOnExceptionDirective,
-  TS_MODULE_PATH_ARG,
-  FIELD_NAME_ARG,
-  FIELD_METADATA_DIRECTIVE,
-  EXPORT_NAME_ARG,
-  UnresolvedResolverParam,
-  InputValueDefinitionNodeOrResolverArg,
-} from "./metadataDirectives";
 import { uniqueId } from "./utils/helpers";
 import { DiagnosticResult, TsLocatableNode } from "./utils/DiagnosticError";
+import {
+  InputValueDefinitionNodeOrResolverArg,
+  ResolverSignature,
+} from "./resolverSignature";
 
 export class GraphQLConstructor {
-  fieldMetadataDirective(
-    node: ts.Node,
-    metadata: {
-      tsModulePath: string | null;
-      name: string | null;
-      exportName: string | null;
-    },
-  ): ConstDirectiveNode {
-    const args: ConstArgumentNode[] = [];
-    if (metadata.tsModulePath != null) {
-      args.push(
-        this.constArgument(
-          node,
-          this.name(node, TS_MODULE_PATH_ARG),
-          this.string(node, metadata.tsModulePath),
-        ),
-      );
-    }
-    if (metadata.name != null) {
-      args.push(
-        this.constArgument(
-          node,
-          this.name(node, FIELD_NAME_ARG),
-          this.string(node, metadata.name),
-        ),
-      );
-    }
-    if (metadata.exportName != null) {
-      args.push(
-        this.constArgument(
-          node,
-          this.name(node, EXPORT_NAME_ARG),
-          this.string(node, metadata.exportName),
-        ),
-      );
-    }
-
-    return this.constDirective(
-      node,
-      this.name(node, FIELD_METADATA_DIRECTIVE),
-      args,
-    );
-  }
-
-  killsParentOnExceptionDirective(node: ts.Node): ConstDirectiveNode {
-    return makeKillsParentOnExceptionDirective(loc(node));
-  }
-
   /* Top Level Types */
   unionTypeDefinition(
     node: ts.Node,
@@ -184,7 +131,6 @@ export class GraphQLConstructor {
   }
 
   /* Field Definitions */
-
   fieldDefinition(
     node: ts.Node,
     name: NameNode,
@@ -192,7 +138,8 @@ export class GraphQLConstructor {
     args: readonly InputValueDefinitionNode[] | null,
     directives: readonly ConstDirectiveNode[],
     description: StringValueNode | null,
-    resolverParams: UnresolvedResolverParam[] | null,
+    killsParentOnException: NameNode | null,
+    resolver: ResolverSignature,
   ): FieldDefinitionNode {
     return {
       kind: Kind.FIELD_DEFINITION,
@@ -202,7 +149,8 @@ export class GraphQLConstructor {
       type,
       arguments: args ?? undefined,
       directives: this._optionalList(directives),
-      resolverParams: resolverParams ?? undefined,
+      resolver,
+      killsParentOnException: killsParentOnException ?? undefined,
     };
   }
 

@@ -12,7 +12,6 @@ import { err, ok } from "../utils/Result";
 import { InterfaceMap, computeInterfaceMap } from "../InterfaceGraph";
 import { extend, nullThrows, uniqueId } from "../utils/helpers";
 import { FIELD_TAG } from "../Extractor";
-import { FIELD_METADATA_DIRECTIVE } from "../metadataDirectives";
 
 /**
  * Grats allows you to define GraphQL fields on TypeScript interfaces using
@@ -84,15 +83,10 @@ function addAbstractFieldDefinition(
       // Extending an interface is a bit more complicated. We need to add the field
       // to the interface, and to each type that implements the interface.
 
-      // The interface field definition is not executable, so we don't
-      // need to annotate it with the details of the implementation.
-      const directives = field.directives?.filter((directive) => {
-        return directive.name.value !== FIELD_METADATA_DIRECTIVE;
-      });
       newDocs.push({
         kind: Kind.INTERFACE_TYPE_EXTENSION,
         name: doc.name,
-        fields: [{ ...field, directives }],
+        fields: [field],
       });
 
       for (const implementor of interfaceGraph.get(nameDefinition.name.value)) {
@@ -115,7 +109,7 @@ function addAbstractFieldDefinition(
             newDocs.push({
               kind: Kind.INTERFACE_TYPE_EXTENSION,
               name,
-              fields: [{ ...field, directives }],
+              fields: [field],
               loc: doc.loc,
             });
             break;

@@ -32,7 +32,7 @@ input AnotherInputSomeInput {
 }
 
 type SomeClass {
-  someField(someArg: AnotherInputSomeInput!): String @metadata
+  someField(someArg: AnotherInputSomeInput!): String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";

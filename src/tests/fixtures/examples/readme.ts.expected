@@ -35,18 +35,17 @@ OUTPUT
 -----------------
 -- SDL --
 type Query {
-  me: User @metadata(exportName: "me", tsModulePath: "grats/src/tests/fixtures/examples/readme.ts")
-  viewer: User @deprecated(reason: "Please use `me` instead.") @metadata(exportName: "viewer", tsModulePath: "grats/src/tests/fixtures/examples/readme.ts")
+  me: User
+  viewer: User @deprecated(reason: "Please use `me` instead.")
 }
 
 """A user in our kick-ass system!"""
 type User {
-  greeting(salutation: String!): String @metadata
-  name: String @metadata
+  greeting(salutation: String!): String
+  name: String
 }
 -- TypeScript --
-import { me as queryMeResolver } from "./readme";
-import { viewer as queryViewerResolver } from "./readme";
+import { me as queryMeResolver, viewer as queryViewerResolver } from "./readme";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({

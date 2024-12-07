@@ -26,16 +26,16 @@ OUTPUT
 -----------------
 -- SDL --
 interface Actor implements Node & Person {
-  id: String @metadata
-  name: String @metadata
+  id: String
+  name: String
 }
 
 interface Node {
-  id: String @metadata
+  id: String
 }
 
 interface Person {
-  name: String @metadata
+  name: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";

@@ -47,15 +47,14 @@ interface IThing {
 }
 
 type Admin implements IPerson & IThing {
-  greeting: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts")
+  greeting: String
 }
 
 type User implements IPerson & IThing {
-  greeting: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_interface/addStringFieldToInterfaceImplementedByInterface.ts")
+  greeting: String
 }
 -- TypeScript --
-import { greeting as adminGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";
-import { greeting as userGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";
+import { greeting as adminGreetingResolver, greeting as userGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const IThingType: GraphQLInterfaceType = new GraphQLInterfaceType({

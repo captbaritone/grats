@@ -12,7 +12,7 @@ OUTPUT
 -----------------
 -- SDL --
 interface ICarly {
-  name: String @metadata
+  name: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";

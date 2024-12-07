@@ -28,7 +28,7 @@ input Greeting {
 }
 
 type SomeType {
-  hello(greeting: Greeting @deprecated(reason: "Unused!")): String @metadata
+  hello(greeting: Greeting @deprecated(reason: "Unused!")): String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";

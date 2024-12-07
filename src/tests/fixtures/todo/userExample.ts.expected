@@ -27,17 +27,16 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  me: User @metadata(exportName: "me", tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts")
+  me: User
 }
 
 type User {
-  firstName: String @metadata
-  fullName: String @metadata(exportName: "fullName", tsModulePath: "grats/src/tests/fixtures/todo/userExample.ts")
-  lastName: String @metadata
+  firstName: String
+  fullName: String
+  lastName: String
 }
 -- TypeScript --
-import { fullName as userFullNameResolver } from "./userExample";
-import { me as someTypeMeResolver } from "./userExample";
+import { fullName as userFullNameResolver, me as someTypeMeResolver } from "./userExample";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({

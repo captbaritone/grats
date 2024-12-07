@@ -32,15 +32,15 @@ OUTPUT
 -- SDL --
 """An interface describing the common elements of all people types."""
 interface IPerson {
-  name: String @metadata
+  name: String
 }
 
 type SomeType {
-  me: User @metadata
+  me: User
 }
 
 type User implements IPerson {
-  name: String @metadata
+  name: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";

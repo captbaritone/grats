@@ -1,7 +1,8 @@
 import { createSystem, createVirtualCompilerHost } from "@typescript/vfs";
 import * as ts from "typescript";
 import { buildSchemaAndDocResultWithHost, GratsConfig } from "grats/src/lib";
-import { codegen } from "grats/src/codegen";
+import { codegen } from "grats/src/codegen/schemaCodegen";
+// import codegen from "grats/src/codegen/resolverCodegen";
 import { ReportableDiagnostics } from "grats/src/utils/DiagnosticError";
 import { printSDLWithoutMetadata } from "grats/src/printSchema";
 import { linter } from "@codemirror/lint";
@@ -87,6 +88,8 @@ export function createLinter(
 
     store.dispatch({ type: "NEW_DOCUMENT_TEXT", value: text });
 
+    const destination = "index.ts";
+
     if (result.kind === "ERROR") {
       const errorText = result.err.formatDiagnosticsWithContext();
       const output = `# ERROR MESSAGE\n# =============\n\n${commentLines(
@@ -96,6 +99,7 @@ export function createLinter(
         type: "GRATS_EMITTED_NEW_RESULT",
         graphql: output,
         typescript: output,
+        resolveSignatures: output,
       });
 
       return result.err._diagnostics
@@ -103,7 +107,7 @@ export function createLinter(
           if (diagnostic.file == null) {
             return false;
           }
-          return diagnostic.file.fileName === "index.ts";
+          return diagnostic.file.fileName === destination;
         })
         .map((diagnostic) => {
           const actions = [];
@@ -121,13 +125,18 @@ export function createLinter(
         });
     }
 
-    const codegenOutput = computeCodegenOutput(result.value.schema, config);
+    const codegenOutput = computeCodegenOutput(
+      result.value.schema,
+      config,
+      result.value.resolvers,
+    );
     const output = computeOutput(result.value.doc, view);
 
     store.dispatch({
       type: "GRATS_EMITTED_NEW_RESULT",
       graphql: output,
       typescript: codegenOutput,
+      resolverSignatures: JSON.stringify(result.value.resolvers, null, 2),
     });
 
     return [];
@@ -147,8 +156,9 @@ function computeOutput(
 function computeCodegenOutput(
   schema: GraphQLSchema,
   config: GratsConfig,
+  resolverSignature: string,
 ): string {
-  return codegen(schema, config, "./schema.ts");
+  return codegen(schema, resolverSignature, config, "./schema.ts");
 }
 
 function commentLines(text: string): string {

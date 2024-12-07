@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String @metadata(tsModulePath: "grats/src/tests/fixtures/extend_type/defaultExport.ts")
+  greeting: String
 }
 -- TypeScript --
 import someTypeGreetingResolver from "./defaultExport";

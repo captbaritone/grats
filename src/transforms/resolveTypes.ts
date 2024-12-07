@@ -342,8 +342,8 @@ function mayReferenceGenerics(
   return (
     definition.kind === Kind.OBJECT_TYPE_DEFINITION ||
     definition.kind === Kind.UNION_TYPE_DEFINITION ||
-    definition.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION ||
-    definition.kind === Kind.INTERFACE_TYPE_DEFINITION
+    definition.kind === Kind.INTERFACE_TYPE_DEFINITION ||
+    definition.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION
   );
 }
 

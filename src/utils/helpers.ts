@@ -49,3 +49,9 @@ export function nullThrows<T>(value: T | null | undefined): T {
   }
   return value;
 }
+
+// Predicate function for filtering out null values
+// Includes TypeScript refinement for narrowing the type
+export function isNonNull<T>(value: T | null | undefined): value is T {
+  return value != null;
+}

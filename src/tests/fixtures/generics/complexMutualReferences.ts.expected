@@ -26,16 +26,16 @@ OUTPUT
 -----------------
 -- SDL --
 type Baz {
-  bazField: BazBar @metadata
+  bazField: BazBar
 }
 
 type BazBar {
-  anotherField: BazFoo @metadata
+  anotherField: BazFoo
 }
 
 type BazFoo {
-  baz: Baz @metadata
-  someField: BazBar @metadata
+  baz: Baz
+  someField: BazBar
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType } from "graphql";

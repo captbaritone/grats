@@ -17,9 +17,8 @@ import { Command } from "commander";
 import { locate } from "../Locate";
 import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError";
 import { writeFileSync } from "fs";
-import { codegen } from "../codegen";
+import { codegen } from "../codegen/schemaCodegen";
 import { diff } from "jest-diff";
-import { METADATA_DIRECTIVE_NAMES } from "../metadataDirectives";
 import * as semver from "semver";
 import {
   GratsConfig,
@@ -134,12 +133,17 @@ const testDirs = [
         return formatDiagnosticsWithContext(code, schemaResult.err);
       }
 
-      const { schema, doc } = schemaResult.value;
+      const { schema, doc, resolvers } = schemaResult.value;
 
       // We run codegen here just ensure that it doesn't throw.
       const executableSchema = applyTypeScriptHeader(
         parsedOptions.raw.grats,
-        codegen(schema, parsedOptions.raw.grats, `${fixturesDir}/${fileName}`),
+        codegen(
+          schema,
+          resolvers,
+          parsedOptions.raw.grats,
+          `${fixturesDir}/${fileName}`,
+        ),
       );
 
       const LOCATION_REGEX = /^\/\/ Locate: (.*)/;
@@ -157,9 +161,6 @@ const testDirs = [
         const docSansDirectives = {
           ...doc,
           definitions: doc.definitions.filter((def) => {
-            if (def.kind === "DirectiveDefinition") {
-              return !METADATA_DIRECTIVE_NAMES.has(def.name.value);
-            }
             if (def.kind === "ScalarTypeDefinition") {
               return !specifiedScalarTypes.some(
                 (scalar) => scalar.name === def.name.value,
@@ -216,9 +217,14 @@ const testDirs = [
         throw new Error(schemaResult.err.formatDiagnosticsWithContext());
       }
 
-      const { schema, doc } = schemaResult.value;
+      const { schema, doc, resolvers } = schemaResult.value;
 
-      const tsSchema = codegen(schema, parsedOptions.raw.grats, schemaPath);
+      const tsSchema = codegen(
+        schema,
+        resolvers,
+        parsedOptions.raw.grats,
+        schemaPath,
+      );
 
       writeFileSync(schemaPath, tsSchema);
 
@@ -273,10 +279,7 @@ function printSDLFromSchemaWithoutDirectives(schema: GraphQLSchema): string {
     new GraphQLSchema({
       ...schema.toConfig(),
       directives: schema.getDirectives().filter((directive) => {
-        return (
-          !METADATA_DIRECTIVE_NAMES.has(directive.name) &&
-          directive.name !== SEMANTIC_NON_NULL_DIRECTIVE
-        );
+        return directive.name !== SEMANTIC_NON_NULL_DIRECTIVE;
       }),
     }),
   );

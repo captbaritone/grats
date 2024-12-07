@@ -52,6 +52,17 @@ export type GratsConfig = {
   // file extension. In TypeScript code this generally means import paths must end
   // with `.js`. If set to null, no ending will be appended.
   importModuleSpecifierEnding: string; // Defaults to no ending, or ""
+
+  // EXPERIMENTAL: THIS OPTION WILL BE RENAMED OR REMOVED IN A FUTURE RELEASE
+  // Emit a JSON file alongside the generated schema file which contains the
+  // metadata containing information about the resolvers.
+  EXPERIMENTAL__emitMetadata: boolean; // Default: false
+
+  // EXPERIMENTAL: THIS OPTION WILL BE RENAMED OR REMOVED IN A FUTURE RELEASE
+  // Instead of emitting a TypeScript file which creates a GraphQLSchema, emit
+  // a TypeScript file which creates a GraphQL Tools style Resolver Map.
+  // https://the-guild.dev/graphql/tools/docs/resolvers#resolver-map
+  EXPERIMENTAL__emitResolverMap: boolean; // Default: false
 };
 
 export type ParsedCommandLineGrats = Omit<ts.ParsedCommandLine, "raw"> & {
@@ -77,6 +88,8 @@ const VALID_CONFIG_KEYS = new Set([
   "schemaHeader",
   "tsSchemaHeader",
   "importModuleSpecifierEnding",
+  "EXPERIMENTAL__emitMetadata",
+  "EXPERIMENTAL__emitResolverMap",
 ]);
 
 // TODO: Make this return diagnostics
@@ -188,6 +201,30 @@ export function validateGratsOptions(
   } else if (typeof gratsOptions.importModuleSpecifierEnding !== "string") {
     throw new Error(
       "Grats: The Grats config option `importModuleSpecifierEnding` must be a string if provided.",
+    );
+  }
+
+  if (gratsOptions.EXPERIMENTAL__emitMetadata === undefined) {
+    gratsOptions.EXPERIMENTAL__emitMetadata = false;
+  } else if (typeof gratsOptions.EXPERIMENTAL__emitMetadata !== "boolean") {
+    throw new Error(
+      "Grats: The Grats config option `EXPERIMENTAL__emitMetadata` must be a boolean if provided.",
+    );
+  } else {
+    console.warn(
+      "Grats: The `EXPERIMENTAL__emitMetadata` option is experimental and will be renamed or removed in a future release.",
+    );
+  }
+
+  if (gratsOptions.EXPERIMENTAL__emitResolverMap === undefined) {
+    gratsOptions.EXPERIMENTAL__emitResolverMap = false;
+  } else if (typeof gratsOptions.EXPERIMENTAL__emitResolverMap !== "boolean") {
+    throw new Error(
+      "Grats: The Grats config option `EXPERIMENTAL__emitResolverMap` must be a boolean if provided.",
+    );
+  } else {
+    console.warn(
+      "Grats: The `EXPERIMENTAL__emitResolverMap` option is experimental and will be renamed or removed in a future release.",
     );
   }
 

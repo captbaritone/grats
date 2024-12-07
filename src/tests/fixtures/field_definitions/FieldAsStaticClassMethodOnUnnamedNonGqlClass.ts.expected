@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 type Query {
-  greet: String @metadata(name: "greet", tsModulePath: "grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethodOnUnnamedNonGqlClass.ts")
+  greet: String
 }
 -- TypeScript --
 import queryGreetResolver from "./FieldAsStaticClassMethodOnUnnamedNonGqlClass";

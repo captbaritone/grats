@@ -19,8 +19,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/configOptions/importModuleSpecifierEnding.ts")
-  hello: String @metadata
+  greeting: String
+  hello: String
 }
 -- TypeScript --
 import { greeting as someTypeGreetingResolver } from "./importModuleSpecifierEnding.js";

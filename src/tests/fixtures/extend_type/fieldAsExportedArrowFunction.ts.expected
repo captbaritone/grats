@@ -16,7 +16,7 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String @metadata(exportName: "greeting", tsModulePath: "grats/src/tests/fixtures/extend_type/fieldAsExportedArrowFunction.ts")
+  greeting: String
 }
 -- TypeScript --
 import { greeting as someTypeGreetingResolver } from "./fieldAsExportedArrowFunction";

@@ -31,11 +31,11 @@ input SomeInput {
 }
 
 type Query {
-  someField: SomeInputSomeClass @metadata(exportName: "someField", tsModulePath: "grats/src/tests/fixtures/generics/genericOverArg.ts")
+  someField: SomeInputSomeClass
 }
 
 type SomeInputSomeClass {
-  someField(someArg: SomeInput): String @metadata
+  someField(someArg: SomeInput): String
 }
 -- TypeScript --
 import { someField as querySomeFieldResolver } from "./genericOverArg";

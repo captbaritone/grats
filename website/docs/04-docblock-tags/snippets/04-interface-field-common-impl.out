@@ -43,8 +43,7 @@ type User implements Greetable {
   name: String
 }
 === SNIP ===
-import { greeting as petGreetingResolver } from "./04-interface-field-common-impl.grats";
-import { greeting as userGreetingResolver } from "./04-interface-field-common-impl.grats";
+import { greeting as petGreetingResolver, greeting as userGreetingResolver } from "./04-interface-field-common-impl.grats";
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const GreetableType: GraphQLInterfaceType = new GraphQLInterfaceType({

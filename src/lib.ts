@@ -21,7 +21,6 @@ import { ParsedCommandLineGrats } from "./gratsConfig";
 import { validateTypenames } from "./validations/validateTypenames";
 import { extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram";
 import { validateMergedInterfaces } from "./validations/validateMergedInterfaces";
-import { addMetadataDirectives } from "./metadataDirectives";
 import { addInterfaceFields } from "./transforms/addInterfaceFields";
 import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces";
 import { validateAsyncIterable } from "./validations/validateAsyncIterable";
@@ -33,6 +32,8 @@ import { validateSemanticNullability } from "./validations/validateSemanticNulla
 import { resolveTypes } from "./transforms/resolveTypes";
 import { resolveResolverParams } from "./transforms/resolveResolverParams";
 import { customSpecValidations } from "./validations/customSpecValidations";
+import { makeResolverSignature } from "./transforms/makeResolverSignature";
+import { Metadata } from "./metadata";
 
 // Export the TypeScript plugin implementation used by
 // grats-ts-plugin
@@ -43,6 +44,7 @@ export { GratsConfig } from "./gratsConfig";
 export type SchemaAndDoc = {
   schema: GraphQLSchema;
   doc: DocumentNode;
+  resolvers: Metadata;
 };
 
 // Construct a schema, using GraphQL schema language
@@ -96,11 +98,8 @@ export function extractSchemaAndDoc(
       );
 
       const docResult = new ResultPipe(validationResult)
-        // Add the metadata directive definitions to definitions
-        // found in the snapshot.
-        .map(() => addMetadataDirectives(snapshot.definitions))
         // Filter out any `implements` clauses that are not GraphQL interfaces.
-        .map((definitions) => filterNonGqlInterfaces(ctx, definitions))
+        .map(() => filterNonGqlInterfaces(ctx, snapshot.definitions))
         .andThen((definitions) => resolveResolverParams(ctx, definitions))
         .andThen((definitions) => resolveTypes(ctx, definitions))
         // If you define a field on an interface using the functional style, we need to add
@@ -127,6 +126,7 @@ export function extractSchemaAndDoc(
         return docResult;
       }
       const doc = docResult.value;
+      const resolvers = makeResolverSignature(doc);
 
       // Build and validate the schema with regards to the GraphQL spec.
       return (
@@ -136,7 +136,7 @@ export function extractSchemaAndDoc(
           .andThen((schema) => validateTypenames(schema, typesWithTypename))
           .andThen((schema) => validateSemanticNullability(schema, config))
           // Combine the schema and document into a single result.
-          .map((schema) => ({ schema, doc }))
+          .map((schema) => ({ schema, doc, resolvers }))
           .result()
       );
     })

@@ -1,0 +1,48 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+class SomeType {
+  // No fields
+}
+
+/** @gqlField */
+export const greeting = (_: SomeType, name: string): string => {
+  return `Hello ${name}`;
+};
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type SomeType {
+  greeting(name: String!): String
+}
+-- TypeScript --
+import { greeting as someTypeGreetingResolver } from "./fieldAsExportedArrowFunctionPositionalArgs";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    args: {
+                        name: {
+                            name: "name",
+                            type: new GraphQLNonNull(GraphQLString)
+                        }
+                    },
+                    resolve(source, args) {
+                        return someTypeGreetingResolver(source, args.name);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType]
+    });
+}

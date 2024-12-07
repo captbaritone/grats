@@ -52,10 +52,10 @@ Passing a negative level or a level greater than the list dimension is an error.
 directive @semanticNonNull(levels: [Int] = [0]) on FIELD_DEFINITION
 
 type User {
-  name: String @metadata @semanticNonNull
+  name: String @semanticNonNull
 }
 -- TypeScript --
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, defaultFieldResolver } from "graphql";
+import { defaultFieldResolver, GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
     const awaited = await value;
     if (awaited == null)

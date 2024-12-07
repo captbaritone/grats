@@ -25,16 +25,15 @@ OUTPUT
 -----------------
 -- SDL --
 type Query {
-  getUser: User @metadata(exportName: "User", name: "getUser", tsModulePath: "grats/src/tests/fixtures/field_definitions/MultipleFieldsAsStaticClassMethods.ts")
-  getUsers: [User!] @metadata(exportName: "User", name: "getUsers", tsModulePath: "grats/src/tests/fixtures/field_definitions/MultipleFieldsAsStaticClassMethods.ts")
+  getUser: User
+  getUsers: [User!]
 }
 
 type User {
-  name: String @metadata
+  name: String
 }
 -- TypeScript --
-import { User as queryGetUserResolver } from "./MultipleFieldsAsStaticClassMethods";
-import { User as queryGetUsersResolver } from "./MultipleFieldsAsStaticClassMethods";
+import { User as queryGetUserResolver, User as queryGetUsersResolver } from "./MultipleFieldsAsStaticClassMethods";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({

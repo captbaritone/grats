@@ -17,8 +17,8 @@ OUTPUT
 -----------------
 -- SDL --
 type SomeType {
-  greeting: String @metadata(name: "somePropertyField")
-  salutaion: String @metadata(name: "someMethodField")
+  greeting: String
+  salutaion: String
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

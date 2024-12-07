@@ -81,8 +81,7 @@ type Query {
   myValue: MyValueResult
 }
 === SNIP ===
-import { myOtherValue as queryMyOtherValueResolver } from "./result-after.grats";
-import { myValue as queryMyValueResolver } from "./result-after.grats";
+import { myOtherValue as queryMyOtherValueResolver, myValue as queryMyValueResolver } from "./result-after.grats";
 import { GraphQLSchema, GraphQLObjectType, GraphQLUnionType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MyErrorType: GraphQLObjectType = new GraphQLObjectType({
