@@ -11,7 +11,6 @@ import GRATS_TYPE_DECLARATIONS from "!!raw-loader!grats/src/Types.ts";
 import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 
 import store from "./store";
-import { resolve } from "path";
 
 const GRATS_PATH = "/node_modules/grats/src/index.ts";
 
