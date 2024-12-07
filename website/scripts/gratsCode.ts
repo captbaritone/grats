@@ -26,6 +26,8 @@ function processFile(file: string) {
     strictSemanticNullability: false,
     schemaHeader: null,
     tsSchemaHeader: null,
+    EXPERIMENTAL__emitMetadata: false,
+    EXPERIMENTAL__emitResolverMap: false,
   };
   const parsedOptions = {
     options: {},
@@ -42,8 +44,8 @@ function processFile(file: string) {
     throw new Error("Invalid grats code");
   }
 
-  const { doc, schema } = schemaAndDocResult.value;
-  const typeScript = codegen(schema, config, file);
+  const { doc, schema, resolvers } = schemaAndDocResult.value;
+  const typeScript = codegen(schema, resolvers, config, file);
   const graphql = printSDLWithoutMetadata(doc);
 
   const fileContent = fs.readFileSync(file, "utf8");
