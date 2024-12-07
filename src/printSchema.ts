@@ -7,8 +7,7 @@ import {
 } from "graphql";
 import { GratsConfig } from "./gratsConfig";
 import { codegen } from "./codegen/schemaCodegen";
-import { METADATA_DIRECTIVE_NAMES } from "./metadataDirectives";
-import { Resolvers } from "./resolverSchema";
+import { Metadata } from "./metadata";
 import { resolverMapCodegen } from "./codegen/resolverMapCodegen";
 
 /**
@@ -17,7 +16,7 @@ import { resolverMapCodegen } from "./codegen/resolverMapCodegen";
  */
 export function printExecutableSchema(
   schema: GraphQLSchema,
-  resolvers: Resolvers,
+  resolvers: Metadata,
   config: GratsConfig,
   destination: string,
 ): string {
@@ -49,12 +48,6 @@ export function applySDLHeader(config: GratsConfig, sdl: string): string {
 
 export function printSDLWithoutMetadata(doc: DocumentNode): string {
   const trimmed = visit(doc, {
-    DirectiveDefinition(t) {
-      return METADATA_DIRECTIVE_NAMES.has(t.name.value) ? null : t;
-    },
-    Directive(t) {
-      return METADATA_DIRECTIVE_NAMES.has(t.name.value) ? null : t;
-    },
     ScalarTypeDefinition(t) {
       return specifiedScalarTypes.some((scalar) => scalar.name === t.name.value)
         ? null

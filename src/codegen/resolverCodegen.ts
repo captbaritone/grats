@@ -6,30 +6,31 @@ import {
   createAssertNonNullHelper,
 } from "../codegenHelpers";
 import { nullThrows } from "../utils/helpers";
-import {
-  ResolverArgument,
-  ResolverDefinition,
-  Resolvers,
-} from "../resolverSchema";
+import { ResolverArgument, ResolverDefinition, Metadata } from "../metadata";
 import TSAstBuilder from "./TSAstBuilder";
 
 const RESOLVER_ARGS: string[] = ["source", "args", "context", "info"];
 
 const F = ts.factory;
 
+/**
+ * Codegen specifically for generating resolver methods for a given field.
+ * Having this separate from the other codegen classes allows it to be used
+ * for any codegen that needs to generate resolver methods.
+ */
 export default class ResolverCodegen {
   _helpers: Set<string> = new Set();
-  constructor(public ts: TSAstBuilder, public _resolvers: Resolvers) {}
+  constructor(public ts: TSAstBuilder, public _resolvers: Metadata) {}
   resolveMethod(
     fieldName: string,
     methodName: string,
     parentTypeName: string,
   ): ts.MethodDeclaration | null {
-    const signature = this._resolvers.types[parentTypeName][fieldName];
-    if (this.isDefaultResolverSignature(fieldName, signature)) {
+    const { resolver } = this._resolvers.types[parentTypeName][fieldName];
+    if (this.isDefaultResolverSignature(fieldName, resolver)) {
       return null;
     }
-    switch (signature.kind) {
+    switch (resolver.kind) {
       case "property":
         return this.ts.method(
           methodName,
@@ -38,7 +39,7 @@ export default class ResolverCodegen {
             F.createReturnStatement(
               F.createPropertyAccessExpression(
                 F.createIdentifier("source"),
-                F.createIdentifier(signature.name ?? fieldName),
+                F.createIdentifier(resolver.name ?? fieldName),
               ),
             ),
           ],
@@ -46,7 +47,7 @@ export default class ResolverCodegen {
       case "method": {
         return this.ts.method(
           methodName,
-          extractUsedParams(signature.arguments ?? [], true).map((name) =>
+          extractUsedParams(resolver.arguments ?? [], true).map((name) =>
             this.ts.param(name),
           ),
           [
@@ -54,10 +55,10 @@ export default class ResolverCodegen {
               F.createCallExpression(
                 F.createPropertyAccessExpression(
                   F.createIdentifier("source"),
-                  F.createIdentifier(signature.name ?? fieldName),
+                  F.createIdentifier(resolver.name ?? fieldName),
                 ),
                 [],
-                (signature.arguments ?? []).map((arg) => {
+                (resolver.arguments ?? []).map((arg) => {
                   return this.resolverParam(arg);
                 }),
               ),
@@ -71,13 +72,13 @@ export default class ResolverCodegen {
           fieldName,
         );
         this.ts.importUserConstruct(
-          signature.path,
-          signature.exportName,
+          resolver.path,
+          resolver.exportName,
           resolverName,
         );
         return this.ts.method(
           methodName,
-          extractUsedParams(signature.arguments ?? [], true).map((name) =>
+          extractUsedParams(resolver.arguments ?? [], true).map((name) =>
             this.ts.param(name),
           ),
           [
@@ -85,7 +86,7 @@ export default class ResolverCodegen {
               F.createCallExpression(
                 F.createIdentifier(resolverName),
                 undefined,
-                (signature.arguments ?? []).map((arg) => {
+                (resolver.arguments ?? []).map((arg) => {
                   return this.resolverParam(arg);
                 }),
               ),
@@ -101,13 +102,13 @@ export default class ResolverCodegen {
           fieldName,
         );
         this.ts.importUserConstruct(
-          signature.path,
-          signature.exportName,
+          resolver.path,
+          resolver.exportName,
           resolverName,
         );
         return this.ts.method(
           methodName,
-          extractUsedParams(signature.arguments ?? [], true).map((name) =>
+          extractUsedParams(resolver.arguments ?? [], true).map((name) =>
             this.ts.param(name),
           ),
           [
@@ -115,10 +116,10 @@ export default class ResolverCodegen {
               F.createCallExpression(
                 F.createPropertyAccessExpression(
                   F.createIdentifier(resolverName),
-                  F.createIdentifier(signature.name),
+                  F.createIdentifier(resolver.name),
                 ),
                 undefined,
-                (signature.arguments ?? []).map((arg) => {
+                (resolver.arguments ?? []).map((arg) => {
                   return this.resolverParam(arg);
                 }),
               ),
@@ -128,7 +129,7 @@ export default class ResolverCodegen {
       }
       default:
         // @ts-expect-error
-        throw new Error(`Unexpected resolver kind ${signature.kind}`);
+        throw new Error(`Unexpected resolver kind ${fieldDefinition.kind}`);
     }
   }
   isDefaultResolverSignature(

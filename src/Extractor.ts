@@ -39,7 +39,7 @@ import * as Act from "./CodeActions";
 import {
   InputValueDefinitionNodeOrResolverArg,
   ResolverArgument,
-} from "./resolverDirective";
+} from "./resolverSignature";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -583,12 +583,7 @@ class Extractor {
       directives.push(deprecated);
     }
 
-    const killsParentOnExceptionDirective =
-      this.killsParentOnExceptionDirective(node);
-
-    if (killsParentOnExceptionDirective != null) {
-      directives.push(killsParentOnExceptionDirective);
-    }
+    const killsParentOnException = this.killsParentOnException(node);
 
     const field = this.gql.fieldDefinition(
       node,
@@ -597,6 +592,7 @@ class Extractor {
       args,
       directives,
       description,
+      killsParentOnException,
       methodName == null
         ? {
             kind: "function",
@@ -1396,12 +1392,7 @@ class Extractor {
     }
     const description = this.collectDescription(node);
 
-    const killsParentOnExceptionDirective =
-      this.killsParentOnExceptionDirective(node);
-
-    if (killsParentOnExceptionDirective != null) {
-      directives.push(killsParentOnExceptionDirective);
-    }
+    const killsParentOnException = this.killsParentOnException(node);
 
     return this.gql.fieldDefinition(
       node,
@@ -1410,6 +1401,7 @@ class Extractor {
       null,
       directives,
       description,
+      killsParentOnException,
       {
         kind: "property",
         name: id.text,
@@ -1846,12 +1838,7 @@ class Extractor {
       directives.push(deprecated);
     }
 
-    const killsParentOnExceptionDirective =
-      this.killsParentOnExceptionDirective(node);
-
-    if (killsParentOnExceptionDirective != null) {
-      directives.push(killsParentOnExceptionDirective);
-    }
+    const killsParentOnException = this.killsParentOnException(node);
 
     return this.gql.fieldDefinition(
       node,
@@ -1860,6 +1847,7 @@ class Extractor {
       args,
       directives,
       description,
+      killsParentOnException,
       isCallable(node)
         ? {
             kind: "method",
@@ -2095,12 +2083,7 @@ class Extractor {
       directives.push(deprecated);
     }
 
-    const killsParentOnExceptionDirective =
-      this.killsParentOnExceptionDirective(node);
-
-    if (killsParentOnExceptionDirective != null) {
-      directives.push(killsParentOnExceptionDirective);
-    }
+    const killsParentOnException = this.killsParentOnException(node);
 
     return this.gql.fieldDefinition(
       node,
@@ -2109,6 +2092,7 @@ class Extractor {
       null,
       directives,
       description,
+      killsParentOnException,
       {
         kind: "property",
         name: id.text === name.value ? null : id.text,
@@ -2278,16 +2262,15 @@ class Extractor {
   // the server to handle field level executions by simply returning null for
   // that field.
   // https://graphql.org/learn/best-practices/#nullability
-  killsParentOnExceptionDirective(
-    parentNode: ts.Node,
-  ): ConstDirectiveNode | null {
+  killsParentOnException(parentNode: ts.Node): NameNode | null {
     const tags = ts.getJSDocTags(parentNode);
     const killsParentOnExceptions = tags.find(
       (tag) => tag.tagName.text === KILLS_PARENT_ON_EXCEPTION_TAG,
     );
     if (killsParentOnExceptions) {
-      return this.gql.killsParentOnExceptionDirective(
+      return this.gql.name(
         killsParentOnExceptions.tagName,
+        KILLS_PARENT_ON_EXCEPTION_TAG,
       );
     }
     return null;

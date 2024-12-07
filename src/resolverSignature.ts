@@ -12,12 +12,12 @@ import {
 import { DiagnosticResult } from "./utils/DiagnosticError";
 
 /**
- * Describes the backing resolver for a field. This broadly matches the
- * `@resolver` directive but has some additional information used internally by
- * Grats such as a variant for unresolved arguments, which get resolved as part
- * of the compilation process, and TypeScript AST nodes for tracking the original sources.
+ * Describes the backing resolver for a field. This broadly matches the metadata
+ * shape that is part of the public API of Grats, but also includes location
+ * information as well as information about resolver with types which have not
+ * yet been resolved.
  */
-export type Resolver =
+export type ResolverSignature =
   | {
       kind: "property";
       name: string | null;

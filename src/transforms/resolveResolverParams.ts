@@ -18,7 +18,7 @@ import {
   NamedResolverArgument,
   ResolverArgument,
   UnresolvedResolverArgument,
-} from "../resolverDirective";
+} from "../resolverSignature";
 import * as E from "../Errors";
 import { GraphQLConstructor } from "../GraphQLConstructor";
 

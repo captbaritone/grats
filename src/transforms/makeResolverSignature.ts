@@ -2,13 +2,14 @@ import { DocumentNode, Kind } from "graphql";
 import {
   ResolverArgument,
   ResolverDefinition,
-  Resolvers,
-} from "../resolverSchema";
+  Metadata,
+  FieldDefinition,
+} from "../metadata";
 import { nullThrows } from "../utils/helpers";
-import { ResolverArgument as DirectiveResolverArgument } from "../resolverDirective";
+import { ResolverArgument as DirectiveResolverArgument } from "../resolverSignature";
 
-export function makeResolverSignature(documentAst: DocumentNode): Resolvers {
-  const resolvers: Resolvers = {
+export function makeResolverSignature(documentAst: DocumentNode): Metadata {
+  const resolvers: Metadata = {
     types: {},
   };
 
@@ -20,20 +21,21 @@ export function makeResolverSignature(documentAst: DocumentNode): Resolvers {
       continue;
     }
 
-    const fieldResolvers: Record<string, ResolverDefinition> = {};
+    const fieldResolvers: Record<string, FieldDefinition> = {};
 
     for (const fieldAst of declaration.fields) {
       const fieldResolver = nullThrows(fieldAst?.resolver);
       const fieldName = fieldAst.name.value;
+      let resolver: ResolverDefinition;
       switch (fieldResolver.kind) {
         case "property":
-          fieldResolvers[fieldName] = {
+          resolver = {
             kind: "property",
             name: fieldResolver.name,
           };
           break;
         case "function":
-          fieldResolvers[fieldName] = {
+          resolver = {
             kind: "function",
             path: fieldResolver.path,
             exportName: fieldResolver.exportName,
@@ -41,14 +43,14 @@ export function makeResolverSignature(documentAst: DocumentNode): Resolvers {
           };
           break;
         case "method":
-          fieldResolvers[fieldName] = {
+          resolver = {
             kind: "method",
             name: fieldResolver.name,
             arguments: transformArgs(fieldResolver.arguments),
           };
           break;
         case "staticMethod":
-          fieldResolvers[fieldName] = {
+          resolver = {
             kind: "staticMethod",
             path: fieldResolver.path,
             exportName: fieldResolver.exportName,
@@ -60,6 +62,8 @@ export function makeResolverSignature(documentAst: DocumentNode): Resolvers {
           // @ts-expect-error
           throw new Error(`Unknown resolver kind: ${fieldResolver.kind}`);
       }
+
+      fieldResolvers[fieldName] = { resolver };
     }
 
     resolvers.types[declaration.name.value] = fieldResolvers;

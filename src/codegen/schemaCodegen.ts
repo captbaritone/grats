@@ -30,7 +30,7 @@ import { GratsConfig } from "../gratsConfig.js";
 import { naturalCompare } from "../utils/naturalCompare";
 import TSAstBuilder from "./TSAstBuilder";
 import ResolverCodegen from "./resolverCodegen";
-import { Resolvers } from "../resolverSchema";
+import { Metadata } from "../metadata";
 
 const F = ts.factory;
 
@@ -38,7 +38,7 @@ const F = ts.factory;
 // GraphQLSchema implementing that schema.
 export function codegen(
   schema: GraphQLSchema,
-  resolvers: Resolvers,
+  resolvers: Metadata,
   config: GratsConfig,
   destination: string,
 ): string {
@@ -58,7 +58,7 @@ class Codegen {
 
   constructor(
     public _schema: GraphQLSchema,
-    _resolvers: Resolvers,
+    _resolvers: Metadata,
     config: GratsConfig,
     destination: string,
   ) {

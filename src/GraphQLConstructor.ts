@@ -33,224 +33,14 @@ import {
   ObjectTypeExtensionNode,
 } from "graphql";
 import * as ts from "typescript";
-import {
-  makeKillsParentOnExceptionDirective,
-  FIELD_RESOLVER_DIRECTIVE,
-} from "./metadataDirectives";
 import { uniqueId } from "./utils/helpers";
 import { DiagnosticResult, TsLocatableNode } from "./utils/DiagnosticError";
 import {
   InputValueDefinitionNodeOrResolverArg,
-  Resolver,
-} from "./resolverDirective";
+  ResolverSignature,
+} from "./resolverSignature";
 
 export class GraphQLConstructor {
-  // TODO: This feels extremely verbose. We could consider a more compact
-  fieldResolverDirective(resolver: Resolver): ConstDirectiveNode {
-    switch (resolver.kind) {
-      case "property": {
-        const propertyFields: ConstObjectFieldNode[] = [];
-        if (resolver.name != null) {
-          propertyFields.push(
-            this.constObjectField(
-              resolver.node,
-              this.name(resolver.node, "name"),
-              this.string(resolver.node, resolver.name),
-            ),
-          );
-        }
-        return this.constDirective(
-          resolver.node,
-          this.name(resolver.node, FIELD_RESOLVER_DIRECTIVE),
-          [
-            this.constArgument(
-              resolver.node,
-              this.name(resolver.node, "kind"),
-              this.object(resolver.node, [
-                this.constObjectField(
-                  resolver.node,
-                  this.name(resolver.node, "property"),
-                  this.object(resolver.node, propertyFields),
-                ),
-              ]),
-            ),
-          ],
-        );
-      }
-      case "function": {
-        const functionFields: ConstObjectFieldNode[] = [
-          this.constObjectField(
-            resolver.node,
-            this.name(resolver.node, "path"),
-            this.string(resolver.node, resolver.path),
-          ),
-        ];
-        if (resolver.exportName != null) {
-          functionFields.push(
-            this.constObjectField(
-              resolver.node,
-              this.name(resolver.node, "exportName"),
-              this.string(resolver.node, resolver.exportName),
-            ),
-          );
-        }
-        if (resolver.arguments != null) {
-          functionFields.push(
-            this.constObjectField(
-              resolver.node,
-              this.name(resolver.node, "arguments"),
-              this.list(
-                resolver.node,
-                resolver.arguments.map((arg) => {
-                  return this.object(resolver.node, [
-                    this.constObjectField(
-                      resolver.node,
-                      this.name(resolver.node, arg.kind),
-                      this.boolean(resolver.node, true),
-                    ),
-                  ]);
-                }),
-              ),
-            ),
-          );
-        }
-        return this.constDirective(
-          resolver.node,
-          this.name(resolver.node, FIELD_RESOLVER_DIRECTIVE),
-          [
-            this.constArgument(
-              resolver.node,
-              this.name(resolver.node, "kind"),
-              this.object(resolver.node, [
-                this.constObjectField(
-                  resolver.node,
-                  this.name(resolver.node, "function"),
-                  this.object(resolver.node, functionFields),
-                ),
-              ]),
-            ),
-          ],
-        );
-      }
-      case "method": {
-        const methodFields: ConstObjectFieldNode[] = [];
-        if (resolver.name != null) {
-          methodFields.push(
-            this.constObjectField(
-              resolver.node,
-              this.name(resolver.node, "name"),
-              this.string(resolver.node, resolver.name),
-            ),
-          );
-        }
-        if (resolver.arguments != null) {
-          methodFields.push(
-            this.constObjectField(
-              resolver.node,
-              this.name(resolver.node, "arguments"),
-              this.list(
-                resolver.node,
-                resolver.arguments.map((arg) => {
-                  return this.object(resolver.node, [
-                    this.constObjectField(
-                      resolver.node,
-                      this.name(resolver.node, arg.kind),
-                      this.boolean(resolver.node, true),
-                    ),
-                  ]);
-                }),
-              ),
-            ),
-          );
-        }
-        return this.constDirective(
-          resolver.node,
-          this.name(resolver.node, FIELD_RESOLVER_DIRECTIVE),
-          [
-            this.constArgument(
-              resolver.node,
-              this.name(resolver.node, "kind"),
-              this.object(resolver.node, [
-                this.constObjectField(
-                  resolver.node,
-                  this.name(resolver.node, "method"),
-                  this.object(resolver.node, methodFields),
-                ),
-              ]),
-            ),
-          ],
-        );
-      }
-      case "staticMethod": {
-        const staticMethodFields: ConstObjectFieldNode[] = [
-          this.constObjectField(
-            resolver.node,
-            this.name(resolver.node, "path"),
-            this.string(resolver.node, resolver.path),
-          ),
-          this.constObjectField(
-            resolver.node,
-            this.name(resolver.node, "name"),
-            this.string(resolver.node, resolver.name),
-          ),
-        ];
-        if (resolver.exportName != null) {
-          staticMethodFields.push(
-            this.constObjectField(
-              resolver.node,
-              this.name(resolver.node, "exportName"),
-              this.string(resolver.node, resolver.exportName),
-            ),
-          );
-        }
-        if (resolver.arguments != null) {
-          staticMethodFields.push(
-            this.constObjectField(
-              resolver.node,
-              this.name(resolver.node, "arguments"),
-              this.list(
-                resolver.node,
-                resolver.arguments.map((arg) => {
-                  return this.object(arg.node, [
-                    this.constObjectField(
-                      arg.node,
-                      this.name(arg.node, arg.kind),
-                      this.boolean(arg.node, true),
-                    ),
-                  ]);
-                }),
-              ),
-            ),
-          );
-        }
-        return this.constDirective(
-          resolver.node,
-          this.name(resolver.node, FIELD_RESOLVER_DIRECTIVE),
-          [
-            this.constArgument(
-              resolver.node,
-              this.name(resolver.node, "kind"),
-              this.object(resolver.node, [
-                this.constObjectField(
-                  resolver.node,
-                  this.name(resolver.node, "staticMethod"),
-                  this.object(resolver.node, staticMethodFields),
-                ),
-              ]),
-            ),
-          ],
-        );
-      }
-      default: {
-        throw new Error("unreachable");
-      }
-    }
-  }
-
-  killsParentOnExceptionDirective(node: ts.Node): ConstDirectiveNode {
-    return makeKillsParentOnExceptionDirective(loc(node));
-  }
-
   /* Top Level Types */
   unionTypeDefinition(
     node: ts.Node,
@@ -348,7 +138,8 @@ export class GraphQLConstructor {
     args: readonly InputValueDefinitionNode[] | null,
     directives: readonly ConstDirectiveNode[],
     description: StringValueNode | null,
-    resolver: Resolver,
+    killsParentOnException: NameNode | null,
+    resolver: ResolverSignature,
   ): FieldDefinitionNode {
     return {
       kind: Kind.FIELD_DEFINITION,
@@ -359,6 +150,7 @@ export class GraphQLConstructor {
       arguments: args ?? undefined,
       directives: this._optionalList(directives),
       resolver,
+      killsParentOnException: killsParentOnException ?? undefined,
     };
   }
 

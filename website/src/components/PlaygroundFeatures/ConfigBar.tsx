@@ -68,6 +68,7 @@ export default function ConfigBar(): JSX.Element {
             >
               <option value="sdl">GraphQL Schema</option>
               <option value="typescript">TypeScript Schema</option>
+              <option value="resolverSignatures">Metadata</option>
             </select>
           </Label>
           {outputOption === "sdl" && (

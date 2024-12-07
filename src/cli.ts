@@ -149,7 +149,7 @@ function writeSchemaFilesAndReport(
   writeFileSync(absOutput, schemaStr);
   console.error(`Grats: Wrote schema to \`${absOutput}\`.`);
 
-  if (config.raw.grats.EXPERIMENTAL__emitResolverSignatures) {
+  if (config.raw.grats.EXPERIMENTAL__emitMetadata) {
     const absOutput = resolve(
       dirname(configPath),
       gratsConfig.graphqlSchema.replace(/\.graphql$/, ".json"),

@@ -1,13 +1,4 @@
-import {
-  ConstDirectiveNode,
-  DefinitionNode,
-  DocumentNode,
-  Kind,
-  Location,
-  parse,
-} from "graphql";
-import { uniqueId } from "./utils/helpers";
-import { Resolver } from "./resolverDirective";
+import { ResolverSignature } from "./resolverSignature";
 
 /**
  * In most cases we can use directives to annotate constructs
@@ -76,42 +67,7 @@ declare module "graphql" {
      * that to avoid repeated parsing, and to allow for unresolved types early
      * on during compilation.
      */
-    resolver?: Resolver;
+    resolver?: ResolverSignature;
+    killsParentOnException?: NameNode;
   }
-}
-
-export const FIELD_RESOLVER_DIRECTIVE = "resolver";
-export const ASYNC_ITERABLE_ARG = "asyncIterable";
-
-export const KILLS_PARENT_ON_EXCEPTION_DIRECTIVE = "killsParentOnException";
-
-export const METADATA_DIRECTIVE_NAMES = new Set([
-  KILLS_PARENT_ON_EXCEPTION_DIRECTIVE,
-  FIELD_RESOLVER_DIRECTIVE,
-]);
-
-export const DIRECTIVES_AST: DocumentNode = parse(`
-  directive @${KILLS_PARENT_ON_EXCEPTION_DIRECTIVE} on FIELD_DEFINITION
-`);
-
-export function addMetadataDirectives(
-  definitions: Array<DefinitionNode>,
-): Array<DefinitionNode> {
-  return [...DIRECTIVES_AST.definitions, ...definitions];
-}
-
-export function makeKillsParentOnExceptionDirective(
-  loc: Location,
-): ConstDirectiveNode {
-  return {
-    kind: Kind.DIRECTIVE,
-    loc,
-    name: {
-      kind: Kind.NAME,
-      loc,
-      value: KILLS_PARENT_ON_EXCEPTION_DIRECTIVE,
-      tsIdentifier: uniqueId(),
-    },
-    arguments: [],
-  };
 }

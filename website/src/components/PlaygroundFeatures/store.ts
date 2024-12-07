@@ -12,12 +12,14 @@ export type State = {
     reportTypeScriptTypeErrors: boolean;
   };
   view: {
+    /** @deprecated */
     showGratsDirectives: boolean;
-    outputOption: "sdl" | "typescript";
+    outputOption: "sdl" | "typescript" | "resolverSignatures";
   };
   gratsResult: null | {
     graphql: string;
     typescript: string;
+    resolverSignatures: string;
   };
   VERSION: number;
 };
@@ -31,10 +33,6 @@ export type Action =
       state: State;
     }
   | {
-      type: "SHOW_GRATS_DIRECTIVE_INPUT_CHANGED";
-      value: boolean;
-    }
-  | {
       type: "DEFAULT_NULLABLE_INPUT_CHANGED";
       value: boolean;
     }
@@ -42,6 +40,7 @@ export type Action =
       type: "GRATS_EMITTED_NEW_RESULT";
       graphql: string;
       typescript: string;
+      resolverSignatures: string;
     }
   | {
       type: "NEW_DOCUMENT_TEXT";
@@ -49,7 +48,7 @@ export type Action =
     }
   | {
       type: "OUTPUT_VIEW_SELECTION_CHANGED";
-      value: "sdl" | "typescript";
+      value: "sdl" | "typescript" | "resolverSignatures";
     };
 
 function reducer(state: State = stateFromUrl(), action: Action) {
@@ -58,15 +57,6 @@ function reducer(state: State = stateFromUrl(), action: Action) {
       return stateFromUrl();
     case "SET_WHOLE_STATE":
       return action.state;
-    case "SHOW_GRATS_DIRECTIVE_INPUT_CHANGED":
-      return {
-        ...state,
-        view: {
-          ...state.view,
-          showGratsDirectives: action.value,
-        },
-      };
-
     case "OUTPUT_VIEW_SELECTION_CHANGED":
       return {
         ...state,
@@ -89,6 +79,7 @@ function reducer(state: State = stateFromUrl(), action: Action) {
         gratsResult: {
           graphql: action.graphql,
           typescript: action.typescript,
+          resolverSignatures: action.resolverSignatures,
         },
       };
     case "NEW_DOCUMENT_TEXT": {
@@ -142,15 +133,25 @@ export function getDoc(state: State) {
   return state.doc;
 }
 
-export function getOutputOption(state: State): "sdl" | "typescript" {
+export function getOutputOption(
+  state: State,
+): "sdl" | "typescript" | "resolverSignatures" {
   return state.view.outputOption;
 }
 
-export function getGratsGraphqlResult(state: State): string | null {
+export function getGratsGraphqlResult(state: State): string | null | undefined {
   return state.gratsResult?.graphql;
 }
 
-export function getGratsTypeScriptResult(state: State): string | null {
+export function getGratsResolverSignatureResult(
+  state: State,
+): string | null | undefined {
+  return state.gratsResult?.resolverSignatures;
+}
+
+export function getGratsTypeScriptResult(
+  state: State,
+): string | null | undefined {
   return state.gratsResult?.typescript;
 }
 
@@ -158,14 +159,20 @@ export function getNullableByDefault(state): boolean {
   return state.config.nullableByDefault;
 }
 
-export function getShowGratsDirectives(state): boolean {
-  return state.view.showGratsDirectives;
-}
-
 export const getGraphQLOutputString = createSelector(
   getGratsGraphqlResult,
   (gratsResult) => {
     return gratsResult == null ? "Loading..." : gratsResult;
+  },
+);
+
+export const getResolverSignatureOutputString = createSelector(
+  getGratsResolverSignatureResult,
+  (resolverSignatureResult) => {
+    if (resolverSignatureResult == null) {
+      return "Loading...";
+    }
+    return resolverSignatureResult;
   },
 );
 
@@ -183,7 +190,7 @@ export type SerializableState = {
     reportTypeScriptTypeErrors: boolean;
   };
   view: {
-    showGratsDirectives: boolean;
+    outputOption: "sdl" | "typescript" | "resolverSignatures";
   };
   VERSION: number;
 };
@@ -203,9 +210,9 @@ export const getUrlHash = createSelector(
 export function useUrlState(store) {
   useEffect(() => {
     const hash = getUrlHash(store.getState());
-    window.history.replaceState(null, null, hash);
+    window.history.replaceState(null, "", hash);
     return onSelectorChange(store, getUrlHash, (urlHash) => {
-      window.history.replaceState(null, null, urlHash);
+      window.history.replaceState(null, "", urlHash);
     });
   }, [store]);
 }

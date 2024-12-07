@@ -2,18 +2,24 @@ import * as ts from "typescript";
 import { GratsConfig } from "../gratsConfig";
 import TSAstBuilder from "./TSAstBuilder";
 import ResolverCodegen from "./resolverCodegen";
-import { ResolverDefinition, Resolvers } from "../resolverSchema";
+import { Metadata, FieldDefinition } from "../metadata";
 import { GraphQLObjectType, GraphQLSchema } from "graphql";
 
 const F = ts.factory;
 
 /**
- * Codegen for a GraphQL Tools style resolver map.
+ * EXPERIMENTAL!
+ *
+ * Codegen for a GraphQL Tools style resolver map. This is an alternative to
+ * generating a GraphQLSchema directly. This is mostly provided as an example
+ * and the goal is that eventually it should be possible to generate this output
+ * in userland.
+ *
  * https://the-guild.dev/graphql/tools/docs/resolvers#resolver-map
  */
 export function resolverMapCodegen(
   schema: GraphQLSchema,
-  resolvers: Resolvers,
+  resolvers: Metadata,
   config: GratsConfig,
   destination: string,
 ): string {
@@ -30,7 +36,7 @@ class Codegen {
 
   constructor(
     public _schema: GraphQLSchema,
-    public _resolvers: Resolvers,
+    public _resolvers: Metadata,
     config: GratsConfig,
     destination: string,
   ) {
@@ -39,6 +45,10 @@ class Codegen {
   }
 
   resolverMapExport(): void {
+    // I'm not crazy about this. One of Grats' design goals is to be as tightly
+    // coupled to just TypeScript and GraphQL JS. Ideally we would not do
+    // _anything_ coupled to other libraries but instead provide a way for users
+    // to do this themselves.
     this.ts.import("@graphql-tools/utils", [{ name: "IResolvers" }]);
     this.ts.functionDeclaration(
       "getResolverMap",
@@ -56,8 +66,8 @@ class Codegen {
 
   types(): ts.ObjectLiteralElementLike[] {
     const types: ts.ObjectLiteralElementLike[] = [];
-    for (const [typeName, resolvers] of Object.entries(this._resolvers.types)) {
-      const resolverMethods = this.resolversMethods(typeName, resolvers);
+    for (const [typeName, fields] of Object.entries(this._resolvers.types)) {
+      const resolverMethods = this.resolversMethods(typeName, fields);
       if (resolverMethods.length > 0) {
         types.push(
           F.createPropertyAssignment(
@@ -72,14 +82,14 @@ class Codegen {
 
   resolversMethods(
     typeName: string,
-    signatures: Record<string, ResolverDefinition>,
+    fieldDefinitions: Record<string, FieldDefinition>,
   ): ts.ObjectLiteralElementLike[] {
     const graphQLType = this._schema.getType(typeName);
     if (!(graphQLType instanceof GraphQLObjectType)) {
       throw new Error(`Type ${typeName} is not an object type`);
     }
     const fields: ts.ObjectLiteralElementLike[] = [];
-    for (const fieldName of Object.keys(signatures)) {
+    for (const fieldName of Object.keys(fieldDefinitions)) {
       const method = this.resolvers.resolveMethod(
         fieldName,
         fieldName,
