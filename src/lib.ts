@@ -100,20 +100,25 @@ export function extractSchemaAndDoc(
       const docResult = new ResultPipe(validationResult)
         // Filter out any `implements` clauses that are not GraphQL interfaces.
         .map(() => filterNonGqlInterfaces(ctx, snapshot.definitions))
+        // Determine if types referenced in resolver args are input types,
+        // context, info, or invalid.
         .andThen((definitions) => resolveResolverParams(ctx, definitions))
+        // Resolve TypeScript type references into their GraphQL names. This also
+        // materializes any types described using TypeScript generics.
         .andThen((definitions) => resolveTypes(ctx, definitions))
-        // If you define a field on an interface using the functional style, we need to add
-        // that field to each concrete type as well. This must be done after all types are created,
-        // but before we validate the schema.
+        // If you define a field on an interface using the functional style, we
+        // need to add that field to each concrete type as well. This must be
+        // done after all types are created, but before we validate the schema.
         .andThen((definitions) => addInterfaceFields(ctx, definitions))
         // Convert the definitions into a DocumentNode
         .map((definitions) => ({ kind: Kind.DOCUMENT, definitions } as const))
         // Ensure all subscription fields return an AsyncIterable.
         .andThen((doc) => validateAsyncIterable(doc))
-        // Apply default nullability to fields and arguments, and detect any misuse of
-        // `@killsParentOnException`.
+        // Apply default nullability to fields, and detect any misuse of
+        // `@killsParentOnException` and add `@semanticNonNull` directives.
         .andThen((doc) => applyDefaultNullability(doc, config))
-        // Merge any `extend` definitions into their base definitions.
+        // Merge any `extend` definitions into their base definitions to make
+        // schema easier to read.
         .map((doc) => mergeExtensions(doc))
         // Perform custom validations that reimplement spec validation rules
         // with more tailored error messages.
