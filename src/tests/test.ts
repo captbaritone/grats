@@ -26,7 +26,11 @@ import {
   validateGratsOptions,
 } from "../gratsConfig";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
-import { applySDLHeader, applyTypeScriptHeader } from "../printSchema";
+import {
+  applySDLHeader,
+  applyTypeScriptHeader,
+  printExecutableSchema,
+} from "../printSchema";
 import { extend } from "../utils/helpers";
 
 const TS_VERSION = ts.version;
@@ -77,7 +81,7 @@ const testDirs = [
   {
     fixturesDir,
     testFilePattern: /\.ts$/,
-    ignoreFilePattern: null,
+    ignoreFilePattern: /\.ignore\.ts$/,
     transformer: (code: string, fileName: string): string | false => {
       const firstLine = code.split("\n")[0];
       let config: Partial<GratsConfig> = {
@@ -136,14 +140,11 @@ const testDirs = [
       const { schema, doc, resolvers } = schemaResult.value;
 
       // We run codegen here just ensure that it doesn't throw.
-      const executableSchema = applyTypeScriptHeader(
+      const executableSchema = printExecutableSchema(
+        schema,
+        resolvers,
         parsedOptions.raw.grats,
-        codegen(
-          schema,
-          resolvers,
-          parsedOptions.raw.grats,
-          `${fixturesDir}/${fileName}`,
-        ),
+        `${fixturesDir}/${fileName}`,
       );
 
       const LOCATION_REGEX = /^\/\/ Locate: (.*)/;

@@ -29,6 +29,7 @@ export type NameDefinition = {
     | "ENUM"
     | "CONTEXT"
     | "INFO";
+  externalImportPath: string | null;
 };
 
 type TsIdentifier = number;
@@ -61,7 +62,12 @@ export class TypeContext {
       self._markUnresolvedType(node, typeName);
     }
     for (const [node, definition] of snapshot.nameDefinitions) {
-      self._recordTypeName(node, definition.name, definition.kind);
+      self._recordTypeName(
+        node,
+        definition.name,
+        definition.kind,
+        definition.externalImportPath,
+      );
     }
     return self;
   }
@@ -76,9 +82,10 @@ export class TypeContext {
     node: ts.Declaration,
     name: NameNode,
     kind: NameDefinition["kind"],
+    externalImportPath: string | null = null,
   ) {
     this._idToDeclaration.set(name.tsIdentifier, node);
-    this._declarationToName.set(node, { name, kind });
+    this._declarationToName.set(node, { name, kind, externalImportPath });
   }
 
   // Record that a type references `node`
@@ -88,6 +95,15 @@ export class TypeContext {
 
   allNameDefinitions(): Iterable<NameDefinition> {
     return this._declarationToName.values();
+  }
+
+  getNameDefinition(name: NameNode): NameDefinition | null {
+    for (const def of this.allNameDefinitions()) {
+      if (def.name.value === name.value) {
+        return def;
+      }
+    }
+    return null;
   }
 
   findSymbolDeclaration(startSymbol: ts.Symbol): ts.Declaration | null {

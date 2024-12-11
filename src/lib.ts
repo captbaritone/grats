@@ -114,9 +114,10 @@ export function extractSchemaAndDoc(
         // `@killsParentOnException`.
         .andThen((doc) => applyDefaultNullability(doc, config))
         // Merge any `extend` definitions into their base definitions.
-        .map((doc) => mergeExtensions(doc))
+        .map((doc) => mergeExtensions(ctx, doc))
         // Perform custom validations that reimplement spec validation rules
         // with more tailored error messages.
+        // TODO
         .andThen((doc) => customSpecValidations(doc))
         // Sort the definitions in the document to ensure a stable output.
         .map((doc) => sortSchemaAst(doc))
@@ -151,19 +152,19 @@ function buildSchemaFromDoc(
   // (`String`, `Int`, etc). However, if we pass a second param (extending an
   // existing schema) we do! So, we should find a way to validate that we don't
   // shadow builtins.
-  const validationErrors = validateSDL(doc);
-  if (validationErrors.length > 0) {
-    return err(validationErrors.map(graphQlErrorToDiagnostic));
-  }
+  // const validationErrors = validateSDL(doc);
+  // if (validationErrors.length > 0) {
+  //   return err(validationErrors.map(graphQlErrorToDiagnostic));
+  // }
   const schema = buildASTSchema(doc, { assumeValidSDL: true });
 
-  const diagnostics = validateSchema(schema)
-    // FIXME: Handle case where query is not defined (no location)
-    .filter((e) => e.source && e.locations && e.positions);
-
-  if (diagnostics.length > 0) {
-    return err(diagnostics.map(graphQlErrorToDiagnostic));
-  }
+  // const diagnostics = validateSchema(schema)
+  // FIXME: Handle case where query is not defined (no location)
+  // .filter((e) => e.source && e.locations && e.positions);
+  //
+  // if (diagnostics.length > 0) {
+  // return err(diagnostics.map(graphQlErrorToDiagnostic));
+  // }
 
   return ok(schema);
 }

@@ -58,6 +58,8 @@ export const INFO_TAG = "gqlInfo";
 export const IMPLEMENTS_TAG_DEPRECATED = "gqlImplements";
 export const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
 
+export const EXTERNAL_TAG = "gqlExternal";
+
 // All the tags that start with gql
 export const ALL_TAGS = [
   TYPE_TAG,
@@ -67,6 +69,7 @@ export const ALL_TAGS = [
   ENUM_TAG,
   UNION_TAG,
   INPUT_TAG,
+  EXTERNAL_TAG,
 ];
 
 const DEPRECATED_TAG = "deprecated";
@@ -131,12 +134,12 @@ class Extractor {
     node: ts.DeclarationStatement,
     name: NameNode,
     kind: NameDefinition["kind"],
+    externalImportPath: string | null = null,
   ): void {
-    this.nameDefinitions.set(node, { name, kind });
+    this.nameDefinitions.set(node, { name, kind, externalImportPath });
   }
 
-  // Traverse all nodes, checking each one for its JSDoc tags.
-  // If we find a tag we recognize, we extract the relevant information,
+  // Traverse all nodes, checking each one for its JSDoc tags.  // If we find a tag we recognize, we extract the relevant information,
   // reporting an error if it is attached to a node where that tag is not
   // supported.
   extract(sourceFile: ts.SourceFile): DiagnosticsResult<ExtractionSnapshot> {
@@ -254,6 +257,12 @@ class Extractor {
           }
           break;
         }
+        case EXTERNAL_TAG:
+          if (!this.hasTag(node, TYPE_TAG)) {
+            this.report(tag.tagName, E.specifiedByOnWrongNode());
+          }
+          break;
+
         default:
           {
             const lowerCaseTag = tag.tagName.text.toLowerCase();
@@ -980,6 +989,7 @@ class Extractor {
     let interfaces: NamedTypeNode[] | null = null;
 
     let hasTypeName = false;
+    let externalImportPath: string | null = null;
 
     if (ts.isTypeLiteralNode(node.type)) {
       this.validateOperationTypes(node.type, name.value);
@@ -990,24 +1000,33 @@ class Extractor {
       // This is fine, we just don't know what it is. This should be the expected
       // case for operation types such as `Query`, `Mutation`, and `Subscription`
       // where there is not strong convention around.
+    } else if (
+      node.type.kind === ts.SyntaxKind.TypeReference &&
+      this.hasTag(node, EXTERNAL_TAG)
+    ) {
+      const externalTag = this.findTag(node, EXTERNAL_TAG) as ts.JSDocTag;
+      externalImportPath = this.externalModule(node, externalTag);
+      console.log("DEBUG - External import path", externalImportPath);
     } else {
       return this.report(node.type, E.typeTagOnAliasOfNonObjectOrUnknown());
     }
 
     const description = this.collectDescription(node);
-    this.recordTypeName(node, name, "TYPE");
+    this.recordTypeName(node, name, "TYPE", externalImportPath);
 
-    this.definitions.push(
-      this.gql.objectTypeDefinition(
-        node,
-        name,
-        fields,
-        interfaces,
-        description,
-        hasTypeName,
-        null,
-      ),
-    );
+    if (!externalImportPath) {
+      this.definitions.push(
+        this.gql.objectTypeDefinition(
+          node,
+          name,
+          fields,
+          interfaces,
+          description,
+          hasTypeName,
+          null,
+        ),
+      );
+    }
   }
 
   checkForTypenameProperty(
@@ -1782,6 +1801,23 @@ class Extractor {
     const id = this.expectNameIdentifier(node.name);
     if (id == null) return null;
     return this.gql.name(id, id.text);
+  }
+
+  externalModule(node: ts.Node, tag: ts.JSDocTag) {
+    let externalModule;
+    if (tag.comment != null) {
+      const commentText = ts.getTextOfJSDocComment(tag.comment);
+      if (commentText) {
+        const match = commentText.match(/^\s*"(.*)"\s*$/);
+        if (match && match[0]) {
+          externalModule = match[0];
+        }
+      }
+    }
+    if (!externalModule) {
+      return this.report(node, E.noModuleInGqlExternal());
+    }
+    return externalModule;
   }
 
   methodDeclaration(

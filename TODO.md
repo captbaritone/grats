@@ -1,0 +1,6 @@
+- SDL should extend type for external types - I guess marking types in SDL
+- all imported types
+- Read SDL to actually do validation
+- "modular" mode? like no full schema, but parts of schema but with full validation by resolving it?
+- all tests to add fixtures for metadata/resolver map
+- pluggable module resolution

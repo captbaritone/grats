@@ -38,6 +38,7 @@ declare module "graphql" {
       exportName: string | null;
     };
   }
+
   export interface UnionTypeDefinitionNode {
     /**
      * Grats metadata: Indicates that the type was materialized as part of
@@ -58,6 +59,10 @@ declare module "graphql" {
      * or a type.
      */
     mayBeInterface?: boolean;
+    /**
+     * Grats metadata: Indicates whether this extension is for external type
+     */
+    isOnExternalType?: boolean;
   }
 
   export interface FieldDefinitionNode {
