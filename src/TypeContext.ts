@@ -18,18 +18,25 @@ import { ExtractionSnapshot } from "./Extractor";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
-export type NameDefinition = {
-  name: NameNode;
-  kind:
-    | "TYPE"
-    | "INTERFACE"
-    | "UNION"
-    | "SCALAR"
-    | "INPUT_OBJECT"
-    | "ENUM"
-    | "CONTEXT"
-    | "INFO";
-};
+export type NameDefinition =
+  | {
+      name: NameNode;
+      kind:
+        | "TYPE"
+        | "INTERFACE"
+        | "UNION"
+        | "SCALAR"
+        | "INPUT_OBJECT"
+        | "ENUM"
+        | "CONTEXT"
+        | "INFO";
+    }
+  | {
+      name: NameNode;
+      path: string;
+      exportName: string | null;
+      kind: "DERIVED_CONTEXT";
+    };
 
 type TsIdentifier = number;
 
@@ -61,7 +68,16 @@ export class TypeContext {
       self._markUnresolvedType(node, typeName);
     }
     for (const [node, definition] of snapshot.nameDefinitions) {
-      self._recordTypeName(node, definition.name, definition.kind);
+      self._recordTypeName(node, definition);
+    }
+    for (const [definition, reference] of snapshot.implicitNameDefinitions) {
+      const declaration = self.maybeTsDeclarationForTsName(reference.typeName);
+      if (declaration == null) {
+        throw new Error(
+          "Expected to find declaration for implicit name definition.",
+        );
+      }
+      self._recordTypeName(declaration, definition);
     }
     return self;
   }
@@ -72,13 +88,9 @@ export class TypeContext {
 
   // Record that a GraphQL construct of type `kind` with the name `name` is
   // declared at `node`.
-  private _recordTypeName(
-    node: ts.Declaration,
-    name: NameNode,
-    kind: NameDefinition["kind"],
-  ) {
-    this._idToDeclaration.set(name.tsIdentifier, node);
-    this._declarationToName.set(node, { name, kind });
+  private _recordTypeName(node: ts.Declaration, definition: NameDefinition) {
+    this._idToDeclaration.set(definition.name.tsIdentifier, node);
+    this._declarationToName.set(node, definition);
   }
 
   // Record that a type references `node`

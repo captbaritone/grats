@@ -178,6 +178,16 @@ export default class ResolverCodegen {
           F.createIdentifier("args"),
           F.createIdentifier(arg.name),
         );
+      case "derivedContext": {
+        const localName = "derivedContext";
+        this.ts.importUserConstruct(arg.path, arg.exportName, localName);
+        return F.createCallExpression(
+          F.createIdentifier(localName),
+          undefined,
+          [this.resolverParam(arg.input)],
+        );
+      }
+
       default:
         // @ts-expect-error
         throw new Error(`Unexpected resolver kind ${arg.kind}`);

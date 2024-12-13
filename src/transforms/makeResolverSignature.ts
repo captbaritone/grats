@@ -78,23 +78,33 @@ function transformArgs(
   if (args == null) {
     return null;
   }
-  return args.map((arg): ResolverArgument => {
-    switch (arg.kind) {
-      case "argumentsObject":
-        return { kind: "argumentsObject" };
-      case "named":
-        return { kind: "named", name: arg.name };
-      case "source":
-        return { kind: "source" };
-      case "information":
-        return { kind: "information" };
-      case "context":
-        return { kind: "context" };
-      case "unresolved":
-        throw new Error("Unresolved argument in resolver");
-      default:
-        // @ts-expect-error
-        throw new Error(`Unknown argument kind: ${arg.kind}`);
-    }
-  });
+  return args.map(transformArg);
+}
+
+function transformArg(arg: DirectiveResolverArgument): ResolverArgument {
+  switch (arg.kind) {
+    case "argumentsObject":
+      return { kind: "argumentsObject" };
+    case "named":
+      return { kind: "named", name: arg.name };
+    case "source":
+      return { kind: "source" };
+    case "information":
+      return { kind: "information" };
+    case "context":
+      return { kind: "context" };
+    case "derivedContext":
+      return {
+        kind: "derivedContext",
+        path: arg.path,
+        exportName: arg.exportName,
+        // TODO: Support custom inputs
+        input: { kind: "context" },
+      };
+    case "unresolved":
+      throw new Error("Unresolved argument in resolver");
+    default:
+      // @ts-expect-error
+      throw new Error(`Unknown argument kind: ${arg.kind}`);
+  }
 }

@@ -87,6 +87,7 @@ export type ResolverArgument =
   | SourceArgument
   | ArgumentsObjectArgument
   | ContextArgument
+  | DerivedContextArgument
   | InformationArgument
   | NamedArgument;
 
@@ -103,6 +104,15 @@ export type ArgumentsObjectArgument = {
 /** The GraphQL context */
 export type ContextArgument = {
   kind: "context";
+};
+
+/** A context value which is expressed as a function of the global context */
+export type DerivedContextArgument = {
+  kind: "derivedContext";
+  path: string; // Path to the module
+  exportName: string | null; // Export name. If omitted, the class is the default export
+  input: ContextArgument | DerivedContextArgument;
+  // TODO: Add a parent which could be ContextArgument or another DerivedContextArgument
 };
 
 /** The GraphQL info object */

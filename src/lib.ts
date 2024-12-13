@@ -173,6 +173,7 @@ function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
   const result: ExtractionSnapshot = {
     definitions: [],
     nameDefinitions: new Map(),
+    implicitNameDefinitions: new Map(),
     unresolvedNames: new Map(),
     typesWithTypename: new Set(),
     interfaceDeclarations: [],
@@ -189,6 +190,10 @@ function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
 
     for (const [node, typeName] of snapshot.unresolvedNames) {
       result.unresolvedNames.set(node, typeName);
+    }
+
+    for (const [node, definition] of snapshot.implicitNameDefinitions) {
+      result.implicitNameDefinitions.set(node, definition);
     }
 
     for (const typeName of snapshot.typesWithTypename) {

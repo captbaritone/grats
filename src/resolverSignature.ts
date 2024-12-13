@@ -60,6 +60,14 @@ export type ContextResolverArgument = {
   node: ts.Node;
 };
 
+export type DerivedContextResolverArgument = {
+  kind: "derivedContext";
+  path: string;
+  exportName: string | null;
+  // TODO: Support custom inputs
+  node: ts.Node;
+};
+
 export type InformationResolverArgument = {
   kind: "information";
   node: ts.Node;
@@ -82,6 +90,7 @@ export type ResolverArgument =
   | SourceResolverArgument
   | ArgumentsObjectResolverArgument
   | ContextResolverArgument
+  | DerivedContextResolverArgument
   | InformationResolverArgument
   | NamedResolverArgument
   | UnresolvedResolverArgument;

@@ -108,6 +108,7 @@ class ResolverParamsResolver {
       case "argumentsObject":
       case "information":
       case "context":
+      case "derivedContext":
       case "source":
         return param;
       case "unresolved": {
@@ -124,6 +125,13 @@ class ResolverParamsResolver {
             return param;
           }
           switch (resolved.value.kind) {
+            case "DERIVED_CONTEXT":
+              return {
+                kind: "derivedContext",
+                node: param.node,
+                path: resolved.value.path,
+                exportName: resolved.value.exportName,
+              };
             case "CONTEXT":
               return { kind: "context", node: param.node };
             case "INFO":
