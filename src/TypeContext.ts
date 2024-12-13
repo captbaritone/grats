@@ -11,25 +11,39 @@ import {
   DiagnosticResult,
   tsErr,
   gqlRelated,
+  DiagnosticsResult,
+  FixableDiagnosticWithLocation,
+  tsRelated,
 } from "./utils/DiagnosticError";
 import { err, ok } from "./utils/Result";
 import * as E from "./Errors";
 import { ExtractionSnapshot } from "./Extractor";
+import { ResolverArgument } from "./resolverSignature";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
-export type NameDefinition = {
+export type DerivedResolverDefinition = {
   name: NameNode;
-  kind:
-    | "TYPE"
-    | "INTERFACE"
-    | "UNION"
-    | "SCALAR"
-    | "INPUT_OBJECT"
-    | "ENUM"
-    | "CONTEXT"
-    | "INFO";
+  path: string;
+  exportName: string | null;
+  args: ResolverArgument[];
+  kind: "DERIVED_CONTEXT";
 };
+
+export type NameDefinition =
+  | {
+      name: NameNode;
+      kind:
+        | "TYPE"
+        | "INTERFACE"
+        | "UNION"
+        | "SCALAR"
+        | "INPUT_OBJECT"
+        | "ENUM"
+        | "CONTEXT"
+        | "INFO";
+    }
+  | DerivedResolverDefinition;
 
 type TsIdentifier = number;
 
@@ -55,15 +69,40 @@ export class TypeContext {
   static fromSnapshot(
     checker: ts.TypeChecker,
     snapshot: ExtractionSnapshot,
-  ): TypeContext {
+  ): DiagnosticsResult<TypeContext> {
+    const errors: FixableDiagnosticWithLocation[] = [];
     const self = new TypeContext(checker);
     for (const [node, typeName] of snapshot.unresolvedNames) {
       self._markUnresolvedType(node, typeName);
     }
     for (const [node, definition] of snapshot.nameDefinitions) {
-      self._recordTypeName(node, definition.name, definition.kind);
+      self._recordTypeName(node, definition);
     }
-    return self;
+    for (const [definition, reference] of snapshot.implicitNameDefinitions) {
+      const declaration = self.maybeTsDeclarationForTsName(reference.typeName);
+      if (declaration == null) {
+        errors.push(tsErr(reference.typeName, E.unresolvedTypeReference()));
+        continue;
+      }
+      const existing = self._declarationToName.get(declaration);
+      if (existing != null) {
+        errors.push(
+          // TODO: Better error messages here
+          tsErr(declaration, "Duplicate derived contexts for given type", [
+            tsRelated(reference, "One was defined here"),
+            gqlRelated(existing.name, "Other here"),
+          ]),
+        );
+        continue;
+      }
+
+      self._recordTypeName(declaration, definition);
+    }
+
+    if (errors.length > 0) {
+      return err(errors);
+    }
+    return ok(self);
   }
 
   constructor(checker: ts.TypeChecker) {
@@ -72,13 +111,9 @@ export class TypeContext {
 
   // Record that a GraphQL construct of type `kind` with the name `name` is
   // declared at `node`.
-  private _recordTypeName(
-    node: ts.Declaration,
-    name: NameNode,
-    kind: NameDefinition["kind"],
-  ) {
-    this._idToDeclaration.set(name.tsIdentifier, node);
-    this._declarationToName.set(node, { name, kind });
+  private _recordTypeName(node: ts.Declaration, definition: NameDefinition) {
+    this._idToDeclaration.set(definition.name.tsIdentifier, node);
+    this._declarationToName.set(node, definition);
   }
 
   // Record that a type references `node`
