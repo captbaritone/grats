@@ -1,0 +1,30 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlField */
+export function greeting(_: Query): string {
+  return "Hello, world!";
+}
+
+export const operation = `
+query {
+  greeting
+}`;
+
+-----------------
+OUTPUT
+-----------------
+import { IResolvers } from "@graphql-tools/utils";
+import { greeting as queryGreetingResolver } from "./src/tests/presentence/simple";
+export function getResolverMap(): IResolvers {
+    return {
+        Query: {
+            greeting(source) {
+                return queryGreetingResolver(source);
+            }
+        }
+    };
+}
