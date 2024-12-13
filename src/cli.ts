@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import * as E from "./Errors";
-import { GraphQLNamedType, GraphQLObjectType, Location } from "graphql";
+import { GraphQLNamedType, GraphQLObjectType, Location, parse } from "graphql";
 import { getParsedTsConfig } from "./";
 import {
   SchemaAndDoc,
@@ -10,7 +10,7 @@ import {
 } from "./lib";
 import { Command } from "commander";
 import { writeFileSync } from "fs";
-import { resolve, dirname } from "path";
+import { resolve, dirname, join } from "node:path";
 import { version } from "../package.json";
 import { locate } from "./Locate";
 import { printGratsSDL, printExecutableSchema } from "./printSchema";
@@ -21,6 +21,9 @@ import {
 } from "./utils/DiagnosticError";
 import { GratsConfig, ParsedCommandLineGrats } from "./gratsConfig";
 import { err, ok, Result } from "./utils/Result";
+import * as fs from "fs";
+import { resolverMapCodegen } from "./codegen/resolverMapCodegen";
+import { filterMetadata, extractUsedFields } from "./constructUsedMetadata";
 
 const program = new Command();
 
@@ -59,6 +62,59 @@ program
       process.exit(1);
     }
     console.log(formatLoc(loc.value));
+  });
+
+program
+  .command("persist")
+  .argument("<OPERATION_TEXT>", "Text of the GraphQL operation to persist")
+  .option(
+    "--tsconfig <TSCONFIG>",
+    "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",
+  )
+  .action((operationText, { tsconfig }) => {
+    const { config, configPath } = handleDiagnostics(getTsConfig(tsconfig));
+
+    const schemaAndDocResult = buildSchemaAndDocResult(config);
+    if (schemaAndDocResult.kind === "ERROR") {
+      console.error(
+        schemaAndDocResult.err.formatDiagnosticsWithColorAndContext(),
+      );
+      process.exit(1);
+    }
+
+    const { schema, resolvers } = schemaAndDocResult.value;
+
+    if (operationText === "-") {
+      operationText = fs.readFileSync(0, "utf-8");
+    }
+
+    // TODO: Turn parse errors into diagnostics.
+    const doc = parse(operationText, { noLocation: true });
+
+    if (doc.definitions.some((def) => def.kind !== "OperationDefinition")) {
+      // TODO: Diagnostics?
+      throw new Error("Expected all definitions to be operations.");
+    }
+
+    const name = "placeholder_name";
+
+    const destDir = resolve(dirname(configPath), `./persisted`);
+    const dest = join(destDir, `${name}.ts`);
+
+    const usedResolverMap = extractUsedFields(schema, doc);
+
+    const newResolverMap = filterMetadata(usedResolverMap, resolvers);
+
+    const result = resolverMapCodegen(
+      schema,
+      newResolverMap,
+      config.raw.grats,
+      dest,
+    );
+
+    fs.mkdirSync(destDir, { recursive: true });
+    writeFileSync(dest, result);
+    console.error(`Grats: Wrote TypeScript operation to \`${dest}\`.`);
   });
 
 program.parse();
