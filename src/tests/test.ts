@@ -9,6 +9,7 @@ import {
   buildASTSchema,
   graphql,
   GraphQLSchema,
+  parse,
   print,
   printSchema,
   specifiedScalarTypes,
@@ -28,6 +29,8 @@ import {
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
 import { applySDLHeader, applyTypeScriptHeader } from "../printSchema";
 import { extend } from "../utils/helpers";
+import { filterMetadata, extractUsedFields } from "../constructUsedMetadata";
+import { resolverMapCodegen } from "../codegen/resolverMapCodegen";
 
 const TS_VERSION = ts.version;
 
@@ -59,7 +62,7 @@ program
         !!write,
         filterRegex,
         testFilePattern,
-        ignoreFilePattern,
+        ignoreFilePattern ?? null,
         transformer,
       );
       failures = !(await runner.run({ interactive })) || failures;
@@ -72,6 +75,7 @@ program
 const gratsDir = path.join(__dirname, "../..");
 const fixturesDir = path.join(__dirname, "fixtures");
 const integrationFixturesDir = path.join(__dirname, "integrationFixtures");
+const persistFixturesDir = path.join(__dirname, "presentence");
 
 const testDirs = [
   {
@@ -255,6 +259,63 @@ const testDirs = [
       });
 
       return JSON.stringify(data, null, 2);
+    },
+  },
+  {
+    fixturesDir: persistFixturesDir,
+    testFilePattern: /\.ts$/,
+    transformer: async (
+      code: string,
+      fileName: string,
+    ): Promise<string | false> => {
+      const firstLine = code.split("\n")[0];
+      let config: Partial<GratsConfig> = {
+        nullableByDefault: true,
+      };
+      if (firstLine.startsWith("// {")) {
+        const json = firstLine.slice(3);
+        const testOptions = JSON.parse(json);
+        config = { ...config, ...testOptions };
+      }
+
+      const filePath = `${persistFixturesDir}/${fileName}`;
+
+      const files = [filePath, path.join(__dirname, `../Types.ts`)];
+      const parsedOptions: ParsedCommandLineGrats = validateGratsOptions({
+        options: {
+          // Required to enable ts-node to locate function exports
+          rootDir: gratsDir,
+          outDir: "dist",
+          configFilePath: "tsconfig.json",
+        },
+        raw: { grats: config },
+        errors: [],
+        fileNames: files,
+      });
+      const schemaResult = buildSchemaAndDocResult(parsedOptions);
+      if (schemaResult.kind === "ERROR") {
+        throw new Error(schemaResult.err.formatDiagnosticsWithContext());
+      }
+      const { schema, resolvers } = schemaResult.value;
+      const mod = await import(filePath);
+      if (mod.operation == null) {
+        throw new Error(
+          `Expected \`${filePath}\` to export a operation text as \`operation\``,
+        );
+      }
+
+      const operationDocument = parse(mod.operation, { noLocation: true });
+
+      const usedFields = extractUsedFields(schema, operationDocument);
+
+      const newResolverMap = filterMetadata(usedFields, resolvers);
+
+      return resolverMapCodegen(
+        schema,
+        newResolverMap,
+        parsedOptions.raw.grats,
+        "./foo.ts",
+      );
     },
   },
 ];
