@@ -11,7 +11,7 @@ type DerivedContext = {
 };
 
 /** @gqlContext */
-export function createDerivedContext(ctx: RootContext): DerivedContext {
+export function greetingContext(ctx: RootContext): DerivedContext {
   return { greeting: `Hello, ${ctx.userName}!` };
 }
 
@@ -23,26 +23,39 @@ export function greeting(_: Query, ctx: DerivedContext): string {
   return ctx.greeting;
 }
 
+/** @gqlField */
+export function farewell(_: Query, ctx: DerivedContext): string {
+  return `${ctx.greeting}... NOT!`;
+}
+
 -----------------
 OUTPUT
 -----------------
 -- SDL --
 type Query {
+  farewell: String
   greeting: String
 }
 -- TypeScript --
-import { greeting as queryGreetingResolver, createDerivedContext as createDerivedContext } from "./simpleDerivedContext";
+import { farewell as queryFarewellResolver, greetingContext as greetingContext, greeting as queryGreetingResolver } from "./derivedContextUsedMultipleTimes";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
             return {
+                farewell: {
+                    name: "farewell",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return queryFarewellResolver(source, greetingContext(context));
+                    }
+                },
                 greeting: {
                     name: "greeting",
                     type: GraphQLString,
                     resolve(source) {
-                        return queryGreetingResolver(source, createDerivedContext(context));
+                        return queryGreetingResolver(source, greetingContext(context));
                     }
                 }
             };

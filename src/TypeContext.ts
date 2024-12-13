@@ -11,6 +11,9 @@ import {
   DiagnosticResult,
   tsErr,
   gqlRelated,
+  DiagnosticsResult,
+  FixableDiagnosticWithLocation,
+  tsRelated,
 } from "./utils/DiagnosticError";
 import { err, ok } from "./utils/Result";
 import * as E from "./Errors";
@@ -62,7 +65,8 @@ export class TypeContext {
   static fromSnapshot(
     checker: ts.TypeChecker,
     snapshot: ExtractionSnapshot,
-  ): TypeContext {
+  ): DiagnosticsResult<TypeContext> {
+    const errors: FixableDiagnosticWithLocation[] = [];
     const self = new TypeContext(checker);
     for (const [node, typeName] of snapshot.unresolvedNames) {
       self._markUnresolvedType(node, typeName);
@@ -73,13 +77,28 @@ export class TypeContext {
     for (const [definition, reference] of snapshot.implicitNameDefinitions) {
       const declaration = self.maybeTsDeclarationForTsName(reference.typeName);
       if (declaration == null) {
-        throw new Error(
-          "Expected to find declaration for implicit name definition.",
-        );
+        errors.push(tsErr(reference.typeName, E.unresolvedTypeReference()));
+        continue;
       }
+      const existing = self._declarationToName.get(declaration);
+      if (existing != null) {
+        errors.push(
+          // TODO: Better error messages here
+          tsErr(declaration, "Duplicate derived contexts for given type", [
+            tsRelated(reference, "One was defined here"),
+            gqlRelated(existing.name, "Other here"),
+          ]),
+        );
+        continue;
+      }
+
       self._recordTypeName(declaration, definition);
     }
-    return self;
+
+    if (errors.length > 0) {
+      return err(errors);
+    }
+    return ok(self);
   }
 
   constructor(checker: ts.TypeChecker) {

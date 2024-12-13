@@ -89,7 +89,11 @@ export function extractSchemaAndDoc(
       const { typesWithTypename } = snapshot;
       const config = options.raw.grats;
       const checker = program.getTypeChecker();
-      const ctx = TypeContext.fromSnapshot(checker, snapshot);
+      const ctxResult = TypeContext.fromSnapshot(checker, snapshot);
+      if (ctxResult.kind === "ERROR") {
+        return ctxResult;
+      }
+      const ctx = ctxResult.value;
 
       // Collect validation errors
       const validationResult = concatResults(
