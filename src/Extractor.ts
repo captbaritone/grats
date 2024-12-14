@@ -324,6 +324,9 @@ class Extractor {
 
     const tsModulePath = relativePath(node.getSourceFile().fileName);
 
+    const paramResults = this.resolverParams(node.parameters);
+    if (paramResults == null) return null;
+
     const name = this.gql.name(tag, "CONTEXT_DUMMY_NAME");
     this.implicitNameDefinitions.set(
       {
@@ -331,6 +334,7 @@ class Extractor {
         name,
         path: tsModulePath,
         exportName: funcName?.text ?? null,
+        args: paramResults.resolverParams,
       },
       returnType,
     );

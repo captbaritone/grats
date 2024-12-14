@@ -1,3 +1,4 @@
+import * as ts from "typescript";
 import {
   DefinitionNode,
   FieldDefinitionNode,
@@ -5,7 +6,11 @@ import {
   Kind,
   visit,
 } from "graphql";
-import { TypeContext, UNRESOLVED_REFERENCE_NAME } from "../TypeContext";
+import {
+  DerivedResolverDefinition,
+  TypeContext,
+  UNRESOLVED_REFERENCE_NAME,
+} from "../TypeContext";
 import { err, ok } from "../utils/Result";
 import {
   DiagnosticsResult,
@@ -15,6 +20,8 @@ import {
 } from "../utils/DiagnosticError";
 import { nullThrows } from "../utils/helpers";
 import {
+  ContextResolverArgument,
+  DerivedContextResolverArgument,
   NamedResolverArgument,
   ResolverArgument,
   UnresolvedResolverArgument,
@@ -126,12 +133,7 @@ class ResolverParamsResolver {
           }
           switch (resolved.value.kind) {
             case "DERIVED_CONTEXT":
-              return {
-                kind: "derivedContext",
-                node: param.node,
-                path: resolved.value.path,
-                exportName: resolved.value.exportName,
-              };
+              return this.resolveDerivedContext(param.node, resolved.value);
             case "CONTEXT":
               return { kind: "context", node: param.node };
             case "INFO":
@@ -152,6 +154,33 @@ class ResolverParamsResolver {
       }
     }
   }
+  private resolveDerivedContext(
+    node: ts.Node,
+    { path, exportName, args }: DerivedResolverDefinition,
+  ): ResolverArgument {
+    const newArgs: Array<
+      DerivedContextResolverArgument | ContextResolverArgument
+    > = [];
+    for (const arg of args) {
+      const resolvedArg = this.transformParam(arg);
+      switch (resolvedArg.kind) {
+        case "context":
+        case "derivedContext":
+          newArgs.push(resolvedArg);
+          break;
+        default:
+          // FIXME: Improve this error message
+          this.errors.push(
+            tsErr(
+              resolvedArg.node,
+              "Invalid argument passed to derived context function",
+            ),
+          );
+      }
+    }
+    return { kind: "derivedContext", node, path, exportName, args: newArgs };
+  }
+
   resolveToPositionalArg(
     unresolved: UnresolvedResolverArgument,
   ): ResolverArgument | null {

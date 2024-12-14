@@ -185,7 +185,7 @@ export default class ResolverCodegen {
         return F.createCallExpression(
           F.createIdentifier(localName),
           undefined,
-          [this.resolverParam(arg.input)],
+          arg.args.map((arg) => this.resolverParam(arg)),
         );
       }
 

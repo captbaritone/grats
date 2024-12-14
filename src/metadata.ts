@@ -82,6 +82,8 @@ export type StaticMethodResolver = {
   arguments: ResolverArgument[] | null;
 };
 
+export type ContextArgs = ContextArgument | DerivedContextArgument;
+
 /** An argument expected by a resolver function or method */
 export type ResolverArgument =
   | SourceArgument
@@ -111,8 +113,7 @@ export type DerivedContextArgument = {
   kind: "derivedContext";
   path: string; // Path to the module
   exportName: string | null; // Export name. If omitted, the class is the default export
-  input: ContextArgument | DerivedContextArgument;
-  // TODO: Add a parent which could be ContextArgument or another DerivedContextArgument
+  args: Array<ContextArgs>;
 };
 
 /** The GraphQL info object */

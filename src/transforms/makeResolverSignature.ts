@@ -4,8 +4,9 @@ import {
   ResolverDefinition,
   Metadata,
   FieldDefinition,
+  ContextArgs,
 } from "../metadata";
-import { nullThrows } from "../utils/helpers";
+import { invariant, nullThrows } from "../utils/helpers";
 import { ResolverArgument as DirectiveResolverArgument } from "../resolverSignature";
 
 export function makeResolverSignature(documentAst: DocumentNode): Metadata {
@@ -98,8 +99,14 @@ function transformArg(arg: DirectiveResolverArgument): ResolverArgument {
         kind: "derivedContext",
         path: arg.path,
         exportName: arg.exportName,
-        // TODO: Support custom inputs
-        input: { kind: "context" },
+        args: arg.args.map((arg): ContextArgs => {
+          const newArg = transformArg(arg);
+          invariant(
+            newArg.kind === "derivedContext" || newArg.kind === "context",
+            "Previous validation passes ensure we only have valid derived context args here",
+          );
+          return newArg;
+        }),
       };
     case "unresolved":
       throw new Error("Unresolved argument in resolver");

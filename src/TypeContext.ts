@@ -18,8 +18,17 @@ import {
 import { err, ok } from "./utils/Result";
 import * as E from "./Errors";
 import { ExtractionSnapshot } from "./Extractor";
+import { ResolverArgument } from "./resolverSignature";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
+
+export type DerivedResolverDefinition = {
+  name: NameNode;
+  path: string;
+  exportName: string | null;
+  args: ResolverArgument[];
+  kind: "DERIVED_CONTEXT";
+};
 
 export type NameDefinition =
   | {
@@ -34,12 +43,7 @@ export type NameDefinition =
         | "CONTEXT"
         | "INFO";
     }
-  | {
-      name: NameNode;
-      path: string;
-      exportName: string | null;
-      kind: "DERIVED_CONTEXT";
-    };
+  | DerivedResolverDefinition;
 
 type TsIdentifier = number;
 

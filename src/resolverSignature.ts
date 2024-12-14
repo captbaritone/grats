@@ -64,7 +64,7 @@ export type DerivedContextResolverArgument = {
   kind: "derivedContext";
   path: string;
   exportName: string | null;
-  // TODO: Support custom inputs
+  args: Array<DerivedContextResolverArgument | ContextResolverArgument>;
   node: ts.Node;
 };
 
