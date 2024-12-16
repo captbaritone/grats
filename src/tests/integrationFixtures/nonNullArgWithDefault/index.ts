@@ -1,11 +1,5 @@
-/** @gqlType */
-type Query = unknown;
-
-/** @gqlField */
-export function hello(
-  _: Query,
-  { greeting = "Hello" }: { greeting: string },
-): string {
+/** @gqlQueryField */
+export function hello({ greeting = "Hello" }: { greeting: string }): string {
   return `${greeting}, world!`;
 }
 
