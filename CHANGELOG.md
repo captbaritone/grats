@@ -4,6 +4,8 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
+## 0.0.30
+
 ### Root Field Tags
 
 Fields on `Query`, `Mutation` and `Subscription` may now be defined using the new docblock tags `@gqlQueryField`, `@gqlMutationField` and `@gqlSubscriptionField`. These tags can be added to functions or static methods.
