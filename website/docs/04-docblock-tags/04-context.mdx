@@ -25,9 +25,9 @@ type GQLCtx = {
 };
 
 // trim-end
-/** @gqlQueryField */
+/** @gqlField */
 // highlight-start
-export function me(ctx: GQLCtx): User {
+export function me(_: Query, ctx: GQLCtx): User {
   // highlight-end
   return ctx.db.users.getById(ctx.userID);
 }

@@ -1,4 +1,7 @@
 /** @gqlType */
+type Query = unknown;
+
+/** @gqlType */
 export class User {
   constructor(
     /** @gqlField */
@@ -6,8 +9,8 @@ export class User {
   ) {}
 
   // highlight-start
-  /** @gqlQueryField */
-  static me(): User {
+  /** @gqlField */
+  static getUser(_: Query): User {
     return new User("Elizabeth");
   }
   // highlight-end
@@ -15,14 +18,14 @@ export class User {
 
 === SNIP ===
 type Query {
-  me: User
+  getUser: User
 }
 
 type User {
   name: String
 }
 === SNIP ===
-import { User as queryMeResolver } from "./02-static-method-extending-query.grats";
+import { User as queryGetUserResolver } from "./02-static-method-extending-query.grats";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
@@ -40,11 +43,11 @@ export function getSchema(): GraphQLSchema {
         name: "Query",
         fields() {
             return {
-                me: {
-                    name: "me",
+                getUser: {
+                    name: "getUser",
                     type: UserType,
                     resolve(source) {
-                        return queryMeResolver.me();
+                        return queryGetUserResolver.getUser(source);
                     }
                 }
             };

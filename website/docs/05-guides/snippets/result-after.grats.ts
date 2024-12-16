@@ -3,9 +3,9 @@
 export type Result<T> = T | MyError;
 // highlight-end
 
-/** @gqlQueryField */
+/** @gqlField */
 // highlight-start
-export function myValue(): Result<MyValue> {
+export function myValue(_: Query): Result<MyValue> {
   // highlight-end
   try {
     return getMyValue();
@@ -14,9 +14,9 @@ export function myValue(): Result<MyValue> {
   }
 }
 
-/** @gqlQueryField */
+/** @gqlField */
 // highlight-start
-export function myOtherValue(): Result<MyOtherValue> {
+export function myOtherValue(_: Query): Result<MyOtherValue> {
   // highlight-end
   try {
     return getMyOtherValue();
@@ -46,6 +46,9 @@ export type MyError = {
   /** @gqlField */
   message: string;
 };
+
+/** @gqlType */
+type Query = unknown;
 
 function getMyValue(): MyValue {
   return { value: "Hello, World!", __typename: "MyValue" };

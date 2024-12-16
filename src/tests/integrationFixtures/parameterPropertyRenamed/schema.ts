@@ -22,8 +22,8 @@ export function getSchema(): GraphQLSchema {
                 me: {
                     name: "me",
                     type: UserType,
-                    resolve() {
-                        return queryMeResolver();
+                    resolve(source) {
+                        return queryMeResolver(source);
                     }
                 }
             };

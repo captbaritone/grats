@@ -1,7 +1,14 @@
 import IPerson from "./interfaces/IPerson";
 import User from "./models/User";
 
-/** @gqlQueryField */
-export function person(): IPerson {
+/** @gqlType */
+export type Query = unknown;
+
+/** @gqlField */
+export function me(_: Query): User {
+  return new User();
+}
+/** @gqlField */
+export function person(_: Query): IPerson {
   return new User();
 }

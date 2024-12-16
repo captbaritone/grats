@@ -78,7 +78,7 @@ export default class ResolverCodegen {
         );
         return this.ts.method(
           methodName,
-          extractUsedParams(resolver.arguments ?? []).map((name) =>
+          extractUsedParams(resolver.arguments ?? [], true).map((name) =>
             this.ts.param(name),
           ),
           [
@@ -108,7 +108,7 @@ export default class ResolverCodegen {
         );
         return this.ts.method(
           methodName,
-          extractUsedParams(resolver.arguments ?? []).map((name) =>
+          extractUsedParams(resolver.arguments ?? [], true).map((name) =>
             this.ts.param(name),
           ),
           [

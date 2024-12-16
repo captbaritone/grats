@@ -1,4 +1,7 @@
 /** @gqlType */
+type Query = unknown;
+
+/** @gqlType */
 export class User {
   constructor(
     /** @gqlField */
@@ -6,8 +9,8 @@ export class User {
   ) {}
 
   // highlight-start
-  /** @gqlQueryField */
-  static me(): User {
+  /** @gqlField */
+  static getUser(_: Query): User {
     return new User("Elizabeth");
   }
   // highlight-end

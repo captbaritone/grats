@@ -3,6 +3,7 @@ import { Ctx } from "../ViewerContext";
 import { GraphQLNode, getLocalTypeAssert } from "../graphql/Node";
 import { User } from "./User";
 import { Model } from "./Model";
+import { Mutation } from "../graphql/Roots";
 import { GqlInfo, ID, Int } from "../../../dist/src";
 import { GqlDate } from "../graphql/CustomScalars";
 import { LikeConnection } from "./LikeConnection";
@@ -144,8 +145,9 @@ function serializeContent(content: PostContentInput): string {
 
 /**
  * Create a new post.
- * @gqlMutationField */
+ * @gqlField */
 export async function createPost(
+  _: Mutation,
   input: CreatePostInput,
   ctx: Ctx,
 ): Promise<CreatePostPayload> {

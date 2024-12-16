@@ -1,16 +1,19 @@
+/** @gqlType */
+type Query = unknown;
+
 /**
- * @gqlQueryField
+ * @gqlField
  * @deprecated For reasons
  */
-export function hello(): string {
+export function hello(_: Query): string {
   return "Hello World";
 }
 
 /**
- * @gqlQueryField
+ * @gqlField
  * @deprecated
  */
-export function goodBye(): string {
+export function goodBye(_: Query): string {
   return "Farewell World";
 }
 

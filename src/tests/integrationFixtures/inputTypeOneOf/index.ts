@@ -12,8 +12,11 @@ type UserPayload = {
  */
 type Greeting = { name: string } | { userId: ID } | { user: UserPayload };
 
-/** @gqlQueryField */
-export function greet(args: { greeting: Greeting }): string {
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlField */
+export function greet(_: Query, args: { greeting: Greeting }): string {
   const greeting = args.greeting;
   switch (true) {
     case "name" in greeting:

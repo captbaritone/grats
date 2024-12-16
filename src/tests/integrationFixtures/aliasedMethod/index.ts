@@ -1,8 +1,11 @@
 /** @gqlContext */
 type GraphqlContext = {};
 
-/** @gqlQueryField */
-export function someType(): SomeType {
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlField */
+export function someType(_: Query): SomeType {
   return new SomeType();
 }
 

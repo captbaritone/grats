@@ -73,11 +73,11 @@ Grats does not support marking list items as semantically non-null because most 
 
 ## Runtime Validation
 
-When Strict Semantic Nullability is enabled, Grats will insert runtime validation to ensure that fields marked as semantically non-null never return null. This validation will throw an error if the field returns null, indicating that the field is in an error state. This is necessary because TypeScript is not fully sound, and it is possible to return null from a function that is typed as non-nullable:
+When Strict Semantic Nullability is enabled, Grats will insert runtime validation to ensure that fields marked as semantically non-null never return null. This validation will throw an error if the field returns null, indicating that the field is in an error state. This is nessesary because TypeScript is not fully sound, and it is possible to return null from a function that is typed as non-nullable:
 
 ```typescript
-/** @gqlQueryField */
-export function aString(): string {
+/** @gqlField */
+export function aString(_: Query): string {
   const someArr: string[] = [];
   return someArr[0]; // Oops! Out of bounds access!
 }

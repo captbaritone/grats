@@ -44,8 +44,11 @@ class AlsoUser extends User {
   }
 }
 
-/** @gqlQueryField */
-export function node(args: { id: ID }): GqlNode {
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlField */
+export function node(_: Query, args: { id: ID }): GqlNode {
   const { id } = args;
   if (id.startsWith("User:")) {
     return new User(id);

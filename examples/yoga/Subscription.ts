@@ -1,7 +1,13 @@
 import { Int } from "grats";
 
-/** @gqlSubscriptionField */
-export async function* countdown(args: { from: Int }): AsyncIterable<Int> {
+/** @gqlType */
+export type Subscription = unknown;
+
+/** @gqlField */
+export async function* countdown(
+  _: Subscription,
+  args: { from: Int },
+): AsyncIterable<Int> {
   for (let i = args.from; i >= 0; i--) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     yield i;

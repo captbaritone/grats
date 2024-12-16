@@ -8,8 +8,8 @@ export function getSchema(): GraphQLSchema {
                 hello: {
                     name: "hello",
                     type: GraphQLString,
-                    resolve() {
-                        return queryHelloResolver();
+                    resolve(source) {
+                        return queryHelloResolver(source);
                     }
                 }
             };

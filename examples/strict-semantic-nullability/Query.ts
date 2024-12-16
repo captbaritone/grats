@@ -1,10 +1,11 @@
-/**
- * Note: This file is split out from `route.ts` because Next has
- * special expectations about the meaning of exports from `route.ts`.
- */
-
 import IPerson from "./interfaces/IPerson";
 import User from "./models/User";
+
+// NOTE: Yoga does not support providing a `rootValue` to the executor. This
+// means that we cannot use a concrete value such as a class or an object
+// literal for Query or Mutation.
+//
+// Instead we use an empty type typed as `unknown`.
 
 /** @gqlType */
 export type Query = unknown;

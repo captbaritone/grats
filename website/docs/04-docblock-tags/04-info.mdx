@@ -7,9 +7,9 @@ Grats will detect any resolver parameter that is typed using the `GqlInfo` type 
 ```ts
 import { GqlInfo } from "grats";
 
-/** @gqlQueryField */
+/** @gqlField */
 // highlight-start
-export function greeting(info: GqlInfo): User {
+export function greeting(_: Query, info: GqlInfo): User {
   // highlight-end
   return `Greetings from the ${info.fieldName} field!`;
 }

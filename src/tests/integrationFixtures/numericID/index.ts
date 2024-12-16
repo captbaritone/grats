@@ -5,8 +5,11 @@ import { ID } from "../../../Types";
  * https://github.com/captbaritone/grats/issues/53
  */
 
-/** @gqlQueryField */
-export function hello(args: { someID: ID }): string {
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlField */
+export function hello(_: Query, args: { someID: ID }): string {
   if (typeof args.someID !== "string") {
     throw new Error(
       `Expected someID to be a string, but it was ${typeof args.someID}`,

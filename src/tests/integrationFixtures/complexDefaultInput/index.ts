@@ -1,3 +1,6 @@
+/** @gqlType */
+type Query = unknown;
+
 /**
  * @gqlInput
  */
@@ -6,13 +9,16 @@ type SomeObj = {
 };
 
 /**
- * @gqlQueryField
+ * @gqlField
  */
-export function hello({
-  someObj = { a: "Sup" },
-}: {
-  someObj: SomeObj;
-}): string {
+export function hello(
+  _: Query,
+  {
+    someObj = { a: "Sup" },
+  }: {
+    someObj: SomeObj;
+  },
+): string {
   return someObj.a;
 }
 

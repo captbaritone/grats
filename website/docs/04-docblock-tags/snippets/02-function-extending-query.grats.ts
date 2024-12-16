@@ -2,13 +2,16 @@
 const DB: any = {};
 
 /** @gqlType */
+type Query = unknown;
+
+/** @gqlType */
 type User = {
   /** @gqlField */
   name: string;
 };
 
 // trim-end
-/** @gqlQueryField */
-export function userById(id: string): User {
+/** @gqlField */
+export function userById(_: Query, id: string): User {
   return DB.getUserById(id);
 }

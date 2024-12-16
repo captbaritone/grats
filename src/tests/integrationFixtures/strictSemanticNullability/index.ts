@@ -1,19 +1,24 @@
 // { "strictSemanticNullability": true }
 
-/** @gqlQueryField */
-export function actuallyReturnsNull(): string {
+import { Int } from "../../..";
+
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlField */
+export function actuallyReturnsNull(_: Query): string {
   const empty: string[] = [];
   return empty[0]; // Oops!
 }
 
-/** @gqlQueryField */
-export async function actuallyReturnsAsyncNull(): Promise<string> {
+/** @gqlField */
+export async function actuallyReturnsAsyncNull(_: Query): Promise<string> {
   const empty: string[] = [];
   return empty[0]; // Oops!
 }
 
-/** @gqlQueryField */
-export function me(): User {
+/** @gqlField */
+export function me(_: Query): User {
   const empty: string[] = [];
   return new User(empty[0]);
 }
@@ -38,8 +43,11 @@ class User implements IPerson {
   alsoName: string;
 }
 
-/** @gqlSubscriptionField */
-export async function* names(): AsyncIterable<string> {
+/** @gqlType */
+type Subscription = unknown;
+
+/** @gqlField */
+export async function* names(_: Subscription): AsyncIterable<string> {
   const empty: string[] = [];
   yield empty[0]; // Oops!
 }

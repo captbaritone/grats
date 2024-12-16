@@ -8,22 +8,22 @@ export function getSchema(): GraphQLSchema {
                 arrayOfArrayOfPromises: {
                     name: "arrayOfArrayOfPromises",
                     type: new GraphQLList(new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLString)))),
-                    resolve() {
-                        return queryArrayOfArrayOfPromisesResolver();
+                    resolve(source) {
+                        return queryArrayOfArrayOfPromisesResolver(source);
                     }
                 },
                 arrayOfPromises: {
                     name: "arrayOfPromises",
                     type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
-                    resolve() {
-                        return queryArrayOfPromisesResolver();
+                    resolve(source) {
+                        return queryArrayOfPromisesResolver(source);
                     }
                 },
                 asyncIterableOfArrayOfPromises: {
                     name: "asyncIterableOfArrayOfPromises",
                     type: new GraphQLList(new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLString)))),
-                    resolve() {
-                        return queryAsyncIterableOfArrayOfPromisesResolver();
+                    resolve(source) {
+                        return queryAsyncIterableOfArrayOfPromisesResolver(source);
                     }
                 }
             };

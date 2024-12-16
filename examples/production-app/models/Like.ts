@@ -3,6 +3,7 @@ import { Ctx } from "../ViewerContext";
 import { GraphQLNode, getLocalTypeAssert } from "../graphql/Node";
 import { User } from "./User";
 import { Model } from "./Model";
+import { Mutation } from "../graphql/Roots";
 import { ID } from "../../../dist/src";
 import { GqlDate } from "../graphql/CustomScalars";
 import { Post } from "./Post";
@@ -50,8 +51,9 @@ type CreateLikePayload = {
 
 /**
  * Like a post. This action is taken as the currently logged in user.
- * @gqlMutationField */
+ * @gqlField */
 export async function createLike(
+  _: Mutation,
   input: CreateLikeInput,
   ctx: Ctx,
 ): Promise<CreateLikePayload> {

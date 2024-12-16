@@ -27,8 +27,8 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(GraphQLID)
                         }
                     },
-                    resolve(_source, args) {
-                        return queryNodeResolver(args);
+                    resolve(source, args) {
+                        return queryNodeResolver(source, args);
                     }
                 }
             };

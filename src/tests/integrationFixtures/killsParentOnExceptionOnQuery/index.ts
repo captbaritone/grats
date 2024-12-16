@@ -1,14 +1,17 @@
+/** @gqlType */
+type Query = unknown;
+
 /**
- * @gqlQueryField
+ * @gqlField
  * @killsParentOnException
  */
-export function alwaysThrowsKillsParentOnException(): string {
+export function alwaysThrowsKillsParentOnException(_: Query): string {
   throw new Error("This error should kill Query");
 }
 
-/** @gqlQueryField */
-export function hello(): string {
-  return "Hello World";
+/** @gqlField */
+export function hello(_: Query): string {
+  return "Hello Worl";
 }
 
 export const query = `

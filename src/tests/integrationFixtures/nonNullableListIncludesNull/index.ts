@@ -1,11 +1,14 @@
-/** @gqlQueryField */
-export function someList(): string[] {
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlField */
+export function someList(_: Query): string[] {
   // @ts-ignore
   return ["a", null, "b"];
 }
 
-/** @gqlQueryField */
-export function someListOfLists(): string[][] {
+/** @gqlField */
+export function someListOfLists(_: Query): string[][] {
   // @ts-ignore
   return [["a"], ["b", null, "c"]];
 }

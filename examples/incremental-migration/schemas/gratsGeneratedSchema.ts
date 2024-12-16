@@ -38,8 +38,8 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(GraphQLID)
                         }
                     },
-                    resolve(_source, args) {
-                        return queryUserResolver(args.id);
+                    resolve(source, args) {
+                        return queryUserResolver(source, args.id);
                     }
                 }
             };

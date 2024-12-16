@@ -49,22 +49,22 @@ export function getSchema(): GraphQLSchema {
                 actuallyReturnsAsyncNull: {
                     name: "actuallyReturnsAsyncNull",
                     type: GraphQLString,
-                    resolve() {
-                        return assertNonNull(queryActuallyReturnsAsyncNullResolver());
+                    resolve(source) {
+                        return assertNonNull(queryActuallyReturnsAsyncNullResolver(source));
                     }
                 },
                 actuallyReturnsNull: {
                     name: "actuallyReturnsNull",
                     type: GraphQLString,
-                    resolve() {
-                        return assertNonNull(queryActuallyReturnsNullResolver());
+                    resolve(source) {
+                        return assertNonNull(queryActuallyReturnsNullResolver(source));
                     }
                 },
                 me: {
                     name: "me",
                     type: UserType,
-                    resolve() {
-                        return assertNonNull(queryMeResolver());
+                    resolve(source) {
+                        return assertNonNull(queryMeResolver(source));
                     }
                 }
             };
@@ -77,8 +77,8 @@ export function getSchema(): GraphQLSchema {
                 names: {
                     name: "names",
                     type: GraphQLString,
-                    subscribe() {
-                        return subscriptionNamesResolver();
+                    subscribe(source) {
+                        return subscriptionNamesResolver(source);
                     },
                     resolve(payload) {
                         return assertNonNull(payload);

@@ -1,10 +1,16 @@
 import { Int } from "../../../Types";
 
-/** @gqlQueryField */
-export function firstHundredIntegers(args: {
-  first?: Int | null;
-  after?: string | null;
-}): FirstHundredIntegersConnection {
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlField */
+export function firstHundredIntegers(
+  _: Query,
+  args: {
+    first?: Int | null;
+    after?: string | null;
+  },
+): FirstHundredIntegersConnection {
   return new FirstHundredIntegersConnection(args.first, args.after);
 }
 

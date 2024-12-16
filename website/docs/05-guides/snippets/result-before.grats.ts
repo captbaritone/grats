@@ -1,8 +1,8 @@
 /** @gqlUnion */
 export type MyValueResult = MyValue | MyError;
 
-/** @gqlQueryField */
-export function myValue(): MyValueResult {
+/** @gqlField */
+export function myValue(_: Query): MyValueResult {
   try {
     return getMyValue();
   } catch (e) {
@@ -24,6 +24,9 @@ export type MyError = {
   /** @gqlField */
   message: string;
 };
+
+/** @gqlType */
+type Query = unknown;
 
 function getMyValue(): MyValue {
   return { value: "Hello, World!", __typename: "MyValue" };

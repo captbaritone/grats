@@ -120,14 +120,13 @@ export class GraphQLConstructor {
     node: ts.Node,
     onType: NameNode,
     field: FieldDefinitionNode,
-    mayBeInterface: boolean = true,
   ): ObjectTypeExtensionNode {
     return {
       kind: Kind.OBJECT_TYPE_EXTENSION,
       loc: loc(node),
       name: onType,
       fields: [field],
-      mayBeInterface,
+      mayBeInterface: true,
     };
   }
 

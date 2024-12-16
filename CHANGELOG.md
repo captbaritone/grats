@@ -4,17 +4,6 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
-### Root Field Tags
-
-Fields on `Query`, `Mutation` and `Subscription` may now be defined using the new docblock tags `@gqlQueryField`, `@gqlMutationField` and `@gqlSubscriptionField`. These tags can be added to functions or static methods.
-
-```typescript
-/** @gqlQueryField */
-export function greeting(): string {
-  return "Hello world";
-}
-```
-
 - **Features**
   - Custom error messages when types or interfaces are missing fields which suggests adding a `@gqlField` docblock tag.
   - Custom error message when your project has no types defined. Intended to help guide new users.

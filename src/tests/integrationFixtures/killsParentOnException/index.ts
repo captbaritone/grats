@@ -1,5 +1,8 @@
-/** @gqlQueryField */
-export function me(): User {
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlField */
+export function me(_: Query): User {
   return new User();
 }
 

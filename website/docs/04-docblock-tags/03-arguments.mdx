@@ -20,14 +20,14 @@ In functional style fields, _the source object must always be the first argument
 
 ```ts
 /** @gqlField */
-export function greeting(user: User, salutation: string): string {
-  return `${salutation} ${user.name}`;
+export function userById(_: Query, id: string): User {
+  return DB.getUserById(id);
 }
 ```
 
 ## Default values
 
-TypeScript default values will be used to infer the default value for the argument in the schema. Note that the default value must be parsable as a valid GraphQL literal.
+TypeScript default values will be used to infer the default value for the argument in the schema. Note that the default value must be parasable as a valid GraphQL literal.
 
 ```ts
 class MyClass {
@@ -65,8 +65,8 @@ This ensures your resolver code handles both possible cases.
 The one exception is if your argument has a default value. In that case, you may opt to mark your argument as optional but not nullable.
 
 ```ts
-/** @gqlQueryField */
-export function greeting(name?: string = "Max"): string {
+/** @gqlField */
+export function greeting(_: Query, name?: string = "Max"): string {
   return `Hello, ${name}`;
 }
 ```

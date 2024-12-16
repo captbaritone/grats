@@ -1,5 +1,8 @@
-/** @gqlQueryField hello */
-export function notHello(): string {
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlField hello */
+export function notHello(_: Query): string {
   return "Hello World";
 }
 

@@ -49,8 +49,8 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(GreetingType)
                         }
                     },
-                    resolve(_source, args) {
-                        return queryGreetResolver(args);
+                    resolve(source, args) {
+                        return queryGreetResolver(source, args);
                     }
                 }
             };

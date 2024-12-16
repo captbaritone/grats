@@ -2,16 +2,19 @@ import { State } from "./store";
 
 export const URL_VERSION = 1;
 
-const CONTENT = `/** @gqlQueryField */
-export function me(): UserResolver {
+const CONTENT = `/** @gqlType */
+type Query = unknown;
+
+/** @gqlField */
+export function me(_: Query): UserResolver {
   return new UserResolver();
 }
 
 /**
- * @gqlQueryField
+ * @gqlField
  * @deprecated Please use \`me\` instead.
  */
-export function viewer(): UserResolver {
+export function viewer(_: Query): UserResolver {
   return new UserResolver();
 }
 

@@ -4,8 +4,8 @@
  */
 export type UserBy = { email: string } | { username: string };
 
-/** @gqlQueryField */
-export function getUser(by: UserBy): User {
+/** @gqlField */
+export function getUser(_: Query, by: UserBy): User {
   // highlight-start
   switch (true) {
     case "email" in by:
@@ -21,6 +21,9 @@ export function getUser(by: UserBy): User {
   // highlight-end
 }
 // trim-start
+
+/** @gqlType */
+type Query = unknown;
 
 /** @gqlType */
 class User {

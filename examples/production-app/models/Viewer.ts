@@ -1,5 +1,6 @@
 import * as DB from "../Database";
 import { Ctx } from "../ViewerContext";
+import { Query } from "../graphql/Roots";
 import { Post } from "./Post";
 import { User } from "./User";
 
@@ -33,8 +34,8 @@ export class Viewer {
 
   /**
    * The currently authenticated viewer.
-   * @gqlQueryField */
-  static viewer(): Viewer {
+   * @gqlField */
+  static viewer(_: Query): Viewer {
     return new Viewer();
   }
 }

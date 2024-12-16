@@ -3,7 +3,7 @@
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 
-**What if building a GraphQL server were as simple as adding annotations to your TypeScript code?**
+**What if buildng a GraphQL server were as simple as adding annotations to your TypeScript code?**
 
 When you write your GraphQL server in TypeScript, your fields and resolvers are _already_ annotated with type information. _Grats leverages your existing type annotations to extract an executable GraphQL schema from your generic TypeScript resolver code._
 
@@ -17,15 +17,18 @@ Grats is flexible enough to work with both class-based and functional approaches
   <TabItem value="oop" label="Classes" default>
 
 ```ts
-/** @gqlQueryField */
-export function me(): User {
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlField */
+export function me(_: Query): User {
   return new User();
 }
 
 /**
- * @gqlQueryField
+ * @gqlField
  * @deprecated Please use `me` instead. */
-export function viewer(): User {
+export function viewer(_: Query): User {
   return new User();
 }
 
@@ -47,15 +50,18 @@ class User {
   <TabItem value="fp" label="Functional">
 
 ```ts
-/** @gqlQueryField */
-export function me(): User {
+/** @gqlType */
+export type Query = {};
+
+/** @gqlField */
+export function me(_: Query): User {
   return { name: "Alice" };
 }
 
 /**
- * @gqlQueryField
+ * @gqlField
  * @deprecated Please use `me` instead.  */
-export function viewer(): User {
+export function viewer(_: Query): User {
   return { name: "Alice" };
 }
 
