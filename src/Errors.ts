@@ -607,3 +607,19 @@ export function noTypesDefined() {
 export function tsConfigNotFound(cwd: string) {
   return `Grats: Could not find \`tsconfig.json\` searching in ${cwd}.\n\nSee https://www.typescriptlang.org/download/ for instructors on how to add TypeScript to your project. Then run \`npx tsc --init\` to create a \`tsconfig.json\` file.`;
 }
+
+export function cyclicDerivedContext() {
+  return `Cyclic dependency detected in derived context. This derived context value depends upon itself.`;
+}
+
+export function invalidDerivedContextArgType() {
+  return "Invalid type for derived context function argument. Derived context functions may only accept other `@gqlContext` types as arguments.";
+}
+
+export function missingReturnTypeForDerivedResolver() {
+  return 'Expected derived resolver to have an explicit return type. This is needed to allow Grats to "see" which type to treat as a derived context type.';
+}
+
+export function derivedResolverInvalidReturnType() {
+  return "Expected derived resolver function's return type to be a type reference. Grats uses this type reference to determine which type to treat as a derived context type.";
+}

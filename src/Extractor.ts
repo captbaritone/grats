@@ -139,7 +139,6 @@ class Extractor {
     name: NameNode,
     kind: NameDefinition["kind"],
   ): void {
-    // @ts-ignore FIXME
     this.nameDefinitions.set(node, { name, kind });
   }
 
@@ -341,10 +340,10 @@ class Extractor {
   recordDerivedContext(node: ts.FunctionDeclaration, tag: ts.JSDocTag) {
     const returnType = node.type;
     if (returnType == null) {
-      throw new Error("Function declaration must have a return type");
+      return this.report(node, E.missingReturnTypeForDerivedResolver());
     }
     if (!ts.isTypeReferenceNode(returnType)) {
-      throw new Error("Function declaration must return an explicit type");
+      return this.report(returnType, E.missingReturnTypeForDerivedResolver());
     }
 
     const funcName = this.namedFunctionExportName(node);

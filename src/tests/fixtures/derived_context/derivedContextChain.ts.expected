@@ -51,38 +51,37 @@ export function consumingMultipleContexts(
 -----------------
 OUTPUT
 -----------------
--- SDL --
-type Query {
-  consumingMultipleContexts: String
-  greeting: String
-}
--- TypeScript --
-import { consumingMultipleContexts as queryConsumingMultipleContextsResolver, createDerivedContextA as createDerivedContextA, createDerivedContextB as createDerivedContextB, allTheContexts as allTheContexts, greeting as queryGreetingResolver } from "./derivedContextChain";
-import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-export function getSchema(): GraphQLSchema {
-    const QueryType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Query",
-        fields() {
-            return {
-                consumingMultipleContexts: {
-                    name: "consumingMultipleContexts",
-                    type: GraphQLString,
-                    resolve(source, _args, context) {
-                        return queryConsumingMultipleContextsResolver(source, context, createDerivedContextA(context), createDerivedContextB(createDerivedContextA(context)), allTheContexts(context, createDerivedContextA(context), createDerivedContextB(createDerivedContextA(context))));
-                    }
-                },
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString,
-                    resolve(source) {
-                        return queryGreetingResolver(source, allTheContexts(context, createDerivedContextA(context), createDerivedContextB(createDerivedContextA(context))));
-                    }
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        query: QueryType,
-        types: [QueryType]
-    });
-}
+src/tests/fixtures/derived_context/derivedContextChain.ts:6:5 - error: Cyclic dependency detected in derived context. This derived context value depends upon itself.
+
+6 /** @gqlContext */
+      ~~~~~~~~~~~~
+
+  src/tests/fixtures/derived_context/derivedContextChain.ts:23:3
+    23   a: DerivedContextA,
+         ~~~~~~~~~~~~~~~~~~
+    This derived context depends on
+  src/tests/fixtures/derived_context/derivedContextChain.ts:24:3
+    24   b: DerivedContextB,
+         ~~~~~~~~~~~~~~~~~~
+    Which in turn depends on
+  src/tests/fixtures/derived_context/derivedContextChain.ts:14:39
+    14 export function createDerivedContextB(ctx: DerivedContextA): DerivedContextB {
+                                             ~~~~~~~~~~~~~~~~~~~~
+    Which ultimately creates a cycle back to the initial derived context
+src/tests/fixtures/derived_context/derivedContextChain.ts:6:5 - error: Cyclic dependency detected in derived context. This derived context value depends upon itself.
+
+6 /** @gqlContext */
+      ~~~~~~~~~~~~
+
+  src/tests/fixtures/derived_context/derivedContextChain.ts:23:3
+    23   a: DerivedContextA,
+         ~~~~~~~~~~~~~~~~~~
+    This derived context depends on
+  src/tests/fixtures/derived_context/derivedContextChain.ts:24:3
+    24   b: DerivedContextB,
+         ~~~~~~~~~~~~~~~~~~
+    Which in turn depends on
+  src/tests/fixtures/derived_context/derivedContextChain.ts:14:39
+    14 export function createDerivedContextB(ctx: DerivedContextA): DerivedContextB {
+                                             ~~~~~~~~~~~~~~~~~~~~
+    Which ultimately creates a cycle back to the initial derived context

@@ -87,11 +87,14 @@ export class TypeContext {
       const existing = self._declarationToName.get(declaration);
       if (existing != null) {
         errors.push(
-          // TODO: Better error messages here
-          tsErr(declaration, "Duplicate derived contexts for given type", [
-            tsRelated(reference, "One was defined here"),
-            gqlRelated(existing.name, "Other here"),
-          ]),
+          tsErr(
+            declaration,
+            "Multiple derived contexts defined for given type",
+            [
+              gqlRelated(definition.name, "One was defined here"),
+              gqlRelated(existing.name, "Another here"),
+            ],
+          ),
         );
         continue;
       }
