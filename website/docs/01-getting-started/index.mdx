@@ -23,13 +23,6 @@ export function me(): User {
 }
 
 /**
- * @gqlQueryField
- * @deprecated Please use `me` instead. */
-export function viewer(): User {
-  return new User();
-}
-
-/**
  * A user in our kick-ass system!
  * @gqlType */
 class User {
@@ -49,13 +42,6 @@ class User {
 ```ts
 /** @gqlQueryField */
 export function me(): User {
-  return { name: "Alice" };
-}
-
-/**
- * @gqlQueryField
- * @deprecated Please use `me` instead.  */
-export function viewer(): User {
   return { name: "Alice" };
 }
 
@@ -83,7 +69,6 @@ Both of the above examples define the following GraphQL schema:
 ```graphql
 type Query {
   me: User
-  viewer: User @deprecated(reason: "Please use `me` instead.")
 }
 
 """
