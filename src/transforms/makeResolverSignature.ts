@@ -24,6 +24,10 @@ export function makeResolverSignature(documentAst: DocumentNode): Metadata {
       continue;
     }
 
+    if (declaration.isExternalType) {
+      continue;
+    }
+
     const fieldResolvers: Record<string, FieldDefinition> = {};
 
     for (const fieldAst of declaration.fields) {

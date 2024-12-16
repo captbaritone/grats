@@ -611,3 +611,7 @@ export function tsConfigNotFound(cwd: string) {
 export function noModuleInGqlExternal() {
   return `Grats: @gqlExternal must include a module name in double quotes. For example: /** @gqlExternal "myModule" */`;
 }
+
+export function graphqlExternalNotInResolverMapMode() {
+  return `Grats: @gqlExternal can only be used if grats is in EXPERIMENTAL__emitResolverMap mode. */`;
+}

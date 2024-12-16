@@ -37,6 +37,10 @@ declare module "graphql" {
       tsModulePath: string;
       exportName: string | null;
     };
+    /**
+     * Grats metadata: Indicates whether this definition was imported from external module
+     */
+    isExternalType?: boolean;
   }
 
   export interface UnionTypeDefinitionNode {
@@ -45,6 +49,11 @@ declare module "graphql" {
      * generic type resolution.
      */
     wasSynthesized?: boolean;
+
+    /**
+     * Grats metadata: Indicates whether this definition was imported from external module
+     */
+    isExternalType?: boolean;
   }
   export interface InterfaceTypeDefinitionNode {
     /**
@@ -52,6 +61,11 @@ declare module "graphql" {
      * generic type resolution.
      */
     wasSynthesized?: boolean;
+
+    /**
+     * Grats metadata: Indicates whether this definition was imported from external module
+     */
+    isExternalType?: boolean;
   }
   export interface ObjectTypeExtensionNode {
     /**
@@ -59,10 +73,11 @@ declare module "graphql" {
      * or a type.
      */
     mayBeInterface?: boolean;
+
     /**
-     * Grats metadata: Indicates whether this extension is for external type
+     * Grats metadata: Indicates whether this definition was imported from external module
      */
-    isOnExternalType?: boolean;
+    isExternalType?: boolean;
   }
 
   export interface FieldDefinitionNode {
@@ -74,5 +89,26 @@ declare module "graphql" {
      */
     resolver?: ResolverSignature;
     killsParentOnException?: NameNode;
+  }
+
+  export interface ScalarTypeDefinitionNode {
+    /**
+     * Grats metadata: Indicates whether this definition was imported from external module
+     */
+    isExternalType?: boolean;
+  }
+
+  export interface EnumTypeDefinitionNode {
+    /**
+     * Grats metadata: Indicates whether this definition was imported from external module
+     */
+    isExternalType?: boolean;
+  }
+
+  export interface InputObjectTypeDefinitionNode {
+    /**
+     * Grats metadata: Indicates whether this definition was imported from external module
+     */
+    isExternalType?: boolean;
   }
 }

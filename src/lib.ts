@@ -34,6 +34,7 @@ import { resolveResolverParams } from "./transforms/resolveResolverParams";
 import { customSpecValidations } from "./validations/customSpecValidations";
 import { makeResolverSignature } from "./transforms/makeResolverSignature";
 import { addImplicitRootTypes } from "./transforms/addImplicitRootTypes";
+import { mergeImportedSchemas } from "./transforms/addImportedSchemas";
 import { Metadata } from "./metadata";
 
 // Export the TypeScript plugin implementation used by
@@ -119,6 +120,7 @@ export function extractSchemaAndDoc(
         .map((doc) => addImplicitRootTypes(doc))
         // Merge any `extend` definitions into their base definitions.
         .map((doc) => mergeExtensions(ctx, doc))
+        .andThen((doc) => mergeImportedSchemas(ctx, doc))
         // Perform custom validations that reimplement spec validation rules
         // with more tailored error messages.
         // TODO
@@ -156,19 +158,19 @@ function buildSchemaFromDoc(
   // (`String`, `Int`, etc). However, if we pass a second param (extending an
   // existing schema) we do! So, we should find a way to validate that we don't
   // shadow builtins.
-  // const validationErrors = validateSDL(doc);
-  // if (validationErrors.length > 0) {
-  //   return err(validationErrors.map(graphQlErrorToDiagnostic));
-  // }
+  const validationErrors = validateSDL(doc);
+  if (validationErrors.length > 0) {
+    return err(validationErrors.map(graphQlErrorToDiagnostic));
+  }
   const schema = buildASTSchema(doc, { assumeValidSDL: true });
 
-  // const diagnostics = validateSchema(schema)
-  // FIXME: Handle case where query is not defined (no location)
-  // .filter((e) => e.source && e.locations && e.positions);
+  const diagnostics = validateSchema(schema)
+    // FIXME: Handle case where query is not defined (no location)
+    .filter((e) => e.source && e.locations && e.positions);
   //
-  // if (diagnostics.length > 0) {
-  // return err(diagnostics.map(graphQlErrorToDiagnostic));
-  // }
+  if (diagnostics.length > 0) {
+    return err(diagnostics.map(graphQlErrorToDiagnostic));
+  }
 
   return ok(schema);
 }

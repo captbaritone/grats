@@ -5,14 +5,7 @@ import {
   buildSchemaAndDocResultWithHost,
 } from "../lib";
 import * as ts from "typescript";
-import {
-  buildASTSchema,
-  graphql,
-  GraphQLSchema,
-  print,
-  printSchema,
-  specifiedScalarTypes,
-} from "graphql";
+import { buildASTSchema, graphql, GraphQLSchema, printSchema } from "graphql";
 import { Command } from "commander";
 import { locate } from "../Locate";
 import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError";
@@ -26,11 +19,7 @@ import {
   validateGratsOptions,
 } from "../gratsConfig";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
-import {
-  applySDLHeader,
-  applyTypeScriptHeader,
-  printExecutableSchema,
-} from "../printSchema";
+import { printExecutableSchema, printGratsSDL } from "../printSchema";
 import { extend } from "../utils/helpers";
 
 const TS_VERSION = ts.version;
@@ -81,7 +70,7 @@ const testDirs = [
   {
     fixturesDir,
     testFilePattern: /\.ts$/,
-    ignoreFilePattern: /\.ignore\.ts$/,
+    ignoreFilePattern: /\.ignore\.(ts|graphql)$/,
     transformer: (code: string, fileName: string): string | false => {
       const firstLine = code.split("\n")[0];
       let config: Partial<GratsConfig> = {
@@ -159,21 +148,7 @@ const testDirs = [
           gqlErr({ loc: locResult.value }, "Located here"),
         ]).formatDiagnosticsWithContext();
       } else {
-        const docSansDirectives = {
-          ...doc,
-          definitions: doc.definitions.filter((def) => {
-            if (def.kind === "ScalarTypeDefinition") {
-              return !specifiedScalarTypes.some(
-                (scalar) => scalar.name === def.name.value,
-              );
-            }
-            return true;
-          }),
-        };
-        const sdl = applySDLHeader(
-          parsedOptions.raw.grats,
-          print(docSansDirectives),
-        );
+        const sdl = printGratsSDL(doc, parsedOptions.raw.grats);
 
         return `-- SDL --\n${sdl}\n-- TypeScript --\n${executableSchema}`;
       }

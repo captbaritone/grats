@@ -40,6 +40,8 @@ import {
   InputValueDefinitionNodeOrResolverArg,
   ResolverArgument,
 } from "./resolverSignature";
+import path = require("path");
+import { GratsConfig } from "./gratsConfig";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -109,8 +111,9 @@ type FieldTypeContext = {
  */
 export function extract(
   sourceFile: ts.SourceFile,
+  options: GratsConfig,
 ): DiagnosticsResult<ExtractionSnapshot> {
-  const extractor = new Extractor();
+  const extractor = new Extractor(options);
   return extractor.extract(sourceFile);
 }
 
@@ -126,7 +129,7 @@ class Extractor {
   errors: ts.DiagnosticWithLocation[] = [];
   gql: GraphQLConstructor;
 
-  constructor() {
+  constructor(private _options: GratsConfig) {
     this.gql = new GraphQLConstructor();
   }
 
@@ -235,6 +238,9 @@ class Extractor {
           break;
         }
         case EXTERNAL_TAG:
+          if (!this._options.EXPERIMENTAL__emitResolverMap) {
+            this.report(tag.tagName, E.graphqlExternalNotInResolverMapMode());
+          }
           if (!this.hasTag(node, TYPE_TAG)) {
             this.report(tag.tagName, E.specifiedByOnWrongNode());
           }
@@ -1085,7 +1091,13 @@ class Extractor {
       this.hasTag(node, EXTERNAL_TAG)
     ) {
       const externalTag = this.findTag(node, EXTERNAL_TAG) as ts.JSDocTag;
-      externalImportPath = this.externalModule(node, externalTag);
+      const externalPathMaybe = this.externalModule(node, externalTag);
+      if (externalPathMaybe) {
+        externalImportPath = path.resolve(
+          path.dirname(node.getSourceFile().fileName),
+          externalPathMaybe,
+        );
+      }
       console.log("DEBUG - External import path", externalImportPath);
     } else {
       return this.report(node.type, E.typeTagOnAliasOfNonObjectOrUnknown());
@@ -1883,8 +1895,9 @@ class Extractor {
       const commentText = ts.getTextOfJSDocComment(tag.comment);
       if (commentText) {
         const match = commentText.match(/^\s*"(.*)"\s*$/);
-        if (match && match[0]) {
-          externalModule = match[0];
+
+        if (match && match[1]) {
+          externalModule = match[1];
         }
       }
     }

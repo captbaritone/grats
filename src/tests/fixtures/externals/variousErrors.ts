@@ -1,4 +1,4 @@
-// { "EXPERIMENTAL__emitResolverMap": true }
+// { "EXPERIMENTAL__emitResolverMap": false }
 
 import {
   SomeType as _SomeType,
@@ -10,6 +10,12 @@ import {
  * @gqlExternal "./test-sdl.ignore.graphql"
  */
 export type SomeType = _SomeType;
+
+/**
+ * @gqlType MyType
+ * @gqlExternal
+ */
+export type OtherType = _SomeType;
 
 /**
  * @gqlField

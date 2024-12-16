@@ -1,0 +1,49 @@
+-----------------
+INPUT
+----------------- 
+// { "EXPERIMENTAL__emitResolverMap": false }
+
+import {
+  SomeType as _SomeType,
+  SomeInterface as _SomeInterface,
+} from "./nonGratsPackage.ignore";
+
+/**
+ * @gqlType MyType
+ * @gqlExternal "./test-sdl.ignore.graphql"
+ */
+export type SomeType = _SomeType;
+
+/**
+ * @gqlType MyType
+ * @gqlExternal
+ */
+export type OtherType = _SomeType;
+
+/**
+ * @gqlField
+ */
+export function someField(parent: SomeType): string {
+  return parent.id;
+}
+
+/** @gqlQueryField */
+export function myRoot(): SomeType | null {
+  return null;
+}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/externals/variousErrors.ts:10:5 - error: Grats: @gqlExternal can only be used if grats is in EXPERIMENTAL__emitResolverMap mode. */
+
+10  * @gqlExternal "./test-sdl.ignore.graphql"
+       ~~~~~~~~~~~
+src/tests/fixtures/externals/variousErrors.ts:18:1 - error: Grats: @gqlExternal must include a module name in double quotes. For example: /** @gqlExternal "myModule" */
+
+18 export type OtherType = _SomeType;
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/tests/fixtures/externals/variousErrors.ts:16:5 - error: Grats: @gqlExternal can only be used if grats is in EXPERIMENTAL__emitResolverMap mode. */
+
+16  * @gqlExternal
+       ~~~~~~~~~~~
