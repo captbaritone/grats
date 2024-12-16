@@ -3,7 +3,6 @@ import PropertyAndMethodFields from "!!raw-loader!./snippets/02-property-and-met
 import ParameterPropertyFields from "!!raw-loader!./snippets/02-parameter-property-fields.out";
 import FunctionExtendQuery from "!!raw-loader!./snippets/02-function-extending-query.out";
 import FunctionExtendMutation from "!!raw-loader!./snippets/02-function-extending-mutation.out";
-import StaticMethodExtendQuery from "!!raw-loader!./snippets/02-static-method-extending-query.out";
 
 # Fields
 
@@ -14,9 +13,13 @@ You can define GraphQL fields by placing a `@gqlField` directly before a:
 - Property declaration
 - Property signature
 - Parameter property
+- Static method
 - Function declaration
 - Arrow function declaration
-- Static method
+
+:::tip
+For defining fields on the root types `Query`, `Mutation` or `Subscription`, see [Root Fields](./02-root-fields.mdx).
+:::
 
 ## Class-based fields
 
@@ -24,22 +27,15 @@ When using classes or interfaces to define GraphQL types, fields can be defined 
 
 <GratsCode out={PropertyAndMethodFields} mode="ts" />
 
-Fields can also be defined using TypeScript's [parameter properties](https://www.typescriptlang.org/docs/handbook/2/classes.html#parameter-properties), wich is a short-hand for defining a field value that is passed to the class constructor:
+Fields can also be defined using TypeScript's [parameter properties](https://www.typescriptlang.org/docs/handbook/2/classes.html#parameter-properties), which is a short-hand for defining a field value that is passed to the class constructor:
 
 <GratsCode out={ParameterPropertyFields} mode="ts" />
-
-If you want to group root fields `Query` `Mutation` that return or modify a specific type, you can define them as part of that type's class using static methods:
-
-<GratsCode out={StaticMethodExtendQuery} mode="both" />
-
-Grats will use the type of the first argument of the static method to determine which type is being extended. Even if you don't need access to any values on the parent object, you must type your first argument using the parent type so that Grats knows which type your field is on.
 
 For more information about field resolves, see [Resolver Signature](../03-resolvers/index.mdx).
 
 ## Functional style fields
 
-If you prefer to avoid classes, types can be defined using type literals. However, this approach does not allow you to define derived/resolver fields. To solve this, Grats
-also allows you to **define derived fields using named, exported functions**. Function resolvers:
+If you prefer to avoid classes, types can be defined using type literals. However, this approach does not allow you to define derived/resolver fields. To solve this, Grats also allows you to **define derived fields using named, exported functions**. Function resolvers:
 
 - Accept an instance of the parent type as the first argument
 - Have a return type that matches the field type
@@ -59,36 +55,11 @@ export function fullName(user: User): string {
 }
 ```
 
-:::tip
-In addition to adding derived fields to type literals, functional fields are also
-useful to define root fields on `Query` or `Mutation` next to the type they return or modify.
-:::
-
-Even if you don't need access to any values on the parent object, you must type your first argument using the parent type so that Grats knows which type your field is on. So you might have a field that looks like this:
-
-```typescript
-/** @gqlType */
-type Query = unknown;
-
-export function hello(_: Query): string {
-  return "Hello World!";
-}
-```
-
-#### Extending Query:
-
-<GratsCode out={FunctionExtendQuery} mode="ts" />
-
-#### Extending Mutation:
-
-<GratsCode out={FunctionExtendMutation} mode="ts" />
-
-Note that Grats will use the type of the first argument to determine which type
-is being extended. So, as seen in the previous examples, even if you don't need
-access to the instance you should still define a typed first argument.
+Note that Grats will use the type of the first argument to determine which type is being extended. So, as seen in the previous examples, even if you don't need access to the instance you should still define a typed first argument.
 
 ## More field documentation
 
+- [Root Fields](./02-root-fields.mdx) for how to define fields on the root types
 - [Renaming](../03-resolvers/04-renaming.mdx) for how to expose your field under a different name than your function/property/method
 - [Field Arguments](./03-arguments.mdx) for how to define arguments
 - [Descriptions](../03-resolvers/03-descriptions.mdx) for how to add descriptions to your fields

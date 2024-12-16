@@ -9,16 +9,16 @@ export function getSchema(): GraphQLSchema {
                     deprecationReason: "No longer supported",
                     name: "goodBye",
                     type: GraphQLString,
-                    resolve(source) {
-                        return queryGoodByeResolver(source);
+                    resolve() {
+                        return queryGoodByeResolver();
                     }
                 },
                 hello: {
                     deprecationReason: "For reasons",
                     name: "hello",
                     type: GraphQLString,
-                    resolve(source) {
-                        return queryHelloResolver(source);
+                    resolve() {
+                        return queryHelloResolver();
                     }
                 }
             };

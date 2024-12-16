@@ -1,0 +1,46 @@
+/**
+ * # Welcome to GenericCorp's GraphQL Schema!
+ *
+ * This is root type of our system. Everything you need can be access from here.
+ * @gqlType
+ */
+type Query = unknown;
+
+/** @gqlQueryField */
+export function greet(): string {
+  return "Hello world";
+}
+
+=== SNIP ===
+"""
+# Welcome to GenericCorp's GraphQL Schema!
+
+This is root type of our system. Everything you need can be access from here.
+"""
+type Query {
+  greet: String
+}
+=== SNIP ===
+import { greet as queryGreetResolver } from "./01-root-type-with-description.grats";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        description: "# Welcome to GenericCorp's GraphQL Schema!\n\nThis is root type of our system. Everything you need can be access from here.",
+        fields() {
+            return {
+                greet: {
+                    name: "greet",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return queryGreetResolver();
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType]
+    });
+}

@@ -1,15 +1,10 @@
-/** @gqlType */
-type Query = unknown;
-
-/** @gqlField */
-export function promiseOfPromise(_: Query): Promise<Promise<string>> {
+/** @gqlQueryField */
+export function promiseOfPromise(): Promise<Promise<string>> {
   return promiseOf(promiseOf("Hello world!"));
 }
 
-/** @gqlField */
-export function promiseOfPromisePromise(
-  _: Query,
-): Promise<Promise<Promise<string>>> {
+/** @gqlQueryField */
+export function promiseOfPromisePromise(): Promise<Promise<Promise<string>>> {
   return promiseOf(promiseOf(promiseOf("Hello world!")));
 }
 

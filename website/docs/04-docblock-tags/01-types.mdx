@@ -5,6 +5,7 @@ import TypesAlias from "!!raw-loader!./snippets/01-types-alias.out";
 import TypesRenaming from "!!raw-loader!./snippets/01-types-renaming.out";
 import TypesImplementInterface from "!!raw-loader!./snippets/01-types-implement-interface.out";
 import TypesInterfaceImplementInterface from "!!raw-loader!./snippets/01-types-interface-implement-interface.out";
+import RootTypeWithDescription from "!!raw-loader!./snippets/01-root-type-with-description.out";
 
 # Types
 
@@ -43,9 +44,15 @@ Which would extract:
 
 ## Operation Types
 
-:::caution
-The three operation types, `Query`, `Mutation` and `Subscription` are special and **_must_ be defined as a type alias of of `unknown`**. E.g. `type Query = unknown;`. If you attempt to define them any other way, Grats will report an error. You can read more in this FAQ entry: [Why Prohibit Root Values](../06-faq/06-why-prohibit-root-values.mdx).
-:::
+In most cases you won't need to manually define the three operation types `Query`, `Mutation`, and `Subscription` since you can add fields to these types with the root field tags:
+
+- `@gqlQueryField`
+- `@gqlMutationField`
+- `@gqlSubscriptionField`
+
+However, if you _do_ wish to explicitly define one of these types (for example to add a description) they _must_ be defined as a type alias of of `unknown`. E.g. `type Query = unknown;`. If you attempt to define them any other way, Grats will report an error. You can read more in this FAQ entry: [Why Prohibit Root Values](../06-faq/06-why-prohibit-root-values.mdx).
+
+<GratsCode out={RootTypeWithDescription} mode="both" />
 
 ## Implementing Interfaces
 

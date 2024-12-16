@@ -3,9 +3,8 @@
  * Do not manually edit. Regenerate by running `npx grats`.
  */
 import UserClass from "./app/api/graphql/models/User";
-import { allUsers as queryAllUsersResolver } from "./app/api/graphql/models/User";
-import { me as queryMeResolver } from "./app/api/graphql/Query";
-import { person as queryPersonResolver } from "./app/api/graphql/Query";
+import queryAllUsersResolver from "./app/api/graphql/models/User";
+import { me as queryMeResolver, person as queryPersonResolver } from "./app/api/graphql/Query";
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLString, GraphQLInterfaceType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const GroupType: GraphQLObjectType = new GraphQLObjectType({
@@ -64,22 +63,22 @@ export function getSchema(): GraphQLSchema {
                 allUsers: {
                     name: "allUsers",
                     type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(UserType))),
-                    resolve(source) {
-                        return queryAllUsersResolver(source);
+                    resolve() {
+                        return queryAllUsersResolver.allUsers();
                     }
                 },
                 me: {
                     name: "me",
                     type: new GraphQLNonNull(UserType),
-                    resolve(source) {
-                        return queryMeResolver(source);
+                    resolve() {
+                        return queryMeResolver();
                     }
                 },
                 person: {
                     name: "person",
                     type: new GraphQLNonNull(IPersonType),
-                    resolve(source) {
-                        return queryPersonResolver(source);
+                    resolve() {
+                        return queryPersonResolver();
                     }
                 }
             };
