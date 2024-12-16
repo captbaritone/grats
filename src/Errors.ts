@@ -13,6 +13,8 @@ import {
   SPECIFIED_BY_TAG,
   CONTEXT_TAG,
   INFO_TAG,
+  EXTERNAL_TAG,
+  AllTags,
 } from "./Extractor";
 
 export const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
@@ -151,6 +153,10 @@ export function typeTagOnUnnamedClass() {
 
 export function typeTagOnAliasOfNonObjectOrUnknown() {
   return `Expected \`@${TYPE_TAG}\` type to be an object type literal (\`{ }\`) or \`unknown\`. For example: \`type Foo = { bar: string }\` or \`type Query = unknown\`.`;
+}
+
+export function nonExternalTypeAlias(tag: AllTags) {
+  return `Expected \`@${tag}\` to be a type alias only if used with \`@${EXTERNAL_TAG}\``;
 }
 
 // TODO: Add code action
@@ -612,6 +618,12 @@ export function noModuleInGqlExternal() {
   return `Grats: @gqlExternal must include a module name in double quotes. For example: /** @gqlExternal "myModule" */`;
 }
 
-export function graphqlExternalNotInResolverMapMode() {
+export function externalNotInResolverMapMode() {
   return `Grats: @gqlExternal can only be used if grats is in EXPERIMENTAL__emitResolverMap mode. */`;
+}
+
+export function externalOnWrongNode(extistingTags: string[]) {
+  return `Unexpected \`@${EXTERNAL_TAG}\` on type with following tags: ${extistingTags.join(
+    ", ",
+  )}. \`@${EXTERNAL_TAG}\` can only be used on type declarations.`;
 }

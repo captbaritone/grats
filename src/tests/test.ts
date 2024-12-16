@@ -150,7 +150,7 @@ const testDirs = [
       } else {
         const sdl = printGratsSDL(doc, parsedOptions.raw.grats);
 
-        return `-- SDL --\n${sdl}\n-- TypeScript --\n${executableSchema}`;
+        return `-- SDL --\n${sdl}-- TypeScript --\n${executableSchema}`;
       }
     },
   },

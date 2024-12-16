@@ -1,0 +1,41 @@
+-----------------
+INPUT
+----------------- 
+// { "EXPERIMENTAL__emitResolverMap": true }
+
+import { SomeUnion as _SomeUnion } from "./nonGratsPackage.ignore";
+
+/**
+ * @gqlType MyUnion
+ * @gqlExternal "./test-sdl.ignore.graphql"
+ */
+export type SomeUnion = _SomeUnion;
+
+/** @gqlQueryField */
+export function myRoot(): SomeUnion {
+  return {
+    __typename: "MyType",
+    id: "foo",
+  };
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Query {
+  myRoot: MyUnion
+}
+
+-- TypeScript --
+import { IResolvers } from "@graphql-tools/utils";
+import { myRoot as queryMyRootResolver } from "./union";
+export function getResolverMap(): IResolvers {
+    return {
+        Query: {
+            myRoot() {
+                return queryMyRootResolver();
+            }
+        }
+    };
+}

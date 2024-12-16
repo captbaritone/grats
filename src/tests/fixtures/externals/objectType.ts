@@ -1,9 +1,6 @@
 // { "EXPERIMENTAL__emitResolverMap": true }
 
-import {
-  SomeType as _SomeType,
-  SomeInterface as _SomeInterface,
-} from "./nonGratsPackage.ignore";
+import { SomeType as _SomeType } from "./nonGratsPackage.ignore";
 
 /**
  * @gqlType MyType

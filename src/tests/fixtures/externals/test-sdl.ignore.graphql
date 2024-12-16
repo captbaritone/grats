@@ -2,6 +2,24 @@ type MyType {
   id: ID!
 }
 
+type MyOtherType {
+  id: ID!
+}
+
 interface MyInterface {
   id: ID!
 }
+
+input MyInput {
+  id: ID!
+  foo: Int!
+}
+
+union MyUnion = MyType | MyOtherType
+
+enum MyEnum {
+  A
+  B
+}
+
+scalar MyScalar

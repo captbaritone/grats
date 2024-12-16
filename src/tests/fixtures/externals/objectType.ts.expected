@@ -3,10 +3,7 @@ INPUT
 ----------------- 
 // { "EXPERIMENTAL__emitResolverMap": true }
 
-import {
-  SomeType as _SomeType,
-  SomeInterface as _SomeInterface,
-} from "./nonGratsPackage.ignore";
+import { SomeType as _SomeType } from "./nonGratsPackage.ignore";
 
 /**
  * @gqlType MyType
@@ -40,7 +37,7 @@ extend type MyType {
 
 -- TypeScript --
 import { IResolvers } from "@graphql-tools/utils";
-import { myRoot as queryMyRootResolver, someField as myTypeSomeFieldResolver } from "./nonGratsPackageWrapper";
+import { myRoot as queryMyRootResolver, someField as myTypeSomeFieldResolver } from "./objectType";
 export function getResolverMap(): IResolvers {
     return {
         Query: {

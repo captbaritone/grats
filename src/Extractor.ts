@@ -66,6 +66,16 @@ export const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
 
 export const EXTERNAL_TAG = "gqlExternal";
 
+export type AllTags =
+  | typeof TYPE_TAG
+  | typeof FIELD_TAG
+  | typeof SCALAR_TAG
+  | typeof INTERFACE_TAG
+  | typeof ENUM_TAG
+  | typeof UNION_TAG
+  | typeof INPUT_TAG
+  | typeof EXTERNAL_TAG;
+
 // All the tags that start with gql
 export const ALL_TAGS = [
   TYPE_TAG,
@@ -239,10 +249,22 @@ class Extractor {
         }
         case EXTERNAL_TAG:
           if (!this._options.EXPERIMENTAL__emitResolverMap) {
-            this.report(tag.tagName, E.graphqlExternalNotInResolverMapMode());
+            this.report(tag.tagName, E.externalNotInResolverMapMode());
           }
-          if (!this.hasTag(node, TYPE_TAG)) {
-            this.report(tag.tagName, E.specifiedByOnWrongNode());
+          if (
+            !this.hasTag(node, TYPE_TAG) &&
+            !this.hasTag(node, INPUT_TAG) &&
+            !this.hasTag(node, INTERFACE_TAG)
+          ) {
+            this.report(
+              tag.tagName,
+              E.externalOnWrongNode(
+                ts
+                  .getJSDocTags(node)
+                  .filter((t) => t.tagName.text !== EXTERNAL_TAG)
+                  .map((t) => t.tagName.escapedText.toString()),
+              ),
+            );
           }
           break;
 
@@ -368,6 +390,8 @@ class Extractor {
   extractInterface(node: ts.Node, tag: ts.JSDocTag) {
     if (ts.isInterfaceDeclaration(node)) {
       this.interfaceInterfaceDeclaration(node, tag);
+    } else if (ts.isTypeAliasDeclaration(node)) {
+      this.interfaceTypeAliasDeclaration(node, tag);
     } else {
       this.report(tag, E.invalidInterfaceTagUsage());
     }
@@ -441,7 +465,16 @@ class Extractor {
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
-    if (!ts.isUnionTypeNode(node.type)) {
+    if (ts.isTypeReferenceNode(node)) {
+      if (this.hasTag(node, EXTERNAL_TAG)) {
+        const externalImportPath = this.externalModule(node);
+        if (externalImportPath) {
+          this.recordTypeName(node, name, "UNION", externalImportPath);
+          return;
+        }
+      }
+      return this.report(node, E.nonExternalTypeAlias(UNION_TAG));
+    } else if (!ts.isUnionTypeNode(node.type)) {
       return this.report(node, E.expectedUnionTypeNode());
     }
 
@@ -757,6 +790,15 @@ class Extractor {
     if (name == null) return null;
 
     const description = this.collectDescription(node);
+
+    if (this.hasTag(node, EXTERNAL_TAG)) {
+      const externalImportPath = this.externalModule(node);
+      if (externalImportPath) {
+        this.recordTypeName(node, name, "SCALAR", externalImportPath);
+        return;
+      }
+    }
+
     this.recordTypeName(node, name, "SCALAR");
 
     // TODO: Can a scalar be deprecated?
@@ -778,21 +820,30 @@ class Extractor {
     if (name == null) return null;
 
     const description = this.collectDescription(node);
-    this.recordTypeName(node, name, "INPUT_OBJECT");
 
-    const fields = this.collectInputFields(node);
+    let externalImportPath: string | null = null;
+    if (
+      node.type.kind === ts.SyntaxKind.TypeReference &&
+      this.hasTag(node, EXTERNAL_TAG)
+    ) {
+      externalImportPath = this.externalModule(node);
+    } else {
+      const fields = this.collectInputFields(node);
 
-    const deprecatedDirective = this.collectDeprecated(node);
+      const deprecatedDirective = this.collectDeprecated(node);
 
-    this.definitions.push(
-      this.gql.inputObjectTypeDefinition(
-        node,
-        name,
-        fields,
-        deprecatedDirective == null ? null : [deprecatedDirective],
-        description,
-      ),
-    );
+      this.definitions.push(
+        this.gql.inputObjectTypeDefinition(
+          node,
+          name,
+          fields,
+          deprecatedDirective == null ? null : [deprecatedDirective],
+          description,
+        ),
+      );
+    }
+
+    this.recordTypeName(node, name, "INPUT_OBJECT", externalImportPath);
   }
 
   inputInterfaceDeclaration(node: ts.InterfaceDeclaration, tag: ts.JSDocTag) {
@@ -1090,15 +1141,7 @@ class Extractor {
       node.type.kind === ts.SyntaxKind.TypeReference &&
       this.hasTag(node, EXTERNAL_TAG)
     ) {
-      const externalTag = this.findTag(node, EXTERNAL_TAG) as ts.JSDocTag;
-      const externalPathMaybe = this.externalModule(node, externalTag);
-      if (externalPathMaybe) {
-        externalImportPath = path.resolve(
-          path.dirname(node.getSourceFile().fileName),
-          externalPathMaybe,
-        );
-      }
-      console.log("DEBUG - External import path", externalImportPath);
+      externalImportPath = this.externalModule(node);
     } else {
       return this.report(node.type, E.typeTagOnAliasOfNonObjectOrUnknown());
     }
@@ -1400,6 +1443,28 @@ class Extractor {
         description,
       ),
     );
+  }
+
+  interfaceTypeAliasDeclaration(
+    node: ts.TypeAliasDeclaration,
+    tag: ts.JSDocTag,
+  ) {
+    const name = this.entityName(node, tag);
+    if (name == null || name.value == null) {
+      return;
+    }
+
+    if (
+      node.type.kind === ts.SyntaxKind.TypeReference &&
+      this.hasTag(node, EXTERNAL_TAG)
+    ) {
+      const externalImportPath = this.externalModule(node);
+      if (externalImportPath) {
+        this.recordTypeName(node, name, "INTERFACE", externalImportPath);
+        return;
+      }
+    }
+    return this.report(node.type, E.nonExternalTypeAlias(INTERFACE_TAG));
   }
 
   collectFields(
@@ -1724,6 +1789,14 @@ class Extractor {
       return;
     }
 
+    if (this.hasTag(node, EXTERNAL_TAG)) {
+      const externalImportPath = this.externalModule(node);
+      if (externalImportPath) {
+        this.recordTypeName(node, name, "ENUM", externalImportPath);
+        return;
+      }
+    }
+
     const values = this.enumTypeAliasVariants(node);
     if (values == null) return;
 
@@ -1889,7 +1962,12 @@ class Extractor {
     return this.gql.name(id, id.text);
   }
 
-  externalModule(node: ts.Node, tag: ts.JSDocTag) {
+  externalModule(node: ts.Node): string | null {
+    const tag = this.findTag(node, EXTERNAL_TAG);
+    if (!tag) {
+      return this.report(node, E.noModuleInGqlExternal());
+    }
+
     let externalModule;
     if (tag.comment != null) {
       const commentText = ts.getTextOfJSDocComment(tag.comment);
@@ -1904,7 +1982,10 @@ class Extractor {
     if (!externalModule) {
       return this.report(node, E.noModuleInGqlExternal());
     }
-    return externalModule;
+    return path.resolve(
+      path.dirname(node.getSourceFile().fileName),
+      externalModule,
+    );
   }
 
   methodDeclaration(
