@@ -17,15 +17,15 @@ Grats is flexible enough to work with both class-based and functional approaches
   <TabItem value="oop" label="Classes" default>
 
 ```ts
-/** @gqlQueryField */
-export function me(): User {
-  return new User();
-}
-
 /**
  * A user in our kick-ass system!
  * @gqlType */
 class User {
+  /** @gqlQueryField */
+  static me(): User {
+    return new User();
+  }
+
   /** @gqlField */
   name: string = "Alice";
 
