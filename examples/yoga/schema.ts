@@ -3,9 +3,9 @@
  * Do not manually edit. Regenerate by running `npx grats`.
  */
 import UserClass from "./models/User";
-import { allUsers as queryAllUsersResolver } from "./models/User";
-import { me as queryMeResolver } from "./Query";
-import { person as queryPersonResolver } from "./Query";
+import queryAllUsersResolver from "./models/User";
+import queryMeResolver from "./models/User";
+import { person as queryPersonResolver } from "./interfaces/IPerson";
 import { countdown as subscriptionCountdownResolver } from "./Subscription";
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLString, GraphQLInterfaceType, GraphQLInt } from "graphql";
 export function getSchema(): GraphQLSchema {
@@ -65,22 +65,22 @@ export function getSchema(): GraphQLSchema {
                 allUsers: {
                     name: "allUsers",
                     type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(UserType))),
-                    resolve(source) {
-                        return queryAllUsersResolver(source);
+                    resolve() {
+                        return queryAllUsersResolver.allUsers();
                     }
                 },
                 me: {
                     name: "me",
                     type: new GraphQLNonNull(UserType),
-                    resolve(source) {
-                        return queryMeResolver(source);
+                    resolve() {
+                        return queryMeResolver.me();
                     }
                 },
                 person: {
                     name: "person",
                     type: new GraphQLNonNull(IPersonType),
-                    resolve(source) {
-                        return queryPersonResolver(source);
+                    resolve() {
+                        return queryPersonResolver();
                     }
                 }
             };
@@ -99,8 +99,8 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(GraphQLInt)
                         }
                     },
-                    subscribe(source, args) {
-                        return subscriptionCountdownResolver(source, args);
+                    subscribe(_source, args) {
+                        return subscriptionCountdownResolver(args);
                     },
                     resolve(payload) {
                         return payload;

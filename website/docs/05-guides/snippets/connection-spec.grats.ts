@@ -1,15 +1,12 @@
 import { Int } from "grats";
 
-/** @gqlField */
-export function users(
-  _: Query,
-  args: {
-    first?: Int | null;
-    after?: string | null;
-    last?: Int | null;
-    before?: string | null;
-  },
-): Connection<User> {
+/** @gqlQueryField */
+export function users(args: {
+  first?: Int | null;
+  after?: string | null;
+  last?: Int | null;
+  before?: string | null;
+}): Connection<User> {
   const users = [{ name: "John" }];
   return connectionFromArray(users, args);
 }
@@ -44,9 +41,6 @@ export type PageInfo = {
   hasPreviousPage: boolean;
 };
 // trim-start
-
-/** @gqlType */
-type Query = unknown;
 
 /** @gqlType */
 type User = {

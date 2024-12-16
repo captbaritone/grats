@@ -8,15 +8,15 @@ export function getSchema(): GraphQLSchema {
                 promiseOfPromise: {
                     name: "promiseOfPromise",
                     type: GraphQLString,
-                    resolve(source) {
-                        return queryPromiseOfPromiseResolver(source);
+                    resolve() {
+                        return queryPromiseOfPromiseResolver();
                     }
                 },
                 promiseOfPromisePromise: {
                     name: "promiseOfPromisePromise",
                     type: GraphQLString,
-                    resolve(source) {
-                        return queryPromiseOfPromisePromiseResolver(source);
+                    resolve() {
+                        return queryPromiseOfPromisePromiseResolver();
                     }
                 }
             };

@@ -28,8 +28,8 @@ export function getSchema(): GraphQLSchema {
                 someType: {
                     name: "someType",
                     type: SomeTypeType,
-                    resolve(source) {
-                        return querySomeTypeResolver(source);
+                    resolve() {
+                        return querySomeTypeResolver();
                     }
                 }
             };

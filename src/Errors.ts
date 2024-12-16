@@ -38,8 +38,13 @@ const DOC_URLS = {
  */
 
 export function fieldTagOnWrongNode() {
-  return `\`@${FIELD_TAG}\` can only be used on method/property declarations, signatures, or function declarations.`;
+  return `\`@${FIELD_TAG}\` can only be used on method/property declarations, signatures, function or static method declarations.`;
 }
+
+export function rootFieldTagOnWrongNode(typeName: string) {
+  return `\`@gql${typeName}Field\` can only be used on function or static method declarations.`;
+}
+
 export function killsParentOnExceptionOnWrongNode() {
   return `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\`. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` can only be used in field annotation docblocks. Perhaps you are missing a \`@${FIELD_TAG}\` tag?`;
 }

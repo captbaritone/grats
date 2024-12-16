@@ -1,10 +1,7 @@
 import { Int } from "grats";
 
-/** @gqlType */
-type Subscription = unknown;
-
-/** @gqlField */
-export async function* countdown(_: Subscription): AsyncIterable<Int> {
+/** @gqlSubscriptionField */
+export async function* countdown(): AsyncIterable<Int> {
   for (let i = 10; i >= 0; i--) {
     await sleep(1);
     yield i;
@@ -30,8 +27,8 @@ export function getSchema(): GraphQLSchema {
                 countdown: {
                     name: "countdown",
                     type: GraphQLInt,
-                    subscribe(source) {
-                        return subscriptionCountdownResolver(source);
+                    subscribe() {
+                        return subscriptionCountdownResolver();
                     },
                     resolve(payload) {
                         return payload;
