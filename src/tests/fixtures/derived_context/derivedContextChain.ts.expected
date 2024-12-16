@@ -1,0 +1,88 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlContext */
+type RootContext = { userName: string };
+
+type DerivedContextA = { greeting: string };
+
+/** @gqlContext */
+export function createDerivedContextA(ctx: RootContext): DerivedContextA {
+  return { greeting: `Hello, ${ctx.userName}!` };
+}
+
+type DerivedContextB = { greeting: string };
+
+/** @gqlContext */
+export function createDerivedContextB(ctx: DerivedContextA): DerivedContextB {
+  return { greeting: ctx.greeting.toUpperCase() };
+}
+
+type EverythingContext = { greeting: string };
+
+/** @gqlContext */
+export function allTheContexts(
+  root: RootContext,
+  a: DerivedContextA,
+  b: DerivedContextB,
+): EverythingContext {
+  return { greeting: `${root.userName} ${a.greeting} ${b.greeting}` };
+}
+
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlField */
+export function greeting(_: Query, ctx: EverythingContext): string {
+  return ctx.greeting;
+}
+
+/** @gqlField */
+export function consumingMultipleContexts(
+  _: Query,
+  root: RootContext,
+  a: DerivedContextA,
+  b: DerivedContextB,
+  everything: EverythingContext,
+): string {
+  return `${root.userName} ${a.greeting} ${b.greeting} ${everything.greeting}`;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Query {
+  consumingMultipleContexts: String
+  greeting: String
+}
+-- TypeScript --
+import { consumingMultipleContexts as queryConsumingMultipleContextsResolver, createDerivedContextA as createDerivedContextA, createDerivedContextB as createDerivedContextB, allTheContexts as allTheContexts, greeting as queryGreetingResolver } from "./derivedContextChain";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                consumingMultipleContexts: {
+                    name: "consumingMultipleContexts",
+                    type: GraphQLString,
+                    resolve(source, _args, context) {
+                        return queryConsumingMultipleContextsResolver(source, context, createDerivedContextA(context), createDerivedContextB(createDerivedContextA(context)), allTheContexts(context, createDerivedContextA(context), createDerivedContextB(createDerivedContextA(context))));
+                    }
+                },
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return queryGreetingResolver(source, allTheContexts(context, createDerivedContextA(context), createDerivedContextB(createDerivedContextA(context))));
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType]
+    });
+}

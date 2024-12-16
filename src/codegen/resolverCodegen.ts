@@ -20,6 +20,7 @@ const F = ts.factory;
  */
 export default class ResolverCodegen {
   _helpers: Set<string> = new Set();
+  _derivedContextNames: Map<string, string> = new Map();
   constructor(public ts: TSAstBuilder, public _resolvers: Metadata) {}
   resolveMethod(
     fieldName: string,
@@ -178,11 +179,36 @@ export default class ResolverCodegen {
           F.createIdentifier("args"),
           F.createIdentifier(arg.name),
         );
+      case "derivedContext": {
+        const localName = this.getDerivedContextName(arg.path, arg.exportName);
+        this.ts.importUserConstruct(arg.path, arg.exportName, localName);
+        return F.createCallExpression(
+          F.createIdentifier(localName),
+          undefined,
+          arg.args.map((arg) => this.resolverParam(arg)),
+        );
+      }
+
       default:
         // @ts-expect-error
         throw new Error(`Unexpected resolver kind ${arg.kind}`);
     }
   }
+
+  // Derived contexts are not anchored to anything that we know to be
+  // globally unique, like GraphQL type names, so must ensure this name is
+  // unique within our module. However, we want to avoid generating a new
+  // name for the same derived context more than once.
+  getDerivedContextName(path: string, exportName: string | null): string {
+    const key = `${path}:${exportName ?? ""}`;
+    let name = this._derivedContextNames.get(key);
+    if (name == null) {
+      name = this.ts.getUniqueName(exportName ?? "deriveContext");
+      this._derivedContextNames.set(key, name);
+    }
+    return name;
+  }
+
   // If a field is smantically non-null, we need to wrap the resolver in a
   // runtime check to ensure that the resolver does not return null.
   maybeApplySemanticNullRuntimeCheck(
