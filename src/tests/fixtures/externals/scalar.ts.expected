@@ -63,7 +63,6 @@ type NestedObject {
 type Query {
   myRoot(my: MyScalar!, nested: NestedInput!): NestedObject
 }
-
 -- TypeScript --
 import { IResolvers } from "@graphql-tools/utils";
 import { myRoot as queryMyRootResolver } from "./scalar";

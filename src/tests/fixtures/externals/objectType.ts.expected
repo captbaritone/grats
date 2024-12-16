@@ -34,7 +34,6 @@ type Query {
 extend type MyType {
   someField: String
 }
-
 -- TypeScript --
 import { IResolvers } from "@graphql-tools/utils";
 import { myRoot as queryMyRootResolver, someField as myTypeSomeFieldResolver } from "./objectType";

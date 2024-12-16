@@ -51,7 +51,6 @@ type ImplementingType implements MyInterface {
 type Query {
   myRoot: ImplementingType
 }
-
 -- TypeScript --
 import { IResolvers } from "@graphql-tools/utils";
 import { someField as implementingTypeSomeFieldResolver, myRoot as queryMyRootResolver } from "./interface";

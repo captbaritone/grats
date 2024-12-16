@@ -26,7 +26,6 @@ OUTPUT
 type Query {
   myRoot: MyUnion
 }
-
 -- TypeScript --
 import { IResolvers } from "@graphql-tools/utils";
 import { myRoot as queryMyRootResolver } from "./union";

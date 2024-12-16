@@ -35,7 +35,6 @@ input NestedInput {
 type Query {
   myRoot(my: MyInput!, nested: NestedInput!): Int
 }
-
 -- TypeScript --
 import { IResolvers } from "@graphql-tools/utils";
 import { myRoot as queryMyRootResolver } from "./inputTypes";
