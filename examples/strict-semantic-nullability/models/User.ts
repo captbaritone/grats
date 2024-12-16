@@ -1,9 +1,8 @@
 import IPerson from "../interfaces/IPerson";
-import { Query } from "../Query";
 import Group from "./Group";
 
 /** @gqlType User */
-export default class UserResolver implements IPerson {
+export default class User implements IPerson {
   /** @gqlField */
   name(): string {
     return "Alice";
@@ -12,9 +11,13 @@ export default class UserResolver implements IPerson {
   groups(): Group[] {
     return [new Group()];
   }
-}
+  /** @gqlQueryField */
+  static allUsers(): User[] {
+    return [new User(), new User()];
+  }
 
-/** @gqlField */
-export function allUsers(_: Query): UserResolver[] {
-  return [new UserResolver(), new UserResolver()];
+  /** @gqlQueryField */
+  static me(): User {
+    return new User();
+  }
 }

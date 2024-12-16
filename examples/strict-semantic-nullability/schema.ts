@@ -3,13 +3,11 @@
  * Do not manually edit. Regenerate by running `npx grats`.
  */
 import UserClass from "./models/User";
-import { allUsers as queryAllUsersResolver } from "./models/User";
-import { me as queryMeResolver } from "./Query";
-import { person as queryPersonResolver } from "./Query";
-import { countdown as subscriptionCountdownResolver } from "./Subscription";
-import { nullItems as subscriptionNullItemsResolver } from "./Subscription";
-import { nullIterable as subscriptionNullIterableResolver } from "./Subscription";
-import { GraphQLSchema, GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLString, defaultFieldResolver, GraphQLInterfaceType, GraphQLInt } from "graphql";
+import queryAllUsersResolver from "./models/User";
+import queryMeResolver from "./models/User";
+import { defaultFieldResolver, GraphQLSchema, GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLString, GraphQLInterfaceType, GraphQLInt } from "graphql";
+import { person as queryPersonResolver } from "./interfaces/IPerson";
+import { countdown as subscriptionCountdownResolver, nullItems as subscriptionNullItemsResolver, nullIterable as subscriptionNullIterableResolver } from "./Subscription";
 async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
     const awaited = await value;
     if (awaited == null)
@@ -88,22 +86,22 @@ export function getSchema(): GraphQLSchema {
                 allUsers: {
                     name: "allUsers",
                     type: new GraphQLList(new GraphQLNonNull(UserType)),
-                    resolve(source) {
-                        return assertNonNull(queryAllUsersResolver(source));
+                    resolve() {
+                        return assertNonNull(queryAllUsersResolver.allUsers());
                     }
                 },
                 me: {
                     name: "me",
                     type: UserType,
-                    resolve(source) {
-                        return assertNonNull(queryMeResolver(source));
+                    resolve() {
+                        return assertNonNull(queryMeResolver.me());
                     }
                 },
                 person: {
                     name: "person",
                     type: IPersonType,
-                    resolve(source) {
-                        return assertNonNull(queryPersonResolver(source));
+                    resolve() {
+                        return assertNonNull(queryPersonResolver());
                     }
                 }
             };
@@ -122,8 +120,8 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(GraphQLInt)
                         }
                     },
-                    subscribe(source, args) {
-                        return subscriptionCountdownResolver(source, args);
+                    subscribe(_source, args) {
+                        return subscriptionCountdownResolver(args);
                     },
                     resolve(payload) {
                         return assertNonNull(payload);
@@ -132,8 +130,8 @@ export function getSchema(): GraphQLSchema {
                 nullItems: {
                     name: "nullItems",
                     type: GraphQLString,
-                    subscribe(source) {
-                        return subscriptionNullItemsResolver(source);
+                    subscribe() {
+                        return subscriptionNullItemsResolver();
                     },
                     resolve(payload) {
                         return assertNonNull(payload);
@@ -142,8 +140,8 @@ export function getSchema(): GraphQLSchema {
                 nullIterable: {
                     name: "nullIterable",
                     type: GraphQLString,
-                    subscribe(source) {
-                        return subscriptionNullIterableResolver(source);
+                    subscribe() {
+                        return subscriptionNullIterableResolver();
                     },
                     resolve(payload) {
                         return assertNonNull(payload);

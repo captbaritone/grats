@@ -5,16 +5,14 @@
  * Spoiler alert: it passes the explicit null.
  */
 
-/** @gqlType */
-type Query = unknown;
-
 /**
- * @gqlField
+ * @gqlQueryField
  */
-export function hello(
-  _: Query,
-  { someArg = "Hello" }: { someArg?: string | null },
-): string {
+export function hello({
+  someArg = "Hello",
+}: {
+  someArg?: string | null;
+}): string {
   if (someArg === null) {
     return "got null";
   }

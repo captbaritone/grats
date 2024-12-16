@@ -1,8 +1,5 @@
-/** @gqlType */
-type Query = unknown;
-
-/** @gqlField */
-export function arrayOfPromises(_: Query): Promise<string>[] {
+/** @gqlQueryField */
+export function arrayOfPromises(): Promise<string>[] {
   return [
     Promise.resolve("Hello"),
     Promise.resolve("World"),
@@ -10,8 +7,8 @@ export function arrayOfPromises(_: Query): Promise<string>[] {
   ];
 }
 
-/** @gqlField */
-export function arrayOfArrayOfPromises(_: Query): Promise<string>[][] {
+/** @gqlQueryField */
+export function arrayOfArrayOfPromises(): Promise<string>[][] {
   return [
     [Promise.resolve("Hello"), Promise.resolve("World"), Promise.resolve("!")],
     [
@@ -23,10 +20,10 @@ export function arrayOfArrayOfPromises(_: Query): Promise<string>[][] {
   ];
 }
 
-/** @gqlField */
-export async function* asyncIterableOfArrayOfPromises(
-  _: Query,
-): AsyncIterable<Promise<string>[]> {
+/** @gqlQueryField */
+export async function* asyncIterableOfArrayOfPromises(): AsyncIterable<
+  Promise<string>[]
+> {
   yield [
     Promise.resolve("Hello"),
     Promise.resolve("World"),
