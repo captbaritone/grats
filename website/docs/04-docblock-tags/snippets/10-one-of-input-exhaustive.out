@@ -103,7 +103,7 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(UserByType)
                         }
                     },
-                    resolve(source, args) {
+                    resolve(_source, args) {
                         return queryGetUserResolver(args.by);
                     }
                 }

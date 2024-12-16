@@ -133,14 +133,14 @@ export function getSchema(): GraphQLSchema {
                 myOtherValue: {
                     name: "myOtherValue",
                     type: MyOtherValueResultType,
-                    resolve(source) {
+                    resolve() {
                         return queryMyOtherValueResolver();
                     }
                 },
                 myValue: {
                     name: "myValue",
                     type: MyValueResultType,
-                    resolve(source) {
+                    resolve() {
                         return queryMyValueResolver();
                     }
                 }

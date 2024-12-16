@@ -27,7 +27,7 @@ export function getSchema(): GraphQLSchema {
                 countdown: {
                     name: "countdown",
                     type: GraphQLInt,
-                    subscribe(source) {
+                    subscribe() {
                         return subscriptionCountdownResolver();
                     },
                     resolve(payload) {

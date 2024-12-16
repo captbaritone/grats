@@ -83,7 +83,7 @@ export function getSchema(): GraphQLSchema {
                 myValue: {
                     name: "myValue",
                     type: MyValueResultType,
-                    resolve(source) {
+                    resolve() {
                         return queryMyValueResolver();
                     }
                 }

@@ -179,7 +179,7 @@ export function getSchema(): GraphQLSchema {
                             type: GraphQLInt
                         }
                     },
-                    resolve(source, args) {
+                    resolve(_source, args) {
                         return queryUsersResolver(args);
                     }
                 }

@@ -38,7 +38,7 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     },
-                    resolve(source, args) {
+                    resolve(_source, args) {
                         return mutationDeleteUserResolver(args.id);
                     }
                 }

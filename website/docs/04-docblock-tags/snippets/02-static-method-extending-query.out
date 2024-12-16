@@ -43,7 +43,7 @@ export function getSchema(): GraphQLSchema {
                 me: {
                     name: "me",
                     type: UserType,
-                    resolve(source) {
+                    resolve() {
                         return queryMeResolver.me();
                     }
                 }

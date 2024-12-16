@@ -70,7 +70,7 @@ export function getSchema(): GraphQLSchema {
                 me: {
                     name: "me",
                     type: UserType,
-                    resolve(source) {
+                    resolve() {
                         return queryMeResolver();
                     }
                 },
@@ -78,7 +78,7 @@ export function getSchema(): GraphQLSchema {
                     deprecationReason: "Please use `me` instead.",
                     name: "viewer",
                     type: UserType,
-                    resolve(source) {
+                    resolve() {
                         return queryViewerResolver();
                     }
                 }
