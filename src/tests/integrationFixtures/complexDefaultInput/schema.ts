@@ -28,8 +28,8 @@ export function getSchema(): GraphQLSchema {
                             }
                         }
                     },
-                    resolve(source, args) {
-                        return queryHelloResolver(source, args);
+                    resolve(_source, args) {
+                        return queryHelloResolver(args);
                     }
                 }
             };

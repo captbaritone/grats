@@ -1,6 +1,5 @@
 import { fromGlobalId, toGlobalId } from "graphql-relay";
 import { ID } from "grats";
-import { Query } from "./Roots";
 import { Ctx } from "../ViewerContext";
 
 /**
@@ -37,9 +36,8 @@ export function id(node: GraphQLNode): ID {
 
 /**
  * Fetch a single `Node` by its globally unique ID.
- * @gqlField */
+ * @gqlQueryField */
 export async function node(
-  _: Query,
   args: { id: ID },
   ctx: Ctx,
 ): Promise<GraphQLNode | null> {
@@ -62,11 +60,10 @@ export async function node(
 
 /**
  * Fetch a list of `Node`s by their globally unique IDs.
- * @gqlField */
+ * @gqlQueryField */
 export async function nodes(
-  _: Query,
-  args: { ids: ID[] },
+  ids: ID[],
   ctx: Ctx,
 ): Promise<Array<GraphQLNode | null>> {
-  return Promise.all(args.ids.map((id) => node(_, { id }, ctx)));
+  return Promise.all(ids.map((id) => node({ id }, ctx)));
 }

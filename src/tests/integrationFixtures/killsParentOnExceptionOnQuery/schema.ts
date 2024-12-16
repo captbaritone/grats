@@ -8,15 +8,15 @@ export function getSchema(): GraphQLSchema {
                 alwaysThrowsKillsParentOnException: {
                     name: "alwaysThrowsKillsParentOnException",
                     type: new GraphQLNonNull(GraphQLString),
-                    resolve(source) {
-                        return queryAlwaysThrowsKillsParentOnExceptionResolver(source);
+                    resolve() {
+                        return queryAlwaysThrowsKillsParentOnExceptionResolver();
                     }
                 },
                 hello: {
                     name: "hello",
                     type: GraphQLString,
-                    resolve(source) {
-                        return queryHelloResolver(source);
+                    resolve() {
+                        return queryHelloResolver();
                     }
                 }
             };

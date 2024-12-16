@@ -1,15 +1,12 @@
-/** @gqlType */
-type Query = unknown;
-
-/** @gqlField */
-export function me(_: Query): User {
+/** @gqlQueryField */
+export function me(): User {
   return new User();
 }
 
 /**
- * @gqlField
+ * @gqlQueryField
  * @deprecated Please use `me` instead. */
-export function viewer(_: Query): User {
+export function viewer(): User {
   return new User();
 }
 
@@ -74,7 +71,7 @@ export function getSchema(): GraphQLSchema {
                     name: "me",
                     type: UserType,
                     resolve(source) {
-                        return queryMeResolver(source);
+                        return queryMeResolver();
                     }
                 },
                 viewer: {
@@ -82,7 +79,7 @@ export function getSchema(): GraphQLSchema {
                     name: "viewer",
                     type: UserType,
                     resolve(source) {
-                        return queryViewerResolver(source);
+                        return queryViewerResolver();
                     }
                 }
             };

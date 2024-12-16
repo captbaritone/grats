@@ -3,8 +3,8 @@
  * Do not manually edit. Regenerate by running `npx grats`.
  */
 import UserClass from "./models/User";
-import { allUsers as queryAllUsersResolver } from "./models/User";
-import { me as queryMeResolver } from "./Query";
+import queryAllUsersResolver from "./models/User";
+import queryMeResolver from "./models/User";
 import { person as queryPersonResolver } from "./Query";
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLString, GraphQLInterfaceType } from "graphql";
 export function getSchema(): GraphQLSchema {
@@ -65,21 +65,21 @@ export function getSchema(): GraphQLSchema {
                     name: "allUsers",
                     type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(UserType))),
                     resolve(source) {
-                        return queryAllUsersResolver(source);
+                        return queryAllUsersResolver.allUsers();
                     }
                 },
                 me: {
                     name: "me",
                     type: new GraphQLNonNull(UserType),
                     resolve(source) {
-                        return queryMeResolver(source);
+                        return queryMeResolver.me();
                     }
                 },
                 person: {
                     name: "person",
                     type: new GraphQLNonNull(IPersonType),
                     resolve(source) {
-                        return queryPersonResolver(source);
+                        return queryPersonResolver();
                     }
                 }
             };
