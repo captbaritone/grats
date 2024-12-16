@@ -33,6 +33,7 @@ import { resolveTypes } from "./transforms/resolveTypes";
 import { resolveResolverParams } from "./transforms/resolveResolverParams";
 import { customSpecValidations } from "./validations/customSpecValidations";
 import { makeResolverSignature } from "./transforms/makeResolverSignature";
+import { addImplicitRootTypes } from "./transforms/addImplicitRootTypes";
 import { Metadata } from "./metadata";
 
 // Export the TypeScript plugin implementation used by
@@ -113,6 +114,9 @@ export function extractSchemaAndDoc(
         // Apply default nullability to fields and arguments, and detect any misuse of
         // `@killsParentOnException`.
         .andThen((doc) => applyDefaultNullability(doc, config))
+        // Ensure we have Query/Mutation/Subscription types if they've been extended with
+        // `@gqlQueryField` and friends.
+        .map((doc) => addImplicitRootTypes(doc))
         // Merge any `extend` definitions into their base definitions.
         .map((doc) => mergeExtensions(doc))
         // Perform custom validations that reimplement spec validation rules

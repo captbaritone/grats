@@ -8,15 +8,15 @@ export function getSchema(): GraphQLSchema {
                 someList: {
                     name: "someList",
                     type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
-                    resolve(source) {
-                        return querySomeListResolver(source);
+                    resolve() {
+                        return querySomeListResolver();
                     }
                 },
                 someListOfLists: {
                     name: "someListOfLists",
                     type: new GraphQLList(new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLString)))),
-                    resolve(source) {
-                        return querySomeListOfListsResolver(source);
+                    resolve() {
+                        return querySomeListOfListsResolver();
                     }
                 }
             };

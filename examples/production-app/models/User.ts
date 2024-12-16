@@ -3,7 +3,6 @@ import { Ctx } from "../ViewerContext";
 import { GraphQLNode } from "../graphql/Node";
 import { Model } from "./Model";
 import { Post } from "./Post";
-import { Mutation } from "../graphql/Roots";
 import { Connection } from "../graphql/Connection";
 import { GqlInfo, Int } from "../../../dist/src/Types.js";
 import { connectionFromSelectOrCount } from "../graphql/gqlUtils.js";
@@ -55,9 +54,8 @@ type CreateUserPayload = {
 
 /**
  * Create a new user.
- * @gqlField */
+ * @gqlMutationField */
 export async function createUser(
-  _: Mutation,
   input: CreateUserInput,
   ctx: Ctx,
 ): Promise<CreateUserPayload> {

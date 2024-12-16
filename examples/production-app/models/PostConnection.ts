@@ -1,7 +1,6 @@
 import { GqlInfo, Int } from "grats";
 import * as DB from "../Database";
 import { Ctx } from "../ViewerContext";
-import { Query } from "../graphql/Roots";
 import { Post } from "./Post";
 import { Connection } from "../graphql/Connection";
 import { connectionFromSelectOrCount } from "../graphql/gqlUtils.js";
@@ -17,9 +16,8 @@ export function nodes(userConnection: Connection<Post>): Post[] {
 
 /**
  * All posts in the system. Note that there is no guarantee of order.
- * @gqlField */
+ * @gqlQueryField */
 export async function posts(
-  _: Query,
   args: {
     first?: Int | null;
     after?: string | null;

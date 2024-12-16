@@ -1,7 +1,6 @@
 import { GqlInfo, Int } from "grats";
 import * as DB from "../Database";
 import { Ctx } from "../ViewerContext";
-import { Query, Subscription } from "../graphql/Roots";
 import { Like } from "./Like";
 import { PageInfo } from "../graphql/Connection";
 import { PubSub } from "../PubSub";
@@ -41,9 +40,8 @@ type LikeEdge = {
 
 /**
  * All likes in the system. Note that there is no guarantee of order.
- * @gqlField */
+ * @gqlQueryField */
 export async function likes(
-  _: Query,
   args: {
     first?: Int | null;
     after?: string | null;
@@ -64,9 +62,8 @@ export async function likes(
 /**
  * Subscribe to likes on a post.
  * **Note:** Does not immediately return likes, but rather updates as likes are applied.
- * @gqlField */
+ * @gqlSubscriptionField */
 export async function postLikes(
-  _: Subscription,
   postID: string,
   ctx: Ctx,
   info: GqlInfo,

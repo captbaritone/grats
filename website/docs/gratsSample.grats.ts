@@ -1,15 +1,12 @@
-/** @gqlType */
-type Query = unknown;
-
-/** @gqlField */
-export function me(_: Query): User {
+/** @gqlQueryField */
+export function me(): User {
   return new User();
 }
 
 /**
- * @gqlField
+ * @gqlQueryField
  * @deprecated Please use `me` instead. */
-export function viewer(_: Query): User {
+export function viewer(): User {
   return new User();
 }
 
