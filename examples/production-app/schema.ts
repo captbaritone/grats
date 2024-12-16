@@ -369,7 +369,7 @@ export function getSchema(): GraphQLSchema {
                             type: GraphQLInt
                         }
                     },
-                    resolve(source, args, context, info) {
+                    resolve(_source, args, context, info) {
                         return queryLikesResolver(args, context, info);
                     }
                 },
@@ -383,7 +383,7 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(GraphQLID)
                         }
                     },
-                    resolve(source, args, context) {
+                    resolve(_source, args, context) {
                         return queryNodeResolver(args, context);
                     }
                 },
@@ -397,7 +397,7 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLID)))
                         }
                     },
-                    resolve(source, args, context) {
+                    resolve(_source, args, context) {
                         return queryNodesResolver(args.ids, context);
                     }
                 },
@@ -423,7 +423,7 @@ export function getSchema(): GraphQLSchema {
                             type: GraphQLInt
                         }
                     },
-                    resolve(source, args, context, info) {
+                    resolve(_source, args, context, info) {
                         return queryPostsResolver(args, context, info);
                     }
                 },
@@ -449,7 +449,7 @@ export function getSchema(): GraphQLSchema {
                             type: GraphQLInt
                         }
                     },
-                    resolve(source, args, context, info) {
+                    resolve(_source, args, context, info) {
                         return queryUsersResolver(args, context, info);
                     }
                 },
@@ -457,7 +457,7 @@ export function getSchema(): GraphQLSchema {
                     description: "The currently authenticated viewer.",
                     name: "viewer",
                     type: ViewerType,
-                    resolve(source) {
+                    resolve() {
                         return queryViewerResolver.viewer();
                     }
                 }
@@ -606,7 +606,7 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(CreateLikeInputType)
                         }
                     },
-                    resolve(source, args, context) {
+                    resolve(_source, args, context) {
                         return mutationCreateLikeResolver(args.input, context);
                     }
                 },
@@ -620,7 +620,7 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(CreatePostInputType)
                         }
                     },
-                    resolve(source, args, context) {
+                    resolve(_source, args, context) {
                         return mutationCreatePostResolver(args.input, context);
                     }
                 },
@@ -634,7 +634,7 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(CreateUserInputType)
                         }
                     },
-                    resolve(source, args, context) {
+                    resolve(_source, args, context) {
                         return mutationCreateUserResolver(args.input, context);
                     }
                 }
@@ -655,7 +655,7 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     },
-                    subscribe(source, args, context, info) {
+                    subscribe(_source, args, context, info) {
                         return subscriptionPostLikesResolver(args.postID, context, info);
                     },
                     resolve(payload) {

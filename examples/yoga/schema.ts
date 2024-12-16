@@ -65,21 +65,21 @@ export function getSchema(): GraphQLSchema {
                 allUsers: {
                     name: "allUsers",
                     type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(UserType))),
-                    resolve(source) {
+                    resolve() {
                         return queryAllUsersResolver.allUsers();
                     }
                 },
                 me: {
                     name: "me",
                     type: new GraphQLNonNull(UserType),
-                    resolve(source) {
+                    resolve() {
                         return queryMeResolver.me();
                     }
                 },
                 person: {
                     name: "person",
                     type: new GraphQLNonNull(IPersonType),
-                    resolve(source) {
+                    resolve() {
                         return queryPersonResolver();
                     }
                 }
@@ -99,7 +99,7 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(GraphQLInt)
                         }
                     },
-                    subscribe(source, args) {
+                    subscribe(_source, args) {
                         return subscriptionCountdownResolver(args);
                     },
                     resolve(payload) {

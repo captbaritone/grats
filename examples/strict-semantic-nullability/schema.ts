@@ -86,21 +86,21 @@ export function getSchema(): GraphQLSchema {
                 allUsers: {
                     name: "allUsers",
                     type: new GraphQLList(new GraphQLNonNull(UserType)),
-                    resolve(source) {
+                    resolve() {
                         return assertNonNull(queryAllUsersResolver.allUsers());
                     }
                 },
                 me: {
                     name: "me",
                     type: UserType,
-                    resolve(source) {
+                    resolve() {
                         return assertNonNull(queryMeResolver.me());
                     }
                 },
                 person: {
                     name: "person",
                     type: IPersonType,
-                    resolve(source) {
+                    resolve() {
                         return assertNonNull(queryPersonResolver());
                     }
                 }
@@ -120,7 +120,7 @@ export function getSchema(): GraphQLSchema {
                             type: new GraphQLNonNull(GraphQLInt)
                         }
                     },
-                    subscribe(source, args) {
+                    subscribe(_source, args) {
                         return subscriptionCountdownResolver(args);
                     },
                     resolve(payload) {
@@ -130,7 +130,7 @@ export function getSchema(): GraphQLSchema {
                 nullItems: {
                     name: "nullItems",
                     type: GraphQLString,
-                    subscribe(source) {
+                    subscribe() {
                         return subscriptionNullItemsResolver();
                     },
                     resolve(payload) {
@@ -140,7 +140,7 @@ export function getSchema(): GraphQLSchema {
                 nullIterable: {
                     name: "nullIterable",
                     type: GraphQLString,
-                    subscribe(source) {
+                    subscribe() {
                         return subscriptionNullIterableResolver();
                     },
                     resolve(payload) {
