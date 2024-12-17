@@ -48,7 +48,7 @@ export function extractSnapshotsFromProgram(
   }
 
   const extractResults = gratsSourceFiles.map((sourceFile) => {
-    return extract(sourceFile);
+    return extract(sourceFile, options.raw.grats);
   });
 
   return collectResults(extractResults);

@@ -49,9 +49,11 @@ export function applySDLHeader(config: GratsConfig, sdl: string): string {
 export function printSDLWithoutMetadata(doc: DocumentNode): string {
   const trimmed = visit(doc, {
     ScalarTypeDefinition(t) {
-      return specifiedScalarTypes.some((scalar) => scalar.name === t.name.value)
-        ? null
-        : t;
+      if (specifiedScalarTypes.some((scalar) => scalar.name === t.name.value)) {
+        return null;
+      } else {
+        return t;
+      }
     },
   });
   return print(trimmed);

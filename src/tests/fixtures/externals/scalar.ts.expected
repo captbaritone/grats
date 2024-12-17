@@ -1,0 +1,77 @@
+-----------------
+INPUT
+----------------- 
+// { "EXPERIMENTAL__emitResolverMap": true }
+
+import {
+  SomeScalar as _SomeScalar,
+  SomeEnum as _SomeEnum,
+} from "./nonGratsPackage.ignore";
+
+/**
+ * @gqlInput MyScalar
+ * @gqlExternal "./test-sdl.ignore.graphql"
+ */
+type SomeScalar = _SomeScalar;
+
+/**
+ * @gqlInput MyEnum
+ * @gqlExternal "./test-sdl.ignore.graphql"
+ */
+type SomeEnum = _SomeEnum;
+
+/**
+ * @gqlInput
+ */
+type NestedInput = {
+  my: SomeScalar;
+  enum: SomeEnum;
+};
+
+/**
+ * @gqlType
+ */
+type NestedObject = {
+  /** @gqlField */
+  my: SomeScalar;
+  /** @gqlField */
+  enum: SomeEnum;
+};
+
+/** @gqlQueryField */
+export function myRoot(
+  my: SomeScalar,
+  nested: NestedInput,
+): NestedObject | null {
+  return null;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+input NestedInput {
+  enum: MyEnum!
+  my: MyScalar!
+}
+
+type NestedObject {
+  enum: MyEnum
+  my: MyScalar
+}
+
+type Query {
+  myRoot(my: MyScalar!, nested: NestedInput!): NestedObject
+}
+-- TypeScript --
+import { IResolvers } from "@graphql-tools/utils";
+import { myRoot as queryMyRootResolver } from "./scalar";
+export function getResolverMap(): IResolvers {
+    return {
+        Query: {
+            myRoot(_source, args) {
+                return queryMyRootResolver(args.my, args.nested);
+            }
+        }
+    };
+}

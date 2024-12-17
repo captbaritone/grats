@@ -39,7 +39,11 @@ export function validateTypenames(
             ? E.genericTypeImplementsInterface()
             : E.genericTypeUsedAsUnionMember();
         errors.push(gqlErr(ast.name, message));
-      } else if (!hasTypename.has(implementor.name) && ast.exported == null) {
+      } else if (
+        !ast.isExternalType &&
+        !hasTypename.has(implementor.name) &&
+        ast.exported == null
+      ) {
         const message =
           type instanceof GraphQLInterfaceType
             ? E.concreteTypenameImplementingInterfaceCannotBeResolved(

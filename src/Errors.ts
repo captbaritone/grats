@@ -13,6 +13,8 @@ import {
   SPECIFIED_BY_TAG,
   CONTEXT_TAG,
   INFO_TAG,
+  EXTERNAL_TAG,
+  AllTags,
 } from "./Extractor";
 
 export const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
@@ -151,6 +153,10 @@ export function typeTagOnUnnamedClass() {
 
 export function typeTagOnAliasOfNonObjectOrUnknown() {
   return `Expected \`@${TYPE_TAG}\` type to be an object type literal (\`{ }\`) or \`unknown\`. For example: \`type Foo = { bar: string }\` or \`type Query = unknown\`.`;
+}
+
+export function nonExternalTypeAlias(tag: AllTags) {
+  return `Expected \`@${tag}\` to be a type alias only if used with \`@${EXTERNAL_TAG}\``;
 }
 
 // TODO: Add code action
@@ -606,4 +612,16 @@ export function noTypesDefined() {
 
 export function tsConfigNotFound(cwd: string) {
   return `Grats: Could not find \`tsconfig.json\` searching in ${cwd}.\n\nSee https://www.typescriptlang.org/download/ for instructors on how to add TypeScript to your project. Then run \`npx tsc --init\` to create a \`tsconfig.json\` file.`;
+}
+
+export function noModuleInGqlExternal() {
+  return `\`@${EXTERNAL_TAG}\` must include a module name in double quotes. For example: /** @gqlExternal "myModule" */`;
+}
+
+export function externalNotInResolverMapMode() {
+  return `Unexpected \`@${EXTERNAL_TAG}\` tag.  \`@${EXTERNAL_TAG}\` is only supported when the \`EXPERIMENTAL__emitResolverMap\` Grats configuration option is enabled.`;
+}
+
+export function externalOnWrongNode(existingTag: string) {
+  return `Unexpected \`@${EXTERNAL_TAG}\` on type with \`${existingTag}\`. \`@${EXTERNAL_TAG}\` can only be used on type declarations.`;
 }

@@ -49,6 +49,60 @@ export class ResultPipe<T, E> {
   }
 }
 
+export type PromiseOrValue<T> = T | Promise<T>;
+
+/**
+ * Helper class for chaining together a series of `Result` operations that accepts also promises.
+ */
+export class ResultPipeAsync<T, E> {
+  private readonly _result: Promise<Result<T, E>>;
+  constructor(result: PromiseOrValue<Result<T, E>>) {
+    this._result = Promise.resolve(result);
+  }
+  // Transform the value if OK, otherwise return the error.
+  map<T2>(fn: (value: T) => PromiseOrValue<T2>): ResultPipeAsync<T2, E> {
+    return new ResultPipeAsync(
+      this._result.then((result) => {
+        if (result.kind === "OK") {
+          return Promise.resolve(fn(result.value)).then(ok);
+        }
+        return result;
+      }),
+    );
+  }
+  // Transform the error if ERROR, otherwise return the value.
+  mapErr<E2>(fn: (e: E) => PromiseOrValue<E2>): ResultPipeAsync<T, E2> {
+    return new ResultPipeAsync(
+      this._result.then((result) => {
+        if (result.kind === "ERROR") {
+          return Promise.resolve(fn(result.err)).then(err);
+        }
+        return result;
+      }),
+    );
+  }
+  // Transform the value into a new result if OK, otherwise return the error.
+  // The new result may have a new value type, but must have the same error
+  // type.
+  andThen<U>(
+    fn: (value: T) => PromiseOrValue<Result<U, E>>,
+  ): ResultPipeAsync<U, E> {
+    return new ResultPipeAsync(
+      this._result.then((result) => {
+        if (result.kind === "OK") {
+          return Promise.resolve(fn(result.value));
+        } else {
+          return result;
+        }
+      }),
+    );
+  }
+  // Return the result
+  result(): Promise<Result<T, E>> {
+    return this._result;
+  }
+}
+
 export function collectResults<T>(
   results: DiagnosticsResult<T>[],
 ): DiagnosticsResult<T[]> {

@@ -1,11 +1,17 @@
 import { DocumentNode, FieldDefinitionNode, visit } from "graphql";
 import { extend } from "../utils/helpers";
+import { TypeContext } from "../TypeContext";
 
 /**
  * Takes every example of `extend type Foo` and `extend interface Foo` and
  * merges them into the original type/interface definition.
+ *
+ * Do not merge the ones that are external
  */
-export function mergeExtensions(doc: DocumentNode): DocumentNode {
+export function mergeExtensions(
+  ctx: TypeContext,
+  doc: DocumentNode,
+): DocumentNode {
   const fields = new MultiMap<string, FieldDefinitionNode>();
 
   // Collect all the fields from the extensions and trim them from the AST.
@@ -14,8 +20,13 @@ export function mergeExtensions(doc: DocumentNode): DocumentNode {
       if (t.directives != null || t.interfaces != null) {
         throw new Error("Unexpected directives or interfaces on Extension");
       }
-      fields.extend(t.name.value, t.fields);
-      return null;
+      const nameDef = ctx.getNameDefinition(t.name);
+      if (nameDef && nameDef.externalImportPath) {
+        return t;
+      } else {
+        fields.extend(t.name.value, t.fields);
+        return null;
+      }
     },
     InterfaceTypeExtension(t) {
       if (t.directives != null || t.interfaces != null) {

@@ -1,0 +1,53 @@
+-----------------
+INPUT
+----------------- 
+// { "EXPERIMENTAL__emitResolverMap": true }
+
+import { SomeType as _SomeType } from "./nonGratsPackage.ignore";
+
+/**
+ * @gqlType MyType
+ * @gqlExternal "./test-sdl.ignore.graphql"
+ */
+export type SomeType = _SomeType;
+
+/**
+ * @gqlField
+ */
+export function someField(parent: SomeType): string {
+  return parent.id;
+}
+
+/** @gqlQueryField */
+export function myRoot(): SomeType | null {
+  return null;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Query {
+  myRoot: MyType
+}
+
+extend type MyType {
+  someField: String
+}
+-- TypeScript --
+import { IResolvers } from "@graphql-tools/utils";
+import { myRoot as queryMyRootResolver, someField as myTypeSomeFieldResolver } from "./objectType";
+export function getResolverMap(): IResolvers {
+    return {
+        Query: {
+            myRoot() {
+                return queryMyRootResolver();
+            }
+        },
+        MyType: {
+            someField(source) {
+                return myTypeSomeFieldResolver(source);
+            }
+        }
+    };
+}
