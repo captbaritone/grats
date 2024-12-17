@@ -470,11 +470,7 @@ class Extractor {
 
     if (ts.isTypeReferenceNode(node)) {
       if (this.hasTag(node, EXTERNAL_TAG)) {
-        const externalImportPath = this.externalModule(node);
-        if (externalImportPath) {
-          this.recordTypeName(node, name, "UNION", externalImportPath);
-          return;
-        }
+        return this.externalModule(node, name, "UNION");
       }
       return this.report(node, E.nonExternalTypeAlias(UNION_TAG));
     } else if (!ts.isUnionTypeNode(node.type)) {
@@ -795,11 +791,7 @@ class Extractor {
     const description = this.collectDescription(node);
 
     if (this.hasTag(node, EXTERNAL_TAG)) {
-      const externalImportPath = this.externalModule(node);
-      if (externalImportPath) {
-        this.recordTypeName(node, name, "SCALAR", externalImportPath);
-        return;
-      }
+      return this.externalModule(node, name, "SCALAR");
     }
 
     this.recordTypeName(node, name, "SCALAR");
@@ -824,16 +816,17 @@ class Extractor {
 
     const description = this.collectDescription(node);
 
-    let externalImportPath: string | null = null;
     if (
       node.type.kind === ts.SyntaxKind.TypeReference &&
       this.hasTag(node, EXTERNAL_TAG)
     ) {
-      externalImportPath = this.externalModule(node);
+      return this.externalModule(node, name, "INPUT_OBJECT");
     } else {
       const fields = this.collectInputFields(node);
 
       const deprecatedDirective = this.collectDeprecated(node);
+
+      this.recordTypeName(node, name, "INPUT_OBJECT");
 
       this.definitions.push(
         this.gql.inputObjectTypeDefinition(
@@ -845,8 +838,6 @@ class Extractor {
         ),
       );
     }
-
-    this.recordTypeName(node, name, "INPUT_OBJECT", externalImportPath);
   }
 
   inputInterfaceDeclaration(node: ts.InterfaceDeclaration, tag: ts.JSDocTag) {
@@ -1129,7 +1120,6 @@ class Extractor {
     let interfaces: NamedTypeNode[] | null = null;
 
     let hasTypeName = false;
-    let externalImportPath: string | null = null;
 
     if (ts.isTypeLiteralNode(node.type)) {
       this.validateOperationTypes(node.type, name.value);
@@ -1144,27 +1134,25 @@ class Extractor {
       node.type.kind === ts.SyntaxKind.TypeReference &&
       this.hasTag(node, EXTERNAL_TAG)
     ) {
-      externalImportPath = this.externalModule(node);
+      return this.externalModule(node, name, "TYPE");
     } else {
       return this.report(node.type, E.typeTagOnAliasOfNonObjectOrUnknown());
     }
 
     const description = this.collectDescription(node);
-    this.recordTypeName(node, name, "TYPE", externalImportPath);
+    this.recordTypeName(node, name, "TYPE");
 
-    if (!externalImportPath) {
-      this.definitions.push(
-        this.gql.objectTypeDefinition(
-          node,
-          name,
-          fields,
-          interfaces,
-          description,
-          hasTypeName,
-          null,
-        ),
-      );
-    }
+    this.definitions.push(
+      this.gql.objectTypeDefinition(
+        node,
+        name,
+        fields,
+        interfaces,
+        description,
+        hasTypeName,
+        null,
+      ),
+    );
   }
 
   checkForTypenameProperty(
@@ -1461,11 +1449,7 @@ class Extractor {
       node.type.kind === ts.SyntaxKind.TypeReference &&
       this.hasTag(node, EXTERNAL_TAG)
     ) {
-      const externalImportPath = this.externalModule(node);
-      if (externalImportPath) {
-        this.recordTypeName(node, name, "INTERFACE", externalImportPath);
-        return;
-      }
+      return this.externalModule(node, name, "INTERFACE");
     }
     return this.report(node.type, E.nonExternalTypeAlias(INTERFACE_TAG));
   }
@@ -1767,7 +1751,7 @@ class Extractor {
     );
   }
 
-  enumEnumDeclaration(node: ts.EnumDeclaration, tag: ts.JSDocTag): void {
+  enumEnumDeclaration(node: ts.EnumDeclaration, tag: ts.JSDocTag) {
     const name = this.entityName(node, tag);
     if (name == null || name.value == null) {
       return;
@@ -1783,21 +1767,14 @@ class Extractor {
     );
   }
 
-  enumTypeAliasDeclaration(
-    node: ts.TypeAliasDeclaration,
-    tag: ts.JSDocTag,
-  ): void {
+  enumTypeAliasDeclaration(node: ts.TypeAliasDeclaration, tag: ts.JSDocTag) {
     const name = this.entityName(node, tag);
     if (name == null || name.value == null) {
       return;
     }
 
     if (this.hasTag(node, EXTERNAL_TAG)) {
-      const externalImportPath = this.externalModule(node);
-      if (externalImportPath) {
-        this.recordTypeName(node, name, "ENUM", externalImportPath);
-        return;
-      }
+      return this.externalModule(node, name, "ENUM");
     }
 
     const values = this.enumTypeAliasVariants(node);
@@ -1965,7 +1942,11 @@ class Extractor {
     return this.gql.name(id, id.text);
   }
 
-  externalModule(node: ts.Node): string | null {
+  externalModule(
+    node: ts.DeclarationStatement,
+    name: NameNode,
+    kind: NameDefinition["kind"],
+  ) {
     const tag = this.findTag(node, EXTERNAL_TAG);
     if (!tag) {
       return this.report(node, E.noModuleInGqlExternal());
@@ -1985,9 +1966,11 @@ class Extractor {
     if (!externalModule) {
       return this.report(node, E.noModuleInGqlExternal());
     }
-    return path.resolve(
-      path.dirname(node.getSourceFile().fileName),
-      externalModule,
+    return this.recordTypeName(
+      node,
+      name,
+      kind,
+      path.resolve(path.dirname(node.getSourceFile().fileName), externalModule),
     );
   }
 
