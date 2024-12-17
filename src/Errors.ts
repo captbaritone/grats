@@ -615,15 +615,13 @@ export function tsConfigNotFound(cwd: string) {
 }
 
 export function noModuleInGqlExternal() {
-  return `Grats: @gqlExternal must include a module name in double quotes. For example: /** @gqlExternal "myModule" */`;
+  return `\`@${EXTERNAL_TAG}\` must include a module name in double quotes. For example: /** @gqlExternal "myModule" */`;
 }
 
 export function externalNotInResolverMapMode() {
-  return `Grats: @gqlExternal can only be used if grats is in EXPERIMENTAL__emitResolverMap mode. */`;
+  return `Unexpected \`@${EXTERNAL_TAG}\` tag.  \`@${EXTERNAL_TAG}\` is only supported when the \`EXPERIMENTAL__emitResolverMap\` Grats configuration option is enabled.`;
 }
 
-export function externalOnWrongNode(extistingTags: string[]) {
-  return `Unexpected \`@${EXTERNAL_TAG}\` on type with following tags: ${extistingTags.join(
-    ", ",
-  )}. \`@${EXTERNAL_TAG}\` can only be used on type declarations.`;
+export function externalOnWrongNode(existingTag: string) {
+  return `Unexpected \`@${EXTERNAL_TAG}\` on type with \`${existingTag}\`. \`@${EXTERNAL_TAG}\` can only be used on type declarations.`;
 }

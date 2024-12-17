@@ -34,7 +34,7 @@ import { resolveResolverParams } from "./transforms/resolveResolverParams";
 import { customSpecValidations } from "./validations/customSpecValidations";
 import { makeResolverSignature } from "./transforms/makeResolverSignature";
 import { addImplicitRootTypes } from "./transforms/addImplicitRootTypes";
-import { mergeImportedSchemas } from "./transforms/addImportedSchemas";
+import { addImportedSchemas } from "./transforms/addImportedSchemas";
 import { Metadata } from "./metadata";
 
 // Export the TypeScript plugin implementation used by
@@ -120,30 +120,29 @@ export function extractSchemaAndDoc(
         .map((doc) => addImplicitRootTypes(doc))
         // Merge any `extend` definitions into their base definitions.
         .map((doc) => mergeExtensions(ctx, doc))
-        .andThen((doc) => mergeImportedSchemas(ctx, doc))
         // Perform custom validations that reimplement spec validation rules
         // with more tailored error messages.
-        // TODO
         .andThen((doc) => customSpecValidations(doc))
         // Sort the definitions in the document to ensure a stable output.
         .map((doc) => sortSchemaAst(doc))
+        .andThen((doc) => addImportedSchemas(ctx, doc))
         .result();
 
       if (docResult.kind === "ERROR") {
         return docResult;
       }
-      const doc = docResult.value;
-      const resolvers = makeResolverSignature(doc);
+      const { gratsDoc, externalDocs } = docResult.value;
+      const resolvers = makeResolverSignature(gratsDoc);
 
       // Build and validate the schema with regards to the GraphQL spec.
       return (
-        new ResultPipe(buildSchemaFromDoc(doc))
+        new ResultPipe(buildSchemaFromDoc([gratsDoc, ...externalDocs]))
           // Ensure that every type which implements an interface or is a member of a
           // union has a __typename field.
           .andThen((schema) => validateTypenames(schema, typesWithTypename))
           .andThen((schema) => validateSemanticNullability(schema, config))
           // Combine the schema and document into a single result.
-          .map((schema) => ({ schema, doc, resolvers }))
+          .map((schema) => ({ schema, doc: gratsDoc, resolvers }))
           .result()
       );
     })
@@ -152,12 +151,16 @@ export function extractSchemaAndDoc(
 
 // Given a SDL AST, build and validate a GraphQLSchema.
 function buildSchemaFromDoc(
-  doc: DocumentNode,
+  docs: DocumentNode[],
 ): DiagnosticsWithoutLocationResult<GraphQLSchema> {
   // TODO: Currently this does not detect definitions that shadow builtins
   // (`String`, `Int`, etc). However, if we pass a second param (extending an
   // existing schema) we do! So, we should find a way to validate that we don't
   // shadow builtins.
+  const doc: DocumentNode = {
+    kind: Kind.DOCUMENT,
+    definitions: docs.flatMap((doc) => doc.definitions),
+  };
   const validationErrors = validateSDL(doc);
   if (validationErrors.length > 0) {
     return err(validationErrors.map(graphQlErrorToDiagnostic));

@@ -254,15 +254,18 @@ class Extractor {
           if (
             !this.hasTag(node, TYPE_TAG) &&
             !this.hasTag(node, INPUT_TAG) &&
-            !this.hasTag(node, INTERFACE_TAG)
+            !this.hasTag(node, INTERFACE_TAG) &&
+            !this.hasTag(node, UNION_TAG) &&
+            !this.hasTag(node, SCALAR_TAG) &&
+            !this.hasTag(node, ENUM_TAG)
           ) {
             this.report(
               tag.tagName,
               E.externalOnWrongNode(
                 ts
                   .getJSDocTags(node)
-                  .filter((t) => t.tagName.text !== EXTERNAL_TAG)
-                  .map((t) => t.tagName.escapedText.toString()),
+                  .filter((t) => t.tagName.text !== EXTERNAL_TAG)[0].tagName
+                  .text,
               ),
             );
           }

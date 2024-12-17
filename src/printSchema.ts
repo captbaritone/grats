@@ -49,53 +49,7 @@ export function applySDLHeader(config: GratsConfig, sdl: string): string {
 export function printSDLWithoutMetadata(doc: DocumentNode): string {
   const trimmed = visit(doc, {
     ScalarTypeDefinition(t) {
-      if (t.isExternalType) {
-        return null;
-      } else if (
-        specifiedScalarTypes.some((scalar) => scalar.name === t.name.value)
-      ) {
-        return null;
-      } else {
-        return t;
-      }
-    },
-    ObjectTypeDefinition(t) {
-      if (t.isExternalType) {
-        return null;
-      } else {
-        return t;
-      }
-    },
-    InterfaceTypeDefinition(t) {
-      if (t.isExternalType) {
-        return null;
-      } else {
-        return t;
-      }
-    },
-    ObjectTypeExtension(t) {
-      if (t.isExternalType) {
-        return null;
-      } else {
-        return t;
-      }
-    },
-    UnionTypeDefinition(t) {
-      if (t.isExternalType) {
-        return null;
-      } else {
-        return t;
-      }
-    },
-    EnumTypeDefinition(t) {
-      if (t.isExternalType) {
-        return null;
-      } else {
-        return t;
-      }
-    },
-    InputObjectTypeDefinition(t) {
-      if (t.isExternalType) {
+      if (specifiedScalarTypes.some((scalar) => scalar.name === t.name.value)) {
         return null;
       } else {
         return t;

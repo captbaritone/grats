@@ -35,15 +35,15 @@ export function myRoot(): SomeType | null {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/externals/fundamentalErrors.ts:10:5 - error: Grats: @gqlExternal can only be used if grats is in EXPERIMENTAL__emitResolverMap mode. */
+src/tests/fixtures/externals/fundamentalErrors.ts:10:5 - error: Unexpected `@gqlExternal` tag.  `@gqlExternal` is only supported when the `EXPERIMENTAL__emitResolverMap` Grats configuration option is enabled.
 
 10  * @gqlExternal "./test-sdl.ignore.graphql"
        ~~~~~~~~~~~
-src/tests/fixtures/externals/fundamentalErrors.ts:18:1 - error: Grats: @gqlExternal must include a module name in double quotes. For example: /** @gqlExternal "myModule" */
+src/tests/fixtures/externals/fundamentalErrors.ts:18:1 - error: `@gqlExternal` must include a module name in double quotes. For example: /** @gqlExternal "myModule" */
 
 18 export type OtherType = _SomeType;
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/tests/fixtures/externals/fundamentalErrors.ts:16:5 - error: Grats: @gqlExternal can only be used if grats is in EXPERIMENTAL__emitResolverMap mode. */
+src/tests/fixtures/externals/fundamentalErrors.ts:16:5 - error: Unexpected `@gqlExternal` tag.  `@gqlExternal` is only supported when the `EXPERIMENTAL__emitResolverMap` Grats configuration option is enabled.
 
 16  * @gqlExternal
        ~~~~~~~~~~~
