@@ -73,9 +73,9 @@ This will start a web server running GraphiQL which you can use to try out the s
 
 GitHub CI publishes a release to npm for each commit. They use the version number convention `0.0.0-main-<git hash prefix>`.
 
-To publish a new release:
+To publish a new numbered release:
 
-Update `CHANGELOG.md` with the new version number and a summary of the changes.
+Update [the changelog](./website/docs/07-changelog/index.md) with the new version number and a summary of the changes.
 
 ```bash
 ./scripts/release.sh
