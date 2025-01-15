@@ -1,3 +1,7 @@
+import GratsCode from "@site/src/components/GratsCode";
+import DerivedContext from "!!raw-loader!./snippets/04-derived-context.out";
+import DerivedContextMemoized from "!!raw-loader!./snippets/04-derived-context-memoized.out";
+
 # Context
 
 In addition to the [arguments object](./03-arguments.mdx), each resolver method/function may also access a [context value](https://graphql.org/learn/execution/#root-fields--resolvers). Context is the standard way to implement dependency injection for GraphQL resolvers. Typically the context value will be an object including the current request, information about the requesting user, as well as a database connection and per-request caches, such as [DataLoaders](https://github.com/graphql/dataloader).
@@ -45,32 +49,11 @@ In some cases you may have a context value that is expensive to create, or is on
 
 Once a derived resolver is defined, the type it returns becomes a new context type. **Any resolver argument with this type will receive the value produced by the derived resolver returning that type.**
 
-:::tip
-Derived context functions will be called individually by each resolve that wants to access the derived context value. If you want the result to be reused across multiple resolvers, you should memoize the result.
-:::
+<GratsCode out={DerivedContext} mode="ts" />
 
-```ts
-/**
- * A resolver which reads both the global context and a derived context value.
- *
- * @gqlQueryContext */
-export function me(ctx: GQLCtx, db: Database): User {
-  return db.users.getById(ctx.userID);
-}
+Derived context functions will be called individually by each resolve that wants to access the derived context value. If you want the result to be reused across multiple resolvers, you should memoize the result:
 
-// A derived context resolver cached using a WeakMap to ensure the value is
-// computed at most once per request.
-
-const DB_CACHE = new WeakMap<GQLCtx, Database>();
-
-/** @gqlContext */
-export function createDb(ctx: GQLCtx): Database {
-  if (!DB_CACHE.has(ctx)) {
-    DB_CACHE.set(ctx, new Database());
-  }
-  return DB_CACHE.get(ctx);
-}
-```
+<GratsCode out={DerivedContextMemoized} mode="ts" />
 
 ## Constructing your root context object
 
