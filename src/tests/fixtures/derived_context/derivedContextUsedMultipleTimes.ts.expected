@@ -47,14 +47,14 @@ export function getSchema(): GraphQLSchema {
                 farewell: {
                     name: "farewell",
                     type: GraphQLString,
-                    resolve(source) {
+                    resolve(source, _args, context) {
                         return queryFarewellResolver(source, greetingContext(context));
                     }
                 },
                 greeting: {
                     name: "greeting",
                     type: GraphQLString,
-                    resolve(source) {
+                    resolve(source, _args, context) {
                         return queryGreetingResolver(source, greetingContext(context));
                     }
                 }

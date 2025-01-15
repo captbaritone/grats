@@ -5,6 +5,7 @@
 import { id as likeIdResolver, id as userIdResolver, id as postIdResolver, node as queryNodeResolver, nodes as queryNodesResolver } from "./graphql/Node";
 import { nodes as postConnectionNodesResolver, posts as queryPostsResolver } from "./models/PostConnection";
 import { nodes as likeConnectionNodesResolver, likes as queryLikesResolver, postLikes as subscriptionPostLikesResolver } from "./models/LikeConnection";
+import { getVc as getVc } from "./ViewerContext";
 import { nodes as userConnectionNodesResolver, users as queryUsersResolver } from "./models/UserConnection";
 import { Viewer as queryViewerResolver } from "./models/Viewer";
 import { createLike as mutationCreateLikeResolver } from "./models/Like";
@@ -329,7 +330,7 @@ export function getSchema(): GraphQLSchema {
                     name: "feed",
                     type: new GraphQLList(new GraphQLNonNull(PostType)),
                     resolve(source, _args, context) {
-                        return source.feed(context);
+                        return source.feed(getVc(context));
                     }
                 },
                 user: {
@@ -337,7 +338,7 @@ export function getSchema(): GraphQLSchema {
                     name: "user",
                     type: UserType,
                     resolve(source, _args, context) {
-                        return source.user(context);
+                        return source.user(getVc(context));
                     }
                 }
             };
@@ -370,7 +371,7 @@ export function getSchema(): GraphQLSchema {
                         }
                     },
                     resolve(_source, args, context, info) {
-                        return queryLikesResolver(args, context, info);
+                        return queryLikesResolver(args, getVc(context), info);
                     }
                 },
                 node: {
@@ -384,7 +385,7 @@ export function getSchema(): GraphQLSchema {
                         }
                     },
                     resolve(_source, args, context) {
-                        return queryNodeResolver(args, context);
+                        return queryNodeResolver(args, getVc(context));
                     }
                 },
                 nodes: {
@@ -398,7 +399,7 @@ export function getSchema(): GraphQLSchema {
                         }
                     },
                     resolve(_source, args, context) {
-                        return queryNodesResolver(args.ids, context);
+                        return queryNodesResolver(args.ids, getVc(context));
                     }
                 },
                 posts: {
@@ -424,7 +425,7 @@ export function getSchema(): GraphQLSchema {
                         }
                     },
                     resolve(_source, args, context, info) {
-                        return queryPostsResolver(args, context, info);
+                        return queryPostsResolver(args, getVc(context), info);
                     }
                 },
                 users: {
@@ -450,7 +451,7 @@ export function getSchema(): GraphQLSchema {
                         }
                     },
                     resolve(_source, args, context, info) {
-                        return queryUsersResolver(args, context, info);
+                        return queryUsersResolver(args, getVc(context), info);
                     }
                 },
                 viewer: {
@@ -607,7 +608,7 @@ export function getSchema(): GraphQLSchema {
                         }
                     },
                     resolve(_source, args, context) {
-                        return mutationCreateLikeResolver(args.input, context);
+                        return mutationCreateLikeResolver(args.input, getVc(context));
                     }
                 },
                 createPost: {
@@ -621,7 +622,7 @@ export function getSchema(): GraphQLSchema {
                         }
                     },
                     resolve(_source, args, context) {
-                        return mutationCreatePostResolver(args.input, context);
+                        return mutationCreatePostResolver(args.input, getVc(context));
                     }
                 },
                 createUser: {
@@ -635,7 +636,7 @@ export function getSchema(): GraphQLSchema {
                         }
                     },
                     resolve(_source, args, context) {
-                        return mutationCreateUserResolver(args.input, context);
+                        return mutationCreateUserResolver(args.input, getVc(context));
                     }
                 }
             };
@@ -656,7 +657,7 @@ export function getSchema(): GraphQLSchema {
                         }
                     },
                     subscribe(_source, args, context, info) {
-                        return subscriptionPostLikesResolver(args.postID, context, info);
+                        return subscriptionPostLikesResolver(args.postID, getVc(context), info);
                     },
                     resolve(payload) {
                         return payload;

@@ -47,3 +47,8 @@ export class VC {
 
 /** @gqlContext */
 export type Ctx = YogaInitialContext & { vc: VC };
+
+/** @gqlContext */
+export function getVc(ctx: Ctx): VC {
+  return ctx.vc;
+}

@@ -1,6 +1,6 @@
 import { GqlInfo, Int } from "grats";
 import * as DB from "../Database";
-import { Ctx } from "../ViewerContext";
+import { VC } from "../ViewerContext";
 import { Post } from "./Post";
 import { Connection } from "../graphql/Connection";
 import { connectionFromSelectOrCount } from "../graphql/gqlUtils.js";
@@ -24,12 +24,12 @@ export async function posts(
     last?: Int | null;
     before?: string | null;
   },
-  ctx: Ctx,
+  vc: VC,
   info: GqlInfo,
 ): Promise<Connection<Post>> {
   return connectionFromSelectOrCount(
-    () => DB.selectPosts(ctx.vc),
-    () => DB.selectPostsCount(ctx.vc),
+    () => DB.selectPosts(vc),
+    () => DB.selectPostsCount(vc),
     args,
     info,
   );

@@ -1,5 +1,5 @@
 import * as DB from "../Database";
-import { Ctx } from "../ViewerContext";
+import { VC } from "../ViewerContext";
 import { GraphQLNode, getLocalTypeAssert } from "../graphql/Node";
 import { User } from "./User";
 import { Model } from "./Model";
@@ -53,13 +53,13 @@ type CreateLikePayload = {
  * @gqlMutationField */
 export async function createLike(
   input: CreateLikeInput,
-  ctx: Ctx,
+  vc: VC,
 ): Promise<CreateLikePayload> {
   const id = getLocalTypeAssert(input.postId, "Post");
-  await DB.createLike(ctx.vc, {
+  await DB.createLike(vc, {
     ...input,
-    userId: ctx.vc.userId(),
+    userId: vc.userId(),
     postId: id,
   });
-  return { post: await ctx.vc.getPostById(id) };
+  return { post: await vc.getPostById(id) };
 }

@@ -1,5 +1,5 @@
 import * as DB from "../Database";
-import { Ctx } from "../ViewerContext";
+import { VC } from "../ViewerContext";
 import { GraphQLNode, getLocalTypeAssert } from "../graphql/Node";
 import { User } from "./User";
 import { Model } from "./Model";
@@ -147,9 +147,9 @@ function serializeContent(content: PostContentInput): string {
  * @gqlMutationField */
 export async function createPost(
   input: CreatePostInput,
-  ctx: Ctx,
+  vc: VC,
 ): Promise<CreatePostPayload> {
-  const post = await DB.createPost(ctx.vc, {
+  const post = await DB.createPost(vc, {
     ...input,
     content: serializeContent(input.content),
     authorId: getLocalTypeAssert(input.authorId, "User"),

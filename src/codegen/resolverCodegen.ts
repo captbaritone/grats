@@ -9,7 +9,7 @@ import { nullThrows } from "../utils/helpers";
 import { ResolverArgument, ResolverDefinition, Metadata } from "../metadata";
 import TSAstBuilder from "./TSAstBuilder";
 
-const RESOLVER_ARGS: string[] = ["source", "args", "context", "info"];
+const RESOLVER_ARGS = ["source", "args", "context", "info"] as const;
 
 const F = ts.factory;
 
@@ -286,13 +286,19 @@ function extractUsedParams(
     const name = RESOLVER_ARGS[i];
     const used =
       resolverParams.some((param) => {
-        return (
-          (param.kind === "named" && name === "args") ||
-          (param.kind === "argumentsObject" && name === "args") ||
-          (param.kind === "context" && name === "context") ||
-          (param.kind === "information" && name === "info") ||
-          (param.kind === "source" && name === "source")
-        );
+        switch (name) {
+          case "source":
+            return param.kind === "source";
+          case "args":
+            return param.kind === "named" || param.kind === "argumentsObject";
+          case "context":
+            // Recursively check if this arg uses context.
+            return usesContext(param);
+          case "info":
+            return param.kind === "information";
+          default:
+            throw new Error(`Unexpected resolver kind ${name}`);
+        }
       }) ||
       (name === "source" && includeSource);
 
@@ -306,6 +312,20 @@ function extractUsedParams(
     wrapperArgs.unshift(used ? name : `_${name}`);
   }
   return wrapperArgs;
+}
+
+// A param only uses context if it is the root context value, or if it is a
+// derived context value that directly or transitively uses the root context
+// value. So, we need a recursive function to check if a param uses context.
+function usesContext(param: ResolverArgument) {
+  switch (param.kind) {
+    case "context":
+      return true;
+    case "derivedContext":
+      return param.args.some(usesContext);
+    default:
+      return false;
+  }
 }
 
 function fieldDirective(

@@ -41,7 +41,7 @@ export function getSchema(): GraphQLSchema {
                 greeting: {
                     name: "greeting",
                     type: GraphQLString,
-                    resolve(source) {
+                    resolve(source, _args, context) {
                         return queryGreetingResolver(source, createDerivedContext(context));
                     }
                 }
