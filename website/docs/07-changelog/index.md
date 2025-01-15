@@ -6,6 +6,8 @@ Changes in this section are not yet released. If you need access to these change
 
 ---
 
+## 0.0.31
+
 Grats now supports [Derived Context Values](https://grats.capt.dev/docs/docblock-tags/context/#derived-context-values). These allow you to define a function which returns a different context value than the one root context provided by your main GraphQL server. It could be a fully unique value, or something derived from your root context.
 
 Once defined, any resolver can define an argument typed using the derived resolver's function's return type, Grats will be able to provide that argument, just like it can provide the root context value.
