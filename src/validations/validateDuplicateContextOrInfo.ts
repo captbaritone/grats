@@ -14,7 +14,7 @@ export function validateDuplicateContextOrInfo(
   const errors: FixableDiagnosticWithLocation[] = [];
   let infoDefinition: null | NameDefinition = null;
   let ctxDefinition: null | NameDefinition = null;
-  for (const namedDefinition of ctx.allNameDefinitions()) {
+  for (const namedDefinition of ctx.allDefinitions()) {
     switch (namedDefinition.kind) {
       case "CONTEXT":
         if (ctxDefinition != null) {

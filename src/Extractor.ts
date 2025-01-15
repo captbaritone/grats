@@ -27,7 +27,11 @@ import {
 } from "./utils/DiagnosticError";
 import { err, ok } from "./utils/Result";
 import * as ts from "typescript";
-import { NameDefinition, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
+import {
+  DeclarationDefinition,
+  NameDefinition,
+  UNRESOLVED_REFERENCE_NAME,
+} from "./TypeContext";
 import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
 import { GraphQLConstructor } from "./GraphQLConstructor";
@@ -86,7 +90,10 @@ export type ExtractionSnapshot = {
   readonly definitions: DefinitionNode[];
   readonly unresolvedNames: Map<ts.EntityName, NameNode>;
   readonly nameDefinitions: Map<ts.DeclarationStatement, NameDefinition>;
-  readonly implicitNameDefinitions: Map<NameDefinition, ts.TypeReferenceNode>;
+  readonly implicitNameDefinitions: Map<
+    DeclarationDefinition,
+    ts.TypeReferenceNode
+  >;
   readonly typesWithTypename: Set<string>;
   readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
 };
@@ -118,7 +125,7 @@ class Extractor {
   // Snapshot data
   unresolvedNames: Map<ts.EntityName, NameNode> = new Map();
   nameDefinitions: Map<ts.DeclarationStatement, NameDefinition> = new Map();
-  implicitNameDefinitions: Map<NameDefinition, ts.TypeReferenceNode> =
+  implicitNameDefinitions: Map<DeclarationDefinition, ts.TypeReferenceNode> =
     new Map();
   typesWithTypename: Set<string> = new Set();
   interfaceDeclarations: Array<ts.InterfaceDeclaration> = [];
