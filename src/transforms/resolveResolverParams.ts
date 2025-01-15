@@ -1,3 +1,4 @@
+import * as ts from "typescript";
 import {
   DefinitionNode,
   FieldDefinitionNode,
@@ -5,16 +6,23 @@ import {
   Kind,
   visit,
 } from "graphql";
-import { TypeContext, UNRESOLVED_REFERENCE_NAME } from "../TypeContext";
+import {
+  DerivedResolverDefinition,
+  TypeContext,
+  UNRESOLVED_REFERENCE_NAME,
+} from "../TypeContext";
 import { err, ok } from "../utils/Result";
 import {
   DiagnosticsResult,
   FixableDiagnosticWithLocation,
+  gqlErr,
   tsErr,
   tsRelated,
 } from "../utils/DiagnosticError";
-import { nullThrows } from "../utils/helpers";
+import { invariant, nullThrows } from "../utils/helpers";
 import {
+  ContextResolverArgument,
+  DerivedContextResolverArgument,
   NamedResolverArgument,
   ResolverArgument,
   UnresolvedResolverArgument,
@@ -62,9 +70,12 @@ class ResolverParamsResolver {
     }
 
     // Resolve all the params individually
-    const resolverParams: ResolverArgument[] = resolver.arguments.map((param) =>
-      this.transformParam(param),
-    );
+    const resolverParams: ResolverArgument[] = [];
+    for (const param of resolver.arguments) {
+      const transformed = this.transformParam(param);
+      if (transformed == null) return field;
+      resolverParams.push(transformed);
+    }
 
     // Now we check to see if the params are a valid combination...
     const args = resolverParams.find(
@@ -102,12 +113,16 @@ class ResolverParamsResolver {
     return { ...field, arguments: fieldArgs, resolver: newResolver };
   }
 
-  transformParam(param: ResolverArgument): ResolverArgument {
+  transformParam(
+    param: ResolverArgument,
+    seenDerivedContextValues?: Map<string, ts.Node>,
+  ): ResolverArgument | null {
     switch (param.kind) {
       case "named":
       case "argumentsObject":
       case "information":
       case "context":
+      case "derivedContext":
       case "source":
         return param;
       case "unresolved": {
@@ -121,9 +136,18 @@ class ResolverParamsResolver {
           );
           if (resolved.kind === "ERROR") {
             this.errors.push(resolved.err);
-            return param;
+            return null;
           }
           switch (resolved.value.kind) {
+            case "DERIVED_CONTEXT": {
+              const derivedContextArg = this.resolveDerivedContext(
+                param.node,
+                resolved.value,
+                seenDerivedContextValues,
+              );
+              if (derivedContextArg === null) return null;
+              return derivedContextArg;
+            }
             case "CONTEXT":
               return { kind: "context", node: param.node };
             case "INFO":
@@ -144,6 +168,54 @@ class ResolverParamsResolver {
       }
     }
   }
+
+  private resolveDerivedContext(
+    node: ts.Node, // Argument
+    definition: DerivedResolverDefinition,
+    seenDerivedContextValues?: Map<string, ts.Node>,
+  ): ResolverArgument | null {
+    const { path, exportName, args } = definition;
+    const key = `${path}:${exportName}`;
+    if (seenDerivedContextValues == null) {
+      // We're resolving the arg of a resolver. Initiate the map.
+      seenDerivedContextValues = new Map();
+    } else {
+      if (seenDerivedContextValues.has(key)) {
+        this.errors.push(
+          this.cycleError(node, definition, seenDerivedContextValues),
+        );
+        return null;
+      }
+    }
+    seenDerivedContextValues.set(key, node);
+
+    const newArgs: Array<
+      DerivedContextResolverArgument | ContextResolverArgument
+    > = [];
+    for (const arg of args) {
+      const resolvedArg = this.transformParam(arg, seenDerivedContextValues);
+      if (resolvedArg === null) {
+        continue;
+      }
+      switch (resolvedArg.kind) {
+        case "context":
+          newArgs.push(resolvedArg);
+          break;
+        case "derivedContext":
+          // Here we know that the argument `node` maps to a derived context
+          // `definition` which itself depends another derived resolver `resolvedArg`.
+          // `definition`.
+          newArgs.push(resolvedArg);
+          break;
+        default:
+          this.errors.push(
+            tsErr(resolvedArg.node, E.invalidDerivedContextArgType()),
+          );
+      }
+    }
+    return { kind: "derivedContext", node, path, exportName, args: newArgs };
+  }
+
   resolveToPositionalArg(
     unresolved: UnresolvedResolverArgument,
   ): ResolverArgument | null {
@@ -160,5 +232,48 @@ class ResolverParamsResolver {
       },
       node: unresolved.node,
     };
+  }
+
+  /**
+   * Some slightly complicated logic to construct nice errors in the case of
+   * cycles where derived resolvers ultimately depend upon themselves.
+   *
+   * The `@gqlContext` tag is the main location. If it's a direct cycle, we
+   * report one related location, of the argument which points back to itself.
+   *
+   * If there are multiple nodes in the cycle, we report a related location for
+   * each node in the cycle, with a message that depends on the position of the
+   * node in the cycle.
+   */
+  cycleError(
+    node: ts.Node,
+    definition: DerivedResolverDefinition,
+    seenDerivedContextValues: Map<string, ts.Node>,
+  ): ts.DiagnosticWithLocation {
+    // We trim off the first node because that points to a resolver argument.
+    const nodes = Array.from(seenDerivedContextValues.values()).slice(1);
+    // The cycle completes with this node, so we include it in the list.
+    nodes.push(node);
+    const related = nodes.map((def, i) => {
+      if (nodes.length === 1) {
+        return tsRelated(def, "This derived context depends on itself");
+      }
+
+      const isFirst = i === 0;
+      const isLast = i === nodes.length - 1;
+
+      invariant(!(isFirst && isLast), "Should not be both first and last");
+
+      if (isFirst) {
+        return tsRelated(def, "This derived context depends on");
+      } else if (!isLast) {
+        return tsRelated(def, "Which in turn depends on");
+      }
+      return tsRelated(
+        def,
+        "Which ultimately creates a cycle back to the initial derived context",
+      );
+    });
+    return gqlErr(definition.name, E.cyclicDerivedContext(), related);
   }
 }

@@ -9,6 +9,7 @@ const F = ts.factory;
  * A helper class to build up a TypeScript document AST.
  */
 export default class TSAstBuilder {
+  _globalNames: Map<string, number> = new Map();
   _imports: ts.Statement[] = [];
   imports: Map<string, { name: string; as?: string }[]> = new Map();
   _helpers: ts.Statement[] = [];
@@ -209,7 +210,21 @@ export default class TSAstBuilder {
       sourceFile,
     );
   }
+
+  // Given a desired name in the module scope, return a name that is unique. If
+  // the name is already taken, a suffix will be added to the name to make it
+  // unique.
+  //
+  // NOTE: This is not truly unique, as it only checks the names that have been
+  // generated through this method. In the future we could add more robust
+  // scope/name tracking.
+  getUniqueName(name: string): string {
+    const count = this._globalNames.get(name) ?? 0;
+    this._globalNames.set(name, count + 1);
+    return count === 0 ? name : `${name}_${count}`;
+  }
 }
+
 function replaceExt(filePath: string, newSuffix: string): string {
   const ext = path.extname(filePath);
   return filePath.slice(0, -ext.length) + newSuffix;

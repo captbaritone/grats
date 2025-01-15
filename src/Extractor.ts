@@ -27,7 +27,11 @@ import {
 } from "./utils/DiagnosticError";
 import { err, ok } from "./utils/Result";
 import * as ts from "typescript";
-import { NameDefinition, UNRESOLVED_REFERENCE_NAME } from "./TypeContext";
+import {
+  DeclarationDefinition,
+  NameDefinition,
+  UNRESOLVED_REFERENCE_NAME,
+} from "./TypeContext";
 import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
 import { GraphQLConstructor } from "./GraphQLConstructor";
@@ -86,6 +90,10 @@ export type ExtractionSnapshot = {
   readonly definitions: DefinitionNode[];
   readonly unresolvedNames: Map<ts.EntityName, NameNode>;
   readonly nameDefinitions: Map<ts.DeclarationStatement, NameDefinition>;
+  readonly implicitNameDefinitions: Map<
+    DeclarationDefinition,
+    ts.TypeReferenceNode
+  >;
   readonly typesWithTypename: Set<string>;
   readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
 };
@@ -117,6 +125,8 @@ class Extractor {
   // Snapshot data
   unresolvedNames: Map<ts.EntityName, NameNode> = new Map();
   nameDefinitions: Map<ts.DeclarationStatement, NameDefinition> = new Map();
+  implicitNameDefinitions: Map<DeclarationDefinition, ts.TypeReferenceNode> =
+    new Map();
   typesWithTypename: Set<string> = new Set();
   interfaceDeclarations: Array<ts.InterfaceDeclaration> = [];
 
@@ -188,8 +198,12 @@ class Extractor {
           if (!ts.isDeclarationStatement(node)) {
             this.report(tag, E.contextTagOnNonDeclaration());
           } else {
-            const name = this.gql.name(tag, "CONTEXT_DUMMY_NAME");
-            this.recordTypeName(node, name, "CONTEXT");
+            if (ts.isFunctionDeclaration(node)) {
+              this.recordDerivedContext(node, tag);
+            } else {
+              const name = this.gql.name(tag, "CONTEXT_DUMMY_NAME");
+              this.recordTypeName(node, name, "CONTEXT");
+            }
           }
           break;
         }
@@ -270,6 +284,7 @@ class Extractor {
       definitions: this.definitions,
       unresolvedNames: this.unresolvedNames,
       nameDefinitions: this.nameDefinitions,
+      implicitNameDefinitions: this.implicitNameDefinitions,
       typesWithTypename: this.typesWithTypename,
       interfaceDeclarations: this.interfaceDeclarations,
     });
@@ -328,6 +343,38 @@ class Extractor {
         this.report(tag.tagName, E.gqlFieldParentMissingTag());
       }
     }
+  }
+  recordDerivedContext(node: ts.FunctionDeclaration, tag: ts.JSDocTag) {
+    const returnType = node.type;
+    if (returnType == null) {
+      return this.report(node, E.missingReturnTypeForDerivedResolver());
+    }
+    if (!ts.isTypeReferenceNode(returnType)) {
+      return this.report(returnType, E.missingReturnTypeForDerivedResolver());
+    }
+
+    const funcName = this.namedFunctionExportName(node);
+
+    if (!ts.isSourceFile(node.parent)) {
+      return this.report(node, E.functionFieldNotTopLevel());
+    }
+
+    const tsModulePath = relativePath(node.getSourceFile().fileName);
+
+    const paramResults = this.resolverParams(node.parameters);
+    if (paramResults == null) return null;
+
+    const name = this.gql.name(tag, "CONTEXT_DUMMY_NAME");
+    this.implicitNameDefinitions.set(
+      {
+        kind: "DERIVED_CONTEXT",
+        name,
+        path: tsModulePath,
+        exportName: funcName?.text ?? null,
+        args: paramResults.resolverParams,
+      },
+      returnType,
+    );
   }
 
   extractType(node: ts.Node, tag: ts.JSDocTag) {
