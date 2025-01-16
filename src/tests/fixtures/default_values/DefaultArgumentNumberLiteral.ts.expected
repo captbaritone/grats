@@ -35,7 +35,6 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString,
                     args: {
                         scale: {
-                            name: "scale",
                             type: new GraphQLNonNull(GraphQLFloat),
                             defaultValue: 10
                         }
@@ -46,7 +45,6 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString,
                     args: {
                         count: {
-                            name: "count",
                             type: new GraphQLNonNull(GraphQLInt),
                             defaultValue: 10
                         }

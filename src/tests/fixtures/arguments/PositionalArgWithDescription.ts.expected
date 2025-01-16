@@ -61,7 +61,6 @@ export function getSchema(): GraphQLSchema {
                     args: {
                         greeting: {
                             description: "How to greet the user",
-                            name: "greeting",
                             type: new GraphQLNonNull(GreetingType)
                         }
                     },
