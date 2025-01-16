@@ -16,6 +16,8 @@ import {
   assertName,
   DefinitionNode,
   version as graphqlJSVersion,
+  TokenKind,
+  GraphQLError,
 } from "graphql";
 import { gte as semverGte } from "semver";
 import {
@@ -44,6 +46,7 @@ import {
   InputValueDefinitionNodeOrResolverArg,
   ResolverArgument,
 } from "./resolverSignature";
+import { Parser } from "graphql/language/parser";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -55,6 +58,7 @@ export const INTERFACE_TAG = "gqlInterface";
 export const ENUM_TAG = "gqlEnum";
 export const UNION_TAG = "gqlUnion";
 export const INPUT_TAG = "gqlInput";
+export const DIRECTIVE_TAG = "gqlDirective";
 
 export const QUERY_FIELD_TAG = "gqlQueryField";
 export const MUTATION_FIELD_TAG = "gqlMutationField";
@@ -75,6 +79,7 @@ export const ALL_TAGS = [
   ENUM_TAG,
   UNION_TAG,
   INPUT_TAG,
+  DIRECTIVE_TAG,
 ];
 
 const DEPRECATED_TAG = "deprecated";
@@ -158,6 +163,9 @@ class Extractor {
     traverseJSDocTags(sourceFile, (node, tag) => {
       seenCommentPositions.add(tag.parent.pos);
       switch (tag.tagName.text) {
+        case DIRECTIVE_TAG:
+          this.extractDirective(node, tag);
+          break;
         case TYPE_TAG:
           this.extractType(node, tag);
           break;
@@ -377,6 +385,36 @@ class Extractor {
     );
   }
 
+  extractDirective(node: ts.Node, tag: ts.JSDocTag) {
+    if (!ts.isFunctionDeclaration(node)) {
+      return this.report(
+        tag,
+        "Expected `@gqlDirective` to be attached to a function declaration.",
+      );
+    }
+
+    const name = this.entityName(node, tag);
+    if (name == null) return null;
+
+    const description = this.collectDescription(node);
+
+    const args = [];
+    const locations = [this.gql.name(tag, "FIELD_DEFINITION")];
+
+    const repeatable = false;
+
+    this.definitions.push(
+      this.gql.directiveDefinition(
+        node,
+        name,
+        args,
+        repeatable,
+        locations,
+        description,
+      ),
+    );
+  }
+
   extractType(node: ts.Node, tag: ts.JSDocTag) {
     if (ts.isClassDeclaration(node)) {
       this.typeClassDeclaration(node, tag);
@@ -498,8 +536,10 @@ class Extractor {
 
     this.recordTypeName(node, name, "UNION");
 
+    const directives = this.collectDirectives(node);
+
     this.definitions.push(
-      this.gql.unionTypeDefinition(node, name, types, description),
+      this.gql.unionTypeDefinition(node, name, types, description, directives),
     );
   }
 
@@ -638,6 +678,68 @@ class Extractor {
     this.collectAbstractField(node, exportName, methodName, name, parentType);
   }
 
+  /**
+   * Runs the parser code in `cb` over the source text and reports any errors at
+   * `node`.
+   *
+   * Ideally we could use GraphQL `Source` with a `locationOffset`, but for
+   * parsing text in docblocks which might span multiple lines, it's not as
+   * simple as providing an offset since the lines in the source text might be
+   * prefixed with indentation and `*`s.
+   */
+  parseGql<T>(
+    node: ts.Node,
+    source: string,
+    cb: (parser: Parser) => T,
+  ): T | null {
+    const parser = new Parser(source);
+    try {
+      parser.expectToken(TokenKind.SOF);
+      const result = cb(parser);
+      parser.expectToken(TokenKind.EOF);
+      return result;
+    } catch (err) {
+      if (err instanceof GraphQLError) {
+        this.report(node, err.message);
+      } else {
+        throw err;
+      }
+    }
+    return null;
+  }
+
+  collectDirectives(node: ts.Node): ConstDirectiveNode[] {
+    const directives: ConstDirectiveNode[] = [];
+    for (const tag of ts.getJSDocTags(node)) {
+      if (ALL_TAGS.includes(tag.tagName.text)) {
+        continue;
+      }
+      if (tag.comment == null) {
+        directives.push(
+          this.gql.constDirective(
+            tag,
+            this.gql.name(tag.tagName, tag.tagName.text),
+            [],
+            true,
+          ),
+        );
+        continue;
+      }
+      if (typeof tag.comment !== "string" || !tag.comment.startsWith("(")) {
+        continue;
+      }
+      const directiveText = `@${tag.tagName.text}${tag.comment}`;
+      const directive = this.parseGql(tag, directiveText, (parser) => {
+        return parser.parseDirective(true);
+      });
+      if (directive != null) {
+        directives.push(directive);
+      }
+    }
+
+    return directives;
+  }
+
   collectAbstractField(
     node: ts.FunctionDeclaration | ts.MethodDeclaration | ts.ArrowFunction,
     exportName: ts.Identifier | null,
@@ -659,7 +761,7 @@ class Extractor {
 
     const tsModulePath = relativePath(node.getSourceFile().fileName);
 
-    const directives: ConstDirectiveNode[] = [];
+    const directives = this.collectDirectives(node);
 
     const description = this.collectDescription(node);
     const deprecated = this.collectDeprecated(node);
@@ -906,6 +1008,7 @@ class Extractor {
     }
 
     const directives = [
+      ...this.collectDirectives(node),
       this.gql.constDirective(node, this.gql.name(oneOf, ONE_OF_TAG), []),
     ];
 
@@ -1052,6 +1155,8 @@ class Extractor {
       }
     }
 
+    const directives = this.collectDirectives(node);
+
     this.definitions.push(
       this.gql.objectTypeDefinition(
         node,
@@ -1059,6 +1164,7 @@ class Extractor {
         fields,
         interfaces,
         description,
+        directives,
         hasTypeName,
         exported,
       ),
@@ -1086,6 +1192,8 @@ class Extractor {
 
     const hasTypeName = this.checkForTypenameProperty(node, name.value);
 
+    const directives = this.collectDirectives(node);
+
     this.definitions.push(
       this.gql.objectTypeDefinition(
         node,
@@ -1093,6 +1201,7 @@ class Extractor {
         fields,
         interfaces,
         description,
+        directives,
         hasTypeName,
         null,
       ),
@@ -1124,6 +1233,8 @@ class Extractor {
     const description = this.collectDescription(node);
     this.recordTypeName(node, name, "TYPE");
 
+    const directives = this.collectDirectives(node);
+
     this.definitions.push(
       this.gql.objectTypeDefinition(
         node,
@@ -1131,6 +1242,7 @@ class Extractor {
         fields,
         interfaces,
         description,
+        directives,
         hasTypeName,
         null,
       ),
@@ -1407,6 +1519,8 @@ class Extractor {
 
     this.recordTypeName(node, name, "INTERFACE");
 
+    const directives = this.collectDirectives(node);
+
     this.definitions.push(
       this.gql.interfaceTypeDefinition(
         node,
@@ -1414,6 +1528,7 @@ class Extractor {
         fields,
         interfaces,
         description,
+        directives,
       ),
     );
   }
@@ -1502,7 +1617,7 @@ class Extractor {
       // https://www.typescriptlang.org/play?#code/MYGwhgzhAEBiD29oG8BQ1rHgOwgFwCcBXYPeAgCgAciAjEAS2BQDNEBfAShXdXaA
       return null;
     }
-    const directives: ConstDirectiveNode[] = [];
+    const directives = this.collectDirectives(node);
 
     const type = this.collectType(node.type, { kind: "OUTPUT" });
     if (type == null) return null;
@@ -1703,13 +1818,18 @@ class Extractor {
 
     const description = this.collectDescription(node);
 
-    const deprecatedDirective = this.collectDeprecated(node);
+    const directives = this.collectDirectives(node);
+
+    const deprecated = this.collectDeprecated(node);
+    if (deprecated != null) {
+      directives.push(deprecated);
+    }
 
     return this.gql.inputValueDefinition(
       node,
       this.gql.name(node.name, node.name.text),
       type,
-      deprecatedDirective == null ? null : [deprecatedDirective],
+      directives,
       defaultValue,
       description,
     );
@@ -1726,8 +1846,10 @@ class Extractor {
 
     this.recordTypeName(node, name, "ENUM");
 
+    const directives = this.collectDirectives(node);
+
     this.definitions.push(
-      this.gql.enumTypeDefinition(node, name, values, description),
+      this.gql.enumTypeDefinition(node, name, values, description, directives),
     );
   }
 
@@ -1746,8 +1868,10 @@ class Extractor {
     const description = this.collectDescription(node);
     this.recordTypeName(node, name, "ENUM");
 
+    const directives = this.collectDirectives(node);
+
     this.definitions.push(
-      this.gql.enumTypeDefinition(node, name, values, description),
+      this.gql.enumTypeDefinition(node, name, values, description, directives),
     );
   }
 
@@ -1792,13 +1916,15 @@ class Extractor {
         continue;
       }
 
+      const directives = this.collectDirectives(member);
+
       // TODO: Support descriptions on enum members. As it stands, TypeScript
       // does not allow comments attached to string literal types.
       values.push(
         this.gql.enumValueDefinition(
           node,
           this.gql.name(member.literal, member.literal.text),
-          undefined,
+          directives,
           null,
         ),
       );
@@ -1826,12 +1952,16 @@ class Extractor {
       }
 
       const description = this.collectDescription(member);
+      const directives = this.collectDirectives(member);
       const deprecated = this.collectDeprecated(member);
+      if (deprecated != null) {
+        directives.push(deprecated);
+      }
       values.push(
         this.gql.enumValueDefinition(
           member,
           this.gql.name(member.initializer, member.initializer.text),
-          deprecated ? [deprecated] : undefined,
+          directives,
           description,
         ),
       );
@@ -1952,7 +2082,7 @@ class Extractor {
 
     const id = this.expectNameIdentifier(node.name);
     if (id == null) return null;
-    const directives: ConstDirectiveNode[] = [];
+    const directives = this.collectDirectives(node);
 
     const deprecated = this.collectDeprecated(node);
     if (deprecated != null) {
@@ -2079,13 +2209,17 @@ class Extractor {
       }
     }
 
+    const directives = this.collectDirectives(param);
     const deprecated = this.collectDeprecated(param);
+    if (deprecated != null) {
+      directives.push(deprecated);
+    }
 
     return this.gql.inputValueDefinitionOrResolverArg(
       param,
       name,
       type,
-      deprecated == null ? null : [deprecated],
+      directives,
       defaultValue,
       this.collectDescription(param),
     );
@@ -2195,10 +2329,10 @@ class Extractor {
 
     const description = this.collectDescription(node);
 
-    const directives: ConstDirectiveNode[] = [];
     const id = this.expectNameIdentifier(node.name);
     if (id == null) return null;
 
+    const directives = this.collectDirectives(node);
     const deprecated = this.collectDeprecated(node);
     if (deprecated != null) {
       directives.push(deprecated);

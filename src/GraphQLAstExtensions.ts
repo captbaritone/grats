@@ -70,4 +70,18 @@ declare module "graphql" {
     resolver?: ResolverSignature;
     killsParentOnException?: NameNode;
   }
+
+  export interface DirectiveNode {
+    /**
+     * Grats metadata: Indicates that the directive was added by Grats
+     */
+    isAmbiguous?: boolean;
+  }
+
+  export interface ConstDirectiveNode {
+    /**
+     * Grats metadata: Indicates that the directive was added by Grats
+     */
+    isAmbiguous?: boolean;
+  }
 }
