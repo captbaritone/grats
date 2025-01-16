@@ -35,7 +35,6 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString,
                     args: {
                         hello: {
-                            name: "hello",
                             type: GraphQLString,
                             defaultValue: null
                         }
@@ -46,7 +45,6 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString,
                     args: {
                         hello: {
-                            name: "hello",
                             type: GraphQLString,
                             defaultValue: null
                         }

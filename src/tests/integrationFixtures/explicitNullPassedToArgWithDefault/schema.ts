@@ -10,7 +10,6 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString,
                     args: {
                         someArg: {
-                            name: "someArg",
                             type: GraphQLString,
                             defaultValue: "Hello"
                         }

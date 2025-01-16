@@ -36,7 +36,6 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString,
                     args: {
                         greet: {
-                            name: "greet",
                             type: GraphQLBoolean,
                             defaultValue: false
                         }
@@ -47,7 +46,6 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString,
                     args: {
                         greet: {
-                            name: "greet",
                             type: GraphQLBoolean,
                             defaultValue: true
                         }

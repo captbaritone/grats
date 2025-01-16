@@ -31,7 +31,6 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString,
                     args: {
                         name: {
-                            name: "name",
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     },

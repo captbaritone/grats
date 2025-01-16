@@ -63,11 +63,9 @@ export function getSchema(): GraphQLSchema {
                     type: FirstHundredIntegersConnectionType,
                     args: {
                         after: {
-                            name: "after",
                             type: GraphQLString
                         },
                         first: {
-                            name: "first",
                             type: GraphQLInt
                         }
                     },
