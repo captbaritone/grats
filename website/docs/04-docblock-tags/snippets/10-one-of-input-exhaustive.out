@@ -99,7 +99,6 @@ export function getSchema(): GraphQLSchema {
                     type: UserType,
                     args: {
                         by: {
-                            name: "by",
                             type: new GraphQLNonNull(UserByType)
                         }
                     },

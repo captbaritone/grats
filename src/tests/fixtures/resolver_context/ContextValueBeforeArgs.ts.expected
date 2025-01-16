@@ -31,7 +31,6 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString,
                     args: {
                         fallbackGreeting: {
-                            name: "fallbackGreeting",
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     },

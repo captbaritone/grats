@@ -95,7 +95,6 @@ export function getSchema(): GraphQLSchema {
                     type: new GraphQLNonNull(GraphQLInt),
                     args: {
                         from: {
-                            name: "from",
                             type: new GraphQLNonNull(GraphQLInt)
                         }
                     },

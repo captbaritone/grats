@@ -34,7 +34,6 @@ export function getSchema(): GraphQLSchema {
                     type: UserType,
                     args: {
                         id: {
-                            name: "id",
                             type: new GraphQLNonNull(GraphQLID)
                         }
                     },

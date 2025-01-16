@@ -34,7 +34,6 @@ export function getSchema(): GraphQLSchema {
                     args: {
                         greeting: {
                             deprecationReason: "Not used anymore",
-                            name: "greeting",
                             type: GraphQLString
                         }
                     }
