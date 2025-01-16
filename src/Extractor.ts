@@ -58,6 +58,7 @@ export const INTERFACE_TAG = "gqlInterface";
 export const ENUM_TAG = "gqlEnum";
 export const UNION_TAG = "gqlUnion";
 export const INPUT_TAG = "gqlInput";
+export const DIRECTIVE_TAG = "gqlDirective";
 
 export const QUERY_FIELD_TAG = "gqlQueryField";
 export const MUTATION_FIELD_TAG = "gqlMutationField";
@@ -78,6 +79,7 @@ export const ALL_TAGS = [
   ENUM_TAG,
   UNION_TAG,
   INPUT_TAG,
+  DIRECTIVE_TAG,
 ];
 
 const DEPRECATED_TAG = "deprecated";
@@ -161,6 +163,9 @@ class Extractor {
     traverseJSDocTags(sourceFile, (node, tag) => {
       seenCommentPositions.add(tag.parent.pos);
       switch (tag.tagName.text) {
+        case DIRECTIVE_TAG:
+          this.extractDirective(node, tag);
+          break;
         case TYPE_TAG:
           this.extractType(node, tag);
           break;
@@ -377,6 +382,36 @@ class Extractor {
         args: paramResults.resolverParams,
       },
       returnType,
+    );
+  }
+
+  extractDirective(node: ts.Node, tag: ts.JSDocTag) {
+    if (!ts.isFunctionDeclaration(node)) {
+      return this.report(
+        tag,
+        "Expected `@gqlDirective` to be attached to a function declaration.",
+      );
+    }
+
+    const name = this.entityName(node, tag);
+    if (name == null) return null;
+
+    const description = this.collectDescription(node);
+
+    const args = [];
+    const locations = [this.gql.name(tag, "FIELD_DEFINITION")];
+
+    const repeatable = false;
+
+    this.definitions.push(
+      this.gql.directiveDefinition(
+        node,
+        name,
+        args,
+        repeatable,
+        locations,
+        description,
+      ),
     );
   }
 

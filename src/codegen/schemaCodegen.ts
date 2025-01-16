@@ -1,6 +1,7 @@
 import {
   GraphQLAbstractType,
   GraphQLArgument,
+  GraphQLDirective,
   GraphQLEnumType,
   GraphQLEnumValue,
   GraphQLField,
@@ -31,6 +32,16 @@ import { naturalCompare } from "../utils/naturalCompare";
 import TSAstBuilder from "./TSAstBuilder";
 import ResolverCodegen from "./resolverCodegen";
 import { Metadata } from "../metadata";
+
+// These directives will be added to the schema by default, so we don't need to
+// include them in the generated schema.
+const BUILT_IN_DIRECTIVES = new Set([
+  "skip",
+  "include",
+  "deprecated",
+  "specifiedBy",
+  "oneOf",
+]);
 
 const F = ts.factory;
 
@@ -98,11 +109,66 @@ class Codegen {
   schemaConfig(): ts.ObjectLiteralExpression {
     return this.ts.objectLiteral([
       this.description(this._schema.description),
+      this.directives(),
       this.query(),
       this.mutation(),
       this.subscription(),
       this.types(),
     ]);
+  }
+
+  directives(): ts.PropertyAssignment | null {
+    const directives = this._schema.getDirectives().filter((directive) => {
+      return !BUILT_IN_DIRECTIVES.has(directive.name);
+    });
+    if (directives.length === 0) {
+      return null;
+    }
+
+    const directiveObjs = directives.map((directive) => {
+      return F.createNewExpression(
+        this.graphQLImport("GraphQLDirective"),
+        [],
+        [this.directiveConfig(directive)],
+      );
+    });
+    return F.createPropertyAssignment(
+      "directives",
+      F.createArrayLiteralExpression(directiveObjs),
+    );
+  }
+
+  directiveConfig(directive: GraphQLDirective): ts.ObjectLiteralExpression {
+    const props: (ts.ObjectLiteralElementLike | null)[] = [
+      F.createPropertyAssignment("name", F.createStringLiteral(directive.name)),
+      F.createPropertyAssignment(
+        "locations",
+        F.createArrayLiteralExpression(
+          directive.locations.map((location) =>
+            F.createPropertyAccessExpression(
+              this.graphQLImport("DirectiveLocation"),
+              location,
+            ),
+          ),
+        ),
+      ),
+    ];
+
+    if (directive.description) {
+      props.push(this.description(directive.description));
+    }
+
+    if (directive.args.length > 0) {
+      props.push(
+        F.createPropertyAssignment("args", this.argMap(directive.args)),
+      );
+    }
+
+    if (directive.isRepeatable) {
+      props.push(F.createPropertyAssignment("isRepeatable", F.createTrue()));
+    }
+
+    return this.ts.objectLiteral(props);
   }
 
   types(): ts.PropertyAssignment {
