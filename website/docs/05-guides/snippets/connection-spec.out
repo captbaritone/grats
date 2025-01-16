@@ -163,19 +163,15 @@ export function getSchema(): GraphQLSchema {
                     type: UserConnectionType,
                     args: {
                         after: {
-                            name: "after",
                             type: GraphQLString
                         },
                         before: {
-                            name: "before",
                             type: GraphQLString
                         },
                         first: {
-                            name: "first",
                             type: GraphQLInt
                         },
                         last: {
-                            name: "last",
                             type: GraphQLInt
                         }
                     },

@@ -35,7 +35,6 @@ export function getSchema(): GraphQLSchema {
                     args: {
                         greeting: {
                             description: "The greeting to use.",
-                            name: "greeting",
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     }

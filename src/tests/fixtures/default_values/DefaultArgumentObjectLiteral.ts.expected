@@ -60,7 +60,6 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString,
                     args: {
                         input: {
-                            name: "input",
                             type: ConnectionInputType,
                             defaultValue: {
                                 first: 10,

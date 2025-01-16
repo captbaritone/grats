@@ -126,7 +126,6 @@ export function getSchema(): GraphQLSchema {
                     type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
                     args: {
                         greeting: {
-                            name: "greeting",
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     }
@@ -136,7 +135,6 @@ export function getSchema(): GraphQLSchema {
                     type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
                     args: {
                         greeting: {
-                            name: "greeting",
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     }
@@ -146,7 +144,6 @@ export function getSchema(): GraphQLSchema {
                     type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
                     args: {
                         greeting: {
-                            name: "greeting",
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     }
@@ -156,7 +153,6 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString,
                     args: {
                         greeting: {
-                            name: "greeting",
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     }

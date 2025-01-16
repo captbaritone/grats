@@ -483,7 +483,6 @@ class Codegen {
     return this.ts.objectLiteral([
       this.description(arg.description),
       this.deprecated(arg),
-      F.createPropertyAssignment("name", F.createStringLiteral(arg.name)),
       F.createPropertyAssignment("type", this.typeReference(arg.type)),
       // TODO: arg.defaultValue seems to be missing for complex objects
       arg.defaultValue !== undefined

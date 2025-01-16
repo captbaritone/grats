@@ -21,7 +21,6 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString,
                     args: {
                         someObj: {
-                            name: "someObj",
                             type: new GraphQLNonNull(SomeObjType),
                             defaultValue: {
                                 a: "Sup"

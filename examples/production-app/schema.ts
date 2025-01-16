@@ -59,19 +59,15 @@ export function getSchema(): GraphQLSchema {
                     type: LikeConnectionType,
                     args: {
                         after: {
-                            name: "after",
                             type: GraphQLString
                         },
                         before: {
-                            name: "before",
                             type: GraphQLString
                         },
                         first: {
-                            name: "first",
                             type: GraphQLInt
                         },
                         last: {
-                            name: "last",
                             type: GraphQLInt
                         }
                     },
@@ -179,19 +175,15 @@ export function getSchema(): GraphQLSchema {
                     type: PostConnectionType,
                     args: {
                         after: {
-                            name: "after",
                             type: GraphQLString
                         },
                         before: {
-                            name: "before",
                             type: GraphQLString
                         },
                         first: {
-                            name: "first",
                             type: GraphQLInt
                         },
                         last: {
-                            name: "last",
                             type: GraphQLInt
                         }
                     },
@@ -354,19 +346,15 @@ export function getSchema(): GraphQLSchema {
                     type: LikeConnectionType,
                     args: {
                         after: {
-                            name: "after",
                             type: GraphQLString
                         },
                         before: {
-                            name: "before",
                             type: GraphQLString
                         },
                         first: {
-                            name: "first",
                             type: GraphQLInt
                         },
                         last: {
-                            name: "last",
                             type: GraphQLInt
                         }
                     },
@@ -380,7 +368,6 @@ export function getSchema(): GraphQLSchema {
                     type: NodeType,
                     args: {
                         id: {
-                            name: "id",
                             type: new GraphQLNonNull(GraphQLID)
                         }
                     },
@@ -394,7 +381,6 @@ export function getSchema(): GraphQLSchema {
                     type: new GraphQLList(NodeType),
                     args: {
                         ids: {
-                            name: "ids",
                             type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLID)))
                         }
                     },
@@ -408,19 +394,15 @@ export function getSchema(): GraphQLSchema {
                     type: PostConnectionType,
                     args: {
                         after: {
-                            name: "after",
                             type: GraphQLString
                         },
                         before: {
-                            name: "before",
                             type: GraphQLString
                         },
                         first: {
-                            name: "first",
                             type: GraphQLInt
                         },
                         last: {
-                            name: "last",
                             type: GraphQLInt
                         }
                     },
@@ -434,19 +416,15 @@ export function getSchema(): GraphQLSchema {
                     type: UserConnectionType,
                     args: {
                         after: {
-                            name: "after",
                             type: GraphQLString
                         },
                         before: {
-                            name: "before",
                             type: GraphQLString
                         },
                         first: {
-                            name: "first",
                             type: GraphQLInt
                         },
                         last: {
-                            name: "last",
                             type: GraphQLInt
                         }
                     },
@@ -603,7 +581,6 @@ export function getSchema(): GraphQLSchema {
                     type: CreateLikePayloadType,
                     args: {
                         input: {
-                            name: "input",
                             type: new GraphQLNonNull(CreateLikeInputType)
                         }
                     },
@@ -617,7 +594,6 @@ export function getSchema(): GraphQLSchema {
                     type: CreatePostPayloadType,
                     args: {
                         input: {
-                            name: "input",
                             type: new GraphQLNonNull(CreatePostInputType)
                         }
                     },
@@ -631,7 +607,6 @@ export function getSchema(): GraphQLSchema {
                     type: CreateUserPayloadType,
                     args: {
                         input: {
-                            name: "input",
                             type: new GraphQLNonNull(CreateUserInputType)
                         }
                     },
@@ -652,7 +627,6 @@ export function getSchema(): GraphQLSchema {
                     type: LikeConnectionType,
                     args: {
                         postID: {
-                            name: "postID",
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     },
