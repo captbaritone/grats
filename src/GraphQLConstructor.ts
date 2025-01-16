@@ -47,6 +47,7 @@ export class GraphQLConstructor {
     name: NameNode,
     types: NamedTypeNode[],
     description: StringValueNode | null,
+    directives: readonly ConstDirectiveNode[] | null,
   ): UnionTypeDefinitionNode {
     return {
       kind: Kind.UNION_TYPE_DEFINITION,
@@ -54,6 +55,7 @@ export class GraphQLConstructor {
       description: description ?? undefined,
       name,
       types,
+      directives: this._optionalList(directives),
     };
   }
 
@@ -63,6 +65,7 @@ export class GraphQLConstructor {
     fields: FieldDefinitionNode[],
     interfaces: NamedTypeNode[] | null,
     description: StringValueNode | null,
+    directives: readonly ConstDirectiveNode[] | null,
     hasTypeNameField: boolean,
     exported: {
       tsModulePath: string;
@@ -78,6 +81,7 @@ export class GraphQLConstructor {
       interfaces: interfaces ?? undefined,
       hasTypeNameField: hasTypeNameField,
       exported: exported ?? undefined,
+      directives: this._optionalList(directives),
     };
   }
 
@@ -87,15 +91,16 @@ export class GraphQLConstructor {
     fields: FieldDefinitionNode[],
     interfaces: NamedTypeNode[] | null,
     description: StringValueNode | null,
+    directives: readonly ConstDirectiveNode[] | null,
   ): InterfaceTypeDefinitionNode {
     return {
       kind: Kind.INTERFACE_TYPE_DEFINITION,
       loc: loc(node),
       description: description ?? undefined,
-      directives: undefined,
       name,
       fields,
       interfaces: interfaces ?? undefined,
+      directives: this._optionalList(directives),
     };
   }
 
@@ -104,6 +109,7 @@ export class GraphQLConstructor {
     name: NameNode,
     values: readonly EnumValueDefinitionNode[],
     description: StringValueNode | null,
+    directives: readonly ConstDirectiveNode[] | null,
   ): EnumTypeDefinitionNode {
     return {
       kind: Kind.ENUM_TYPE_DEFINITION,
@@ -111,6 +117,7 @@ export class GraphQLConstructor {
       description: description ?? undefined,
       name,
       values,
+      directives: this._optionalList(directives),
     };
   }
 
@@ -310,12 +317,14 @@ export class GraphQLConstructor {
     node: ts.Node,
     name: NameNode,
     args: ReadonlyArray<ConstArgumentNode> | null,
+    isAmbiguous: boolean = false,
   ): ConstDirectiveNode {
     return {
       kind: Kind.DIRECTIVE,
       loc: loc(node),
       name,
       arguments: this._optionalList(args),
+      isAmbiguous,
     };
   }
 
