@@ -1,0 +1,18 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * This is my custom directive.
+ * @gqlDirective
+ * @on FIELD_DEFINITION This is a description with {@link https://example.com some link} 
+ * and `inline code` to demonstrate structured comments.
+ */
+function customDirective() {}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/directives/defineCustomDirectiveOnIsNotString.ts:4:52 - error: Expected Grats JSDoc tag value to be simple text.
+
+4  * @on FIELD_DEFINITION This is a description with {@link https://example.com some link}
+                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -58,6 +58,7 @@ export const INTERFACE_TAG = "gqlInterface";
 export const ENUM_TAG = "gqlEnum";
 export const UNION_TAG = "gqlUnion";
 export const INPUT_TAG = "gqlInput";
+export const DIRECTIVE_TAG = "gqlDirective";
 
 export const QUERY_FIELD_TAG = "gqlQueryField";
 export const MUTATION_FIELD_TAG = "gqlMutationField";
@@ -65,6 +66,11 @@ export const SUBSCRIPTION_FIELD_TAG = "gqlSubscriptionField";
 
 export const CONTEXT_TAG = "gqlContext";
 export const INFO_TAG = "gqlInfo";
+
+// Used for directive definition to define locations
+export const ON_TAG = "on";
+// Used for directive definition to define if the directive is repeatable
+export const REPEATABLE_TAG = "repeatable";
 
 export const IMPLEMENTS_TAG_DEPRECATED = "gqlImplements";
 export const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
@@ -78,6 +84,7 @@ export const ALL_TAGS = [
   ENUM_TAG,
   UNION_TAG,
   INPUT_TAG,
+  DIRECTIVE_TAG,
 ];
 
 const DEPRECATED_TAG = "deprecated";
@@ -161,6 +168,9 @@ class Extractor {
     traverseJSDocTags(sourceFile, (node, tag) => {
       seenCommentPositions.add(tag.parent.pos);
       switch (tag.tagName.text) {
+        case DIRECTIVE_TAG:
+          this.extractDirective(node, tag);
+          break;
         case TYPE_TAG:
           this.extractType(node, tag);
           break;
@@ -377,6 +387,101 @@ class Extractor {
         args: paramResults.resolverParams,
       },
       returnType,
+    );
+  }
+
+  extractDocblockTagComment(
+    comment: string | ts.NodeArray<ts.JSDocComment>,
+  ): string | null {
+    if (typeof comment === "string") {
+      return comment;
+    }
+    let text: string = "";
+    let hasErrors = false;
+    for (const tag of comment) {
+      switch (tag.kind) {
+        case ts.SyntaxKind.JSDocText:
+          text += tag.getText();
+          break;
+        default:
+          this.report(tag, E.directiveTagCommentNotText());
+          hasErrors = true;
+      }
+    }
+    if (hasErrors) return null;
+    return text;
+  }
+
+  extractDirective(node: ts.Node, tag: ts.JSDocTag) {
+    if (!ts.isFunctionDeclaration(node)) {
+      return this.report(tag, E.directiveTagOnWrongNode());
+    }
+
+    const name = this.entityName(node, tag);
+    if (name == null) return null;
+
+    const description = this.collectDescription(node);
+
+    if (node.parameters.length > 1) {
+      return this.report(node, "Directive must have at most one argument.");
+    }
+
+    const args: InputValueDefinitionNode[] = [];
+
+    const param: ts.ParameterDeclaration | null = node.parameters[0] ?? null;
+    if (param != null) {
+      if (param.type == null || !ts.isTypeLiteralNode(param.type)) {
+        this.report(param, "Directive args must be an object type.");
+        return;
+      }
+      let defaults: ArgDefaults | null = null;
+      if (ts.isObjectBindingPattern(param.name)) {
+        defaults = this.collectArgDefaults(param.name);
+      }
+
+      for (const member of param.type.members) {
+        const arg = this.collectArg(member, defaults);
+        if (arg != null) {
+          args.push(arg);
+        }
+      }
+    }
+
+    const locations: NameNode[] = [];
+    for (const locationTag of ts.getJSDocTags(node)) {
+      if (locationTag.tagName.text !== ON_TAG) continue;
+      if (locationTag.comment == null) {
+        this.report(locationTag, "Expected docblock tag to have a value.");
+        return;
+      }
+      const comment = this.extractDocblockTagComment(locationTag.comment);
+      if (comment == null) return;
+
+      const name = this.parseGql<NameNode>(locationTag, comment, (parser) =>
+        parser.parseDirectiveLocation(),
+      );
+      if (name == null) return;
+      locations.push(name);
+    }
+
+    if (locations.length < 1) {
+      this.report(
+        tag,
+        "Expected at least one `@on` location for directive definition.",
+      );
+    }
+
+    const repeatable = this.hasTag(node, REPEATABLE_TAG);
+
+    this.definitions.push(
+      this.gql.directiveDefinition(
+        node,
+        name,
+        args,
+        repeatable,
+        locations,
+        description,
+      ),
     );
   }
 
@@ -2079,6 +2184,9 @@ class Extractor {
     );
   }
 
+  // A resolver may have some number of positional args `resolverParams`. It may
+  // also have at most one object literal argument (`args`), which is treated as
+  // a map of named arguments.
   resolverParams(parameters: ReadonlyArray<ts.ParameterDeclaration>): {
     resolverParams: ResolverArgument[];
     args: readonly InputValueDefinitionNode[] | null;

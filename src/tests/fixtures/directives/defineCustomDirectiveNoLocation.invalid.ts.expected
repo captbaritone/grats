@@ -1,0 +1,18 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * This is my custom directive.
+ * @gqlDirective
+ */
+function customDirective() {}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/directives/defineCustomDirectiveNoLocation.invalid.ts:3:4 - error: Expected at least one `@on` location for directive definition.
+
+3  * @gqlDirective
+     ~~~~~~~~~~~~~
+4  */
+  ~

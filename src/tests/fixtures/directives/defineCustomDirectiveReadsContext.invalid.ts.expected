@@ -1,0 +1,20 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlContext */
+type Ctx = {};
+
+/**
+ * This is my custom directive.
+ * @gqlDirective
+ * @on FIELD_DEFINITION
+ */
+export function customDirective(oops: Ctx) {}
+
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/directives/defineCustomDirectiveReadsContext.invalid.ts:9:33 - error: Directive args must be an object type.
+
+9 export function customDirective(oops: Ctx) {}
+                                  ~~~~~~~~~

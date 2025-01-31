@@ -13,6 +13,7 @@ import {
   SPECIFIED_BY_TAG,
   CONTEXT_TAG,
   INFO_TAG,
+  DIRECTIVE_TAG,
 } from "./Extractor";
 
 export const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
@@ -622,4 +623,12 @@ export function missingReturnTypeForDerivedResolver() {
 
 export function derivedResolverInvalidReturnType() {
   return "Expected derived resolver function's return type to be a type reference. Grats uses this type reference to determine which type to treat as a derived context type.";
+}
+
+export function directiveTagOnWrongNode() {
+  return `\`@${DIRECTIVE_TAG}\` can only be used on function declarations.`;
+}
+
+export function directiveTagCommentNotText() {
+  return "Expected Grats JSDoc tag value to be simple text.";
 }

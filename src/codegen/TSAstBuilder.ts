@@ -91,6 +91,10 @@ export default class TSAstBuilder {
     return F.createObjectLiteralExpression(properties.filter(isNonNull), true);
   }
 
+  boolean(value: boolean): ts.BooleanLiteral {
+    return value ? F.createTrue() : F.createFalse();
+  }
+
   constDeclaration(
     name: string,
     initializer: ts.Expression,

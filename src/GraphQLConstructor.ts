@@ -31,6 +31,7 @@ import {
   InterfaceTypeDefinitionNode,
   ASTNode,
   ObjectTypeExtensionNode,
+  DirectiveDefinitionNode,
 } from "graphql";
 import * as ts from "typescript";
 import { uniqueId } from "./utils/helpers";
@@ -42,6 +43,27 @@ import {
 
 export class GraphQLConstructor {
   /* Top Level Types */
+  directiveDefinition(
+    node: ts.Node,
+    name: NameNode,
+    args: readonly InputValueDefinitionNode[] | null,
+    repeatable: boolean,
+    locations: readonly NameNode[],
+    description: StringValueNode | null,
+  ): DirectiveDefinitionNode {
+    return {
+      kind: Kind.DIRECTIVE_DEFINITION,
+      loc: loc(node),
+      name,
+      // "Real" arguments are undefined for now. Later they will be derived from
+      // `resolverArgs`.
+      arguments: this._optionalList(args),
+      repeatable,
+      locations,
+      description: description ?? undefined,
+    };
+  }
+
   unionTypeDefinition(
     node: ts.Node,
     name: NameNode,
