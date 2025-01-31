@@ -35,6 +35,7 @@ import { customSpecValidations } from "./validations/customSpecValidations";
 import { makeResolverSignature } from "./transforms/makeResolverSignature";
 import { addImplicitRootTypes } from "./transforms/addImplicitRootTypes";
 import { Metadata } from "./metadata";
+import { filterNonGqlDirectives } from "./transforms/filterNonGqlDirectives";
 
 // Export the TypeScript plugin implementation used by
 // grats-ts-plugin
@@ -123,6 +124,9 @@ export function extractSchemaAndDoc(
         .map((doc) => addImplicitRootTypes(doc))
         // Merge any `extend` definitions into their base definitions.
         .map((doc) => mergeExtensions(doc))
+        // Filter out docblock tags which could be interpreted as either GraphQL directives
+        // or docblock tags, but are not defined in the schema.
+        .map((doc) => filterNonGqlDirectives(doc))
         // Perform custom validations that reimplement spec validation rules
         // with more tailored error messages.
         .andThen((doc) => customSpecValidations(doc))
