@@ -43,6 +43,7 @@ type LikeEdge = {
  * @gqlQueryField */
 export async function likes(
   args: {
+    /** @max(value: {k: 10}) */
     first?: Int | null;
     after?: string | null;
     last?: Int | null;

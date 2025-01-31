@@ -11,7 +11,7 @@ import { Viewer as queryViewerResolver } from "./models/Viewer";
 import { createLike as mutationCreateLikeResolver } from "./models/Like";
 import { createPost as mutationCreatePostResolver } from "./models/Post";
 import { createUser as mutationCreateUserResolver } from "./models/User";
-import { GraphQLSchema, GraphQLObjectType, GraphQLInt, GraphQLList, GraphQLNonNull, GraphQLString, GraphQLScalarType, GraphQLID, GraphQLInterfaceType, GraphQLBoolean, GraphQLInputObjectType } from "graphql";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, GraphQLObjectType, GraphQLList, GraphQLString, GraphQLScalarType, GraphQLID, GraphQLInterfaceType, GraphQLBoolean, GraphQLInputObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const DateType: GraphQLScalarType = new GraphQLScalarType({
         description: "A date and time. Serialized as a Unix timestamp.\n\n**Note**: The `@specifiedBy` directive does not point to a real spec, but is\nincluded here for demonstration purposes.",
@@ -641,6 +641,16 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
+        directives: [new GraphQLDirective({
+                name: "max",
+                locations: [DirectiveLocation.ARGUMENT_DEFINITION],
+                description: "Specifies the largest allowed value for an integer argument.",
+                args: {
+                    value: {
+                        type: new GraphQLNonNull(GraphQLInt)
+                    }
+                }
+            })],
         query: QueryType,
         mutation: MutationType,
         subscription: SubscriptionType,

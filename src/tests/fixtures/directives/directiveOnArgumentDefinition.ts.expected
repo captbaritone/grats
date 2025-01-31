@@ -1,0 +1,61 @@
+-----------------
+INPUT
+----------------- 
+/**
+ * This is my custom directive.
+ * @gqlDirective
+ * @on ARGUMENT_DEFINITION
+ */
+export function max() {}
+
+/** @gqlQueryField */
+export function foo(args: {
+  /** @max */
+  bar: string;
+}): string {
+  return args.bar;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+"""This is my custom directive."""
+directive @max on ARGUMENT_DEFINITION
+
+type Query {
+  foo(bar: String! @max): String
+}
+-- TypeScript --
+import { foo as queryFooResolver } from "./directiveOnArgumentDefinition";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                foo: {
+                    name: "foo",
+                    type: GraphQLString,
+                    args: {
+                        bar: {
+                            type: new GraphQLNonNull(GraphQLString)
+                        }
+                    },
+                    resolve(_source, args) {
+                        return queryFooResolver(args);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        directives: [new GraphQLDirective({
+                name: "max",
+                locations: [DirectiveLocation.ARGUMENT_DEFINITION],
+                description: "This is my custom directive."
+            })],
+        query: QueryType,
+        types: [QueryType]
+    });
+}

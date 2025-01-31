@@ -422,30 +422,7 @@ class Extractor {
 
     const description = this.collectDescription(node);
 
-    if (node.parameters.length > 1) {
-      return this.report(node, "Directive must have at most one argument.");
-    }
-
-    const args: InputValueDefinitionNode[] = [];
-
-    const param: ts.ParameterDeclaration | null = node.parameters[0] ?? null;
-    if (param != null) {
-      if (param.type == null || !ts.isTypeLiteralNode(param.type)) {
-        this.report(param, "Directive args must be an object type.");
-        return;
-      }
-      let defaults: ArgDefaults | null = null;
-      if (ts.isObjectBindingPattern(param.name)) {
-        defaults = this.collectArgDefaults(param.name);
-      }
-
-      for (const member of param.type.members) {
-        const arg = this.collectArg(member, defaults);
-        if (arg != null) {
-          args.push(arg);
-        }
-      }
-    }
+    const args = this.extractDirectiveArgs(node);
 
     const locations: NameNode[] = [];
     for (const locationTag of ts.getJSDocTags(node)) {
@@ -483,6 +460,40 @@ class Extractor {
         description,
       ),
     );
+  }
+
+  extractDirectiveArgs(
+    node: ts.FunctionDeclaration,
+  ): InputValueDefinitionNode[] | null {
+    // Additional arguments are ignored.
+    const param: ts.ParameterDeclaration | null = node.parameters[0] ?? null;
+    if (param == null) {
+      return null;
+    }
+    if (param.type == null) {
+      this.report(param, "Directive args must be an object type.");
+      return null;
+    }
+    if (param.type.kind === ts.SyntaxKind.NeverKeyword) {
+      return null;
+    }
+    if (!ts.isTypeLiteralNode(param.type)) {
+      this.report(param, "Directive args must be an object type.");
+      return null;
+    }
+    let defaults: ArgDefaults | null = null;
+    if (ts.isObjectBindingPattern(param.name)) {
+      defaults = this.collectArgDefaults(param.name);
+    }
+
+    const args: InputValueDefinitionNode[] = [];
+    for (const member of param.type.members) {
+      const arg = this.collectArg(member, defaults);
+      if (arg != null) {
+        args.push(arg);
+      }
+    }
+    return args;
   }
 
   extractType(node: ts.Node, tag: ts.JSDocTag) {
