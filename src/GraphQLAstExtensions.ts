@@ -1,8 +1,4 @@
-import {
-  InputValueDefinitionNodeOrResolverArg,
-  ResolverArgument,
-  ResolverSignature,
-} from "./resolverSignature";
+import { ResolverSignature } from "./resolverSignature";
 
 /**
  * In most cases we can use directives to annotate constructs
