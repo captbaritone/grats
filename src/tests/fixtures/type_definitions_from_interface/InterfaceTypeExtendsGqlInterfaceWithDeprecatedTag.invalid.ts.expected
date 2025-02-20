@@ -27,7 +27,7 @@ src/tests/fixtures/type_definitions_from_interface/InterfaceTypeExtendsGqlInterf
       ~~~~~~~~~~~~~~~~~~~~~
 10  */
    ~
-src/tests/fixtures/type_definitions_from_interface/InterfaceTypeExtendsGqlInterfaceWithDeprecatedTag.invalid.ts:9:5 - error: `@gqlImplements` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`, `@gqlDirective`.
+src/tests/fixtures/type_definitions_from_interface/InterfaceTypeExtendsGqlInterfaceWithDeprecatedTag.invalid.ts:9:5 - error: `@gqlImplements` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`, `@gqlDirective`, `@gqlAnnotate`.
 
 9  * @gqlImplements Person
       ~~~~~~~~~~~~~

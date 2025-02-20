@@ -1,6 +1,6 @@
 /**
  * @gqlScalar
- * @specifiedBy https://tools.ietf.org/html/rfc4122
+ * @gqlAnnotate specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
  */
 type UUID = string;
 
@@ -10,6 +10,7 @@ scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
 import { GraphQLSchema, GraphQLScalarType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UUIDType: GraphQLScalarType = new GraphQLScalarType({
+        specifiedByURL: "https://tools.ietf.org/html/rfc4122",
         name: "UUID"
     });
     return new GraphQLSchema({

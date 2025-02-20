@@ -12,7 +12,7 @@ export default class Composer {
 OUTPUT
 -----------------
 -- Error Report --
-src/tests/fixtures/comments/invalidTagInLinecomment.ts:1:4 - error: `@gqlTyp` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`, `@gqlDirective`.
+src/tests/fixtures/comments/invalidTagInLinecomment.ts:1:4 - error: `@gqlTyp` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`, `@gqlDirective`, `@gqlAnnotate`.
 
 1 // @gqlTyp
      ~~~~~~~

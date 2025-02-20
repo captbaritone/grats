@@ -1,6 +1,5 @@
 /**
  * This is my custom directive.
- * @gqlDirective
- * @on WHOOPS
+ * @gqlDirective on WHOOPS
  */
 export function customDirective() {}

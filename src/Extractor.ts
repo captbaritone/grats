@@ -59,6 +59,7 @@ export const ENUM_TAG = "gqlEnum";
 export const UNION_TAG = "gqlUnion";
 export const INPUT_TAG = "gqlInput";
 export const DIRECTIVE_TAG = "gqlDirective";
+export const ANNOTATE_TAG = "gqlAnnotate";
 
 export const QUERY_FIELD_TAG = "gqlQueryField";
 export const MUTATION_FIELD_TAG = "gqlMutationField";
@@ -66,11 +67,6 @@ export const SUBSCRIPTION_FIELD_TAG = "gqlSubscriptionField";
 
 export const CONTEXT_TAG = "gqlContext";
 export const INFO_TAG = "gqlInfo";
-
-// Used for directive definition to define locations
-export const ON_TAG = "on";
-// Used for directive definition to define if the directive is repeatable
-export const REPEATABLE_TAG = "repeatable";
 
 export const IMPLEMENTS_TAG_DEPRECATED = "gqlImplements";
 export const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
@@ -85,10 +81,10 @@ export const ALL_TAGS = [
   UNION_TAG,
   INPUT_TAG,
   DIRECTIVE_TAG,
+  ANNOTATE_TAG,
 ];
 
 const DEPRECATED_TAG = "deprecated";
-export const SPECIFIED_BY_TAG = "specifiedBy";
 export const ONE_OF_TAG = "oneOf";
 // https://github.com/graphql/graphql-js/releases/tag/v16.9.0
 const ONE_OF_MIN_GRAPHQL_JS_VERSION = "16.9.0";
@@ -186,7 +182,16 @@ class Extractor {
         case INPUT_TAG: {
           const oneOf = this.findTag(node, ONE_OF_TAG);
           if (oneOf != null) {
-            this.extractOneOfInputType(node, tag, oneOf);
+            this.report(
+              oneOf,
+              "The `@oneOf` tag has been deprecated. Grats will now automatically add the `@oneOf` directive if you define your input type as a TypeScript union. You can remove the `@oneOf` tag.",
+              [],
+              {
+                fixName: "remove-oneOf-tag",
+                description: "Remove @oneOf tag",
+                changes: [Act.removeNode(oneOf)],
+              },
+            );
           } else {
             this.extractInput(node, tag);
           }
@@ -252,12 +257,26 @@ class Extractor {
           // TODO: Report invalid location as well
           break;
         }
-        case SPECIFIED_BY_TAG: {
-          if (!this.hasTag(node, SCALAR_TAG)) {
-            this.report(tag.tagName, E.specifiedByOnWrongNode());
-          }
+        case ANNOTATE_TAG: {
+          // Because we can annotate directives, and directives don't have
+          // any other `@gql` tags, we can't effectively check for unused
+          // annotate tags here.
+
+          // TODO: Improve validation of miss-placed `@gqlAnnotate` tags.
           break;
         }
+        case "specifiedBy":
+          this.report(tag, E.specifiedByDeprecated(), [], {
+            fixName: "replace-specifiedBy-with-gqlAnnotate",
+            description: "Replace @specifiedBy with @gqlAnnotate",
+            changes: [
+              Act.replaceNode(
+                tag,
+                `@gqlAnnotate specifiedBy(url: "${tag.comment}")`,
+              ),
+            ],
+          });
+          break;
         default:
           {
             const lowerCaseTag = tag.tagName.text.toLowerCase();
@@ -416,47 +435,66 @@ class Extractor {
     if (!ts.isFunctionDeclaration(node)) {
       return this.report(tag, E.directiveTagOnWrongNode());
     }
+    return this.extractDirectiveFunction(node, tag);
+  }
 
-    const name = this.entityName(node, tag);
-    if (name == null) return null;
-
+  extractDirectiveFunction(node: ts.FunctionDeclaration, tag: ts.JSDocTag) {
     const description = this.collectDescription(node);
 
     const args = this.extractDirectiveArgs(node);
 
-    const locations: NameNode[] = [];
-    for (const locationTag of ts.getJSDocTags(node)) {
-      if (locationTag.tagName.text !== ON_TAG) continue;
-      if (locationTag.comment == null) {
-        this.report(locationTag, "Expected docblock tag to have a value.");
-        return;
-      }
-      const comment = this.extractDocblockTagComment(locationTag.comment);
-      if (comment == null) return;
+    if (tag.comment == null) {
+      this.report(tag, E.directiveTagNoComment());
+      return;
+    }
+    const comment = this.extractDocblockTagComment(tag.comment);
+    if (comment == null) return;
 
-      const name = this.parseGql<NameNode>(locationTag, comment, (parser) =>
+    const tagData = this.parseGql<{
+      name: NameNode | null;
+      repeatable: boolean;
+      locations: NameNode[];
+    }>(tag, comment, (parser) => {
+      let name: NameNode | null = null;
+      let repeatable = parser.expectOptionalKeyword("repeatable");
+      const on = parser.expectOptionalKeyword("on");
+
+      // If the first identifier was neither `repeatable` nor `on`, then
+      // we expect it to be the directive name.
+      if (!on && !repeatable) {
+        name = parser.parseName();
+        repeatable = parser.expectOptionalKeyword("repeatable");
+        parser.expectKeyword("on");
+      }
+
+      const locations = parser.delimitedMany(TokenKind.PIPE, () =>
         parser.parseDirectiveLocation(),
       );
-      if (name == null) return;
-      locations.push(name);
-    }
+      return { name, repeatable, locations };
+    });
 
-    if (locations.length < 1) {
-      this.report(
-        tag,
-        "Expected at least one `@on` location for directive definition.",
-      );
-    }
+    if (tagData == null) return;
 
-    const repeatable = this.hasTag(node, REPEATABLE_TAG);
+    let name = tagData.name;
+
+    // If there wasn't a name in the directive tag, we expect the function
+    // to be named.
+    if (name == null) {
+      if (node.name == null) {
+        return this.report(node, E.directiveFunctionNotNamed());
+      }
+      const id = this.expectNameIdentifier(node.name);
+      if (id == null) return null;
+      name = this.gql.name(id, id.text);
+    }
 
     this.definitions.push(
       this.gql.directiveDefinition(
         node,
         name,
         args,
-        repeatable,
-        locations,
+        tagData.repeatable,
+        tagData.locations,
         description,
       ),
     );
@@ -471,14 +509,14 @@ class Extractor {
       return null;
     }
     if (param.type == null) {
-      this.report(param, "Directive args must be an object type.");
+      this.report(param, E.directiveArgumentNotObject());
       return null;
     }
     if (param.type.kind === ts.SyntaxKind.NeverKeyword) {
       return null;
     }
     if (!ts.isTypeLiteralNode(param.type)) {
-      this.report(param, "Directive args must be an object type.");
+      this.report(param, E.directiveArgumentNotObject());
       return null;
     }
     let defaults: ArgDefaults | null = null;
@@ -792,30 +830,44 @@ class Extractor {
   collectDirectives(node: ts.Node): ConstDirectiveNode[] {
     const directives: ConstDirectiveNode[] = [];
     for (const tag of ts.getJSDocTags(node)) {
-      if (ALL_TAGS.includes(tag.tagName.text)) {
+      if (tag.tagName.text !== ANNOTATE_TAG) {
         continue;
       }
-      if (tag.comment == null) {
-        directives.push(
-          this.gql.constDirective(
-            tag,
-            this.gql.name(tag.tagName, tag.tagName.text),
-            [],
-            true,
-          ),
-        );
+      if (typeof tag.comment !== "string") {
+        this.report(tag, "Expected docblock tag to have a value.");
         continue;
       }
-      if (typeof tag.comment !== "string" || !tag.comment.startsWith("(")) {
-        continue;
-      }
-      const directiveText = `@${tag.tagName.text}${tag.comment}`;
+      const directiveText = `@${tag.comment}`;
       const directive = this.parseGql(tag, directiveText, (parser) => {
         return parser.parseDirective(true);
       });
       if (directive != null) {
         directives.push(directive);
       }
+    }
+
+    const tag = this.findTag(node, DEPRECATED_TAG);
+    if (tag != null) {
+      let reason: ConstArgumentNode | null = null;
+      if (tag.comment != null) {
+        const reasonComment = ts.getTextOfJSDocComment(tag.comment);
+        if (reasonComment != null) {
+          // FIXME: Use the _value_'s location not the tag's
+          reason = this.gql.constArgument(
+            tag,
+            this.gql.name(tag, "reason"),
+            this.gql.string(tag, reasonComment),
+          );
+        }
+      }
+
+      directives.push(
+        this.gql.constDirective(
+          tag.tagName,
+          this.gql.name(node, DEPRECATED_TAG),
+          reason == null ? null : [reason],
+        ),
+      );
     }
 
     return directives;
@@ -845,10 +897,6 @@ class Extractor {
     const directives = this.collectDirectives(node);
 
     const description = this.collectDescription(node);
-    const deprecated = this.collectDeprecated(node);
-    if (deprecated != null) {
-      directives.push(deprecated);
-    }
 
     const killsParentOnException = this.killsParentOnException(node);
 
@@ -976,15 +1024,10 @@ class Extractor {
 
     // TODO: Can a scalar be deprecated?
 
-    const specifiedByDirective = this.collectSpecifiedBy(node);
+    const directives = this.collectDirectives(node);
 
     this.definitions.push(
-      this.gql.scalarTypeDefinition(
-        node,
-        name,
-        specifiedByDirective == null ? null : [specifiedByDirective],
-        description,
-      ),
+      this.gql.scalarTypeDefinition(node, name, directives, description),
     );
   }
 
@@ -995,16 +1038,27 @@ class Extractor {
     const description = this.collectDescription(node);
     this.recordTypeName(node, name, "INPUT_OBJECT");
 
-    const fields = this.collectInputFields(node);
+    let fields: InputValueDefinitionNode[] | null = null;
 
-    const deprecatedDirective = this.collectDeprecated(node);
+    const directives = this.collectDirectives(node);
+    if (ts.isUnionTypeNode(node.type)) {
+      directives.push(
+        this.gql.constDirective(node, this.gql.name(node.type, ONE_OF_TAG), []),
+      );
+
+      fields = this.extractOneOfInputFields(node.type);
+    } else {
+      fields = this.collectInputFields(node);
+    }
+
+    if (fields == null) return;
 
     this.definitions.push(
       this.gql.inputObjectTypeDefinition(
         node,
         name,
         fields,
-        deprecatedDirective == null ? null : [deprecatedDirective],
+        directives,
         description,
       ),
     );
@@ -1034,69 +1088,8 @@ class Extractor {
 
     this.interfaceDeclarations.push(node);
 
-    const deprecatedDirective = this.collectDeprecated(node);
+    const directives = this.collectDirectives(node);
 
-    this.definitions.push(
-      this.gql.inputObjectTypeDefinition(
-        node,
-        name,
-        fields,
-        deprecatedDirective == null ? null : [deprecatedDirective],
-        description,
-      ),
-    );
-  }
-
-  extractOneOfInputType(node: ts.Node, tag: ts.JSDocTag, oneOf: ts.JSDocTag) {
-    if (!semverGte(graphqlJSVersion, ONE_OF_MIN_GRAPHQL_JS_VERSION)) {
-      return this.report(
-        oneOf,
-        E.oneOfNotSupportedGraphql(
-          ONE_OF_MIN_GRAPHQL_JS_VERSION,
-          graphqlJSVersion,
-        ),
-      );
-    }
-    if (!ts.isTypeAliasDeclaration(node)) {
-      return this.report(node, E.oneOfNotOnUnion());
-    }
-    const name = this.entityName(node, tag);
-    if (name == null) return null;
-
-    const description = this.collectDescription(node);
-    this.recordTypeName(node, name, "INPUT_OBJECT");
-
-    const fields: InputValueDefinitionNode[] = [];
-    switch (true) {
-      case ts.isUnionTypeNode(node.type): {
-        for (const member of node.type.types) {
-          const field = this.collectOneOfInputField(member);
-          if (field != null) {
-            fields.push(field);
-          }
-        }
-        break;
-      }
-      case ts.isTypeLiteralNode(node.type): {
-        const field = this.collectOneOfInputField(node.type);
-        if (field != null) {
-          fields.push(field);
-        }
-        break;
-      }
-      default:
-        return this.report(node, E.oneOfNotOnUnion());
-    }
-
-    const directives = [
-      ...this.collectDirectives(node),
-      this.gql.constDirective(node, this.gql.name(oneOf, ONE_OF_TAG), []),
-    ];
-
-    const deprecatedDirective = this.collectDeprecated(node);
-    if (deprecatedDirective != null) {
-      directives.push(deprecatedDirective);
-    }
     this.definitions.push(
       this.gql.inputObjectTypeDefinition(
         node,
@@ -1106,6 +1099,29 @@ class Extractor {
         description,
       ),
     );
+  }
+
+  extractOneOfInputFields(
+    node: ts.UnionTypeNode,
+  ): Array<InputValueDefinitionNode> | null {
+    if (!semverGte(graphqlJSVersion, ONE_OF_MIN_GRAPHQL_JS_VERSION)) {
+      return this.report(
+        node,
+        E.oneOfNotSupportedGraphql(
+          ONE_OF_MIN_GRAPHQL_JS_VERSION,
+          graphqlJSVersion,
+        ),
+      );
+    }
+    const fields: InputValueDefinitionNode[] = [];
+    for (const member of node.types) {
+      const field = this.collectOneOfInputField(member);
+      if (field != null) {
+        fields.push(field);
+      }
+    }
+
+    return fields;
   }
 
   collectOneOfInputField(node: ts.TypeNode): InputValueDefinitionNode | null {
@@ -1184,13 +1200,13 @@ class Extractor {
 
     const description = this.collectDescription(node);
 
-    const deprecatedDirective = this.collectDeprecated(node);
+    const directives = this.collectDirectives(node);
 
     return this.gql.inputValueDefinition(
       node,
       this.gql.name(id, id.text),
       type,
-      deprecatedDirective == null ? null : [deprecatedDirective],
+      directives,
       null,
       description,
     );
@@ -1703,10 +1719,6 @@ class Extractor {
     const type = this.collectType(node.type, { kind: "OUTPUT" });
     if (type == null) return null;
 
-    const deprecated = this.collectDeprecated(node);
-    if (deprecated != null) {
-      directives.push(deprecated);
-    }
     const description = this.collectDescription(node);
 
     const killsParentOnException = this.killsParentOnException(node);
@@ -1901,11 +1913,6 @@ class Extractor {
 
     const directives = this.collectDirectives(node);
 
-    const deprecated = this.collectDeprecated(node);
-    if (deprecated != null) {
-      directives.push(deprecated);
-    }
-
     return this.gql.inputValueDefinition(
       node,
       this.gql.name(node.name, node.name.text),
@@ -2034,10 +2041,7 @@ class Extractor {
 
       const description = this.collectDescription(member);
       const directives = this.collectDirectives(member);
-      const deprecated = this.collectDeprecated(member);
-      if (deprecated != null) {
-        directives.push(deprecated);
-      }
+
       values.push(
         this.gql.enumValueDefinition(
           member,
@@ -2165,11 +2169,6 @@ class Extractor {
     if (id == null) return null;
     const directives = this.collectDirectives(node);
 
-    const deprecated = this.collectDeprecated(node);
-    if (deprecated != null) {
-      directives.push(deprecated);
-    }
-
     const killsParentOnException = this.killsParentOnException(node);
 
     return this.gql.fieldDefinition(
@@ -2294,10 +2293,6 @@ class Extractor {
     }
 
     const directives = this.collectDirectives(param);
-    const deprecated = this.collectDeprecated(param);
-    if (deprecated != null) {
-      directives.push(deprecated);
-    }
 
     return this.gql.inputValueDefinitionOrResolverArg(
       param,
@@ -2344,53 +2339,6 @@ class Extractor {
     return null;
   }
 
-  collectDeprecated(node: ts.Node): ConstDirectiveNode | null {
-    const tag = this.findTag(node, DEPRECATED_TAG);
-    if (tag == null) return null;
-    let reason: ConstArgumentNode | null = null;
-    if (tag.comment != null) {
-      const reasonComment = ts.getTextOfJSDocComment(tag.comment);
-      if (reasonComment != null) {
-        // FIXME: Use the _value_'s location not the tag's
-        reason = this.gql.constArgument(
-          tag,
-          this.gql.name(tag, "reason"),
-          this.gql.string(tag, reasonComment),
-        );
-      }
-    }
-
-    return this.gql.constDirective(
-      tag.tagName,
-      this.gql.name(node, DEPRECATED_TAG),
-      reason == null ? null : [reason],
-    );
-  }
-
-  collectSpecifiedBy(node: ts.Node): ConstDirectiveNode | null {
-    const tag = this.findTag(node, SPECIFIED_BY_TAG);
-    if (tag == null) return null;
-    const urlComment = tag.comment && ts.getTextOfJSDocComment(tag.comment);
-    if (urlComment == null) {
-      return this.report(
-        tag,
-        "Expected @specifiedBy tag to be followed by a URL.",
-      );
-    }
-
-    // FIXME: Use the _value_'s location not the tag's
-    const reason = this.gql.constArgument(
-      tag,
-      this.gql.name(tag, "url"),
-      this.gql.string(tag, urlComment),
-    );
-    return this.gql.constDirective(
-      tag.tagName,
-      this.gql.name(node, SPECIFIED_BY_TAG),
-      [reason],
-    );
-  }
-
   property(
     node: ts.PropertyDeclaration | ts.PropertySignature,
   ): FieldDefinitionNode | null {
@@ -2417,10 +2365,6 @@ class Extractor {
     if (id == null) return null;
 
     const directives = this.collectDirectives(node);
-    const deprecated = this.collectDeprecated(node);
-    if (deprecated != null) {
-      directives.push(deprecated);
-    }
 
     const killsParentOnException = this.killsParentOnException(node);
 

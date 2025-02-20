@@ -3,6 +3,16 @@ import { isNonNull } from "../utils/helpers";
 import * as path from "path";
 import { resolveRelativePath } from "../gratsRoot";
 
+type JsonObject = { [key: string]: JsonValue };
+type JsonArray = JsonValue[];
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonObject
+  | JsonArray;
+
 const F = ts.factory;
 
 /**
@@ -93,6 +103,36 @@ export default class TSAstBuilder {
 
   boolean(value: boolean): ts.BooleanLiteral {
     return value ? F.createTrue() : F.createFalse();
+  }
+
+  // Helper to create AST from a JSON serializable value. This is really just an
+  // ergonomic way to quickly create code less verbosely since the codegen just
+  // needs to create the JS value instead of writing all the code to produce the
+  // AST.
+  json(value: JsonValue): ts.Expression {
+    if (value === null) {
+      return F.createNull();
+    }
+    if (typeof value === "string") {
+      return F.createStringLiteral(value);
+    }
+    if (typeof value === "number") {
+      return F.createNumericLiteral(value);
+    }
+    if (typeof value === "boolean") {
+      return value ? F.createTrue() : F.createFalse();
+    }
+    if (Array.isArray(value)) {
+      return F.createArrayLiteralExpression(
+        value.map((v) => this.json(v)),
+        value.length > 1,
+      );
+    }
+    return this.objectLiteral(
+      Object.entries(value).map(([key, value]) =>
+        F.createPropertyAssignment(key, this.json(value)),
+      ),
+    );
   }
 
   constDeclaration(

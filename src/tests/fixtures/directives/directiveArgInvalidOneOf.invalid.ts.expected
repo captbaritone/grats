@@ -3,19 +3,17 @@ INPUT
 ----------------- 
 /**
  * @gqlInput
- * @oneOf
  */
 type MyInput = { a: string } | { b: string };
 /**
  * This is my custom directive.
- * @gqlDirective
- * @on FIELD_DEFINITION
+ * @gqlDirective on FIELD_DEFINITION
  */
 export function customDirective(args: { foo: MyInput }) {}
 
 /**
  * @gqlQueryField
- * @customDirective(foo: {a: "a", b: "b"})
+ * @gqlAnnotate customDirective(foo: {a: "a", b: "b"})
  */
 export function myQueryField(): string {
   return "myQueryField";
@@ -29,7 +27,7 @@ GraphQL request:1:23 - error: OneOf Input Object "MyInput" must specify exactly 
 1 @customDirective(foo: {a: "a", b: "b"})
                         ~~~~~~~~~~~~~~~~
 
-  src/tests/fixtures/directives/directiveArgInvalidOneOf.invalid.ts:5:1
-    5 type MyInput = { a: string } | { b: string };
+  src/tests/fixtures/directives/directiveArgInvalidOneOf.invalid.ts:4:1
+    4 type MyInput = { a: string } | { b: string };
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Input type defined here

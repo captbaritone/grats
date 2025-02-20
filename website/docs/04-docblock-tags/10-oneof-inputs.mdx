@@ -7,13 +7,15 @@ import OneOfExhaustive from "!!raw-loader!./snippets/10-one-of-input-exhaustive.
 
 OneOf input types are an experimental GraphQL feature, currently a [draft stage RFC](https://github.com/graphql/graphql-spec/pull/825), which lets you define an input type where exactly one of the fields must be provided. This can be useful for modeling structures similar to [unions](./06-unions.mdx) but for input types.
 
-OneOf inputs can be defined by placing both `@gqlInput` and `@oneOf` in a docblock directly before a:
+OneOf inputs can be defined by placing both `@gqlInput` in a docblock directly before a:
 
 - Type alias of a union of object literal types
 
 The union must be a union of object types, and each object type must have exactly one property whose value is a valid [input type](./09-inputs.mdx). You can think of each member of the union as modeling one of the possible values the user might provide as a valid input.
 
-:::info
+You _do not_ need to use [`@gqlAnnotate`](./12-directive-annotations.mdx) to add the `@oneOf` directive to your input type. Grats will automatically add this directive for you.
+
+:::warning
 OneOf is not supported in versions of graphql-js earlier than `v16.9.0`. If you are using an older version of graphql-js, you will need to upgrade to use this feature.
 :::
 

@@ -1,0 +1,56 @@
+# Directive Annotations
+
+You can annotate constructs in your Grats GraphQL schema with [GraphQL directives](https://spec.graphql.org/October2021/#sec-Language.Directives) using the `@gqlAnnotate` docblock tag.
+
+```tsx
+/**
+ * @gqlQueryField
+ * @gqlAnnotate myDirective
+ */
+export function greet(): string {
+  return "Hello";
+}
+```
+
+Directive annotations can also accept arguments using [GraphQL syntax](https://spec.graphql.org/October2021/#sec-Language.Directives) for arguments:
+
+```tsx
+/**
+ * @gqlQueryField
+ * @gqlAnnotate myDirective(someArg: "Some String")
+ */
+export function greet(): string {
+  return "Hello";
+}
+```
+
+:::note
+The GraphQL directive `@deprecated` is unique in that it is a built-in GraphQL directive _and_ has a built-in TypeScript equivalent in the form of the `@deprecated` docblock tag. Because of this, TypeScript `@deprecated` docblock tags are automatically converted into GraphQL `@deprecated` directives.
+:::
+
+## Directive Validation
+
+While the GraphQL Spec does not actually specify that arguments passed to directives used in the schema should be validated against the types specified in that directive's declaration, **Grats adds its own validation** to ensure that arguments used in `@gqlAnnotate` are typechecked against their directive declaration.
+
+## Schema Directive Annotations at Runtime
+
+Directive annotations added to your schema will be included in Grats' generated `.graphql` file. For directives meant to be consumed by clients or other infrastructure, this should be sufficient.
+
+For directives which are intended to be used during execution, they must be included in the `graphql-js` class `GraphQLSchema` which Grats generates. Unfortunately `GraphQLSchema` does not support a first-class mechanism for including directive annotations. To work around this, **Grats includes directives under as part of the relevant GraphQL class' `extensions` object namespaced under a `grats` key.**
+
+```ts
+const foo = {
+  extensions: {
+    grats: {
+      directives: [
+        {
+          name: "myDirective",
+          args: { someArg: "Some Value" },
+        },
+      ],
+    },
+  },
+};
+```
+
+You can find an example of this in action in the [`production-app`](../05-examples/10-production-app.md) example where we define a field directive `@cost` which implements API rate limiting.

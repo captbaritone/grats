@@ -6,7 +6,7 @@ INPUT
 
 /**
  * @gqlQueryField
- * @myDirective(someArg: $foo)
+ * @gqlAnnotate myDirective(someArg: $foo)
  */
 export function myQueryField(): string {
   return "myQueryField";
@@ -17,7 +17,7 @@ OUTPUT
 -----------------
 src/tests/fixtures/directives/directiveNotConst.invalid.ts:6:4 - error: Syntax Error: Unexpected variable "$foo" in constant value.
 
-6  * @myDirective(someArg: $foo)
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6  * @gqlAnnotate myDirective(someArg: $foo)
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 7  */
   ~

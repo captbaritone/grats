@@ -10,7 +10,6 @@ import {
   SCALAR_TAG,
   TYPE_TAG,
   UNION_TAG,
-  SPECIFIED_BY_TAG,
   CONTEXT_TAG,
   INFO_TAG,
   DIRECTIVE_TAG,
@@ -77,7 +76,7 @@ export function invalidEnumTagUsage() {
 }
 
 export function invalidInputTagUsage() {
-  return `\`@${INPUT_TAG}\` can only be used on type alias or interface declarations. e.g. \`type MyInput = { foo: string }\` or \`interface MyInput { foo: string }\``;
+  return `\`@${INPUT_TAG}\` can only be used on type alias, interface declarations or type unions. e.g. \`type MyInput = { foo: string }\` or \`interface MyInput { foo: string }\``;
 }
 
 export function invalidUnionTagUsage() {
@@ -472,15 +471,6 @@ export function gqlFieldParentMissingTag() {
   return `Unexpected \`@${FIELD_TAG}\`. The parent construct must be either a \`@${TYPE_TAG}\` or \`@${INTERFACE_TAG}\` tag. Are you missing one of these tags?`;
 }
 
-export function missingSpecifiedByUrl() {
-  return `Expected \`@${SPECIFIED_BY_TAG}\` tag to be followed by a URL. This URL will be used as the \`url\` argument to the \`@specifiedBy\` directive in the generated GraphQL schema. See https://spec.graphql.org/draft/#sec--specifiedBy for more information.`;
-}
-
-// TODO: Add code action
-export function specifiedByOnWrongNode() {
-  return `Unexpected \`@${SPECIFIED_BY_TAG}\` tag on non-scalar declaration. \`@${SPECIFIED_BY_TAG}\` can only be used on custom scalar declarations. Are you missing a \`@${SCALAR_TAG}\` tag?`;
-}
-
 export function missingGenericType(
   templateName: string,
   paramName: string,
@@ -631,4 +621,20 @@ export function directiveTagOnWrongNode() {
 
 export function directiveTagCommentNotText() {
   return "Expected Grats JSDoc tag value to be simple text.";
+}
+
+export function specifiedByDeprecated() {
+  return 'The `@specifiedBy` tag has been deprecated in favor of `@gqlAnnotate`. Use `@gqlAnnotate specified(url: "http://example.com")` instead.';
+}
+
+export function directiveTagNoComment() {
+  return "Expected `@gqlDirective` tag to specify at least one location.";
+}
+
+export function directiveFunctionNotNamed() {
+  return "Expected `@gqlDirective` function to be named.";
+}
+
+export function directiveArgumentNotObject() {
+  return "Expected first argument of a `@gqlDirective` function to be typed using an inline object literal.";
 }

@@ -6,15 +6,14 @@ type Ctx = {};
 
 /**
  * This is my custom directive.
- * @gqlDirective
- * @on FIELD_DEFINITION
+ * @gqlDirective on FIELD_DEFINITION
  */
 export function customDirective(oops: Ctx) {}
 
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/directives/defineCustomDirectiveReadsContext.invalid.ts:9:33 - error: Directive args must be an object type.
+src/tests/fixtures/directives/defineCustomDirectiveReadsContext.invalid.ts:8:33 - error: Expected first argument of a `@gqlDirective` function to be typed using an inline object literal.
 
-9 export function customDirective(oops: Ctx) {}
+8 export function customDirective(oops: Ctx) {}
                                   ~~~~~~~~~

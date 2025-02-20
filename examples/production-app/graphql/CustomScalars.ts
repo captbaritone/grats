@@ -12,7 +12,7 @@ import { GraphQLScalarType, GraphQLSchema, Kind } from "graphql";
  * included here for demonstration purposes.
  *
  * @gqlScalar Date
- * @specifiedBy https://example.com/html/spec-for-date-as-unix-timestamp
+ * @gqlAnnotate specifiedBy(url: "https://example.com/html/spec-for-date-as-unix-timestamp")
  */
 export type GqlDate = Date;
 

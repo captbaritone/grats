@@ -24,14 +24,16 @@ import {
   isOutputType,
   isScalarType,
   isUnionType,
+  valueFromASTUntyped,
 } from "graphql";
 import * as ts from "typescript";
 import { extend, nullThrows } from "../utils/helpers";
 import { GratsConfig } from "../gratsConfig.js";
 import { naturalCompare } from "../utils/naturalCompare";
-import TSAstBuilder from "./TSAstBuilder";
+import TSAstBuilder, { JsonValue } from "./TSAstBuilder";
 import ResolverCodegen from "./resolverCodegen";
 import { Metadata } from "../metadata";
+import { ConstDirectiveNode } from "graphql/language";
 
 // These directives will be added to the schema by default, so we don't need to
 // include them in the generated schema.
@@ -264,6 +266,7 @@ class Codegen {
       this.description(obj.description),
       this.fields(obj, false),
       this.interfaces(obj),
+      this.extensions(obj.astNode?.directives),
     ]);
   }
 
@@ -330,6 +333,7 @@ class Codegen {
       this.fields(obj, true),
       this.interfaces(obj),
       this.resolveType(obj),
+      this.extensions(obj.astNode?.directives),
     ]);
   }
 
@@ -398,6 +402,7 @@ class Codegen {
         ],
       ),
       this.resolveType(obj),
+      this.extensions(obj.astNode?.directives),
     ]);
   }
 
@@ -423,7 +428,14 @@ class Codegen {
   customScalarTypeConfig(obj: GraphQLScalarType): ts.ObjectLiteralExpression {
     return this.ts.objectLiteral([
       this.description(obj.description),
+      obj.specifiedByURL
+        ? F.createPropertyAssignment(
+            "specifiedByURL",
+            F.createStringLiteral(obj.specifiedByURL),
+          )
+        : null,
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
+      this.extensions(obj.astNode?.directives),
     ]);
   }
 
@@ -451,6 +463,7 @@ class Codegen {
       this.description(obj.description),
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.inputFields(obj),
+      this.extensions(obj.astNode?.directives),
     ];
     if (obj.isOneOf) {
       properties.push(F.createPropertyAssignment("isOneOf", F.createTrue()));
@@ -476,7 +489,52 @@ class Codegen {
       this.deprecated(field),
       F.createPropertyAssignment("name", F.createStringLiteral(field.name)),
       F.createPropertyAssignment("type", this.typeReference(field.type)),
+      this.extensions(field.astNode?.directives),
     ]);
+  }
+
+  // Creates an `extensions` property containing a `grats` namespace containing
+  // information about directives for a given construct. This is needed because
+  // `GraphQLSchema` doesn't have a first-party way to represent directives
+  // attached to schema constructs.
+  extensions(
+    directiveNodes: readonly ConstDirectiveNode[] | undefined,
+  ): ts.PropertyAssignment | null {
+    if (directiveNodes == null) {
+      return null;
+    }
+    const directivesSansBuiltin = directiveNodes.filter((directive) => {
+      // These directives have first-class ways of being represented in the
+      // `GraphQLSchema` so we omit them from the extensions data.
+      return (
+        !BUILT_IN_DIRECTIVES.has(directive.name.value) &&
+        directive.name.value !== "semanticNonNull"
+      );
+    });
+    if (directivesSansBuiltin.length === 0) {
+      return null;
+    }
+
+    const directives: JsonValue[] = [];
+    for (const directive of directivesSansBuiltin) {
+      const directiveArgs: JsonValue = {};
+      if (directive.arguments != null) {
+        for (const arg of directive.arguments) {
+          directiveArgs[arg.name.value] = valueFromASTUntyped(
+            arg.value,
+          ) as JsonValue;
+        }
+      }
+      directives.push({
+        name: directive.name.value,
+        args: directiveArgs,
+      });
+    }
+
+    return F.createPropertyAssignment(
+      "extensions",
+      this.ts.json({ grats: { directives } }),
+    );
   }
 
   fieldConfig(
@@ -492,6 +550,7 @@ class Codegen {
       field.args.length
         ? F.createPropertyAssignment("args", this.argMap(field.args))
         : null,
+      this.extensions(nullThrows(field.astNode).directives),
     ];
 
     if (!isInterface) {
@@ -557,6 +616,7 @@ class Codegen {
             this.defaultValue(arg.defaultValue),
           )
         : null,
+      this.extensions(arg.astNode?.directives),
       // TODO: DefaultValue
       // TODO: Deprecated
     ]);
@@ -586,6 +646,7 @@ class Codegen {
       this.description(obj.description),
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.enumValues(obj),
+      this.extensions(obj.astNode?.directives),
     ]);
   }
 
@@ -602,34 +663,12 @@ class Codegen {
       this.description(obj.description),
       this.deprecated(obj),
       F.createPropertyAssignment("value", F.createStringLiteral(obj.name)),
+      this.extensions(obj.astNode?.directives),
     ]);
   }
 
   defaultValue(value: any) {
-    switch (typeof value) {
-      case "string":
-        return F.createStringLiteral(value);
-      case "number":
-        return F.createNumericLiteral(value);
-      case "boolean":
-        return value ? F.createTrue() : F.createFalse();
-      case "object":
-        if (value === null) {
-          return F.createNull();
-        } else if (Array.isArray(value)) {
-          return F.createArrayLiteralExpression(
-            value.map((v) => this.defaultValue(v)),
-          );
-        } else {
-          return this.ts.objectLiteral(
-            Object.entries(value).map(([k, v]) =>
-              F.createPropertyAssignment(k, this.defaultValue(v)),
-            ),
-          );
-        }
-      default:
-        throw new Error(`TODO: unhandled default value ${value}`);
-    }
+    return this.ts.json(value);
   }
 
   typeReference(t: GraphQLOutputType | GraphQLInputType): ts.Expression {

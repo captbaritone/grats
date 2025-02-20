@@ -3,7 +3,7 @@
 
 /**
  * @gqlQueryField
- * @myDirective(someArg: $foo)
+ * @gqlAnnotate myDirective(someArg: $foo)
  */
 export function myQueryField(): string {
   return "myQueryField";

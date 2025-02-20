@@ -3,14 +3,13 @@ INPUT
 ----------------- 
 /**
  * @gqlInput
- * @oneOf
  */
 type Greeting = { firstName: string } | {};
 
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/input_type_one_of/oneOfMemberHasNoField.invalid.ts:5:41 - error: Expected each member of a @oneOf @gqlInput to be a TypeScript object literal with exactly one property.
+src/tests/fixtures/input_type_one_of/oneOfMemberHasNoField.invalid.ts:4:41 - error: Expected each member of a @oneOf @gqlInput to be a TypeScript object literal with exactly one property.
 
-5 type Greeting = { firstName: string } | {};
+4 type Greeting = { firstName: string } | {};
                                           ~~

@@ -40,10 +40,10 @@ type LikeEdge = {
 
 /**
  * All likes in the system. Note that there is no guarantee of order.
- * @gqlQueryField */
+ * @gqlQueryField
+ * @gqlAnnotate cost(credits: 10) */
 export async function likes(
   args: {
-    /** @max(value: {k: 10}) */
     first?: Int | null;
     after?: string | null;
     last?: Int | null;

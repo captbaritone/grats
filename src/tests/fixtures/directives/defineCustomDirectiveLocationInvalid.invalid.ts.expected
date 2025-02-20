@@ -3,17 +3,16 @@ INPUT
 ----------------- 
 /**
  * This is my custom directive.
- * @gqlDirective
- * @on WHOOPS
+ * @gqlDirective on WHOOPS
  */
 export function customDirective() {}
 
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/directives/defineCustomDirectiveLocationInvalid.invalid.ts:4:4 - error: Syntax Error: Unexpected Name "WHOOPS".
+src/tests/fixtures/directives/defineCustomDirectiveLocationInvalid.invalid.ts:3:4 - error: Syntax Error: Unexpected Name "WHOOPS".
 
-4  * @on WHOOPS
-     ~~~~~~~~~~
-5  */
+3  * @gqlDirective on WHOOPS
+     ~~~~~~~~~~~~~~~~~~~~~~~
+4  */
   ~
