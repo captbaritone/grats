@@ -3,14 +3,13 @@ INPUT
 ----------------- 
 /**
  * @gqlInput
- * @oneOf
  */
 export type Greeting = { firstName: string } | { lastName: Set<string> };
 
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/input_type_one_of/oneOfFieldTypeNotGraphQL.invalid.ts:5:60 - error: Unable to resolve type reference. In order to generate a GraphQL schema, Grats needs to determine which GraphQL type is being referenced. This requires being able to resolve type references to their `@gql` annotated declaration. However this reference could not be resolved. Is it possible that this type is not defined in this file?
+src/tests/fixtures/input_type_one_of/oneOfFieldTypeNotGraphQL.invalid.ts:4:60 - error: Unable to resolve type reference. In order to generate a GraphQL schema, Grats needs to determine which GraphQL type is being referenced. This requires being able to resolve type references to their `@gql` annotated declaration. However this reference could not be resolved. Is it possible that this type is not defined in this file?
 
-5 export type Greeting = { firstName: string } | { lastName: Set<string> };
+4 export type Greeting = { firstName: string } | { lastName: Set<string> };
                                                              ~~~

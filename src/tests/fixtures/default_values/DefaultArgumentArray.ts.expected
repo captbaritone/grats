@@ -36,7 +36,10 @@ export function getSchema(): GraphQLSchema {
                     args: {
                         inputs: {
                             type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
-                            defaultValue: ["hello", "there"]
+                            defaultValue: [
+                                "hello",
+                                "there"
+                            ]
                         }
                     }
                 }

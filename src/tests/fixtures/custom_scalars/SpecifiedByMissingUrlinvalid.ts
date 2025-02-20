@@ -1,5 +1,5 @@
 /**
  * @gqlScalar
- * @specifiedBy
+ * @gqlAnnotate specifiedBy
  */
 export type UUID = string;

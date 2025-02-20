@@ -1,0 +1,34 @@
+-----------------
+INPUT
+----------------- 
+import { GraphQLFieldResolver } from "graphql";
+
+/**
+ * This is my custom directive.
+ * @gqlDirective on FIELD_DEFINITION
+ */
+export function customDirective(
+  _: never,
+  _someArg: GraphQLFieldResolver<unknown, unknown>,
+) {
+  //
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+"""This is my custom directive."""
+directive @customDirective on FIELD_DEFINITION
+-- TypeScript --
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation } from "graphql";
+export function getSchema(): GraphQLSchema {
+    return new GraphQLSchema({
+        directives: [new GraphQLDirective({
+                name: "customDirective",
+                locations: [DirectiveLocation.FIELD_DEFINITION],
+                description: "This is my custom directive."
+            })],
+        types: []
+    });
+}

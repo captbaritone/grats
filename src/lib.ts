@@ -1,6 +1,7 @@
 import {
   buildASTSchema,
   DocumentNode,
+  GraphQLError,
   GraphQLSchema,
   Kind,
   validateSchema,
@@ -35,6 +36,7 @@ import { customSpecValidations } from "./validations/customSpecValidations";
 import { makeResolverSignature } from "./transforms/makeResolverSignature";
 import { addImplicitRootTypes } from "./transforms/addImplicitRootTypes";
 import { Metadata } from "./metadata";
+import { validateDirectiveArguments } from "./validations/validateDirectiveArguments";
 
 // Export the TypeScript plugin implementation used by
 // grats-ts-plugin
@@ -128,6 +130,7 @@ export function extractSchemaAndDoc(
         .andThen((doc) => customSpecValidations(doc))
         // Sort the definitions in the document to ensure a stable output.
         .map((doc) => sortSchemaAst(doc))
+        .andThen((doc) => specValidateSDL(doc))
         .result();
 
       if (docResult.kind === "ERROR") {
@@ -138,10 +141,18 @@ export function extractSchemaAndDoc(
 
       // Build and validate the schema with regards to the GraphQL spec.
       return (
-        new ResultPipe(buildSchemaFromDoc(doc))
+        new ResultPipe(buildSchema(doc))
+          // Apply the "Type Validation" sub-sections of the specification's
+          // "Type System" section.
+          .andThen((schema) => specSchemaValidation(schema))
+          // The above spec validation fails to catch type errors in directive
+          // arguments, so Grats checks these manually.
+          .andThen((schema) => validateDirectiveArguments(schema, doc))
           // Ensure that every type which implements an interface or is a member of a
           // union has a __typename field.
           .andThen((schema) => validateTypenames(schema, typesWithTypename))
+          // Validate that semantic nullability directives are not in conflict
+          // with type nullability.
           .andThen((schema) => validateSemanticNullability(schema, config))
           // Combine the schema and document into a single result.
           .map((schema) => ({ schema, doc, resolvers }))
@@ -151,29 +162,41 @@ export function extractSchemaAndDoc(
     .result();
 }
 
-// Given a SDL AST, build and validate a GraphQLSchema.
-function buildSchemaFromDoc(
+function buildSchema(
   doc: DocumentNode,
 ): DiagnosticsWithoutLocationResult<GraphQLSchema> {
+  return ok(buildASTSchema(doc, { assumeValidSDL: true }));
+}
+
+function specValidateSDL(
+  doc: DocumentNode,
+): DiagnosticsWithoutLocationResult<DocumentNode> {
   // TODO: Currently this does not detect definitions that shadow builtins
   // (`String`, `Int`, etc). However, if we pass a second param (extending an
   // existing schema) we do! So, we should find a way to validate that we don't
   // shadow builtins.
-  const validationErrors = validateSDL(doc);
+  return asDiagnostics(doc, validateSDL);
+}
+
+function specSchemaValidation(
+  schema: GraphQLSchema,
+): DiagnosticsWithoutLocationResult<GraphQLSchema> {
+  return asDiagnostics(schema, validateSchema);
+}
+
+// Utility to map GraphQL validation errors to a Result of
+function asDiagnostics<T>(
+  value: T,
+  validate: (value: T) => ReadonlyArray<GraphQLError>,
+): DiagnosticsWithoutLocationResult<T> {
+  const validationErrors = validate(value).filter(
+    // FIXME: Handle case where query is not defined (no location)
+    (e) => e.source && e.locations && e.positions,
+  );
   if (validationErrors.length > 0) {
     return err(validationErrors.map(graphQlErrorToDiagnostic));
   }
-  const schema = buildASTSchema(doc, { assumeValidSDL: true });
-
-  const diagnostics = validateSchema(schema)
-    // FIXME: Handle case where query is not defined (no location)
-    .filter((e) => e.source && e.locations && e.positions);
-
-  if (diagnostics.length > 0) {
-    return err(diagnostics.map(graphQlErrorToDiagnostic));
-  }
-
-  return ok(schema);
+  return ok(value);
 }
 
 // Given a list of snapshots, merge them into a single snapshot.

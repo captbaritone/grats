@@ -8,7 +8,6 @@ type UserPayload = {
 
 /**
  * @gqlInput
- * @oneOf
  */
 type Greeting = { name: string } | { userId: ID } | { user: UserPayload };
 

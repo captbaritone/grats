@@ -4,8 +4,17 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
+This version introduces support for defining directives, and annotating your schema with directives.
+
+- **Breaking Changes**
+
+  - The docblock tag `@specifiedBy` has been removed in favor of `@gqlAnnotate` which allows you to generically add directives to GraphQL schema constructs.
+    - Replace `@specifiedBy http://example.com` with `@gqlAnnotate specifiedBy(url: "http://example.com")`
+  - The docblock tag `@oneOf` has been removed and Grats will now infer it.
+
 - **Improvements**
   - Remove superfluous argument name property from `schema.ts`
+  - Generated `GraphQLSchema` now includes the `specifiedByURL` property for custom scalars that use the `@specifiedBy` directive.
 
 ---
 

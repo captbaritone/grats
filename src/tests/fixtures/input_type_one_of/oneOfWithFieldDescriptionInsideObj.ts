@@ -2,7 +2,6 @@
 
 /**
  * @gqlInput
- * @oneOf
  */
 export type Greeting =
   | {

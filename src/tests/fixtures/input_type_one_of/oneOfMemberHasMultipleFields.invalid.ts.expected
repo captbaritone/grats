@@ -3,7 +3,6 @@ INPUT
 ----------------- 
 /**
  * @gqlInput
- * @oneOf
  */
 export type Greeting =
   | { firstName: string }
@@ -12,7 +11,7 @@ export type Greeting =
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/input_type_one_of/oneOfMemberHasMultipleFields.invalid.ts:7:5 - error: Expected each member of a @oneOf @gqlInput to be a TypeScript object literal with exactly one property.
+src/tests/fixtures/input_type_one_of/oneOfMemberHasMultipleFields.invalid.ts:6:5 - error: Expected each member of a @oneOf @gqlInput to be a TypeScript object literal with exactly one property.
 
-7   | { lastName: string; nickName: string };
+6   | { lastName: string; nickName: string };
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

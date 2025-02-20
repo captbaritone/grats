@@ -31,6 +31,7 @@ import {
   InterfaceTypeDefinitionNode,
   ASTNode,
   ObjectTypeExtensionNode,
+  DirectiveDefinitionNode,
 } from "graphql";
 import * as ts from "typescript";
 import { uniqueId } from "./utils/helpers";
@@ -42,11 +43,33 @@ import {
 
 export class GraphQLConstructor {
   /* Top Level Types */
+  directiveDefinition(
+    node: ts.Node,
+    name: NameNode,
+    args: readonly InputValueDefinitionNode[] | null,
+    repeatable: boolean,
+    locations: readonly NameNode[],
+    description: StringValueNode | null,
+  ): DirectiveDefinitionNode {
+    return {
+      kind: Kind.DIRECTIVE_DEFINITION,
+      loc: loc(node),
+      name,
+      // "Real" arguments are undefined for now. Later they will be derived from
+      // `resolverArgs`.
+      arguments: this._optionalList(args),
+      repeatable,
+      locations,
+      description: description ?? undefined,
+    };
+  }
+
   unionTypeDefinition(
     node: ts.Node,
     name: NameNode,
     types: NamedTypeNode[],
     description: StringValueNode | null,
+    directives: readonly ConstDirectiveNode[] | null,
   ): UnionTypeDefinitionNode {
     return {
       kind: Kind.UNION_TYPE_DEFINITION,
@@ -54,6 +77,7 @@ export class GraphQLConstructor {
       description: description ?? undefined,
       name,
       types,
+      directives: this._optionalList(directives),
     };
   }
 
@@ -63,6 +87,7 @@ export class GraphQLConstructor {
     fields: FieldDefinitionNode[],
     interfaces: NamedTypeNode[] | null,
     description: StringValueNode | null,
+    directives: readonly ConstDirectiveNode[] | null,
     hasTypeNameField: boolean,
     exported: {
       tsModulePath: string;
@@ -78,6 +103,7 @@ export class GraphQLConstructor {
       interfaces: interfaces ?? undefined,
       hasTypeNameField: hasTypeNameField,
       exported: exported ?? undefined,
+      directives: this._optionalList(directives),
     };
   }
 
@@ -87,15 +113,16 @@ export class GraphQLConstructor {
     fields: FieldDefinitionNode[],
     interfaces: NamedTypeNode[] | null,
     description: StringValueNode | null,
+    directives: readonly ConstDirectiveNode[] | null,
   ): InterfaceTypeDefinitionNode {
     return {
       kind: Kind.INTERFACE_TYPE_DEFINITION,
       loc: loc(node),
       description: description ?? undefined,
-      directives: undefined,
       name,
       fields,
       interfaces: interfaces ?? undefined,
+      directives: this._optionalList(directives),
     };
   }
 
@@ -104,6 +131,7 @@ export class GraphQLConstructor {
     name: NameNode,
     values: readonly EnumValueDefinitionNode[],
     description: StringValueNode | null,
+    directives: readonly ConstDirectiveNode[] | null,
   ): EnumTypeDefinitionNode {
     return {
       kind: Kind.ENUM_TYPE_DEFINITION,
@@ -111,6 +139,7 @@ export class GraphQLConstructor {
       description: description ?? undefined,
       name,
       values,
+      directives: this._optionalList(directives),
     };
   }
 
@@ -310,12 +339,14 @@ export class GraphQLConstructor {
     node: ts.Node,
     name: NameNode,
     args: ReadonlyArray<ConstArgumentNode> | null,
+    isAmbiguous: boolean = false,
   ): ConstDirectiveNode {
     return {
       kind: Kind.DIRECTIVE,
       loc: loc(node),
       name,
       arguments: this._optionalList(args),
+      isAmbiguous,
     };
   }
 

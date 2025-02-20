@@ -45,7 +45,8 @@ export class Post extends Model<DB.PostRow> implements GraphQLNode {
   /**
    * All the likes this post has received.
    * **Note:** You can use this connection to access the number of likes.
-   * @gqlField */
+   * @gqlField
+   * @gqlAnnotate cost(credits: 10) */
   async likes(
     args: {
       first?: Int | null;
@@ -69,7 +70,6 @@ export class Post extends Model<DB.PostRow> implements GraphQLNode {
 /**
  * Models a node in a Markdown AST
  * @gqlInput
- * @oneOf
  */
 type MarkdownNode =
   | { h1: string }
@@ -83,7 +83,6 @@ type MarkdownNode =
 /**
  * Post content. Could be pure text, or Markdown
  * @gqlInput
- * @oneOf
  */
 type PostContentInput = { string: string } | { markdown: MarkdownNode[] };
 

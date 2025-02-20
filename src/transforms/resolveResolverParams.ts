@@ -53,6 +53,11 @@ class ResolverParamsResolver {
     const nextDefinitions = definitions.map((def) => {
       return visit(def, {
         [Kind.FIELD_DEFINITION]: (field) => this.transformField(field),
+        // Note: If we wanted to provide custom error messages when you try to
+        // consume context/info/etc from a directive, we would do that here.
+
+        // [Kind.DIRECTIVE_DEFINITION]: (directive) =>
+        //   this.transformDirective(directive),
       });
     });
 
