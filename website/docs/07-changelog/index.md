@@ -4,7 +4,14 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
-This version introduces support for defining directives, and annotating your schema with directives.
+- **Improvements**
+  - Added support for `@gqlUnion`s with only one member
+
+---
+
+## 0.0.32
+
+This version introduces support for [defining directives](../04-docblock-tags/11-directive-definitions.mdx), and [annotating](../04-docblock-tags/12-directive-annotations.mdx) your schema with directives.
 
 - **Breaking Changes**
 
@@ -15,8 +22,6 @@ This version introduces support for defining directives, and annotating your sch
 - **Improvements**
   - Remove superfluous argument name property from `schema.ts`
   - Generated `GraphQLSchema` now includes the `specifiedByURL` property for custom scalars that use the `@specifiedBy` directive.
-
----
 
 ## 0.0.31
 
