@@ -1,17 +1,17 @@
+import GratsCode from "@site/src/components/GratsCode";
+import DirectiveDef from "!!raw-loader!./snippets/11-directive-def.out";
+import DirectiveLocations from "!!raw-loader!./snippets/11-directive-locations.out";
+import DirectiveArgs from "!!raw-loader!./snippets/11-directive-args.out";
+import DirectiveArgsDefault from "!!raw-loader!./snippets/11-directive-args-defaults.out";
+import DirectiveArgsDeprecated from "!!raw-loader!./snippets/11-directive-args-deprecated.out";
+
 # Directive Definitions
 
 You can define GraphQL directives by placing a `@gqlDirective` before a:
 
 - Function declaration
 
-```ts
-/**
- * @gqlDirective on FIELD_DEFINITION
- */
-function cost(args: { credits: Int }) {
-  // ...
-}
-```
+<GratsCode out={DirectiveDef} mode="ts" />
 
 While the directive is defined as a function, unlike field resolvers, _Grats will not invoke your function_. However, having a function whose type matches the arguments of your directive can be useful for writing code which will accept the arguments of your directive.
 
@@ -25,14 +25,7 @@ The text after the `@gqlDirective` tag is parsed similarly to a a GraphQL direct
 2. An optional `repeatable` keyword if the directive is repeatable
 3. The `on` keyword followed by a list of directive [locations](https://spec.graphql.org/October2021/#DirectiveLocation) separated by `|`.
 
-```ts
-/**
- * @gqlDirective cost repeatable on FIELD_DEFINITION | TYPE_DEFINITION
- */
-function applyCost(args: { credits: Int }) {
-  // ...
-}
-```
+<GratsCode out={DirectiveLocations} mode="ts" />
 
 ## Arguments
 
@@ -40,32 +33,12 @@ The first argument of the directive function is an object containing the directi
 
 _All other arguments to the directive function are ignored by Grats._ This allows the function to be used as part of the implementation of the directive’s behavior.
 
-```tsx
-/**
- * @gqlDirective on FIELD_DEFINITION
- */
-function myDirective(args: { someArg: string }, someNonGqlArg: SomeType) {}
-```
+<GratsCode out={DirectiveArgs} mode="ts" />
 
 Default values in this style can be defined by using the `=` operator with destructuring. Note that you must perform the destructuring in the argument list, not in the function body:
 
-```tsx
-/**
- * @gqlDirective on FIELD_DEFINITION
- */
-function myDirective({ greeting = "Hello" }: { greeting: string }) {}
-```
+<GratsCode out={DirectiveArgsDefault} mode="ts" />
 
 Arguments can be marked as `@deprecated` by using the `@deprecated` JSDoc tag:
 
-```tsx
-/**
- * @gqlDirective on FIELD_DEFINITION
- */
-function myDirective(args: {
-  /** @deprecated Unused! */
-  someArg: string;
-}) {
-  // ...
-}
-```
+<GratsCode out={DirectiveArgsDeprecated} mode="ts" />

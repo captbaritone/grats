@@ -1,0 +1,26 @@
+// trim-start
+type SomeType = any;
+// trim-end
+/**
+ * @gqlDirective on FIELD_DEFINITION
+ */
+function myDirective(args: { someArg: string }, someNonGqlArg: SomeType) {}
+
+=== SNIP ===
+directive @myDirective(someArg: String!) on FIELD_DEFINITION
+=== SNIP ===
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    return new GraphQLSchema({
+        directives: [new GraphQLDirective({
+                name: "myDirective",
+                locations: [DirectiveLocation.FIELD_DEFINITION],
+                args: {
+                    someArg: {
+                        type: new GraphQLNonNull(GraphQLString)
+                    }
+                }
+            })],
+        types: []
+    });
+}
