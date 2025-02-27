@@ -630,28 +630,30 @@ class Extractor {
     const name = this.entityName(node, tag);
     if (name == null) return null;
 
-    if (!ts.isUnionTypeNode(node.type)) {
+    const types: NamedTypeNode[] = [];
+    if (ts.isUnionTypeNode(node.type)) {
+      for (const member of node.type.types) {
+        if (!ts.isTypeReferenceNode(member)) {
+          return this.reportUnhandled(
+            member,
+            "union member",
+            E.expectedUnionTypeReference(),
+          );
+        }
+        const namedType = this.gql.namedType(
+          member.typeName,
+          UNRESOLVED_REFERENCE_NAME,
+        );
+        this.markUnresolvedType(member.typeName, namedType.name);
+        types.push(this.unionMemberDeclaration(member));
+      }
+    } else if (ts.isTypeReferenceNode(node.type)) {
+      types.push(this.unionMemberDeclaration(node.type));
+    } else {
       return this.report(node, E.expectedUnionTypeNode());
     }
 
     const description = this.collectDescription(node);
-
-    const types: NamedTypeNode[] = [];
-    for (const member of node.type.types) {
-      if (!ts.isTypeReferenceNode(member)) {
-        return this.reportUnhandled(
-          member,
-          "union member",
-          E.expectedUnionTypeReference(),
-        );
-      }
-      const namedType = this.gql.namedType(
-        member.typeName,
-        UNRESOLVED_REFERENCE_NAME,
-      );
-      this.markUnresolvedType(member.typeName, namedType.name);
-      types.push(namedType);
-    }
 
     this.recordTypeName(node, name, "UNION");
 
@@ -660,6 +662,15 @@ class Extractor {
     this.definitions.push(
       this.gql.unionTypeDefinition(node, name, types, description, directives),
     );
+  }
+
+  unionMemberDeclaration(member: ts.TypeReferenceNode): NamedTypeNode {
+    const namedType = this.gql.namedType(
+      member.typeName,
+      UNRESOLVED_REFERENCE_NAME,
+    );
+    this.markUnresolvedType(member.typeName, namedType.name);
+    return namedType;
   }
 
   variableStatementExtendType(

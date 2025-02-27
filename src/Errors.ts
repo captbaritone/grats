@@ -84,7 +84,7 @@ export function invalidUnionTagUsage() {
 }
 
 export function expectedUnionTypeNode() {
-  return `Expected a TypeScript union. \`@${UNION_TAG}\` can only be used on TypeScript unions. e.g. \`type MyUnion = TypeA | TypeB\``;
+  return `Expected a TypeScript union. \`@${UNION_TAG}\` can only be used on TypeScript unions or a single type reference. e.g. \`type MyUnion = TypeA | TypeB\` or \`type MyUnion = TypeA\``;
 }
 
 export function expectedUnionTypeReference() {
