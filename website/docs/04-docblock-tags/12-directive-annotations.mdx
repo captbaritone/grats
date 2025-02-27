@@ -1,28 +1,16 @@
+import GratsCode from "@site/src/components/GratsCode";
+import DirectiveAnnotations1 from "!!raw-loader!./snippets/12-directive-annotations-1.out";
+import DirectiveAnnotations2 from "!!raw-loader!./snippets/12-directive-annotations-2.out";
+
 # Directive Annotations
 
 You can annotate constructs in your Grats GraphQL schema with [GraphQL directives](https://spec.graphql.org/October2021/#sec-Language.Directives) using the `@gqlAnnotate` docblock tag.
 
-```tsx
-/**
- * @gqlQueryField
- * @gqlAnnotate myDirective
- */
-export function greet(): string {
-  return "Hello";
-}
-```
+<GratsCode out={DirectiveAnnotations1} mode="ts" />
 
 Directive annotations can also accept arguments using [GraphQL syntax](https://spec.graphql.org/October2021/#sec-Language.Directives) for arguments:
 
-```tsx
-/**
- * @gqlQueryField
- * @gqlAnnotate myDirective(someArg: "Some String")
- */
-export function greet(): string {
-  return "Hello";
-}
-```
+<GratsCode out={DirectiveAnnotations2} mode="ts" />
 
 :::note
 The GraphQL directive `@deprecated` is unique in that it is a built-in GraphQL directive _and_ has a built-in TypeScript equivalent in the form of the `@deprecated` docblock tag. Because of this, TypeScript `@deprecated` docblock tags are automatically converted into GraphQL `@deprecated` directives.

@@ -1,0 +1,55 @@
+// trim-start
+/** @gqlDirective on FIELD_DEFINITION */
+function myDirective() {
+  // ...
+}
+// trim-end
+/**
+ * @gqlQueryField
+ * @gqlAnnotate myDirective
+ */
+export function greet(): string {
+  return "Hello";
+}
+
+=== SNIP ===
+directive @myDirective on FIELD_DEFINITION
+
+type Query {
+  greet: String @myDirective
+}
+=== SNIP ===
+import { greet as queryGreetResolver } from "./12-directive-annotations-1.grats";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                greet: {
+                    name: "greet",
+                    type: GraphQLString,
+                    extensions: {
+                        grats: {
+                            directives: [{
+                                    name: "myDirective",
+                                    args: {}
+                                }]
+                        }
+                    },
+                    resolve() {
+                        return queryGreetResolver();
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        directives: [new GraphQLDirective({
+                name: "myDirective",
+                locations: [DirectiveLocation.FIELD_DEFINITION]
+            })],
+        query: QueryType,
+        types: [QueryType]
+    });
+}
