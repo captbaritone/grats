@@ -1,0 +1,44 @@
+import GratsCode from "@site/src/components/GratsCode";
+import DirectiveDef from "!!raw-loader!./snippets/11-directive-def.out";
+import DirectiveLocations from "!!raw-loader!./snippets/11-directive-locations.out";
+import DirectiveArgs from "!!raw-loader!./snippets/11-directive-args.out";
+import DirectiveArgsDefault from "!!raw-loader!./snippets/11-directive-args-defaults.out";
+import DirectiveArgsDeprecated from "!!raw-loader!./snippets/11-directive-args-deprecated.out";
+
+# Directive Definitions
+
+You can define GraphQL directives by placing a `@gqlDirective` before a:
+
+- Function declaration
+
+<GratsCode out={DirectiveDef} mode="ts" />
+
+While the directive is defined as a function, unlike field resolvers, _Grats will not invoke your function_. However, having a function whose type matches the arguments of your directive can be useful for writing code which will accept the arguments of your directive.
+
+To annotate part of your schema with a directive, see [`@gqlAnnotate`](./12-directive-annotations.mdx).
+
+## Locations
+
+The text after the `@gqlDirective` tag is parsed similarly to a a GraphQL directive definition:
+
+1. An optional name for the directive (the function name will be used if no name is provided)
+2. An optional `repeatable` keyword if the directive is repeatable
+3. The `on` keyword followed by a list of directive [locations](https://spec.graphql.org/October2021/#DirectiveLocation) separated by `|`.
+
+<GratsCode out={DirectiveLocations} mode="ts" />
+
+## Arguments
+
+The first argument of the directive function is an object containing the directive’s GraphQL arguments. This mirrors the [Object-style map fields](./03-arguments.mdx#object-map-style-fields) style supported by field resolvers.
+
+_All other arguments to the directive function are ignored by Grats._ This allows the function to be used as part of the implementation of the directive’s behavior.
+
+<GratsCode out={DirectiveArgs} mode="ts" />
+
+Default values in this style can be defined by using the `=` operator with destructuring. Note that you must perform the destructuring in the argument list, not in the function body:
+
+<GratsCode out={DirectiveArgsDefault} mode="ts" />
+
+Arguments can be marked as `@deprecated` by using the `@deprecated` JSDoc tag:
+
+<GratsCode out={DirectiveArgsDeprecated} mode="ts" />

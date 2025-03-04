@@ -1,9 +1,5 @@
 # Grats: Implementation-First GraphQL for TypeScript
 
-[![Join our Discord!](https://img.shields.io/discord/1089650710796320868?logo=discord)](https://capt.dev/grats-chat)
-
-_Beta Software: Grats is largely stable and being used in production in multiple places. If you encounter any issues, don't hesitate to let us know._
-
 **The simplest way to build a GraphQL server in TypeScript**
 
 When you write your GraphQL server in TypeScript, your fields and resolvers
@@ -44,6 +40,8 @@ type User {
 ```
 
 That's just the beginning! To learn more, **Read the docs: https://grats.capt.dev/**
+
+[![Join our Discord!](https://img.shields.io/discord/1089650710796320868?logo=discord)](https://capt.dev/grats-chat)
 
 ## Contributing
 

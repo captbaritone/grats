@@ -10,11 +10,11 @@ import {
   SCALAR_TAG,
   TYPE_TAG,
   UNION_TAG,
-  SPECIFIED_BY_TAG,
   CONTEXT_TAG,
   INFO_TAG,
   EXTERNAL_TAG,
   AllTags,
+  DIRECTIVE_TAG,
 } from "./Extractor";
 
 export const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
@@ -78,7 +78,7 @@ export function invalidEnumTagUsage() {
 }
 
 export function invalidInputTagUsage() {
-  return `\`@${INPUT_TAG}\` can only be used on type alias or interface declarations. e.g. \`type MyInput = { foo: string }\` or \`interface MyInput { foo: string }\``;
+  return `\`@${INPUT_TAG}\` can only be used on type alias, interface declarations or type unions. e.g. \`type MyInput = { foo: string }\` or \`interface MyInput { foo: string }\``;
 }
 
 export function invalidUnionTagUsage() {
@@ -86,7 +86,7 @@ export function invalidUnionTagUsage() {
 }
 
 export function expectedUnionTypeNode() {
-  return `Expected a TypeScript union. \`@${UNION_TAG}\` can only be used on TypeScript unions. e.g. \`type MyUnion = TypeA | TypeB\``;
+  return `Expected a TypeScript union. \`@${UNION_TAG}\` can only be used on TypeScript unions or a single type reference. e.g. \`type MyUnion = TypeA | TypeB\` or \`type MyUnion = TypeA\``;
 }
 
 export function expectedUnionTypeReference() {
@@ -477,15 +477,6 @@ export function gqlFieldParentMissingTag() {
   return `Unexpected \`@${FIELD_TAG}\`. The parent construct must be either a \`@${TYPE_TAG}\` or \`@${INTERFACE_TAG}\` tag. Are you missing one of these tags?`;
 }
 
-export function missingSpecifiedByUrl() {
-  return `Expected \`@${SPECIFIED_BY_TAG}\` tag to be followed by a URL. This URL will be used as the \`url\` argument to the \`@specifiedBy\` directive in the generated GraphQL schema. See https://spec.graphql.org/draft/#sec--specifiedBy for more information.`;
-}
-
-// TODO: Add code action
-export function specifiedByOnWrongNode() {
-  return `Unexpected \`@${SPECIFIED_BY_TAG}\` tag on non-scalar declaration. \`@${SPECIFIED_BY_TAG}\` can only be used on custom scalar declarations. Are you missing a \`@${SCALAR_TAG}\` tag?`;
-}
-
 export function missingGenericType(
   templateName: string,
   paramName: string,
@@ -612,6 +603,46 @@ export function noTypesDefined() {
 
 export function tsConfigNotFound(cwd: string) {
   return `Grats: Could not find \`tsconfig.json\` searching in ${cwd}.\n\nSee https://www.typescriptlang.org/download/ for instructors on how to add TypeScript to your project. Then run \`npx tsc --init\` to create a \`tsconfig.json\` file.`;
+}
+
+export function cyclicDerivedContext() {
+  return `Cyclic dependency detected in derived context. This derived context value depends upon itself.`;
+}
+
+export function invalidDerivedContextArgType() {
+  return "Invalid type for derived context function argument. Derived context functions may only accept other `@gqlContext` types as arguments.";
+}
+
+export function missingReturnTypeForDerivedResolver() {
+  return 'Expected derived resolver to have an explicit return type. This is needed to allow Grats to "see" which type to treat as a derived context type.';
+}
+
+export function derivedResolverInvalidReturnType() {
+  return "Expected derived resolver function's return type to be a type reference. Grats uses this type reference to determine which type to treat as a derived context type.";
+}
+
+export function directiveTagOnWrongNode() {
+  return `\`@${DIRECTIVE_TAG}\` can only be used on function declarations.`;
+}
+
+export function directiveTagCommentNotText() {
+  return "Expected Grats JSDoc tag value to be simple text.";
+}
+
+export function specifiedByDeprecated() {
+  return 'The `@specifiedBy` tag has been deprecated in favor of `@gqlAnnotate`. Use `@gqlAnnotate specified(url: "http://example.com")` instead.';
+}
+
+export function directiveTagNoComment() {
+  return "Expected `@gqlDirective` tag to specify at least one location.";
+}
+
+export function directiveFunctionNotNamed() {
+  return "Expected `@gqlDirective` function to be named.";
+}
+
+export function directiveArgumentNotObject() {
+  return "Expected first argument of a `@gqlDirective` function to be typed using an inline object literal.";
 }
 
 export function noModuleInGqlExternal() {

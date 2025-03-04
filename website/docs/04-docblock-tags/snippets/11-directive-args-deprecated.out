@@ -1,0 +1,29 @@
+/**
+ * @gqlDirective on FIELD_DEFINITION
+ */
+function myDirective(args: {
+  /** @deprecated Unused! */
+  someArg?: string | null;
+}) {
+  // ...
+}
+
+=== SNIP ===
+directive @myDirective(someArg: String @deprecated(reason: "Unused!")) on FIELD_DEFINITION
+=== SNIP ===
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    return new GraphQLSchema({
+        directives: [new GraphQLDirective({
+                name: "myDirective",
+                locations: [DirectiveLocation.FIELD_DEFINITION],
+                args: {
+                    someArg: {
+                        deprecationReason: "Unused!",
+                        type: GraphQLString
+                    }
+                }
+            })],
+        types: []
+    });
+}

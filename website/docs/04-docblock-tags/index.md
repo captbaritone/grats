@@ -17,13 +17,16 @@ Each tag maps directly to a concept in the GraphQL [Schema Definition Language](
 
 - [`@gqlType`](./01-types.mdx)
 - [`@gqlField`](./02-fields.mdx)
+  - [Root fields](./02-root-fields.mdx)
   - [Arguments](./03-arguments.mdx)
   - [Context](./04-context.mdx)
+  - [Info](./04-info.mdx)
 - [`@gqlInterface`](./05-interfaces.mdx)
 - [`@gqlUnion`](./06-unions.mdx)
 - [`@gqlEnum`](./07-enums.mdx)
 - [`@gqlScalar`](./08-scalars.mdx)
 - [`@gqlInput`](./09-inputs.mdx)
+  - [`@oneOf`](./10-oneof-inputs.mdx)
 
 :::tip
 This documentation aims to be complete, but our hope is that you feel empowered to just slap one of these docblock tags on the relevant TypeScript class/type/method/etc in your code, and let Grats' helpful error messages guide you.

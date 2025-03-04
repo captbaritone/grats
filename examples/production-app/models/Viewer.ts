@@ -1,5 +1,5 @@
 import * as DB from "../Database";
-import { Ctx } from "../ViewerContext";
+import { VC } from "../ViewerContext";
 import { Post } from "./Post";
 import { User } from "./User";
 
@@ -10,8 +10,8 @@ export class Viewer {
   /**
    * The currently authenticated user.
    * @gqlField */
-  async user(ctx: Ctx): Promise<User> {
-    return ctx.vc.getUserById(ctx.vc.userId());
+  async user(vc: VC): Promise<User> {
+    return vc.getUserById(vc.userId());
   }
 
   /**
@@ -21,8 +21,8 @@ export class Viewer {
    * It is recommended to use `@stream` to avoid blocking the client.
    * @gqlField
    */
-  async *feed(ctx: Ctx): AsyncIterable<Post> {
-    const rows = await DB.selectPosts(ctx.vc);
+  async *feed(vc: VC): AsyncIterable<Post> {
+    const rows = await DB.selectPosts(vc);
     for (const row of rows) {
       // Simulate a slow algorithm
       await new Promise((resolve) => setTimeout(resolve, 500));

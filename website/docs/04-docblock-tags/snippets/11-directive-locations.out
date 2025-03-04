@@ -1,0 +1,29 @@
+// trim-start
+import { Int } from "grats";
+// trim-end
+/**
+ * @gqlDirective cost repeatable on FIELD_DEFINITION | OBJECT
+ */
+function applyCost(args: { credits: Int }) {
+  // ...
+}
+
+=== SNIP ===
+directive @cost(credits: Int!) repeatable on FIELD_DEFINITION | OBJECT
+=== SNIP ===
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt } from "graphql";
+export function getSchema(): GraphQLSchema {
+    return new GraphQLSchema({
+        directives: [new GraphQLDirective({
+                name: "cost",
+                locations: [DirectiveLocation.FIELD_DEFINITION, DirectiveLocation.OBJECT],
+                args: {
+                    credits: {
+                        type: new GraphQLNonNull(GraphQLInt)
+                    }
+                },
+                isRepeatable: true
+            })],
+        types: []
+    });
+}

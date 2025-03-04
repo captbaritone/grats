@@ -3,12 +3,23 @@ import { isNonNull } from "../utils/helpers";
 import * as path from "path";
 import { resolveRelativePath } from "../gratsRoot";
 
+type JsonObject = { [key: string]: JsonValue };
+type JsonArray = JsonValue[];
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonObject
+  | JsonArray;
+
 const F = ts.factory;
 
 /**
  * A helper class to build up a TypeScript document AST.
  */
 export default class TSAstBuilder {
+  _globalNames: Map<string, number> = new Map();
   _imports: ts.Statement[] = [];
   imports: Map<string, { name: string; as?: string }[]> = new Map();
   _helpers: ts.Statement[] = [];
@@ -88,6 +99,40 @@ export default class TSAstBuilder {
     properties: Array<ts.ObjectLiteralElementLike | null>,
   ): ts.ObjectLiteralExpression {
     return F.createObjectLiteralExpression(properties.filter(isNonNull), true);
+  }
+
+  boolean(value: boolean): ts.BooleanLiteral {
+    return value ? F.createTrue() : F.createFalse();
+  }
+
+  // Helper to create AST from a JSON serializable value. This is really just an
+  // ergonomic way to quickly create code less verbosely since the codegen just
+  // needs to create the JS value instead of writing all the code to produce the
+  // AST.
+  json(value: JsonValue): ts.Expression {
+    if (value === null) {
+      return F.createNull();
+    }
+    if (typeof value === "string") {
+      return F.createStringLiteral(value);
+    }
+    if (typeof value === "number") {
+      return F.createNumericLiteral(value);
+    }
+    if (typeof value === "boolean") {
+      return value ? F.createTrue() : F.createFalse();
+    }
+    if (Array.isArray(value)) {
+      return F.createArrayLiteralExpression(
+        value.map((v) => this.json(v)),
+        value.length > 1,
+      );
+    }
+    return this.objectLiteral(
+      Object.entries(value).map(([key, value]) =>
+        F.createPropertyAssignment(key, this.json(value)),
+      ),
+    );
   }
 
   constDeclaration(
@@ -209,7 +254,21 @@ export default class TSAstBuilder {
       sourceFile,
     );
   }
+
+  // Given a desired name in the module scope, return a name that is unique. If
+  // the name is already taken, a suffix will be added to the name to make it
+  // unique.
+  //
+  // NOTE: This is not truly unique, as it only checks the names that have been
+  // generated through this method. In the future we could add more robust
+  // scope/name tracking.
+  getUniqueName(name: string): string {
+    const count = this._globalNames.get(name) ?? 0;
+    this._globalNames.set(name, count + 1);
+    return count === 0 ? name : `${name}_${count}`;
+  }
 }
+
 function replaceExt(filePath: string, newSuffix: string): string {
   const ext = path.extname(filePath);
   return filePath.slice(0, -ext.length) + newSuffix;

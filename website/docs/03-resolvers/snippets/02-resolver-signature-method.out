@@ -28,7 +28,6 @@ export function getSchema(): GraphQLSchema {
                     type: UserType,
                     args: {
                         order: {
-                            name: "order",
                             type: new GraphQLNonNull(GraphQLString)
                         }
                     },

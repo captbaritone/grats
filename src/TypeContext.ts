@@ -11,12 +11,23 @@ import {
   DiagnosticResult,
   tsErr,
   gqlRelated,
+  DiagnosticsResult,
+  FixableDiagnosticWithLocation,
 } from "./utils/DiagnosticError";
 import { err, ok } from "./utils/Result";
 import * as E from "./Errors";
 import { ExtractionSnapshot } from "./Extractor";
+import { ResolverArgument } from "./resolverSignature";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
+
+export type DerivedResolverDefinition = {
+  name: NameNode;
+  path: string;
+  exportName: string | null;
+  args: ResolverArgument[];
+  kind: "DERIVED_CONTEXT";
+};
 
 export type NameDefinition = {
   name: NameNode;
@@ -31,6 +42,8 @@ export type NameDefinition = {
     | "INFO";
   externalImportPath: string | null;
 };
+
+export type DeclarationDefinition = NameDefinition | DerivedResolverDefinition;
 
 type TsIdentifier = number;
 
@@ -49,27 +62,50 @@ type TsIdentifier = number;
 export class TypeContext {
   checker: ts.TypeChecker;
 
-  _declarationToName: Map<ts.Declaration, NameDefinition> = new Map();
+  _declarationToDefinition: Map<ts.Declaration, DeclarationDefinition> =
+    new Map();
   _unresolvedNodes: Map<TsIdentifier, ts.EntityName> = new Map();
   _idToDeclaration: Map<TsIdentifier, ts.Declaration> = new Map();
 
   static fromSnapshot(
     checker: ts.TypeChecker,
     snapshot: ExtractionSnapshot,
-  ): TypeContext {
+  ): DiagnosticsResult<TypeContext> {
+    const errors: FixableDiagnosticWithLocation[] = [];
     const self = new TypeContext(checker);
     for (const [node, typeName] of snapshot.unresolvedNames) {
       self._markUnresolvedType(node, typeName);
     }
     for (const [node, definition] of snapshot.nameDefinitions) {
-      self._recordTypeName(
-        node,
-        definition.name,
-        definition.kind,
-        definition.externalImportPath,
-      );
+      self._recordDeclaration(node, definition);
     }
-    return self;
+    for (const [definition, reference] of snapshot.implicitNameDefinitions) {
+      const declaration = self.maybeTsDeclarationForTsName(reference.typeName);
+      if (declaration == null) {
+        errors.push(tsErr(reference.typeName, E.unresolvedTypeReference()));
+        continue;
+      }
+      const existing = self._declarationToDefinition.get(declaration);
+      if (existing != null) {
+        errors.push(
+          tsErr(
+            declaration,
+            "Multiple derived contexts defined for given type",
+            [
+              gqlRelated(definition.name, "One was defined here"),
+              gqlRelated(existing.name, "Another here"),
+            ],
+          ),
+        );
+        continue;
+      }
+      self._recordDeclaration(declaration, definition);
+    }
+
+    if (errors.length > 0) {
+      return err(errors);
+    }
+    return ok(self);
   }
 
   constructor(checker: ts.TypeChecker) {
@@ -78,14 +114,12 @@ export class TypeContext {
 
   // Record that a GraphQL construct of type `kind` with the name `name` is
   // declared at `node`.
-  private _recordTypeName(
+  private _recordDeclaration(
     node: ts.Declaration,
-    name: NameNode,
-    kind: NameDefinition["kind"],
-    externalImportPath: string | null = null,
+    definition: DeclarationDefinition,
   ) {
-    this._idToDeclaration.set(name.tsIdentifier, node);
-    this._declarationToName.set(node, { name, kind, externalImportPath });
+    this._idToDeclaration.set(definition.name.tsIdentifier, node);
+    this._declarationToDefinition.set(node, definition);
   }
 
   // Record that a type references `node`
@@ -93,14 +127,20 @@ export class TypeContext {
     this._unresolvedNodes.set(name.tsIdentifier, node);
   }
 
-  allNameDefinitions(): Iterable<NameDefinition> {
-    return this._declarationToName.values();
+  allDefinitions(): Iterable<DeclarationDefinition> {
+    return this._declarationToDefinition.values();
+  }
+
+  allNameDefinitions(): Array<NameDefinition> {
+    return Array.from(this._declarationToDefinition.values()).filter(
+      (decl): decl is NameDefinition => !!decl.kind,
+    );
   }
 
   getNameDefinition(name: NameNode): NameDefinition | null {
-    for (const def of this.allNameDefinitions()) {
-      if (def.name.value === name.value) {
-        return def;
+    for (const def of this.allDefinitions()) {
+      if (def.kind && def.name.value === name.value) {
+        return def as NameDefinition;
       }
     }
     return null;
@@ -151,7 +191,9 @@ export class TypeContext {
       );
     }
 
-    const nameDefinition = this._declarationToName.get(declarationResult.value);
+    const nameDefinition = this._declarationToDefinition.get(
+      declarationResult.value,
+    );
     if (nameDefinition == null) {
       return err(gqlErr(unresolved, E.unresolvedTypeReference()));
     }
@@ -172,12 +214,12 @@ export class TypeContext {
     if (referenceNode == null) return false;
     const declaration = this.maybeTsDeclarationForTsName(referenceNode);
     if (declaration == null) return false;
-    return this._declarationToName.has(declaration);
+    return this._declarationToDefinition.has(declaration);
   }
 
   gqlNameDefinitionForGqlName(
     nameNode: NameNode,
-  ): DiagnosticResult<NameDefinition> {
+  ): DiagnosticResult<DeclarationDefinition> {
     const referenceNode = this.getEntityName(nameNode);
     if (referenceNode == null) {
       throw new Error("Expected to find reference node for name node.");
@@ -187,7 +229,7 @@ export class TypeContext {
     if (declaration == null) {
       return err(gqlErr(nameNode, E.unresolvedTypeReference()));
     }
-    const definition = this._declarationToName.get(declaration);
+    const definition = this._declarationToDefinition.get(declaration);
     if (definition == null) {
       return err(gqlErr(nameNode, E.unresolvedTypeReference()));
     }
@@ -208,7 +250,9 @@ export class TypeContext {
       );
     }
 
-    const nameDefinition = this._declarationToName.get(declarationResult.value);
+    const nameDefinition = this._declarationToDefinition.get(
+      declarationResult.value,
+    );
     if (nameDefinition == null) {
       return err(tsErr(node, E.unresolvedTypeReference()));
     }

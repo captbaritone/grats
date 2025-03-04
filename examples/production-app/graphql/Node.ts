@@ -1,6 +1,6 @@
 import { fromGlobalId, toGlobalId } from "graphql-relay";
 import { ID } from "grats";
-import { Ctx } from "../ViewerContext";
+import { VC } from "../ViewerContext";
 
 /**
  * Converts a globally unique ID into a local ID asserting
@@ -39,7 +39,7 @@ export function id(node: GraphQLNode): ID {
  * @gqlQueryField */
 export async function node(
   args: { id: ID },
-  ctx: Ctx,
+  vc: VC,
 ): Promise<GraphQLNode | null> {
   const { type, id } = fromGlobalId(args.id);
 
@@ -48,11 +48,11 @@ export async function node(
   // source of bugs.
   switch (type) {
     case "User":
-      return ctx.vc.getUserById(id);
+      return vc.getUserById(id);
     case "Post":
-      return ctx.vc.getPostById(id);
+      return vc.getPostById(id);
     case "Like":
-      return ctx.vc.getLikeById(id);
+      return vc.getLikeById(id);
     default:
       throw new Error(`Unknown typename: ${type}`);
   }
@@ -63,7 +63,7 @@ export async function node(
  * @gqlQueryField */
 export async function nodes(
   ids: ID[],
-  ctx: Ctx,
+  vc: VC,
 ): Promise<Array<GraphQLNode | null>> {
-  return Promise.all(ids.map((id) => node({ id }, ctx)));
+  return Promise.all(ids.map((id) => node({ id }, vc)));
 }

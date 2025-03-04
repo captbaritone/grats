@@ -38,7 +38,7 @@ class Math {
 
 ## `@specifiedBy` Directive
 
-The GraphQL specification defines the [`@specifiedBy`](https://spec.graphql.org/draft/#sec--specifiedBy) directive which can be added to custom scalar definitions. The directive provides a "scalar specification URL for specifying the behavior of custom scalar types.". Grats lets you add this directive to your custom scalars by adding a `@specifiedBy` docblock tag to the type alias declaration followed by the URL of the specification.
+The GraphQL specification defines the [`@specifiedBy`](https://spec.graphql.org/draft/#sec--specifiedBy) directive which can be added to custom scalar definitions. The directive provides a "scalar specification URL for specifying the behavior of custom scalar types.". Grats' support for [annotating your schema with directives](./12-directive-annotations.mdx) lets you add this directive to your custom scalars:
 
 <GratsCode out={SpecifiedBy} mode="both" />
 

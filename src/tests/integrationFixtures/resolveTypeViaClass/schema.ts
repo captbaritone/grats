@@ -23,7 +23,6 @@ export function getSchema(): GraphQLSchema {
                     type: GqlNodeType,
                     args: {
                         id: {
-                            name: "id",
                             type: new GraphQLNonNull(GraphQLID)
                         }
                     },

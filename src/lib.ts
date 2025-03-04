@@ -1,6 +1,7 @@
 import {
   buildASTSchema,
   DocumentNode,
+  GraphQLError,
   GraphQLSchema,
   Kind,
   validateSchema,
@@ -36,6 +37,7 @@ import { makeResolverSignature } from "./transforms/makeResolverSignature";
 import { addImplicitRootTypes } from "./transforms/addImplicitRootTypes";
 import { addImportedSchemas } from "./transforms/addImportedSchemas";
 import { Metadata } from "./metadata";
+import { validateDirectiveArguments } from "./validations/validateDirectiveArguments";
 
 // Export the TypeScript plugin implementation used by
 // grats-ts-plugin
@@ -91,7 +93,11 @@ export function extractSchemaAndDoc(
       const { typesWithTypename } = snapshot;
       const config = options.raw.grats;
       const checker = program.getTypeChecker();
-      const ctx = TypeContext.fromSnapshot(checker, snapshot);
+      const ctxResult = TypeContext.fromSnapshot(checker, snapshot);
+      if (ctxResult.kind === "ERROR") {
+        return ctxResult;
+      }
+      const ctx = ctxResult.value;
 
       // Collect validation errors
       const validationResult = concatResults(
@@ -126,6 +132,7 @@ export function extractSchemaAndDoc(
         // Sort the definitions in the document to ensure a stable output.
         .map((doc) => sortSchemaAst(doc))
         .andThen((doc) => addImportedSchemas(ctx, doc))
+        .andThen((docs) => specValidateSDL(docs))
         .result();
 
       if (docResult.kind === "ERROR") {
@@ -136,10 +143,18 @@ export function extractSchemaAndDoc(
 
       // Build and validate the schema with regards to the GraphQL spec.
       return (
-        new ResultPipe(buildSchemaFromDoc([gratsDoc, ...externalDocs]))
+        new ResultPipe(buildSchema([gratsDoc, ...externalDocs]))
+          // Apply the "Type Validation" sub-sections of the specification's
+          // "Type System" section.
+          .andThen((schema) => specSchemaValidation(schema))
+          // The above spec validation fails to catch type errors in directive
+          // arguments, so Grats checks these manually.
+          .andThen((schema) => validateDirectiveArguments(schema, gratsDoc))
           // Ensure that every type which implements an interface or is a member of a
           // union has a __typename field.
           .andThen((schema) => validateTypenames(schema, typesWithTypename))
+          // Validate that semantic nullability directives are not in conflict
+          // with type nullability.
           .andThen((schema) => validateSemanticNullability(schema, config))
           // Combine the schema and document into a single result.
           .map((schema) => ({ schema, doc: gratsDoc, resolvers }))
@@ -149,33 +164,61 @@ export function extractSchemaAndDoc(
     .result();
 }
 
-// Given a SDL AST, build and validate a GraphQLSchema.
-function buildSchemaFromDoc(
+function buildSchema(
   docs: DocumentNode[],
 ): DiagnosticsWithoutLocationResult<GraphQLSchema> {
+  const doc: DocumentNode = {
+    kind: Kind.DOCUMENT,
+    definitions: docs.flatMap((doc) => doc.definitions),
+  };
+  return ok(buildASTSchema(doc, { assumeValidSDL: true }));
+}
+
+function specValidateSDL(docs: {
+  gratsDoc: DocumentNode;
+  externalDocs: DocumentNode[];
+}): DiagnosticsWithoutLocationResult<{
+  gratsDoc: DocumentNode;
+  externalDocs: DocumentNode[];
+}> {
   // TODO: Currently this does not detect definitions that shadow builtins
   // (`String`, `Int`, etc). However, if we pass a second param (extending an
   // existing schema) we do! So, we should find a way to validate that we don't
   // shadow builtins.
   const doc: DocumentNode = {
     kind: Kind.DOCUMENT,
-    definitions: docs.flatMap((doc) => doc.definitions),
+    definitions: [docs.gratsDoc, ...docs.externalDocs].flatMap(
+      (doc) => doc.definitions,
+    ),
   };
-  const validationErrors = validateSDL(doc);
+
+  const result = asDiagnostics(doc, validateSDL);
+  if (result.kind === "OK") {
+    return ok(docs);
+  } else {
+    return result;
+  }
+}
+
+function specSchemaValidation(
+  schema: GraphQLSchema,
+): DiagnosticsWithoutLocationResult<GraphQLSchema> {
+  return asDiagnostics(schema, validateSchema);
+}
+
+// Utility to map GraphQL validation errors to a Result of
+function asDiagnostics<T>(
+  value: T,
+  validate: (value: T) => ReadonlyArray<GraphQLError>,
+): DiagnosticsWithoutLocationResult<T> {
+  const validationErrors = validate(value).filter(
+    // FIXME: Handle case where query is not defined (no location)
+    (e) => e.source && e.locations && e.positions,
+  );
   if (validationErrors.length > 0) {
     return err(validationErrors.map(graphQlErrorToDiagnostic));
   }
-  const schema = buildASTSchema(doc, { assumeValidSDL: true });
-
-  const diagnostics = validateSchema(schema)
-    // FIXME: Handle case where query is not defined (no location)
-    .filter((e) => e.source && e.locations && e.positions);
-  //
-  if (diagnostics.length > 0) {
-    return err(diagnostics.map(graphQlErrorToDiagnostic));
-  }
-
-  return ok(schema);
+  return ok(value);
 }
 
 // Given a list of snapshots, merge them into a single snapshot.
@@ -183,6 +226,7 @@ function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
   const result: ExtractionSnapshot = {
     definitions: [],
     nameDefinitions: new Map(),
+    implicitNameDefinitions: new Map(),
     unresolvedNames: new Map(),
     typesWithTypename: new Set(),
     interfaceDeclarations: [],
@@ -199,6 +243,10 @@ function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
 
     for (const [node, typeName] of snapshot.unresolvedNames) {
       result.unresolvedNames.set(node, typeName);
+    }
+
+    for (const [node, definition] of snapshot.implicitNameDefinitions) {
+      result.implicitNameDefinitions.set(node, definition);
     }
 
     for (const typeName of snapshot.typesWithTypename) {

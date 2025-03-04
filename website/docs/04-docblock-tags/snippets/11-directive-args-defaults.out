@@ -1,0 +1,24 @@
+/**
+ * @gqlDirective on FIELD_DEFINITION
+ */
+function myDirective({ greeting = "Hello" }: { greeting: string }) {}
+
+=== SNIP ===
+directive @myDirective(greeting: String! = "Hello") on FIELD_DEFINITION
+=== SNIP ===
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    return new GraphQLSchema({
+        directives: [new GraphQLDirective({
+                name: "myDirective",
+                locations: [DirectiveLocation.FIELD_DEFINITION],
+                args: {
+                    greeting: {
+                        type: new GraphQLNonNull(GraphQLString),
+                        defaultValue: "Hello"
+                    }
+                }
+            })],
+        types: []
+    });
+}

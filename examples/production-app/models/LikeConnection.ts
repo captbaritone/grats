@@ -1,6 +1,6 @@
 import { GqlInfo, Int } from "grats";
 import * as DB from "../Database";
-import { Ctx } from "../ViewerContext";
+import { VC } from "../ViewerContext";
 import { Like } from "./Like";
 import { PageInfo } from "../graphql/Connection";
 import { PubSub } from "../PubSub";
@@ -40,7 +40,8 @@ type LikeEdge = {
 
 /**
  * All likes in the system. Note that there is no guarantee of order.
- * @gqlQueryField */
+ * @gqlQueryField
+ * @gqlAnnotate cost(credits: 10) */
 export async function likes(
   args: {
     first?: Int | null;
@@ -48,12 +49,12 @@ export async function likes(
     last?: Int | null;
     before?: string | null;
   },
-  ctx: Ctx,
+  vc: VC,
   info: GqlInfo,
 ): Promise<LikeConnection> {
   return connectionFromSelectOrCount(
-    () => DB.selectLikes(ctx.vc),
-    () => DB.selectLikesCount(ctx.vc),
+    () => DB.selectLikes(vc),
+    () => DB.selectLikesCount(vc),
     args,
     info,
   );
@@ -65,11 +66,11 @@ export async function likes(
  * @gqlSubscriptionField */
 export async function postLikes(
   postID: string,
-  ctx: Ctx,
+  vc: VC,
   info: GqlInfo,
 ): Promise<AsyncIterable<LikeConnection>> {
   const id = getLocalTypeAssert(postID, "Post");
-  const post = await ctx.vc.getPostById(id);
+  const post = await vc.getPostById(id);
   return pipe(
     PubSub.subscribe("postLiked"),
     filter((postId) => postId === id),

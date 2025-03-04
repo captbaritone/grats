@@ -46,4 +46,9 @@ export class VC {
 }
 
 /** @gqlContext */
-export type Ctx = YogaInitialContext & { vc: VC };
+export type Ctx = YogaInitialContext & { vc: VC; credits: number };
+
+/** @gqlContext */
+export function getVc(ctx: Ctx): VC {
+  return ctx.vc;
+}

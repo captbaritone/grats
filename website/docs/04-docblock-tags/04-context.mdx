@@ -1,3 +1,7 @@
+import GratsCode from "@site/src/components/GratsCode";
+import DerivedContext from "!!raw-loader!./snippets/04-derived-context.out";
+import DerivedContextMemoized from "!!raw-loader!./snippets/04-derived-context-memoized.out";
+
 # Context
 
 In addition to the [arguments object](./03-arguments.mdx), each resolver method/function may also access a [context value](https://graphql.org/learn/execution/#root-fields--resolvers). Context is the standard way to implement dependency injection for GraphQL resolvers. Typically the context value will be an object including the current request, information about the requesting user, as well as a database connection and per-request caches, such as [DataLoaders](https://github.com/graphql/dataloader).
@@ -12,6 +16,8 @@ type GQLCtx = {
   db: Database;
 };
 ```
+
+## Consuming context values in resolvers
 
 Grats will detect any resolver parameter that is typed using the `@gqlContext` type and ensure that the context object is passed to the resolver in that position:
 
@@ -37,10 +43,22 @@ export function me(ctx: GQLCtx): User {
 Unlike `graphql-js`, Grats does not require that the context object be passed as a specific positional argument to the resolver. You can place the context object anywhere in the argument list, as long as the type is annotated with the `@gqlContext` type.
 :::
 
-## Constructing your context object
+## Derived context values
 
-The mechanism by which you construct your context object will vary depending upon the GraphQL server library you are using. See your GraphQL server library's documentation for more information.
+In some cases you may have a context value that is expensive to create, or is only used in some resolvers. In these cases you can define a _derived resolver_. A derived resolver is a function which produces a context value. It may optionally read, as arguments, other context values, including other derived context values.
+
+Once a derived resolver is defined, the type it returns becomes a new context type. **Any resolver argument with this type will receive the value produced by the derived resolver returning that type.**
+
+<GratsCode out={DerivedContext} mode="ts" />
+
+Derived context functions will be called individually by each resolve that wants to access the derived context value. If you want the result to be reused across multiple resolvers, you should memoize the result:
+
+<GratsCode out={DerivedContextMemoized} mode="ts" />
+
+## Constructing your root context object
+
+How you construct your context object will vary based on your GraphQL server library. See your GraphQL server library's documentation for more information.
 
 :::caution
-Grats can ensure that every resolver is expecting the annotated context type, but it cannot ensure that the context value you construct and pass in matches that type. **It is up to you to ensure that your context value is constructed correctly and passed to the GraphQL execution engine.**
+Grats can ensure that every resolver is expecting the same annotated root context type, but it cannot ensure that the root context value you construct and pass in matches that type. **It is up to you to ensure that your root context value is constructed correctly and passed to the GraphQL execution engine.**
 :::

@@ -1,5 +1,5 @@
 import * as DB from "../Database";
-import { Ctx } from "../ViewerContext";
+import { VC } from "../ViewerContext";
 import { GraphQLNode } from "../graphql/Node";
 import { Model } from "./Model";
 import { Post } from "./Post";
@@ -57,8 +57,8 @@ type CreateUserPayload = {
  * @gqlMutationField */
 export async function createUser(
   input: CreateUserInput,
-  ctx: Ctx,
+  vc: VC,
 ): Promise<CreateUserPayload> {
-  const user = await DB.createUser(ctx.vc, input);
+  const user = await DB.createUser(vc, input);
   return { user };
 }

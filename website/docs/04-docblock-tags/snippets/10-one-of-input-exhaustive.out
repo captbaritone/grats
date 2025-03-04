@@ -1,6 +1,5 @@
 /**
  * @gqlInput
- * @oneOf
  */
 export type UserBy = { email: string } | { username: string };
 
@@ -99,7 +98,6 @@ export function getSchema(): GraphQLSchema {
                     type: UserType,
                     args: {
                         by: {
-                            name: "by",
                             type: new GraphQLNonNull(UserByType)
                         }
                     },
