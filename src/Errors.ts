@@ -12,7 +12,10 @@ import {
   UNION_TAG,
   CONTEXT_TAG,
   INFO_TAG,
+  EXTERNAL_TAG,
+  AllTags,
   DIRECTIVE_TAG,
+  EXTERNAL_TAG_VALID_TAGS,
 } from "./Extractor";
 
 export const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
@@ -151,6 +154,10 @@ export function typeTagOnUnnamedClass() {
 
 export function typeTagOnAliasOfNonObjectOrUnknown() {
   return `Expected \`@${TYPE_TAG}\` type to be an object type literal (\`{ }\`) or \`unknown\`. For example: \`type Foo = { bar: string }\` or \`type Query = unknown\`.`;
+}
+
+export function nonExternalTypeAlias(tag: AllTags) {
+  return `Expected \`@${tag}\` to be a type alias only if used with \`@${EXTERNAL_TAG}\``;
 }
 
 // TODO: Add code action
@@ -637,4 +644,24 @@ export function directiveFunctionNotNamed() {
 
 export function directiveArgumentNotObject() {
   return "Expected first argument of a `@gqlDirective` function to be typed using an inline object literal.";
+}
+
+export function noModuleInGqlExternal() {
+  return `\`@${EXTERNAL_TAG}\` must include a module name in double quotes. For example: /** @gqlExternal "myModule" */`;
+}
+
+export function externalNotInResolverMapMode() {
+  return `Unexpected \`@${EXTERNAL_TAG}\` tag.  \`@${EXTERNAL_TAG}\` is only supported when the \`EXPERIMENTAL__emitResolverMap\` Grats configuration option is enabled.`;
+}
+
+export function externalOnWrongNode(existingTag?: string) {
+  if (existingTag) {
+    return `Unexpected \`@${EXTERNAL_TAG}\` on type with \`@${existingTag}\`. \`@${EXTERNAL_TAG}\` can only be used with ${EXTERNAL_TAG_VALID_TAGS.map(
+      (tag) => `\`@${tag}\``,
+    ).join(", ")}.`;
+  } else {
+    return `Unexpected \`@${EXTERNAL_TAG}\` without a Grats tag. \`@${EXTERNAL_TAG}\` must be used with ${EXTERNAL_TAG_VALID_TAGS.map(
+      (tag) => `\`@${tag}\``,
+    ).join(", ")}.`;
+  }
 }

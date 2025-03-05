@@ -15,10 +15,17 @@ export function makeResolverSignature(documentAst: DocumentNode): Metadata {
   };
 
   for (const declaration of documentAst.definitions) {
-    if (declaration.kind !== Kind.OBJECT_TYPE_DEFINITION) {
+    if (
+      declaration.kind !== Kind.OBJECT_TYPE_DEFINITION &&
+      declaration.kind !== Kind.OBJECT_TYPE_EXTENSION
+    ) {
       continue;
     }
     if (declaration.fields == null) {
+      continue;
+    }
+
+    if (declaration.isExternalType) {
       continue;
     }
 

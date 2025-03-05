@@ -36,10 +36,12 @@ export default class TestRunner {
     const filterRegex = filter != null ? new RegExp(filter) : null;
     for (const fileName of readdirSyncRecursive(fixturesDir)) {
       if (testFilePattern.test(fileName)) {
-        this._testFixtures.push(fileName);
-        const filePath = path.join(fixturesDir, fileName);
-        if (filterRegex != null && !filePath.match(filterRegex)) {
-          this._skip.add(fileName);
+        if (!(ignoreFilePattern && ignoreFilePattern.test(fileName))) {
+          this._testFixtures.push(fileName);
+          const filePath = path.join(fixturesDir, fileName);
+          if (filterRegex != null && !filePath.match(filterRegex)) {
+            this._skip.add(fileName);
+          }
         }
       } else if (!ignoreFilePattern || !ignoreFilePattern.test(fileName)) {
         this._otherFiles.add(fileName);

@@ -1,0 +1,12 @@
+- [x] SDL should extend type for external types - I guess marking types in SDL
+  - [x] can't generate graphql-js stuff, don't want to do it for externs - don't support graphql-js for this?
+- [x] all imported types (so support interfaces etc)
+- [x] Read SDL to actually do validation
+  - [x] reenable global validations
+- [x] "modular" mode? like no full schema, but parts of schema but with full validation by resolving it?
+  - [?] treat query/mutation/subscription as "import" type and extend it
+- [ ] all tests to add fixtures for metadata/resolver map
+- [ ] pluggable module resolution - too many variables there, use filepath by default, let users customize it
+  - [ ] first try ts project resolution
+- [ ] how to handle overimporting? Improting whole SDL module "infects" the schema with types that might not be requested.
+- [ ] another check on error handling - I think eg enums and scalars accept stuff they shouldn't accept?

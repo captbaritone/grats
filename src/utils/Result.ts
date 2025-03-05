@@ -49,6 +49,8 @@ export class ResultPipe<T, E> {
   }
 }
 
+export type PromiseOrValue<T> = T | Promise<T>;
+
 export function collectResults<T>(
   results: DiagnosticsResult<T>[],
 ): DiagnosticsResult<T[]> {

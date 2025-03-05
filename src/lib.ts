@@ -35,6 +35,7 @@ import { resolveResolverParams } from "./transforms/resolveResolverParams";
 import { customSpecValidations } from "./validations/customSpecValidations";
 import { makeResolverSignature } from "./transforms/makeResolverSignature";
 import { addImplicitRootTypes } from "./transforms/addImplicitRootTypes";
+import { addImportedSchemas } from "./transforms/addImportedSchemas";
 import { Metadata } from "./metadata";
 import { validateDirectiveArguments } from "./validations/validateDirectiveArguments";
 
@@ -124,30 +125,31 @@ export function extractSchemaAndDoc(
         // `@gqlQueryField` and friends.
         .map((doc) => addImplicitRootTypes(doc))
         // Merge any `extend` definitions into their base definitions.
-        .map((doc) => mergeExtensions(doc))
+        .map((doc) => mergeExtensions(ctx, doc))
         // Perform custom validations that reimplement spec validation rules
         // with more tailored error messages.
         .andThen((doc) => customSpecValidations(doc))
         // Sort the definitions in the document to ensure a stable output.
         .map((doc) => sortSchemaAst(doc))
-        .andThen((doc) => specValidateSDL(doc))
+        .andThen((doc) => addImportedSchemas(ctx, doc))
+        .andThen((docs) => specValidateSDL(docs))
         .result();
 
       if (docResult.kind === "ERROR") {
         return docResult;
       }
-      const doc = docResult.value;
-      const resolvers = makeResolverSignature(doc);
+      const { gratsDoc, externalDocs } = docResult.value;
+      const resolvers = makeResolverSignature(gratsDoc);
 
       // Build and validate the schema with regards to the GraphQL spec.
       return (
-        new ResultPipe(buildSchema(doc))
+        new ResultPipe(buildSchema([gratsDoc, ...externalDocs]))
           // Apply the "Type Validation" sub-sections of the specification's
           // "Type System" section.
           .andThen((schema) => specSchemaValidation(schema))
           // The above spec validation fails to catch type errors in directive
           // arguments, so Grats checks these manually.
-          .andThen((schema) => validateDirectiveArguments(schema, doc))
+          .andThen((schema) => validateDirectiveArguments(schema, gratsDoc))
           // Ensure that every type which implements an interface or is a member of a
           // union has a __typename field.
           .andThen((schema) => validateTypenames(schema, typesWithTypename))
@@ -155,7 +157,7 @@ export function extractSchemaAndDoc(
           // with type nullability.
           .andThen((schema) => validateSemanticNullability(schema, config))
           // Combine the schema and document into a single result.
-          .map((schema) => ({ schema, doc, resolvers }))
+          .map((schema) => ({ schema, doc: gratsDoc, resolvers }))
           .result()
       );
     })
@@ -163,19 +165,39 @@ export function extractSchemaAndDoc(
 }
 
 function buildSchema(
-  doc: DocumentNode,
+  docs: DocumentNode[],
 ): DiagnosticsWithoutLocationResult<GraphQLSchema> {
+  const doc: DocumentNode = {
+    kind: Kind.DOCUMENT,
+    definitions: docs.flatMap((doc) => doc.definitions),
+  };
   return ok(buildASTSchema(doc, { assumeValidSDL: true }));
 }
 
-function specValidateSDL(
-  doc: DocumentNode,
-): DiagnosticsWithoutLocationResult<DocumentNode> {
+function specValidateSDL(docs: {
+  gratsDoc: DocumentNode;
+  externalDocs: DocumentNode[];
+}): DiagnosticsWithoutLocationResult<{
+  gratsDoc: DocumentNode;
+  externalDocs: DocumentNode[];
+}> {
   // TODO: Currently this does not detect definitions that shadow builtins
   // (`String`, `Int`, etc). However, if we pass a second param (extending an
   // existing schema) we do! So, we should find a way to validate that we don't
   // shadow builtins.
-  return asDiagnostics(doc, validateSDL);
+  const doc: DocumentNode = {
+    kind: Kind.DOCUMENT,
+    definitions: [docs.gratsDoc, ...docs.externalDocs].flatMap(
+      (doc) => doc.definitions,
+    ),
+  };
+
+  const result = asDiagnostics(doc, validateSDL);
+  if (result.kind === "OK") {
+    return ok(docs);
+  } else {
+    return result;
+  }
 }
 
 function specSchemaValidation(

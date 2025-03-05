@@ -40,6 +40,7 @@ export type NameDefinition = {
     | "ENUM"
     | "CONTEXT"
     | "INFO";
+  externalImportPath: string | null;
 };
 
 export type DeclarationDefinition = NameDefinition | DerivedResolverDefinition;
@@ -128,6 +129,21 @@ export class TypeContext {
 
   allDefinitions(): Iterable<DeclarationDefinition> {
     return this._declarationToDefinition.values();
+  }
+
+  allNameDefinitions(): Array<NameDefinition> {
+    return Array.from(this._declarationToDefinition.values()).filter(
+      (decl): decl is NameDefinition => !!decl.kind,
+    );
+  }
+
+  getNameDefinition(name: NameNode): NameDefinition | null {
+    for (const def of this.allDefinitions()) {
+      if (def.kind && def.name.value === name.value) {
+        return def as NameDefinition;
+      }
+    }
+    return null;
   }
 
   findSymbolDeclaration(startSymbol: ts.Symbol): ts.Declaration | null {
