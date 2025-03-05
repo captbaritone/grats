@@ -145,6 +145,3 @@ class Coercer {
     }
   }
 }
-
-// Note
-// We basically need https://github.com/graphql/graphql-js/blob/main/src/utilities/valueToLiteral.ts but that operates on ASTs instead of GraphQLSchema.
