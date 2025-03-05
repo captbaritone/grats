@@ -15,6 +15,7 @@ import {
   EXTERNAL_TAG,
   AllTags,
   DIRECTIVE_TAG,
+  EXTERNAL_TAG_VALID_TAGS,
 } from "./Extractor";
 
 export const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
@@ -653,6 +654,14 @@ export function externalNotInResolverMapMode() {
   return `Unexpected \`@${EXTERNAL_TAG}\` tag.  \`@${EXTERNAL_TAG}\` is only supported when the \`EXPERIMENTAL__emitResolverMap\` Grats configuration option is enabled.`;
 }
 
-export function externalOnWrongNode(existingTag: string) {
-  return `Unexpected \`@${EXTERNAL_TAG}\` on type with \`${existingTag}\`. \`@${EXTERNAL_TAG}\` can only be used on type declarations.`;
+export function externalOnWrongNode(existingTag?: string) {
+  if (existingTag) {
+    return `Unexpected \`@${EXTERNAL_TAG}\` on type with \`@${existingTag}\`. \`@${EXTERNAL_TAG}\` can only be used with ${EXTERNAL_TAG_VALID_TAGS.map(
+      (tag) => `\`@${tag}\``,
+    ).join(", ")}.`;
+  } else {
+    return `Unexpected \`@${EXTERNAL_TAG}\` without a Grats tag. \`@${EXTERNAL_TAG}\` must be used with ${EXTERNAL_TAG_VALID_TAGS.map(
+      (tag) => `\`@${tag}\``,
+    ).join(", ")}.`;
+  }
 }

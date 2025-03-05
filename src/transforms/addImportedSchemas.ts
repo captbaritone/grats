@@ -7,6 +7,7 @@ import {
   isTypeDefinitionNode,
   Kind,
   parse,
+  Source,
 } from "graphql";
 import { TypeContext } from "../TypeContext";
 import {
@@ -33,7 +34,7 @@ export function addImportedSchemas(
   for (const schemaPath of importedSchemas) {
     const text = fs.readFileSync(path.resolve(schemaPath), "utf-8");
     try {
-      const parsedAst = parse(text);
+      const parsedAst = parse(new Source(text, schemaPath));
       externalDocs.push({
         kind: Kind.DOCUMENT,
         definitions: parsedAst.definitions.map((def) => {

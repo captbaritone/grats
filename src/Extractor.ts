@@ -75,16 +75,6 @@ export const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
 
 export const EXTERNAL_TAG = "gqlExternal";
 
-export type AllTags =
-  | typeof TYPE_TAG
-  | typeof FIELD_TAG
-  | typeof SCALAR_TAG
-  | typeof INTERFACE_TAG
-  | typeof ENUM_TAG
-  | typeof UNION_TAG
-  | typeof INPUT_TAG
-  | typeof EXTERNAL_TAG;
-
 // All the tags that start with gql
 export const ALL_TAGS = [
   TYPE_TAG,
@@ -97,6 +87,16 @@ export const ALL_TAGS = [
   DIRECTIVE_TAG,
   ANNOTATE_TAG,
   EXTERNAL_TAG,
+] as const;
+export type AllTags = (typeof ALL_TAGS)[number];
+
+export const EXTERNAL_TAG_VALID_TAGS = [
+  TYPE_TAG,
+  INPUT_TAG,
+  INTERFACE_TAG,
+  UNION_TAG,
+  SCALAR_TAG,
+  ENUM_TAG,
 ];
 
 const DEPRECATED_TAG = "deprecated";
@@ -172,7 +172,8 @@ class Extractor {
     this.nameDefinitions.set(node, { name, kind, externalImportPath });
   }
 
-  // Traverse all nodes, checking each one for its JSDoc tags.  // If we find a tag we recognize, we extract the relevant information,
+  // Traverse all nodes, checking each one for its JSDoc tags.
+  // If we find a tag we recognize, we extract the relevant information,
   // reporting an error if it is attached to a node where that tag is not
   // supported.
   extract(sourceFile: ts.SourceFile): DiagnosticsResult<ExtractionSnapshot> {
@@ -296,22 +297,19 @@ class Extractor {
         case EXTERNAL_TAG:
           if (!this._options.EXPERIMENTAL__emitResolverMap) {
             this.report(tag.tagName, E.externalNotInResolverMapMode());
-          }
-          if (
-            !this.hasTag(node, TYPE_TAG) &&
-            !this.hasTag(node, INPUT_TAG) &&
-            !this.hasTag(node, INTERFACE_TAG) &&
-            !this.hasTag(node, UNION_TAG) &&
-            !this.hasTag(node, SCALAR_TAG) &&
-            !this.hasTag(node, ENUM_TAG)
+          } else if (
+            !EXTERNAL_TAG_VALID_TAGS.some((tag) => this.hasTag(node, tag))
           ) {
             this.report(
               tag.tagName,
               E.externalOnWrongNode(
                 ts
                   .getJSDocTags(node)
-                  .filter((t) => t.tagName.text !== EXTERNAL_TAG)[0].tagName
-                  .text,
+                  .filter(
+                    (t) =>
+                      t.tagName.text !== EXTERNAL_TAG &&
+                      ALL_TAGS.includes(t.tagName.text as AllTags),
+                  )[0]?.tagName.text,
               ),
             );
           }
