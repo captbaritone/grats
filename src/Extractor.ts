@@ -1103,6 +1103,7 @@ class Extractor {
     ) {
       return this.externalModule(node, name, "INPUT_OBJECT");
     } else {
+      this.recordTypeName(node, name, "INPUT_OBJECT");
       let fields: InputValueDefinitionNode[] | null = null;
 
       const directives = this.collectDirectives(node);
