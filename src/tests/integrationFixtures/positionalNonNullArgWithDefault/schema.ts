@@ -1,20 +1,6 @@
 import { hello as queryHelloResolver } from "./index";
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLEnumType } from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const GreetingOptionsType: GraphQLEnumType = new GraphQLEnumType({
-        name: "GreetingOptions",
-        values: {
-            Greetings: {
-                value: "Greetings"
-            },
-            Hello: {
-                value: "Hello"
-            },
-            Sup: {
-                value: "Sup"
-            }
-        }
-    });
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
@@ -24,8 +10,8 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString,
                     args: {
                         greeting: {
-                            type: GreetingOptionsType,
-                            defaultValue: "Greetings"
+                            type: new GraphQLNonNull(GraphQLString),
+                            defaultValue: "Hello"
                         }
                     },
                     resolve(_source, args) {
@@ -37,6 +23,6 @@ export function getSchema(): GraphQLSchema {
     });
     return new GraphQLSchema({
         query: QueryType,
-        types: [GreetingOptionsType, QueryType]
+        types: [QueryType]
     });
 }
