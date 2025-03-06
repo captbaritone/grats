@@ -37,6 +37,7 @@ import { makeResolverSignature } from "./transforms/makeResolverSignature";
 import { addImplicitRootTypes } from "./transforms/addImplicitRootTypes";
 import { Metadata } from "./metadata";
 import { validateDirectiveArguments } from "./validations/validateDirectiveArguments";
+import { coerceDefaultEnumValues } from "./transforms/coerceDefaultEnumValues";
 
 // Export the TypeScript plugin implementation used by
 // grats-ts-plugin
@@ -109,6 +110,9 @@ export function extractSchemaAndDoc(
         .map(() => filterNonGqlInterfaces(ctx, snapshot.definitions))
         .andThen((definitions) => resolveResolverParams(ctx, definitions))
         .andThen((definitions) => resolveTypes(ctx, definitions))
+        // Convert string literals used as default values for enums into GraphQL
+        // enums where appropriate.
+        .andThen((definitions) => coerceDefaultEnumValues(ctx, definitions))
         // If you define a field on an interface using the functional style, we need to add
         // that field to each concrete type as well. This must be done after all types are created,
         // but before we validate the schema.

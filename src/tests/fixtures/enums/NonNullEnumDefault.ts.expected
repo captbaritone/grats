@@ -1,5 +1,32 @@
-import { hello as queryHelloResolver } from "./index";
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLEnumType } from "graphql";
+-----------------
+INPUT
+----------------- 
+// https://github.com/captbaritone/grats/issues/174
+
+/** @gqlEnum */
+type GreetingOptions = "Hello" | "Greetings" | "Sup";
+
+/** @gqlQueryField */
+export function hello(greeting: GreetingOptions = "Greetings"): string {
+  return `${greeting} World`;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+enum GreetingOptions {
+  Greetings
+  Hello
+  Sup
+}
+
+type Query {
+  hello(greeting: GreetingOptions! = Greetings): String
+}
+-- TypeScript --
+import { hello as queryHelloResolver } from "./NonNullEnumDefault";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLEnumType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const GreetingOptionsType: GraphQLEnumType = new GraphQLEnumType({
         name: "GreetingOptions",
@@ -24,7 +51,7 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString,
                     args: {
                         greeting: {
-                            type: GreetingOptionsType,
+                            type: new GraphQLNonNull(GreetingOptionsType),
                             defaultValue: "Greetings"
                         }
                     },

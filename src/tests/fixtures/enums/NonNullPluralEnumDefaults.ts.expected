@@ -1,5 +1,34 @@
-import { hello as queryHelloResolver } from "./index";
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLEnumType } from "graphql";
+-----------------
+INPUT
+----------------- 
+// https://github.com/captbaritone/grats/issues/174
+
+/** @gqlEnum */
+type GreetingOptions = "Hello" | "Greetings" | "Sup";
+
+/** @gqlQueryField */
+export function hello(
+  greeting: GreetingOptions[] = ["Greetings", "Hello"],
+): string {
+  return `${greeting.join(", ")} World`;
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+enum GreetingOptions {
+  Greetings
+  Hello
+  Sup
+}
+
+type Query {
+  hello(greeting: [GreetingOptions!]! = [Greetings, Hello]): String
+}
+-- TypeScript --
+import { hello as queryHelloResolver } from "./NonNullPluralEnumDefaults";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLList, GraphQLEnumType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const GreetingOptionsType: GraphQLEnumType = new GraphQLEnumType({
         name: "GreetingOptions",
@@ -24,8 +53,11 @@ export function getSchema(): GraphQLSchema {
                     type: GraphQLString,
                     args: {
                         greeting: {
-                            type: GreetingOptionsType,
-                            defaultValue: "Greetings"
+                            type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GreetingOptionsType))),
+                            defaultValue: [
+                                "Greetings",
+                                "Hello"
+                            ]
                         }
                     },
                     resolve(_source, args) {

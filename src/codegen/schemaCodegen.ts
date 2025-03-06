@@ -617,8 +617,6 @@ class Codegen {
           )
         : null,
       this.extensions(arg.astNode?.directives),
-      // TODO: DefaultValue
-      // TODO: Deprecated
     ]);
   }
 
