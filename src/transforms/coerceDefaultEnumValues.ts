@@ -11,8 +11,6 @@ import {
   visit,
 } from "graphql";
 import { TypeContext } from "../TypeContext";
-import { DiagnosticsResult } from "../utils/DiagnosticError";
-import { ok } from "../utils/Result";
 
 /**
  * If a string literal default value is used in a position that is typed as a
@@ -34,7 +32,7 @@ import { ok } from "../utils/Result";
 export function coerceDefaultEnumValues(
   _ctx: TypeContext,
   definitions: Array<DefinitionNode>,
-): DiagnosticsResult<DefinitionNode[]> {
+): DefinitionNode[] {
   const coercer = new Coercer(definitions);
 
   const newDefinitions = definitions.map((def) => {
@@ -52,7 +50,7 @@ export function coerceDefaultEnumValues(
     });
   });
 
-  return ok(newDefinitions);
+  return newDefinitions;
 }
 
 class Coercer {

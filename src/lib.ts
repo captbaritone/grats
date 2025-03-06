@@ -82,6 +82,13 @@ export function buildSchemaAndDocResultWithHost(
 
 /**
  * The core transformation pipeline of Grats.
+ *
+ * To keep the Grats codebase clean and maintainable, we've broken the
+ * implementation into a series of transformations that each perform a small,
+ * well-defined task.
+ *
+ * This function orchestrates the transformations and, as such, gives a good
+ * high-level overview of how Grats works.
  */
 export function extractSchemaAndDoc(
   options: ParsedCommandLineGrats,
@@ -108,14 +115,18 @@ export function extractSchemaAndDoc(
       const docResult = new ResultPipe(validationResult)
         // Filter out any `implements` clauses that are not GraphQL interfaces.
         .map(() => filterNonGqlInterfaces(ctx, snapshot.definitions))
+        // Determine which positional resolver arguments: GraphQL arguments,
+        // context, derived context, or info.
         .andThen((definitions) => resolveResolverParams(ctx, definitions))
+        // Follow TypeScript type references to determine the GraphQL types
+        // being referenced.
         .andThen((definitions) => resolveTypes(ctx, definitions))
         // Convert string literals used as default values for enums into GraphQL
         // enums where appropriate.
-        .andThen((definitions) => coerceDefaultEnumValues(ctx, definitions))
-        // If you define a field on an interface using the functional style, we need to add
-        // that field to each concrete type as well. This must be done after all types are created,
-        // but before we validate the schema.
+        .map((definitions) => coerceDefaultEnumValues(ctx, definitions))
+        // If you define a field on an interface using the functional style, we
+        // need to add that field to each concrete type as well. This must be
+        // done after all types are created, but before we validate the schema.
         .andThen((definitions) => addInterfaceFields(ctx, definitions))
         // Convert the definitions into a DocumentNode
         .map((definitions) => ({ kind: Kind.DOCUMENT, definitions } as const))
@@ -158,7 +169,8 @@ export function extractSchemaAndDoc(
           // Validate that semantic nullability directives are not in conflict
           // with type nullability.
           .andThen((schema) => validateSemanticNullability(schema, config))
-          // Combine the schema and document into a single result.
+          // Combine the schema, document and resolver metadata into a single
+          // result.
           .map((schema) => ({ schema, doc, resolvers }))
           .result()
       );
