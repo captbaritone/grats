@@ -32,6 +32,7 @@ import {
   ASTNode,
   ObjectTypeExtensionNode,
   DirectiveDefinitionNode,
+  EnumValueNode,
 } from "graphql";
 import * as ts from "typescript";
 import { uniqueId } from "./utils/helpers";
@@ -235,6 +236,7 @@ export class GraphQLConstructor {
     name: NameNode,
     directives: readonly ConstDirectiveNode[] | undefined,
     description: StringValueNode | null,
+    tsName: string | null,
   ): EnumValueDefinitionNode {
     return {
       kind: Kind.ENUM_VALUE_DEFINITION,
@@ -242,6 +244,7 @@ export class GraphQLConstructor {
       description: description ?? undefined,
       name,
       directives,
+      tsName: tsName ?? undefined,
     };
   }
 
@@ -368,6 +371,9 @@ export class GraphQLConstructor {
 
   boolean(node: ts.Node, value: boolean): BooleanValueNode {
     return { kind: Kind.BOOLEAN, loc: loc(node), value };
+  }
+  enum(node: ts.Node, value: string): EnumValueNode {
+    return { kind: Kind.ENUM, loc: loc(node), value };
   }
 
   _optionalList<T>(input: readonly T[] | null): readonly T[] | undefined {

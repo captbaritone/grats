@@ -84,4 +84,11 @@ declare module "graphql" {
      */
     isAmbiguous?: boolean;
   }
+
+  export interface EnumValueDefinitionNode {
+    /**
+     * Grats metadata: The TypeScript name of the enum value.
+     */
+    tsName?: string;
+  }
 }

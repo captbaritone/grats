@@ -7,6 +7,7 @@ Changes in this section are not yet released. If you need access to these change
 - **Improvements**
   - Added support for `@gqlUnion`s with only one member
   - String literals used as enum values in argument defaults are modeled as enums in the generated schema, not strings.
+  - TypeScript enum values used as argument defaults are now supported.
 
 ---
 

@@ -2,6 +2,7 @@ import {
   ConstObjectFieldNode,
   ConstValueNode,
   DefinitionNode,
+  EnumTypeDefinitionNode,
   InputObjectTypeDefinitionNode,
   isTypeDefinitionNode,
   Kind,
@@ -13,6 +14,11 @@ import {
 import { TypeContext } from "../TypeContext";
 
 /**
+ * This transform visits argument default values checking for values used in
+ * enum positions.
+ *
+ * ## String Literals
+ *
  * If a string literal default value is used in a position that is typed as a
  * GraphQL enum, replace it with an enum value of the same name.
  *
@@ -25,6 +31,18 @@ import { TypeContext } from "../TypeContext";
  * string literal in a default position is representing an enum variant or a
  * string literal. Instead, we must do this as a fix-up transform after we have
  * collected all types definitions.
+ *
+ * ## Enum Literals
+ *
+ * If we encountered a TypeScript enum in a default value during extraction
+ * (`MyEnum.SomeValue`), we just extract it as an enum `SomeValue`. However,
+ * the initializer of that TypeScript enum may be some other name. We need to
+ * coerce the default value to the correct enum value.
+ *
+ * When we record enum value definitions in the schema, we record the TypeScript
+ * name of the enum value as `tsName`. This allows us to look up the correct
+ * enum value in this transform by visiting each of the enum values and checking
+ * if the `tsName` matches the extracted value.
  *
  * Note: If a type-mismatch is encountered the transformation is skipped on the
  * assumption that a later validation pass will detect the error.
@@ -101,7 +119,7 @@ class Coercer {
       case Kind.INPUT_OBJECT_TYPE_DEFINITION:
         return this.coerceInputObject(parentType, value);
       case Kind.ENUM_TYPE_DEFINITION:
-        return this.coerceToEnum(value);
+        return this.coerceToEnum(parentType, value);
       default:
         return value;
     }
@@ -128,14 +146,23 @@ class Coercer {
     parentType: TypeNode,
     field: ConstObjectFieldNode,
   ): ConstObjectFieldNode {
-    return {
-      ...field,
-      value: this.coerce(parentType, field.value),
-    };
+    return { ...field, value: this.coerce(parentType, field.value) };
   }
 
-  coerceToEnum(value: ConstValueNode): ConstValueNode {
+  coerceToEnum(
+    enumDef: EnumTypeDefinitionNode,
+    value: ConstValueNode,
+  ): ConstValueNode {
     switch (value.kind) {
+      case Kind.ENUM:
+        if (enumDef.values != null) {
+          for (const enumValue of enumDef.values) {
+            if (enumValue.tsName === value.value) {
+              return { ...value, kind: Kind.ENUM, value: enumValue.name.value };
+            }
+          }
+        }
+        return value;
       case Kind.STRING:
         return { ...value, kind: Kind.ENUM, value: value.value };
       default:

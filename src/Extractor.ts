@@ -1783,6 +1783,14 @@ class Extractor {
       return this.collectObjectLiteral(node);
     } else if (ts.isArrayLiteralExpression(node)) {
       return this.collectArrayLiteral(node);
+    } else if (ts.isPropertyAccessExpression(node)) {
+      // Note: The text of the property access name may not actually be the
+      // value of the enum. For example, the enum may have a value of `1` but
+      // the property access name may be `ONE`.
+      //
+      // A later transform (after we become type aware) takes care of fixing
+      // this up.
+      return this.gql.enum(node, node.name.text);
     }
     return this.reportUnhandled(
       node,
@@ -1992,6 +2000,7 @@ class Extractor {
           this.gql.name(node.type.literal, node.type.literal.text),
           undefined,
           null,
+          null,
         ),
       ];
     }
@@ -2025,6 +2034,7 @@ class Extractor {
           this.gql.name(member.literal, member.literal.text),
           directives,
           null,
+          null,
         ),
       );
     }
@@ -2050,6 +2060,13 @@ class Extractor {
         continue;
       }
 
+      const errorMessage = graphQLNameValidationMessage(
+        member.initializer.text,
+      );
+      if (errorMessage != null) {
+        this.report(member.initializer, errorMessage);
+      }
+
       const description = this.collectDescription(member);
       const directives = this.collectDirectives(member);
 
@@ -2059,6 +2076,7 @@ class Extractor {
           this.gql.name(member.initializer, member.initializer.text),
           directives,
           description,
+          member.name.getText(),
         ),
       );
     }
