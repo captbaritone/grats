@@ -36,4 +36,4 @@ Where other utility tools are needed, Grats should consider maintaining/forking/
 
 All externally visible behavior of Grats should be captured by our fixture tests, including errors. Every added feature or capability, as well as every bug fix, should be accompanied by a new fixture test that demonstrates the changed behavior.
 
-Fixture tests should be narrow in focus, that consist of the minimal amount of code necessary to demonstrate the behavior being tested. It's perfectly fine to have many many fixture tests. For more on Grats' testing strategy, see [Testing Strategy](./07-testing-strategy.md).
+Fixture tests should be narrow in focus, that consist of the minimal amount of code necessary to demonstrate the behavior being tested. It's perfectly fine to have many many fixture tests. For more on Grats' testing strategy, see [Testing Strategy](./07-testing-strategy.mdx).

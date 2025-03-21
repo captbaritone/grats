@@ -35,7 +35,7 @@ export function name(_: User) {
 }
 ```
 
-However, this ends up not being a good fit for GraphQL's type system, since GraphQL is "nominal" rather than "structural" like TypeScript. See [Structural vs Nominal Typing](./05-structural-vs-nominal-typing.md) for more details.
+However, this ends up not being a good fit for GraphQL's type system, since GraphQL is "nominal" rather than "structural" like TypeScript. See [Structural vs Nominal Typing](./04-structural-vs-nominal-typing.md) for more details.
 
 ## Descriptions and @deprecated on TypeScript union @gqlEnums
 

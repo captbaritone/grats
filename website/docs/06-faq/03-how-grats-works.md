@@ -4,7 +4,7 @@ _This is a technical deep dive for those who are curious about how Grats works u
 
 ---
 
-For users who want to have a better mental model of how Grats works, or just for the curious, here's a high level overview of how Grats is implemented. For a description of Grats' values and aspirations, see [Design Principles](./04-design-principles.md) for thoughts on its API design see [API Design](02-why-use-comments.md).
+For users who want to have a better mental model of how Grats works, or just for the curious, here's a high level overview of how Grats is implemented. For a description of Grats' values and aspirations, see [Design Principles](./06-design-principles.md) for thoughts on its API design see [API Design](02-why-use-comments.md).
 
 ## At build time
 
@@ -30,7 +30,7 @@ With the GraphQL AST in hand, Grats must now generate TypeScript code that will 
 
 The implementation of each field's `resolve` function is synthesized based on information about that field in the `Metadata` object. In some cases that means importing user-defined resolver functions.
 
-To implement our code generation, we again lean into our [design principle](./04-design-principles.md#a-few-dependencies-well-leveraged) of "a few dependencies well leveraged" by using TypeScript's AST construction utilities. We then use TypeScript's code printer to emit a formatted TypeScript file. By constructing a TypeScript AST rather than simply concatenating strings, we get a few benefits:
+To implement our code generation, we again lean into our [design principle](./06-design-principles.md#a-few-dependencies-well-leveraged) of "a few dependencies well leveraged" by using TypeScript's AST construction utilities. We then use TypeScript's code printer to emit a formatted TypeScript file. By constructing a TypeScript AST rather than simply concatenating strings, we get a few benefits:
 
 1. Type validation that our generated code will be syntactically valid TypeScript.
 2. Automatic formatting of the generated code.

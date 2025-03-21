@@ -22,7 +22,7 @@ TypeScript does not currently support macros, and seems [unlikely to add them](h
 
 Given the limitations faced when trying to support an implementation-first API in TypeScript, Grats falls back to a lowest common denominator: static analysis. Grats infers GraphQL types from TypeScript at build time by _analyzing_ the code rather than _running_ it.
 
-We chose doc-blocks because they accurately convey that the code within them does not impact the runtime, while still having a well defined structure that can be parsed. In particular, we're able to leverage the TypeScript compiler's JSDoc parsing, which aligns well with our design principle of ["A few dependencies well leveraged"](./04-design-principles.md#a-few-dependencies-well-leveraged).
+We chose doc-blocks because they accurately convey that the code within them does not impact the runtime, while still having a well defined structure that can be parsed. In particular, we're able to leverage the TypeScript compiler's JSDoc parsing, which aligns well with our design principle of ["A few dependencies well leveraged"](./06-design-principles.md#a-few-dependencies-well-leveraged).
 
 ## Summary
 
