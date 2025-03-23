@@ -4,10 +4,8 @@ import { getSchema } from "./schema";
 import { VC } from "./ViewerContext";
 import { addGraphQLScalarSerialization } from "./graphql/CustomScalars";
 import { useDeferStream } from "@graphql-yoga/plugin-defer-stream";
-import { applyCreditLimit } from "./graphql/directives";
 
 let schema = getSchema();
-schema = applyCreditLimit(schema);
 schema = addGraphQLScalarSerialization(schema);
 
 const yoga = createYoga({
