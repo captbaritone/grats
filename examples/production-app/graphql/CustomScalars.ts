@@ -20,7 +20,9 @@ export type GqlDate = Date;
 // custom scalar types.
 //
 // See https://github.com/captbaritone/grats/issues/66 tracking this gap.
-export function addGraphQLScalarSerialization(schema: GraphQLSchema) {
+export function addGraphQLScalarSerialization(
+  schema: GraphQLSchema,
+): GraphQLSchema {
   const dateType = schema.getType("Date");
   if (!(dateType instanceof GraphQLScalarType)) {
     throw new Error(`Expected "Date" to be a scalar type`);
@@ -46,4 +48,5 @@ export function addGraphQLScalarSerialization(schema: GraphQLSchema) {
     // Invalid hard-coded value (not an integer)
     return null;
   };
+  return schema;
 }

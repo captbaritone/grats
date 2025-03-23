@@ -66,6 +66,26 @@
           }
         }
       }
+    },
+    {
+      "name": "Exceed quota",
+      "query": "{ likes { count } alsoLikes: likes { count } }",
+      "variables": {},
+      "expected": {
+        "data": {
+          "alsoLikes": null,
+          "likes": {
+            "count": 5
+          }
+        },
+        "errors": [
+          {
+            "message": "Insufficient credits remaining. This field cost 10 credits.",
+            "locations": [{ "line": 1, "column": 19 }],
+            "path": ["alsoLikes"]
+          }
+        ]
+      }
     }
   ]
 }
