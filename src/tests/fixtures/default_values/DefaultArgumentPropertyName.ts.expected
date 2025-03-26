@@ -1,0 +1,42 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export default class SomeType {
+  /** @gqlField */
+  hello({ if: x = false }: { if: boolean }): string {
+    return x ? "hello" : "world";
+  }
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type SomeType {
+  hello(if: Boolean! = false): String
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLBoolean } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                hello: {
+                    name: "hello",
+                    type: GraphQLString,
+                    args: {
+                        if: {
+                            type: new GraphQLNonNull(GraphQLBoolean),
+                            defaultValue: false
+                        }
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType]
+    });
+}
