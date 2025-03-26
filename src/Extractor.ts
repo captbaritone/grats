@@ -1753,12 +1753,13 @@ class Extractor {
   collectArgDefaults(node: ts.ObjectBindingPattern): ArgDefaults {
     const defaults = new Map();
     for (const element of node.elements) {
+      const name = element.propertyName ?? element.name;
       if (
         ts.isBindingElement(element) &&
         element.initializer &&
-        ts.isIdentifier(element.name)
+        ts.isIdentifier(name)
       ) {
-        defaults.set(element.name.text, element.initializer);
+        defaults.set(name.text, element.initializer);
       }
     }
     return defaults;
