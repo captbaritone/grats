@@ -12,6 +12,7 @@ import { createLike as mutationCreateLikeResolver } from "./models/Like";
 import { createPost as mutationCreatePostResolver } from "./models/Post";
 import { createUser as mutationCreateUserResolver } from "./models/User";
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, GraphQLObjectType, GraphQLList, GraphQLString, GraphQLScalarType, GraphQLID, GraphQLInterfaceType, GraphQLBoolean, GraphQLInputObjectType } from "graphql";
+import { cost } from "./graphql/directives";
 export function getSchema(): GraphQLSchema {
     const DateType: GraphQLScalarType = new GraphQLScalarType({
         description: "A date and time. Serialized as a Unix timestamp.\n\n**Note**: The `@specifiedBy` directive does not point to a real spec, but is\nincluded here for demonstration purposes.",
@@ -54,7 +55,7 @@ export function getSchema(): GraphQLSchema {
                         return postIdResolver(source);
                     }
                 },
-                likes: {
+                likes: cost({
                     description: "All the likes this post has received.\n**Note:** You can use this connection to access the number of likes.",
                     name: "likes",
                     type: LikeConnectionType,
@@ -72,20 +73,10 @@ export function getSchema(): GraphQLSchema {
                             type: GraphQLInt
                         }
                     },
-                    extensions: {
-                        grats: {
-                            directives: [{
-                                    name: "cost",
-                                    args: {
-                                        credits: 10
-                                    }
-                                }]
-                        }
-                    },
                     resolve(source, args, _context, info) {
                         return source.likes(args, info);
                     }
-                },
+                }, {credits: 10}),
                 publishedAt: {
                     description: "The date and time at which the post was created.",
                     name: "publishedAt",
