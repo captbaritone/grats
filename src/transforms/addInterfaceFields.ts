@@ -1,17 +1,18 @@
-import * as E from "../Errors";
-import * as ts from "typescript";
-import { DefinitionNode, Kind, ObjectTypeExtensionNode } from "graphql";
-import { TypeContext } from "../TypeContext";
-import {
+import * as E from "../Errors.ts";
+import type * as ts from "typescript";
+import type { DefinitionNode, ObjectTypeExtensionNode } from "graphql";
+import { Kind } from "graphql";
+import type { TypeContext } from "../TypeContext.ts";
+import type {
   DiagnosticResult,
   DiagnosticsResult,
-  gqlErr,
-  gqlRelated,
-} from "../utils/DiagnosticError";
-import { err, ok } from "../utils/Result";
-import { InterfaceMap, computeInterfaceMap } from "../InterfaceGraph";
-import { extend, nullThrows, uniqueId } from "../utils/helpers";
-import { FIELD_TAG } from "../Extractor";
+} from "../utils/DiagnosticError.ts";
+import { gqlErr, gqlRelated } from "../utils/DiagnosticError.ts";
+import { err, ok } from "../utils/Result.ts";
+import type { InterfaceMap } from "../InterfaceGraph.ts";
+import { computeInterfaceMap } from "../InterfaceGraph.ts";
+import { extend, nullThrows, uniqueId } from "../utils/helpers.ts";
+import { FIELD_TAG } from "../Extractor.ts";
 
 /**
  * Grats allows you to define GraphQL fields on TypeScript interfaces using

@@ -1,4 +1,4 @@
-import { ID } from "../../../Types";
+import type { ID } from "../../../index.ts";
 
 /**
  * Validating that graphql-js will coerce a numeric ID to a string.

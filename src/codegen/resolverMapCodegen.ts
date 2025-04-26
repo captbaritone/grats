@@ -1,9 +1,10 @@
 import * as ts from "typescript";
-import { GratsConfig } from "../gratsConfig";
-import TSAstBuilder from "./TSAstBuilder";
-import ResolverCodegen from "./resolverCodegen";
-import { Metadata, FieldDefinition } from "../metadata";
-import { GraphQLObjectType, GraphQLSchema } from "graphql";
+import type { GratsConfig } from "../gratsConfig.ts";
+import TSAstBuilder from "./TSAstBuilder.ts";
+import ResolverCodegen from "./resolverCodegen.ts";
+import type { Metadata, FieldDefinition } from "../metadata.ts";
+import type { GraphQLSchema } from "graphql";
+import { GraphQLObjectType } from "graphql";
 
 const F = ts.factory;
 
@@ -33,13 +34,17 @@ export function resolverMapCodegen(
 class Codegen {
   ts: TSAstBuilder;
   resolvers: ResolverCodegen;
+  _schema: GraphQLSchema;
+  _resolvers: Metadata;
 
   constructor(
-    public _schema: GraphQLSchema,
-    public _resolvers: Metadata,
+    _schema: GraphQLSchema,
+    _resolvers: Metadata,
     config: GratsConfig,
     destination: string,
   ) {
+    this._schema = _schema;
+    this._resolvers = _resolvers;
     this.ts = new TSAstBuilder(destination, config.importModuleSpecifierEnding);
     this.resolvers = new ResolverCodegen(this.ts, _resolvers);
   }

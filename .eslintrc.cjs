@@ -16,6 +16,9 @@ module.exports = {
         ignoreRestSiblings: true,
       },
     ],
+    // TODO: Enable this rule when we can turn it on for the website
+    // and example projects.
+    // "@typescript-eslint/consistent-type-imports": "error",
     "no-constant-condition": ["error", { checkLoops: false }],
     "no-constant-binary-expression": "error",
   },

@@ -1,4 +1,4 @@
-import * as ts from "typescript";
+import type * as ts from "typescript";
 
 export type GratsConfig = {
   // Where Grats should write your schema file. Path is relative to the

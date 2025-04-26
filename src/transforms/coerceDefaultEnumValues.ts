@@ -1,17 +1,15 @@
-import {
+import type {
   ConstObjectFieldNode,
   ConstValueNode,
   DefinitionNode,
   EnumTypeDefinitionNode,
   InputObjectTypeDefinitionNode,
-  isTypeDefinitionNode,
-  Kind,
   ListTypeNode,
   NamedTypeNode,
   TypeNode,
-  visit,
 } from "graphql";
-import { TypeContext } from "../TypeContext";
+import { Kind, visit, isTypeDefinitionNode } from "graphql";
+import type { TypeContext } from "../TypeContext.ts";
 
 /**
  * This transform visits argument default values checking for values used in

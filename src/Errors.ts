@@ -13,7 +13,7 @@ import {
   CONTEXT_TAG,
   INFO_TAG,
   DIRECTIVE_TAG,
-} from "./Extractor";
+} from "./Extractor.ts";
 
 export const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
 

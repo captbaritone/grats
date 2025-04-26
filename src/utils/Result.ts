@@ -1,5 +1,5 @@
-import * as ts from "typescript";
-import { DiagnosticsResult } from "./DiagnosticError";
+import type * as ts from "typescript";
+import type { DiagnosticsResult } from "./DiagnosticError.ts";
 
 export type Result<T, E> = Ok<T> | Err<E>;
 
@@ -19,7 +19,10 @@ export function err<E>(err: E): Err<E> {
  * Helper class for chaining together a series of `Result` operations.
  */
 export class ResultPipe<T, E> {
-  constructor(private readonly _result: Result<T, E>) {}
+  private readonly _result: Result<T, E>;
+  constructor(_result: Result<T, E>) {
+    this._result = _result;
+  }
   // Transform the value if OK, otherwise return the error.
   map<T2>(fn: (value: T) => T2): ResultPipe<T2, E> {
     if (this._result.kind === "OK") {

@@ -1,4 +1,4 @@
-import { someType as querySomeTypeResolver } from "./index";
+import { someType as querySomeTypeResolver } from "./index.ts";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

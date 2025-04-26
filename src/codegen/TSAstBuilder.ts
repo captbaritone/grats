@@ -1,7 +1,7 @@
 import * as ts from "typescript";
-import { isNonNull } from "../utils/helpers";
+import { isNonNull } from "../utils/helpers.ts";
 import * as path from "path";
-import { resolveRelativePath } from "../gratsRoot";
+import { resolveRelativePath } from "../gratsRoot.ts";
 
 type JsonObject = { [key: string]: JsonValue };
 type JsonArray = JsonValue[];
@@ -24,11 +24,13 @@ export default class TSAstBuilder {
   imports: Map<string, { name: string; as?: string }[]> = new Map();
   _helpers: ts.Statement[] = [];
   _statements: ts.Statement[] = [];
+  private _destination: string;
+  private importModuleSpecifierEnding: string;
 
-  constructor(
-    private _destination: string,
-    private importModuleSpecifierEnding: string,
-  ) {}
+  constructor(_destination: string, importModuleSpecifierEnding: string) {
+    this._destination = _destination;
+    this.importModuleSpecifierEnding = importModuleSpecifierEnding;
+  }
   addHelper(statement: ts.Statement) {
     this._helpers.push(statement);
   }

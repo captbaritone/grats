@@ -1,6 +1,6 @@
-import { GraphQLError, Location, Source } from "graphql";
+import type { GraphQLError, Location, Source } from "graphql";
 import * as ts from "typescript";
-import { Result } from "./Result";
+import type { Result } from "./Result.ts";
 
 type FixableDiagnostic = ts.Diagnostic & {
   fix?: ts.CodeFixAction;

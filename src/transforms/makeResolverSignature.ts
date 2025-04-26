@@ -1,13 +1,14 @@
-import { DocumentNode, Kind } from "graphql";
-import {
+import type { DocumentNode } from "graphql";
+import { Kind } from "graphql";
+import type {
   ResolverArgument,
   ResolverDefinition,
   Metadata,
   FieldDefinition,
   ContextArgs,
-} from "../metadata";
-import { invariant, nullThrows } from "../utils/helpers";
-import { ResolverArgument as DirectiveResolverArgument } from "../resolverSignature";
+} from "../metadata.ts";
+import { invariant, nullThrows } from "../utils/helpers.ts";
+import type { ResolverArgument as DirectiveResolverArgument } from "../resolverSignature.ts";
 
 export function makeResolverSignature(documentAst: DocumentNode): Metadata {
   const resolvers: Metadata = {

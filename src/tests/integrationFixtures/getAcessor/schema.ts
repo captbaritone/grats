@@ -1,4 +1,4 @@
-import { me as queryMeResolver } from "./index";
+import { me as queryMeResolver } from "./index.ts";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({

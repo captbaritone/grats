@@ -15,6 +15,7 @@
     "nullableByDefault": false
   },
   "compilerOptions": {
+    "module": "nodenext",
     "skipLibCheck": true,
     "lib": ["es2017"],
     // typescript options here
@@ -24,7 +25,8 @@
     "strictNullChecks": true,
     "declaration": true,
     "resolveJsonModule": true,
-    "strictPropertyInitialization": true
+    "strictPropertyInitialization": true,
+    "rewriteRelativeImportExtensions": true
   },
   "exclude": [
     "node_modules",
