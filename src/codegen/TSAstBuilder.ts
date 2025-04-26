@@ -1,7 +1,7 @@
 import * as ts from "typescript";
 import { isNonNull } from "../utils/helpers.ts";
 import * as path from "path";
-import { resolveRelativePath } from "../gratsRoot.ts";
+import { resolveRelativePath } from "../gratsRoot.mts";
 
 type JsonObject = { [key: string]: JsonValue };
 type JsonArray = JsonValue[];
