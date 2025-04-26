@@ -1,13 +1,17 @@
-import { ConstDirectiveNode, GraphQLField } from "graphql";
+import type { ConstDirectiveNode, GraphQLField } from "graphql";
 import * as ts from "typescript";
-import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
+import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives.ts";
 import {
   ASSERT_NON_NULL_HELPER,
   createAssertNonNullHelper,
-} from "../codegenHelpers";
-import { nullThrows } from "../utils/helpers";
-import { ResolverArgument, ResolverDefinition, Metadata } from "../metadata";
-import TSAstBuilder from "./TSAstBuilder";
+} from "../codegenHelpers.ts";
+import { nullThrows } from "../utils/helpers.ts";
+import type {
+  ResolverArgument,
+  ResolverDefinition,
+  Metadata,
+} from "../metadata.ts";
+import type TSAstBuilder from "./TSAstBuilder.ts";
 
 const RESOLVER_ARGS = ["source", "args", "context", "info"] as const;
 
@@ -19,9 +23,14 @@ const F = ts.factory;
  * for any codegen that needs to generate resolver methods.
  */
 export default class ResolverCodegen {
+  public ts: TSAstBuilder;
+  public _resolvers: Metadata;
   _helpers: Set<string> = new Set();
   _derivedContextNames: Map<string, string> = new Map();
-  constructor(public ts: TSAstBuilder, public _resolvers: Metadata) {}
+  constructor(ts: TSAstBuilder, _resolvers: Metadata) {
+    this.ts = ts;
+    this._resolvers = _resolvers;
+  }
   resolveMethod(
     fieldName: string,
     methodName: string,

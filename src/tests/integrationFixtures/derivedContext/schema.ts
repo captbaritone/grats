@@ -1,4 +1,4 @@
-import { hello as queryHelloResolver, derived as derived } from "./index";
+import { hello as queryHelloResolver, derived as derived } from "./index.ts";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({

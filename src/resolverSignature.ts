@@ -1,5 +1,5 @@
 import * as ts from "typescript";
-import {
+import type {
   ConstDirectiveNode,
   ConstValueNode,
   InputValueDefinitionNode,
@@ -9,7 +9,7 @@ import {
   StringValueNode,
   TypeNode,
 } from "graphql";
-import { DiagnosticResult } from "./utils/DiagnosticError";
+import type { DiagnosticResult } from "./utils/DiagnosticError.ts";
 
 /**
  * Describes the backing resolver for a field. This broadly matches the metadata

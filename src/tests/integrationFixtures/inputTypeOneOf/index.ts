@@ -1,4 +1,4 @@
-import { ID } from "../../..";
+import type { ID } from "../../../index.ts";
 
 /** @gqlInput */
 type UserPayload = {

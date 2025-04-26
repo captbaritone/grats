@@ -1,4 +1,4 @@
-import { ID } from "../../../Types";
+import type { ID } from "../../../index.ts";
 
 /** @gqlInterface */
 interface GqlNode {
@@ -8,34 +8,38 @@ interface GqlNode {
 
 /** @gqlType */
 export default class DefaultNode implements GqlNode {
-  constructor(
-    /** @gqlField */
-    public id: ID,
-  ) {}
+  /** @gqlField */
+  id: ID;
+  constructor(id: ID) {
+    this.id = id;
+  }
 }
 
 /** @gqlType */
 export class User implements GqlNode {
-  constructor(
-    /** @gqlField */
-    public id: ID,
-  ) {}
+  /** @gqlField */
+  id: ID;
+  constructor(id: ID) {
+    this.id = id;
+  }
 }
 
 /** @gqlType RenamedNode */
 export class ThisNameGetsIgnored implements GqlNode {
-  constructor(
-    /** @gqlField */
-    public id: ID,
-  ) {}
+  /** @gqlField */
+  id: ID;
+  constructor(id: ID) {
+    this.id = id;
+  }
 }
 
 /** @gqlType */
 export class Guest implements GqlNode {
-  constructor(
-    /** @gqlField */
-    public id: ID,
-  ) {}
+  /** @gqlField */
+  id: ID;
+  constructor(id: ID) {
+    this.id = id;
+  }
 }
 
 class AlsoUser extends User {

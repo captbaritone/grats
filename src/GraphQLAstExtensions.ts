@@ -1,4 +1,4 @@
-import { ResolverSignature } from "./resolverSignature";
+import type { ResolverSignature } from "./resolverSignature.ts";
 
 /**
  * In most cases we can use directives to annotate constructs

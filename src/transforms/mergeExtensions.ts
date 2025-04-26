@@ -1,5 +1,6 @@
-import { DocumentNode, FieldDefinitionNode, visit } from "graphql";
-import { extend } from "../utils/helpers";
+import type { DocumentNode, FieldDefinitionNode } from "graphql";
+import { visit } from "graphql";
+import { extend } from "../utils/helpers.ts";
 
 /**
  * Takes every example of `extend type Foo` and `extend interface Foo` and

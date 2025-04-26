@@ -57,7 +57,7 @@ jobs:
       - name: Build # Integration tests depend upon having .js versions created by tsc
         run: pnpm run build
       - name: Unit Tests
-        run: pnpm run test
+        run: pnpm run testCI
   lint:
     name: "Lint"
     runs-on: ubuntu-latest

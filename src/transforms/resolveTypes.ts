@@ -1,30 +1,28 @@
-import {
+import type {
   ASTNode,
   DefinitionNode,
   InputObjectTypeDefinitionNode,
   InterfaceTypeDefinitionNode,
-  Kind,
   Location,
   NameNode,
   NamedTypeNode,
   ObjectTypeDefinitionNode,
   TypeDefinitionNode,
   UnionTypeDefinitionNode,
-  visit,
 } from "graphql";
-import { loc } from "../GraphQLConstructor";
-import { TypeContext } from "../TypeContext";
+import { Kind, visit } from "graphql";
+import { loc } from "../GraphQLConstructor.ts";
+import type { TypeContext } from "../TypeContext.ts";
 import * as ts from "typescript";
-import { err, ok } from "../utils/Result";
-import {
+import { err, ok } from "../utils/Result.ts";
+import type {
   DiagnosticResult,
   DiagnosticsResult,
   TsLocatableNode,
-  gqlErr,
-  tsErr,
-} from "../utils/DiagnosticError";
-import { extend, nullThrows } from "../utils/helpers";
-import * as E from "../Errors";
+} from "../utils/DiagnosticError.ts";
+import { gqlErr, tsErr } from "../utils/DiagnosticError.ts";
+import { extend, nullThrows } from "../utils/helpers.ts";
+import * as E from "../Errors.ts";
 
 type Template = {
   declarationTemplate: TypeDefinitionNode;
@@ -71,11 +69,14 @@ export function resolveTypes(
  * which refer to generic types resolve to the correct type.
  */
 class TemplateExtractor {
+  private ctx: TypeContext;
   _templates: Map<ts.Node, Template> = new Map();
   _definitions: Array<DefinitionNode> = [];
   _definedTemplates: Set<string> = new Set();
   _errors: ts.DiagnosticWithLocation[] = [];
-  constructor(private ctx: TypeContext) {}
+  constructor(ctx: TypeContext) {
+    this.ctx = ctx;
+  }
 
   materializeGenericTypeReferences(
     definitions: Array<DefinitionNode>,
@@ -370,10 +371,15 @@ function getTypeParameters(
  * being able to use it to report diagnostics
  */
 class EntityNameWithTypeArguments implements TsLocatableNode {
+  typeName: ts.EntityName;
+  typeArguments?: ts.NodeArray<ts.TypeNode>;
   constructor(
-    public typeName: ts.EntityName,
-    public typeArguments?: ts.NodeArray<ts.TypeNode>,
-  ) {}
+    typeName: ts.EntityName,
+    typeArguments?: ts.NodeArray<ts.TypeNode>,
+  ) {
+    this.typeName = typeName;
+    this.typeArguments = typeArguments;
+  }
 
   getStart() {
     return this.typeName.getStart();

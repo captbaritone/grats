@@ -1,4 +1,4 @@
-import { Int } from "../../../Types";
+import type { Int } from "../../../index.ts";
 
 /** @gqlQueryField */
 export function firstHundredIntegers(args: {
@@ -35,7 +35,12 @@ class FirstHundredIntegersConnection {
   /** @gqlField */
   edges: FirstHundredIntegersEdge[];
 
-  constructor(public first?: number | null, public after?: string | null) {
+  first?: number | null;
+  after?: string | null;
+
+  constructor(first?: number | null, after?: string | null) {
+    this.first = first;
+    this.after = after;
     const start = parseInt(after || "0", 10);
     const end = first ? start + first : this._max;
 

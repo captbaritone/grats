@@ -1,6 +1,7 @@
-import { TypeContext } from "./TypeContext";
-import { DefaultMap } from "./utils/helpers";
-import { DefinitionNode, Kind } from "graphql";
+import type { TypeContext } from "./TypeContext.ts";
+import { DefaultMap } from "./utils/helpers.ts";
+import type { DefinitionNode } from "graphql";
+import { Kind } from "graphql";
 
 export type InterfaceImplementor = { kind: "TYPE" | "INTERFACE"; name: string };
 export type InterfaceMap = DefaultMap<string, Set<InterfaceImplementor>>;

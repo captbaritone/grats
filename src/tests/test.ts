@@ -1,9 +1,9 @@
 import * as path from "path";
-import TestRunner from "./TestRunner";
+import TestRunner from "./TestRunner.ts";
 import {
   buildSchemaAndDocResult,
   buildSchemaAndDocResultWithHost,
-} from "../lib";
+} from "../lib.ts";
 import * as ts from "typescript";
 import {
   buildASTSchema,
@@ -14,20 +14,17 @@ import {
   specifiedScalarTypes,
 } from "graphql";
 import { Command } from "commander";
-import { locate } from "../Locate";
-import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError";
+import { locate } from "../Locate.ts";
+import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError.ts";
 import { writeFileSync } from "fs";
-import { codegen } from "../codegen/schemaCodegen";
+import { codegen } from "../codegen/schemaCodegen.ts";
 import { diff } from "jest-diff";
 import * as semver from "semver";
-import {
-  GratsConfig,
-  ParsedCommandLineGrats,
-  validateGratsOptions,
-} from "../gratsConfig";
-import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
-import { applySDLHeader, applyTypeScriptHeader } from "../printSchema";
-import { extend } from "../utils/helpers";
+import type { GratsConfig, ParsedCommandLineGrats } from "../gratsConfig.ts";
+import { validateGratsOptions } from "../gratsConfig.ts";
+import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives.ts";
+import { applySDLHeader, applyTypeScriptHeader } from "../printSchema.ts";
+import { extend } from "../utils/helpers.ts";
 
 const TS_VERSION = ts.version;
 
@@ -69,9 +66,10 @@ program
     }
   });
 
-const gratsDir = path.join(__dirname, "../..");
-const fixturesDir = path.join(__dirname, "fixtures");
-const integrationFixturesDir = path.join(__dirname, "integrationFixtures");
+const gratsDir = path.join(".");
+const testDir = path.join(gratsDir, "src", "tests");
+const fixturesDir = path.join(testDir, "fixtures");
+const integrationFixturesDir = path.join(testDir, "integrationFixtures");
 
 const testDirs = [
   {
@@ -102,7 +100,7 @@ const testDirs = [
 
       const files = [
         `${fixturesDir}/${fileName}`,
-        path.join(__dirname, `../Types.ts`),
+        path.join(gratsDir, `src/Types.ts`),
       ];
       let parsedOptions: ParsedCommandLineGrats;
       try {
@@ -189,6 +187,7 @@ const testDirs = [
       const firstLine = code.split("\n")[0];
       let config: Partial<GratsConfig> = {
         nullableByDefault: true,
+        importModuleSpecifierEnding: ".ts",
       };
       if (firstLine.startsWith("// {")) {
         const json = firstLine.slice(3);
@@ -198,7 +197,7 @@ const testDirs = [
       const filePath = `${integrationFixturesDir}/${fileName}`;
       const schemaPath = path.join(path.dirname(filePath), "schema.ts");
 
-      const files = [filePath, path.join(__dirname, `../Types.ts`)];
+      const files = [filePath, path.join(gratsDir, `src/Types.ts`)];
       const parsedOptions: ParsedCommandLineGrats = validateGratsOptions({
         options: {
           // Required to enable ts-node to locate function exports

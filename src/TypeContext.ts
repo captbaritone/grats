@@ -1,4 +1,4 @@
-import {
+import type {
   InputObjectTypeDefinitionNode,
   InterfaceTypeDefinitionNode,
   NameNode,
@@ -6,18 +6,16 @@ import {
   UnionTypeDefinitionNode,
 } from "graphql";
 import * as ts from "typescript";
-import {
-  gqlErr,
+import type {
   DiagnosticResult,
-  tsErr,
-  gqlRelated,
   DiagnosticsResult,
   FixableDiagnosticWithLocation,
-} from "./utils/DiagnosticError";
-import { err, ok } from "./utils/Result";
-import * as E from "./Errors";
-import { ExtractionSnapshot } from "./Extractor";
-import { ResolverArgument } from "./resolverSignature";
+} from "./utils/DiagnosticError.ts";
+import { gqlErr, tsErr, gqlRelated } from "./utils/DiagnosticError.ts";
+import { err, ok } from "./utils/Result.ts";
+import * as E from "./Errors.ts";
+import type { ExtractionSnapshot } from "./Extractor.ts";
+import type { ResolverArgument } from "./resolverSignature.ts";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 

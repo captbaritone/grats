@@ -1,12 +1,7 @@
-import {
-  Kind,
+import type {
   ListTypeNode,
   NamedTypeNode,
-  Location as GraphQLLocation,
   NameNode,
-  Source,
-  Token,
-  TokenKind,
   TypeNode,
   NonNullTypeNode,
   StringValueNode,
@@ -34,13 +29,23 @@ import {
   DirectiveDefinitionNode,
   EnumValueNode,
 } from "graphql";
-import * as ts from "typescript";
-import { uniqueId } from "./utils/helpers";
-import { DiagnosticResult, TsLocatableNode } from "./utils/DiagnosticError";
 import {
+  Source,
+  Kind,
+  Token,
+  TokenKind,
+  Location as GraphQLLocation,
+} from "graphql";
+import * as ts from "typescript";
+import { uniqueId } from "./utils/helpers.ts";
+import type {
+  DiagnosticResult,
+  TsLocatableNode,
+} from "./utils/DiagnosticError.ts";
+import type {
   InputValueDefinitionNodeOrResolverArg,
   ResolverSignature,
-} from "./resolverSignature";
+} from "./resolverSignature.ts";
 
 export class GraphQLConstructor {
   /* Top Level Types */

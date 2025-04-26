@@ -1,19 +1,11 @@
-import * as ts from "typescript";
-import {
-  GraphQLInterfaceType,
-  GraphQLSchema,
-  Kind,
-  isAbstractType,
-  isType,
-} from "graphql";
-import {
-  DiagnosticsWithoutLocationResult,
-  gqlErr,
-  gqlRelated,
-} from "../utils/DiagnosticError";
-import { err, ok } from "../utils/Result";
-import { nullThrows } from "../utils/helpers";
-import * as E from "../Errors";
+import type * as ts from "typescript";
+import { Kind, isAbstractType, isType, GraphQLInterfaceType } from "graphql";
+import type { GraphQLSchema } from "graphql";
+import type { DiagnosticsWithoutLocationResult } from "../utils/DiagnosticError.ts";
+import { gqlErr, gqlRelated } from "../utils/DiagnosticError.ts";
+import { err, ok } from "../utils/Result.ts";
+import { nullThrows } from "../utils/helpers.ts";
+import * as E from "../Errors.ts";
 
 /**
  * Ensure that every type which implements an interface or is a member of a

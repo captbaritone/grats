@@ -1,4 +1,4 @@
-import { someList as querySomeListResolver, someListOfLists as querySomeListOfListsResolver } from "./index";
+import { someList as querySomeListResolver, someListOfLists as querySomeListOfListsResolver } from "./index.ts";
 import { GraphQLSchema, GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({

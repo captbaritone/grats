@@ -1,23 +1,18 @@
-import * as ts from "typescript";
+import type * as ts from "typescript";
+import type { DocumentNode, GraphQLSchema, GraphQLError } from "graphql";
 import {
-  DocumentNode,
-  GraphQLSchema,
   visit,
+  visitWithTypeInfo,
+  isScalarType,
+  getNamedType,
   ValuesOfCorrectTypeRule,
   ValidationContext,
   TypeInfo,
-  visitWithTypeInfo,
-  GraphQLError,
-  getNamedType,
-  isScalarType,
 } from "graphql";
-import {
-  DiagnosticsWithoutLocationResult,
-  gqlErr,
-  gqlRelated,
-} from "../utils/DiagnosticError";
-import { err, ok } from "../utils/Result";
-import { nullThrows } from "../utils/helpers";
+import type { DiagnosticsWithoutLocationResult } from "../utils/DiagnosticError.ts";
+import { gqlErr, gqlRelated } from "../utils/DiagnosticError.ts";
+import { err, ok } from "../utils/Result.ts";
+import { nullThrows } from "../utils/helpers.ts";
 
 /**
  * Surprisingly, the GraphQL spec (and therefore graphql-js) does not enforce

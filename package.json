@@ -10,7 +10,8 @@
     "!dist/src/tests"
   ],
   "scripts": {
-    "test": "ts-node src/tests/test.ts",
+    "test": "node --experimental-strip-types src/tests/test.ts",
+    "testCI": "node dist/tests/test.js",
     "integration-tests": "node src/tests/integration.mjs",
     "build": "rm -rf dist/ && tsc --build",
     "format": "prettier . --write",
@@ -19,8 +20,8 @@
   "dependencies": {
     "commander": "^10.0.0",
     "graphql": "^16.9.0",
-    "typescript": "5.5.4",
-    "semver": "^7.5.4"
+    "semver": "^7.5.4",
+    "typescript": "5.8.3"
   },
   "devDependencies": {
     "@types/node": "^18.14.6",
@@ -32,8 +33,7 @@
     "node-fetch": "^3.3.1",
     "path-browserify": "^1.0.1",
     "prettier": "^2.8.7",
-    "process": "^0.11.10",
-    "ts-node": "^10.9.1"
+    "process": "^0.11.10"
   },
   "prettier": {
     "trailingComma": "all"

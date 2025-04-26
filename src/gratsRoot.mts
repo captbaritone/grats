@@ -1,4 +1,7 @@
-import { relative, resolve, join } from "path";
+import { relative, resolve, join, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Grats parses TypeScript files and finds resolvers. If the field resolver is a
 // named export, Grats needs to be able to import that file during execution.

@@ -1,12 +1,11 @@
-import { NameDefinition, TypeContext } from "../TypeContext";
-import { err, ok } from "../utils/Result";
-import {
+import type { NameDefinition, TypeContext } from "../TypeContext.ts";
+import { err, ok } from "../utils/Result.ts";
+import type {
   DiagnosticsResult,
   FixableDiagnosticWithLocation,
-  gqlErr,
-  gqlRelated,
-} from "../utils/DiagnosticError";
-import * as E from "../Errors";
+} from "../utils/DiagnosticError.ts";
+import { gqlErr, gqlRelated } from "../utils/DiagnosticError.ts";
+import * as E from "../Errors.ts";
 
 export function validateDuplicateContextOrInfo(
   ctx: TypeContext,
