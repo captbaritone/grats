@@ -19,7 +19,7 @@ import {
 import type { GratsConfig, ParsedCommandLineGrats } from "./gratsConfig.ts";
 import type { Result } from "./utils/Result.ts";
 import { err, ok } from "./utils/Result.ts";
-import { version } from "./version.ts";
+import { version } from "../package.json";
 
 const program = new Command();
 

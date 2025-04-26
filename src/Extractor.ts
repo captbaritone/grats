@@ -34,7 +34,7 @@ import { UNRESOLVED_REFERENCE_NAME } from "./TypeContext.ts";
 import * as E from "./Errors.ts";
 import { traverseJSDocTags } from "./utils/JSDoc.ts";
 import { GraphQLConstructor } from "./GraphQLConstructor.ts";
-import { relativePath } from "./gratsRoot.ts";
+import { relativePath } from "./gratsRoot.mts";
 import { ISSUE_URL } from "./Errors.ts";
 import { detectInvalidComments } from "./comments.ts";
 import { extend, invariant } from "./utils/helpers.ts";

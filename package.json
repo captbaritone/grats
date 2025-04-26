@@ -9,7 +9,6 @@
     "dist",
     "!dist/src/tests"
   ],
-  "type": "module",
   "scripts": {
     "test": "node --experimental-strip-types src/tests/test.ts",
     "testCI": "node dist/tests/test.js",

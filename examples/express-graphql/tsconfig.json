@@ -1,11 +1,4 @@
 {
-  // Most ts-node options can be specified here using their programmatic names.
-  "ts-node": {
-    // It is faster to skip typechecking.
-    // Remove if you want ts-node to do typechecking.
-    "files": true,
-    "transpileOnly": true
-  },
   "grats": {
     "nullableByDefault": false
   },
