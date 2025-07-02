@@ -1,8 +1,10 @@
 # Changelog
 
-## Next (UNRELEASED)
+<!-- ## Next (UNRELEASED)
 
-Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
+Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag. -->
+
+## 0.0.33
 
 - **Improvements**
   - Added support for `@gqlUnion`s with only one member
@@ -10,8 +12,6 @@ Changes in this section are not yet released. If you need access to these change
   - TypeScript enum values used as argument defaults are now supported.
   - Added testing to confirm support for Node 22 and 23.
   - Added support for aliased directive arguments with default values to enable arguments that are keywords in TypeScript.
-
----
 
 ## 0.0.32
 
