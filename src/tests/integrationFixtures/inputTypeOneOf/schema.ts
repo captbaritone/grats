@@ -1,4 +1,4 @@
-import { greet as queryGreetResolver } from "./index";
+import { greet as queryGreetResolver } from "./index.ts";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLInputObjectType, GraphQLID } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserPayloadType: GraphQLInputObjectType = new GraphQLInputObjectType({

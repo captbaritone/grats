@@ -1,15 +1,16 @@
 import * as ts from "typescript";
-import { ParsedCommandLineGrats, validateGratsOptions } from "./gratsConfig";
-import { ReportableDiagnostics } from "./utils/DiagnosticError";
-import { err, ok } from "./utils/Result";
-import { Result } from "./utils/Result";
+import type { ParsedCommandLineGrats } from "./gratsConfig.ts";
+import { validateGratsOptions } from "./gratsConfig.ts";
+import { ReportableDiagnostics } from "./utils/DiagnosticError.ts";
+import { err, ok } from "./utils/Result.ts";
+import type { Result } from "./utils/Result.ts";
 
-export { printSDLWithoutMetadata } from "./printSchema";
-export * from "./Types";
-export * from "./lib";
+export { printSDLWithoutMetadata } from "./printSchema.ts";
+export * from "./Types.ts";
+export * from "./lib.ts";
 // Used by the experimental TypeScript plugin
-export { extract } from "./Extractor";
-export { codegen } from "./codegen/schemaCodegen";
+export { extract } from "./Extractor.ts";
+export { codegen } from "./codegen/schemaCodegen.ts";
 
 // #FIXME: Report diagnostics instead of throwing!
 export function getParsedTsConfig(

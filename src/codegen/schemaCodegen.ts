@@ -1,4 +1,4 @@
-import {
+import type {
   GraphQLAbstractType,
   GraphQLArgument,
   GraphQLDirective,
@@ -14,6 +14,8 @@ import {
   GraphQLScalarType,
   GraphQLSchema,
   GraphQLUnionType,
+} from "graphql";
+import {
   isEnumType,
   isInputObjectType,
   isInputType,
@@ -27,13 +29,14 @@ import {
   valueFromASTUntyped,
 } from "graphql";
 import * as ts from "typescript";
-import { extend, nullThrows } from "../utils/helpers";
-import { GratsConfig } from "../gratsConfig.js";
-import { naturalCompare } from "../utils/naturalCompare";
-import TSAstBuilder, { JsonValue } from "./TSAstBuilder";
-import ResolverCodegen from "./resolverCodegen";
-import { Metadata } from "../metadata";
-import { ConstDirectiveNode } from "graphql/language";
+import { extend, nullThrows } from "../utils/helpers.ts";
+import type { GratsConfig } from "../gratsConfig.ts";
+import { naturalCompare } from "../utils/naturalCompare.ts";
+import type { JsonValue } from "./TSAstBuilder.ts";
+import TSAstBuilder from "./TSAstBuilder.ts";
+import ResolverCodegen from "./resolverCodegen.ts";
+import type { Metadata } from "../metadata.ts";
+import type { ConstDirectiveNode } from "graphql/language/index.js";
 
 // These directives will be added to the schema by default, so we don't need to
 // include them in the generated schema.
@@ -68,15 +71,17 @@ class Codegen {
   _typeNameMappings: Map<string, string> = new Map();
   _typeDefinitions: Set<string> = new Set();
   _graphQLImports: Set<string> = new Set();
+  _schema: GraphQLSchema;
 
   constructor(
-    public _schema: GraphQLSchema,
+    _schema: GraphQLSchema,
     _resolvers: Metadata,
     config: GratsConfig,
     destination: string,
   ) {
     this.ts = new TSAstBuilder(destination, config.importModuleSpecifierEnding);
     this.resolvers = new ResolverCodegen(this.ts, _resolvers);
+    this._schema = _schema;
   }
 
   graphQLImport(name: string): ts.Identifier {

@@ -1,4 +1,4 @@
-import { alwaysThrows as queryAlwaysThrowsResolver } from "./index";
+import { alwaysThrows as queryAlwaysThrowsResolver } from "./index.ts";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({

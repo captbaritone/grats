@@ -1,5 +1,6 @@
-import { DefinitionNode, Kind, NamedTypeNode } from "graphql";
-import { TypeContext } from "../TypeContext";
+import type { DefinitionNode, NamedTypeNode } from "graphql";
+import { Kind } from "graphql";
+import type { TypeContext } from "../TypeContext.ts";
 
 type InterfaceHaver = {
   readonly interfaces?: ReadonlyArray<NamedTypeNode>;

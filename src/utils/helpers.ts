@@ -1,6 +1,9 @@
 export class DefaultMap<K, V> {
   _map: Map<K, V> = new Map();
-  constructor(private readonly getDefault: () => V) {}
+  private readonly getDefault: () => V;
+  constructor(getDefault: () => V) {
+    this.getDefault = getDefault;
+  }
 
   get(key: K): V {
     if (!this._map.has(key)) {

@@ -1,13 +1,12 @@
-import {
+import type {
   DocumentNode,
-  Kind,
   Location,
   NameNode,
   ObjectTypeDefinitionNode,
-  visit,
 } from "graphql";
-import { OPERATION_TYPES } from "../Extractor";
-import { nullThrows } from "../utils/helpers";
+import { Kind, visit } from "graphql";
+import { OPERATION_TYPES } from "../Extractor.ts";
+import { nullThrows } from "../utils/helpers.ts";
 
 /**
  * Ensure any root types which have been extended with `@gqlQueryField` and

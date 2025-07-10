@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { diff } from "jest-diff";
-import { ask } from "./yesNo";
+import { ask } from "./yesNo.ts";
 
 type Transformer = (
   code: string,

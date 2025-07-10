@@ -1,12 +1,12 @@
+import type { GraphQLSchema, Location } from "graphql";
 import {
   GraphQLInputObjectType,
   GraphQLInterfaceType,
   GraphQLObjectType,
-  GraphQLSchema,
-  Location,
 } from "graphql";
-import { Result, err, ok } from "./utils/Result";
-import { nullThrows } from "./utils/helpers";
+import type { Result } from "./utils/Result.ts";
+import { err, ok } from "./utils/Result.ts";
+import { nullThrows } from "./utils/helpers.ts";
 
 type EntityName = {
   parent: string;

@@ -1,49 +1,43 @@
+import type { DocumentNode, GraphQLError, GraphQLSchema } from "graphql";
+import { buildASTSchema, Kind, validateSchema } from "graphql";
+import type { DiagnosticsWithoutLocationResult } from "./utils/DiagnosticError.ts";
 import {
-  buildASTSchema,
-  DocumentNode,
-  GraphQLError,
-  GraphQLSchema,
-  Kind,
-  validateSchema,
-} from "graphql";
-import {
-  DiagnosticsWithoutLocationResult,
-  ReportableDiagnostics,
   graphQlErrorToDiagnostic,
-} from "./utils/DiagnosticError";
-import { concatResults, ResultPipe } from "./utils/Result";
-import { ok, err } from "./utils/Result";
-import { Result } from "./utils/Result";
+  ReportableDiagnostics,
+} from "./utils/DiagnosticError.ts";
+import { concatResults, ResultPipe } from "./utils/Result.ts";
+import { ok, err } from "./utils/Result.ts";
+import type { Result } from "./utils/Result.ts";
 import * as ts from "typescript";
-import { ExtractionSnapshot } from "./Extractor";
-import { TypeContext } from "./TypeContext";
-import { validateSDL } from "graphql/validation/validate";
-import { ParsedCommandLineGrats } from "./gratsConfig";
-import { validateTypenames } from "./validations/validateTypenames";
-import { extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram";
-import { validateMergedInterfaces } from "./validations/validateMergedInterfaces";
-import { addInterfaceFields } from "./transforms/addInterfaceFields";
-import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces";
-import { validateAsyncIterable } from "./validations/validateAsyncIterable";
-import { applyDefaultNullability } from "./transforms/applyDefaultNullability";
-import { mergeExtensions } from "./transforms/mergeExtensions";
-import { sortSchemaAst } from "./transforms/sortSchemaAst";
-import { validateDuplicateContextOrInfo } from "./validations/validateDuplicateContextOrInfo";
-import { validateSemanticNullability } from "./validations/validateSemanticNullability";
-import { resolveTypes } from "./transforms/resolveTypes";
-import { resolveResolverParams } from "./transforms/resolveResolverParams";
-import { customSpecValidations } from "./validations/customSpecValidations";
-import { makeResolverSignature } from "./transforms/makeResolverSignature";
-import { addImplicitRootTypes } from "./transforms/addImplicitRootTypes";
-import { Metadata } from "./metadata";
-import { validateDirectiveArguments } from "./validations/validateDirectiveArguments";
-import { coerceDefaultEnumValues } from "./transforms/coerceDefaultEnumValues";
+import type { ExtractionSnapshot } from "./Extractor.ts";
+import { TypeContext } from "./TypeContext.ts";
+import { validateSDL } from "graphql/validation/validate.js";
+import type { ParsedCommandLineGrats } from "./gratsConfig.ts";
+import { validateTypenames } from "./validations/validateTypenames.ts";
+import { extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram.ts";
+import { validateMergedInterfaces } from "./validations/validateMergedInterfaces.ts";
+import { addInterfaceFields } from "./transforms/addInterfaceFields.ts";
+import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces.ts";
+import { validateAsyncIterable } from "./validations/validateAsyncIterable.ts";
+import { applyDefaultNullability } from "./transforms/applyDefaultNullability.ts";
+import { mergeExtensions } from "./transforms/mergeExtensions.ts";
+import { sortSchemaAst } from "./transforms/sortSchemaAst.ts";
+import { validateDuplicateContextOrInfo } from "./validations/validateDuplicateContextOrInfo.ts";
+import { validateSemanticNullability } from "./validations/validateSemanticNullability.ts";
+import { resolveTypes } from "./transforms/resolveTypes.ts";
+import { resolveResolverParams } from "./transforms/resolveResolverParams.ts";
+import { customSpecValidations } from "./validations/customSpecValidations.ts";
+import { makeResolverSignature } from "./transforms/makeResolverSignature.ts";
+import { addImplicitRootTypes } from "./transforms/addImplicitRootTypes.ts";
+import type { Metadata } from "./metadata.ts";
+import { validateDirectiveArguments } from "./validations/validateDirectiveArguments.ts";
+import { coerceDefaultEnumValues } from "./transforms/coerceDefaultEnumValues.ts";
 
 // Export the TypeScript plugin implementation used by
 // grats-ts-plugin
-export { initTsPlugin } from "./tsPlugin/initTsPlugin";
+export { initTsPlugin } from "./tsPlugin/initTsPlugin.ts";
 
-export { GratsConfig } from "./gratsConfig";
+export type { GratsConfig } from "./gratsConfig.ts";
 
 export type SchemaAndDoc = {
   schema: GraphQLSchema;

@@ -1,26 +1,25 @@
 #!/usr/bin/env node
 
-import * as E from "./Errors";
-import { GraphQLNamedType, GraphQLObjectType, Location } from "graphql";
-import { getParsedTsConfig } from "./";
-import {
-  SchemaAndDoc,
-  buildSchemaAndDocResult,
-  extractSchemaAndDoc,
-} from "./lib";
+import * as E from "./Errors.ts";
+import type { GraphQLNamedType, Location } from "graphql";
+import { GraphQLObjectType } from "graphql";
+import { getParsedTsConfig } from "./index.ts";
+import type { SchemaAndDoc } from "./lib.ts";
+import { buildSchemaAndDocResult, extractSchemaAndDoc } from "./lib.ts";
 import { Command } from "commander";
 import { writeFileSync } from "fs";
 import { resolve, dirname } from "path";
-import { version } from "../package.json";
-import { locate } from "./Locate";
-import { printGratsSDL, printExecutableSchema } from "./printSchema";
+import { locate } from "./Locate.ts";
+import { printGratsSDL, printExecutableSchema } from "./printSchema.ts";
 import * as ts from "typescript";
 import {
   locationlessErr,
   ReportableDiagnostics,
-} from "./utils/DiagnosticError";
-import { GratsConfig, ParsedCommandLineGrats } from "./gratsConfig";
-import { err, ok, Result } from "./utils/Result";
+} from "./utils/DiagnosticError.ts";
+import type { GratsConfig, ParsedCommandLineGrats } from "./gratsConfig.ts";
+import type { Result } from "./utils/Result.ts";
+import { err, ok } from "./utils/Result.ts";
+import { version } from "../package.json";
 
 const program = new Command();
 

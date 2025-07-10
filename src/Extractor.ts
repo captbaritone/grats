@@ -1,7 +1,6 @@
-import {
+import type {
   FieldDefinitionNode,
   InputValueDefinitionNode,
-  Kind,
   NamedTypeNode,
   NameNode,
   TypeNode,
@@ -13,40 +12,38 @@ import {
   ConstObjectFieldNode,
   ConstObjectValueNode,
   ConstListValueNode,
-  assertName,
   DefinitionNode,
+} from "graphql";
+import { assertName } from "graphql";
+import {
+  Kind,
   version as graphqlJSVersion,
   TokenKind,
   GraphQLError,
 } from "graphql";
 import { gte as semverGte } from "semver";
-import {
-  tsErr,
-  tsRelated,
+import type {
   DiagnosticsResult,
-  gqlErr,
   DiagnosticResult,
-} from "./utils/DiagnosticError";
-import { err, ok } from "./utils/Result";
+} from "./utils/DiagnosticError.ts";
+import { tsErr, tsRelated, gqlErr } from "./utils/DiagnosticError.ts";
+import { err, ok } from "./utils/Result.ts";
 import * as ts from "typescript";
-import {
-  DeclarationDefinition,
-  NameDefinition,
-  UNRESOLVED_REFERENCE_NAME,
-} from "./TypeContext";
-import * as E from "./Errors";
-import { traverseJSDocTags } from "./utils/JSDoc";
-import { GraphQLConstructor } from "./GraphQLConstructor";
-import { relativePath } from "./gratsRoot";
-import { ISSUE_URL } from "./Errors";
-import { detectInvalidComments } from "./comments";
-import { extend, invariant } from "./utils/helpers";
-import * as Act from "./CodeActions";
-import {
+import type { DeclarationDefinition, NameDefinition } from "./TypeContext.ts";
+import { UNRESOLVED_REFERENCE_NAME } from "./TypeContext.ts";
+import * as E from "./Errors.ts";
+import { traverseJSDocTags } from "./utils/JSDoc.ts";
+import { GraphQLConstructor } from "./GraphQLConstructor.ts";
+import { relativePath } from "./gratsRoot.mts";
+import { ISSUE_URL } from "./Errors.ts";
+import { detectInvalidComments } from "./comments.ts";
+import { extend, invariant } from "./utils/helpers.ts";
+import * as Act from "./CodeActions.ts";
+import type {
   InputValueDefinitionNodeOrResolverArg,
   ResolverArgument,
-} from "./resolverSignature";
-import { Parser } from "graphql/language/parser";
+} from "./resolverSignature.ts";
+import { Parser } from "graphql/language/parser.js";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
