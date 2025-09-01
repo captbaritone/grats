@@ -67,7 +67,7 @@ program.parse();
  * Run the compiler in watch mode.
  */
 function startWatchMode(tsconfig: string) {
-  const { config, configPath } = handleDiagnostics(getTsConfig(tsconfig));
+  const { configPath } = handleDiagnostics(getTsConfig(tsconfig));
   const watchHost = ts.createWatchCompilerHost(
     configPath,
     {},
@@ -77,6 +77,13 @@ function startWatchMode(tsconfig: string) {
     (diagnostic) => reportDiagnostics([diagnostic]),
   );
   watchHost.afterProgramCreate = (program) => {
+    // It's possible our config was updated, so re-read it.
+    const configResult = getTsConfig(tsconfig);
+    if (configResult.kind === "ERROR") {
+      reportReportableDiagnostics(configResult.err);
+      return;
+    }
+    const { config } = configResult.value;
     // For now we just rebuild the schema on every change.
     const schemaResult = extractSchemaAndDoc(config, program.getProgram());
     if (schemaResult.kind === "ERROR") {
@@ -164,6 +171,10 @@ function writeSchemaFilesAndReport(
  */
 function reportDiagnostics(diagnostics: ts.Diagnostic[]) {
   const reportable = ReportableDiagnostics.fromDiagnostics(diagnostics);
+  reportReportableDiagnostics(reportable);
+}
+
+function reportReportableDiagnostics(reportable: ReportableDiagnostics) {
   console.error(reportable.formatDiagnosticsWithColorAndContext());
 }
 
