@@ -6,6 +6,7 @@ Changes in this section are not yet released. If you need access to these change
 
 - **Improvements**
   - Watch mode now responds changes to the Grats config.
+  - The error message which appears when no types are defined has been improved to allow schemas with any type (not just object types). This validation now also runs in watch mode to provide consistency with non-watch mode.
 
 ## 0.0.33
 

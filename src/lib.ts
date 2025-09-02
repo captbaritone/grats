@@ -38,6 +38,7 @@ import { addImplicitRootTypes } from "./transforms/addImplicitRootTypes";
 import { Metadata } from "./metadata";
 import { validateDirectiveArguments } from "./validations/validateDirectiveArguments";
 import { coerceDefaultEnumValues } from "./transforms/coerceDefaultEnumValues";
+import { validateSomeTypesAreDefined } from "./validations/validateSomeTypesAreDefined";
 
 // Export the TypeScript plugin implementation used by
 // grats-ts-plugin
@@ -160,6 +161,10 @@ export function extractSchemaAndDoc(
           // Apply the "Type Validation" sub-sections of the specification's
           // "Type System" section.
           .andThen((schema) => specSchemaValidation(schema))
+          // Provide a helpful getting started error if no types are detected.
+          .andThen((schema) => validateSomeTypesAreDefined(schema))
+          // Ensure that any custom validations that are not part of the spec
+          // are also applied.
           // The above spec validation fails to catch type errors in directive
           // arguments, so Grats checks these manually.
           .andThen((schema) => validateDirectiveArguments(schema, doc))

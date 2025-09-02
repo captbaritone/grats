@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import * as E from "./Errors";
-import { GraphQLNamedType, GraphQLObjectType, Location } from "graphql";
+import { Location } from "graphql";
 import { getParsedTsConfig } from "./";
 import {
   SchemaAndDoc,
@@ -51,7 +51,7 @@ program
   .action((entity, { tsconfig }) => {
     const { config } = handleDiagnostics(getTsConfig(tsconfig));
 
-    const { schema } = handleDiagnostics(buildSchemaAndDocResultForCli(config));
+    const { schema } = handleDiagnostics(buildSchemaAndDocResult(config));
 
     const loc = locate(schema, entity);
     if (loc.kind === "ERROR") {
@@ -95,40 +95,12 @@ function startWatchMode(tsconfig: string) {
   ts.createWatchProgram(watchHost);
 }
 
-function isUserDefinedType(type: GraphQLNamedType): boolean {
-  return type instanceof GraphQLObjectType && !type.name.startsWith("__");
-}
-
-/**
- * Like `buildSchemaAndDocResult` but applies a few additional validations that
- * are considered helpful for CLI usage, like warning if you have no types defined..
- */
-
-function buildSchemaAndDocResultForCli(
-  config: ParsedCommandLineGrats,
-): Result<SchemaAndDoc, ReportableDiagnostics> {
-  const result = buildSchemaAndDocResult(config);
-  if (result.kind === "ERROR") {
-    return result;
-  }
-  const types = Object.values(result.value.schema.getTypeMap());
-  if (!types.some((t) => isUserDefinedType(t))) {
-    return err(
-      ReportableDiagnostics.fromDiagnostics([
-        locationlessErr(E.noTypesDefined()),
-      ]),
-    );
-  }
-
-  return result;
-}
-
 /**
  * Run the compiler performing a single build.
  */
 function runBuild(tsconfig: string) {
   const { config, configPath } = handleDiagnostics(getTsConfig(tsconfig));
-  const schemaAndDoc = handleDiagnostics(buildSchemaAndDocResultForCli(config));
+  const schemaAndDoc = handleDiagnostics(buildSchemaAndDocResult(config));
 
   writeSchemaFilesAndReport(schemaAndDoc, config, configPath);
 }
