@@ -44,7 +44,7 @@ import { validateSomeTypesAreDefined } from "./validations/validateSomeTypesAreD
 // grats-ts-plugin
 export { initTsPlugin } from "./tsPlugin/initTsPlugin";
 
-export { GratsConfig } from "./gratsConfig";
+export type { GratsConfig } from "./gratsConfig";
 
 export type SchemaAndDoc = {
   schema: GraphQLSchema;
