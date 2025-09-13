@@ -277,7 +277,7 @@ export function expectedOneNonNullishType() {
 
 // TODO: Add code action
 export function ambiguousNumberType() {
-  return `Unexpected number type. GraphQL supports both Int and Float, making \`number\` ambiguous. Instead, import the \`Int\` or \`Float\` type from \`${LIBRARY_IMPORT_NAME}\` and use that. e.g. \`import { Int, Float } from "${LIBRARY_IMPORT_NAME}";\`.`;
+  return `Unexpected number type. GraphQL supports both Int and Float, making \`number\` ambiguous. Instead, import the \`Int\` or \`Float\` type from \`${LIBRARY_IMPORT_NAME}\` and use that. e.g. \`import type { Int, Float } from "${LIBRARY_IMPORT_NAME}";\`.`;
 }
 
 export function defaultValueIsNotLiteral() {
@@ -551,7 +551,7 @@ export function duplicateContextTag(): string {
 }
 
 export function userDefinedInfoTag(): string {
-  return `Unexpected user-defined \`@${INFO_TAG}\` tag. Use the type \`GqlInfo\` exported from \`grats\`: \`import { GqlInfo } from "grats";\`.`;
+  return `Unexpected user-defined \`@${INFO_TAG}\` tag. Use the type \`GqlInfo\` exported from \`grats\`: \`import type { GqlInfo } from "grats";\`.`;
 }
 
 export function invalidResolverParamType(): string {
@@ -624,7 +624,7 @@ export function directiveTagCommentNotText() {
 }
 
 export function specifiedByDeprecated() {
-  return 'The `@specifiedBy` tag has been deprecated in favor of `@gqlAnnotate`. Use `@gqlAnnotate specified(url: "http://example.com")` instead.';
+  return 'The `@specifiedBy` tag has been deprecated in favor of `@gqlAnnotate`. Use `@gqlAnnotate specifiedBy(url: "http://example.com")` instead.';
 }
 
 export function directiveTagNoComment() {
