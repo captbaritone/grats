@@ -18,8 +18,8 @@ importers:
         specifier: ^7.5.4
         version: 7.5.4
       typescript:
-        specifier: 5.5.4
-        version: 5.5.4
+        specifier: 5.9.2
+        version: 5.9.2
     devDependencies:
       '@types/node':
         specifier: ^18.14.6
@@ -29,10 +29,10 @@ importers:
         version: 7.5.6
       '@typescript-eslint/eslint-plugin':
         specifier: ^5.55.0
-        version: 5.55.0(@typescript-eslint/parser@5.55.0(eslint@8.36.0)(typescript@5.5.4))(eslint@8.36.0)(typescript@5.5.4)
+        version: 5.55.0(@typescript-eslint/parser@5.55.0(eslint@8.36.0)(typescript@5.9.2))(eslint@8.36.0)(typescript@5.9.2)
       '@typescript-eslint/parser':
         specifier: ^5.55.0
-        version: 5.55.0(eslint@8.36.0)(typescript@5.5.4)
+        version: 5.55.0(eslint@8.36.0)(typescript@5.9.2)
       eslint:
         specifier: ^8.36.0
         version: 8.36.0
@@ -53,7 +53,7 @@ importers:
         version: 0.11.10
       ts-node:
         specifier: ^10.9.1
-        version: 10.9.1(@types/node@18.15.0)(typescript@5.5.4)
+        version: 10.9.1(@types/node@18.15.0)(typescript@5.9.2)
 
   examples/apollo-server:
     dependencies:
@@ -498,12 +498,14 @@ packages:
 
   '@apollo/server-gateway-interface@1.1.1':
     resolution: {integrity: sha512-pGwCl/po6+rxRmDMFgozKQo2pbsSwE91TpsDBAOgf74CRDPXHHtM88wbwjab0wMMZh95QfR45GGyDIdhY24bkQ==}
+    deprecated: '@apollo/server-gateway-interface v1 is part of Apollo Server v4, which is deprecated and will transition to end-of-life on January 26, 2026. As long as you are already using a non-EOL version of Node.js, upgrading to v2 should take only a few minutes. See https://www.apollographql.com/docs/apollo-server/previous-versions for details.'
     peerDependencies:
       graphql: 14.x || 15.x || 16.x
 
   '@apollo/server@4.9.5':
     resolution: {integrity: sha512-eDBfArYbZaTm1AGa82M1aL7lOscVhnZsH85+OWmHMIR98qntzEjNpWpQPYDTru63Qxs4kHcY29NUx/kMGZfGEA==}
     engines: {node: '>=14.16.0'}
+    deprecated: Apollo Server v4 is deprecated and will transition to end-of-life on January 26, 2026. As long as you are already using a non-EOL version of Node.js, upgrading to v5 should take only a few minutes. See https://www.apollographql.com/docs/apollo-server/previous-versions for details.
     peerDependencies:
       graphql: ^16.6.0
 
@@ -4038,11 +4040,13 @@ packages:
 
   acorn-import-assertions@1.8.0:
     resolution: {integrity: sha512-m7VZ3jwz4eK6A4Vtt8Ew1/mNbP24u0FhdyfA7fSvnJR6LMdfOYnmuIrrJAgrYfYJ10F/otaHTtrtrtmHdMNzEw==}
+    deprecated: package has been renamed to acorn-import-attributes
     peerDependencies:
       acorn: ^8
 
   acorn-import-assertions@1.9.0:
     resolution: {integrity: sha512-cmMwop9x+8KFhxvKrKfPYmN6/pKTYYHBqLa0DfvVZcKMJWNyWLnaqND7dx/qn66R7ewM1UX5XMaDVP5wlVTaVA==}
+    deprecated: package has been renamed to acorn-import-attributes
     peerDependencies:
       acorn: ^8
 
@@ -7755,6 +7759,7 @@ packages:
   node-domexception@1.0.0:
     resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
     engines: {node: '>=10.5.0'}
+    deprecated: Use your platform's native DOMException instead
 
   node-emoji@2.1.3:
     resolution: {integrity: sha512-E2WEOVsgs7O16zsURJ/eH8BqhF029wGpEOnv7Urwdo2wmQanOACwJQh0devF9D9RhoZru0+9JXIS0dBXIAz+lA==}
@@ -9903,6 +9908,11 @@ packages:
 
   typescript@5.5.4:
     resolution: {integrity: sha512-Mtq29sKDAEYP7aljRgtPOpTvOfbwRWlS6dPRzwjdE+C0R4brX/GUyhHSecbHMFLNBLcJIPt9nl9yG5TZ1weH+Q==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+  typescript@5.9.2:
+    resolution: {integrity: sha512-CWBzXQrc/qOkhidw1OzBTQuYRbfyxDXJMVJ1XNwUHGROVmuaeiEm3OslpZ1RV96d7SKKjZKrSJu3+t/xlw3R9A==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -15111,34 +15121,34 @@ snapshots:
       '@types/node': 20.8.10
     optional: true
 
-  '@typescript-eslint/eslint-plugin@5.55.0(@typescript-eslint/parser@5.55.0(eslint@8.36.0)(typescript@5.5.4))(eslint@8.36.0)(typescript@5.5.4)':
+  '@typescript-eslint/eslint-plugin@5.55.0(@typescript-eslint/parser@5.55.0(eslint@8.36.0)(typescript@5.9.2))(eslint@8.36.0)(typescript@5.9.2)':
     dependencies:
       '@eslint-community/regexpp': 4.4.0
-      '@typescript-eslint/parser': 5.55.0(eslint@8.36.0)(typescript@5.5.4)
+      '@typescript-eslint/parser': 5.55.0(eslint@8.36.0)(typescript@5.9.2)
       '@typescript-eslint/scope-manager': 5.55.0
-      '@typescript-eslint/type-utils': 5.55.0(eslint@8.36.0)(typescript@5.5.4)
-      '@typescript-eslint/utils': 5.55.0(eslint@8.36.0)(typescript@5.5.4)
+      '@typescript-eslint/type-utils': 5.55.0(eslint@8.36.0)(typescript@5.9.2)
+      '@typescript-eslint/utils': 5.55.0(eslint@8.36.0)(typescript@5.9.2)
       debug: 4.3.4(supports-color@9.3.1)
       eslint: 8.36.0
       grapheme-splitter: 1.0.4
       ignore: 5.2.4
       natural-compare-lite: 1.4.0
       semver: 7.5.4
-      tsutils: 3.21.0(typescript@5.5.4)
+      tsutils: 3.21.0(typescript@5.9.2)
     optionalDependencies:
-      typescript: 5.5.4
+      typescript: 5.9.2
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/parser@5.55.0(eslint@8.36.0)(typescript@5.5.4)':
+  '@typescript-eslint/parser@5.55.0(eslint@8.36.0)(typescript@5.9.2)':
     dependencies:
       '@typescript-eslint/scope-manager': 5.55.0
       '@typescript-eslint/types': 5.55.0
-      '@typescript-eslint/typescript-estree': 5.55.0(typescript@5.5.4)
+      '@typescript-eslint/typescript-estree': 5.55.0(typescript@5.9.2)
       debug: 4.3.4(supports-color@9.3.1)
       eslint: 8.36.0
     optionalDependencies:
-      typescript: 5.5.4
+      typescript: 5.9.2
     transitivePeerDependencies:
       - supports-color
 
@@ -15147,15 +15157,15 @@ snapshots:
       '@typescript-eslint/types': 5.55.0
       '@typescript-eslint/visitor-keys': 5.55.0
 
-  '@typescript-eslint/type-utils@5.55.0(eslint@8.36.0)(typescript@5.5.4)':
+  '@typescript-eslint/type-utils@5.55.0(eslint@8.36.0)(typescript@5.9.2)':
     dependencies:
-      '@typescript-eslint/typescript-estree': 5.55.0(typescript@5.5.4)
-      '@typescript-eslint/utils': 5.55.0(eslint@8.36.0)(typescript@5.5.4)
+      '@typescript-eslint/typescript-estree': 5.55.0(typescript@5.9.2)
+      '@typescript-eslint/utils': 5.55.0(eslint@8.36.0)(typescript@5.9.2)
       debug: 4.3.4(supports-color@9.3.1)
       eslint: 8.36.0
-      tsutils: 3.21.0(typescript@5.5.4)
+      tsutils: 3.21.0(typescript@5.9.2)
     optionalDependencies:
-      typescript: 5.5.4
+      typescript: 5.9.2
     transitivePeerDependencies:
       - supports-color
 
@@ -15163,7 +15173,7 @@ snapshots:
 
   '@typescript-eslint/types@5.62.0': {}
 
-  '@typescript-eslint/typescript-estree@5.55.0(typescript@5.5.4)':
+  '@typescript-eslint/typescript-estree@5.55.0(typescript@5.9.2)':
     dependencies:
       '@typescript-eslint/types': 5.55.0
       '@typescript-eslint/visitor-keys': 5.55.0
@@ -15171,9 +15181,9 @@ snapshots:
       globby: 11.1.0
       is-glob: 4.0.3
       semver: 7.5.4
-      tsutils: 3.21.0(typescript@5.5.4)
+      tsutils: 3.21.0(typescript@5.9.2)
     optionalDependencies:
-      typescript: 5.5.4
+      typescript: 5.9.2
     transitivePeerDependencies:
       - supports-color
 
@@ -15191,14 +15201,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/utils@5.55.0(eslint@8.36.0)(typescript@5.5.4)':
+  '@typescript-eslint/utils@5.55.0(eslint@8.36.0)(typescript@5.9.2)':
     dependencies:
       '@eslint-community/eslint-utils': 4.2.0(eslint@8.36.0)
       '@types/json-schema': 7.0.11
       '@types/semver': 7.5.6
       '@typescript-eslint/scope-manager': 5.55.0
       '@typescript-eslint/types': 5.55.0
-      '@typescript-eslint/typescript-estree': 5.55.0(typescript@5.5.4)
+      '@typescript-eslint/typescript-estree': 5.55.0(typescript@5.9.2)
       eslint: 8.36.0
       eslint-scope: 5.1.1
       semver: 7.5.4
@@ -18291,7 +18301,7 @@ snapshots:
 
   history@4.10.1:
     dependencies:
-      '@babel/runtime': 7.24.0
+      '@babel/runtime': 7.26.0
       loose-envify: 1.4.0
       resolve-pathname: 3.0.0
       tiny-invariant: 1.3.1
@@ -22376,7 +22386,7 @@ snapshots:
 
   ts-dedent@2.2.0: {}
 
-  ts-node@10.9.1(@types/node@18.15.0)(typescript@5.5.4):
+  ts-node@10.9.1(@types/node@18.15.0)(typescript@5.9.2):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.9
@@ -22390,7 +22400,7 @@ snapshots:
       create-require: 1.1.1
       diff: 4.0.2
       make-error: 1.3.6
-      typescript: 5.5.4
+      typescript: 5.9.2
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
 
@@ -22423,6 +22433,11 @@ snapshots:
       tslib: 1.14.1
       typescript: 5.5.4
 
+  tsutils@3.21.0(typescript@5.9.2):
+    dependencies:
+      tslib: 1.14.1
+      typescript: 5.9.2
+
   type-check@0.3.2:
     dependencies:
       prelude-ls: 1.1.2
@@ -22453,6 +22468,8 @@ snapshots:
       is-typedarray: 1.0.0
 
   typescript@5.5.4: {}
+
+  typescript@5.9.2: {}
 
   uid-safe@2.1.5:
     dependencies:
