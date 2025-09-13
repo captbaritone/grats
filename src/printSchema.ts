@@ -59,7 +59,7 @@ export function printSDLWithoutMetadata(doc: DocumentNode): string {
 
 function formatHeader(header: string | null, code: string): string {
   if (header !== null) {
-    return `${header}\n${code}`;
+    return `${header}\n\n${code}`;
   }
   return code;
 }
