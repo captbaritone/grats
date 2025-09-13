@@ -13,11 +13,13 @@ OUTPUT
 -----------------
 -- SDL --
 # Generated SDL
+
 type SomeType {
   hello: String
 }
 -- TypeScript --
 // Generated TS
+
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
