@@ -9,6 +9,7 @@ Changes in this section are not yet released. If you need access to these change
   - The error message which appears when no types are defined has been improved to allow schemas with any type (not just object types). This validation now also runs in watch mode to provide consistency with non-watch mode.
   - Minor improvements to error messages.
   - A blank line has been added after the headers in Grats' generated files.
+  - Grats now uses TypeScript v5.9.2 which should prevent errors when using TypeScript config options only avaliable in newer versions.
 
 ## 0.0.33
 
