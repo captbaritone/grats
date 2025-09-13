@@ -20,7 +20,7 @@
     "commander": "^10.0.0",
     "graphql": "^16.9.0",
     "semver": "^7.5.4",
-    "typescript": "5.5.4"
+    "typescript": "5.9.2"
   },
   "devDependencies": {
     "@types/node": "^18.14.6",
