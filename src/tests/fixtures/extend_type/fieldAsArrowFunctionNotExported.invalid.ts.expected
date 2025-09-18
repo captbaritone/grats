@@ -15,7 +15,7 @@ const greeting = (_: SomeType): string => {
 OUTPUT
 -----------------
 -- Error Report --
-src/tests/fixtures/extend_type/fieldAsArrowFunctionNotExported.invalid.ts:7:7 - error: Expected `@gqlField` to be an exported top-level declaration. Grats needs to import resolver functions into it's generated schema module, so the resolver function must be exported from the module.
+src/tests/fixtures/extend_type/fieldAsArrowFunctionNotExported.invalid.ts:7:7 - error: Expected `@gqlField` to be an exported top-level declaration. Grats needs to import resolver functions into its generated schema module, so the resolver function must be exported from the module.
 
 7 const greeting = (_: SomeType): string => {
         ~~~~~~~~

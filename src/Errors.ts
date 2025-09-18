@@ -100,15 +100,15 @@ export function invalidReturnTypeForFunctionField() {
 }
 
 export function functionFieldNotTopLevel() {
-  return `Expected \`@${FIELD_TAG}\` function to be a top-level declaration. Grats needs to import resolver functions into it's generated schema module, so the resolver function must be an exported.`;
+  return `Expected \`@${FIELD_TAG}\` function to be a top-level declaration. Grats needs to import resolver functions into its generated schema module, so the resolver function must be an exported.`;
 }
 
 export function staticMethodClassNotTopLevel() {
-  return `Expected class with a static \`@${FIELD_TAG}\` method to be a top-level declaration. Grats needs to import resolver methods into it's generated schema module, so the resolver's class must be an exported.`;
+  return `Expected class with a static \`@${FIELD_TAG}\` method to be a top-level declaration. Grats needs to import resolver methods into its generated schema module, so the resolver's class must be an exported.`;
 }
 
 export function staticMethodFieldClassNotExported() {
-  return `Expected \`@${FIELD_TAG}\` static method's class to be exported. Grats needs to import resolvers into it's generated schema module, so the resolver class must be an exported.`;
+  return `Expected \`@${FIELD_TAG}\` static method's class to be exported. Grats needs to import resolvers into its generated schema module, so the resolver class must be an exported.`;
 }
 
 const FUNCTION_PARENT_TYPE_CONTEXT = `Grats treats the first argument as the parent object of the field. Therefore Grats needs to see the _type_ of the first argument in order to know to which type/interface this field should be added.`;
@@ -122,11 +122,11 @@ export function functionFieldParentTypeNotValid() {
 }
 
 export function functionFieldNotNamed() {
-  return `Expected \`@${FIELD_TAG}\` function to be named. Grats uses the name of the function to derive the name of the GraphQL field. Additionally, Grats needs to import resolver functions into it's generated schema module, so the resolver function must be a named export.`;
+  return `Expected \`@${FIELD_TAG}\` function to be named. Grats uses the name of the function to derive the name of the GraphQL field. Additionally, Grats needs to import resolver functions into its generated schema module, so the resolver function must be a named export.`;
 }
 
 export function functionFieldNotNamedExport() {
-  return `Expected a \`@${FIELD_TAG}\` function to be a named export. Grats needs to import resolver functions into it's generated schema module, so the resolver function must be a named export.`;
+  return `Expected a \`@${FIELD_TAG}\` function to be a named export. Grats needs to import resolver functions into its generated schema module, so the resolver function must be a named export.`;
 }
 
 export function inputTypeNotLiteral() {
@@ -319,7 +319,7 @@ export function killsParentOnExceptionWithWrongConfig() {
 
 // TODO: Add code action
 export function killsParentOnExceptionOnNullable() {
-  return `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` tag on field typed as nullable. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` will force a field to appear as non-nullable in the schema, so it's implementation must also be non-nullable. .`;
+  return `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` tag on field typed as nullable. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` will force a field to appear as non-nullable in the schema, so its implementation must also be non-nullable. .`;
 }
 
 // TODO: Add code action
@@ -447,7 +447,7 @@ export function operationTypeNotUnknown() {
 }
 
 export function expectedNullableArgumentToBeOptional() {
-  return "Expected nullable argument to _also_ be optional (`?`). graphql-js may omit properties on the argument object where an undefined GraphQL variable is passed, or if the argument is omitted in the operation text. To ensure your resolver is capable of handing this scenario, add a `?` to the end of the argument name to make it optional. e.g. `{greeting?: string | null}`";
+  return "Expected nullable argument to _also_ be optional (`?`). graphql-js may omit properties on the argument object where an undefined GraphQL variable is passed, or if the argument is omitted in the operation text. To ensure your resolver is capable of handling this scenario, add a `?` to the end of the argument name to make it optional. e.g. `{greeting?: string | null}`";
 }
 
 export function gqlTagInLineComment() {
@@ -459,7 +459,7 @@ export function gqlTagInNonJSDocBlockComment() {
 }
 
 export function gqlTagInDetachedJSDocBlockComment() {
-  return `Unexpected Grats tag in detached docblock. Grats was unable to determine which TypeScript declaration this docblock is associated with. Moving the docblock to a position with is unambiguously "above" the relevant declaration may help. For more information see: ${DOC_URLS.commentSyntax}`;
+  return `Unexpected Grats tag in detached docblock. Grats was unable to determine which TypeScript declaration this docblock is associated with. Moving the docblock to a position that is unambiguously "above" the relevant declaration may help. For more information see: ${DOC_URLS.commentSyntax}`;
 }
 
 export function gqlFieldTagOnInputType() {
@@ -567,7 +567,7 @@ export function exportedFieldVariableMultipleDeclarations(n: number): string {
 }
 
 export function fieldVariableNotTopLevelExported(): string {
-  return `Expected \`@${FIELD_TAG}\` to be an exported top-level declaration. Grats needs to import resolver functions into it's generated schema module, so the resolver function must be exported from the module.`;
+  return `Expected \`@${FIELD_TAG}\` to be an exported top-level declaration. Grats needs to import resolver functions into its generated schema module, so the resolver function must be exported from the module.`;
 }
 
 export function fieldVariableIsNotArrowFunction(): string {

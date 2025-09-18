@@ -13,7 +13,7 @@ type Query = unknown;
 OUTPUT
 -----------------
 -- Error Report --
-src/tests/fixtures/field_definitions/asyncFunctionFieldNotExported.invalid.ts:2:16 - error: Expected a `@gqlField` function to be a named export. Grats needs to import resolver functions into it's generated schema module, so the resolver function must be a named export.
+src/tests/fixtures/field_definitions/asyncFunctionFieldNotExported.invalid.ts:2:16 - error: Expected a `@gqlField` function to be a named export. Grats needs to import resolver functions into its generated schema module, so the resolver function must be a named export.
 
 2 async function greet(_: Query): Promise<string> {
                  ~~~~~
