@@ -111,11 +111,14 @@ export default class TestRunner {
     }
 
     // Extract the actual output string based on Result type
-    const actualOutput = transformResult.kind === "OK" ? transformResult.value : transformResult.err;
+    const actualOutput =
+      transformResult.kind === "OK"
+        ? transformResult.value
+        : transformResult.err;
 
     const testOutput = `-----------------
 INPUT
------------------
+----------------- 
 ${fixtureContent}
 -----------------
 OUTPUT
@@ -123,14 +126,20 @@ OUTPUT
 ${actualOutput}`;
 
     // Validate naming convention: .invalid files should have errors, others should succeed
-    const isInvalidTest = fixture.includes('.invalid.');
+    const isInvalidTest = fixture.includes(".invalid.");
     const actualHasError = transformResult.kind === "ERROR";
 
     let namingConventionError: string | null = null;
     if (isInvalidTest && !actualHasError) {
-      namingConventionError = `Test has ".invalid" in name but succeeded. Fix: rename to "${fixture.replace('.invalid', '')}" or add error to test.`;
+      namingConventionError = `Test has ".invalid" in name but succeeded. Fix: rename to "${fixture.replace(
+        ".invalid",
+        "",
+      )}" or add error to test.`;
     } else if (!isInvalidTest && actualHasError) {
-      namingConventionError = `Test produced error but missing ".invalid" in name. Fix: rename to "${fixture.replace('.ts', '.invalid.ts')}" or fix the error.`;
+      namingConventionError = `Test produced error but missing ".invalid" in name. Fix: rename to "${fixture.replace(
+        ".ts",
+        ".invalid.ts",
+      )}" or fix the error.`;
     }
 
     if (namingConventionError) {
@@ -170,7 +179,10 @@ ${actualOutput}`;
     }
   }
 
-  async transform(code: string, filename: string): Promise<Result<string, string> | false> {
+  async transform(
+    code: string,
+    filename: string,
+  ): Promise<Result<string, string> | false> {
     try {
       return await this._transformer(code, filename);
     } catch (e) {
@@ -178,7 +190,6 @@ ${actualOutput}`;
       return { kind: "ERROR", err: e.message };
     }
   }
-
 }
 
 function readdirSyncRecursive(dir: string): string[] {
