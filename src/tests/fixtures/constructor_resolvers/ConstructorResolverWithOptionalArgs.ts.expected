@@ -1,0 +1,116 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export class User {
+  constructor(public id: string, public name: string, public email?: string) {}
+
+  /** @gqlField */
+  getId(): string {
+    return this.id;
+  }
+
+  /** @gqlField */
+  getName(): string {
+    return this.name;
+  }
+
+  /** @gqlField */
+  getEmail(): string | null {
+    return this.email ?? null;
+  }
+}
+
+/** @gqlType */
+export class UserService {
+  /**
+   * @gqlQueryField createUser
+   */
+  constructor(public id: string, public name: string, public email?: string | null) {}
+
+  /** @gqlField */
+  getUser(): User {
+    return new User(this.id, this.name, this.email ?? undefined);
+  }
+}
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type Query {
+  createUser(email: String, id: String!, name: String!): UserService
+}
+
+type User {
+  getEmail: String
+  getId: String
+  getName: String
+}
+
+type UserService {
+  getUser: User
+}
+-- TypeScript --
+import { UserService as queryCreateUserResolver } from "./ConstructorResolverWithOptionalArgs";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                getEmail: {
+                    name: "getEmail",
+                    type: GraphQLString
+                },
+                getId: {
+                    name: "getId",
+                    type: GraphQLString
+                },
+                getName: {
+                    name: "getName",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const UserServiceType: GraphQLObjectType = new GraphQLObjectType({
+        name: "UserService",
+        fields() {
+            return {
+                getUser: {
+                    name: "getUser",
+                    type: UserType
+                }
+            };
+        }
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                createUser: {
+                    name: "createUser",
+                    type: UserServiceType,
+                    args: {
+                        email: {
+                            type: GraphQLString
+                        },
+                        id: {
+                            type: new GraphQLNonNull(GraphQLString)
+                        },
+                        name: {
+                            type: new GraphQLNonNull(GraphQLString)
+                        }
+                    },
+                    resolve(_source, args) {
+                        return new queryCreateUserResolver(args.id, args.name, args.email);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType, UserType, UserServiceType]
+    });
+}

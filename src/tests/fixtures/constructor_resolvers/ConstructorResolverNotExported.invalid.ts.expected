@@ -1,0 +1,43 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export class User {
+  constructor(public id: string, public name: string) {}
+}
+
+/** @gqlType */
+class UserService {
+  /**
+   * @gqlQueryField createUser
+   */
+  constructor(id: string, name: string) {
+    return new User(id, name);
+  }
+}
+-----------------
+OUTPUT
+-----------------
+-- Error Report --
+src/tests/fixtures/constructor_resolvers/ConstructorResolverNotExported.invalid.ts:7:1 - error: Constructor field class must be exported
+
+  7 class UserService {
+    ~~~~~~~~~~~~~~~~~~~
+  8   /**
+    ~~~~~
+... 
+ 13   }
+    ~~~
+ 14 }
+    ~
+
+
+-- Code Action: "Add export keyword to class with constructor field" (add-export-keyword-to-class) --
+- Original
++ Fixed
+
+@@ -6,3 +6,3 @@
+  /** @gqlType */
+- class UserService {
++ export class UserService {
+    /**

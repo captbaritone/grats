@@ -333,6 +333,8 @@ class Extractor {
       this.variableStatementExtendType(node, tag, parentType);
     } else if (isStaticMethod(node)) {
       this.staticMethodExtendType(node, tag, parentType);
+    } else if (ts.isConstructorDeclaration(node)) {
+      this.constructorDeclarationExtendType(node, tag, parentType);
     } else {
       if (parentType != null) {
         this.report(tag, E.rootFieldTagOnWrongNode(parentType));
@@ -806,6 +808,32 @@ class Extractor {
     }
 
     this.collectAbstractField(node, exportName, methodName, name, parentType);
+  }
+
+  constructorDeclarationExtendType(
+    node: ts.ConstructorDeclaration,
+    tag: ts.JSDocTag,
+    parentType: string | null,
+  ) {
+    // Check if this is a valid constructor resolver tag
+    const tagName = tag.tagName.text;
+
+    if (tagName === QUERY_FIELD_TAG) {
+      // Constructor resolvers are only valid for Query fields
+      if (parentType !== null && parentType !== "Query") {
+        this.report(tag, E.rootFieldTagOnWrongNode(parentType));
+        return;
+      }
+      // Process constructor resolver
+      this.constructorDeclaration(node);
+    } else if (tagName === MUTATION_FIELD_TAG) {
+      this.report(tag, "Constructor resolvers can only be used with @gqlQueryField, not @gqlMutationField");
+    } else if (tagName === SUBSCRIPTION_FIELD_TAG) {
+      this.report(tag, "Constructor resolvers can only be used with @gqlQueryField, not @gqlSubscriptionField");
+    } else if (parentType != null) {
+      // For other types of field tags on constructors
+      this.report(tag, E.rootFieldTagOnWrongNode(parentType));
+    }
   }
 
   /**
@@ -1647,6 +1675,9 @@ class Extractor {
     const fields: FieldDefinitionNode[] = [];
     members.forEach((node) => {
       if (ts.isConstructorDeclaration(node)) {
+        // Constructor resolvers are handled via extractField -> constructorDeclarationExtendType
+        // Here we only handle parameter properties
+
         // Handle parameter properties
         // https://www.typescriptlang.org/docs/handbook/2/classes.html#parameter-properties
         for (const param of node.parameters) {
@@ -1676,6 +1707,130 @@ class Extractor {
       }
     });
     return fields;
+  }
+
+  constructorDeclaration(node: ts.ConstructorDeclaration): FieldDefinitionNode | null {
+    // Check for query field tag on the constructor - only @gqlQueryField is allowed
+    const queryTag = this.findTag(node, QUERY_FIELD_TAG);
+    const mutationTag = this.findTag(node, MUTATION_FIELD_TAG);
+    const subscriptionTag = this.findTag(node, SUBSCRIPTION_FIELD_TAG);
+
+    // Report errors for unsupported tags
+    if (mutationTag) {
+      return this.report(mutationTag, "Constructor resolvers can only be used with @gqlQueryField, not @gqlMutationField");
+    }
+    if (subscriptionTag) {
+      return this.report(subscriptionTag, "Constructor resolvers can only be used with @gqlQueryField, not @gqlSubscriptionField");
+    }
+
+    if (queryTag == null) return null;
+
+    const parentType = "Query";
+
+    const name = this.entityName(node, queryTag);
+    if (name == null) return null;
+
+    const classNode = node.parent;
+    if (!ts.isClassDeclaration(classNode)) {
+      return this.report(node, "Constructor must be in a class declaration");
+    }
+
+    if (!ts.isSourceFile(classNode.parent)) {
+      return this.report(classNode, "Constructor field class must be at top level");
+    }
+
+    const isExported = classNode.modifiers?.some((modifier) => {
+      return modifier.kind === ts.SyntaxKind.ExportKeyword;
+    });
+
+    if (!isExported) {
+      return this.report(classNode, "Constructor field class must be exported", [], {
+        fixName: "add-export-keyword-to-class",
+        description: "Add export keyword to class with constructor field",
+        changes: [Act.prefixNode(classNode, "export ")],
+      });
+    }
+
+    const isDefault = classNode.modifiers?.some((modifier) => {
+      return modifier.kind === ts.SyntaxKind.DefaultKeyword;
+    });
+
+    let exportName: string | null = null;
+    if (!isDefault) {
+      if (classNode.name == null) {
+        return this.report(
+          classNode,
+          "Constructor field class with named export must be named",
+        );
+      }
+      exportName = classNode.name.text;
+    }
+
+    // Constructor resolvers always return the type on which they are defined
+    // We need to ensure the class is annotated with @gqlType
+    if (!this.hasTag(classNode, TYPE_TAG)) {
+      return this.report(classNode, "Constructor resolver class must be annotated with @gqlType");
+    }
+
+    // The return type is the GraphQL type corresponding to this class
+    // Look up the GraphQL name that was recorded when the class was processed
+    const nameDefinition = this.nameDefinitions.get(classNode);
+    if (!nameDefinition) {
+      return this.report(classNode, "Constructor resolver class was not processed as a GraphQL type. Ensure it has @gqlType annotation and is processed before the constructor.");
+    }
+
+    // Create a new NameNode for the return type, ensuring it has the proper structure
+    const classType = this.gql.namedType(classNode.name, nameDefinition.name.value);
+
+    // Mark this as an unresolved type reference that will be resolved later
+    if (classNode.name) {
+      this.markUnresolvedType(classNode.name, classType.name);
+    }
+
+    const type = this.gql.nonNullType(node, classType);
+
+    // Constructor resolvers are always query fields, so we need to handle args differently
+    const paramResults = this.resolverParams(node.parameters);
+    if (paramResults == null) return null;
+
+    const args = {
+      args: paramResults.args,
+      resolverParams: paramResults.resolverParams,
+      typeName: this.gql.name(node, parentType),
+    };
+
+    const tsModulePath = relativePath(node.getSourceFile().fileName);
+    const directives = this.collectDirectives(node);
+    const description = this.collectDescription(node);
+    const killsParentOnException = this.killsParentOnException(node);
+
+    const field = this.gql.fieldDefinition(
+      node,
+      name,
+      type,
+      args.args,
+      directives,
+      description,
+      killsParentOnException,
+      {
+        kind: "constructor",
+        path: tsModulePath,
+        exportName,
+        arguments: args.resolverParams,
+        node,
+      },
+    );
+
+    this.definitions.push(
+      this.gql.abstractFieldDefinition(
+        node,
+        args.typeName,
+        field,
+        false, // Constructor fields extend operation types like Query, not interfaces
+      ),
+    );
+
+    return field;
   }
 
   constructorParam(node: ts.ParameterDeclaration): FieldDefinitionNode | null {
@@ -2098,7 +2253,8 @@ class Extractor {
       | ts.TypeAliasDeclaration
       | ts.FunctionDeclaration
       | ts.VariableDeclaration
-      | ts.ParameterDeclaration,
+      | ts.ParameterDeclaration
+      | ts.ConstructorDeclaration,
     tag: ts.JSDocTag,
   ) {
     if (tag.comment != null) {
@@ -2140,6 +2296,11 @@ class Extractor {
         }
         return this.gql.name(locNode, commentName);
       }
+    }
+
+    if (ts.isConstructorDeclaration(node)) {
+      // Constructors must have an explicit name in the tag comment
+      return this.report(node, "Constructor resolvers must have an explicit name. Use /** @gqlQueryField fieldName */ to specify the field name.");
     }
 
     if (node.name == null) {

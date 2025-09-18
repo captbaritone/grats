@@ -59,6 +59,14 @@ export function makeResolverSignature(documentAst: DocumentNode): Metadata {
             arguments: transformArgs(fieldResolver.arguments),
           };
           break;
+        case "constructor":
+          resolver = {
+            kind: "constructor",
+            path: fieldResolver.path,
+            exportName: fieldResolver.exportName,
+            arguments: transformArgs(fieldResolver.arguments),
+          };
+          break;
         default:
           // @ts-expect-error
           throw new Error(`Unknown resolver kind: ${fieldResolver.kind}`);

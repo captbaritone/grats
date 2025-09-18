@@ -43,6 +43,13 @@ export type ResolverSignature =
       name: string;
       arguments: ResolverArgument[] | null;
       node: ts.Node;
+    }
+  | {
+      kind: "constructor";
+      path: string;
+      exportName: string | null;
+      arguments: ResolverArgument[] | null;
+      node: ts.Node;
     };
 
 export type SourceResolverArgument = {

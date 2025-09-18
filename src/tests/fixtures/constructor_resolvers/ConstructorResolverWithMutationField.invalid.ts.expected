@@ -1,0 +1,26 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export class User {
+  constructor(public id: string, public name: string) {}
+}
+
+/** @gqlType */
+export class UserService {
+  /**
+   * @gqlMutationField createUser
+   */
+  constructor(id: string, name: string) {
+    return new User(id, name);
+  }
+}
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/constructor_resolvers/ConstructorResolverWithMutationField.invalid.ts:9:6 - error: Constructor resolvers can only be used with @gqlQueryField, not @gqlMutationField
+
+ 9    * @gqlMutationField createUser
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10    */
+   ~~~

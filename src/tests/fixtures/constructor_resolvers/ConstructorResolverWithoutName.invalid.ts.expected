@@ -1,0 +1,28 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export class User {
+  constructor(public id: string, public name: string) {}
+}
+
+/** @gqlType */
+export class UserService {
+  /**
+   * @gqlQueryField
+   */
+  constructor(id: string, name: string) {
+    return new User(id, name);
+  }
+}
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/constructor_resolvers/ConstructorResolverWithoutName.invalid.ts:11:3 - error: Constructor resolvers must have an explicit name. Use /** @gqlQueryField fieldName */ to specify the field name.
+
+11   constructor(id: string, name: string) {
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12     return new User(id, name);
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+13   }
+   ~~~

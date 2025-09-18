@@ -1,0 +1,42 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export class User {
+  constructor(public id: string, public name: string) {}
+}
+
+/** @gqlType */
+export class {
+  /**
+   * @gqlQueryField createUser
+   */
+  constructor(id: string, name: string) {
+    return new User(id, name);
+  }
+}
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/constructor_resolvers/ConstructorResolverUnnamedClass.invalid.ts:7:1 - error: Unexpected `@gqlType` annotation on unnamed class declaration. Grats uses the name of the class to derive the name of the GraphQL type. Consider naming the class.
+
+  7 export class {
+    ~~~~~~~~~~~~~~
+  8   /**
+    ~~~~~
+... 
+ 13   }
+    ~~~
+ 14 }
+    ~
+src/tests/fixtures/constructor_resolvers/ConstructorResolverUnnamedClass.invalid.ts:7:1 - error: Constructor field class with named export must be named
+
+  7 export class {
+    ~~~~~~~~~~~~~~
+  8   /**
+    ~~~~~
+... 
+ 13   }
+    ~~~
+ 14 }
+    ~

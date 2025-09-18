@@ -1,0 +1,26 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export class User {
+  constructor(public id: string, public name: string) {}
+}
+
+/** @gqlType */
+export class UserService {
+  /**
+   * @gqlSubscriptionField userUpdates
+   */
+  constructor(id: string) {
+    return new User(id, "name");
+  }
+}
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/constructor_resolvers/ConstructorResolverWithSubscriptionField.invalid.ts:9:6 - error: Constructor resolvers can only be used with @gqlQueryField, not @gqlSubscriptionField
+
+ 9    * @gqlSubscriptionField userUpdates
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10    */
+   ~~~

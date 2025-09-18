@@ -11,7 +11,7 @@ export class SomeNonGraphQLClass {
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/top_level_fields/queryFieldOnMethod.ts:2:7 - error: `@gqlQueryField` can only be used on function or static method declarations.
+src/tests/fixtures/top_level_fields/queryFieldOnMethod.ts:2:7 - error: `@gqlQueryField` can only be used on function, static method, or constructor declarations.
 
 2   /** @gqlQueryField */
         ~~~~~~~~~~~~~~~

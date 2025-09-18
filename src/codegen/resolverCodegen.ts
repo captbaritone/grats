@@ -128,6 +128,35 @@ export default class ResolverCodegen {
           ],
         );
       }
+      case "constructor": {
+        // Note: This name is guaranteed to be unique
+        const resolverName = formatResolverFunctionVarName(
+          parentTypeName,
+          fieldName,
+        );
+        this.ts.importUserConstruct(
+          resolver.path,
+          resolver.exportName,
+          resolverName,
+        );
+        return this.ts.method(
+          methodName,
+          extractUsedParams(resolver.arguments ?? []).map((name) =>
+            this.ts.param(name),
+          ),
+          [
+            F.createReturnStatement(
+              F.createNewExpression(
+                F.createIdentifier(resolverName),
+                undefined,
+                (resolver.arguments ?? []).map((arg) => {
+                  return this.resolverParam(arg);
+                }),
+              ),
+            ),
+          ],
+        );
+      }
       default:
         // @ts-expect-error
         throw new Error(`Unexpected resolver kind ${fieldDefinition.kind}`);
@@ -159,6 +188,8 @@ export default class ResolverCodegen {
       case "function":
         return false;
       case "staticMethod":
+        return false;
+      case "constructor":
         return false;
     }
   }

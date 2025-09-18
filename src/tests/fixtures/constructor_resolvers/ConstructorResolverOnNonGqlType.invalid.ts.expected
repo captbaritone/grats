@@ -1,0 +1,30 @@
+-----------------
+INPUT
+----------------- 
+/** @gqlType */
+export class User {
+  constructor(public id: string, public name: string) {}
+}
+
+export class UserService {
+  /**
+   * @gqlQueryField createUser
+   */
+  constructor(id: string, name: string) {
+    return new User(id, name);
+  }
+}
+-----------------
+OUTPUT
+-----------------
+src/tests/fixtures/constructor_resolvers/ConstructorResolverOnNonGqlType.invalid.ts:6:1 - error: Constructor resolver class must be annotated with @gqlType
+
+  6 export class UserService {
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+  7   /**
+    ~~~~~
+... 
+ 12   }
+    ~~~
+ 13 }
+    ~

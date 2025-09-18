@@ -41,7 +41,8 @@ export type ResolverDefinition =
   | PropertyResolver
   | FunctionResolver
   | MethodResolver
-  | StaticMethodResolver;
+  | StaticMethodResolver
+  | ConstructorResolver;
 
 /**
  * A field which is simply backed by a property (or getter) on the source object
@@ -79,6 +80,16 @@ export type StaticMethodResolver = {
   path: string; // Path to the module
   exportName: string | null; // Export name. If omitted, the class is the default export
   name: string; // Method name
+  arguments: ResolverArgument[] | null;
+};
+
+/**
+ * A field which is backed by a class constructor exported from a module
+ */
+export type ConstructorResolver = {
+  kind: "constructor";
+  path: string; // Path to the module
+  exportName: string | null; // Export name. If omitted, the class is the default export
   arguments: ResolverArgument[] | null;
 };
 

@@ -42,6 +42,9 @@ export function fieldTagOnWrongNode() {
 }
 
 export function rootFieldTagOnWrongNode(typeName: string) {
+  if (typeName === "Query") {
+    return `\`@gql${typeName}Field\` can only be used on function, static method, or constructor declarations.`;
+  }
   return `\`@gql${typeName}Field\` can only be used on function or static method declarations.`;
 }
 
