@@ -2,11 +2,12 @@ import * as fs from "fs";
 import * as path from "path";
 import { diff } from "jest-diff";
 import { ask } from "./yesNo";
+import { Result } from "../utils/Result";
 
 type Transformer = (
   code: string,
   filename: string,
-) => Promise<string | false> | (string | false);
+) => Promise<Result<string, string> | false> | (Result<string, string> | false);
 
 /**
  * Looks in a fixtures dir for .ts files, transforms them according to the
@@ -102,26 +103,56 @@ export default class TestRunner {
 
     const fixtureContent = fs.readFileSync(fixturePath, "utf-8");
 
-    const actual = await this.transform(fixtureContent, fixture);
-    if (actual === false) {
+    const transformResult = await this.transform(fixtureContent, fixture);
+    if (transformResult === false) {
       console.error("SKIPPING: " + displayName);
       this._skip.add(fixture);
       return;
     }
 
-    const actualOutput = `-----------------
+    // Extract the actual output string based on Result type
+    const actualOutput =
+      transformResult.kind === "OK"
+        ? transformResult.value
+        : transformResult.err;
+
+    const testOutput = `-----------------
 INPUT
 ----------------- 
 ${fixtureContent}
 -----------------
 OUTPUT
 -----------------
-${actual}`;
+${actualOutput}`;
 
-    if (actualOutput !== expectedContent) {
+    // Validate naming convention: .invalid files should have errors, others should succeed
+    const isInvalidTest = fixture.includes(".invalid.");
+    const actualHasError = transformResult.kind === "ERROR";
+
+    let namingConventionError: string | null = null;
+    if (isInvalidTest && !actualHasError) {
+      namingConventionError = `Test has ".invalid" in name but succeeded. Fix: rename to "${fixture.replace(
+        ".invalid",
+        "",
+      )}" or add error to test.`;
+    } else if (!isInvalidTest && actualHasError) {
+      namingConventionError = `Test produced error but missing ".invalid" in name. Fix: rename to "${fixture.replace(
+        ".ts",
+        ".invalid.ts",
+      )}" or fix the error.`;
+    }
+
+    if (namingConventionError) {
+      console.error("NAMING CONVENTION VIOLATION: " + displayName);
+      console.error(namingConventionError);
+      this._failureCount++;
+      return;
+    }
+
+    if (testOutput !== expectedContent) {
       if (interactive) {
         console.error("FAILURE: " + displayName);
-        console.log(diff(expectedContent, actualOutput));
+        console.log(diff(expectedContent, testOutput));
         console.log("Fixture did not match.");
         console.log(
           `(You can rerun just this test with: \`pnpm run test --filter=${fixture}\`)`,
@@ -131,29 +162,32 @@ ${actual}`;
         );
         if (write) {
           console.error("UPDATED: " + displayName);
-          fs.writeFileSync(expectedFilePath, actualOutput, "utf-8");
+          fs.writeFileSync(expectedFilePath, testOutput, "utf-8");
         } else {
           this._failureCount++;
         }
       } else if (this._write) {
         console.error("UPDATED: " + displayName);
-        fs.writeFileSync(expectedFilePath, actualOutput, "utf-8");
+        fs.writeFileSync(expectedFilePath, testOutput, "utf-8");
       } else {
         this._failureCount++;
         console.error("FAILURE: " + displayName);
-        console.log(diff(expectedContent, actualOutput));
+        console.log(diff(expectedContent, testOutput));
       }
     } else {
       console.log("OK: " + displayName);
     }
   }
 
-  async transform(code: string, filename: string): Promise<string | false> {
+  async transform(
+    code: string,
+    filename: string,
+  ): Promise<Result<string, string> | false> {
     try {
       return await this._transformer(code, filename);
     } catch (e) {
       console.error(e);
-      return e.message;
+      return { kind: "ERROR", err: e.message };
     }
   }
 }

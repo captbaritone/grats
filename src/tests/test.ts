@@ -28,6 +28,7 @@ import {
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
 import { applySDLHeader, applyTypeScriptHeader } from "../printSchema";
 import { extend } from "../utils/helpers";
+import { Result, ok, err } from "../utils/Result";
 
 const TS_VERSION = ts.version;
 
@@ -78,7 +79,10 @@ const testDirs = [
     fixturesDir,
     testFilePattern: /\.ts$/,
     ignoreFilePattern: null,
-    transformer: (code: string, fileName: string): string | false => {
+    transformer: (
+      code: string,
+      fileName: string,
+    ): Result<string, string> | false => {
       const firstLine = code.split("\n")[0];
       let config: Partial<GratsConfig> = {
         nullableByDefault: true,
@@ -115,7 +119,7 @@ const testDirs = [
           fileNames: files,
         });
       } catch (e) {
-        return e.message;
+        return err(e.message);
       }
 
       // https://stackoverflow.com/a/66604532/1263117
@@ -130,7 +134,7 @@ const testDirs = [
         compilerHost,
       );
       if (schemaResult.kind === "ERROR") {
-        return formatDiagnosticsWithContext(code, schemaResult.err);
+        return err(formatDiagnosticsWithContext(code, schemaResult.err));
       }
 
       const { schema, doc, resolvers } = schemaResult.value;
@@ -151,12 +155,14 @@ const testDirs = [
       if (locationMatch != null) {
         const locResult = locate(schema, locationMatch[1].trim());
         if (locResult.kind === "ERROR") {
-          return locResult.err;
+          return err(locResult.err);
         }
 
-        return new ReportableDiagnostics(compilerHost, [
-          gqlErr({ loc: locResult.value }, "Located here"),
-        ]).formatDiagnosticsWithContext();
+        return err(
+          new ReportableDiagnostics(compilerHost, [
+            gqlErr({ loc: locResult.value }, "Located here"),
+          ]).formatDiagnosticsWithContext(),
+        );
       } else {
         const docSansDirectives = {
           ...doc,
@@ -174,7 +180,7 @@ const testDirs = [
           print(docSansDirectives),
         );
 
-        return `-- SDL --\n${sdl}\n-- TypeScript --\n${executableSchema}`;
+        return ok(`-- SDL --\n${sdl}\n-- TypeScript --\n${executableSchema}`);
       }
     },
   },
@@ -185,7 +191,7 @@ const testDirs = [
     transformer: async (
       code: string,
       fileName: string,
-    ): Promise<string | false> => {
+    ): Promise<Result<string, string> | false> => {
       const firstLine = code.split("\n")[0];
       let config: Partial<GratsConfig> = {
         nullableByDefault: true,
@@ -254,7 +260,7 @@ const testDirs = [
         variableValues: server.variables,
       });
 
-      return JSON.stringify(data, null, 2);
+      return ok(JSON.stringify(data, null, 2));
     },
   },
 ];
