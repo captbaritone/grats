@@ -79,7 +79,10 @@ const testDirs = [
     fixturesDir,
     testFilePattern: /\.ts$/,
     ignoreFilePattern: null,
-    transformer: (code: string, fileName: string): Result<string, string> | false => {
+    transformer: (
+      code: string,
+      fileName: string,
+    ): Result<string, string> | false => {
       const firstLine = code.split("\n")[0];
       let config: Partial<GratsConfig> = {
         nullableByDefault: true,
@@ -155,9 +158,11 @@ const testDirs = [
           return err(locResult.err);
         }
 
-        return err(new ReportableDiagnostics(compilerHost, [
-          gqlErr({ loc: locResult.value }, "Located here"),
-        ]).formatDiagnosticsWithContext());
+        return err(
+          new ReportableDiagnostics(compilerHost, [
+            gqlErr({ loc: locResult.value }, "Located here"),
+          ]).formatDiagnosticsWithContext(),
+        );
       } else {
         const docSansDirectives = {
           ...doc,
