@@ -29,7 +29,7 @@ enum MyEnum {
   B
 }
 -- TypeScript --
-import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, GraphQLEnumType } from "graphql";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLEnumType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MyEnumType: GraphQLEnumType = new GraphQLEnumType({
         name: "MyEnum",
@@ -53,7 +53,7 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        directives: [new GraphQLDirective({
+        directives: [...specifiedDirectives, new GraphQLDirective({
                 name: "max",
                 locations: [DirectiveLocation.ENUM_VALUE],
                 description: "This is my custom directive.",

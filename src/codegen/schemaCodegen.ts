@@ -136,7 +136,10 @@ class Codegen {
     });
     return F.createPropertyAssignment(
       "directives",
-      F.createArrayLiteralExpression(directiveObjs),
+      F.createArrayLiteralExpression([
+        F.createSpreadElement(this.graphQLImport("specifiedDirectives")),
+        ...directiveObjs,
+      ]),
     );
   }
 

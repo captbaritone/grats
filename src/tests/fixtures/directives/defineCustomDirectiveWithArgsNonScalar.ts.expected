@@ -23,7 +23,7 @@ input SomeInput {
   someField: String!
 }
 -- TypeScript --
-import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInputObjectType, GraphQLString } from "graphql";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInputObjectType, GraphQLString, specifiedDirectives } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
         name: "SomeInput",
@@ -37,7 +37,7 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        directives: [new GraphQLDirective({
+        directives: [...specifiedDirectives, new GraphQLDirective({
                 name: "customDirective",
                 locations: [DirectiveLocation.FIELD_DEFINITION],
                 description: "This is my custom directive.",

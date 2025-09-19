@@ -1,4 +1,5 @@
 // DO NOT USE DIRECTLY. Prefer the merged schema in `./mergedSchema.ts`.
+
 import { user as queryUserResolver } from "./../models";
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString, GraphQLID } from "graphql";
 export function getSchema(): GraphQLSchema {
