@@ -6,7 +6,6 @@ export class DefaultMap<K, V> {
     if (!this._map.has(key)) {
       this._map.set(key, this.getDefault());
     }
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this._map.get(key)!;
   }
 }

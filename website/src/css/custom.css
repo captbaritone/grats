@@ -28,8 +28,8 @@
   --ifm-color-primary-lighter: #f051b4;
   --ifm-color-primary-lightest: #f36fbd;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
-  --text-shadow-glow: 0 0 5px rgba(255, 255, 255, 0.15),
-    0 0 3px rgba(255, 255, 255, 0.1);
+  --text-shadow-glow:
+    0 0 5px rgba(255, 255, 255, 0.15), 0 0 3px rgba(255, 255, 255, 0.1);
 }
 
 .cm-editor {

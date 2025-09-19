@@ -21,7 +21,10 @@ const F = ts.factory;
 export default class ResolverCodegen {
   _helpers: Set<string> = new Set();
   _derivedContextNames: Map<string, string> = new Map();
-  constructor(public ts: TSAstBuilder, public _resolvers: Metadata) {}
+  constructor(
+    public ts: TSAstBuilder,
+    public _resolvers: Metadata,
+  ) {}
   resolveMethod(
     fieldName: string,
     methodName: string,

@@ -1,5 +1,0 @@
-dist
-src/tests/fixtures/**/*.ts
-src/tests/integrationFixtures/**/*.ts
-website/build/*
-website/**/*.grats.ts

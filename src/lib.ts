@@ -130,7 +130,7 @@ export function extractSchemaAndDoc(
         // done after all types are created, but before we validate the schema.
         .andThen((definitions) => addInterfaceFields(ctx, definitions))
         // Convert the definitions into a DocumentNode
-        .map((definitions) => ({ kind: Kind.DOCUMENT, definitions } as const))
+        .map((definitions) => ({ kind: Kind.DOCUMENT, definitions }) as const)
         // Ensure all subscription fields return an AsyncIterable.
         .andThen((doc) => validateAsyncIterable(doc))
         // Apply default nullability to fields and arguments, and detect any misuse of

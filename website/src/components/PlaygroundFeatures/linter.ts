@@ -15,7 +15,6 @@ import store from "./store";
 const GRATS_PATH = "/node_modules/grats/src/index.ts";
 
 if (ExecutionEnvironment.canUseDOM) {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   window.process = {
     // Grats depends upon calling path.resolver and path.relative
