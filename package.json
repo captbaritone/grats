@@ -14,7 +14,8 @@
     "integration-tests": "node src/tests/integration.mjs",
     "build": "rm -rf dist/ && tsc --build",
     "format": "prettier . --write",
-    "lint": "eslint . && prettier . --check"
+    "lint": "eslint . && prettier . --check",
+    "profile": "ts-node scripts/profile.ts"
   },
   "dependencies": {
     "commander": "^10.0.0",

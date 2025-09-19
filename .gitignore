@@ -3,6 +3,7 @@ dist/
 .parcel-cache
 .vercel
 .claude
+performance.cpuprofile
 
 # Local Netlify folder
 .netlify
