@@ -106,11 +106,11 @@ class TemplateExtractor {
    */
   materializeTemplatesForNode<N extends ASTNode>(node: N): N {
     return visit(node, {
-      [Kind.NAME]: (node): NameNode => {
+      [Kind.NAME]: (node): NameNode | undefined => {
         const referenceNode = this.getReferenceNode(node);
-        if (referenceNode == null) return node;
+        if (referenceNode == null) return undefined;
         const name = this.resolveTypeReferenceOrReport(referenceNode);
-        if (name == null) return node;
+        if (name == null) return undefined;
         return { ...node, value: name };
       },
     });
@@ -216,16 +216,16 @@ class TemplateExtractor {
     const renamedDefinition = renameDefinition(original, derivedName, gqlLoc);
 
     const definition = visit(renamedDefinition, {
-      [Kind.NAMED_TYPE]: (node): NamedTypeNode => {
+      [Kind.NAMED_TYPE]: (node): NamedTypeNode | undefined => {
         const referenceNode = this.getReferenceNode(node.name);
-        if (referenceNode == null) return node;
+        if (referenceNode == null) return undefined;
 
         const name = this.resolveTypeReferenceOrReport(
           referenceNode,
           genericsContext,
         );
 
-        if (name == null) return node;
+        if (name == null) return undefined;
 
         return { ...node, name: { ...node.name, value: name } };
       },

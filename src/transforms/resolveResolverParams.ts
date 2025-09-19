@@ -67,11 +67,13 @@ class ResolverParamsResolver {
     return ok(nextDefinitions);
   }
 
-  private transformField(field: FieldDefinitionNode): FieldDefinitionNode {
+  private transformField(
+    field: FieldDefinitionNode,
+  ): FieldDefinitionNode | undefined {
     const resolver = nullThrows(field.resolver);
 
     if (resolver.kind === "property" || resolver.arguments == null) {
-      return field;
+      return undefined;
     }
 
     // Resolve all the params individually
@@ -99,7 +101,7 @@ class ResolverParamsResolver {
           ),
         ]),
       );
-      return field;
+      return undefined;
     }
 
     const fieldArgs: InputValueDefinitionNode[] =

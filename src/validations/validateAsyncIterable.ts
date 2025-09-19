@@ -45,7 +45,7 @@ export function validateAsyncIterable(
 
     if (inner.kind !== Kind.LIST_TYPE || !inner.isAsyncIterable) {
       errors.push(gqlErr(field.type, E.subscriptionFieldNotAsyncIterable()));
-      return field;
+      return undefined;
     }
 
     const itemType = inner.type;

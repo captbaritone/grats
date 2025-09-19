@@ -51,7 +51,7 @@ export function printSDLWithoutMetadata(doc: DocumentNode): string {
     ScalarTypeDefinition(t) {
       return specifiedScalarTypes.some((scalar) => scalar.name === t.name.value)
         ? null
-        : t;
+        : undefined;
     },
   });
   return print(trimmed);
