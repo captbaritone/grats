@@ -27,6 +27,12 @@ const testCases = [
     variables: {},
     expected: { data: { allUsers: [{ name: "Alice" }, { name: "Alice" }] } },
   },
+  {
+    name: "Include directive",
+    query: `query { me @include(if: false) { name } }`,
+    variables: {},
+    expected: { data: {} },
+  },
 ];
 
 async function main() {
