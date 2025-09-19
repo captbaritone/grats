@@ -57,11 +57,11 @@ export function coerceDefaultEnumValues(
     return visit(def, {
       [Kind.INPUT_VALUE_DEFINITION](node) {
         if (node.defaultValue == null) {
-          return node;
+          return undefined;
         }
         const coerced = coercer.coerce(node.type, node.defaultValue);
         if (coerced == null) {
-          return node;
+          return undefined;
         }
         return { ...node, defaultValue: coerced };
       },

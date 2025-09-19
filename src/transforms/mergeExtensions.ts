@@ -40,6 +40,9 @@ export function mergeExtensions(doc: DocumentNode): DocumentNode {
   return visit(sansExtensions, {
     ObjectTypeDefinition(t) {
       const extensions = fields.get(t.name.value);
+      if (extensions.length === 0) {
+        return undefined;
+      }
       if (t.fields == null) {
         return { ...t, fields: extensions };
       }
@@ -47,6 +50,9 @@ export function mergeExtensions(doc: DocumentNode): DocumentNode {
     },
     InterfaceTypeDefinition(t) {
       const extensions = fields.get(t.name.value);
+      if (extensions.length === 0) {
+        return undefined;
+      }
       if (t.fields == null) {
         return { ...t, fields: extensions };
       }

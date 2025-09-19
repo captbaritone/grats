@@ -54,7 +54,7 @@ export function applyDefaultNullability(
         }
         return { ...t, directives, type };
       }
-      return t;
+      return undefined;
     },
   });
   if (errors.length > 0) {
