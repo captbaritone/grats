@@ -21,10 +21,10 @@ OUTPUT
 """This is my custom directive."""
 directive @customDirective on FIELD_DEFINITION
 -- TypeScript --
-import { GraphQLSchema, GraphQLDirective, DirectiveLocation } from "graphql";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, specifiedDirectives } from "graphql";
 export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
-        directives: [new GraphQLDirective({
+        directives: [...specifiedDirectives, new GraphQLDirective({
                 name: "customDirective",
                 locations: [DirectiveLocation.FIELD_DEFINITION],
                 description: "This is my custom directive."

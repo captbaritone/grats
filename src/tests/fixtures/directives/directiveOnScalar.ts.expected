@@ -23,7 +23,7 @@ directive @max(foo: Int!) on SCALAR
 
 scalar MyScalar @max(foo: 10)
 -- TypeScript --
-import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, GraphQLScalarType } from "graphql";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLScalarType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MyScalarType: GraphQLScalarType = new GraphQLScalarType({
         name: "MyScalar",
@@ -39,7 +39,7 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        directives: [new GraphQLDirective({
+        directives: [...specifiedDirectives, new GraphQLDirective({
                 name: "max",
                 locations: [DirectiveLocation.SCALAR],
                 description: "This is my custom directive.",

@@ -27,7 +27,7 @@ input MyType {
   myField: String! @max(foo: 10)
 }
 -- TypeScript --
-import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, GraphQLInputObjectType, GraphQLString } from "graphql";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLInputObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MyTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({
         name: "MyType",
@@ -51,7 +51,7 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        directives: [new GraphQLDirective({
+        directives: [...specifiedDirectives, new GraphQLDirective({
                 name: "max",
                 locations: [DirectiveLocation.INPUT_FIELD_DEFINITION],
                 description: "This is my custom directive.",

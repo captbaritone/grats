@@ -20,7 +20,7 @@ type Query {
 }
 === SNIP ===
 import { greet as queryGreetResolver } from "./12-directive-annotations-2.grats";
-import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLString, specifiedDirectives, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
@@ -47,7 +47,7 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        directives: [new GraphQLDirective({
+        directives: [...specifiedDirectives, new GraphQLDirective({
                 name: "myDirective",
                 locations: [DirectiveLocation.FIELD_DEFINITION],
                 args: {

@@ -6,10 +6,10 @@ function myDirective({ greeting = "Hello" }: { greeting: string }) {}
 === SNIP ===
 directive @myDirective(greeting: String! = "Hello") on FIELD_DEFINITION
 === SNIP ===
-import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLString } from "graphql";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLString, specifiedDirectives } from "graphql";
 export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
-        directives: [new GraphQLDirective({
+        directives: [...specifiedDirectives, new GraphQLDirective({
                 name: "myDirective",
                 locations: [DirectiveLocation.FIELD_DEFINITION],
                 args: {

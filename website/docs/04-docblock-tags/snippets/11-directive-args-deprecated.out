@@ -11,10 +11,10 @@ function myDirective(args: {
 === SNIP ===
 directive @myDirective(someArg: String @deprecated(reason: "Unused!")) on FIELD_DEFINITION
 === SNIP ===
-import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLString } from "graphql";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLString, specifiedDirectives } from "graphql";
 export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
-        directives: [new GraphQLDirective({
+        directives: [...specifiedDirectives, new GraphQLDirective({
                 name: "myDirective",
                 locations: [DirectiveLocation.FIELD_DEFINITION],
                 args: {

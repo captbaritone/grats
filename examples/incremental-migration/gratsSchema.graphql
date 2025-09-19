@@ -1,4 +1,5 @@
 # DO NOT USE DIRECTLY. Prefer the merged schema in `../schema.graphql`.
+
 type Query {
   user(id: ID!): User
 }

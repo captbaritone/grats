@@ -31,7 +31,7 @@ type Query {
 }
 -- TypeScript --
 import { likes as queryLikesResolver } from "./directiveOnArgumentDefinition";
-import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, GraphQLObjectType, GraphQLString } from "graphql";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
@@ -64,7 +64,7 @@ export function getSchema(): GraphQLSchema {
         }
     });
     return new GraphQLSchema({
-        directives: [new GraphQLDirective({
+        directives: [...specifiedDirectives, new GraphQLDirective({
                 name: "max",
                 locations: [DirectiveLocation.ARGUMENT_DEFINITION],
                 description: "This is my custom directive.",
