@@ -32,7 +32,6 @@ We've added tooling for measuring and analyzing Grats' performance. This lead to
 This version introduces support for [defining directives](../04-docblock-tags/11-directive-definitions.mdx), and [annotating](../04-docblock-tags/12-directive-annotations.mdx) your schema with directives.
 
 - **Breaking Changes**
-
   - The docblock tag `@specifiedBy` has been removed in favor of `@gqlAnnotate` which allows you to generically add directives to GraphQL schema constructs.
     - Replace `@specifiedBy http://example.com` with `@gqlAnnotate specifiedBy(url: "http://example.com")`
   - The docblock tag `@oneOf` has been removed and Grats will now infer it.
@@ -182,7 +181,6 @@ Version `0.0.27` comes with a number of new features as well as some minor break
 ## 0.0.25
 
 - **Features**
-
   - Support for defining types using [generics](https://grats.capt.dev/docs/resolvers/generics/)
 
 - **Documentation**
