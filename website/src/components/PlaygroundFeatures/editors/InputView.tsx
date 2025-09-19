@@ -49,7 +49,8 @@ function useFsMap() {
     const shouldCache = false;
     createDefaultMapFromCDN(
       { target: ts.ScriptTarget.ES2021, lib: ["es2021"] },
-      ts.version,
+      // CDN does not have our version yet.
+      "5.5.4", //ts.version,
       shouldCache,
       ts,
       lzstring,
