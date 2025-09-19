@@ -12,7 +12,7 @@ export default function ShareButton({ store }) {
             window.location.origin + window.location.pathname + urlHash;
           await navigator.clipboard.writeText(str);
           alert("Copied URL to clipboard.");
-        } catch (err) {
+        } catch {
           alert("Failed to copy URL to clipboard.");
         }
       }}

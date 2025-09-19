@@ -65,7 +65,6 @@ function stripColor(str: string): string {
 
 // TODO: This is just a hack. Improve handling of multiple locations.
 // TODO: Turn this back on
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 export function graphQlErrorToDiagnostic(error: GraphQLError): ts.Diagnostic {
   const position = error.positions![0];
   if (position == null) {

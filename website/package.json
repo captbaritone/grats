@@ -13,7 +13,6 @@
     "write-heading-ids": "docusaurus write-heading-ids",
     "typecheck": "tsc",
     "grats": "ts-node ./scripts/gratsCode.ts",
-    "deploy": "pnpm build && netlify deploy --prod",
     "word-count": "find . -type f \\( -name \\*.md -o -name \\*.mdx \\) -exec wc -w {} + | awk '{total += $1} END {print total}'"
   },
   "dependencies": {
@@ -36,13 +35,12 @@
     "@types/react": "^18",
     "@typescript/vfs": "1.6.0",
     "clsx": "^1.2.1",
-    "cm6-graphql": "^0.0.3",
+    "cm6-graphql": "^0.2.1",
     "glob": "^9.3.4",
     "graphql": "^16.6.0",
     "graphql-language-service": "^5.1.2",
     "grats": "workspace:*",
     "lz-string": "^1.5.0",
-    "netlify-cli": "^17.0.1",
     "path-browserify": "^1.0.1",
     "prettier": "^2.8.7",
     "prism-react-renderer": "^2.1.0",
