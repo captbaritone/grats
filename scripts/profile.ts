@@ -105,9 +105,10 @@ export function queryField${fileIndex}(): string {
   );
   console.timeEnd("Grats completed in");
 
-  console.log(`Profile written to ${path.join(process.cwd(), "performance.cpuprofile")}`);
+  console.log(
+    `Profile written to ${path.join(process.cwd(), "performance.cpuprofile")}`,
+  );
   console.log("Drag into the performance tab of Chrome DevTools to view.");
-
 
   console.log("Cleaning up...");
   // Clean up the temp directory.

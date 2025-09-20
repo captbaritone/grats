@@ -5,13 +5,11 @@
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
 - **Performance**
-
   - We've added tooling for measuring and analyzing Grats' performance. This lead to a few immediate improvements leading to a ~15% reduction in time to build time for large schemas:
     - [Performance improvements](https://github.com/graphql/graphql-js/pull/4312) from upgrading `graphql-js` to `v16.11.0`. ([PR](https://github.com/captbaritone/grats/pull/194))
     - Improved performance from more careful use of `graphql-js`'s visitor API. ([PR](https://github.com/captbaritone/grats/pull/193))
 
 - **Improvements**
-
   - Watch mode now responds changes to the Grats config.
   - The error message which appears when no types are defined has been improved to allow schemas with any type (not just object types). This validation now also runs in watch mode to provide consistency with non-watch mode.
   - Minor improvements to error messages.
@@ -35,7 +33,6 @@ Changes in this section are not yet released. If you need access to these change
 This version introduces support for [defining directives](../04-docblock-tags/11-directive-definitions.mdx), and [annotating](../04-docblock-tags/12-directive-annotations.mdx) your schema with directives.
 
 - **Breaking Changes**
-
   - The docblock tag `@specifiedBy` has been removed in favor of `@gqlAnnotate` which allows you to generically add directives to GraphQL schema constructs.
     - Replace `@specifiedBy http://example.com` with `@gqlAnnotate specifiedBy(url: "http://example.com")`
   - The docblock tag `@oneOf` has been removed and Grats will now infer it.
@@ -185,7 +182,6 @@ Version `0.0.27` comes with a number of new features as well as some minor break
 ## 0.0.25
 
 - **Features**
-
   - Support for defining types using [generics](https://grats.capt.dev/docs/resolvers/generics/)
 
 - **Documentation**
