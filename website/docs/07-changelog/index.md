@@ -11,6 +11,7 @@ Changes in this section are not yet released. If you need access to these change
     - Replaced some instances of `graphql-js`'s `visit()` with simpler functions. ([PR](https://github.com/captbaritone/grats/pull/196))
 
 - **Improvements**
+  - Fixed watch mode issue where each build would write `schema.ts` which would trigger a second build.
   - Watch mode now responds changes to the Grats config.
   - The error message which appears when no types are defined has been improved to allow schemas with any type (not just object types). This validation now also runs in watch mode to provide consistency with non-watch mode.
   - Minor improvements to error messages.

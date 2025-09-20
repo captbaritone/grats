@@ -234,6 +234,18 @@ export function tsRelated(
   };
 }
 
+export function diagnosticsMessage(messageText: string): ts.Diagnostic {
+  return {
+    file: undefined,
+    start: undefined,
+    length: undefined,
+    messageText,
+    category: ts.DiagnosticCategory.Message,
+    source: "Grats",
+    code: FAKE_ERROR_CODE,
+  };
+}
+
 export function graphqlSourceToSourceFile(source: Source): ts.SourceFile {
   return ts.createSourceFile(source.name, source.body, ts.ScriptTarget.Latest);
 }

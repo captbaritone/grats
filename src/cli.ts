@@ -16,11 +16,13 @@ import { locate } from "./Locate";
 import { printGratsSDL, printExecutableSchema } from "./printSchema";
 import * as ts from "typescript";
 import {
+  diagnosticsMessage,
   locationlessErr,
   ReportableDiagnostics,
 } from "./utils/DiagnosticError";
 import { GratsConfig, ParsedCommandLineGrats } from "./gratsConfig";
 import { err, ok, Result } from "./utils/Result";
+import { cacheFromProgram, cachesAreEqual, RunCache } from "./runCache";
 
 const program = new Command();
 
@@ -67,31 +69,69 @@ program.parse();
  * Run the compiler in watch mode.
  */
 function startWatchMode(tsconfig: string) {
-  const { configPath } = handleDiagnostics(getTsConfig(tsconfig));
+  const configInfo = handleDiagnostics(getTsConfig(tsconfig));
+  const { configPath } = configInfo;
+  let config = configInfo.config;
   const watchHost = ts.createWatchCompilerHost(
     configPath,
     {},
     ts.sys,
     ts.createSemanticDiagnosticsBuilderProgram,
     (diagnostic) => reportDiagnostics([diagnostic]),
-    (diagnostic) => reportDiagnostics([diagnostic]),
+    (diagnostic) => {
+      // Some messages we handle ourselves since we ignore some updates. e.g.
+      // when we observe a change we ourselves created.
+      switch (diagnostic.code) {
+        case 6031: // Starting compilation in watch mode...
+        case 6032: // File change detected. Starting incremental compilation...
+          return;
+        default:
+          reportDiagnostics([diagnostic]);
+      }
+    },
   );
-  watchHost.afterProgramCreate = (program) => {
+
+  let lastRunCache: RunCache | null = null;
+  watchHost.afterProgramCreate = (builderProgram) => {
+    const program = builderProgram.getProgram();
+    const runCache = cacheFromProgram(program);
+
+    if (lastRunCache != null) {
+      const tsSchemaPath = resolve(
+        dirname(configPath),
+        config.raw.grats.tsSchema,
+      );
+      const ignorePaths = new Set([tsSchemaPath]);
+      if (cachesAreEqual(lastRunCache, runCache, ignorePaths)) {
+        return;
+      }
+      reportDiagnostics([
+        diagnosticsMessage(
+          "File change detected. Starting incremental compilation...",
+        ),
+      ]);
+    }
+
+    lastRunCache = runCache;
+
     // It's possible our config was updated, so re-read it.
     const configResult = getTsConfig(tsconfig);
     if (configResult.kind === "ERROR") {
       reportReportableDiagnostics(configResult.err);
       return;
     }
-    const { config } = configResult.value;
+    config = configResult.value.config;
     // For now we just rebuild the schema on every change.
-    const schemaResult = extractSchemaAndDoc(config, program.getProgram());
+    const schemaResult = extractSchemaAndDoc(config, program);
     if (schemaResult.kind === "ERROR") {
       reportDiagnostics(schemaResult.err);
       return;
     }
     writeSchemaFilesAndReport(schemaResult.value, config, configPath);
   };
+  reportDiagnostics([
+    diagnosticsMessage("Starting compilation in watch mode..."),
+  ]);
   ts.createWatchProgram(watchHost);
 }
 
