@@ -81,11 +81,15 @@ export function queryField${fileIndex}(): string {
 }`;
   };
 
+  console.log(`Creating ${numFiles} files in ${tmpDir}...`);
+
   for (let i = 0; i < numFiles; i++) {
     const fileContents = template(i);
     const filePath = path.join(tmpDir, `file${i}.ts`);
     await fs.writeFile(filePath, fileContents);
   }
+
+  console.log("Created files.");
 
   // Change directory to the temp directory.
   // process.chdir(tmpDir);
@@ -94,13 +98,18 @@ export function queryField${fileIndex}(): string {
   console.log("Running Grats...");
   console.time("Grats completed in");
   execSync(
-    `node --cpu-prof --cpu-prof-name=performance.cpuprofile /Users/captbaritone/projects/grats/dist/src/cli.js --tsconfig ${tsConfigPath}`,
+    `node --cpu-prof --cpu-prof-name=performance.cpuprofile ./dist/src/cli.js --tsconfig ${tsConfigPath}`,
     {
       stdio: "inherit",
     },
   );
   console.timeEnd("Grats completed in");
 
+  console.log(`Profile written to ${path.join(process.cwd(), "performance.cpuprofile")}`);
+  console.log("Drag into the performance tab of Chrome DevTools to view.");
+
+
+  console.log("Cleaning up...");
   // Clean up the temp directory.
   await fs.rm(tmpDir, { recursive: true, force: true });
 }
