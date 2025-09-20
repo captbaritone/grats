@@ -6,10 +6,10 @@ Changes in this section are not yet released. If you need access to these change
 
 - **Performance**
 
-We've added tooling for measuring and analyzing Grats' performance. This lead to a few immediate improvements leading to a ~15% reduction in time to build time for large schemas:
+  - We've added tooling for measuring and analyzing Grats' performance. This lead to a few immediate improvements leading to a ~15% reduction in time to build time for large schemas:
 
-- [Performance improvements](https://github.com/graphql/graphql-js/pull/4312) from upgrading `graphql-js` to `v16.11.0`. ([PR](https://github.com/captbaritone/grats/pull/194))
-- Improved performance from more careful use of `graphql-js`'s visitor API. ([PR](https://github.com/captbaritone/grats/pull/193))
+    - [Performance improvements](https://github.com/graphql/graphql-js/pull/4312) from upgrading `graphql-js` to `v16.11.0`. ([PR](https://github.com/captbaritone/grats/pull/194))
+    - Improved performance from more careful use of `graphql-js`'s visitor API. ([PR](https://github.com/captbaritone/grats/pull/193))
 
 - **Improvements**
 
