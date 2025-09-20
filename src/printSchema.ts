@@ -2,13 +2,13 @@ import {
   DocumentNode,
   GraphQLSchema,
   print,
-  visit,
   specifiedScalarTypes,
 } from "graphql";
 import { GratsConfig } from "./gratsConfig";
 import { codegen } from "./codegen/schemaCodegen";
 import { Metadata } from "./metadata";
 import { resolverMapCodegen } from "./codegen/resolverMapCodegen";
+import { mapDefinitions } from "./utils/visitor";
 
 /**
  * Prints code for a TypeScript module that exports a GraphQLSchema.
@@ -47,11 +47,11 @@ export function applySDLHeader(config: GratsConfig, sdl: string): string {
 }
 
 export function printSDLWithoutMetadata(doc: DocumentNode): string {
-  const trimmed = visit(doc, {
+  const trimmed = mapDefinitions(doc, {
     ScalarTypeDefinition(t) {
       return specifiedScalarTypes.some((scalar) => scalar.name === t.name.value)
         ? null
-        : undefined;
+        : t;
     },
   });
   return print(trimmed);

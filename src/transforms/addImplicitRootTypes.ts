@@ -4,10 +4,10 @@ import {
   Location,
   NameNode,
   ObjectTypeDefinitionNode,
-  visit,
 } from "graphql";
 import { OPERATION_TYPES } from "../Extractor";
 import { nullThrows } from "../utils/helpers";
+import { visitDefinitions } from "../utils/visitor";
 
 /**
  * Ensure any root types which have been extended with `@gqlQueryField` and
@@ -19,7 +19,7 @@ import { nullThrows } from "../utils/helpers";
 export function addImplicitRootTypes(doc: DocumentNode): DocumentNode {
   const extendedRootTypes = new Map<string, Location>();
   const definedRootTypes = new Set<string>();
-  visit(doc, {
+  visitDefinitions(doc, {
     [Kind.OBJECT_TYPE_EXTENSION](ext) {
       if (OPERATION_TYPES.has(ext.name.value)) {
         extendedRootTypes.set(ext.name.value, nullThrows(ext.name.loc));
