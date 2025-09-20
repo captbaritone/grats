@@ -1,5 +1,6 @@
-import { DocumentNode, FieldDefinitionNode, visit } from "graphql";
+import { DocumentNode, FieldDefinitionNode } from "graphql";
 import { extend } from "../utils/helpers";
+import { mapDefinitions } from "../utils/visitor";
 
 /**
  * Takes every example of `extend type Foo` and `extend interface Foo` and
@@ -9,7 +10,7 @@ export function mergeExtensions(doc: DocumentNode): DocumentNode {
   const fields = new MultiMap<string, FieldDefinitionNode>();
 
   // Collect all the fields from the extensions and trim them from the AST.
-  const sansExtensions = visit(doc, {
+  const sansExtensions = mapDefinitions(doc, {
     ObjectTypeExtension(t) {
       if (t.directives != null || t.interfaces != null) {
         throw new Error("Unexpected directives or interfaces on Extension");
@@ -37,11 +38,11 @@ export function mergeExtensions(doc: DocumentNode): DocumentNode {
   });
 
   // Merge collected extension fields into the original type/interface definition.
-  return visit(sansExtensions, {
+  return mapDefinitions(sansExtensions, {
     ObjectTypeDefinition(t) {
       const extensions = fields.get(t.name.value);
       if (extensions.length === 0) {
-        return undefined;
+        return t;
       }
       if (t.fields == null) {
         return { ...t, fields: extensions };
@@ -51,7 +52,7 @@ export function mergeExtensions(doc: DocumentNode): DocumentNode {
     InterfaceTypeDefinition(t) {
       const extensions = fields.get(t.name.value);
       if (extensions.length === 0) {
-        return undefined;
+        return t;
       }
       if (t.fields == null) {
         return { ...t, fields: extensions };
