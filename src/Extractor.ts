@@ -1033,8 +1033,6 @@ class Extractor {
     const description = this.collectDescription(node);
     this.recordTypeName(node, name, "SCALAR");
 
-    // TODO: Can a scalar be deprecated?
-
     const directives = this.collectDirectives(node);
 
     this.definitions.push(
