@@ -31,7 +31,7 @@ type Query {
   greeting: String
 }
 -- TypeScript --
-import { greeting as queryGreetingResolver, createDerivedContext as createDerivedContext } from "./simpleDerivedContextNoArgs";
+import { greeting as queryGreetingResolver, createDerivedContext } from "./simpleDerivedContextNoArgs";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({

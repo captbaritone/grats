@@ -217,7 +217,7 @@ export default class TSAstBuilder {
 
     for (const [from, names] of this.imports) {
       const namedImports = names.map((name) => {
-        if (name.as) {
+        if (name.as && name.as !== name.name) {
           return F.createImportSpecifier(
             false,
             F.createIdentifier(name.name),
