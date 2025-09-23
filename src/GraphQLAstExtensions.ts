@@ -91,4 +91,16 @@ declare module "graphql" {
      */
     tsName?: string;
   }
+
+  export interface ScalarTypeDefinitionNode {
+    /**
+     * Grats metadata: The module path and export name of the scalar implementation.
+     * If null, the scalar is either a built-in scalar or a custom scalar that
+     * is not exported from a module.
+     */
+    exported?: {
+      tsModulePath: string;
+      exportName: string;
+    } | null;
+  }
 }

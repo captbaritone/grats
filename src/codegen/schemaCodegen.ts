@@ -429,6 +429,17 @@ class Codegen {
   }
 
   customScalarTypeConfig(obj: GraphQLScalarType): ts.ObjectLiteralExpression {
+    const { exported } = nullThrows(obj.astNode);
+    let serialization: ts.SpreadAssignment | null = null;
+    if (exported != null) {
+      const localName = `${obj.name}Scalar`;
+      this.ts.importUserConstruct(
+        exported.tsModulePath,
+        exported.exportName,
+        localName,
+      );
+      serialization = F.createSpreadAssignment(F.createIdentifier(localName));
+    }
     return this.ts.objectLiteral([
       this.description(obj.description),
       obj.specifiedByURL
@@ -439,6 +450,7 @@ class Codegen {
         : null,
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.extensions(obj.astNode?.directives),
+      serialization,
     ]);
   }
 
