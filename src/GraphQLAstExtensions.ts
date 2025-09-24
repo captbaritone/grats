@@ -98,7 +98,7 @@ declare module "graphql" {
      * If null, the scalar is either a built-in scalar or a custom scalar that
      * is not exported from a module.
      */
-    exported?: {
+    exported: {
       tsModulePath: string;
       exportName: string;
     } | null;

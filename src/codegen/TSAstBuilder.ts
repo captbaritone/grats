@@ -75,9 +75,21 @@ export default class TSAstBuilder {
     );
   }
 
+  propertyAccessChain(
+    parent: ts.Expression,
+    members: ts.MemberName[],
+  ): ts.Expression {
+    let expr: ts.Expression = parent;
+    for (const member of members) {
+      expr = F.createPropertyAccessChain(expr, undefined, member);
+    }
+    return expr;
+  }
+
   functionDeclaration(
     name: string,
     modifiers: ts.Modifier[] | undefined,
+    parameters: ts.ParameterDeclaration[],
     type: ts.TypeNode | undefined,
     body: ts.Block,
   ): void {
@@ -87,7 +99,7 @@ export default class TSAstBuilder {
         undefined,
         name,
         undefined,
-        [],
+        parameters,
         type,
         body,
       ),

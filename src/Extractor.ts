@@ -549,10 +549,7 @@ class Extractor {
   extractScalar(node: ts.Node, tag: ts.JSDocTag) {
     if (ts.isTypeAliasDeclaration(node)) {
       this.scalarTypeAliasDeclaration(node, tag);
-    } else if (ts.isVariableStatement(node)) {
-      this.scalarTypeVariableStatement(node, tag);
     } else {
-      console.log(node);
       this.report(tag, E.invalidScalarTagUsage());
     }
   }
@@ -1038,60 +1035,30 @@ class Extractor {
 
     const directives = this.collectDirectives(node);
 
-    this.definitions.push(
-      this.gql.scalarTypeDefinition(node, name, directives, description, null),
-    );
-  }
-
-  scalarTypeVariableStatement(node: ts.VariableStatement, tag: ts.JSDocTag) {
-    if (node.declarationList.declarations.length !== 1) {
-      return this.report(
-        node,
-        "Variable statement must have exactly one declaration",
-      );
-    }
-
-    // Ensure the variable is exported
     const isExported = node.modifiers?.find(
       (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
     );
     if (!isExported) {
-      this.report(node, "Scalar not exported", [], {
+      this.report(node.name, E.scalarNotExported(), [], {
         fixName: "add-export-keyword-to-scalar",
-        description: "Add export keyword to exported scalar with @gqlScalar",
+        description: "Add export keyword to type alias with @gqlScalar",
         changes: [Act.prefixNode(node, "export ")],
       });
     }
 
-    return this.scalarTypeVariableDeclaration(
-      node.declarationList.declarations[0],
-      tag,
-    );
-  }
-
-  scalarTypeVariableDeclaration(
-    node: ts.VariableDeclaration,
-    tag: ts.JSDocTag,
-  ) {
-    if (node.name == null) {
-      return this.report(node, "Variable declaration missing name");
-    }
-    const name = this.entityName(node, tag);
-    if (name == null) return null;
-
-    const description = this.collectDescription(node);
-    this.recordTypeName(node, name, "SCALAR");
-
-    const directives = this.collectDirectives(node);
-
-    const exportName = this.expectNameIdentifier(node.name);
-    if (exportName == null) return null;
+    const exported = {
+      tsModulePath: relativePath(node.getSourceFile().fileName),
+      exportName: node.name.text,
+    };
 
     this.definitions.push(
-      this.gql.scalarTypeDefinition(node, name, directives, description, {
-        tsModulePath: relativePath(node.getSourceFile().fileName),
-        exportName: exportName.text,
-      }),
+      this.gql.scalarTypeDefinition(
+        node,
+        name,
+        directives,
+        description,
+        exported,
+      ),
     );
   }
 

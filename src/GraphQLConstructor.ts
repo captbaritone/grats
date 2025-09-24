@@ -256,7 +256,7 @@ export class GraphQLConstructor {
     exported: {
       tsModulePath: string;
       exportName: string;
-    } | null,
+    },
   ): ScalarTypeDefinitionNode {
     return {
       kind: Kind.SCALAR_TYPE_DEFINITION,

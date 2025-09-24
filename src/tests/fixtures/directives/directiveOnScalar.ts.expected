@@ -12,7 +12,7 @@ export function max(args: { foo: Int }) {}
  * @gqlScalar
  * @gqlAnnotate max(foo: 10)
  */
-type MyScalar = string;
+export type MyScalar = string;
 
 -----------------
 OUTPUT
@@ -23,8 +23,15 @@ directive @max(foo: Int!) on SCALAR
 
 scalar MyScalar @max(foo: 10)
 -- TypeScript --
+import { GqlScalar } from "grats";
+import { MyScalar as MyScalarInternal } from "./directiveOnScalar";
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLScalarType } from "graphql";
-export function getSchema(): GraphQLSchema {
+export type SchemaConfig = {
+    scalars: {
+        MyScalar: GqlScalar<MyScalarInternal>;
+    };
+};
+export function getSchema(config: SchemaConfig): GraphQLSchema {
     const MyScalarType: GraphQLScalarType = new GraphQLScalarType({
         name: "MyScalar",
         extensions: {
@@ -36,7 +43,8 @@ export function getSchema(): GraphQLSchema {
                         }
                     }]
             }
-        }
+        },
+        ...config.scalars.MyScalar
     });
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({

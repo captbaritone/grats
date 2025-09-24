@@ -1,2 +1,2 @@
 /** @gqlScalar String */
-type MyUrl = string;
+export type MyUrl = string;
