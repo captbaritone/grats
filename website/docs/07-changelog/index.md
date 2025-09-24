@@ -4,8 +4,11 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
+- **Features**
+  - Built-in support for serialization/parsing of custom scalars. Grats' generated `getSchema` function now requires a config object which can include serialization/parsing functions for any custom scalars defined in your schema. See [the docs](https://grats.capt.dev/docs/docblock-tags/scalars/#serialization-and-parsing-of-custom-scalars) for details.
+
 - **Performance**
-  - We've added tooling for measuring and analyzing Grats' performance. This lead to a few immediate improvements resulting in a ~20% reduction in time to build time for large schemas:
+  - We've added tooling for measuring and analyzing Grats' performance. This highlighted a number of optimization opportunities resulting in a ~20% reduction in build time for large schemas:
     - [Performance improvements](https://github.com/graphql/graphql-js/pull/4312) from upgrading `graphql-js` to `v16.11.0`. ([PR](https://github.com/captbaritone/grats/pull/194))
     - Improved performance from more careful use of `graphql-js`'s visitor API. ([PR](https://github.com/captbaritone/grats/pull/193))
     - Replaced some instances of `graphql-js`'s `visit()` with simpler functions. ([PR](https://github.com/captbaritone/grats/pull/196))
@@ -17,6 +20,7 @@ Changes in this section are not yet released. If you need access to these change
   - Minor improvements to error messages.
   - A blank line has been added after the headers in Grats' generated files.
   - Grats now uses TypeScript v5.9.2 which should prevent errors when using TypeScript config options only available in newer versions.
+  - Grats now uses `graphql` v16.11.0 which includes a number of performance improvements.
 
 - **Bug Fixes**
   - Don't remove built-in directives in exported `GraphQLSchema` when custom directives are defined. ([PR](https://github.com/captbaritone/grats/pull/191)).
