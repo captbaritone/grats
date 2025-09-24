@@ -53,6 +53,7 @@ class Codegen {
     this.ts.functionDeclaration(
       "getResolverMap",
       [F.createModifier(ts.SyntaxKind.ExportKeyword)],
+      [],
       F.createTypeReferenceNode("IResolvers"),
       this.ts.createBlockWithScope(() => {
         this.ts.addStatement(F.createReturnStatement(this.resolverMap()));

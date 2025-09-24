@@ -10,6 +10,7 @@ export type State = {
   config: {
     nullableByDefault: boolean;
     reportTypeScriptTypeErrors: boolean;
+    importModuleSpecifierEnding: string | null;
   };
   view: {
     /** @deprecated */

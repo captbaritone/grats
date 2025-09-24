@@ -34,6 +34,7 @@ export const DEFAULT_STATE: State = {
   config: {
     nullableByDefault: true,
     reportTypeScriptTypeErrors: true,
+    importModuleSpecifierEnding: "",
   },
   view: {
     outputOption: "sdl",
