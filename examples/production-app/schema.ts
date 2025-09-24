@@ -6,7 +6,7 @@
 import { id as likeIdResolver, id as userIdResolver, id as postIdResolver, node as queryNodeResolver, nodes as queryNodesResolver } from "./graphql/Node";
 import { nodes as postConnectionNodesResolver, posts as queryPostsResolver } from "./models/PostConnection";
 import { nodes as likeConnectionNodesResolver, likes as queryLikesResolver, postLikes as subscriptionPostLikesResolver } from "./models/LikeConnection";
-import { getVc as getVc } from "./ViewerContext";
+import { getVc } from "./ViewerContext";
 import { nodes as userConnectionNodesResolver, users as queryUsersResolver } from "./models/UserConnection";
 import { Viewer as queryViewerResolver } from "./models/Viewer";
 import { createLike as mutationCreateLikeResolver } from "./models/Like";

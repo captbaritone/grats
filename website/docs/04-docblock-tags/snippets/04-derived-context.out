@@ -33,7 +33,7 @@ type Query {
   me: String
 }
 === SNIP ===
-import { me as queryMeResolver, getDb as getDb } from "./04-derived-context.grats";
+import { me as queryMeResolver, getDb } from "./04-derived-context.grats";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
