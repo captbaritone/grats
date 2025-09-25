@@ -54,6 +54,101 @@ function MonacoEditorComponent(props) {
 
     monaco.editor.defineTheme("vs-dark", vsDarkTheme);
 
+    // Register custom diagnostics provider for TODO detection
+    monaco.languages.registerCodeActionProvider("typescript", {
+      provideCodeActions: (model, range, context) => {
+        const actions: any[] = [];
+
+        // Check if any of the markers in the context are TODO errors
+        const todoMarkers = context.markers.filter(
+          (marker) => marker.code === "todo-error",
+        );
+
+        todoMarkers.forEach((marker) => {
+          const text = model.getValueInRange({
+            startLineNumber: marker.startLineNumber,
+            startColumn: marker.startColumn,
+            endLineNumber: marker.endLineNumber,
+            endColumn: marker.endColumn,
+          });
+
+          if (text.toUpperCase() === "TODO") {
+            actions.push({
+              title: "Convert TODO to lowercase",
+              id: "convert-todo-lowercase",
+              kind: "quickfix",
+              edit: {
+                edits: [
+                  {
+                    resource: model.uri,
+                    textEdit: {
+                      range: {
+                        startLineNumber: marker.startLineNumber,
+                        startColumn: marker.startColumn,
+                        endLineNumber: marker.endLineNumber,
+                        endColumn: marker.endColumn,
+                      },
+                      text: text.toLowerCase(),
+                    },
+                  },
+                ],
+              },
+            });
+          }
+        });
+
+        return {
+          actions,
+          dispose: () => {},
+        };
+      },
+    });
+
+    // Custom diagnostics provider for TODO detection
+    function validateTodos(model) {
+      const markers: any[] = [];
+      const text = model.getValue();
+      const lines = text.split("\n");
+
+      lines.forEach((line, lineNumber) => {
+        const todoMatch = line.match(/TODO/gi);
+        if (todoMatch) {
+          todoMatch.forEach((match) => {
+            const startColumn = line.indexOf(match) + 1;
+            const endColumn = startColumn + match.length;
+
+            markers.push({
+              severity: monaco.MarkerSeverity.Error,
+              startLineNumber: lineNumber + 1,
+              startColumn: startColumn,
+              endLineNumber: lineNumber + 1,
+              endColumn: endColumn,
+              message: "TODO found: Please complete this task",
+              code: "todo-error",
+            });
+          });
+        }
+      });
+
+      monaco.editor.setModelMarkers(model, "todo-diagnostics", markers);
+    }
+
+    // Hook into model creation to add TODO validation
+    const originalCreateModel = monaco.editor.createModel;
+    monaco.editor.createModel = function (...args) {
+      const model = originalCreateModel.apply(this, args);
+
+      // Validate TODOs initially
+      validateTodos(model);
+
+      // Validate TODOs on content change
+      model.onDidChangeContent(() => {
+        validateTodos(model);
+      });
+
+      return model;
+    };
+
     if (props.editorWillMount) {
       props.editorWillMount(monaco);
     }
