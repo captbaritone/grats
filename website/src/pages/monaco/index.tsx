@@ -85,17 +85,26 @@ function MonacoEditorComponent(props) {
             {...props}
             value={CONTENT}
             language="typescript"
-            height={500}
+            // height={500}
             editorWillMount={onEditorWillMount}
             theme={isDarkTheme ? "vs-dark" : "vs-light"}
+            options={{
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+            }}
           />
           <MonacoEditor
             {...props}
             value={SCHEMA}
             language="graphql"
-            height={500}
+            // height={500}
             editorWillMount={onEditorWillMount}
             theme={isDarkTheme ? "vs-dark" : "vs-light"}
+            options={{
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              readOnly: true,
+            }}
           />
         </div>
       </div>
