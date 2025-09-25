@@ -1,9 +1,6 @@
 // Based on https://github.com/facebook/hermes/pull/173/files
 import React from "react";
-import MonacoEditor from "react-monaco-editor";
-import metadata from "monaco-editor/esm/metadata";
-console.log(metadata.languages);
-// import useThemeContext from "@theme/hooks/useThemeContext";
+const BrowserOnly = require("@docusaurus/BrowserOnly").default;
 
 const CONTENT = `/** @gqlQueryField */
 export function me(): User {
@@ -35,7 +32,10 @@ type User {
   name: String
 }`;
 
-function Editor(props) {
+function MonacoEditorComponent(props) {
+  // Import Monaco Editor dynamically to avoid SSR issues
+  const MonacoEditor = require("react-monaco-editor").default;
+  
   // const { isDarkTheme } = useThemeContext();
   const isDarkTheme = true;
 
@@ -58,14 +58,16 @@ function Editor(props) {
 
   return (
     <div>
+      <h2>TypeScript Code</h2>
       <MonacoEditor
         {...props}
         value={CONTENT}
-        language="javascript"
+        language="typescript"
         height={500}
         editorWillMount={onEditorWillMount}
         theme={isDarkTheme ? "vs-dark" : "vs-light"}
       />
+      <h2>Generated GraphQL Schema</h2>
       <MonacoEditor
         {...props}
         value={SCHEMA}
@@ -75,6 +77,14 @@ function Editor(props) {
         theme={isDarkTheme ? "vs-dark" : "vs-light"}
       />
     </div>
+  );
+}
+
+function Editor(props) {
+  return (
+    <BrowserOnly fallback={<div>Loading Monaco Editor...</div>}>
+      {() => <MonacoEditorComponent {...props} />}
+    </BrowserOnly>
   );
 }
 

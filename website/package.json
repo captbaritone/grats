@@ -59,14 +59,10 @@
     "@docusaurus/module-type-aliases": "3.7.0",
     "@docusaurus/tsconfig": "3.7.0",
     "@types/react": "^18.2.29",
-    "css-loader": "^7.1.2",
-    "file-loader": "^6.2.0",
     "graphql-relay": "^0.10.0",
     "monaco-editor-webpack-plugin": "^7.1.0",
-    "style-loader": "^4.0.0",
     "ts-node": "^10.9.2",
-    "typescript": "5.9.2",
-    "worker-loader": "^3.0.8"
+    "typescript": "5.9.2"
   },
   "browserslist": {
     "production": [

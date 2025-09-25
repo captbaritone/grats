@@ -16,18 +16,14 @@ module.exports = function (_context, _options) {
         module: {
           rules: [
             {
-              test: /monaco.*\.css$/,
-              use: ["style-loader", "css-loader"],
-            },
-            {
               test: /\.ttf$/,
-              use: ["file-loader"],
+              type: "asset/resource",
             },
           ],
         },
         plugins: [
           new MonacoWebpackPlugin({
-            languages: ["javascript", "json", "graphql"],
+            languages: ["typescript", "javascript", "json", "graphql"],
           }),
         ],
       };
