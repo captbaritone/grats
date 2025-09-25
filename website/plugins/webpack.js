@@ -1,3 +1,5 @@
+const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
+
 module.exports = function (_context, _options) {
   return {
     name: "custom-docusaurus-plugin",
@@ -11,6 +13,23 @@ module.exports = function (_context, _options) {
         node: {
           __dirname: "mock",
         },
+        module: {
+          rules: [
+            {
+              test: /monaco.*\.css$/,
+              use: ["style-loader", "css-loader"],
+            },
+            {
+              test: /\.ttf$/,
+              use: ["file-loader"],
+            },
+          ],
+        },
+        plugins: [
+          new MonacoWebpackPlugin({
+            languages: ["javascript", "json", "graphql"],
+          }),
+        ],
       };
     },
   };
