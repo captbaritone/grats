@@ -1,0 +1,131 @@
+// Based on https://github.com/facebook/hermes/pull/173/files
+import React, { useRef } from "react";
+import { useColorMode } from "@docusaurus/theme-common";
+import FillRemainingHeight from "@site/src/components/FillRemainingHeight";
+import MonacoEditor from "react-monaco-editor";
+
+// See https://github.com/microsoft/monaco-editor/pull/3488
+window.MonacoEnvironment = {
+  getWorker(workerId, label) {
+    switch (label) {
+      case "editorWorkerService": {
+        return new Worker(
+          new URL(
+            "monaco-editor/esm/vs/editor/editor.worker.js",
+            import.meta.url,
+          ),
+        );
+      }
+
+      case "json": {
+        return new Worker(
+          new URL(
+            "monaco-editor/esm/vs/language/json/json.worker.js",
+            import.meta.url,
+          ),
+        );
+      }
+
+      case "javascript":
+      case "typescript": {
+        return new Worker(new URL("../../grats.worker.ts", import.meta.url));
+        // return new Worker(
+        //   new URL(
+        //     "monaco-editor/esm/vs/language/typescript/ts.worker.js",
+        //     import.meta.url,
+        //   ),
+        // );
+      }
+
+      default: {
+        throw new Error(`Unsupported worker label: ${label}`);
+      }
+    }
+  },
+};
+
+const CONTENT = `/** @gqlQueryField */
+export function me(): User {
+  return new User();
+}
+
+/**
+ * A user in our kick-ass system!
+ * @gqlType
+ */
+class User {
+  /** @gqlField */
+  name: string = "Alice";
+
+  /** @gqlField */
+  greeting(salutation: string): string {
+    return \`\${salutation}, \${this.name}\`;
+  }
+}`;
+
+const SCHEMA = `type Query {
+  me: User
+  viewer: User @deprecated(reason: "Please use \`me\` instead.")
+}
+
+"""A user in our kick-ass system!"""
+type User {
+  greeting(salutation: String!): String
+  name: String
+}`;
+
+function MonacoEditorComponent() {
+  const { colorMode } = useColorMode();
+  const theme = colorMode === "dark" ? "vs-dark" : "vs-light";
+
+  const monacoEditorRef = useRef(null);
+
+  return (
+    <FillRemainingHeight minHeight={300}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+        }}
+      >
+        {/* <ConfigBar /> */}
+        <div
+          style={{
+            flexGrow: 1,
+            position: "relative",
+            top: 0,
+            left: 0,
+            right: 0,
+            display: "flex",
+            flexDirection: "row",
+            overflow: "scroll",
+          }}
+        >
+          <MonacoEditor
+            ref={monacoEditorRef}
+            value={CONTENT}
+            language="typescript"
+            theme={theme}
+            options={{
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+            }}
+          />
+          <MonacoEditor
+            value={SCHEMA}
+            language="graphql"
+            theme={theme}
+            options={{
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              readOnly: true,
+            }}
+          />
+        </div>
+      </div>
+    </FillRemainingHeight>
+  );
+}
+
+export default MonacoEditorComponent;
