@@ -1,9 +1,9 @@
 // Based on https://github.com/facebook/hermes/pull/173/files
-import React from "react";
+import React, { useRef } from "react";
 import { useColorMode } from "@docusaurus/theme-common";
 import Layout from "@theme/Layout";
 import FillRemainingHeight from "@site/src/components/FillRemainingHeight";
-
+import { monaco } from "react-monaco-editor";
 const BrowserOnly = require("@docusaurus/BrowserOnly").default;
 
 const CONTENT = `/** @gqlQueryField */
@@ -38,11 +38,15 @@ type User {
 
 function MonacoEditorComponent(props) {
   // Import Monaco Editor dynamically to avoid SSR issues
-  const MonacoEditor = require("react-monaco-editor").default;
+  const MonacoEditor: typeof import("react-monaco-editor").default =
+    require("react-monaco-editor").default;
   const { colorMode } = useColorMode();
   const isDarkTheme = colorMode !== "light";
 
+  const monacoEditorRef = useRef(null);
+
   function onEditorWillMount(monaco) {
+    console.log(monacoEditorRef.current);
     const vsDarkTheme = {
       base: "vs-dark",
       inherit: true,
@@ -56,7 +60,8 @@ function MonacoEditorComponent(props) {
 
     // Register custom diagnostics provider for TODO detection
     monaco.languages.registerCodeActionProvider("typescript", {
-      provideCodeActions: (model, range, context) => {
+      provideCodeActions(model, range, context) {
+        console.log("Providing code actions", model, range, context);
         const actions: any[] = [];
 
         // Check if any of the markers in the context are TODO errors
@@ -103,55 +108,41 @@ function MonacoEditorComponent(props) {
         };
       },
     });
+  }
 
-    // Custom diagnostics provider for TODO detection
-    function validateTodos(model) {
-      const markers: any[] = [];
-      const text = model.getValue();
-      const lines = text.split("\n");
+  // Custom diagnostics provider for TODO detection
+  function validateTodos(model: monaco.editor.ITextModel) {
+    const markers: any[] = [];
+    const text = model.getValue();
+    const lines = text.split("\n");
 
-      lines.forEach((line, lineNumber) => {
-        const todoMatch = line.match(/TODO/gi);
-        if (todoMatch) {
-          todoMatch.forEach((match) => {
-            const startColumn = line.indexOf(match) + 1;
-            const endColumn = startColumn + match.length;
+    lines.forEach((line, lineNumber) => {
+      const todoMatch = line.match(/TODO/gi);
+      if (todoMatch) {
+        todoMatch.forEach((match) => {
+          const startColumn = line.indexOf(match) + 1;
+          const endColumn = startColumn + match.length;
 
-            markers.push({
-              severity: monaco.MarkerSeverity.Error,
-              startLineNumber: lineNumber + 1,
-              startColumn: startColumn,
-              endLineNumber: lineNumber + 1,
-              endColumn: endColumn,
-              message: "TODO found: Please complete this task",
-              code: "todo-error",
-            });
+          markers.push({
+            severity: monaco.MarkerSeverity.Error,
+            startLineNumber: lineNumber + 1,
+            startColumn: startColumn,
+            endLineNumber: lineNumber + 1,
+            endColumn: endColumn,
+            message: "TODO found: Please complete this task",
+            code: "todo-error",
           });
-        }
-      });
+        });
+      }
+    });
 
-      monaco.editor.setModelMarkers(model, "todo-diagnostics", markers);
-    }
+    monaco.editor.setModelMarkers(model, "todo-diagnostics", markers);
+  }
 
-    // Hook into model creation to add TODO validation
-    const originalCreateModel = monaco.editor.createModel;
-    monaco.editor.createModel = function (...args) {
-      const model = originalCreateModel.apply(this, args);
-
-      // Validate TODOs initially
-      validateTodos(model);
-
-      // Validate TODOs on content change
-      model.onDidChangeContent(() => {
-        validateTodos(model);
-      });
-
-      return model;
-    };
-
-    if (props.editorWillMount) {
-      props.editorWillMount(monaco);
-    }
+  function onEditorDidMount(editor: monaco.editor.IStandaloneCodeEditor) {
+    editor.onDidChangeModelContent(() => {
+      validateTodos(editor.getModel()!);
+    });
   }
 
   return (
@@ -178,10 +169,11 @@ function MonacoEditorComponent(props) {
         >
           <MonacoEditor
             {...props}
+            ref={monacoEditorRef}
             value={CONTENT}
             language="typescript"
-            // height={500}
             editorWillMount={onEditorWillMount}
+            editorDidMount={onEditorDidMount}
             theme={isDarkTheme ? "vs-dark" : "vs-light"}
             options={{
               minimap: { enabled: false },
@@ -192,8 +184,6 @@ function MonacoEditorComponent(props) {
             {...props}
             value={SCHEMA}
             language="graphql"
-            // height={500}
-            editorWillMount={onEditorWillMount}
             theme={isDarkTheme ? "vs-dark" : "vs-light"}
             options={{
               minimap: { enabled: false },
