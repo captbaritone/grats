@@ -28,13 +28,9 @@ window.MonacoEnvironment = {
 
       case "javascript":
       case "typescript": {
-        return new Worker(new URL("../../grats.worker.ts", import.meta.url));
-        // return new Worker(
-        //   new URL(
-        //     "monaco-editor/esm/vs/language/typescript/ts.worker.js",
-        //     import.meta.url,
-        //   ),
-        // );
+        return new Worker(
+          new URL("../../workers/grats.worker.ts", import.meta.url),
+        );
       }
 
       default: {
