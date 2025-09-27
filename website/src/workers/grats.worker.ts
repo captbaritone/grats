@@ -1,4 +1,5 @@
 // See https://github.com/microsoft/monaco-editor/pull/3488
+import { printExecutableSchema } from "../../../src/printSchema";
 import {
   // @ts-ignore
   initialize,
@@ -6,7 +7,11 @@ import {
   TypeScriptWorker,
   // @ts-ignore
 } from "./ts.worker.mjs";
-import { extractSchemaAndDoc } from "grats";
+import {
+  extractSchemaAndDoc,
+  GratsConfig,
+  printSDLWithoutMetadata,
+} from "grats";
 
 // @ts-ignore
 global.process = {
@@ -29,10 +34,37 @@ class GratsWorker extends TypeScriptWorker {
     return this._languageService;
   }
 
+  _gratsConfig(): GratsConfig {
+    // TODO!
+    return {
+      schemaHeader: "",
+      tsSchemaHeader: "",
+      /*
+      graphqlSchema: string;
+    tsSchema: string;
+    nullableByDefault: boolean;
+    strictSemanticNullability: boolean;
+    reportTypeScriptTypeErrors: boolean;
+    schemaHeader: string | null;
+    tsSchemaHeader: string | null;
+    importModuleSpecifierEnding: string;
+    EXPERIMENTAL__emitMetadata: boolean;
+    EXPERIMENTAL__emitResolverMap: boolean;
+    */
+    };
+  }
+
+  _gratsResult() {
+    const program = this.getLanguageService().getProgram();
+    return extractSchemaAndDoc(
+      { raw: { grats: this._gratsConfig() } },
+      program,
+    );
+  }
+
   async getSemanticDiagnostics(fileName: string) {
     const diagnostics = await super.getSemanticDiagnostics(fileName);
-    const program = this.getLanguageService().getProgram();
-    const result = extractSchemaAndDoc({ raw: { grats: {} } }, program);
+    const result = this._gratsResult();
     if (result.kind === "ERROR") {
       const gratsDiagnostics = result.err
         .filter((err) => err.file?.fileName === fileName)
@@ -40,6 +72,26 @@ class GratsWorker extends TypeScriptWorker {
       return [...diagnostics, ...gratsDiagnostics];
     }
     return diagnostics;
+  }
+
+  async getGraphQLSchema(): Promise<string> {
+    const result = this._gratsResult();
+    if (result.kind === "ERROR") {
+      return "Error";
+    }
+    return printSDLWithoutMetadata(result.value.doc);
+  }
+
+  async getTsSchema(): Promise<string> {
+    const result = this._gratsResult();
+    if (result.kind === "ERROR") {
+      console.log(result.err);
+      return "Error";
+    }
+    const { schema, resolvers } = result.value;
+    const gratsConfig = this._gratsConfig();
+    const dest = "schema.ts";
+    return printExecutableSchema(schema, resolvers, gratsConfig, dest).trim();
   }
 }
 
