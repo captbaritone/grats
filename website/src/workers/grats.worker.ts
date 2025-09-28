@@ -1,5 +1,5 @@
-// See https://github.com/microsoft/monaco-editor/pull/3488
 import { printExecutableSchema } from "../../../src/printSchema";
+// See https://github.com/microsoft/monaco-editor/pull/3488
 import {
   // @ts-ignore
   initialize,
@@ -80,6 +80,15 @@ class GratsWorker extends TypeScriptWorker {
       return "Error";
     }
     return printSDLWithoutMetadata(result.value.doc);
+  }
+
+  async getResolverSignatures(): Promise<string> {
+    const result = this._gratsResult();
+    if (result.kind === "ERROR") {
+      return "Error";
+    }
+    const { resolvers } = result.value;
+    return JSON.stringify(resolvers, null, 2);
   }
 
   async getTsSchema(): Promise<string> {
