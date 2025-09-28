@@ -13,8 +13,6 @@ import { Right } from "./Right";
  * - [ ] Copy URL
  * - [ ] Persist state in URL
  * - [ ] Format button
- * - [ ] Config options (nullable by default, etc)
- * - [ ] Metadata view
  * - [ ] Executable schema
  */
 
@@ -101,10 +99,34 @@ function MonacoEditorComponent() {
   const worker = useWorker(editor);
 
   const [viewMode, setViewMode] = useState<ViewMode>("sdl");
+  const [nullableByDefault, setNullableByDefault] = useState(true);
+  const [configVersion, setConfigVersion] = useState<number>(1);
+  useEffect(() => {
+    if (worker == null) {
+      return;
+    }
+    let unmounted = false;
+    worker.setGratsConfig({ nullableByDefault }).then(() => {
+      if (unmounted) {
+        return;
+      }
+      setConfigVersion((n) => n + 1);
+    });
+    return () => {
+      unmounted = true;
+    };
+  }, [worker, nullableByDefault]);
 
   return (
     <FillRemainingHeight minHeight={300}>
-      <ConfigBar viewMode={viewMode} setViewMode={setViewMode} />
+      <ConfigBar
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        nullableByDefault={nullableByDefault}
+        setNullableByDefault={(nullableByDefault) => {
+          setNullableByDefault(nullableByDefault);
+        }}
+      />
       <div
         style={{
           display: "flex",
@@ -137,7 +159,12 @@ function MonacoEditorComponent() {
               scrollBeyondLastLine: false,
             }}
           />
-          <Right editor={editor} viewMode={viewMode} worker={worker} />
+          <Right
+            editor={editor}
+            viewMode={viewMode}
+            worker={worker}
+            configVersion={configVersion}
+          />
         </div>
       </div>
     </FillRemainingHeight>

@@ -7,13 +7,16 @@ import { ViewMode } from "./types";
 type Props = {
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
+  nullableByDefault: boolean;
+  setNullableByDefault: (value: boolean) => void;
 };
 
 export default function ConfigBar({
   viewMode,
   setViewMode,
+  nullableByDefault,
+  setNullableByDefault,
 }: Props): JSX.Element {
-  const nullableByDefault = true; // useAppSelector(getNullableByDefault);
   const { gitHash } = useDocusaurusContext().siteConfig.customFields as {
     gitHash: string;
   };
@@ -38,8 +41,8 @@ export default function ConfigBar({
             <input
               checked={nullableByDefault}
               type="checkbox"
-              onChange={(_e) => {
-                throw new Error("Not implemented");
+              onChange={(e) => {
+                setNullableByDefault(e.target.checked);
               }}
             />
             Make fields nullable by default
