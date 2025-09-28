@@ -3,10 +3,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { useColorMode } from "@docusaurus/theme-common";
 import FillRemainingHeight from "@site/src/components/FillRemainingHeight";
 import MonacoEditor, { MonacoEditorHandle } from "react-monaco-editor";
-import monaco, { IDisposable } from "monaco-editor";
+import monaco from "monaco-editor";
 import ConfigBar from "./ConfigBar";
 import { ViewMode } from "./types";
-import { TypeScriptWorker } from "@site/src/workerTypes";
+import { Right } from "./Right";
 
 /**
  * # TODO
@@ -137,116 +137,10 @@ function MonacoEditorComponent() {
               scrollBeyondLastLine: false,
             }}
           />
-          <Right
-            editor={editor}
-            viewMode={viewMode}
-            worker={worker}
-            theme={theme}
-          />
+          <Right editor={editor} viewMode={viewMode} worker={worker} />
         </div>
       </div>
     </FillRemainingHeight>
-  );
-}
-
-function Right({
-  editor,
-  worker,
-  viewMode,
-  theme,
-}: {
-  editor: monaco.editor.IStandaloneCodeEditor | null;
-  worker: TypeScriptWorker;
-  viewMode: ViewMode;
-  theme: string;
-}) {
-  switch (viewMode) {
-    case "ts":
-      return <TsSchema editor={editor} worker={worker} theme={theme} />;
-    case "sdl":
-      return <GraphQLSchema editor={editor} worker={worker} theme={theme} />;
-    case "metadata":
-      return <Metadata editor={editor} worker={worker} theme={theme} />;
-    default:
-      throw new Error("Ooops");
-  }
-}
-
-function GraphQLSchema({
-  editor,
-  worker,
-  theme,
-}: {
-  editor: monaco.editor.IStandaloneCodeEditor | null;
-  worker: TypeScriptWorker;
-  theme: string;
-}) {
-  const gql = useWorkerValue(editor, worker, async (worker) => {
-    return worker.getGraphQLSchema();
-  });
-  return (
-    <MonacoEditor
-      value={gql || "Loading..."}
-      language="graphql"
-      theme={theme}
-      options={{
-        minimap: { enabled: false },
-        scrollBeyondLastLine: false,
-        readOnly: true,
-      }}
-    />
-  );
-}
-
-function Metadata({
-  editor,
-  worker,
-  theme,
-}: {
-  editor: monaco.editor.IStandaloneCodeEditor | null;
-  worker: TypeScriptWorker;
-  theme: string;
-}) {
-  const json = useWorkerValue(editor, worker, async (worker) => {
-    return worker.getResolverSignatures();
-  });
-  return (
-    <MonacoEditor
-      value={json || "Loading..."}
-      language="json"
-      theme={theme}
-      options={{
-        minimap: { enabled: false },
-        scrollBeyondLastLine: false,
-        readOnly: true,
-      }}
-    />
-  );
-}
-
-function TsSchema({
-  editor,
-  worker,
-  theme,
-}: {
-  editor: monaco.editor.IStandaloneCodeEditor | null;
-  worker: TypeScriptWorker;
-  theme: string;
-}) {
-  const ts = useWorkerValue(editor, worker, async (worker) => {
-    return worker.getTsSchema();
-  });
-  return (
-    <MonacoEditor
-      value={ts || "Loading..."}
-      language="typescript"
-      theme={theme}
-      options={{
-        minimap: { enabled: false },
-        scrollBeyondLastLine: false,
-        readOnly: true,
-      }}
-    />
   );
 }
 
@@ -275,44 +169,6 @@ function useWorker(editor: monaco.editor.IStandaloneCodeEditor | null) {
     };
   }, [editor]);
   return worker;
-}
-
-function useWorkerValue<T>(
-  editor: monaco.editor.IStandaloneCodeEditor | null,
-  worker: TypeScriptWorker,
-  fn: (worker: any) => Promise<T>,
-): T | null {
-  const [tsSchema, setTs] = useState<T | null>(null);
-  useEffect(() => {
-    if (editor == null) {
-      return;
-    }
-    if (worker == null) {
-      return;
-    }
-    let unmounted = false;
-
-    async function setSchema(worker) {
-      const value = await fn(worker);
-      if (unmounted) {
-        return;
-      }
-      setTs(value);
-    }
-
-    let disposable: IDisposable | null = null;
-    setSchema(worker);
-    disposable = editor.onDidChangeModelContent(() => {
-      setSchema(worker);
-    });
-    return () => {
-      unmounted = true;
-      if (disposable) {
-        disposable.dispose();
-      }
-    };
-  }, [editor, worker]);
-  return tsSchema;
 }
 
 export default MonacoEditorComponent;
