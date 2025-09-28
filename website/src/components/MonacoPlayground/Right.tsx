@@ -9,18 +9,38 @@ export function Right({
   editor,
   worker,
   viewMode,
+  configVersion,
 }: {
   editor: monaco.editor.IStandaloneCodeEditor | null;
   worker: TypeScriptWorker;
   viewMode: ViewMode;
+  configVersion: number;
 }) {
   switch (viewMode) {
     case "ts":
-      return <TsSchema editor={editor} worker={worker} />;
+      return (
+        <TsSchema
+          editor={editor}
+          worker={worker}
+          configVersion={configVersion}
+        />
+      );
     case "sdl":
-      return <GraphQLSchema editor={editor} worker={worker} />;
+      return (
+        <GraphQLSchema
+          editor={editor}
+          worker={worker}
+          configVersion={configVersion}
+        />
+      );
     case "metadata":
-      return <Metadata editor={editor} worker={worker} />;
+      return (
+        <Metadata
+          editor={editor}
+          worker={worker}
+          configVersion={configVersion}
+        />
+      );
     default:
       throw new Error("Ooops");
   }
@@ -29,11 +49,13 @@ export function Right({
 function GraphQLSchema({
   editor,
   worker,
+  configVersion,
 }: {
   editor: monaco.editor.IStandaloneCodeEditor | null;
   worker: TypeScriptWorker;
+  configVersion: number;
 }) {
-  const gql = useWorkerValue(editor, worker, async (worker) => {
+  const gql = useWorkerValue(editor, worker, configVersion, async (worker) => {
     return worker.getGraphQLSchema();
   });
   return <Editor value={gql} language="graphql" readOnly />;
@@ -42,11 +64,13 @@ function GraphQLSchema({
 function Metadata({
   editor,
   worker,
+  configVersion,
 }: {
   editor: monaco.editor.IStandaloneCodeEditor | null;
   worker: TypeScriptWorker;
+  configVersion: number;
 }) {
-  const json = useWorkerValue(editor, worker, async (worker) => {
+  const json = useWorkerValue(editor, worker, configVersion, async (worker) => {
     return worker.getResolverSignatures();
   });
   return <Editor value={json} language="json" readOnly />;
@@ -55,11 +79,13 @@ function Metadata({
 function TsSchema({
   editor,
   worker,
+  configVersion,
 }: {
   editor: monaco.editor.IStandaloneCodeEditor | null;
   worker: TypeScriptWorker;
+  configVersion: number;
 }) {
-  const ts = useWorkerValue(editor, worker, async (worker) => {
+  const ts = useWorkerValue(editor, worker, configVersion, async (worker) => {
     return worker.getTsSchema();
   });
   return <Editor value={ts} language="typescript" readOnly />;
@@ -91,6 +117,7 @@ function Editor({ value, readOnly, language }: EditorProps) {
 function useWorkerValue<T>(
   editor: monaco.editor.IStandaloneCodeEditor | null,
   worker: TypeScriptWorker,
+  configVersion: number,
   fn: (worker: any) => Promise<T>,
 ): T | null {
   const [tsSchema, setTs] = useState<T | null>(null);
@@ -103,7 +130,7 @@ function useWorkerValue<T>(
     }
     let unmounted = false;
 
-    async function setSchema(worker) {
+    async function setSchema(worker: TypeScriptWorker) {
       const value = await fn(worker);
       if (unmounted) {
         return;
@@ -122,6 +149,6 @@ function useWorkerValue<T>(
         disposable.dispose();
       }
     };
-  }, [editor, worker]);
+  }, [editor, worker, configVersion]);
   return tsSchema;
 }

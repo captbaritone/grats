@@ -25,41 +25,42 @@ global.process = {
 
 // https://github.com/microsoft/monaco-editor/blob/main/src/language/typescript/tsWorker.ts
 // https://github.com/microsoft/TypeScript-Website/blob/c2b25d220465dac34dd2da41a2a44cb30c6f42e4/packages/playground-worker/index.ts
-class GratsWorker extends TypeScriptWorker {
+export class GratsWorker extends TypeScriptWorker {
+  _gratsConfig: GratsConfig;
   constructor(ctx, createData) {
     super(ctx, createData);
+    this._gratsConfig = {
+      schemaHeader: "",
+      tsSchemaHeader: "",
+      graphqlSchema: "schema.graphql",
+      tsSchema: "schema.ts",
+      nullableByDefault: true,
+      strictSemanticNullability: false,
+      reportTypeScriptTypeErrors: false,
+      importModuleSpecifierEnding: "",
+      EXPERIMENTAL__emitMetadata: false,
+      EXPERIMENTAL__emitResolverMap: false,
+    };
   }
   getLanguageService(): import("typescript").LanguageService {
     // @ts-ignore
     return this._languageService;
   }
 
-  _gratsConfig(): GratsConfig {
-    // TODO!
-    return {
-      schemaHeader: "",
-      tsSchemaHeader: "",
-      /*
-      graphqlSchema: string;
-    tsSchema: string;
-    nullableByDefault: boolean;
-    strictSemanticNullability: boolean;
-    reportTypeScriptTypeErrors: boolean;
-    schemaHeader: string | null;
-    tsSchemaHeader: string | null;
-    importModuleSpecifierEnding: string;
-    EXPERIMENTAL__emitMetadata: boolean;
-    EXPERIMENTAL__emitResolverMap: boolean;
-    */
+  getGratsConfig(): GratsConfig {
+    return this._gratsConfig;
+  }
+
+  setGratsConfig(config: Partial<GratsConfig>) {
+    this._gratsConfig = {
+      ...this._gratsConfig,
+      ...config,
     };
   }
 
   _gratsResult() {
     const program = this.getLanguageService().getProgram();
-    return extractSchemaAndDoc(
-      { raw: { grats: this._gratsConfig() } },
-      program,
-    );
+    return extractSchemaAndDoc({ raw: { grats: this._gratsConfig } }, program);
   }
 
   async getSemanticDiagnostics(fileName: string) {
@@ -98,7 +99,7 @@ class GratsWorker extends TypeScriptWorker {
       return "Error";
     }
     const { schema, resolvers } = result.value;
-    const gratsConfig = this._gratsConfig();
+    const gratsConfig = this._gratsConfig;
     const dest = "schema.ts";
     return printExecutableSchema(schema, resolvers, gratsConfig, dest).trim();
   }
