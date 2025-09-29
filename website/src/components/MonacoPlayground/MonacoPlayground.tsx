@@ -13,9 +13,7 @@ import { SANDBOX } from "./Sandbox";
  * # TODO
  * - [ ] Copy URL
  * - [ ] Persist state in URL
- * - [ ] Format button
  * - [ ] Executable schema
- * - [ ] Code actions
  * - [ ] Code action icons
  */
 
@@ -55,13 +53,22 @@ window.MonacoEnvironment = {
   },
 };
 
-monaco.languages.registerDocumentFormattingEditProvider("typescript", {
-  async provideDocumentFormattingEdits(model, options, token) {
+class FormatAdapter implements monaco.languages.DocumentFormattingEditProvider {
+  async provideDocumentFormattingEdits(
+    model: monaco.editor.ITextModel,
+    _options: monaco.languages.FormattingOptions,
+    _token: monaco.CancellationToken,
+  ): Promise<monaco.languages.TextEdit[]> {
     const worker = await SANDBOX.getWorker();
     const formatted = await worker.format(model.getValue());
     return [{ range: model.getFullModelRange(), text: formatted }];
-  },
-});
+  }
+}
+
+monaco.languages.registerDocumentFormattingEditProvider(
+  "typescript",
+  new FormatAdapter(),
+);
 
 const CONTENT = `/** @gqlQueryField */
 export function me(): User {
