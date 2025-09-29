@@ -17,59 +17,6 @@ import { SANDBOX } from "./Sandbox";
  * - [ ] Code action icons
  */
 
-// See https://github.com/microsoft/monaco-editor/pull/3488
-window.MonacoEnvironment = {
-  getWorker(workerId, label) {
-    switch (label) {
-      case "editorWorkerService": {
-        return new Worker(
-          new URL(
-            "monaco-editor/esm/vs/editor/editor.worker.js",
-            import.meta.url,
-          ),
-        );
-      }
-
-      case "json": {
-        return new Worker(
-          new URL(
-            "monaco-editor/esm/vs/language/json/json.worker.js",
-            import.meta.url,
-          ),
-        );
-      }
-
-      case "javascript":
-      case "typescript": {
-        return new Worker(
-          new URL("../../workers/grats.worker.ts", import.meta.url),
-        );
-      }
-
-      default: {
-        throw new Error(`Unsupported worker label: ${label}`);
-      }
-    }
-  },
-};
-
-class FormatAdapter implements monaco.languages.DocumentFormattingEditProvider {
-  async provideDocumentFormattingEdits(
-    model: monaco.editor.ITextModel,
-    _options: monaco.languages.FormattingOptions,
-    _token: monaco.CancellationToken,
-  ): Promise<monaco.languages.TextEdit[]> {
-    const worker = await SANDBOX.getWorker();
-    const formatted = await worker.format(model.getValue());
-    return [{ range: model.getFullModelRange(), text: formatted }];
-  }
-}
-
-monaco.languages.registerDocumentFormattingEditProvider(
-  "typescript",
-  new FormatAdapter(),
-);
-
 const CONTENT = `/** @gqlQueryField */
 export function me(): User {
   return new User();
