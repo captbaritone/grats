@@ -152,7 +152,6 @@ export class GratsWorker extends TypeScriptWorker {
   async getTsSchema(): Promise<string> {
     const result = this._gratsResult();
     if (result.kind === "ERROR") {
-      console.log(result.err);
       return "Error";
     }
     const { schema, resolvers } = result.value;
