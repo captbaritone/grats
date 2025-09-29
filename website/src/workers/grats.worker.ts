@@ -1,3 +1,4 @@
+import type * as ts from "typescript";
 import { printExecutableSchema } from "../../../src/printSchema";
 // See https://github.com/microsoft/monaco-editor/pull/3488
 import {
@@ -93,6 +94,42 @@ export class GratsWorker extends TypeScriptWorker {
       return [...diagnostics, ...gratsDiagnostics];
     }
     return diagnostics;
+  }
+
+  async getCodeFixesAtPosition(
+    fileName: string,
+    start: number,
+    end: number,
+    errorCodes: number[],
+    formatOptions: ts.FormatCodeOptions,
+  ): Promise<ReadonlyArray<ts.CodeFixAction>> {
+    const fixes = await super.getCodeFixesAtPosition(
+      fileName,
+      start,
+      end,
+      errorCodes,
+      formatOptions,
+    );
+    const result = this._gratsResult();
+    if (result.kind === "ERROR") {
+      const gratsFixes = result.err
+        .filter((err) => {
+          return (
+            // @ts-ignore
+            err.file.fileName === fileName &&
+            // @ts-ignore
+            err.fix != null &&
+            err.start === start &&
+            err.length === end - start &&
+            errorCodes.includes(err.code)
+          );
+        })
+        // @ts-ignore
+        .map((err) => err.fix!);
+
+      return [...fixes, ...gratsFixes];
+    }
+    return fixes;
   }
 
   async getGraphQLSchema(): Promise<string> {
