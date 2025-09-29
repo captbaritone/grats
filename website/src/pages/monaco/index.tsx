@@ -1,9 +1,13 @@
 import React from "react";
 import Layout from "@theme/Layout";
-import MonacoPlayground from "@site/src/components/MonacoPlayground/MonacoPlayground";
-const BrowserOnly = require("@docusaurus/BrowserOnly").default;
+import BrowserOnly from "@docusaurus/BrowserOnly";
+import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 
-function Editor(props) {
+const MonacoPlayground =
+  ExecutionEnvironment.canUseDOM &&
+  require("@site/src/components/MonacoPlayground/MonacoPlayground").default;
+
+export default function Page() {
   return (
     <Layout title={`Playground`} noFooter>
       <BrowserOnly fallback={<div>Loading Monaco Editor...</div>}>
@@ -12,5 +16,3 @@ function Editor(props) {
     </Layout>
   );
 }
-
-export default Editor;
