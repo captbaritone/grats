@@ -7,6 +7,7 @@ import monaco from "monaco-editor";
 import ConfigBar from "./ConfigBar";
 import { ViewMode } from "./types";
 import { Right } from "./Right";
+import { SANDBOX } from "./Sandbox";
 
 /**
  * # TODO
@@ -14,9 +15,9 @@ import { Right } from "./Right";
  * - [ ] Persist state in URL
  * - [ ] Format button
  * - [ ] Executable schema
+ * - [ ] Code actions
+ * - [ ] Code action icons
  */
-
-// monaco.languages.typescript.typescriptDefaults.setCompilerOptions({});
 
 // See https://github.com/microsoft/monaco-editor/pull/3488
 window.MonacoEnvironment = {
@@ -53,6 +54,14 @@ window.MonacoEnvironment = {
     }
   },
 };
+
+monaco.languages.registerDocumentFormattingEditProvider("typescript", {
+  async provideDocumentFormattingEdits(model, options, token) {
+    const worker = await SANDBOX.getWorker();
+    const formatted = await worker.format(model.getValue());
+    return [{ range: model.getFullModelRange(), text: formatted }];
+  },
+});
 
 const CONTENT = `/** @gqlQueryField */
 export function me(): User {
@@ -96,26 +105,8 @@ function MonacoEditorComponent() {
     };
   });
 
-  const worker = useWorker(editor);
-
   const [viewMode, setViewMode] = useState<ViewMode>("sdl");
   const [nullableByDefault, setNullableByDefault] = useState(true);
-  const [configVersion, setConfigVersion] = useState<number>(1);
-  useEffect(() => {
-    if (worker == null) {
-      return;
-    }
-    let unmounted = false;
-    worker.setGratsConfig({ nullableByDefault }).then(() => {
-      if (unmounted) {
-        return;
-      }
-      setConfigVersion((n) => n + 1);
-    });
-    return () => {
-      unmounted = true;
-    };
-  }, [worker, nullableByDefault]);
 
   return (
     <FillRemainingHeight minHeight={300}>
@@ -124,6 +115,7 @@ function MonacoEditorComponent() {
         setViewMode={setViewMode}
         nullableByDefault={nullableByDefault}
         setNullableByDefault={(nullableByDefault) => {
+          SANDBOX.setGratsConfig({ nullableByDefault });
           setNullableByDefault(nullableByDefault);
         }}
       />
@@ -149,6 +141,7 @@ function MonacoEditorComponent() {
           <MonacoEditor
             ref={monacoEditorRef}
             editorDidMount={(editor) => {
+              SANDBOX.setTsEditor(editor);
               setEditor(editor);
             }}
             value={CONTENT}
@@ -159,43 +152,11 @@ function MonacoEditorComponent() {
               scrollBeyondLastLine: false,
             }}
           />
-          <Right
-            editor={editor}
-            viewMode={viewMode}
-            worker={worker}
-            configVersion={configVersion}
-          />
+          <Right viewMode={viewMode} />
         </div>
       </div>
     </FillRemainingHeight>
   );
-}
-
-function useWorker(editor: monaco.editor.IStandaloneCodeEditor | null) {
-  const [worker, setWorker] = useState<any | null>(null);
-  useEffect(() => {
-    if (editor == null) {
-      // There is no worker until there is an editor I think
-      return;
-    }
-    let unmounted = false;
-    monaco.languages.typescript
-      .getTypeScriptWorker()
-      .then(async (getWorker) => {
-        if (unmounted) {
-          return;
-        }
-        const worker = await getWorker();
-        if (unmounted) {
-          return;
-        }
-        setWorker(worker);
-      });
-    return () => {
-      unmounted = true;
-    };
-  }, [editor]);
-  return worker;
 }
 
 export default MonacoEditorComponent;

@@ -12,6 +12,8 @@ import {
   GratsConfig,
   printSDLWithoutMetadata,
 } from "grats";
+import prettier from "prettier/standalone";
+import parserTypeScript from "prettier/parser-typescript";
 
 // @ts-ignore
 global.process = {
@@ -56,6 +58,24 @@ export class GratsWorker extends TypeScriptWorker {
       ...this._gratsConfig,
       ...config,
     };
+  }
+
+  // We need a way to get access to the main text of the monaco editor, which is currently only
+  // grabbable via these mirrored models. There's CURRENTLY only one in a Playground.
+  getMainText(): string {
+    // @ts-ignore
+    return this.getMainModel().getValue();
+  }
+  getMainModel(): import("monaco-editor").editor.ITextModel {
+    // @ts-ignore
+    return this._ctx.getMirrorModels()[0];
+  }
+
+  async format(text: string): Promise<string> {
+    return await prettier.format(text, {
+      parser: "typescript",
+      plugins: [parserTypeScript],
+    });
   }
 
   _gratsResult() {
