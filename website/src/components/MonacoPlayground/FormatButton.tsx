@@ -1,17 +1,21 @@
 import React from "react";
-// import prettier from "prettier/standalone";
-// import parserTypeScript from "prettier/parser-typescript";
+import { SANDBOX } from "./Sandbox";
 
 export default function FormatButton() {
   return (
     <button
-      onClick={() => {
-        // const doc = getDoc(store.getState());
-        // const formatted = prettier.format(doc, {
-        //   parser: "typescript",
-        //   plugins: [parserTypeScript],
-        // });
-        // store.dispatch({ type: "NEW_DOCUMENT_TEXT", value: formatted });
+      onClick={async () => {
+        const editor = SANDBOX._tsEditor;
+        if (!editor) {
+          console.warn("No editor");
+          return;
+        }
+        const formatAction = editor.getAction("editor.action.formatDocument");
+        if (!formatAction) {
+          console.warn("No format action");
+          return;
+        }
+        formatAction.run();
       }}
     >
       Format
