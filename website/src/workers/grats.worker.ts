@@ -15,6 +15,7 @@ import {
 } from "grats";
 import prettier from "prettier/standalone";
 import parserTypeScript from "prettier/parser-typescript";
+import { ReportableDiagnostics } from "../../../src/utils/DiagnosticError";
 
 // @ts-ignore
 global.process = {
@@ -134,10 +135,25 @@ export class GratsWorker extends TypeScriptWorker {
     return fixes;
   }
 
+  formatErrors(errors: ts.Diagnostic[], commentPrefix: string): string {
+    const host: ts.FormatDiagnosticsHost = {
+      getCurrentDirectory: () => "/",
+      getNewLine: () => "\n",
+      getCanonicalFileName: function (fileName: string): string {
+        return fileName;
+      },
+    };
+    const reportable = new ReportableDiagnostics(host, errors);
+    return commentLines(
+      reportable.formatDiagnosticsWithContext(),
+      commentPrefix,
+    );
+  }
+
   async getGraphQLSchema(): Promise<string> {
     const result = this._gratsResult();
     if (result.kind === "ERROR") {
-      return "Error";
+      return this.formatErrors(result.err, "# ");
     }
     return printSDLWithoutMetadata(result.value.doc);
   }
@@ -145,7 +161,7 @@ export class GratsWorker extends TypeScriptWorker {
   async getResolverSignatures(): Promise<string> {
     const result = this._gratsResult();
     if (result.kind === "ERROR") {
-      return "Error";
+      return this.formatErrors(result.err, "// ");
     }
     const { resolvers } = result.value;
     return JSON.stringify(resolvers, null, 2);
@@ -154,7 +170,7 @@ export class GratsWorker extends TypeScriptWorker {
   async getTsSchema(): Promise<string> {
     const result = this._gratsResult();
     if (result.kind === "ERROR") {
-      return "Error";
+      return this.formatErrors(result.err, "// ");
     }
     const { schema, resolvers } = result.value;
     const gratsConfig = this._gratsConfig;
@@ -179,3 +195,10 @@ self.onmessage = () => {
     return new GratsWorker(ctx, createData);
   });
 };
+
+function commentLines(text: string, prefix: string): string {
+  return text
+    .split("\n")
+    .map((line) => `${prefix} ${line}`)
+    .join("\n");
+}
