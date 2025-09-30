@@ -1,5 +1,69 @@
 import monaco, { IDisposable, Emitter } from "monaco-editor";
 import type { GratsWorker } from "../../workers/grats.worker";
+import type { SerializableState } from "../PlaygroundFeatures/store";
+import { serializeState } from "../PlaygroundFeatures/urlState";
+import lzstring from "lz-string";
+
+const CONTENT = `/** @gqlQueryField */
+export function me(): User {
+  return new User();
+}
+
+/**
+ * A user in our kick-ass system!
+ * @gqlType
+ */
+class User {
+  /** @gqlField */
+  name: string = "Alice";
+
+  /** @gqlField */
+  greeting(salutation: string): string {
+    return \`\${salutation}, \${this.name}\`;
+  }
+}`;
+
+export const URL_VERSION = 1;
+
+export const DEFAULT_STATE: SerializableState = {
+  doc: CONTENT,
+  config: {
+    nullableByDefault: true,
+    reportTypeScriptTypeErrors: true,
+  },
+  view: {
+    outputOption: "sdl",
+  },
+  VERSION: URL_VERSION,
+};
+
+export function stateFromUrl(): SerializableState {
+  const hash = window.location.hash;
+  if (!hash) return DEFAULT_STATE;
+
+  try {
+    const state = JSON.parse(
+      lzstring.decompressFromEncodedURIComponent(hash.slice(1)),
+    );
+    if (state.VERSION === 1) {
+      return {
+        ...DEFAULT_STATE,
+        ...state,
+        config: {
+          ...DEFAULT_STATE.config,
+          ...state.config,
+        },
+        view: {
+          ...DEFAULT_STATE.view,
+          ...state.view,
+        },
+      };
+    }
+  } catch (e) {
+    console.error(e);
+  }
+  return DEFAULT_STATE;
+}
 
 export default class Sandbox {
   _tsEditor: monaco.editor.IStandaloneCodeEditor | null = null;
@@ -7,7 +71,9 @@ export default class Sandbox {
   _workerPromise: Promise<GratsWorker>;
   _worker: GratsWorker | null = null;
   _onDidChange = new Emitter<void>();
+  _serializedState: SerializableState;
   constructor() {
+    this._serializedState = stateFromUrl();
     this._workerPromise = new Promise((resolve) => {
       this._resolveWorker = resolve;
     });
@@ -38,9 +104,31 @@ export default class Sandbox {
   async setGratsConfig(
     config: Partial<import("grats").GratsConfig>,
   ): Promise<void> {
-    const worker = this._worker ?? (await this._workerPromise);
+    if (config.nullableByDefault !== undefined) {
+      this._serializedState.config.nullableByDefault = config.nullableByDefault;
+    }
+    if (config.reportTypeScriptTypeErrors !== undefined) {
+      this._serializedState.config.reportTypeScriptTypeErrors =
+        config.reportTypeScriptTypeErrors;
+    }
+    // TODO: Update serialized state
+    const worker = await this.getWorker();
     await worker.setGratsConfig(config);
     this._onDidChange.fire();
+  }
+
+  getSerializableState(): SerializableState {
+    if (this._tsEditor != null) {
+      this._serializedState.doc = this._tsEditor.getValue();
+    }
+    return this._serializedState;
+  }
+
+  getUrlHash(): string {
+    const state = this.getSerializableState();
+    const hash = "#" + serializeState(state);
+    return hash;
+    window.history.replaceState(null, "", hash);
   }
 
   onTSDidChange(cb: () => void): IDisposable {
@@ -102,3 +190,8 @@ monaco.languages.registerDocumentFormattingEditProvider(
 );
 
 export const SANDBOX = new Sandbox();
+
+SANDBOX.onTSDidChange(() => {
+  const hash = SANDBOX.getUrlHash();
+  window.history.replaceState(null, "", hash);
+});
