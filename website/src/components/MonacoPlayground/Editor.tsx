@@ -57,6 +57,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
         language={language}
         theme={theme}
         options={{
+          wordWrap: "on",
           minimap: { enabled: false },
           scrollBeyondLastLine: false,
           readOnly,

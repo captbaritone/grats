@@ -12,7 +12,6 @@ import { Editor, EditorRef } from "./Editor";
 /**
  * # TODO
  * - [ ] Executable schema
- * - [ ] Show error text in the right panel if the schema generation fails
  */
 
 function MonacoEditorComponent() {
