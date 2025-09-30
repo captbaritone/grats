@@ -26,7 +26,7 @@ export default function ConfigBar({
         display: "flex",
         justifyContent: "stretch",
         alignItems: "center",
-        borderBottom: "1px solid var(--ifm-color-emphasis-300)",
+        borderBottom: "2px solid var(--ifm-color-emphasis-300)",
         fontFamily: "Verdana, sans-serif",
         fontSize: "0.8rem",
         position: "sticky",
