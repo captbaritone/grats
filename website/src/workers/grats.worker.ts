@@ -119,9 +119,11 @@ export class GratsWorker extends TypeScriptWorker {
             err.file.fileName === fileName &&
             // @ts-ignore
             err.fix != null &&
-            err.start === start &&
-            err.length === end - start &&
-            errorCodes.includes(err.code)
+            // There is any overlap between the error and the requested range
+            err.start != null &&
+            err.length != null &&
+            err.start < end &&
+            err.start + err.length > start
           );
         })
         // @ts-ignore
