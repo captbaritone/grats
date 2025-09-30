@@ -36,7 +36,7 @@ import {
 } from "./TypeContext";
 import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
-import { GraphQLConstructor } from "./GraphQLConstructor";
+import { GraphQLConstructor, loc } from "./GraphQLConstructor";
 import { relativePath } from "./gratsRoot";
 import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
@@ -86,6 +86,12 @@ export const ALL_TAGS = [
 
 const DEPRECATED_TAG = "deprecated";
 export const ONE_OF_TAG = "oneOf";
+export const TAGS: string[] = [
+  ...ALL_TAGS,
+  KILLS_PARENT_ON_EXCEPTION_TAG,
+  ONE_OF_TAG,
+];
+
 // https://github.com/graphql/graphql-js/releases/tag/v16.9.0
 const ONE_OF_MIN_GRAPHQL_JS_VERSION = "16.9.0";
 export const OPERATION_TYPES = new Set(["Query", "Mutation", "Subscription"]);
@@ -456,14 +462,14 @@ class Extractor {
       // If the first identifier was neither `repeatable` nor `on`, then
       // we expect it to be the directive name.
       if (!on && !repeatable) {
-        name = parser.parseName();
+        name = { ...parser.parseName(), loc: loc(tag) };
         repeatable = parser.expectOptionalKeyword("repeatable");
         parser.expectKeyword("on");
       }
 
-      const locations = parser.delimitedMany(TokenKind.PIPE, () =>
-        parser.parseDirectiveLocation(),
-      );
+      const locations = parser
+        .delimitedMany(TokenKind.PIPE, () => parser.parseDirectiveLocation())
+        .map((location) => ({ ...location, loc: loc(tag) }));
       return { name, repeatable, locations };
     });
 
@@ -847,7 +853,7 @@ class Extractor {
         return parser.parseDirective(true);
       });
       if (directive != null) {
-        directives.push(directive);
+        directives.push({ ...directive, loc: loc(tag) });
       }
     }
 
