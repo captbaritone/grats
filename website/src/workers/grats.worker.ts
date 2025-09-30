@@ -1,5 +1,6 @@
 import type * as ts from "typescript";
 import { printExecutableSchema } from "../../../src/printSchema";
+import { TAGS } from "../../../src/Extractor";
 // See https://github.com/microsoft/monaco-editor/pull/3488
 import {
   // @ts-ignore
@@ -176,6 +177,10 @@ export class GratsWorker extends TypeScriptWorker {
     const gratsConfig = this._gratsConfig;
     const dest = "schema.ts";
     return printExecutableSchema(schema, resolvers, gratsConfig, dest).trim();
+  }
+
+  async getTags(): Promise<string[]> {
+    return TAGS;
   }
 }
 

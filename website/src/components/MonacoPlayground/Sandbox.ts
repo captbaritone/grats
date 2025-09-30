@@ -189,6 +189,34 @@ monaco.languages.registerDocumentFormattingEditProvider(
   new FormatAdapter(),
 );
 
+class CompletionAdapter implements monaco.languages.CompletionItemProvider {
+  _cachedCompletions: monaco.languages.CompletionList | null = null;
+  triggerCharacters = ["@"];
+  async provideCompletionItems(_model, _position, _token) {
+    if (this._cachedCompletions == null) {
+      const worker = await SANDBOX.getWorker();
+      const tags = await worker.getTags();
+
+      const results: monaco.languages.CompletionItem[] = tags.map((name) => {
+        return {
+          label: name,
+          kind: 14,
+          detail: "Grats Tag",
+          insertText: name,
+        } as any;
+      });
+
+      this._cachedCompletions = { suggestions: results };
+    }
+    return this._cachedCompletions;
+  }
+}
+
+monaco.languages.registerCompletionItemProvider(
+  "typescript",
+  new CompletionAdapter(),
+);
+
 export const SANDBOX = new Sandbox();
 
 SANDBOX.onTSDidChange(() => {
