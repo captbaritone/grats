@@ -6,7 +6,6 @@ interface ResizablePanelsProps {
   defaultLeftWidth?: number; // Percentage
   minLeftWidth?: number; // Percentage
   maxLeftWidth?: number; // Percentage
-  onResize?: (leftWidth: number) => void;
 }
 
 export function ResizablePanels({
@@ -15,7 +14,6 @@ export function ResizablePanels({
   defaultLeftWidth = 50,
   minLeftWidth = 20,
   maxLeftWidth = 80,
-  onResize,
 }: ResizablePanelsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [leftWidth, setLeftWidth] = useState(defaultLeftWidth);
@@ -38,7 +36,6 @@ export function ResizablePanels({
       maxLeftWidth,
     );
     setLeftWidth(constrainedWidth);
-    onResize?.(constrainedWidth);
   };
 
   const handleMouseUp = () => {
@@ -59,7 +56,7 @@ export function ResizablePanels({
         document.body.style.userSelect = "";
       };
     }
-  }, [isDragging, minLeftWidth, maxLeftWidth, onResize]);
+  }, [isDragging, minLeftWidth, maxLeftWidth]);
 
   return (
     <div
