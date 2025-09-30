@@ -1,65 +1,40 @@
 // Based on https://github.com/facebook/hermes/pull/173/files
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { useColorMode } from "@docusaurus/theme-common";
 import FillRemainingHeight from "@site/src/components/FillRemainingHeight";
-import MonacoEditor, { MonacoEditorHandle } from "react-monaco-editor";
-import monaco from "monaco-editor";
 import ConfigBar from "./ConfigBar";
-import { ViewMode } from "./types";
-import { Right } from "./Right";
+import { OutputOption } from "../PlaygroundFeatures/store";
+import { Right, RightRef } from "./Right";
 import { SANDBOX } from "./Sandbox";
+import { ResizablePanels } from "./ResizablePanels";
+import { Editor, EditorRef } from "./Editor";
 
 /**
  * # TODO
- * - [ ] Copy URL
- * - [ ] Persist state in URL
  * - [ ] Executable schema
- * - [ ] Code action icons
+ * - [ ] Show error text in the right panel if the schema generation fails
  */
-
-const CONTENT = `/** @gqlQueryField */
-export function me(): User {
-  return new User();
-}
-
-/**
- * A user in our kick-ass system!
- * @gqlType
- */
-class User {
-  /** @gqlField */
-  name: string = "Alice";
-
-  /** @gqlField */
-  greeting(salutation: string): string {
-    return \`\${salutation}, \${this.name}\`;
-  }
-}`;
 
 function MonacoEditorComponent() {
   const { colorMode } = useColorMode();
   const theme = colorMode === "dark" ? "vs-dark" : "vs-light";
 
-  const monacoEditorRef = useRef<MonacoEditorHandle>(null);
+  const leftEditorRef = useRef<EditorRef>(null);
+  const rightEditorRef = useRef<RightRef>(null);
 
-  const [editor, setEditor] =
-    useState<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const handleResize = () => {
+    // Trigger editor layout when panels are resized
+    setTimeout(() => {
+      if (leftEditorRef.current) {
+        leftEditorRef.current.layout();
+      }
+      if (rightEditorRef.current) {
+        rightEditorRef.current.layout();
+      }
+    }, 0);
+  };
 
-  useEffect(() => {
-    if (editor == null) {
-      return;
-    }
-    function handler() {
-      editor!.layout();
-    }
-
-    window.addEventListener("resize", handler);
-    return () => {
-      window.removeEventListener("resize", handler);
-    };
-  });
-
-  const [viewMode, setViewMode] = useState<ViewMode>("sdl");
+  const [viewMode, setViewMode] = useState<OutputOption>("sdl");
   const [nullableByDefault, setNullableByDefault] = useState(true);
 
   return (
@@ -80,34 +55,21 @@ function MonacoEditorComponent() {
           height: "100%",
         }}
       >
-        <div
-          style={{
-            flexGrow: 1,
-            position: "relative",
-            top: 0,
-            left: 0,
-            right: 0,
-            display: "flex",
-            flexDirection: "row",
-            overflow: "scroll",
-          }}
-        >
-          <MonacoEditor
-            ref={monacoEditorRef}
-            editorDidMount={(editor) => {
-              SANDBOX.setTsEditor(editor);
-              setEditor(editor);
-            }}
-            value={SANDBOX.getSerializableState().doc}
-            language="typescript"
-            theme={theme}
-            options={{
-              minimap: { enabled: false },
-              scrollBeyondLastLine: false,
-            }}
-          />
-          <Right viewMode={viewMode} />
-        </div>
+        <ResizablePanels
+          leftPanel={
+            <Editor
+              ref={leftEditorRef}
+              value={SANDBOX.getSerializableState().doc}
+              language="typescript"
+              theme={theme}
+              onEditorDidMount={(editor) => {
+                SANDBOX.setTsEditor(editor);
+              }}
+            />
+          }
+          rightPanel={<Right ref={rightEditorRef} viewMode={viewMode} />}
+          onResize={handleResize}
+        />
       </div>
     </FillRemainingHeight>
   );

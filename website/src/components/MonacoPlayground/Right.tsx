@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState, forwardRef, useEffect } from "react";
 import { useColorMode } from "@docusaurus/theme-common";
-import MonacoEditor from "react-monaco-editor";
 import { SANDBOX } from "./Sandbox";
 import { OutputOption } from "../PlaygroundFeatures/store";
 import LogoSvg from "@site/static/img/logo.svg";
+import { Editor, EditorRef } from "./Editor";
 
 type WorkerTransform<T> = (worker: any) => Promise<T>;
 
@@ -12,7 +12,11 @@ type RightProps = {
   language: "typescript" | "graphql" | "json";
 };
 
-export function Right({ viewMode }: { viewMode: OutputOption }) {
+export interface RightRef {
+  layout: () => void;
+}
+
+export const Right = forwardRef<RightRef, { viewMode: OutputOption }>(({ viewMode }, ref) => {
   const props = useMemo<RightProps>(() => {
     switch (viewMode) {
       case "typescript":
@@ -41,18 +45,17 @@ export function Right({ viewMode }: { viewMode: OutputOption }) {
     return <FallbackRight />;
   }
   return (
-    <MonacoEditor
-      value={value || "Loading..."}
+    <Editor
+      ref={ref}
+      value={value}
       language={props.language}
       theme={theme}
-      options={{
-        minimap: { enabled: false },
-        scrollBeyondLastLine: false,
-        readOnly: true,
-      }}
+      readOnly={true}
     />
   );
-}
+});
+
+Right.displayName = "Right";
 
 // Show a vertically and horizontally centered loading animation
 function FallbackRight() {
@@ -70,13 +73,15 @@ function FallbackRight() {
     >
       <div
         style={{
-          width: 80,
-          height: 80,
+          width: 140,
+          height: 140,
           position: "relative",
         }}
       >
         <LogoSvg
           style={{
+            // Mute the colors a bit
+            // filter: "grayscale(60%)",
             animation: "spinPulse 2s linear infinite",
           }}
         />
