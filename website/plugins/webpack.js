@@ -13,14 +13,17 @@ module.exports = function (_context, _options) {
         node: {
           __dirname: "mock",
         },
-        module: {
-          rules: [
-            {
-              test: /\.ttf$/,
-              type: "asset/resource",
-            },
-          ],
-        },
+        // Can't figure out how to get this to work correctly to import the
+        // codicon font. Instead, for now we just load it via CDN in
+        // website/src/css/custom.css
+        // module: {
+        //   rules: [
+        //     {
+        //       test: /\.ttf$/,
+        //       type: "asset/resource",
+        //     },
+        //   ],
+        // },
         plugins: [
           new MonacoWebpackPlugin({
             languages: ["typescript", "javascript", "json", "graphql"],
