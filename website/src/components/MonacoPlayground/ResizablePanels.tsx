@@ -76,6 +76,7 @@ export function ResizablePanels({
         style={{
           width: `${leftWidth}%`,
           overflow: "hidden",
+          paddingTop: 10,
         }}
       >
         {leftPanel}
@@ -95,6 +96,7 @@ export function ResizablePanels({
         style={{
           width: `${100 - leftWidth}%`,
           overflow: "hidden",
+          paddingTop: 10,
         }}
       >
         {rightPanel}
