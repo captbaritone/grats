@@ -2,11 +2,11 @@ import React from "react";
 import FormatButton from "./FormatButton";
 import ShareButton from "./ShareButton";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
-import { ViewMode } from "./types";
+import { OutputOption } from "../PlaygroundFeatures/store";
 
 type Props = {
-  viewMode: ViewMode;
-  setViewMode: (mode: ViewMode) => void;
+  viewMode: OutputOption;
+  setViewMode: (mode: OutputOption) => void;
   nullableByDefault: boolean;
   setNullableByDefault: (value: boolean) => void;
 };
@@ -60,12 +60,12 @@ export default function ConfigBar({
             <select
               value={viewMode}
               onChange={(e) => {
-                setViewMode(e.target.value as ViewMode);
+                setViewMode(e.target.value as OutputOption);
               }}
             >
               <option value="sdl">GraphQL Schema</option>
-              <option value="ts">TypeScript Schema</option>
-              <option value="metadata">Metadata</option>
+              <option value="typescript">TypeScript Schema</option>
+              <option value="resolverSignatures">Metadata</option>
             </select>
           </Label>
         </ConfigBlock>
@@ -81,7 +81,7 @@ export default function ConfigBar({
             target="_blank"
             rel="noopener noreferrer"
           >
-            {gitHash.slice(0, 7)}
+            {gitHash?.slice(0, 7)}
           </a>
         </div>
       </ConfigBarSide>

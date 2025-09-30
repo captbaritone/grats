@@ -28,8 +28,8 @@
   --ifm-color-primary-lighter: #f051b4;
   --ifm-color-primary-lightest: #f36fbd;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
-  --text-shadow-glow: 0 0 5px rgba(255, 255, 255, 0.15),
-    0 0 3px rgba(255, 255, 255, 0.1);
+  --text-shadow-glow:
+    0 0 5px rgba(255, 255, 255, 0.15), 0 0 3px rgba(255, 255, 255, 0.1);
 }
 
 /**
@@ -74,10 +74,38 @@ h5:hover .hash-link,
 h6:hover .hash-link {
   visibility: visible;
 }
+
 /**
  * Needed to ensure anchor links don't get hidden under the top banner.
  * Copied from .anchorWithStickyNavbar_node_modules-\@docusaurus-theme-classic-lib-theme-Heading-styles-module
  */
 .config-title {
   scroll-margin-top: calc(var(--ifm-navbar-height) + 0.5rem);
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinPulse {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(90deg) scale(1.2);
+  }
+  50% {
+    transform: rotate(180deg) scale(1);
+  }
+  75% {
+    transform: rotate(270deg) scale(0.8);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
 }

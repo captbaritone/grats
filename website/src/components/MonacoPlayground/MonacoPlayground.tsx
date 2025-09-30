@@ -98,7 +98,7 @@ function MonacoEditorComponent() {
               SANDBOX.setTsEditor(editor);
               setEditor(editor);
             }}
-            value={CONTENT}
+            value={SANDBOX.getSerializableState().doc}
             language="typescript"
             theme={theme}
             options={{

@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useColorMode } from "@docusaurus/theme-common";
 import MonacoEditor from "react-monaco-editor";
-import { ViewMode } from "./types";
 import { SANDBOX } from "./Sandbox";
+import { OutputOption } from "../PlaygroundFeatures/store";
+import LogoSvg from "@site/static/img/logo.svg";
 
 type WorkerTransform<T> = (worker: any) => Promise<T>;
 
@@ -11,10 +12,10 @@ type RightProps = {
   language: "typescript" | "graphql" | "json";
 };
 
-export function Right({ viewMode }: { viewMode: ViewMode }) {
+export function Right({ viewMode }: { viewMode: OutputOption }) {
   const props = useMemo<RightProps>(() => {
     switch (viewMode) {
-      case "ts":
+      case "typescript":
         return {
           transform: (worker) => worker.getTsSchema(),
           language: "typescript" as const,
@@ -24,7 +25,7 @@ export function Right({ viewMode }: { viewMode: ViewMode }) {
           transform: (worker) => worker.getGraphQLSchema(),
           language: "graphql" as const,
         };
-      case "metadata":
+      case "resolverSignatures":
         return {
           transform: (worker) => worker.getResolverSignatures(),
           language: "json" as const,
@@ -36,6 +37,9 @@ export function Right({ viewMode }: { viewMode: ViewMode }) {
   const value = useWorkerValue(props.transform);
   const { colorMode } = useColorMode();
   const theme = colorMode === "dark" ? "vs-dark" : "vs-light";
+  if (value == null) {
+    return <FallbackRight />;
+  }
   return (
     <MonacoEditor
       value={value || "Loading..."}
@@ -47,6 +51,37 @@ export function Right({ viewMode }: { viewMode: ViewMode }) {
         readOnly: true,
       }}
     />
+  );
+}
+
+// Show a vertically and horizontally centered loading animation
+function FallbackRight() {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100%",
+        width: "100%",
+        fontSize: 24,
+        color: "var(--ifm-color-primary)",
+      }}
+    >
+      <div
+        style={{
+          width: 80,
+          height: 80,
+          position: "relative",
+        }}
+      >
+        <LogoSvg
+          style={{
+            animation: "spinPulse 2s linear infinite",
+          }}
+        />
+      </div>
+    </div>
   );
 }
 

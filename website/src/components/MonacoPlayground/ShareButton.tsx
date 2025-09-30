@@ -1,20 +1,20 @@
 import React from "react";
+import { SANDBOX } from "./Sandbox";
 
 export default function ShareButton() {
   return (
     <button
       style={{}}
       onClick={async () => {
-        throw new Error("Not implemented");
-        // try {
-        //   const urlHash = getUrlHash(store.getState());
-        //   const str =
-        //     window.location.origin + window.location.pathname + urlHash;
-        //   await navigator.clipboard.writeText(str);
-        //   alert("Copied URL to clipboard.");
-        // } catch {
-        //   alert("Failed to copy URL to clipboard.");
-        // }
+        try {
+          const urlHash = SANDBOX.getUrlHash();
+          const str =
+            window.location.origin + window.location.pathname + urlHash;
+          await navigator.clipboard.writeText(str);
+          alert("Copied URL to clipboard.");
+        } catch {
+          alert("Failed to copy URL to clipboard.");
+        }
       }}
     >
       Share

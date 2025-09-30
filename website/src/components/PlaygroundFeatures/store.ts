@@ -5,6 +5,7 @@ import { createSelector } from "reselect";
 
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 
+export type OutputOption = "sdl" | "typescript" | "resolverSignatures";
 export type State = {
   doc: string;
   config: {
@@ -15,7 +16,7 @@ export type State = {
   view: {
     /** @deprecated */
     showGratsDirectives: boolean;
-    outputOption: "sdl" | "typescript" | "resolverSignatures";
+    outputOption: OutputOption;
   };
   gratsResult: null | {
     graphql: string;
