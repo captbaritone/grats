@@ -11,6 +11,7 @@ import { Editor, EditorRef } from "./Editor";
 
 /**
  * # TODO
+ * - [ ] Persist/hydrate view mode to URL
  * - [ ] Executable schema
  */
 
