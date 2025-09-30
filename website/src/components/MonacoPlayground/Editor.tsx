@@ -60,6 +60,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
           minimap: { enabled: false },
           scrollBeyondLastLine: false,
           readOnly,
+          fixedOverflowWidgets: true,
         }}
       />
     );
