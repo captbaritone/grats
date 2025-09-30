@@ -23,26 +23,6 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
   ({ value, language, theme, readOnly = false, onEditorDidMount }, ref) => {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
-    useImperativeHandle(ref, () => ({
-      layout: () => {
-        editorRef.current?.layout();
-      },
-    }));
-
-    useEffect(() => {
-      if (editorRef.current == null) {
-        return;
-      }
-      function handler() {
-        editorRef.current!.layout();
-      }
-
-      window.addEventListener("resize", handler);
-      return () => {
-        window.removeEventListener("resize", handler);
-      };
-    });
-
     const handleEditorDidMount = (
       editor: monaco.editor.IStandaloneCodeEditor,
     ) => {
@@ -59,9 +39,11 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
         options={{
           wordWrap: "on",
           minimap: { enabled: false },
-          scrollBeyondLastLine: false,
           readOnly,
           fixedOverflowWidgets: true,
+          fontSize: 14,
+          lineHeight: 20,
+          automaticLayout: true,
         }}
       />
     );

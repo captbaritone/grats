@@ -22,18 +22,6 @@ function MonacoEditorComponent() {
   const leftEditorRef = useRef<EditorRef>(null);
   const rightEditorRef = useRef<RightRef>(null);
 
-  const handleResize = () => {
-    // Trigger editor layout when panels are resized
-    setTimeout(() => {
-      if (leftEditorRef.current) {
-        leftEditorRef.current.layout();
-      }
-      if (rightEditorRef.current) {
-        rightEditorRef.current.layout();
-      }
-    }, 0);
-  };
-
   const [viewMode, setViewMode] = useState<OutputOption>("sdl");
   const [nullableByDefault, setNullableByDefault] = useState(true);
 
@@ -68,7 +56,6 @@ function MonacoEditorComponent() {
             />
           }
           rightPanel={<Right ref={rightEditorRef} viewMode={viewMode} />}
-          onResize={handleResize}
         />
       </div>
     </FillRemainingHeight>

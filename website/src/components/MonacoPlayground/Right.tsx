@@ -3,7 +3,7 @@ import { useColorMode } from "@docusaurus/theme-common";
 import { SANDBOX } from "./Sandbox";
 import { OutputOption } from "../PlaygroundFeatures/store";
 import LogoSvg from "@site/static/img/logo.svg";
-import { Editor, EditorRef } from "./Editor";
+import { Editor } from "./Editor";
 
 type WorkerTransform<T> = (worker: any) => Promise<T>;
 
