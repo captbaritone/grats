@@ -12,6 +12,7 @@ import { Editor, EditorRef } from "./Editor";
 /**
  * # TODO
  * - [ ] Persist/hydrate view mode to URL
+ * - [ ] Semantic nullability? (Other config options?)
  * - [ ] Executable schema
  */
 
