@@ -2,7 +2,11 @@ import * as ts from "typescript";
 import { rangeErr } from "./utils/DiagnosticError";
 import * as E from "./Errors";
 import * as Act from "./CodeActions";
-import { ALL_TAGS, KILLS_PARENT_ON_EXCEPTION_TAG } from "./Extractor";
+import {
+  ALL_GQL_TAGS,
+  KILLS_PARENT_ON_EXCEPTION_TAG,
+  ONE_OF_TAG,
+} from "./Extractor";
 
 // A line that starts with optional *s followed by @gql or @killsParentOnException
 const BLOCK_COMMENT_REGEX =
@@ -89,7 +93,11 @@ function getGratsAdjacentTags(
 }
 
 function isGratsDocblockTag(tag: string) {
-  return ALL_TAGS.includes(tag) || tag === KILLS_PARENT_ON_EXCEPTION_TAG;
+  return (
+    ALL_GQL_TAGS.includes(tag) ||
+    tag === KILLS_PARENT_ON_EXCEPTION_TAG ||
+    tag === ONE_OF_TAG
+  );
 }
 
 // Functions below this point were copied/modified from `ts-api-utils`. Thanks!

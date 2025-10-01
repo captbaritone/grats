@@ -72,7 +72,7 @@ export const IMPLEMENTS_TAG_DEPRECATED = "gqlImplements";
 export const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
 
 // All the tags that start with gql
-export const ALL_TAGS = [
+export const ALL_GQL_TAGS = [
   TYPE_TAG,
   FIELD_TAG,
   SCALAR_TAG,
@@ -82,12 +82,15 @@ export const ALL_TAGS = [
   INPUT_TAG,
   DIRECTIVE_TAG,
   ANNOTATE_TAG,
+  QUERY_FIELD_TAG,
+  MUTATION_FIELD_TAG,
+  SUBSCRIPTION_FIELD_TAG,
 ];
 
 const DEPRECATED_TAG = "deprecated";
 export const ONE_OF_TAG = "oneOf";
 export const TAGS: string[] = [
-  ...ALL_TAGS,
+  ...ALL_GQL_TAGS,
   KILLS_PARENT_ON_EXCEPTION_TAG,
   ONE_OF_TAG,
 ];
@@ -282,7 +285,7 @@ class Extractor {
             const lowerCaseTag = tag.tagName.text.toLowerCase();
             if (lowerCaseTag.startsWith("gql")) {
               let reported = false;
-              for (const t of ALL_TAGS) {
+              for (const t of ALL_GQL_TAGS) {
                 if (t.toLowerCase() === lowerCaseTag) {
                   this.report(
                     tag.tagName,
@@ -767,12 +770,18 @@ class Extractor {
     if (name == null) return null;
 
     const classNode = node.parent;
+
     if (!ts.isClassDeclaration(classNode)) {
-      return this.report(classNode, E.staticMethodOnNonClass());
+      return this.report(classNode, E.staticMethodOnNonClass(), [
+        tsRelated(tag, "Field defined here"),
+      ]);
     }
+    const classBlameNode = classNode.name ?? classNode;
 
     if (!ts.isSourceFile(classNode.parent)) {
-      return this.report(classNode, E.staticMethodClassNotTopLevel());
+      return this.report(classBlameNode, E.staticMethodClassNotTopLevel(), [
+        tsRelated(tag, "Field defined here"),
+      ]);
     }
 
     let exportName: ts.Identifier | null = null;
@@ -782,11 +791,16 @@ class Extractor {
     });
 
     if (!isExported) {
-      return this.report(classNode, E.staticMethodFieldClassNotExported(), [], {
-        fixName: "add-export-keyword-to-class",
-        description: "Add export keyword to class with static @gqlField",
-        changes: [Act.prefixNode(classNode, "export ")],
-      });
+      return this.report(
+        classBlameNode,
+        E.staticMethodFieldClassNotExported(),
+        [tsRelated(tag, "Field defined here")],
+        {
+          fixName: "add-export-keyword-to-class",
+          description: "Add export keyword to class with static @gqlField",
+          changes: [Act.prefixNode(classNode, "export ")],
+        },
+      );
     }
     const isDefault = classNode.modifiers?.some((modifier) => {
       return modifier.kind === ts.SyntaxKind.DefaultKeyword;
@@ -795,8 +809,9 @@ class Extractor {
     if (!isDefault) {
       if (classNode.name == null) {
         return this.report(
-          classNode,
+          classBlameNode,
           E.staticMethodClassWithNamedExportNotNamed(),
+          [tsRelated(tag, "Field defined here")],
         );
       }
       const className = this.expectNameIdentifier(classNode.name);
