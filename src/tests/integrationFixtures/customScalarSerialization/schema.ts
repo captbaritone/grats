@@ -7,7 +7,7 @@ export type SchemaConfig = {
     };
 };
 export function getSchema(config: SchemaConfig): GraphQLSchema {
-    const CustomScalarType: GraphQLScalarType<CustomScalarInternal, unknown> = new GraphQLScalarType({
+    const CustomScalarType: GraphQLScalarType = new GraphQLScalarType({
         name: "CustomScalar",
         ...config.scalars.CustomScalar
     });
