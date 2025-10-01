@@ -8,7 +8,7 @@ class SomeType {
 }
 
 /** @gqlScalar CustomName */
-type MyUrl = string;
+export type MyUrl = string;
 
 -----------------
 OUTPUT
@@ -20,10 +20,18 @@ type SomeType {
   hello: String
 }
 -- TypeScript --
+import { GqlScalar } from "grats";
+import { MyUrl as CustomNameInternal } from "./DefineRenamedCustomScalar";
 import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType, GraphQLString } from "graphql";
-export function getSchema(): GraphQLSchema {
+export type SchemaConfig = {
+    scalars: {
+        CustomName: GqlScalar<CustomNameInternal>;
+    };
+};
+export function getSchema(config: SchemaConfig): GraphQLSchema {
     const CustomNameType: GraphQLScalarType = new GraphQLScalarType({
-        name: "CustomName"
+        name: "CustomName",
+        ...config.scalars.CustomName
     });
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",

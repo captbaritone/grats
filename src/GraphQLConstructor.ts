@@ -253,6 +253,10 @@ export class GraphQLConstructor {
     name: NameNode,
     directives: readonly ConstDirectiveNode[] | null,
     description: StringValueNode | null,
+    exported: {
+      tsModulePath: string;
+      exportName: string;
+    },
   ): ScalarTypeDefinitionNode {
     return {
       kind: Kind.SCALAR_TYPE_DEFINITION,
@@ -260,6 +264,7 @@ export class GraphQLConstructor {
       description: description ?? undefined,
       name,
       directives: this._optionalList(directives),
+      exported,
     };
   }
 

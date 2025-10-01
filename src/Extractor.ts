@@ -1035,8 +1035,30 @@ class Extractor {
 
     const directives = this.collectDirectives(node);
 
+    const isExported = node.modifiers?.find(
+      (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
+    );
+    if (!isExported) {
+      this.report(node.name, E.scalarNotExported(), [], {
+        fixName: "add-export-keyword-to-scalar",
+        description: "Add export keyword to type alias with @gqlScalar",
+        changes: [Act.prefixNode(node, "export ")],
+      });
+    }
+
+    const exported = {
+      tsModulePath: relativePath(node.getSourceFile().fileName),
+      exportName: node.name.text,
+    };
+
     this.definitions.push(
-      this.gql.scalarTypeDefinition(node, name, directives, description),
+      this.gql.scalarTypeDefinition(
+        node,
+        name,
+        directives,
+        description,
+        exported,
+      ),
     );
   }
 

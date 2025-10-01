@@ -37,6 +37,9 @@ function buildSchemaResultWithFsMap(
     "/node_modules/graphql/index.ts",
     `
     export type GraphQLResolveInfo = any;
+    export type GraphQLScalarLiteralParser<T> = any;
+    export type GraphQLScalarSerializer<T> = any;
+    export type GraphQLScalarValueParser<T> = any;
     `,
   );
   // fsMap.set(GRATS_PACKAGE_JSON_PATH, GRATS_PACKAGE_JSON);

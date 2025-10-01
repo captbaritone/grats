@@ -142,13 +142,6 @@ ${actualOutput}`;
       )}" or fix the error.`;
     }
 
-    if (namingConventionError) {
-      console.error("NAMING CONVENTION VIOLATION: " + displayName);
-      console.error(namingConventionError);
-      this._failureCount++;
-      return;
-    }
-
     if (testOutput !== expectedContent) {
       if (interactive) {
         console.error("FAILURE: " + displayName);
@@ -175,6 +168,11 @@ ${actualOutput}`;
         console.log(diff(expectedContent, testOutput));
       }
     } else {
+      if (namingConventionError) {
+        console.error(namingConventionError);
+        this._failureCount++;
+        return;
+      }
       console.log("OK: " + displayName);
     }
   }

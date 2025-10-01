@@ -37,7 +37,7 @@
     "clsx": "^1.2.1",
     "cm6-graphql": "^0.2.1",
     "glob": "^9.3.4",
-    "graphql": "^16.6.0",
+    "graphql": "^16.11.0",
     "graphql-language-service": "^5.1.2",
     "grats": "workspace:*",
     "lz-string": "^1.5.0",

@@ -24,7 +24,11 @@
     "strictNullChecks": true,
     "declaration": true,
     "resolveJsonModule": true,
-    "strictPropertyInitialization": true
+    "strictPropertyInitialization": true,
+    "paths": {
+      // For tests
+      "grats": ["./src/index.ts"]
+    }
   },
   "exclude": [
     "node_modules",

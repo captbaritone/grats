@@ -45,6 +45,8 @@ const BUILT_IN_DIRECTIVES = new Set([
   "oneOf",
 ]);
 
+const BUILT_IN_SCALARS = new Set(["String", "Int", "Float", "Boolean", "ID"]);
+
 const F = ts.factory;
 
 // Given a GraphQL SDL, returns the a string of TypeScript code that generates a
@@ -90,9 +92,65 @@ class Codegen {
   }
 
   schemaDeclarationExport(): void {
+    const scalars = Object.values(this._schema.getTypeMap())
+      .filter((type) => {
+        return type instanceof GraphQLScalarType;
+      })
+      .filter((type) => !BUILT_IN_SCALARS.has(type.name))
+      .map((type) => {
+        this.ts.import("grats", [{ name: "GqlScalar" }]);
+        const exported = nullThrows(type.astNode?.exported);
+
+        const localName = `${type.name}Internal`;
+
+        this.ts.importUserConstruct(
+          exported.tsModulePath,
+          exported.exportName,
+          localName,
+        );
+
+        return F.createPropertySignature(
+          undefined,
+          type.name,
+          undefined,
+          F.createTypeReferenceNode("GqlScalar", [
+            F.createTypeReferenceNode(localName),
+          ]),
+        );
+      });
+
+    const params: ts.ParameterDeclaration[] = [];
+
+    if (scalars.length > 0) {
+      const scalarConfig = F.createPropertySignature(
+        undefined,
+        "scalars",
+        undefined,
+        F.createTypeLiteralNode(scalars),
+      );
+      this.ts.addStatement(
+        F.createTypeAliasDeclaration(
+          [F.createModifier(ts.SyntaxKind.ExportKeyword)],
+          "SchemaConfig",
+          undefined,
+          F.createTypeLiteralNode([scalarConfig]),
+        ),
+      );
+      params.push(
+        F.createParameterDeclaration(
+          undefined,
+          undefined,
+          "config",
+          undefined,
+          F.createTypeReferenceNode("SchemaConfig"),
+          undefined,
+        ),
+      );
+    }
     this.ts.functionDeclaration(
       "getSchema",
       [F.createModifier(ts.SyntaxKind.ExportKeyword)],
+      params,
       this.graphQLTypeImport("GraphQLSchema"),
       this.ts.createBlockWithScope(() => {
         this.ts.addStatement(
@@ -183,12 +241,7 @@ class Codegen {
           type.name.startsWith("__") ||
           type.name.startsWith("Introspection") ||
           type.name.startsWith("Schema") ||
-          // Built in primitives
-          type.name === "String" ||
-          type.name === "Int" ||
-          type.name === "Float" ||
-          type.name === "Boolean" ||
-          type.name === "ID"
+          BUILT_IN_SCALARS.has(type.name)
         );
       })
       .map((type) => this.typeReference(type));
@@ -429,6 +482,11 @@ class Codegen {
   }
 
   customScalarTypeConfig(obj: GraphQLScalarType): ts.ObjectLiteralExpression {
+    const scalarConfig = this.ts.propertyAccessChain(
+      F.createIdentifier("config"),
+      [F.createIdentifier("scalars"), F.createIdentifier(obj.name)],
+    );
+
     return this.ts.objectLiteral([
       this.description(obj.description),
       obj.specifiedByURL
@@ -439,6 +497,7 @@ class Codegen {
         : null,
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.extensions(obj.astNode?.directives),
+      F.createSpreadAssignment(scalarConfig),
     ]);
   }
 

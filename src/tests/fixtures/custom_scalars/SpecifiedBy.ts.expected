@@ -13,11 +13,19 @@ OUTPUT
 -- SDL --
 scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
 -- TypeScript --
+import { GqlScalar } from "grats";
+import { UUID as UUIDInternal } from "./SpecifiedBy";
 import { GraphQLSchema, GraphQLScalarType } from "graphql";
-export function getSchema(): GraphQLSchema {
+export type SchemaConfig = {
+    scalars: {
+        UUID: GqlScalar<UUIDInternal>;
+    };
+};
+export function getSchema(config: SchemaConfig): GraphQLSchema {
     const UUIDType: GraphQLScalarType = new GraphQLScalarType({
         specifiedByURL: "https://tools.ietf.org/html/rfc4122",
-        name: "UUID"
+        name: "UUID",
+        ...config.scalars.UUID
     });
     return new GraphQLSchema({
         types: [UUIDType]

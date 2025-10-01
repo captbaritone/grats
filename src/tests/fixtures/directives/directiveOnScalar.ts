@@ -9,4 +9,4 @@ export function max(args: { foo: Int }) {}
  * @gqlScalar
  * @gqlAnnotate max(foo: 10)
  */
-type MyScalar = string;
+export type MyScalar = string;

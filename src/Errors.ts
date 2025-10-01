@@ -638,3 +638,7 @@ export function directiveFunctionNotNamed() {
 export function directiveArgumentNotObject() {
   return "Expected first argument of a `@gqlDirective` function to be typed using an inline object literal.";
 }
+
+export function scalarNotExported(): string {
+  return "Expected custom scalar to be an exported type. Grats needs to import this type to build types for the coercion functions.";
+}
