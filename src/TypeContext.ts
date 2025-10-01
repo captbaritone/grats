@@ -29,11 +29,6 @@ export type DerivedResolverDefinition = {
   kind: "DERIVED_CONTEXT";
 };
 
-export type CustomScalarInternalDefinition = {
-  name: NameNode;
-  kind: "CUSTOM_SCALAR_INTERNAL";
-};
-
 export type NameDefinition = {
   name: NameNode;
   kind:
@@ -47,10 +42,7 @@ export type NameDefinition = {
     | "INFO";
 };
 
-export type DeclarationDefinition =
-  | NameDefinition
-  | DerivedResolverDefinition
-  | CustomScalarInternalDefinition;
+export type DeclarationDefinition = NameDefinition | DerivedResolverDefinition;
 
 type TsIdentifier = number;
 
@@ -94,7 +86,6 @@ export class TypeContext {
       }
       const existing = self._declarationToDefinition.get(declaration);
       if (existing != null) {
-        // TODO: Consider that this might be a custom scalar
         errors.push(
           tsErr(
             declaration,

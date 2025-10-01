@@ -54,7 +54,6 @@ function buildSchemaResultWithFsMap(
   };
   const host = createVirtualCompilerHost(system, compilerOpts, ts);
 
-  console.log(config);
   const parsedOptions = {
     raw: {
       grats: config,

@@ -45,6 +45,8 @@ const BUILT_IN_DIRECTIVES = new Set([
   "oneOf",
 ]);
 
+const BUILT_IN_SCALARS = new Set(["String", "Int", "Float", "Boolean", "ID"]);
+
 const F = ts.factory;
 
 // Given a GraphQL SDL, returns the a string of TypeScript code that generates a
@@ -94,16 +96,7 @@ class Codegen {
       .filter((type) => {
         return type instanceof GraphQLScalarType;
       })
-      .filter((type) => {
-        // Built in primitives
-        return !(
-          type.name === "String" ||
-          type.name === "Int" ||
-          type.name === "Float" ||
-          type.name === "Boolean" ||
-          type.name === "ID"
-        );
-      })
+      .filter((type) => !BUILT_IN_SCALARS.has(type.name))
       .map((type) => {
         this.ts.import("grats", [{ name: "GqlScalar" }]);
         const exported = nullThrows(type.astNode?.exported);
@@ -116,13 +109,11 @@ class Codegen {
           localName,
         );
 
-        //
         return F.createPropertySignature(
           undefined,
           type.name,
           undefined,
           F.createTypeReferenceNode("GqlScalar", [
-            // F.createTypeReferenceNode("unknown"),
             F.createTypeReferenceNode(localName),
           ]),
         );
@@ -250,12 +241,7 @@ class Codegen {
           type.name.startsWith("__") ||
           type.name.startsWith("Introspection") ||
           type.name.startsWith("Schema") ||
-          // Built in primitives
-          type.name === "String" ||
-          type.name === "Int" ||
-          type.name === "Float" ||
-          type.name === "Boolean" ||
-          type.name === "ID"
+          BUILT_IN_SCALARS.has(type.name)
         );
       })
       .map((type) => this.typeReference(type));
@@ -496,10 +482,10 @@ class Codegen {
   }
 
   customScalarTypeConfig(obj: GraphQLScalarType): ts.ObjectLiteralExpression {
-    const foo = this.ts.propertyAccessChain(F.createIdentifier("config"), [
-      F.createIdentifier("scalars"),
-      F.createIdentifier(obj.name),
-    ]);
+    const scalarConfig = this.ts.propertyAccessChain(
+      F.createIdentifier("config"),
+      [F.createIdentifier("scalars"), F.createIdentifier(obj.name)],
+    );
 
     return this.ts.objectLiteral([
       this.description(obj.description),
@@ -511,7 +497,7 @@ class Codegen {
         : null,
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.extensions(obj.astNode?.directives),
-      F.createSpreadAssignment(foo),
+      F.createSpreadAssignment(scalarConfig),
     ]);
   }
 
