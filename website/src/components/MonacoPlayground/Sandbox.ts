@@ -195,16 +195,7 @@ class CompletionAdapter implements monaco.languages.CompletionItemProvider {
   async provideCompletionItems(_model, _position, _token) {
     if (this._cachedCompletions == null) {
       const worker = await SANDBOX.getWorker();
-      const tags = await worker.getTags();
-
-      const results: monaco.languages.CompletionItem[] = tags.map((name) => {
-        return {
-          label: name,
-          kind: 14,
-          detail: "Grats Tag",
-          insertText: name,
-        } as any;
-      });
+      const results = await worker.getTags();
 
       this._cachedCompletions = { suggestions: results };
     }

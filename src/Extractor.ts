@@ -19,7 +19,7 @@ import {
   TokenKind,
   GraphQLError,
 } from "graphql";
-import { gte as semverGte, sort } from "semver";
+import { gte as semverGte } from "semver";
 import {
   tsErr,
   tsRelated,
@@ -90,15 +90,18 @@ export const ALL_GQL_TAGS = [
   QUERY_FIELD_TAG,
   MUTATION_FIELD_TAG,
   SUBSCRIPTION_FIELD_TAG,
-];
+] as const;
 
 const DEPRECATED_TAG = "deprecated";
 export const ONE_OF_TAG = "oneOf";
-export const TAGS: string[] = [
+
+export const TAGS = [
   ...ALL_GQL_TAGS,
   KILLS_PARENT_ON_EXCEPTION_TAG,
   ONE_OF_TAG,
-];
+] as const;
+
+export type TagName = (typeof TAGS)[number];
 
 // https://github.com/graphql/graphql-js/releases/tag/v16.9.0
 const ONE_OF_MIN_GRAPHQL_JS_VERSION = "16.9.0";
