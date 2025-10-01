@@ -1,6 +1,6 @@
 import type * as ts from "typescript";
 import { printExecutableSchema } from "../../../src/printSchema";
-import { TAGS } from "../../../src/Extractor";
+import { TagName, TAGS } from "../../../src/Extractor";
 // See https://github.com/microsoft/monaco-editor/pull/3488
 import {
   // @ts-ignore
@@ -17,6 +17,7 @@ import {
 import prettier from "prettier/standalone";
 import parserTypeScript from "prettier/parser-typescript";
 import { ReportableDiagnostics } from "../../../src/utils/DiagnosticError";
+import type { monaco } from "react-monaco-editor";
 
 // @ts-ignore
 global.process = {
@@ -179,8 +180,54 @@ export class GratsWorker extends TypeScriptWorker {
     return printExecutableSchema(schema, resolvers, gratsConfig, dest).trim();
   }
 
-  async getTags(): Promise<string[]> {
-    return TAGS;
+  async getTags(): Promise<monaco.languages.CompletionItem[]> {
+    function documentationForTag(name: TagName): string {
+      switch (name) {
+        case "gqlType":
+          return "Defines a GraphQL Object.";
+        case "gqlInterface":
+          return "Defines a GraphQL Interface.";
+        case "gqlUnion":
+          return "Defines a GraphQL Union.";
+        case "gqlEnum":
+          return "Defines a GraphQL Enum.";
+        case "gqlInput":
+          return "Defines a GraphQL Input Object.";
+        case "gqlField":
+          return "Defines a field on a GraphQL Object, Interface, or Input Object.";
+        case "gqlQueryField":
+          return "Defines a top-level Query field.";
+        case "gqlMutationField":
+          return "Defines a top-level Mutation field.";
+        case "gqlSubscriptionField":
+          return "Defines a top-level Subscription field.";
+        case "gqlScalar":
+          return "Defines a custom GraphQL Scalar.";
+        case "gqlDirective":
+          return "Defines a custom GraphQL Directive.";
+        case "gqlAnnotate":
+          return "Attaches a directive to a GraphQL schema element.";
+        case "oneOf":
+          return "Marks an input object with `@oneOf`.";
+        case "killsParentOnException":
+          return "Indicates that a field should be typed as non-nullable and if an error is encountered, bubble that error up to the parent.";
+        default: {
+          // Exhaustive check
+          const _exhaustiveCheck: never = name;
+          throw new Error(`Unknown tag name: ${name}`);
+        }
+      }
+    }
+    return TAGS.map((name) => {
+      return {
+        label: `@${name}`,
+        kind: 16, // Enum member, least worst choice
+        // Unclear why `documentation` doesn't work here.
+        detail: documentationForTag(name),
+        insertText: name,
+        filterText: name, // Needed because we've changed `label` to include `@`
+      } as any;
+    });
   }
 }
 

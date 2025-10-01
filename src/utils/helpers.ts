@@ -92,7 +92,10 @@ export function levenshteinDistance(s: string, t: string): number {
 }
 
 // Sorts an array IN PLACE by a computed key
-export function bestMatch<T>(arr: T[], scoreFn: (item: T) => number): T {
+export function bestMatch<T>(
+  arr: readonly T[],
+  scoreFn: (item: T) => number,
+): T {
   return arr.reduce(
     (best, item) =>
       best == null || scoreFn(item) > scoreFn(best) ? item : best,
