@@ -1,5 +1,5 @@
 import {
-  ALL_TAGS,
+  ALL_GQL_TAGS,
   ENUM_TAG,
   FIELD_TAG,
   IMPLEMENTS_TAG_DEPRECATED,
@@ -54,8 +54,9 @@ export function wrongCasingForGratsTag(actual: string, expected: string) {
 }
 
 // TODO: Add code action
+// TODO: Use levenshtein to suggest correct tag
 export function invalidGratsTag(actual: string) {
-  const validTagList = ALL_TAGS.map((t) => `\`@${t}\``).join(", ");
+  const validTagList = ALL_GQL_TAGS.map((t) => `\`@${t}\``).join(", ");
   return `\`@${actual}\` is not a valid Grats tag. Valid tags are: ${validTagList}.`;
 }
 
