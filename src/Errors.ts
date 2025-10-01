@@ -54,7 +54,6 @@ export function wrongCasingForGratsTag(actual: string, expected: string) {
 }
 
 // TODO: Add code action
-// TODO: Use levenshtein to suggest correct tag
 export function invalidGratsTag(actual: string) {
   const validTagList = ALL_GQL_TAGS.map((t) => `\`@${t}\``).join(", ");
   return `\`@${actual}\` is not a valid Grats tag. Valid tags are: ${validTagList}.`;
@@ -338,8 +337,7 @@ export function mergedInterfaces() {
   ].join(" ");
 }
 
-// TODO: Add code action
-export function implementsTagOnClass() {
+export function implementsTagDeprecated() {
   return `\`@${IMPLEMENTS_TAG_DEPRECATED}\` has been deprecated. Instead use \`class MyType implements MyInterface\`.`;
 }
 

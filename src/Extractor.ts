@@ -19,7 +19,7 @@ import {
   TokenKind,
   GraphQLError,
 } from "graphql";
-import { gte as semverGte } from "semver";
+import { gte as semverGte, sort } from "semver";
 import {
   tsErr,
   tsRelated,
@@ -40,7 +40,12 @@ import { GraphQLConstructor, loc } from "./GraphQLConstructor";
 import { relativePath } from "./gratsRoot";
 import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
-import { extend, invariant } from "./utils/helpers";
+import {
+  bestMatch,
+  extend,
+  invariant,
+  levenshteinDistance,
+} from "./utils/helpers";
 import * as Act from "./CodeActions";
 import {
   InputValueDefinitionNodeOrResolverArg,
@@ -285,6 +290,10 @@ class Extractor {
             const lowerCaseTag = tag.tagName.text.toLowerCase();
             if (lowerCaseTag.startsWith("gql")) {
               let reported = false;
+              if (tag.tagName.text === IMPLEMENTS_TAG_DEPRECATED) {
+                this.report(tag.tagName, E.implementsTagDeprecated());
+                break;
+              }
               for (const t of ALL_GQL_TAGS) {
                 if (t.toLowerCase() === lowerCaseTag) {
                   this.report(
@@ -302,7 +311,21 @@ class Extractor {
                 }
               }
               if (!reported) {
-                this.report(tag.tagName, E.invalidGratsTag(tag.tagName.text));
+                const suggested = bestMatch(
+                  ALL_GQL_TAGS,
+                  (t) => -levenshteinDistance(t, tag.tagName.text),
+                );
+
+                this.report(
+                  tag.tagName,
+                  E.invalidGratsTag(tag.tagName.text),
+                  [],
+                  {
+                    fixName: `change-to-${suggested}`,
+                    description: `Change to @${suggested}`,
+                    changes: [Act.replaceNode(tag.tagName, suggested)],
+                  },
+                );
               }
             }
           }
@@ -1594,7 +1617,7 @@ class Extractor {
     if (tag == null) return null;
 
     if (node.kind === ts.SyntaxKind.ClassDeclaration) {
-      this.report(tag, E.implementsTagOnClass());
+      this.report(tag, E.implementsTagDeprecated());
     }
     if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
       this.report(tag, E.implementsTagOnInterface());
