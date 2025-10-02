@@ -6,6 +6,7 @@ import {
   ALL_GQL_TAGS,
   KILLS_PARENT_ON_EXCEPTION_TAG,
   ONE_OF_TAG,
+  TagName,
 } from "./Extractor";
 
 // A line that starts with optional *s followed by @gql or @killsParentOnException
@@ -94,6 +95,7 @@ function getGratsAdjacentTags(
 
 function isGratsDocblockTag(tag: string) {
   return (
+    // @ts-expect-error We know tag is a wider type, that's why we have to check.
     ALL_GQL_TAGS.includes(tag) ||
     tag === KILLS_PARENT_ON_EXCEPTION_TAG ||
     tag === ONE_OF_TAG
