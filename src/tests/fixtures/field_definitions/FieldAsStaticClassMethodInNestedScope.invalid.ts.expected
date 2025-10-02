@@ -20,14 +20,12 @@ type Query = unknown;
 -----------------
 OUTPUT
 -----------------
-src/tests/fixtures/field_definitions/FieldAsStaticClassMethodInNestedScope.invalid.ts:3:3 - error: Expected class with a static `@gqlField` method to be a top-level declaration. Grats needs to import resolver methods into its generated schema module, so the resolver's class must be an exported.
+src/tests/fixtures/field_definitions/FieldAsStaticClassMethodInNestedScope.invalid.ts:3:9 - error: Expected class with a static `@gqlField` method to be a top-level declaration. Grats needs to import resolver methods into its generated schema module, so the resolver's class must be an exported.
 
-  3   class User {
-      ~~~~~~~~~~~~
-  4     /** @gqlField */
-    ~~~~~~~~~~~~~~~~~~~~
-... 
- 10     }
-    ~~~~~
- 11   }
-    ~~~
+3   class User {
+          ~~~~
+
+  src/tests/fixtures/field_definitions/FieldAsStaticClassMethodInNestedScope.invalid.ts:7:9
+    7     /** @gqlField */
+              ~~~~~~~~~~
+    Field defined here

@@ -1,5 +1,5 @@
 import {
-  ALL_TAGS,
+  ALL_GQL_TAGS,
   ENUM_TAG,
   FIELD_TAG,
   IMPLEMENTS_TAG_DEPRECATED,
@@ -55,7 +55,7 @@ export function wrongCasingForGratsTag(actual: string, expected: string) {
 
 // TODO: Add code action
 export function invalidGratsTag(actual: string) {
-  const validTagList = ALL_TAGS.map((t) => `\`@${t}\``).join(", ");
+  const validTagList = ALL_GQL_TAGS.map((t) => `\`@${t}\``).join(", ");
   return `\`@${actual}\` is not a valid Grats tag. Valid tags are: ${validTagList}.`;
 }
 
@@ -337,8 +337,7 @@ export function mergedInterfaces() {
   ].join(" ");
 }
 
-// TODO: Add code action
-export function implementsTagOnClass() {
+export function implementsTagDeprecated() {
   return `\`@${IMPLEMENTS_TAG_DEPRECATED}\` has been deprecated. Instead use \`class MyType implements MyInterface\`.`;
 }
 

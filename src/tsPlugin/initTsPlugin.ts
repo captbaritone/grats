@@ -99,6 +99,8 @@ export function initTsPlugin(modules: { typescript: typeof TS }) {
       const relatedDiagnostics = result.err.filter((err) => {
         return (
           err.fix != null &&
+          // TODO: Check if this is right. In the playground I had to instead
+          // return any fix with any overlap. One of these is wrong.
           err.start === start &&
           err.length === end - start &&
           err.file.fileName === doc.fileName &&
@@ -123,6 +125,8 @@ export function initTsPlugin(modules: { typescript: typeof TS }) {
   return { create };
 }
 
+// Versions mismatches will often cause us to not find nodes attached to
+// docblock comments.
 function typeScriptVersionMismatch(extensionVersion: string) {
   return `grats-plugin-ts error: The version of TypeScript picked up by Grats does not match the version used by VSCode.
 Grats is using ${gratsTsVersion} but VSCode is using ${extensionVersion}.
