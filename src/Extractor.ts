@@ -1702,7 +1702,11 @@ class Extractor {
     const tag = this.findTag(node, FIELD_TAG);
     if (tag == null) return null;
     if (node.modifiers == null) {
-      return this.report(node, E.parameterWithoutModifiers());
+      return this.report(node, E.parameterWithoutModifiers(), [], {
+        fixName: "add-public-modifier",
+        description: "Add 'public' modifier",
+        changes: [Act.prefixNode(node.name!, "public ")],
+      });
     }
 
     const isParameterProperty = node.modifiers.some(
@@ -1714,7 +1718,11 @@ class Extractor {
     );
 
     if (!isParameterProperty) {
-      return this.report(node, E.parameterWithoutModifiers());
+      return this.report(node, E.parameterWithoutModifiers(), [], {
+        fixName: "add-public-modifier-to-existing",
+        description: "Add 'public' modifier",
+        changes: [Act.prefixNode(node.name!, "public ")],
+      });
     }
 
     const notPublic = node.modifiers.find(
@@ -1944,7 +1952,16 @@ class Extractor {
 
       // TODO: This will catch { a?: string } but not { a?: string | undefined }.
       if (type.kind === Kind.NON_NULL_TYPE) {
-        return this.report(node.questionToken, E.nonNullTypeCannotBeOptional());
+        return this.report(
+          node.questionToken,
+          E.nonNullTypeCannotBeOptional(),
+          [],
+          {
+            fixName: "add-null-to-optional-type",
+            description: "Add '| null' to the type",
+            changes: [Act.suffixNode(node.type!, " | null")],
+          },
+        );
       }
       type = this.gql.nullableType(type);
     }
@@ -2336,7 +2353,11 @@ class Extractor {
         // later when we try to use this as a GraphQL type.
         if (name.kind === "OK") {
           name = err(
-            tsErr(param.questionToken, E.nonNullTypeCannotBeOptional()),
+            tsErr(param.questionToken, E.nonNullTypeCannotBeOptional(), [], {
+              fixName: "add-null-to-optional-parameter-type",
+              description: "Add '| null' to the parameter type",
+              changes: [Act.suffixNode(param.type!, " | null")],
+            }),
           );
         }
       }
@@ -2578,7 +2599,11 @@ class Extractor {
         return tsRelated(tag, "Additional tag");
       });
 
-      return this.report(tags[0], E.duplicateTag(tagName), additionalTags);
+      return this.report(tags[0], E.duplicateTag(tagName), additionalTags, {
+        fixName: "remove-duplicate-tag",
+        description: `Remove duplicate @${tagName} tag`,
+        changes: tags.slice(1).map((tag) => Act.removeNode(tag)), // Remove all but the first tag
+      });
     }
     return tags[0];
   }
