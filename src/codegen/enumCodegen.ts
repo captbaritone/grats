@@ -21,7 +21,7 @@ class EnumCodegen {
   ts: TSAstBuilder;
   _enumImports: Map<
     string,
-    { tsModulePath: string; exportName: string | null }
+    { tsModulePath: string; exportName: string | null; localName: string }
   > = new Map();
 
   constructor(
@@ -55,13 +55,14 @@ class EnumCodegen {
     const astNode = nullThrows(enumType.astNode);
     const exported = nullThrows(astNode.exported);
 
+    const localName = `${enumType.name}Enum`;
     this._enumImports.set(enumType.name, {
       tsModulePath: exported.tsModulePath,
       exportName: exported.exportName,
+      localName,
     });
 
     // Import the enum
-    const localName = `${enumType.name}Enum`;
     this.ts.importUserConstruct(
       exported.tsModulePath,
       exported.exportName,
@@ -72,8 +73,7 @@ class EnumCodegen {
   private generateEnumsObject(enumTypes: GraphQLEnumType[]): void {
     // All enums should have import information at this point
     const enumProperties = enumTypes.map((enumType) => {
-      nullThrows(this._enumImports.get(enumType.name));
-      const localName = `${enumType.name}Enum`;
+      const { localName } = nullThrows(this._enumImports.get(enumType.name));
       return F.createPropertyAssignment(
         enumType.name,
         F.createIdentifier(localName),
@@ -100,7 +100,7 @@ class EnumCodegen {
 
     // Also export individual enums for convenience
     for (const enumType of enumTypes) {
-      const localName = `${enumType.name}Enum`;
+      const { localName } = nullThrows(this._enumImports.get(enumType.name));
       this.ts.addStatement(
         F.createExportDeclaration(
           undefined,
