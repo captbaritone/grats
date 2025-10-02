@@ -1988,7 +1988,11 @@ class Extractor {
     });
 
     if (this.config?.EXPERIMENTAL__emitEnums != null && !isExported) {
-      this.report(node, E.enumNotExported());
+      this.report(node, E.enumNotExported(), [], {
+        fixName: "add-export-keyword-to-enum",
+        description: "Add export keyword to enum with @gqlEnum",
+        changes: [Act.prefixNode(node, "export ")],
+      });
       return;
     }
 
@@ -2011,7 +2015,14 @@ class Extractor {
     const directives = this.collectDirectives(node);
 
     this.definitions.push(
-      this.gql.enumTypeDefinition(node, name, values, description, directives, exported),
+      this.gql.enumTypeDefinition(
+        node,
+        name,
+        values,
+        description,
+        directives,
+        exported,
+      ),
     );
   }
 
@@ -2039,7 +2050,14 @@ class Extractor {
     const directives = this.collectDirectives(node);
 
     this.definitions.push(
-      this.gql.enumTypeDefinition(node, name, values, description, directives, null),
+      this.gql.enumTypeDefinition(
+        node,
+        name,
+        values,
+        description,
+        directives,
+        null,
+      ),
     );
   }
 

@@ -648,5 +648,5 @@ export function enumNotExported(): string {
 }
 
 export function typeAliasEnumNotSupportedWithEmitEnums(): string {
-  return "Type alias enums are not supported when `EXPERIMENTAL__emitEnums` is configured. Use `enum` declarations instead. For example: `export enum Status { PENDING = \"pending\" }`.";
+  return 'Type alias enums are not supported when `EXPERIMENTAL__emitEnums` is configured. Use `enum` declarations instead. For example: `export enum Status { PENDING = "pending" }`.';
 }

@@ -10,7 +10,7 @@ export enum Color {
 /** @gqlEnum */
 export enum Priority {
   LOW = "low",
-  MEDIUM = "medium", 
+  MEDIUM = "medium",
   HIGH = "high",
 }
 
@@ -30,7 +30,7 @@ export function colorName(color: Color): string {
     case Color.RED:
       return "Red";
     case Color.GREEN:
-      return "Green";  
+      return "Green";
     case Color.BLUE:
       return "Blue";
     default:
