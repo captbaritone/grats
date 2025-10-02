@@ -8,10 +8,18 @@ const MonacoPlayground =
   ExecutionEnvironment.canUseDOM &&
   require("@site/src/components/MonacoPlayground/MonacoPlayground").default;
 
+function Fallback() {
+  return (
+    <div style={{ minHeight: 500, display: "flex", alignItems: "center" }}>
+      <LoadingFallback />
+    </div>
+  );
+}
+
 export default function Page() {
   return (
     <Layout title={`Playground`} noFooter>
-      <BrowserOnly fallback={<LoadingFallback />}>
+      <BrowserOnly fallback={<Fallback />}>
         {() => <MonacoPlayground />}
       </BrowserOnly>
     </Layout>
