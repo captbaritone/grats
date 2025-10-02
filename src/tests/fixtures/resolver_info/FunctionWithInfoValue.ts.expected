@@ -19,8 +19,8 @@ type Query {
   greetz: String
 }
 -- TypeScript --
-import { greetz as queryGreetzResolver } from "./FunctionWithInfoValue";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+import { greetz as queryGreetzResolver } from "./FunctionWithInfoValue";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",

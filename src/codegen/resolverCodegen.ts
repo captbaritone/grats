@@ -79,6 +79,7 @@ export default class ResolverCodegen {
           resolver.path,
           resolver.exportName,
           resolverName,
+          false,
         );
         return this.ts.method(
           methodName,
@@ -109,6 +110,7 @@ export default class ResolverCodegen {
           resolver.path,
           resolver.exportName,
           resolverName,
+          false,
         );
         return this.ts.method(
           methodName,
@@ -184,7 +186,7 @@ export default class ResolverCodegen {
         );
       case "derivedContext": {
         const localName = this.getDerivedContextName(arg.path, arg.exportName);
-        this.ts.importUserConstruct(arg.path, arg.exportName, localName);
+        this.ts.importUserConstruct(arg.path, arg.exportName, localName, false);
         return F.createCallExpression(
           F.createIdentifier(localName),
           undefined,
@@ -257,7 +259,9 @@ export default class ResolverCodegen {
   }
 
   defaultResolverMethod(methodName: string): ts.MethodDeclaration {
-    this.ts.import("graphql", [{ name: "defaultFieldResolver" }]);
+    this.ts.import("graphql", [
+      { name: "defaultFieldResolver", isTypeOnly: false },
+    ]);
     return this.ts.method(
       methodName,
       RESOLVER_ARGS.map((name) => this.ts.param(name)),

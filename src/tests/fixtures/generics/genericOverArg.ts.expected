@@ -38,8 +38,8 @@ type SomeInputSomeClass {
   someField(someArg: SomeInput): String
 }
 -- TypeScript --
-import { someField as querySomeFieldResolver } from "./genericOverArg";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInputObjectType, GraphQLNonNull } from "graphql";
+import { someField as querySomeFieldResolver } from "./genericOverArg";
 export function getSchema(): GraphQLSchema {
     const SomeInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
         name: "SomeInput",

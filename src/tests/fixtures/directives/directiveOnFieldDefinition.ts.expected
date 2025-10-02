@@ -29,8 +29,8 @@ type Query {
   likes(first: Int): String @max(foo: 10)
 }
 -- TypeScript --
-import { likes as queryLikesResolver } from "./directiveOnFieldDefinition";
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLString } from "graphql";
+import { likes as queryLikesResolver } from "./directiveOnFieldDefinition";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",

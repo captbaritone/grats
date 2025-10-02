@@ -17,8 +17,8 @@ type Subscription {
   countdown: Int
 }
 === SNIP ===
-import { countdown as subscriptionCountdownResolver } from "./subscription-example.grats";
 import { GraphQLSchema, GraphQLObjectType, GraphQLInt } from "graphql";
+import { countdown as subscriptionCountdownResolver } from "./subscription-example.grats";
 export function getSchema(): GraphQLSchema {
     const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
         name: "Subscription",

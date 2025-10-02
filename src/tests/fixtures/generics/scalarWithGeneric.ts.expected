@@ -11,8 +11,8 @@ OUTPUT
 -- SDL --
 scalar MyScalar
 -- TypeScript --
-import { GqlScalar } from "grats";
-import { MyScalar as MyScalarInternal } from "./scalarWithGeneric";
+import type { GqlScalar } from "grats";
+import type { MyScalar as MyScalarInternal } from "./scalarWithGeneric";
 import { GraphQLSchema, GraphQLScalarType } from "graphql";
 export type SchemaConfig = {
     scalars: {

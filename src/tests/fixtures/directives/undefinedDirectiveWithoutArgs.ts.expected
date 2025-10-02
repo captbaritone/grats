@@ -17,8 +17,8 @@ type Query {
   myQueryField: String
 }
 -- TypeScript --
-import { myQueryField as queryMyQueryFieldResolver } from "./undefinedDirectiveWithoutArgs";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+import { myQueryField as queryMyQueryFieldResolver } from "./undefinedDirectiveWithoutArgs";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",

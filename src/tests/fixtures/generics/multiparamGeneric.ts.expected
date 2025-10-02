@@ -44,8 +44,8 @@ type Query {
   pageResult: PageErrResult
 }
 -- TypeScript --
-import { pageResult as queryPageResultResolver } from "./multiparamGeneric";
 import { GraphQLSchema, GraphQLObjectType, GraphQLUnionType, GraphQLString } from "graphql";
+import { pageResult as queryPageResultResolver } from "./multiparamGeneric";
 export function getSchema(): GraphQLSchema {
     const ErrType: GraphQLObjectType = new GraphQLObjectType({
         name: "Err",

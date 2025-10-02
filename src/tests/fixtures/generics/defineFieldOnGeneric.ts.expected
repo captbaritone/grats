@@ -37,8 +37,8 @@ type PageEdge {
   title: String
 }
 -- TypeScript --
-import { title as pageEdgeTitleResolver } from "./defineFieldOnGeneric";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+import { title as pageEdgeTitleResolver } from "./defineFieldOnGeneric";
 export function getSchema(): GraphQLSchema {
     const PageType: GraphQLObjectType = new GraphQLObjectType({
         name: "Page",

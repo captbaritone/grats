@@ -23,8 +23,8 @@ directive @max(foo: Int!) on SCALAR
 
 scalar MyScalar @max(foo: 10)
 -- TypeScript --
-import { GqlScalar } from "grats";
-import { MyScalar as MyScalarInternal } from "./directiveOnScalar";
+import type { GqlScalar } from "grats";
+import type { MyScalar as MyScalarInternal } from "./directiveOnScalar";
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLScalarType } from "graphql";
 export type SchemaConfig = {
     scalars: {

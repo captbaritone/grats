@@ -1,5 +1,5 @@
-import { firstHundredIntegers as queryFirstHundredIntegersResolver } from "./index";
 import { GraphQLSchema, GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLString, GraphQLInt, GraphQLBoolean } from "graphql";
+import { firstHundredIntegers as queryFirstHundredIntegersResolver } from "./index";
 export function getSchema(): GraphQLSchema {
     const FirstHundredIntegersEdgeType: GraphQLObjectType = new GraphQLObjectType({
         name: "FirstHundredIntegersEdge",

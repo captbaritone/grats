@@ -1,5 +1,5 @@
-import { me as queryMeResolver } from "./index";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+import { me as queryMeResolver } from "./index";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",

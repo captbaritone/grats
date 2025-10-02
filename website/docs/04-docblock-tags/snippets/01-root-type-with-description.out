@@ -21,8 +21,8 @@ type Query {
   greet: String
 }
 === SNIP ===
-import { greet as queryGreetResolver } from "./01-root-type-with-description.grats";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+import { greet as queryGreetResolver } from "./01-root-type-with-description.grats";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",

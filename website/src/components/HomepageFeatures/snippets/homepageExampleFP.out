@@ -18,8 +18,8 @@ type User {
   name: String
 }
 === SNIP ===
-import { greet as userGreetResolver } from "./homepageExampleFP.grats";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
+import { greet as userGreetResolver } from "./homepageExampleFP.grats";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",

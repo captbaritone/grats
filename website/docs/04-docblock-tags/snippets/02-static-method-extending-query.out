@@ -22,8 +22,8 @@ type User {
   name: String
 }
 === SNIP ===
-import { User as queryMeResolver } from "./02-static-method-extending-query.grats";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+import { User as queryMeResolver } from "./02-static-method-extending-query.grats";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",

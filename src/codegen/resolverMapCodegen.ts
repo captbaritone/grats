@@ -49,7 +49,9 @@ class Codegen {
     // coupled to just TypeScript and GraphQL JS. Ideally we would not do
     // _anything_ coupled to other libraries but instead provide a way for users
     // to do this themselves.
-    this.ts.import("@graphql-tools/utils", [{ name: "IResolvers" }]);
+    this.ts.import("@graphql-tools/utils", [
+      { name: "IResolvers", isTypeOnly: true },
+    ]);
     this.ts.functionDeclaration(
       "getResolverMap",
       [F.createModifier(ts.SyntaxKind.ExportKeyword)],

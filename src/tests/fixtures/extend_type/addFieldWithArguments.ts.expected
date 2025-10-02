@@ -19,8 +19,8 @@ type SomeType {
   greeting(name: String!): String
 }
 -- TypeScript --
-import { greeting as someTypeGreetingResolver } from "./addFieldWithArguments";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
+import { greeting as someTypeGreetingResolver } from "./addFieldWithArguments";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",

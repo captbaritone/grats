@@ -3,8 +3,9 @@
  * Do not manually edit. Regenerate by running `npx grats`.
  */
 
-import { GqlScalar } from "grats";
-import { GqlDate as DateInternal } from "./graphql/CustomScalars";
+import type { GqlScalar } from "grats";
+import type { GqlDate as DateInternal } from "./graphql/CustomScalars";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLList, GraphQLString, GraphQLScalarType, GraphQLID, GraphQLInterfaceType, GraphQLBoolean, GraphQLInputObjectType } from "graphql";
 import { id as likeIdResolver, id as userIdResolver, id as postIdResolver, node as queryNodeResolver, nodes as queryNodesResolver } from "./graphql/Node";
 import { nodes as postConnectionNodesResolver, posts as queryPostsResolver } from "./models/PostConnection";
 import { nodes as likeConnectionNodesResolver, likes as queryLikesResolver, postLikes as subscriptionPostLikesResolver } from "./models/LikeConnection";
@@ -14,7 +15,6 @@ import { Viewer as queryViewerResolver } from "./models/Viewer";
 import { createLike as mutationCreateLikeResolver } from "./models/Like";
 import { createPost as mutationCreatePostResolver } from "./models/Post";
 import { createUser as mutationCreateUserResolver } from "./models/User";
-import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLList, GraphQLString, GraphQLScalarType, GraphQLID, GraphQLInterfaceType, GraphQLBoolean, GraphQLInputObjectType } from "graphql";
 export type SchemaConfig = {
     scalars: {
         Date: GqlScalar<DateInternal>;

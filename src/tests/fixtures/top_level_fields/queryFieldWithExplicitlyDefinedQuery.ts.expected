@@ -23,8 +23,8 @@ type Query {
   greeting: String
 }
 -- TypeScript --
-import { greeting as queryGreetingResolver } from "./queryFieldWithExplicitlyDefinedQuery";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+import { greeting as queryGreetingResolver } from "./queryFieldWithExplicitlyDefinedQuery";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",

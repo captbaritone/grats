@@ -7,8 +7,8 @@ export type UUID = string;
 === SNIP ===
 scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
 === SNIP ===
-import { GqlScalar } from "grats";
-import { UUID as UUIDInternal } from "./08-specified-by.grats";
+import type { GqlScalar } from "grats";
+import type { UUID as UUIDInternal } from "./08-specified-by.grats";
 import { GraphQLSchema, GraphQLScalarType } from "graphql";
 export type SchemaConfig = {
     scalars: {

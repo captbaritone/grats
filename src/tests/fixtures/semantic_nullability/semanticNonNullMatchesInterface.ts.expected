@@ -66,7 +66,7 @@ type User implements IPerson {
   name: String @semanticNonNull
 }
 -- TypeScript --
-import { defaultFieldResolver, GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLList, GraphQLInt, specifiedDirectives, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLList, GraphQLInt, specifiedDirectives, GraphQLInterfaceType, GraphQLString, GraphQLObjectType, defaultFieldResolver } from "graphql";
 async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
     const awaited = await value;
     if (awaited == null)

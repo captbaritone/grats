@@ -6,7 +6,7 @@
 import UserClass from "./models/User";
 import queryAllUsersResolver from "./models/User";
 import queryMeResolver from "./models/User";
-import { defaultFieldResolver, GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLList, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLNonNull, GraphQLString, GraphQLInterfaceType } from "graphql";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLList, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLNonNull, GraphQLString, defaultFieldResolver, GraphQLInterfaceType } from "graphql";
 import { person as queryPersonResolver } from "./interfaces/IPerson";
 import { countdown as subscriptionCountdownResolver, nullItems as subscriptionNullItemsResolver, nullIterable as subscriptionNullIterableResolver } from "./Subscription";
 async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {

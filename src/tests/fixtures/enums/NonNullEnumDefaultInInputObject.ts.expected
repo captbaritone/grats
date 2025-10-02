@@ -36,8 +36,8 @@ type Query {
   hello(input: GreetingInput! = {greeting: Greetings}): String
 }
 -- TypeScript --
-import { hello as queryHelloResolver } from "./NonNullEnumDefaultInInputObject";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLInputObjectType, GraphQLEnumType } from "graphql";
+import { hello as queryHelloResolver } from "./NonNullEnumDefaultInInputObject";
 export function getSchema(): GraphQLSchema {
     const GreetingOptionsType: GraphQLEnumType = new GraphQLEnumType({
         name: "GreetingOptions",

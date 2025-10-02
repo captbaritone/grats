@@ -1,5 +1,5 @@
-import { hello as queryHelloResolver } from "./index";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLEnumType } from "graphql";
+import { hello as queryHelloResolver } from "./index";
 export function getSchema(): GraphQLSchema {
     const GreetingOptionsType: GraphQLEnumType = new GraphQLEnumType({
         name: "GreetingOptions",

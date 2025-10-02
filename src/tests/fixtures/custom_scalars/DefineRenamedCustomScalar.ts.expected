@@ -20,8 +20,8 @@ type SomeType {
   hello: String
 }
 -- TypeScript --
-import { GqlScalar } from "grats";
-import { MyUrl as CustomNameInternal } from "./DefineRenamedCustomScalar";
+import type { GqlScalar } from "grats";
+import type { MyUrl as CustomNameInternal } from "./DefineRenamedCustomScalar";
 import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType, GraphQLString } from "graphql";
 export type SchemaConfig = {
     scalars: {

@@ -24,8 +24,8 @@ type SomeType {
   hello: String
 }
 -- TypeScript --
-import { GqlScalar } from "grats";
-import { MyUrl as MyUrlInternal } from "./DefineCustomScalarWithDescription";
+import type { GqlScalar } from "grats";
+import type { MyUrl as MyUrlInternal } from "./DefineCustomScalarWithDescription";
 import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType, GraphQLString } from "graphql";
 export type SchemaConfig = {
     scalars: {

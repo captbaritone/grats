@@ -19,8 +19,8 @@ type Query {
   greet: String @myDirective
 }
 === SNIP ===
-import { greet as queryGreetResolver } from "./12-directive-annotations-1.grats";
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, specifiedDirectives, GraphQLObjectType, GraphQLString } from "graphql";
+import { greet as queryGreetResolver } from "./12-directive-annotations-1.grats";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",

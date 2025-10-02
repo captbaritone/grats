@@ -5,8 +5,8 @@
 
 import UserClass from "./app/api/graphql/models/User";
 import queryAllUsersResolver from "./app/api/graphql/models/User";
-import { me as queryMeResolver, person as queryPersonResolver } from "./app/api/graphql/Query";
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLString, GraphQLInterfaceType } from "graphql";
+import { me as queryMeResolver, person as queryPersonResolver } from "./app/api/graphql/Query";
 export function getSchema(): GraphQLSchema {
     const GroupType: GraphQLObjectType = new GraphQLObjectType({
         name: "Group",

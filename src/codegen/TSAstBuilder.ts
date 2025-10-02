@@ -15,13 +15,19 @@ export type JsonValue =
 
 const F = ts.factory;
 
+export type ImportSpecifier = {
+  name: string;
+  as?: string;
+  isTypeOnly: boolean;
+};
+
 /**
  * A helper class to build up a TypeScript document AST.
  */
 export default class TSAstBuilder {
   _globalNames: Map<string, number> = new Map();
   _imports: ts.Statement[] = [];
-  imports: Map<string, { name: string; as?: string }[]> = new Map();
+  imports: Map<string, ImportSpecifier[]> = new Map();
   _helpers: ts.Statement[] = [];
   _statements: ts.Statement[] = [];
 
@@ -170,21 +176,26 @@ export default class TSAstBuilder {
     );
   }
 
-  import(from: string, names: { name: string; as?: string }[]) {
+  import(from: string, names: ImportSpecifier[]) {
     let moduleImports = this.imports.get(from);
     if (moduleImports == null) {
       moduleImports = [];
       this.imports.set(from, moduleImports);
     }
-    for (const { name, as } of names) {
+    for (const { name, as, isTypeOnly } of names) {
       let seen = false;
       for (const imp of moduleImports) {
         if (imp.name === name && imp.as === as) {
+          // If a name is imported both as type only and as a value, it needs to
+          // be imported as a value.
+          if (imp.isTypeOnly && !isTypeOnly) {
+            imp.isTypeOnly = false;
+          }
           seen = true;
         }
       }
       if (!seen) {
-        moduleImports.push({ name, as });
+        moduleImports.push({ name, as, isTypeOnly });
       }
     }
   }
@@ -203,6 +214,7 @@ export default class TSAstBuilder {
     tsModulePath: string,
     exportName: string | null,
     localName: string,
+    isTypeOnly: boolean,
   ): void {
     const abs = resolveRelativePath(tsModulePath);
     const relative = replaceExt(
@@ -213,7 +225,9 @@ export default class TSAstBuilder {
     if (exportName == null) {
       this.importDefault(modulePath, localName);
     } else {
-      this.import(modulePath, [{ name: exportName, as: localName }]);
+      this.import(modulePath, [
+        { name: exportName, as: localName, isTypeOnly },
+      ]);
     }
   }
 
@@ -228,16 +242,21 @@ export default class TSAstBuilder {
     );
 
     for (const [from, names] of this.imports) {
+      const allImportsAreTypeOnly = names.every((name) => name.isTypeOnly);
       const namedImports = names.map((name) => {
+        // If all the imports are type only, then we don't need to mark each
+        // individual import as type only.
+        const isTypeOnly = !allImportsAreTypeOnly && name.isTypeOnly;
+
         if (name.as && name.as !== name.name) {
           return F.createImportSpecifier(
-            false,
+            isTypeOnly,
             F.createIdentifier(name.name),
             F.createIdentifier(name.as),
           );
         } else {
           return F.createImportSpecifier(
-            false,
+            isTypeOnly,
             undefined,
             F.createIdentifier(name.name),
           );
@@ -247,7 +266,7 @@ export default class TSAstBuilder {
         F.createImportDeclaration(
           undefined,
           F.createImportClause(
-            false,
+            allImportsAreTypeOnly,
             undefined,
             F.createNamedImports(namedImports),
           ),

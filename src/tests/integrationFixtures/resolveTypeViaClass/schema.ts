@@ -1,6 +1,6 @@
 import DefaultNodeClass from "./index";
-import { Guest as GuestClass, ThisNameGetsIgnored as RenamedNodeClass, User as UserClass, node as queryNodeResolver } from "./index";
 import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType, GraphQLID, GraphQLNonNull } from "graphql";
+import { Guest as GuestClass, ThisNameGetsIgnored as RenamedNodeClass, User as UserClass, node as queryNodeResolver } from "./index";
 export function getSchema(): GraphQLSchema {
     const GqlNodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "GqlNode",

@@ -21,8 +21,8 @@ type User implements Person {
   name: String
 }
 === SNIP ===
-import { User as UserClass } from "./01-types-implement-interface.grats";
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+import { User as UserClass } from "./01-types-implement-interface.grats";
 export function getSchema(): GraphQLSchema {
     const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Person",

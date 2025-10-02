@@ -87,8 +87,8 @@ type UserEdge {
   node: User
 }
 === SNIP ===
-import { users as queryUsersResolver } from "./connection-spec.grats";
 import { GraphQLSchema, GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLString, GraphQLBoolean, GraphQLInt } from "graphql";
+import { users as queryUsersResolver } from "./connection-spec.grats";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",

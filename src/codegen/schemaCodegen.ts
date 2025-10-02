@@ -46,6 +46,7 @@ const BUILT_IN_DIRECTIVES = new Set([
 ]);
 
 const BUILT_IN_SCALARS = new Set(["String", "Int", "Float", "Boolean", "ID"]);
+const GQL_SCALAR_TYPE_NAME = "GqlScalar";
 
 const F = ts.factory;
 
@@ -69,7 +70,6 @@ class Codegen {
   resolvers: ResolverCodegen;
   _typeNameMappings: Map<string, string> = new Map();
   _typeDefinitions: Set<string> = new Set();
-  _graphQLImports: Set<string> = new Set();
 
   constructor(
     public _schema: GraphQLSchema,
@@ -82,12 +82,12 @@ class Codegen {
   }
 
   graphQLImport(name: string): ts.Identifier {
-    this._graphQLImports.add(name);
+    this.ts.import("graphql", [{ name, isTypeOnly: false }]);
     return F.createIdentifier(name);
   }
 
   graphQLTypeImport(name: string): ts.TypeReferenceNode {
-    this._graphQLImports.add(name);
+    this.ts.import("graphql", [{ name, isTypeOnly: true }]);
     return F.createTypeReferenceNode(name);
   }
 
@@ -98,7 +98,9 @@ class Codegen {
       })
       .filter((type) => !BUILT_IN_SCALARS.has(type.name))
       .map((type) => {
-        this.ts.import("grats", [{ name: "GqlScalar" }]);
+        this.ts.import("grats", [
+          { name: GQL_SCALAR_TYPE_NAME, isTypeOnly: true },
+        ]);
         const exported = nullThrows(type.astNode?.exported);
 
         const localName = `${type.name}Internal`;
@@ -107,13 +109,14 @@ class Codegen {
           exported.tsModulePath,
           exported.exportName,
           localName,
+          true,
         );
 
         return F.createPropertySignature(
           undefined,
           type.name,
           undefined,
-          F.createTypeReferenceNode("GqlScalar", [
+          F.createTypeReferenceNode(GQL_SCALAR_TYPE_NAME, [
             F.createTypeReferenceNode(localName),
           ]),
         );
@@ -428,6 +431,7 @@ class Codegen {
             exportedMetadata.tsModulePath,
             exportedMetadata.exportName,
             localName,
+            false,
           );
 
           this._typeNameMappings.set(t.name, localName);
@@ -910,11 +914,6 @@ class Codegen {
   }
 
   print(): string {
-    this.ts.import(
-      "graphql",
-      [...this._graphQLImports].map((name) => ({ name })),
-    );
-
     if (this._typeNameMappings.size > 0) {
       this.ts.addStatement(
         F.createVariableStatement(

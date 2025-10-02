@@ -18,8 +18,8 @@ type User {
   friends(order: String!): User
 }
 === SNIP ===
-import { friends as userFriendsResolver } from "./02-resolver-signature-function.grats";
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString } from "graphql";
+import { friends as userFriendsResolver } from "./02-resolver-signature-function.grats";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
