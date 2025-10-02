@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from "react";
+import React from "react";
 import InputView from "../../components/PlaygroundFeatures/editors/InputView";
 import OutputView from "../../components/PlaygroundFeatures/editors/OutputView";
 import ConfigBar from "../../components/PlaygroundFeatures/ConfigBar";

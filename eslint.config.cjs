@@ -67,5 +67,6 @@ module.exports = defineConfig([
     "website/**/*.grats.ts",
     "examples/next-js/.next",
     "website/.docusaurus",
+    "website/src/workers/ts.worker.mjs",
   ]),
 ]);
