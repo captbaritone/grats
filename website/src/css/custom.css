@@ -109,3 +109,8 @@ h6:hover .hash-link {
     transform: rotate(360deg) scale(1);
   }
 }
+
+/** Reference animation in a class to avoid purging in production build */
+.loading-spinner {
+  animation: spinPulse 2s linear infinite;
+}

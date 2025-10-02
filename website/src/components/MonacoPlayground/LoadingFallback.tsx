@@ -25,13 +25,7 @@ export function LoadingFallback() {
           position: "relative",
         }}
       >
-        <LogoSvg
-          style={{
-            // Mute the colors a bit
-            // filter: "grayscale(60%)",
-            animation: "spinPulse 2s linear infinite",
-          }}
-        />
+        <LogoSvg className="loading-spinner" />
       </div>
     </div>
   );
