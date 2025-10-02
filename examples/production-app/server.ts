@@ -2,13 +2,12 @@ import { createServer } from "node:http";
 import { createYoga } from "graphql-yoga";
 import { getSchema } from "./schema";
 import { VC } from "./ViewerContext";
-import { addGraphQLScalarSerialization } from "./graphql/CustomScalars";
+import { scalarConfig } from "./graphql/CustomScalars";
 import { useDeferStream } from "@graphql-yoga/plugin-defer-stream";
 import { applyCreditLimit } from "./graphql/directives";
 
-let schema = getSchema();
+let schema = getSchema({ scalars: scalarConfig });
 schema = applyCreditLimit(schema);
-schema = addGraphQLScalarSerialization(schema);
 
 const yoga = createYoga({
   schema,

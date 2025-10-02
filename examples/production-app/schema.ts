@@ -3,21 +3,29 @@
  * Do not manually edit. Regenerate by running `npx grats`.
  */
 
+import { GqlScalar } from "grats";
+import { GqlDate as DateInternal } from "./graphql/CustomScalars";
 import { id as likeIdResolver, id as userIdResolver, id as postIdResolver, node as queryNodeResolver, nodes as queryNodesResolver } from "./graphql/Node";
 import { nodes as postConnectionNodesResolver, posts as queryPostsResolver } from "./models/PostConnection";
 import { nodes as likeConnectionNodesResolver, likes as queryLikesResolver, postLikes as subscriptionPostLikesResolver } from "./models/LikeConnection";
-import { getVc as getVc } from "./ViewerContext";
+import { getVc } from "./ViewerContext";
 import { nodes as userConnectionNodesResolver, users as queryUsersResolver } from "./models/UserConnection";
 import { Viewer as queryViewerResolver } from "./models/Viewer";
 import { createLike as mutationCreateLikeResolver } from "./models/Like";
 import { createPost as mutationCreatePostResolver } from "./models/Post";
 import { createUser as mutationCreateUserResolver } from "./models/User";
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLList, GraphQLString, GraphQLScalarType, GraphQLID, GraphQLInterfaceType, GraphQLBoolean, GraphQLInputObjectType } from "graphql";
-export function getSchema(): GraphQLSchema {
+export type SchemaConfig = {
+    scalars: {
+        Date: GqlScalar<DateInternal>;
+    };
+};
+export function getSchema(config: SchemaConfig): GraphQLSchema {
     const DateType: GraphQLScalarType = new GraphQLScalarType({
         description: "A date and time. Serialized as a Unix timestamp.\n\n**Note**: The `@specifiedBy` directive does not point to a real spec, but is\nincluded here for demonstration purposes.",
         specifiedByURL: "https://example.com/html/spec-for-date-as-unix-timestamp",
-        name: "Date"
+        name: "Date",
+        ...config.scalars.Date
     });
     const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
         description: "Indicates a stable refetchable object in the system.",
