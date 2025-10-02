@@ -642,3 +642,11 @@ export function directiveArgumentNotObject() {
 export function scalarNotExported(): string {
   return "Expected custom scalar to be an exported type. Grats needs to import this type to build types for the coercion functions.";
 }
+
+export function enumNotExported(): string {
+  return "Expected enum to be exported when `EXPERIMENTAL__emitEnums` is configured. Grats needs to import enum types to build the enums module.";
+}
+
+export function typeAliasEnumNotSupportedWithEmitEnums(): string {
+  return "Type alias enums are not supported when `EXPERIMENTAL__emitEnums` is configured. Use `enum` declarations instead. For example: `export enum Status { PENDING = \"pending\" }`.";
+}

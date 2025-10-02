@@ -50,7 +50,7 @@ export function initTsPlugin(modules: { typescript: typeof TS }) {
       const doc = info.languageService.getProgram()?.getSourceFile(filename);
 
       if (doc == null) return prior;
-      const result = extract(doc);
+      const result = extract(doc, undefined);
 
       if (result.kind === "OK") return prior;
 
@@ -89,7 +89,7 @@ export function initTsPlugin(modules: { typescript: typeof TS }) {
       const doc = info.languageService.getProgram()?.getSourceFile(fileName);
 
       if (doc == null) return prior;
-      const result = extract(doc);
+      const result = extract(doc, undefined);
 
       if (result.kind === "OK") return prior;
 

@@ -120,8 +120,9 @@ type FieldTypeContext = {
  */
 export function extract(
   sourceFile: ts.SourceFile,
+  config?: { EXPERIMENTAL__emitEnums?: string | null },
 ): DiagnosticsResult<ExtractionSnapshot> {
-  const extractor = new Extractor();
+  const extractor = new Extractor(config);
   return extractor.extract(sourceFile);
 }
 
@@ -138,9 +139,11 @@ class Extractor {
 
   errors: ts.DiagnosticWithLocation[] = [];
   gql: GraphQLConstructor;
+  config?: { EXPERIMENTAL__emitEnums?: string | null };
 
-  constructor() {
+  constructor(config?: { EXPERIMENTAL__emitEnums?: string | null }) {
     this.gql = new GraphQLConstructor();
+    this.config = config;
   }
 
   markUnresolvedType(node: ts.EntityName, name: NameNode) {
@@ -1976,6 +1979,29 @@ class Extractor {
     if (name == null || name.value == null) {
       return;
     }
+
+    // Check if enum must be exported when EXPERIMENTAL__emitEnums is configured
+    let exported: { tsModulePath: string; exportName: string | null } | null =
+      null;
+    const isExported = node.modifiers?.some((modifier) => {
+      return modifier.kind === ts.SyntaxKind.ExportKeyword;
+    });
+
+    if (this.config?.EXPERIMENTAL__emitEnums != null && !isExported) {
+      this.report(node, E.enumNotExported());
+      return;
+    }
+
+    if (isExported) {
+      const isDefault = node.modifiers?.find(
+        (modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword,
+      );
+      exported = {
+        tsModulePath: relativePath(node.getSourceFile().fileName),
+        exportName: isDefault ? null : (node.name?.text ?? null),
+      };
+    }
+
     const description = this.collectDescription(node);
 
     const values = this.collectEnumValues(node);
@@ -1985,7 +2011,7 @@ class Extractor {
     const directives = this.collectDirectives(node);
 
     this.definitions.push(
-      this.gql.enumTypeDefinition(node, name, values, description, directives),
+      this.gql.enumTypeDefinition(node, name, values, description, directives, exported),
     );
   }
 
@@ -1998,6 +2024,12 @@ class Extractor {
       return;
     }
 
+    // Prohibit type alias enums when EXPERIMENTAL__emitEnums is configured
+    if (this.config?.EXPERIMENTAL__emitEnums != null) {
+      this.report(node, E.typeAliasEnumNotSupportedWithEmitEnums());
+      return;
+    }
+
     const values = this.enumTypeAliasVariants(node);
     if (values == null) return;
 
@@ -2007,7 +2039,7 @@ class Extractor {
     const directives = this.collectDirectives(node);
 
     this.definitions.push(
-      this.gql.enumTypeDefinition(node, name, values, description, directives),
+      this.gql.enumTypeDefinition(node, name, values, description, directives, null),
     );
   }
 

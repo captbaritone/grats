@@ -63,6 +63,12 @@ export type GratsConfig = {
   // a TypeScript file which creates a GraphQL Tools style Resolver Map.
   // https://the-guild.dev/graphql/tools/docs/resolvers#resolver-map
   EXPERIMENTAL__emitResolverMap: boolean; // Default: false
+
+  // EXPERIMENTAL: THIS OPTION WILL BE RENAMED OR REMOVED IN A FUTURE RELEASE
+  // Grats will write an additional modules file alongside the generated
+  // TypeScript schema file which exports all enum types for use in front-end
+  // code.
+  EXPERIMENTAL__emitEnums: string | null; // Default: null
 };
 
 export type ParsedCommandLineGrats = Omit<ts.ParsedCommandLine, "raw"> & {
@@ -90,6 +96,7 @@ const VALID_CONFIG_KEYS = new Set([
   "importModuleSpecifierEnding",
   "EXPERIMENTAL__emitMetadata",
   "EXPERIMENTAL__emitResolverMap",
+  "EXPERIMENTAL__emitEnums",
 ]);
 
 // TODO: Make this return diagnostics
@@ -225,6 +232,21 @@ export function validateGratsOptions(
   } else {
     console.warn(
       "Grats: The `EXPERIMENTAL__emitResolverMap` option is experimental and will be renamed or removed in a future release.",
+    );
+  }
+
+  if (gratsOptions.EXPERIMENTAL__emitEnums === undefined) {
+    gratsOptions.EXPERIMENTAL__emitEnums = null;
+  } else if (
+    typeof gratsOptions.EXPERIMENTAL__emitEnums !== "string" &&
+    gratsOptions.EXPERIMENTAL__emitEnums !== null
+  ) {
+    throw new Error(
+      "Grats: The Grats config option `EXPERIMENTAL__emitEnums` must be a string or `null` if provided.",
+    );
+  } else {
+    console.warn(
+      "Grats: The `EXPERIMENTAL__emitEnums` option is experimental and will be renamed or removed in a future release.",
     );
   }
 

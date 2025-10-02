@@ -133,6 +133,10 @@ export class GraphQLConstructor {
     values: readonly EnumValueDefinitionNode[],
     description: StringValueNode | null,
     directives: readonly ConstDirectiveNode[] | null,
+    exported?: {
+      tsModulePath: string;
+      exportName: string | null;
+    } | null,
   ): EnumTypeDefinitionNode {
     return {
       kind: Kind.ENUM_TYPE_DEFINITION,
@@ -141,6 +145,7 @@ export class GraphQLConstructor {
       name,
       values,
       directives: this._optionalList(directives),
+      exported: exported ?? undefined,
     };
   }
 

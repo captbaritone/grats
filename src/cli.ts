@@ -13,7 +13,11 @@ import { writeFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { version } from "../package.json";
 import { locate } from "./Locate";
-import { printGratsSDL, printExecutableSchema } from "./printSchema";
+import {
+  printGratsSDL,
+  printExecutableSchema,
+  printEnumsModule,
+} from "./printSchema";
 import * as ts from "typescript";
 import {
   diagnosticsMessage,
@@ -193,6 +197,16 @@ function writeSchemaFilesAndReport(
     );
     writeFileSync(absOutput, JSON.stringify(resolvers, null, 2));
     console.error(`Grats: Wrote resolver signatures to \`${absOutput}\`.`);
+  }
+
+  if (config.raw.grats.EXPERIMENTAL__emitEnums != null) {
+    const absOutput = resolve(
+      dirname(configPath),
+      config.raw.grats.EXPERIMENTAL__emitEnums,
+    );
+    const enumCode = printEnumsModule(schema, gratsConfig, absOutput);
+    writeFileSync(absOutput, enumCode);
+    console.error(`Grats: Wrote enums module to \`${absOutput}\`.`);
   }
 }
 
