@@ -5,6 +5,7 @@
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
 - **Features**
+  - Added `--fix` flag to automatically fix fixable diagnostics. The CLI can now automatically apply fixes for common issues like incorrect casing in docblock tags and deprecated tag usage. The `--fix` flag works with both single builds and watch mode.
   - Built-in support for serialization/parsing of custom scalars. Grats' generated `getSchema` function now requires a config object which can include serialization/parsing functions for any custom scalars defined in your schema. See [the docs](https://grats.capt.dev/docs/docblock-tags/scalars/#serialization-and-parsing-of-custom-scalars) for details.
 
 - **Performance**

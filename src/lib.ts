@@ -8,12 +8,10 @@ import {
 } from "graphql";
 import {
   DiagnosticsWithoutLocationResult,
-  ReportableDiagnostics,
   graphQlErrorToDiagnostic,
 } from "./utils/DiagnosticError";
 import { concatResults, ResultPipe } from "./utils/Result";
 import { ok, err } from "./utils/Result";
-import { Result } from "./utils/Result";
 import * as ts from "typescript";
 import { ExtractionSnapshot } from "./Extractor";
 import { TypeContext } from "./TypeContext";
@@ -56,7 +54,7 @@ export type SchemaAndDoc = {
 // Exported for tests that want to intercept diagnostic errors.
 export function buildSchemaAndDocResult(
   options: ParsedCommandLineGrats,
-): Result<SchemaAndDoc, ReportableDiagnostics> {
+): DiagnosticsWithoutLocationResult<SchemaAndDoc> {
   // https://stackoverflow.com/a/66604532/1263117
   const compilerHost = ts.createCompilerHost(
     options.options,
@@ -70,15 +68,13 @@ export function buildSchemaAndDocResult(
 export function buildSchemaAndDocResultWithHost(
   options: ParsedCommandLineGrats,
   compilerHost: ts.CompilerHost,
-): Result<SchemaAndDoc, ReportableDiagnostics> {
+): DiagnosticsWithoutLocationResult<SchemaAndDoc> {
   const program = ts.createProgram(
     options.fileNames,
     options.options,
     compilerHost,
   );
-  return new ResultPipe(extractSchemaAndDoc(options, program))
-    .mapErr((e) => new ReportableDiagnostics(compilerHost, e))
-    .result();
+  return extractSchemaAndDoc(options, program);
 }
 
 /**

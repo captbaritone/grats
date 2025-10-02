@@ -134,7 +134,12 @@ const testDirs = [
         compilerHost,
       );
       if (schemaResult.kind === "ERROR") {
-        return err(formatDiagnosticsWithContext(code, schemaResult.err));
+        return err(
+          formatDiagnosticsWithContext(
+            code,
+            ReportableDiagnostics.fromDiagnostics(schemaResult.err),
+          ),
+        );
       }
 
       const { schema, doc, resolvers } = schemaResult.value;
@@ -220,7 +225,11 @@ const testDirs = [
       });
       const schemaResult = buildSchemaAndDocResult(parsedOptions);
       if (schemaResult.kind === "ERROR") {
-        throw new Error(schemaResult.err.formatDiagnosticsWithContext());
+        throw new Error(
+          ReportableDiagnostics.fromDiagnostics(
+            schemaResult.err,
+          ).formatDiagnosticsWithContext(),
+        );
       }
 
       const { schema, doc, resolvers } = schemaResult.value;

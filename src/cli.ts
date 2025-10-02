@@ -19,10 +19,14 @@ import {
   diagnosticsMessage,
   locationlessErr,
   ReportableDiagnostics,
+  DiagnosticsWithoutLocationResult,
 } from "./utils/DiagnosticError";
 import { GratsConfig, ParsedCommandLineGrats } from "./gratsConfig";
-import { err, ok, Result } from "./utils/Result";
+import { err, ok } from "./utils/Result";
 import { cacheFromProgram, cachesAreEqual, RunCache } from "./runCache";
+import { withFixesFixed, FixOptions, applyFixes } from "./fixFixable";
+
+type BuildOptions = FixOptions;
 
 const program = new Command();
 
@@ -35,11 +39,12 @@ program
     "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",
   )
   .option("--watch", "Watch for changes and rebuild schema files as needed")
-  .action(async ({ tsconfig, watch }) => {
+  .option("--fix", "Automatically fix fixable diagnostics")
+  .action(async ({ tsconfig, watch, fix }) => {
     if (watch) {
-      startWatchMode(tsconfig);
+      startWatchMode(tsconfig, { fix });
     } else {
-      runBuild(tsconfig);
+      runBuild(tsconfig, { fix });
     }
   });
 
@@ -68,8 +73,10 @@ program.parse();
 /**
  * Run the compiler in watch mode.
  */
-function startWatchMode(tsconfig: string) {
-  const configInfo = handleDiagnostics(getTsConfig(tsconfig));
+function startWatchMode(tsconfig: string, options: BuildOptions) {
+  const configInfo = handleDiagnostics(
+    withFixesFixed(() => getTsConfig(tsconfig), options),
+  );
   const { configPath } = configInfo;
   let config = configInfo.config;
   const watchHost = ts.createWatchCompilerHost(
@@ -114,17 +121,25 @@ function startWatchMode(tsconfig: string) {
 
     lastRunCache = runCache;
 
+    function fixOrReport(diagnostics: ts.Diagnostic[]) {
+      if (options.fix && applyFixes(diagnostics)) {
+        // Watch mode should re-run after applying fixes
+        return;
+      }
+      reportDiagnostics(diagnostics);
+    }
+
     // It's possible our config was updated, so re-read it.
     const configResult = getTsConfig(tsconfig);
     if (configResult.kind === "ERROR") {
-      reportReportableDiagnostics(configResult.err);
+      fixOrReport(configResult.err);
       return;
     }
     config = configResult.value.config;
     // For now we just rebuild the schema on every change.
     const schemaResult = extractSchemaAndDoc(config, program);
     if (schemaResult.kind === "ERROR") {
-      reportDiagnostics(schemaResult.err);
+      fixOrReport(schemaResult.err);
       return;
     }
     writeSchemaFilesAndReport(schemaResult.value, config, configPath);
@@ -138,10 +153,13 @@ function startWatchMode(tsconfig: string) {
 /**
  * Run the compiler performing a single build.
  */
-function runBuild(tsconfig: string) {
-  const { config, configPath } = handleDiagnostics(getTsConfig(tsconfig));
-  const schemaAndDoc = handleDiagnostics(buildSchemaAndDocResult(config));
-
+function runBuild(tsconfig: string, options: BuildOptions) {
+  const { config, configPath } = handleDiagnostics(
+    withFixesFixed(() => getTsConfig(tsconfig), options),
+  );
+  const schemaAndDoc = handleDiagnostics(
+    withFixesFixed(() => buildSchemaAndDocResult(config), options),
+  );
   writeSchemaFilesAndReport(schemaAndDoc, config, configPath);
 }
 
@@ -193,30 +211,24 @@ function reportReportableDiagnostics(reportable: ReportableDiagnostics) {
 /**
  * Utility function to report diagnostics to the console.
  */
-function handleDiagnostics<T>(result: Result<T, ReportableDiagnostics>): T {
+function handleDiagnostics<T>(result: DiagnosticsWithoutLocationResult<T>): T {
   if (result.kind === "ERROR") {
-    console.error(result.err.formatDiagnosticsWithColorAndContext());
+    const reportable = ReportableDiagnostics.fromDiagnostics(result.err);
+    console.error(reportable.formatDiagnosticsWithColorAndContext());
     process.exit(1);
   }
   return result.value;
 }
 
 // Locate and read the tsconfig.json file
-function getTsConfig(tsconfig?: string): Result<
-  {
-    configPath: string;
-    config: ParsedCommandLineGrats;
-  },
-  ReportableDiagnostics
-> {
+function getTsConfig(tsconfig?: string): DiagnosticsWithoutLocationResult<{
+  configPath: string;
+  config: ParsedCommandLineGrats;
+}> {
   const cwd = process.cwd();
   const configPath = tsconfig || ts.findConfigFile(cwd, ts.sys.fileExists);
   if (configPath == null) {
-    return err(
-      ReportableDiagnostics.fromDiagnostics([
-        locationlessErr(E.tsConfigNotFound(cwd)),
-      ]),
-    );
+    return err([locationlessErr(E.tsConfigNotFound(cwd))]);
   }
   const optionsResult = getParsedTsConfig(configPath);
   if (optionsResult.kind === "ERROR") {
