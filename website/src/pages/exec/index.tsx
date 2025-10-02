@@ -361,7 +361,7 @@ async function exec(gratsCode: string, queryText: string): Promise<any> {
     parsedOptions.options,
     host.compilerHost,
   );
-  const { diagnostics } = programComplete.emit();
+  const { diagnostics: _diagnostics } = programComplete.emit();
 
   const index = fsMap.get("index.js");
 

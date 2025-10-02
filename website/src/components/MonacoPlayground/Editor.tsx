@@ -1,9 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  forwardRef,
-  useImperativeHandle,
-} from "react";
+import React, { useRef, forwardRef } from "react";
 import MonacoEditor from "react-monaco-editor";
 import monaco from "monaco-editor";
 
@@ -20,7 +15,7 @@ interface EditorProps {
 }
 
 export const Editor = forwardRef<EditorRef, EditorProps>(
-  ({ value, language, theme, readOnly = false, onEditorDidMount }, ref) => {
+  ({ value, language, theme, readOnly = false, onEditorDidMount }, _ref) => {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
     const handleEditorDidMount = (

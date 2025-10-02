@@ -6,7 +6,6 @@ import {
   ALL_GQL_TAGS,
   KILLS_PARENT_ON_EXCEPTION_TAG,
   ONE_OF_TAG,
-  TagName,
 } from "./Extractor";
 
 // A line that starts with optional *s followed by @gql or @killsParentOnException
