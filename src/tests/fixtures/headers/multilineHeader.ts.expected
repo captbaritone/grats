@@ -13,6 +13,7 @@ OUTPUT
 -----------------
 -- SDL --
 # Generated SDL
+
 # multi-line
 
 type SomeType {
@@ -20,6 +21,7 @@ type SomeType {
 }
 -- TypeScript --
 // Generated TS
+
 // multi-line
 
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
