@@ -88,13 +88,13 @@ const testDirs = [
     transformer: (code: string, _fileName: string): Result<string, string> => {
       const config = JSON.parse(code);
       let parsed: ParsedCommandLineGrats;
-      let warnings: string[] = [];
+      const warnings: string[] = [];
       const consoleWarn = console.warn;
       console.warn = (msg: string) => {
         warnings.push(msg);
       };
       try {
-        parsed = validateGratsOptions({
+        const parsedResult = validateGratsOptions({
           options: {},
           raw: {
             grats: config,
@@ -102,6 +102,14 @@ const testDirs = [
           errors: [],
           fileNames: [],
         });
+        if (parsedResult.kind === "ERROR") {
+          return err(
+            ReportableDiagnostics.fromDiagnostics(
+              parsedResult.err,
+            ).formatDiagnosticsWithContext(),
+          );
+        }
+        parsed = parsedResult.value;
       } catch (e) {
         return err(e.message);
       }

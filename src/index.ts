@@ -31,5 +31,5 @@ export function getParsedTsConfig(
     return err(parsed.errors);
   }
 
-  return ok(validateGratsOptions(parsed));
+  return validateGratsOptions(parsed);
 }
