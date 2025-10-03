@@ -3,60 +3,23 @@ import { err, ok, Result } from "./utils/Result";
 import { invariant } from "./utils/helpers";
 import { diagnosticsMessage } from "./utils/DiagnosticError";
 import * as _GratsConfigSpec from "./configSpec.json";
+import * as fs from "fs";
+import * as path from "path";
+import { GratsConfig } from "./TGratsConfig";
 
-// TypeScript does not preserve string literal types when importing JSON.
-const GratsConfigSpec: ConfigSpec = _GratsConfigSpec as any;
+/**
+ * For Grats's config object we need the following:
+ *
+ * - Post/parsing/validation TypeScript type
+ * - Runtime validation
+ * - Documentation (in code and on website)
+ *
+ * And we need to ensure all three stay in sync. To that end, we define the
+ * config spec in JSON, which is used to generate the TypeScript type,
+ * runtime validation, and documentation.
+ */
 
-export type GratsConfig = {
-  /**
-   * Where Grats should write your schema file. Path is relative to the `tsconfig.json` file.
-   */
-  graphqlSchema: string;
-  /**
-   * Where Grats should write your executable TypeScript schema file. Path is relative to the `tsconfig.json` file.
-   */
-  tsSchema: string;
-  /**
-   * Should all fields be typed as nullable in accordance with GraphQL best practices? Individual fields can declare themselves as non-nullable by adding the docblock tag `@killsParentOnException`. See https://graphql.org/learn/best-practices/#nullability
-   */
-  nullableByDefault: boolean;
-  /**
-   * Experimental feature to add `@semanticNonNull` to all fields which have non-null TypeScript return types, but which are made nullable by the `nullableByDefault` option. This feature allows clients which handle errors out of band, for example by discarding responses with errors, to know which fields are expected to be non-null in the absence of errors. See https://grats.capt.dev/docs/guides/strict-semantic-nullability. It is an error to enable `strictSemanticNullability` if `nullableByDefault` is false.
-   */
-  strictSemanticNullability: boolean;
-  /**
-   * Should Grats error if it encounters a TypeScript type error? Note that Grats will always error if it encounters a TypeScript syntax error.
-   */
-  reportTypeScriptTypeErrors: boolean;
-  /**
-   * A string to prepend to the generated schema text. Useful for copyright headers or other information to the generated file. Set to `null` to omit the default header.
-   */
-  schemaHeader: string | null;
-  /**
-   * A string to prepend to the generated TypeScript schema file. Useful for copyright headers or other information to the generated file. Set to `null` to omit the default header.
-   */
-  tsSchemaHeader: string | null;
-  /**
-   * A string to prepend to the generated TypeScript enums file. Useful for copyright headers or other information to the generated file. Set to `null` to omit the default header.
-   */
-  EXPERIMENTAL_tsEnumsHeader: string | null;
-  /**
-   * This option allows you configure an extension that will be appended to the end of all import paths in the generated TypeScript schema file. When building a package that uses ES modules, import paths must not omit the file extension. In TypeScript code this generally means import paths must end with `.js`. If set to null, no ending will be appended.
-   */
-  importModuleSpecifierEnding: string;
-  /**
-   * EXPERIMENTAL: Emit a JSON file alongside the generated schema file which contains the metadata containing information about the resolvers.
-   */
-  EXPERIMENTAL__emitMetadata: boolean;
-  /**
-   * EXPERIMENTAL: Instead of emitting a TypeScript file which creates a GraphQLSchema, emit a TypeScript file which creates a GraphQL Tools style Resolver Map. https://the-guild.dev/graphql/tools/docs/resolvers#resolver-map
-   */
-  EXPERIMENTAL__emitResolverMap: boolean;
-  /**
-   * EXPERIMENTAL: Grats will write an additional modules file alongside the generated TypeScript schema file which exports all enum types for use in front-end code.
-   */
-  EXPERIMENTAL__emitEnums: string | null;
-};
+export { GratsConfig };
 
 export type ParsedCommandLineGrats = Omit<ts.ParsedCommandLine, "raw"> & {
   raw: {
@@ -64,7 +27,9 @@ export type ParsedCommandLineGrats = Omit<ts.ParsedCommandLine, "raw"> & {
   };
 };
 
-// TODO: Make this return diagnostics
+// TypeScript does not preserve string literal types when importing JSON.
+const GratsConfigSpec: ConfigSpec = _GratsConfigSpec as any;
+
 export function validateGratsOptions(
   options: ts.ParsedCommandLine,
 ): Result<ParsedCommandLineGrats, ts.Diagnostic[]> {
@@ -80,7 +45,8 @@ export function validateGratsOptions(
   });
 }
 
-type ConfigSpec = {
+export type ConfigSpec = {
+  description: string;
   typeName: string;
   properties: {
     [propertyName: string]: PropertySpec;
@@ -121,14 +87,56 @@ export function makeTypeScriptType(spec: ConfigSpec): string {
     })();
     lines.push(
       `  /**`,
-      ...property.description.split("\n").map((line) => `   * ${line}`),
-      // `   * @default ${JSON.stringify(property.default)}`,
+      simpleWordWrap(property.description, "   * ", 76),
       `   */`,
       `  ${key}: ${typeString}${property.nullable ? " | null" : ""};`,
     );
   }
   lines.push("};");
   return lines.join("\n");
+}
+
+function simpleWordWrap(
+  text: string,
+  linePrefix: string,
+  width: number,
+): string {
+  const lines: string[] = [];
+  for (const paragraph of text.split("\n")) {
+    let currentLine = linePrefix;
+    for (const word of paragraph.split(" ")) {
+      if ((currentLine + " " + word).length > width) {
+        lines.push(currentLine);
+        currentLine = linePrefix + word;
+      } else {
+        if (currentLine === linePrefix) {
+          currentLine += word;
+        } else {
+          currentLine += " " + word;
+        }
+      }
+    }
+    if (currentLine !== linePrefix) {
+      lines.push(currentLine);
+    }
+  }
+  return lines.join("\n");
+}
+
+export function writeTypeScriptTypeToDisk(): void {
+  const doc = `/**
+ * This file is generated by src/gratsConfigBeta.ts. Do not edit directly.
+ * Run \`pnpm run test\` to regenerate.
+ */
+
+/**
+ * Describes the shape of the Grats config after parsing, validation, and
+ * defaults.
+ */
+${makeTypeScriptType(GratsConfigSpec)}
+`;
+  const outPath = path.join(__dirname, "TGratsConfig.ts");
+  fs.writeFileSync(outPath, doc, "utf8");
 }
 
 function parseConfig<T>(spec: ConfigSpec, config: any): Result<T, string> {

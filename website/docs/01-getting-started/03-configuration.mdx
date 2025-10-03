@@ -1,0 +1,23 @@
+import * as GratsConfigSpec from "../../../src/configSpec.json";
+import ConfigDocs from "../../src/components/ConfigDocs";
+
+# Configuration
+
+Grats has a few configuration options. They can be set under the `"grats"` key in your in your project's `tsconfig.json` file:
+
+```json title="tsconfig.json"
+{
+  "grats": {
+    // Config options go here. See below:
+  },
+  "compilerOptions": {
+    // ... TypeScript config...
+  }
+}
+```
+
+<ConfigDocs configSpec={GratsConfigSpec} />
+
+# Options
+
+All configuration options are optional. Below is a list of all available options, their types, descriptions, and default values.
