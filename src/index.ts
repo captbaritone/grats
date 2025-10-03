@@ -9,6 +9,7 @@ export * from "./lib";
 // Used by the experimental TypeScript plugin
 export { extract } from "./Extractor";
 export { codegen } from "./codegen/schemaCodegen";
+export { ReportableDiagnostics } from "./utils/DiagnosticError";
 
 // #FIXME: Report diagnostics instead of throwing!
 export function getParsedTsConfig(
