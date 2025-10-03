@@ -1,7 +1,7 @@
 import * as ts from "typescript";
 import { ParsedCommandLineGrats, validateGratsOptions } from "./gratsConfig";
 import { DiagnosticsWithoutLocationResult } from "./utils/DiagnosticError";
-import { err, ok } from "./utils/Result";
+import { err } from "./utils/Result";
 
 export { printSDLWithoutMetadata } from "./printSchema";
 export * from "./Types";

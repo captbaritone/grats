@@ -1,7 +1,7 @@
 import * as ts from "typescript";
 import { err, ok, Result } from "./utils/Result";
 import { invariant } from "./utils/helpers";
-import { diagnosticsMessage, locationlessErr } from "./utils/DiagnosticError";
+import { locationlessErr } from "./utils/DiagnosticError";
 import * as _GratsConfigSpec from "./configSpec.json";
 import * as fs from "fs";
 import * as path from "path";
