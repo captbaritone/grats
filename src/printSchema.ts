@@ -8,6 +8,7 @@ import { GratsConfig } from "./gratsConfig";
 import { codegen } from "./codegen/schemaCodegen";
 import { Metadata } from "./metadata";
 import { resolverMapCodegen } from "./codegen/resolverMapCodegen";
+import { codegenEnums } from "./codegen/enumCodegen";
 import { mapDefinitions } from "./utils/visitor";
 
 /**
@@ -33,6 +34,13 @@ export function applyTypeScriptHeader(
   return formatHeader(config.tsSchemaHeader, code);
 }
 
+export function applyTypeScriptEnumHeader(
+  config: GratsConfig,
+  code: string,
+): string {
+  return formatHeader(config.EXPERIMENTAL_tsEnumsHeader, code);
+}
+
 /**
  * Prints SDL, potentially omitting directives depending upon the config.
  * Includes the user-defined (or default) header comment if provided.
@@ -44,6 +52,19 @@ export function printGratsSDL(doc: DocumentNode, config: GratsConfig): string {
 
 export function applySDLHeader(config: GratsConfig, sdl: string): string {
   return formatHeader(config.schemaHeader, sdl);
+}
+
+/**
+ * Prints TypeScript code for a module that exports all enums.
+ * Includes the user-defined (or default) header comment if provided.
+ */
+export function printEnumsModule(
+  schema: GraphQLSchema,
+  config: GratsConfig,
+  destination: string,
+): string {
+  const code = codegenEnums(schema, config, destination);
+  return applyTypeScriptEnumHeader(config, code);
 }
 
 export function printSDLWithoutMetadata(doc: DocumentNode): string {

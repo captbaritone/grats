@@ -9,6 +9,7 @@ website/build
 src/tests/fixtures/user_error/InvalidSyntax.invalid.ts
 **/schema.graphql
 **/schema.ts
+**/enums.ts
 examples/incremental-migration/schemas/gratsGeneratedSchema.ts
 .next
 

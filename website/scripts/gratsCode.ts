@@ -31,8 +31,10 @@ function processFile(file: string) {
     strictSemanticNullability: false,
     schemaHeader: null,
     tsSchemaHeader: null,
+    EXPERIMENTAL_tsEnumsHeader: null,
     EXPERIMENTAL__emitMetadata: false,
     EXPERIMENTAL__emitResolverMap: false,
+    EXPERIMENTAL__emitEnums: null,
   };
   const parsedOptions = {
     options: {},

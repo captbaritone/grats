@@ -92,6 +92,16 @@ declare module "graphql" {
     tsName?: string;
   }
 
+  export interface EnumTypeDefinitionNode {
+    /**
+     * Grats metadata: Export information for the enum.
+     */
+    exported?: {
+      tsModulePath: string;
+      exportName: string | null;
+    };
+  }
+
   export interface ScalarTypeDefinitionNode {
     /**
      * Grats metadata: The module path and export name of the scalar implementation.

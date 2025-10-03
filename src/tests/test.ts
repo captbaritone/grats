@@ -18,6 +18,7 @@ import { locate } from "../Locate";
 import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError";
 import { readFileSync, writeFileSync } from "fs";
 import { codegen } from "../codegen/schemaCodegen";
+import { printEnumsModule } from "../printSchema";
 import { diff } from "jest-diff";
 import * as semver from "semver";
 import {
@@ -193,7 +194,7 @@ const testDirs = [
   {
     fixturesDir: integrationFixturesDir,
     testFilePattern: /index.ts$/,
-    ignoreFilePattern: /schema.ts$/,
+    ignoreFilePattern: /(schema)|(enums).ts$/,
     transformer: async (
       code: string,
       fileName: string,
@@ -243,6 +244,20 @@ const testDirs = [
       );
 
       writeFileSync(schemaPath, tsSchema);
+
+      // Generate enums file if EXPERIMENTAL__emitEnums is configured
+      if (parsedOptions.raw.grats.EXPERIMENTAL__emitEnums) {
+        const enumsPath = path.join(
+          path.dirname(filePath),
+          parsedOptions.raw.grats.EXPERIMENTAL__emitEnums,
+        );
+        const enumsCode = printEnumsModule(
+          schema,
+          parsedOptions.raw.grats,
+          enumsPath,
+        );
+        writeFileSync(enumsPath, enumsCode);
+      }
 
       const server = await import(filePath);
 
