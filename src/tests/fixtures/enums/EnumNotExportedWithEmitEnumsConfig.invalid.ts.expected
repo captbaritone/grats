@@ -44,3 +44,24 @@ src/tests/fixtures/enums/EnumNotExportedWithEmitEnumsConfig.invalid.ts:4:1 - err
 - enum Color {
 + export enum Color {
     RED = "red",
+
+-- Applied Fixes --
+  * Applied fix "Add export keyword to enum with @gqlEnum" in grats/src/tests/fixtures/enums/EnumNotExportedWithEmitEnumsConfig.invalid.ts
+
+-- Fixed Text --
+// {"EXPERIMENTAL__emitEnums": "enums.ts"}
+
+/** @gqlEnum */
+export enum Color {
+  RED = "red",
+  GREEN = "green",
+  BLUE = "blue",
+}
+
+/** @gqlType */
+type Query = unknown;
+
+/** @gqlField */
+export function favoriteColor(_: Query): Color {
+  return Color.RED;
+}
