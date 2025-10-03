@@ -22,3 +22,10 @@ src/tests/fixtures/user_error/WrongCaseGqlTag.invalid.ts:1:6 - error: Incorrect 
 - /** @GQLField */
 + /** @gqlField */
   function field() {}
+
+-- Applied Fixes --
+  * Applied fix "Change to @gqlField" in grats/src/tests/fixtures/user_error/WrongCaseGqlTag.invalid.ts
+
+-- Fixed Text --
+/** @gqlField */
+function field() {}

@@ -16,7 +16,7 @@ import {
 import { Command } from "commander";
 import { locate } from "../Locate";
 import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError";
-import { writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { codegen } from "../codegen/schemaCodegen";
 import { diff } from "jest-diff";
 import * as semver from "semver";
@@ -29,6 +29,7 @@ import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
 import { applySDLHeader, applyTypeScriptHeader } from "../printSchema";
 import { extend } from "../utils/helpers";
 import { Result, ok, err } from "../utils/Result";
+import { applyFixes } from "../fixFixable";
 
 const TS_VERSION = ts.version;
 
@@ -357,13 +358,36 @@ function formatDiagnosticsWithContext(
     return formatted;
   }
 
+  const fixable = diagnostics._diagnostics.filter((d) => d.fix != null);
+  const logEvents: string[] = [];
+  function log(event: string) {
+    logEvents.push(event);
+  }
+
+  let fixedText = "";
+
+  if (fixable.length > 0) {
+    const fileName = fixable[0].file?.fileName;
+    if (fileName == null) {
+      throw new Error("Cannot apply fixes to diagnostic with no file");
+    }
+
+    const current = readFileSync(fileName, "utf8");
+    applyFixes(diagnostics._diagnostics, { fix: true, log });
+    const newText = readFileSync(fileName, "utf8");
+
+    writeFileSync(fileName, current, "utf8");
+
+    fixedText = `\n\n-- Applied Fixes --\n${logEvents.join("\n")}\n\n-- Fixed Text --\n${newText}`;
+  }
+
   const actionText = actions
     .map((action) => {
       return `-- Code Action: "${action.description}" (${action.fixName}) --\n${action.diff}`;
     })
     .join("\n");
 
-  return `-- Error Report --\n${formatted}\n${actionText}`;
+  return `-- Error Report --\n${formatted}\n${actionText}${fixedText}`;
 }
 
 program.parse();

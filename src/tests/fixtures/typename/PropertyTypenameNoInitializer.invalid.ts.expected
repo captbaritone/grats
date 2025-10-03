@@ -27,3 +27,14 @@ src/tests/fixtures/typename/PropertyTypenameNoInitializer.invalid.ts:3:15 - erro
 -   __typename: string;
 +   __typename: "User";
     /** @gqlField */
+
+-- Applied Fixes --
+  * Applied fix "Create Grats-compatible `__typename` type" in grats/src/tests/fixtures/typename/PropertyTypenameNoInitializer.invalid.ts
+
+-- Fixed Text --
+/** @gqlType */
+export class User {
+  __typename: "User";
+  /** @gqlField */
+  name: string = "Alice";
+}

@@ -33,3 +33,20 @@ src/tests/fixtures/typename/PropertySignatureTypenameNonLiteralType.invalid.ts:3
 -   __typename: string;
 +   __typename: "User";
     /** @gqlField */
+
+-- Applied Fixes --
+  * Applied fix "Create Grats-compatible `__typename` type" in grats/src/tests/fixtures/typename/PropertySignatureTypenameNonLiteralType.invalid.ts
+
+-- Fixed Text --
+/** @gqlType */
+export class User implements IPerson {
+  __typename: "User";
+  /** @gqlField */
+  name: string;
+}
+
+/** @gqlInterface */
+export interface IPerson {
+  /** @gqlField */
+  name: string;
+}

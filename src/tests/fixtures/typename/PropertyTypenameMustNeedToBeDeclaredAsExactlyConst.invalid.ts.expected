@@ -29,3 +29,16 @@ src/tests/fixtures/typename/PropertyTypenameMustNeedToBeDeclaredAsExactlyConst.i
 -   __typename = "User" as Foo;
 +   __typename = "User" as const;
     /** @gqlField */
+
+-- Applied Fixes --
+  * Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/typename/PropertyTypenameMustNeedToBeDeclaredAsExactlyConst.invalid.ts
+
+-- Fixed Text --
+/** @gqlType */
+export class User {
+  __typename = "User" as const;
+  /** @gqlField */
+  name: string = "Alice";
+}
+
+type Foo = string;

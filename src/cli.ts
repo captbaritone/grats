@@ -42,9 +42,9 @@ program
   .option("--fix", "Automatically fix fixable diagnostics")
   .action(async ({ tsconfig, watch, fix }) => {
     if (watch) {
-      startWatchMode(tsconfig, { fix });
+      startWatchMode(tsconfig, { fix, log: console.error });
     } else {
-      runBuild(tsconfig, { fix });
+      runBuild(tsconfig, { fix, log: console.error });
     }
   });
 
@@ -122,7 +122,7 @@ function startWatchMode(tsconfig: string, options: BuildOptions) {
     lastRunCache = runCache;
 
     function fixOrReport(diagnostics: ts.Diagnostic[]) {
-      if (options.fix && applyFixes(diagnostics)) {
+      if (options.fix && applyFixes(diagnostics, options)) {
         // Watch mode should re-run after applying fixes
         return;
       }

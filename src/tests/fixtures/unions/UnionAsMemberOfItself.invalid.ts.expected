@@ -57,3 +57,31 @@ src/tests/fixtures/unions/UnionAsMemberOfItself.invalid.ts:16:16 - error: Expect
 -   __typename = "Entity";
 +   __typename = "Entity" as const;
     /** @gqlField */
+
+-- Applied Fixes --
+  * Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/unions/UnionAsMemberOfItself.invalid.ts
+  * Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/unions/UnionAsMemberOfItself.invalid.ts
+
+-- Fixed Text --
+/** @gqlType */
+export default class SomeType {
+  /** @gqlField */
+  me: Actor;
+}
+
+/** @gqlType */
+class User {
+  __typename = "User" as const;
+  /** @gqlField */
+  name: string;
+}
+
+/** @gqlType */
+class Entity {
+  __typename = "Entity" as const;
+  /** @gqlField */
+  description: string;
+}
+
+/** @gqlUnion */
+type Actor = User | Entity | Actor;

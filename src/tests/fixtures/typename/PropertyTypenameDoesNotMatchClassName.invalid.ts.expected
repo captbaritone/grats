@@ -27,3 +27,14 @@ src/tests/fixtures/typename/PropertyTypenameDoesNotMatchClassName.invalid.ts:3:1
 -   __typename = "Group" as const;
 +   __typename = "User" as const;
     /** @gqlField */
+
+-- Applied Fixes --
+  * Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/typename/PropertyTypenameDoesNotMatchClassName.invalid.ts
+
+-- Fixed Text --
+/** @gqlType */
+export class User {
+  __typename = "User" as const;
+  /** @gqlField */
+  name: string = "Alice";
+}

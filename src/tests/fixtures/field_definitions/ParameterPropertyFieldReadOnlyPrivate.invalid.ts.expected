@@ -33,3 +33,18 @@ Learn more: https://grats.capt.dev/docs/docblock-tags/fields#class-based-fields
 -     private readonly hello: string,
 +     public readonly hello: string,
     ) {}
+
+-- Applied Fixes --
+  * Applied fix "Make parameter property public" in grats/src/tests/fixtures/field_definitions/ParameterPropertyFieldReadOnlyPrivate.invalid.ts
+
+-- Fixed Text --
+/** @gqlType */
+export default class SomeType {
+  constructor(
+    /**
+     * Greet the world!
+     * @gqlField
+     */
+    public readonly hello: string,
+  ) {}
+}

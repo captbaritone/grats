@@ -8,6 +8,7 @@ import { relativePath } from "./gratsRoot";
 
 export type FixOptions = {
   fix: boolean;
+  log: (msg: string) => void;
 };
 
 /**
@@ -28,7 +29,7 @@ export function withFixesFixed<T>(
 
   for (let iteration = 0; iteration <= maxIterations; iteration++) {
     if (iteration > 0) {
-      console.error(
+      options.log(
         `\nGrats: Re-running with fixes applied (iteration ${iteration})...\n`,
       );
     }
@@ -37,7 +38,7 @@ export function withFixesFixed<T>(
     if (result.kind === "OK") {
       if (totalFixesApplied > 0 && iteration > 2) {
         const fixes = totalFixesApplied === 1 ? "fix" : "fixes total";
-        console.error(`Grats: Applied ${totalFixesApplied} ${fixes}.`);
+        options.log(`Grats: Applied ${totalFixesApplied} ${fixes}.`);
       }
       return result;
     }
@@ -53,17 +54,17 @@ export function withFixesFixed<T>(
     }
 
     const issues = fixableDiagnostics.length === 1 ? "issue" : "issues";
-    console.error(
+    options.log(
       `Grats: Identified ${fixableDiagnostics.length} fixable ${issues}:`,
     );
 
     // Apply fixes
-    applyFixes(fixableDiagnostics);
+    applyFixes(fixableDiagnostics, options);
     totalFixesApplied += fixableDiagnostics.length;
   }
 
   // If we reach here, we've hit max iterations - return the last result
-  console.error(
+  options.log(
     `Grats: Reached maximum iterations (${maxIterations}). Some issues may remain.`,
   );
   return resultFn();
@@ -74,7 +75,10 @@ export function withFixesFixed<T>(
  *
  * Returns true if any files were changed, false otherwise.
  */
-export function applyFixes(fixableDiagnostics: FixableDiagnostic[]): boolean {
+export function applyFixes(
+  fixableDiagnostics: FixableDiagnostic[],
+  options: FixOptions,
+): boolean {
   let appliedAnyFixes = false;
 
   // Group diagnostics by file to batch changes
@@ -124,7 +128,7 @@ export function applyFixes(fixableDiagnostics: FixableDiagnostic[]): boolean {
         const after = newContent.slice(change.span.start + change.span.length);
         newContent = before + change.newText + after;
 
-        console.error(
+        options.log(
           `  * Applied fix "${description}" in ${relativePath(fileName)}`,
         );
       }
@@ -132,7 +136,7 @@ export function applyFixes(fixableDiagnostics: FixableDiagnostic[]): boolean {
       writeFileSync(fileName, newContent, "utf8");
       appliedAnyFixes = true;
     } catch (error) {
-      console.error(`Grats: Failed to apply fix to ${fileName}:`, error);
+      options.log(`Grats: Failed to apply fix to ${fileName}: ${error}`);
     }
   }
 

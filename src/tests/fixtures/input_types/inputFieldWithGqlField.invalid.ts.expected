@@ -26,3 +26,13 @@ src/tests/fixtures/input_types/inputFieldWithGqlField.invalid.ts:3:7 - error: Th
 -   /** @gqlField */
 +   
     name: string;
+
+-- Applied Fixes --
+  * Applied fix "Remove @gqlField tag" in grats/src/tests/fixtures/input_types/inputFieldWithGqlField.invalid.ts
+
+-- Fixed Text --
+/** @gqlInput */
+type Foo = {
+  
+  name: string;
+};

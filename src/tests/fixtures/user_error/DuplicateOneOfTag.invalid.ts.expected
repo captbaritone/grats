@@ -38,3 +38,15 @@ src/tests/fixtures/user_error/DuplicateOneOfTag.invalid.ts:3:4 - error: Unexpect
 -  */
 +  * */
   type Foo = {
+
+-- Applied Fixes --
+  * Applied fix "Remove duplicate @oneOf tag" in grats/src/tests/fixtures/user_error/DuplicateOneOfTag.invalid.ts
+
+-- Fixed Text --
+/**
+ * @gqlInput
+ * @oneOf
+ * */
+type Foo = {
+  a: string;
+};
