@@ -7,7 +7,7 @@ This directory contains example projects that use Grats. You can read more about
 These examples also operate as integration tests for Grats. You can run them with:
 
 ```bash
-pnpm run integration-tests
+pnpm run test-example-projects
 ```
 
 Each project is expected to implement a common schema subset and the integration tests will take the following steps:
@@ -17,6 +17,8 @@ Each project is expected to implement a common schema subset and the integration
 2. Wait for exactly one line of output from the project to signal it's ready
 3. Send a series of queries to the project's GraphQL endpoint (default `/graphql` on port 4000)
 4. Assert that the responses match the expected output
+
+See also https://grats.capt.dev/docs/faq/testing-strategy/
 
 ## `testConfig.json`
 

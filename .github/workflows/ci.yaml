@@ -31,8 +31,8 @@ jobs:
         run: pnpm install -r
       - name: Build Other Packages (excluding docs website)
         run: pnpm run --filter="!website" -r build
-      - name: Run Integration Tests
-        run: pnpm run integration-tests
+      - name: Test Example Projects
+        run: pnpm run test-example-projects
       - name: Build Docs Website
         working-directory: ./website
         run: ./scripts/build.sh

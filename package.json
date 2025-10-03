@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "test": "ts-node src/tests/test.ts",
-    "integration-tests": "node src/tests/integration.mjs",
+    "test-example-projects": "node src/tests/testExampleProjects.mjs",
     "build": "rm -rf dist/ && tsc --build",
     "format": "prettier . --write",
     "lint": "eslint . && prettier . --check",
