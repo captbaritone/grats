@@ -46,6 +46,12 @@ export type GratsConfig = {
   // the default header.
   tsSchemaHeader: string | null; // Defaults to info about Grats
 
+  // EXPERIMENTAL: THIS OPTION WILL BE RENAMED OR REMOVED IN A FUTURE RELEASE
+  // A string to prepend to the generated TypeScript enums file. Useful for copyright
+  // headers or other information to the generated file. Set to `null` to omit
+  // the default header.
+  EXPERIMENTAL_tsEnumsHeader: string | null; // Defaults to info about Grats
+
   // This option allows you configure an extension that will be appended
   // to the end of all import paths in the generated TypeScript schema file.
   // When building a package that uses ES modules, import paths must not omit the
@@ -97,6 +103,7 @@ const VALID_CONFIG_KEYS = new Set([
   "EXPERIMENTAL__emitMetadata",
   "EXPERIMENTAL__emitResolverMap",
   "EXPERIMENTAL__emitEnums",
+  "EXPERIMENTAL_tsEnumsHeader",
 ]);
 
 // TODO: Make this return diagnostics
@@ -200,6 +207,28 @@ export function validateGratsOptions(
   ) {
     throw new Error(
       "Grats: The Grats config option `tsSchemaHeader` must be a string, an array of strings, or `null` if provided.",
+    );
+  }
+
+  if (gratsOptions.EXPERIMENTAL_tsEnumsHeader === undefined) {
+    gratsOptions.EXPERIMENTAL_tsEnumsHeader = DEFAULT_TYPESCRIPT_HEADER;
+  } else if (Array.isArray(gratsOptions.EXPERIMENTAL_tsEnumsHeader)) {
+    if (
+      !gratsOptions.EXPERIMENTAL_tsEnumsHeader.every(
+        (segment) => typeof segment === "string",
+      )
+    ) {
+      throw new Error(
+        "Grats: If the Grats config option `EXPERIMENTAL_tsEnumsHeader` is an array, it must be an array of strings.",
+      );
+    }
+    gratsOptions.EXPERIMENTAL_tsEnumsHeader = gratsOptions.EXPERIMENTAL_tsEnumsHeader.join("");
+  } else if (
+    typeof gratsOptions.EXPERIMENTAL_tsEnumsHeader !== "string" &&
+    gratsOptions.EXPERIMENTAL_tsEnumsHeader !== null
+  ) {
+    throw new Error(
+      "Grats: The Grats config option `EXPERIMENTAL_tsEnumsHeader` must be a string, an array of strings, or `null` if provided.",
     );
   }
 
