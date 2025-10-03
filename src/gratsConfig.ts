@@ -227,7 +227,8 @@ export function validateGratsOptions(
         "Grats: If the Grats config option `EXPERIMENTAL_tsEnumsHeader` is an array, it must be an array of strings.",
       );
     }
-    gratsOptions.EXPERIMENTAL_tsEnumsHeader = gratsOptions.EXPERIMENTAL_tsEnumsHeader.join("");
+    gratsOptions.EXPERIMENTAL_tsEnumsHeader =
+      gratsOptions.EXPERIMENTAL_tsEnumsHeader.join("");
   } else if (
     typeof gratsOptions.EXPERIMENTAL_tsEnumsHeader !== "string" &&
     gratsOptions.EXPERIMENTAL_tsEnumsHeader !== null
