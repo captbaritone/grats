@@ -38,7 +38,7 @@ your repository. This approach has several advantages:
 
 ## Managing autoformatting and generated files
 
-We recommend that you disable autoformatting for the generated files. For example by adding the generated file paths to your `.prettierignore` file. Note that these paths will be different if you've changed their location in your [Grats configuration](../01-getting-started/03-configuration.md).
+We recommend that you disable autoformatting for the generated files. For example by adding the generated file paths to your `.prettierignore` file. Note that these paths will be different if you've changed their location in your [Grats configuration](../01-getting-started/03-configuration.mdx).
 
 ```txt title="/.prettierignore"
 ./schema.graphql
