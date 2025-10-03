@@ -1,0 +1,11 @@
+-----------------
+INPUT
+----------------- 
+{
+  "importModuleSpecifierEnding": null
+}
+
+-----------------
+OUTPUT
+-----------------
+Grats: The Grats config option `importModuleSpecifierEnding` must be a string if provided.

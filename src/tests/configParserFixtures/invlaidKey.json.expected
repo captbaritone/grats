@@ -1,0 +1,11 @@
+-----------------
+INPUT
+----------------- 
+{
+  "lol": true
+}
+
+-----------------
+OUTPUT
+-----------------
+Grats: Unknown Grats config option `lol`

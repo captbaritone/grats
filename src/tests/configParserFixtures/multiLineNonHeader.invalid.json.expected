@@ -1,0 +1,11 @@
+-----------------
+INPUT
+----------------- 
+{
+  "tsSchema": ["/path/", "to/", "schema.ts"]
+}
+
+-----------------
+OUTPUT
+-----------------
+Grats: The Grats config option `tsSchema` must be a string if provided.
