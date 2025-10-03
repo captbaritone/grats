@@ -31,7 +31,7 @@ import { applySDLHeader, applyTypeScriptHeader } from "../printSchema";
 import { extend } from "../utils/helpers";
 import { Result, ok, err } from "../utils/Result";
 import { applyFixes } from "../fixFixable";
-import { writeTypeScriptTypeToDisk } from "../gratsConfigBeta";
+import { writeTypeScriptTypeToDisk } from "../gratsConfig";
 
 writeTypeScriptTypeToDisk();
 

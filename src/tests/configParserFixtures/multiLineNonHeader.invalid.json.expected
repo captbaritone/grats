@@ -8,4 +8,4 @@ INPUT
 -----------------
 OUTPUT
 -----------------
-Grats: The Grats config option `tsSchema` must be a string if provided.
+error: Expected property `tsSchema` to be a string, but got ["/path/","to/","schema.ts"].

@@ -8,4 +8,4 @@ INPUT
 -----------------
 OUTPUT
 -----------------
-Grats: Unknown Grats config option `lol`
+error: Unknown Grats config option `lol`.

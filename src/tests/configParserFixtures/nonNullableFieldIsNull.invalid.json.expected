@@ -8,4 +8,4 @@ INPUT
 -----------------
 OUTPUT
 -----------------
-Grats: The Grats config option `importModuleSpecifierEnding` must be a string if provided.
+error: The Grats config option `importModuleSpecifierEnding` must be a `string` if provided.
