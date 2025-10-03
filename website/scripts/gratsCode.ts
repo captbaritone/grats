@@ -1,6 +1,11 @@
 import fs from "fs";
-import { buildSchemaAndDocResult, codegen } from "grats";
-import { printSDLWithoutMetadata, GratsConfig } from "grats";
+import { buildSchemaAndDocResult } from "grats/src/lib";
+import { codegen } from "grats/src/codegen/schemaCodegen";
+import { printSDLWithoutMetadata } from "grats/src/printSchema";
+import { ReportableDiagnostics } from "grats/src/utils/DiagnosticError";
+import type { GratsConfig } from "grats/src/gratsConfig";
+// Import to ensure GraphQL AST extensions are loaded
+import "grats/src/GraphQLAstExtensions";
 import glob from "glob";
 
 async function main() {
@@ -39,7 +44,8 @@ function processFile(file: string) {
   };
   const schemaAndDocResult = buildSchemaAndDocResult(parsedOptions);
   if (schemaAndDocResult.kind === "ERROR") {
-    const errors = schemaAndDocResult.err.formatDiagnosticsWithContext();
+    const reportableDiagnostics = ReportableDiagnostics.fromDiagnostics(schemaAndDocResult.err);
+    const errors = reportableDiagnostics.formatDiagnosticsWithContext();
     console.error(errors);
     throw new Error("Invalid grats code");
   }
