@@ -34,6 +34,13 @@ export function applyTypeScriptHeader(
   return formatHeader(config.tsSchemaHeader, code);
 }
 
+export function applyTypeScriptEnumHeader(
+  config: GratsConfig,
+  code: string,
+): string {
+  return formatHeader(config.EXPERIMENTAL_tsEnumsHeader, code);
+}
+
 /**
  * Prints SDL, potentially omitting directives depending upon the config.
  * Includes the user-defined (or default) header comment if provided.
@@ -57,7 +64,7 @@ export function printEnumsModule(
   destination: string,
 ): string {
   const code = codegenEnums(schema, config, destination);
-  return applyTypeScriptHeader(config, code);
+  return applyTypeScriptEnumHeader(config, code);
 }
 
 export function printSDLWithoutMetadata(doc: DocumentNode): string {
