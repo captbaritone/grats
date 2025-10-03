@@ -29,6 +29,16 @@ jobs:
         run: pnpm run build
       - name: Install dependencies
         run: pnpm install -r
+      - name: Build Grats for each project
+        run: pnpm run --filter="!website" -r grats
+      - name: Assert no files changed after grats generation
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Files were modified after running grats:"
+            git status --porcelain
+            git diff
+            exit 1
+          fi
       - name: Build Other Packages (excluding docs website)
         run: pnpm run --filter="!website" -r build
       - name: Test Example Projects
