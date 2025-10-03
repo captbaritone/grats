@@ -2,7 +2,7 @@
 
 Grats's interface is a command-line utility for extracting your project's GraphQL schema. It aims to be user friendly and helpful! You should expect the Grats CLI to give helpful error messages which guide you to a solution
 
-Grats gets it's [configuration options](./03-configuration.md) from your project's `tsconfig.json` file. By default Grats uses the TypeScript's own algorithm for locating your project's `tsconfig.json`. However, if you wish to use a different `tsconfig.json` file, you can specify it with the `--tsconfig` option.
+Grats gets it's [configuration options](./03-configuration.mdx) from your project's `tsconfig.json` file. By default Grats uses the TypeScript's own algorithm for locating your project's `tsconfig.json`. However, if you wish to use a different `tsconfig.json` file, you can specify it with the `--tsconfig` option.
 
 :::tip
 For guidance on how to make Grats easy run in your project see [Workflows](../05-guides/01-workflows.md).
@@ -10,7 +10,7 @@ For guidance on how to make Grats easy run in your project see [Workflows](../05
 
 ## Build (default command)
 
-Grats' default command (build) creates a TypeScript module containing an executable GraphQL schema _and_ a `.graphql` file containing the schema text. By default it places these files adjacent to your `tsconfig.json` file. If you wish to place them elsewhere, you can [configure](./03-configuration.md) this in your `tsconfig.json` file.
+Grats' default command (build) creates a TypeScript module containing an executable GraphQL schema _and_ a `.graphql` file containing the schema text. By default it places these files adjacent to your `tsconfig.json` file. If you wish to place them elsewhere, you can [configure](./03-configuration.mdx) this in your `tsconfig.json` file.
 
 ```bash
 npx grats

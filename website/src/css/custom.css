@@ -51,3 +51,22 @@ iframe[src*="youtube"] {
   max-width: 100%;
   padding-bottom: 10px;
 }
+
+.hash-link {
+  visibility: hidden;
+}
+h1:hover .hash-link,
+h2:hover .hash-link,
+h3:hover .hash-link,
+h4:hover .hash-link,
+h5:hover .hash-link,
+h6:hover .hash-link {
+  visibility: visible;
+}
+/**
+ * Needed to ensure anchor links don't get hidden under the top banner.
+ * Copied from .anchorWithStickyNavbar_node_modules-\@docusaurus-theme-classic-lib-theme-Heading-styles-module
+ */
+.config-title {
+  scroll-margin-top: calc(var(--ifm-navbar-height) + 0.5rem);
+}

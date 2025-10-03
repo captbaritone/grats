@@ -31,6 +31,9 @@ import { applySDLHeader, applyTypeScriptHeader } from "../printSchema";
 import { extend } from "../utils/helpers";
 import { Result, ok, err } from "../utils/Result";
 import { applyFixes } from "../fixFixable";
+import { writeTypeScriptTypeToDisk } from "../gratsConfig";
+
+writeTypeScriptTypeToDisk();
 
 const TS_VERSION = ts.version;
 
@@ -74,9 +77,55 @@ program
 
 const gratsDir = path.join(__dirname, "../..");
 const fixturesDir = path.join(__dirname, "fixtures");
+const configFixturesDir = path.join(__dirname, "configParserFixtures");
 const integrationFixturesDir = path.join(__dirname, "integrationFixtures");
 
 const testDirs = [
+  {
+    fixturesDir: configFixturesDir,
+    testFilePattern: /\.json$/,
+    ignoreFilePattern: null,
+    transformer: (code: string, _fileName: string): Result<string, string> => {
+      const config = JSON.parse(code);
+      let parsed: ParsedCommandLineGrats;
+      const warnings: string[] = [];
+      const consoleWarn = console.warn;
+      console.warn = (msg: string) => {
+        warnings.push(msg);
+      };
+      try {
+        const parsedResult = validateGratsOptions({
+          options: {},
+          raw: {
+            grats: config,
+          },
+          errors: [],
+          fileNames: [],
+        });
+        if (parsedResult.kind === "ERROR") {
+          return err(
+            ReportableDiagnostics.fromDiagnostics(
+              parsedResult.err,
+            ).formatDiagnosticsWithContext(),
+          );
+        }
+        parsed = parsedResult.value;
+      } catch (e) {
+        return err(e.message);
+      }
+      console.warn = consoleWarn;
+
+      let result = `-- Parsed Config --\n${JSON.stringify(
+        parsed.raw.grats,
+        null,
+        2,
+      )}`;
+      if (warnings.length > 0) {
+        result += `\n-- Warnings --\n${warnings.join("\n")}`;
+      }
+      return ok(result);
+    },
+  },
   {
     fixturesDir,
     testFilePattern: /\.ts$/,
@@ -112,7 +161,7 @@ const testDirs = [
       ];
       let parsedOptions: ParsedCommandLineGrats;
       try {
-        parsedOptions = validateGratsOptions({
+        const parsedOptionsResult = validateGratsOptions({
           options: {},
           raw: {
             grats: config,
@@ -120,6 +169,15 @@ const testDirs = [
           errors: [],
           fileNames: files,
         });
+        if (parsedOptionsResult.kind === "ERROR") {
+          return err(
+            formatDiagnosticsWithContext(
+              code,
+              ReportableDiagnostics.fromDiagnostics(parsedOptionsResult.err),
+            ),
+          );
+        }
+        parsedOptions = parsedOptionsResult.value;
       } catch (e) {
         return err(e.message);
       }
@@ -212,7 +270,7 @@ const testDirs = [
       const schemaPath = path.join(path.dirname(filePath), "schema.ts");
 
       const files = [filePath, path.join(__dirname, `../Types.ts`)];
-      const parsedOptions: ParsedCommandLineGrats = validateGratsOptions({
+      const parsedOptionsResult = validateGratsOptions({
         options: {
           // Required to enable ts-node to locate function exports
           rootDir: gratsDir,
@@ -225,6 +283,14 @@ const testDirs = [
         errors: [],
         fileNames: files,
       });
+      if (parsedOptionsResult.kind === "ERROR") {
+        throw new Error(
+          ReportableDiagnostics.fromDiagnostics(
+            parsedOptionsResult.err,
+          ).formatDiagnosticsWithContext(),
+        );
+      }
+      const parsedOptions = parsedOptionsResult.value;
       const schemaResult = buildSchemaAndDocResult(parsedOptions);
       if (schemaResult.kind === "ERROR") {
         throw new Error(

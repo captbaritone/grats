@@ -1,7 +1,7 @@
 -----------------
 INPUT
 ----------------- 
-// {"invalidKey": "Oops", "anotherInvalidKey": "Oops"}
+// {"tsSchema": null}
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -11,4 +11,4 @@ export default class SomeType {
 -----------------
 OUTPUT
 -----------------
-error: Unknown Grats config option `invalidKey`.
+error: The Grats config option `tsSchema` must be a `string` if provided.

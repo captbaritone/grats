@@ -11,4 +11,4 @@ export default class SomeType {
 -----------------
 OUTPUT
 -----------------
-Grats: If the Grats config option `schemaHeader` is an array, it must be an array of strings.
+error: Expected property `schemaHeader` to be a string or array of strings, but got ["Hello",1].
