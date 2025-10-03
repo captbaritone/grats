@@ -194,7 +194,7 @@ const testDirs = [
   {
     fixturesDir: integrationFixturesDir,
     testFilePattern: /index.ts$/,
-    ignoreFilePattern: /schema.ts$/,
+    ignoreFilePattern: /(schema)|(enums).ts$/,
     transformer: async (
       code: string,
       fileName: string,
