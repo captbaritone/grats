@@ -1,8 +1,7 @@
 import * as ts from "typescript";
 import { ParsedCommandLineGrats, validateGratsOptions } from "./gratsConfig";
-import { ReportableDiagnostics } from "./utils/DiagnosticError";
+import { DiagnosticsWithoutLocationResult } from "./utils/DiagnosticError";
 import { err, ok } from "./utils/Result";
-import { Result } from "./utils/Result";
 
 export { printSDLWithoutMetadata } from "./printSchema";
 export * from "./Types";
@@ -10,11 +9,12 @@ export * from "./lib";
 // Used by the experimental TypeScript plugin
 export { extract } from "./Extractor";
 export { codegen } from "./codegen/schemaCodegen";
+export { ReportableDiagnostics } from "./utils/DiagnosticError";
 
 // #FIXME: Report diagnostics instead of throwing!
 export function getParsedTsConfig(
   configFile: string,
-): Result<ParsedCommandLineGrats, ReportableDiagnostics> {
+): DiagnosticsWithoutLocationResult<ParsedCommandLineGrats> {
   // https://github.com/microsoft/TypeScript/blob/46d70d79cd0dd00d19e4c617d6ebb25e9f3fc7de/src/compiler/watch.ts#L216
   const configFileHost: ts.ParseConfigFileHost = ts.sys as any;
   const parsed = ts.getParsedCommandLineOfConfigFile(
@@ -28,7 +28,7 @@ export function getParsedTsConfig(
   }
 
   if (parsed.errors.length > 0) {
-    return err(ReportableDiagnostics.fromDiagnostics(parsed.errors));
+    return err(parsed.errors);
   }
 
   return ok(validateGratsOptions(parsed));

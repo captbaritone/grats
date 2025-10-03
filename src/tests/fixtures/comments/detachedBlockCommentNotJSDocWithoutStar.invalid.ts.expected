@@ -26,3 +26,14 @@ src/tests/fixtures/comments/detachedBlockCommentNotJSDocWithoutStar.invalid.ts:2
 - /*
 + /**
      @gqlType
+
+-- Applied Fixes --
+  * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/detachedBlockCommentNotJSDocWithoutStar.invalid.ts
+
+-- Fixed Text --
+/**
+   @gqlType
+*/
+/**
+ * Foo
+ */

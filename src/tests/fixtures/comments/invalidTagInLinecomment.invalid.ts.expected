@@ -30,3 +30,14 @@ src/tests/fixtures/comments/invalidTagInLinecomment.invalid.ts:1:4 - error: Unex
 - // @gqlTyp
 + /** @gqlTyp */
   export default class Composer {
+
+-- Applied Fixes --
+  * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/invalidTagInLinecomment.invalid.ts
+
+-- Fixed Text --
+/** @gqlTyp */
+export default class Composer {
+  url(): string {
+    return `/composer/`;
+  }
+}

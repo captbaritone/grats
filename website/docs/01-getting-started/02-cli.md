@@ -22,6 +22,25 @@ Or, if you want to leave Grats running while you work, you can use the `--watch`
 npx grats --watch
 ```
 
+### Automatic Fixes
+
+Grats can automatically fix certain issues it detects in your code. Use the `--fix` flag to enable automatic fixing:
+
+```bash
+npx grats --fix
+```
+
+This will automatically apply fixes for issues like:
+
+- Incorrect casing in docblock tags (e.g., `@gqltype` → `@gqlType`)
+- Deprecated docblock tags that have replacements
+
+The `--fix` flag can also be combined with `--watch` mode:
+
+```bash
+npx grats --watch --fix
+```
+
 ### Options
 
 ```
@@ -33,6 +52,7 @@ Options:
   -V, --version              output the version number
   --tsconfig <TSCONFIG>      Path to tsconfig.json. Defaults to auto-detecting based on the current working directory
   --watch                    Watch for changes and rebuild schema files as needed
+  --fix                      Automatically fix fixable diagnostics
   -h, --help                 display help for command
 
 Commands:

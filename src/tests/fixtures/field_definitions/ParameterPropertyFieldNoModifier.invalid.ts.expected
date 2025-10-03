@@ -32,3 +32,17 @@ Learn more: https://grats.capt.dev/docs/docblock-tags/fields#class-based-fields
 -     hello: string,
 +     public hello: string,
     ) {
+
+-- Applied Fixes --
+  * Applied fix "Add 'public' modifier" in grats/src/tests/fixtures/field_definitions/ParameterPropertyFieldNoModifier.invalid.ts
+
+-- Fixed Text --
+/** @gqlType */
+export default class SomeType {
+  constructor(
+    /** @gqlField */
+    public hello: string,
+  ) {
+    console.log(hello);
+  }
+}

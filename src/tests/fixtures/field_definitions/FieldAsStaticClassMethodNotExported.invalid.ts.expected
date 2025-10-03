@@ -41,3 +41,21 @@ src/tests/fixtures/field_definitions/FieldAsStaticClassMethodNotExported.invalid
 - class User {
 + export class User {
     /** @gqlField */
+
+-- Applied Fixes --
+  * Applied fix "Add export keyword to class with static @gqlField" in grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethodNotExported.invalid.ts
+
+-- Fixed Text --
+/** @gqlType */
+export class User {
+  /** @gqlField */
+  name: string;
+
+  /** @gqlField */
+  static getUser(_: Query): User {
+    return new User();
+  }
+}
+
+/** @gqlType */
+type Query = unknown;

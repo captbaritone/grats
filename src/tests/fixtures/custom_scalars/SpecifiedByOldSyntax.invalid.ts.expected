@@ -29,3 +29,12 @@ src/tests/fixtures/custom_scalars/SpecifiedByOldSyntax.invalid.ts:3:4 - error: T
 -  */
 +  * @gqlAnnotate specifiedBy(url: "https://tools.ietf.org/html/rfc4122")*/
   export type UUID = string;
+
+-- Applied Fixes --
+  * Applied fix "Replace @specifiedBy with @gqlAnnotate" in grats/src/tests/fixtures/custom_scalars/SpecifiedByOldSyntax.invalid.ts
+
+-- Fixed Text --
+/**
+ * @gqlScalar
+ * @gqlAnnotate specifiedBy(url: "https://tools.ietf.org/html/rfc4122")*/
+export type UUID = string;

@@ -41,3 +41,16 @@ src/tests/fixtures/comments/lineComment.invalid.ts:3:6 - error: Unexpected Grats
 -   // @gqlField
 +   /** @gqlField */
     url(): string {
+
+-- Applied Fixes --
+  * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/lineComment.invalid.ts
+  * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/lineComment.invalid.ts
+
+-- Fixed Text --
+/** @gqlType */
+export default class Composer {
+  /** @gqlField */
+  url(): string {
+    return `/composer/`;
+  }
+}

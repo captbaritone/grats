@@ -1,6 +1,11 @@
 import fs from "fs";
-import { buildSchemaAndDocResult, codegen } from "grats";
-import { printSDLWithoutMetadata, GratsConfig } from "grats";
+import {
+  buildSchemaAndDocResult,
+  codegen,
+  printSDLWithoutMetadata,
+  ReportableDiagnostics,
+  type GratsConfig,
+} from "grats";
 import glob from "glob";
 
 async function main() {
@@ -39,7 +44,10 @@ function processFile(file: string) {
   };
   const schemaAndDocResult = buildSchemaAndDocResult(parsedOptions);
   if (schemaAndDocResult.kind === "ERROR") {
-    const errors = schemaAndDocResult.err.formatDiagnosticsWithContext();
+    const reportableDiagnostics = ReportableDiagnostics.fromDiagnostics(
+      schemaAndDocResult.err,
+    );
+    const errors = reportableDiagnostics.formatDiagnosticsWithContext();
     console.error(errors);
     throw new Error("Invalid grats code");
   }

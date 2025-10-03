@@ -34,3 +34,21 @@ src/tests/fixtures/arguments/PositionalArgOptionalNotNullable.invalid.ts:10:17 -
 -   hello(greeting?: string): string {
 +   hello(greeting?: string | null): string {
       return `${greeting ?? "Hello"} World`;
+
+-- Applied Fixes --
+  * Applied fix "Add '| null' to the parameter type" in grats/src/tests/fixtures/arguments/PositionalArgOptionalNotNullable.invalid.ts
+
+-- Fixed Text --
+/** @gqlInput */
+type Greeting = {
+  name: string;
+  salutation: string;
+};
+
+/** @gqlType */
+export default class SomeType {
+  /** @gqlField */
+  hello(greeting?: string | null): string {
+    return `${greeting ?? "Hello"} World`;
+  }
+}

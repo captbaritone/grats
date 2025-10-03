@@ -243,16 +243,7 @@ class Extractor {
               this.hasTag(node, SUBSCRIPTION_FIELD_TAG)
             )
           ) {
-            this.report(
-              tag.tagName,
-              E.killsParentOnExceptionOnWrongNode(),
-              [],
-              {
-                fixName: "remove-kills-parent-on-exception",
-                description: "Remove @killsParentOnException tag",
-                changes: [Act.removeNode(tag)],
-              },
-            );
+            this.report(tag.tagName, E.killsParentOnExceptionOnWrongNode(), []);
           }
           // TODO: Report invalid location as well
           break;
