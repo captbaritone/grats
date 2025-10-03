@@ -103,40 +103,46 @@ export function applyFixes(
       let newContent = content;
 
       // Collect all text changes for this file and sort by position in reverse order
-      const allTextChanges: { change: ts.TextChange; description: string }[] =
-        [];
+      const allTextChanges: ts.TextChange[] = [];
 
       for (const diagnostic of fileDiagnostics) {
         if (!diagnostic.fix) continue;
 
-        const description = diagnostic.fix.description;
         for (const fileChange of diagnostic.fix.changes) {
           if (fileChange.fileName === fileName) {
             for (const textChange of fileChange.textChanges) {
-              allTextChanges.push({ change: textChange, description });
+              allTextChanges.push(textChange);
             }
           }
         }
       }
 
       // Sort changes by position in reverse order to avoid offset issues
-      allTextChanges.sort((a, b) => b.change.span.start - a.change.span.start);
+      allTextChanges.sort((a, b) => b.span.start - a.span.start);
 
-      // Apply each change and log it
-      for (const { change, description } of allTextChanges) {
+      // Apply each change
+      for (const change of allTextChanges) {
         const before = newContent.slice(0, change.span.start);
         const after = newContent.slice(change.span.start + change.span.length);
         newContent = before + change.newText + after;
-
-        options.log(
-          `  * Applied fix "${description}" in ${relativePath(fileName)}`,
-        );
       }
 
       writeFileSync(fileName, newContent, "utf8");
       appliedAnyFixes = true;
     } catch (error) {
       options.log(`Grats: Failed to apply fix to ${fileName}: ${error}`);
+    }
+  }
+
+  // Report all fixes at the end
+  for (const diagnostic of fixableDiagnostics) {
+    if (diagnostic.fix) {
+      const fileName = diagnostic.fix.changes[0]?.fileName;
+      if (fileName) {
+        options.log(
+          `  * Applied fix "${diagnostic.fix.description}" in ${relativePath(fileName)}`,
+        );
+      }
     }
   }
 
