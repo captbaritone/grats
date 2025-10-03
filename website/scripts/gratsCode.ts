@@ -33,6 +33,7 @@ function processFile(file: string) {
     tsSchemaHeader: null,
     EXPERIMENTAL__emitMetadata: false,
     EXPERIMENTAL__emitResolverMap: false,
+    EXPERIMENTAL__emitEnums: null,
   };
   const parsedOptions = {
     options: {},

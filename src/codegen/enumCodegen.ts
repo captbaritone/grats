@@ -67,6 +67,7 @@ class EnumCodegen {
       exported.tsModulePath,
       exported.exportName,
       localName,
+      false,
     );
   }
 
