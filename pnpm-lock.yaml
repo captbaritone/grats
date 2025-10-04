@@ -220,6 +220,22 @@ importers:
         specifier: workspace:*
         version: link:../..
 
+  examples/swapi:
+    dependencies:
+      graphql:
+        specifier: ^16.11.0
+        version: 16.11.0
+    devDependencies:
+      '@types/node':
+        specifier: ^24.6.2
+        version: 24.6.2
+      grats:
+        specifier: workspace:*
+        version: link:../..
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   examples/yoga:
     dependencies:
       graphql:
@@ -2858,6 +2874,9 @@ packages:
 
   '@types/node@24.5.2':
     resolution: {integrity: sha512-FYxk1I7wPv3K2XBaoyH2cTnocQEu8AOZ60hPbsyukMPLv5/5qr7V1i8PLHdl6Zf87I+xZXFvPCXYjiTFq+YSDQ==}
+
+  '@types/node@24.6.2':
+    resolution: {integrity: sha512-d2L25Y4j+W3ZlNAeMKcy7yDsK425ibcAOO2t7aPTz6gNMH0z2GThtwENCDc0d/Pw9wgyRqE5Px1wkV7naz8ang==}
 
   '@types/parse-json@4.0.0':
     resolution: {integrity: sha512-//oorEZjL6sbPcKUaCdIGlIUeH26mgzimjBB77G6XRgnDl/L5wOnpyBGRe/Mmf5CVW3PwEBE1NjiMZ/ssFh4wA==}
@@ -7272,11 +7291,19 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  typescript@5.9.3:
+    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
   undici-types@5.26.5:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
 
   undici-types@7.12.0:
     resolution: {integrity: sha512-goOacqME2GYyOZZfb5Lgtu+1IDmAlAEu5xnD3+xTzS10hT0vzpf0SPjkXwAw9Jm+4n/mQGDP3LO8CPbYROeBfQ==}
+
+  undici-types@7.13.0:
+    resolution: {integrity: sha512-Ov2Rr9Sx+fRgagJ5AX0qvItZG/JKKoBRAVITs1zk7IqZGTJUwgUr7qoYBpWwakpWilTZFM98rG/AFRocu10iIQ==}
 
   unicode-canonical-property-names-ecmascript@2.0.0:
     resolution: {integrity: sha512-yY5PpDlfVIU5+y/BSCxAJRBIS1Zc2dDG3Ujq+sR0U+JjUevW2JhocOF+soROYDSaAezOzOKuyyixhD6mBknSmQ==}
@@ -11234,6 +11261,10 @@ snapshots:
     dependencies:
       undici-types: 7.12.0
 
+  '@types/node@24.6.2':
+    dependencies:
+      undici-types: 7.13.0
+
   '@types/parse-json@4.0.0': {}
 
   '@types/prismjs@1.26.4': {}
@@ -13436,7 +13467,7 @@ snapshots:
     dependencies:
       commander: 10.0.1
       graphql: 16.11.0
-      typescript: 5.5.4
+      typescript: 5.9.2
 
   gray-matter@4.0.3:
     dependencies:
@@ -16453,9 +16484,13 @@ snapshots:
 
   typescript@5.9.2: {}
 
+  typescript@5.9.3: {}
+
   undici-types@5.26.5: {}
 
   undici-types@7.12.0: {}
+
+  undici-types@7.13.0: {}
 
   unicode-canonical-property-names-ecmascript@2.0.0: {}
 

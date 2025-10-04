@@ -1,0 +1,21 @@
+{
+  "name": "swapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "grats": "grats"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.15.1",
+  "dependencies": {
+    "graphql": "^16.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.2",
+    "grats": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}

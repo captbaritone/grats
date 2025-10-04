@@ -1,0 +1,14 @@
+{
+  "grats": {
+    // See Configuration for all available options
+    "importModuleSpecifierEnding": ".js"
+  },
+  "compilerOptions": {
+    "module": "nodenext",
+    "target": "esnext",
+    "lib": ["esnext"],
+    "types": ["node"],
+    "strict": true,
+    "skipLibCheck": true
+  }
+}

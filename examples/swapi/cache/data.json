@@ -1,0 +1,4446 @@
+{
+  "https://www.swapi.tech/api/people": {
+    "message": "ok",
+    "total_records": 82,
+    "total_pages": 9,
+    "previous": null,
+    "next": "https://www.swapi.tech/api/people?page=2&limit=10",
+    "results": [
+      {
+        "uid": "1",
+        "name": "Luke Skywalker",
+        "url": "https://www.swapi.tech/api/people/1"
+      },
+      {
+        "uid": "2",
+        "name": "C-3PO",
+        "url": "https://www.swapi.tech/api/people/2"
+      },
+      {
+        "uid": "3",
+        "name": "R2-D2",
+        "url": "https://www.swapi.tech/api/people/3"
+      },
+      {
+        "uid": "4",
+        "name": "Darth Vader",
+        "url": "https://www.swapi.tech/api/people/4"
+      },
+      {
+        "uid": "5",
+        "name": "Leia Organa",
+        "url": "https://www.swapi.tech/api/people/5"
+      },
+      {
+        "uid": "6",
+        "name": "Owen Lars",
+        "url": "https://www.swapi.tech/api/people/6"
+      },
+      {
+        "uid": "7",
+        "name": "Beru Whitesun lars",
+        "url": "https://www.swapi.tech/api/people/7"
+      },
+      {
+        "uid": "8",
+        "name": "R5-D4",
+        "url": "https://www.swapi.tech/api/people/8"
+      },
+      {
+        "uid": "9",
+        "name": "Biggs Darklighter",
+        "url": "https://www.swapi.tech/api/people/9"
+      },
+      {
+        "uid": "10",
+        "name": "Obi-Wan Kenobi",
+        "url": "https://www.swapi.tech/api/people/10"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:02.680Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/people/1": {
+    "uid": "1",
+    "name": "Luke Skywalker",
+    "url": "https://www.swapi.tech/api/people/1"
+  },
+  "https://www.swapi.tech/api/people/2": {
+    "uid": "2",
+    "name": "C-3PO",
+    "url": "https://www.swapi.tech/api/people/2"
+  },
+  "https://www.swapi.tech/api/people/3": {
+    "uid": "3",
+    "name": "R2-D2",
+    "url": "https://www.swapi.tech/api/people/3"
+  },
+  "https://www.swapi.tech/api/people/4": {
+    "uid": "4",
+    "name": "Darth Vader",
+    "url": "https://www.swapi.tech/api/people/4"
+  },
+  "https://www.swapi.tech/api/people/5": {
+    "uid": "5",
+    "name": "Leia Organa",
+    "url": "https://www.swapi.tech/api/people/5"
+  },
+  "https://www.swapi.tech/api/people/6": {
+    "uid": "6",
+    "name": "Owen Lars",
+    "url": "https://www.swapi.tech/api/people/6"
+  },
+  "https://www.swapi.tech/api/people/7": {
+    "uid": "7",
+    "name": "Beru Whitesun lars",
+    "url": "https://www.swapi.tech/api/people/7"
+  },
+  "https://www.swapi.tech/api/people/8": {
+    "uid": "8",
+    "name": "R5-D4",
+    "url": "https://www.swapi.tech/api/people/8"
+  },
+  "https://www.swapi.tech/api/people/9": {
+    "uid": "9",
+    "name": "Biggs Darklighter",
+    "url": "https://www.swapi.tech/api/people/9"
+  },
+  "https://www.swapi.tech/api/people/10": {
+    "uid": "10",
+    "name": "Obi-Wan Kenobi",
+    "url": "https://www.swapi.tech/api/people/10"
+  },
+  "https://www.swapi.tech/api/people?page=2&limit=10": {
+    "message": "ok",
+    "total_records": 82,
+    "total_pages": 9,
+    "previous": "https://www.swapi.tech/api/people?page=1&limit=10",
+    "next": "https://www.swapi.tech/api/people?page=3&limit=10",
+    "results": [
+      {
+        "uid": "11",
+        "name": "Anakin Skywalker",
+        "url": "https://www.swapi.tech/api/people/11"
+      },
+      {
+        "uid": "12",
+        "name": "Wilhuff Tarkin",
+        "url": "https://www.swapi.tech/api/people/12"
+      },
+      {
+        "uid": "13",
+        "name": "Chewbacca",
+        "url": "https://www.swapi.tech/api/people/13"
+      },
+      {
+        "uid": "14",
+        "name": "Han Solo",
+        "url": "https://www.swapi.tech/api/people/14"
+      },
+      {
+        "uid": "15",
+        "name": "Greedo",
+        "url": "https://www.swapi.tech/api/people/15"
+      },
+      {
+        "uid": "16",
+        "name": "Jabba Desilijic Tiure",
+        "url": "https://www.swapi.tech/api/people/16"
+      },
+      {
+        "uid": "18",
+        "name": "Wedge Antilles",
+        "url": "https://www.swapi.tech/api/people/18"
+      },
+      {
+        "uid": "19",
+        "name": "Jek Tono Porkins",
+        "url": "https://www.swapi.tech/api/people/19"
+      },
+      {
+        "uid": "20",
+        "name": "Yoda",
+        "url": "https://www.swapi.tech/api/people/20"
+      },
+      {
+        "uid": "21",
+        "name": "Palpatine",
+        "url": "https://www.swapi.tech/api/people/21"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:02.917Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/people/11": {
+    "uid": "11",
+    "name": "Anakin Skywalker",
+    "url": "https://www.swapi.tech/api/people/11"
+  },
+  "https://www.swapi.tech/api/people/12": {
+    "uid": "12",
+    "name": "Wilhuff Tarkin",
+    "url": "https://www.swapi.tech/api/people/12"
+  },
+  "https://www.swapi.tech/api/people/13": {
+    "uid": "13",
+    "name": "Chewbacca",
+    "url": "https://www.swapi.tech/api/people/13"
+  },
+  "https://www.swapi.tech/api/people/14": {
+    "uid": "14",
+    "name": "Han Solo",
+    "url": "https://www.swapi.tech/api/people/14"
+  },
+  "https://www.swapi.tech/api/people/15": {
+    "uid": "15",
+    "name": "Greedo",
+    "url": "https://www.swapi.tech/api/people/15"
+  },
+  "https://www.swapi.tech/api/people/16": {
+    "uid": "16",
+    "name": "Jabba Desilijic Tiure",
+    "url": "https://www.swapi.tech/api/people/16"
+  },
+  "https://www.swapi.tech/api/people/18": {
+    "uid": "18",
+    "name": "Wedge Antilles",
+    "url": "https://www.swapi.tech/api/people/18"
+  },
+  "https://www.swapi.tech/api/people/19": {
+    "uid": "19",
+    "name": "Jek Tono Porkins",
+    "url": "https://www.swapi.tech/api/people/19"
+  },
+  "https://www.swapi.tech/api/people/20": {
+    "uid": "20",
+    "name": "Yoda",
+    "url": "https://www.swapi.tech/api/people/20"
+  },
+  "https://www.swapi.tech/api/people/21": {
+    "uid": "21",
+    "name": "Palpatine",
+    "url": "https://www.swapi.tech/api/people/21"
+  },
+  "https://www.swapi.tech/api/people?page=3&limit=10": {
+    "message": "ok",
+    "total_records": 82,
+    "total_pages": 9,
+    "previous": "https://www.swapi.tech/api/people?page=2&limit=10",
+    "next": "https://www.swapi.tech/api/people?page=4&limit=10",
+    "results": [
+      {
+        "uid": "22",
+        "name": "Boba Fett",
+        "url": "https://www.swapi.tech/api/people/22"
+      },
+      {
+        "uid": "23",
+        "name": "IG-88",
+        "url": "https://www.swapi.tech/api/people/23"
+      },
+      {
+        "uid": "24",
+        "name": "Bossk",
+        "url": "https://www.swapi.tech/api/people/24"
+      },
+      {
+        "uid": "25",
+        "name": "Lando Calrissian",
+        "url": "https://www.swapi.tech/api/people/25"
+      },
+      {
+        "uid": "26",
+        "name": "Lobot",
+        "url": "https://www.swapi.tech/api/people/26"
+      },
+      {
+        "uid": "27",
+        "name": "Ackbar",
+        "url": "https://www.swapi.tech/api/people/27"
+      },
+      {
+        "uid": "28",
+        "name": "Mon Mothma",
+        "url": "https://www.swapi.tech/api/people/28"
+      },
+      {
+        "uid": "29",
+        "name": "Arvel Crynyd",
+        "url": "https://www.swapi.tech/api/people/29"
+      },
+      {
+        "uid": "30",
+        "name": "Wicket Systri Warrick",
+        "url": "https://www.swapi.tech/api/people/30"
+      },
+      {
+        "uid": "31",
+        "name": "Nien Nunb",
+        "url": "https://www.swapi.tech/api/people/31"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:03.144Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/people/22": {
+    "uid": "22",
+    "name": "Boba Fett",
+    "url": "https://www.swapi.tech/api/people/22"
+  },
+  "https://www.swapi.tech/api/people/23": {
+    "uid": "23",
+    "name": "IG-88",
+    "url": "https://www.swapi.tech/api/people/23"
+  },
+  "https://www.swapi.tech/api/people/24": {
+    "uid": "24",
+    "name": "Bossk",
+    "url": "https://www.swapi.tech/api/people/24"
+  },
+  "https://www.swapi.tech/api/people/25": {
+    "uid": "25",
+    "name": "Lando Calrissian",
+    "url": "https://www.swapi.tech/api/people/25"
+  },
+  "https://www.swapi.tech/api/people/26": {
+    "uid": "26",
+    "name": "Lobot",
+    "url": "https://www.swapi.tech/api/people/26"
+  },
+  "https://www.swapi.tech/api/people/27": {
+    "uid": "27",
+    "name": "Ackbar",
+    "url": "https://www.swapi.tech/api/people/27"
+  },
+  "https://www.swapi.tech/api/people/28": {
+    "uid": "28",
+    "name": "Mon Mothma",
+    "url": "https://www.swapi.tech/api/people/28"
+  },
+  "https://www.swapi.tech/api/people/29": {
+    "uid": "29",
+    "name": "Arvel Crynyd",
+    "url": "https://www.swapi.tech/api/people/29"
+  },
+  "https://www.swapi.tech/api/people/30": {
+    "uid": "30",
+    "name": "Wicket Systri Warrick",
+    "url": "https://www.swapi.tech/api/people/30"
+  },
+  "https://www.swapi.tech/api/people/31": {
+    "uid": "31",
+    "name": "Nien Nunb",
+    "url": "https://www.swapi.tech/api/people/31"
+  },
+  "https://www.swapi.tech/api/people?page=4&limit=10": {
+    "message": "ok",
+    "total_records": 82,
+    "total_pages": 9,
+    "previous": "https://www.swapi.tech/api/people?page=3&limit=10",
+    "next": "https://www.swapi.tech/api/people?page=5&limit=10",
+    "results": [
+      {
+        "uid": "32",
+        "name": "Qui-Gon Jinn",
+        "url": "https://www.swapi.tech/api/people/32"
+      },
+      {
+        "uid": "33",
+        "name": "Nute Gunray",
+        "url": "https://www.swapi.tech/api/people/33"
+      },
+      {
+        "uid": "34",
+        "name": "Finis Valorum",
+        "url": "https://www.swapi.tech/api/people/34"
+      },
+      {
+        "uid": "35",
+        "name": "Padmé Amidala",
+        "url": "https://www.swapi.tech/api/people/35"
+      },
+      {
+        "uid": "36",
+        "name": "Jar Jar Binks",
+        "url": "https://www.swapi.tech/api/people/36"
+      },
+      {
+        "uid": "37",
+        "name": "Roos Tarpals",
+        "url": "https://www.swapi.tech/api/people/37"
+      },
+      {
+        "uid": "38",
+        "name": "Rugor Nass",
+        "url": "https://www.swapi.tech/api/people/38"
+      },
+      {
+        "uid": "39",
+        "name": "Ric Olié",
+        "url": "https://www.swapi.tech/api/people/39"
+      },
+      {
+        "uid": "40",
+        "name": "Watto",
+        "url": "https://www.swapi.tech/api/people/40"
+      },
+      {
+        "uid": "41",
+        "name": "Sebulba",
+        "url": "https://www.swapi.tech/api/people/41"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:03.370Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/people/32": {
+    "uid": "32",
+    "name": "Qui-Gon Jinn",
+    "url": "https://www.swapi.tech/api/people/32"
+  },
+  "https://www.swapi.tech/api/people/33": {
+    "uid": "33",
+    "name": "Nute Gunray",
+    "url": "https://www.swapi.tech/api/people/33"
+  },
+  "https://www.swapi.tech/api/people/34": {
+    "uid": "34",
+    "name": "Finis Valorum",
+    "url": "https://www.swapi.tech/api/people/34"
+  },
+  "https://www.swapi.tech/api/people/35": {
+    "uid": "35",
+    "name": "Padmé Amidala",
+    "url": "https://www.swapi.tech/api/people/35"
+  },
+  "https://www.swapi.tech/api/people/36": {
+    "uid": "36",
+    "name": "Jar Jar Binks",
+    "url": "https://www.swapi.tech/api/people/36"
+  },
+  "https://www.swapi.tech/api/people/37": {
+    "uid": "37",
+    "name": "Roos Tarpals",
+    "url": "https://www.swapi.tech/api/people/37"
+  },
+  "https://www.swapi.tech/api/people/38": {
+    "uid": "38",
+    "name": "Rugor Nass",
+    "url": "https://www.swapi.tech/api/people/38"
+  },
+  "https://www.swapi.tech/api/people/39": {
+    "uid": "39",
+    "name": "Ric Olié",
+    "url": "https://www.swapi.tech/api/people/39"
+  },
+  "https://www.swapi.tech/api/people/40": {
+    "uid": "40",
+    "name": "Watto",
+    "url": "https://www.swapi.tech/api/people/40"
+  },
+  "https://www.swapi.tech/api/people/41": {
+    "uid": "41",
+    "name": "Sebulba",
+    "url": "https://www.swapi.tech/api/people/41"
+  },
+  "https://www.swapi.tech/api/people?page=5&limit=10": {
+    "message": "ok",
+    "total_records": 82,
+    "total_pages": 9,
+    "previous": "https://www.swapi.tech/api/people?page=4&limit=10",
+    "next": "https://www.swapi.tech/api/people?page=6&limit=10",
+    "results": [
+      {
+        "uid": "42",
+        "name": "Quarsh Panaka",
+        "url": "https://www.swapi.tech/api/people/42"
+      },
+      {
+        "uid": "43",
+        "name": "Shmi Skywalker",
+        "url": "https://www.swapi.tech/api/people/43"
+      },
+      {
+        "uid": "44",
+        "name": "Darth Maul",
+        "url": "https://www.swapi.tech/api/people/44"
+      },
+      {
+        "uid": "45",
+        "name": "Bib Fortuna",
+        "url": "https://www.swapi.tech/api/people/45"
+      },
+      {
+        "uid": "46",
+        "name": "Ayla Secura",
+        "url": "https://www.swapi.tech/api/people/46"
+      },
+      {
+        "uid": "47",
+        "name": "Ratts Tyerel",
+        "url": "https://www.swapi.tech/api/people/47"
+      },
+      {
+        "uid": "48",
+        "name": "Dud Bolt",
+        "url": "https://www.swapi.tech/api/people/48"
+      },
+      {
+        "uid": "49",
+        "name": "Gasgano",
+        "url": "https://www.swapi.tech/api/people/49"
+      },
+      {
+        "uid": "50",
+        "name": "Ben Quadinaros",
+        "url": "https://www.swapi.tech/api/people/50"
+      },
+      {
+        "uid": "51",
+        "name": "Mace Windu",
+        "url": "https://www.swapi.tech/api/people/51"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:03.598Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/people/42": {
+    "uid": "42",
+    "name": "Quarsh Panaka",
+    "url": "https://www.swapi.tech/api/people/42"
+  },
+  "https://www.swapi.tech/api/people/43": {
+    "uid": "43",
+    "name": "Shmi Skywalker",
+    "url": "https://www.swapi.tech/api/people/43"
+  },
+  "https://www.swapi.tech/api/people/44": {
+    "uid": "44",
+    "name": "Darth Maul",
+    "url": "https://www.swapi.tech/api/people/44"
+  },
+  "https://www.swapi.tech/api/people/45": {
+    "uid": "45",
+    "name": "Bib Fortuna",
+    "url": "https://www.swapi.tech/api/people/45"
+  },
+  "https://www.swapi.tech/api/people/46": {
+    "uid": "46",
+    "name": "Ayla Secura",
+    "url": "https://www.swapi.tech/api/people/46"
+  },
+  "https://www.swapi.tech/api/people/47": {
+    "uid": "47",
+    "name": "Ratts Tyerel",
+    "url": "https://www.swapi.tech/api/people/47"
+  },
+  "https://www.swapi.tech/api/people/48": {
+    "uid": "48",
+    "name": "Dud Bolt",
+    "url": "https://www.swapi.tech/api/people/48"
+  },
+  "https://www.swapi.tech/api/people/49": {
+    "uid": "49",
+    "name": "Gasgano",
+    "url": "https://www.swapi.tech/api/people/49"
+  },
+  "https://www.swapi.tech/api/people/50": {
+    "uid": "50",
+    "name": "Ben Quadinaros",
+    "url": "https://www.swapi.tech/api/people/50"
+  },
+  "https://www.swapi.tech/api/people/51": {
+    "uid": "51",
+    "name": "Mace Windu",
+    "url": "https://www.swapi.tech/api/people/51"
+  },
+  "https://www.swapi.tech/api/people?page=6&limit=10": {
+    "message": "ok",
+    "total_records": 82,
+    "total_pages": 9,
+    "previous": "https://www.swapi.tech/api/people?page=5&limit=10",
+    "next": "https://www.swapi.tech/api/people?page=7&limit=10",
+    "results": [
+      {
+        "uid": "52",
+        "name": "Ki-Adi-Mundi",
+        "url": "https://www.swapi.tech/api/people/52"
+      },
+      {
+        "uid": "53",
+        "name": "Kit Fisto",
+        "url": "https://www.swapi.tech/api/people/53"
+      },
+      {
+        "uid": "54",
+        "name": "Eeth Koth",
+        "url": "https://www.swapi.tech/api/people/54"
+      },
+      {
+        "uid": "55",
+        "name": "Adi Gallia",
+        "url": "https://www.swapi.tech/api/people/55"
+      },
+      {
+        "uid": "56",
+        "name": "Saesee Tiin",
+        "url": "https://www.swapi.tech/api/people/56"
+      },
+      {
+        "uid": "57",
+        "name": "Yarael Poof",
+        "url": "https://www.swapi.tech/api/people/57"
+      },
+      {
+        "uid": "58",
+        "name": "Plo Koon",
+        "url": "https://www.swapi.tech/api/people/58"
+      },
+      {
+        "uid": "59",
+        "name": "Mas Amedda",
+        "url": "https://www.swapi.tech/api/people/59"
+      },
+      {
+        "uid": "60",
+        "name": "Gregar Typho",
+        "url": "https://www.swapi.tech/api/people/60"
+      },
+      {
+        "uid": "61",
+        "name": "Cordé",
+        "url": "https://www.swapi.tech/api/people/61"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:03.826Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/people/52": {
+    "uid": "52",
+    "name": "Ki-Adi-Mundi",
+    "url": "https://www.swapi.tech/api/people/52"
+  },
+  "https://www.swapi.tech/api/people/53": {
+    "uid": "53",
+    "name": "Kit Fisto",
+    "url": "https://www.swapi.tech/api/people/53"
+  },
+  "https://www.swapi.tech/api/people/54": {
+    "uid": "54",
+    "name": "Eeth Koth",
+    "url": "https://www.swapi.tech/api/people/54"
+  },
+  "https://www.swapi.tech/api/people/55": {
+    "uid": "55",
+    "name": "Adi Gallia",
+    "url": "https://www.swapi.tech/api/people/55"
+  },
+  "https://www.swapi.tech/api/people/56": {
+    "uid": "56",
+    "name": "Saesee Tiin",
+    "url": "https://www.swapi.tech/api/people/56"
+  },
+  "https://www.swapi.tech/api/people/57": {
+    "uid": "57",
+    "name": "Yarael Poof",
+    "url": "https://www.swapi.tech/api/people/57"
+  },
+  "https://www.swapi.tech/api/people/58": {
+    "uid": "58",
+    "name": "Plo Koon",
+    "url": "https://www.swapi.tech/api/people/58"
+  },
+  "https://www.swapi.tech/api/people/59": {
+    "uid": "59",
+    "name": "Mas Amedda",
+    "url": "https://www.swapi.tech/api/people/59"
+  },
+  "https://www.swapi.tech/api/people/60": {
+    "uid": "60",
+    "name": "Gregar Typho",
+    "url": "https://www.swapi.tech/api/people/60"
+  },
+  "https://www.swapi.tech/api/people/61": {
+    "uid": "61",
+    "name": "Cordé",
+    "url": "https://www.swapi.tech/api/people/61"
+  },
+  "https://www.swapi.tech/api/people?page=7&limit=10": {
+    "message": "ok",
+    "total_records": 82,
+    "total_pages": 9,
+    "previous": "https://www.swapi.tech/api/people?page=6&limit=10",
+    "next": "https://www.swapi.tech/api/people?page=8&limit=10",
+    "results": [
+      {
+        "uid": "62",
+        "name": "Cliegg Lars",
+        "url": "https://www.swapi.tech/api/people/62"
+      },
+      {
+        "uid": "63",
+        "name": "Poggle the Lesser",
+        "url": "https://www.swapi.tech/api/people/63"
+      },
+      {
+        "uid": "64",
+        "name": "Luminara Unduli",
+        "url": "https://www.swapi.tech/api/people/64"
+      },
+      {
+        "uid": "65",
+        "name": "Barriss Offee",
+        "url": "https://www.swapi.tech/api/people/65"
+      },
+      {
+        "uid": "66",
+        "name": "Dormé",
+        "url": "https://www.swapi.tech/api/people/66"
+      },
+      {
+        "uid": "67",
+        "name": "Dooku",
+        "url": "https://www.swapi.tech/api/people/67"
+      },
+      {
+        "uid": "68",
+        "name": "Bail Prestor Organa",
+        "url": "https://www.swapi.tech/api/people/68"
+      },
+      {
+        "uid": "69",
+        "name": "Jango Fett",
+        "url": "https://www.swapi.tech/api/people/69"
+      },
+      {
+        "uid": "70",
+        "name": "Zam Wesell",
+        "url": "https://www.swapi.tech/api/people/70"
+      },
+      {
+        "uid": "71",
+        "name": "Dexter Jettster",
+        "url": "https://www.swapi.tech/api/people/71"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:04.048Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/people/62": {
+    "uid": "62",
+    "name": "Cliegg Lars",
+    "url": "https://www.swapi.tech/api/people/62"
+  },
+  "https://www.swapi.tech/api/people/63": {
+    "uid": "63",
+    "name": "Poggle the Lesser",
+    "url": "https://www.swapi.tech/api/people/63"
+  },
+  "https://www.swapi.tech/api/people/64": {
+    "uid": "64",
+    "name": "Luminara Unduli",
+    "url": "https://www.swapi.tech/api/people/64"
+  },
+  "https://www.swapi.tech/api/people/65": {
+    "uid": "65",
+    "name": "Barriss Offee",
+    "url": "https://www.swapi.tech/api/people/65"
+  },
+  "https://www.swapi.tech/api/people/66": {
+    "uid": "66",
+    "name": "Dormé",
+    "url": "https://www.swapi.tech/api/people/66"
+  },
+  "https://www.swapi.tech/api/people/67": {
+    "uid": "67",
+    "name": "Dooku",
+    "url": "https://www.swapi.tech/api/people/67"
+  },
+  "https://www.swapi.tech/api/people/68": {
+    "uid": "68",
+    "name": "Bail Prestor Organa",
+    "url": "https://www.swapi.tech/api/people/68"
+  },
+  "https://www.swapi.tech/api/people/69": {
+    "uid": "69",
+    "name": "Jango Fett",
+    "url": "https://www.swapi.tech/api/people/69"
+  },
+  "https://www.swapi.tech/api/people/70": {
+    "uid": "70",
+    "name": "Zam Wesell",
+    "url": "https://www.swapi.tech/api/people/70"
+  },
+  "https://www.swapi.tech/api/people/71": {
+    "uid": "71",
+    "name": "Dexter Jettster",
+    "url": "https://www.swapi.tech/api/people/71"
+  },
+  "https://www.swapi.tech/api/people?page=8&limit=10": {
+    "message": "ok",
+    "total_records": 82,
+    "total_pages": 9,
+    "previous": "https://www.swapi.tech/api/people?page=7&limit=10",
+    "next": "https://www.swapi.tech/api/people?page=9&limit=10",
+    "results": [
+      {
+        "uid": "72",
+        "name": "Lama Su",
+        "url": "https://www.swapi.tech/api/people/72"
+      },
+      {
+        "uid": "73",
+        "name": "Taun We",
+        "url": "https://www.swapi.tech/api/people/73"
+      },
+      {
+        "uid": "74",
+        "name": "Jocasta Nu",
+        "url": "https://www.swapi.tech/api/people/74"
+      },
+      {
+        "uid": "75",
+        "name": "R4-P17",
+        "url": "https://www.swapi.tech/api/people/75"
+      },
+      {
+        "uid": "76",
+        "name": "Wat Tambor",
+        "url": "https://www.swapi.tech/api/people/76"
+      },
+      {
+        "uid": "77",
+        "name": "San Hill",
+        "url": "https://www.swapi.tech/api/people/77"
+      },
+      {
+        "uid": "78",
+        "name": "Shaak Ti",
+        "url": "https://www.swapi.tech/api/people/78"
+      },
+      {
+        "uid": "79",
+        "name": "Grievous",
+        "url": "https://www.swapi.tech/api/people/79"
+      },
+      {
+        "uid": "80",
+        "name": "Tarfful",
+        "url": "https://www.swapi.tech/api/people/80"
+      },
+      {
+        "uid": "81",
+        "name": "Raymus Antilles",
+        "url": "https://www.swapi.tech/api/people/81"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:04.297Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/people/72": {
+    "uid": "72",
+    "name": "Lama Su",
+    "url": "https://www.swapi.tech/api/people/72"
+  },
+  "https://www.swapi.tech/api/people/73": {
+    "uid": "73",
+    "name": "Taun We",
+    "url": "https://www.swapi.tech/api/people/73"
+  },
+  "https://www.swapi.tech/api/people/74": {
+    "uid": "74",
+    "name": "Jocasta Nu",
+    "url": "https://www.swapi.tech/api/people/74"
+  },
+  "https://www.swapi.tech/api/people/75": {
+    "uid": "75",
+    "name": "R4-P17",
+    "url": "https://www.swapi.tech/api/people/75"
+  },
+  "https://www.swapi.tech/api/people/76": {
+    "uid": "76",
+    "name": "Wat Tambor",
+    "url": "https://www.swapi.tech/api/people/76"
+  },
+  "https://www.swapi.tech/api/people/77": {
+    "uid": "77",
+    "name": "San Hill",
+    "url": "https://www.swapi.tech/api/people/77"
+  },
+  "https://www.swapi.tech/api/people/78": {
+    "uid": "78",
+    "name": "Shaak Ti",
+    "url": "https://www.swapi.tech/api/people/78"
+  },
+  "https://www.swapi.tech/api/people/79": {
+    "uid": "79",
+    "name": "Grievous",
+    "url": "https://www.swapi.tech/api/people/79"
+  },
+  "https://www.swapi.tech/api/people/80": {
+    "uid": "80",
+    "name": "Tarfful",
+    "url": "https://www.swapi.tech/api/people/80"
+  },
+  "https://www.swapi.tech/api/people/81": {
+    "uid": "81",
+    "name": "Raymus Antilles",
+    "url": "https://www.swapi.tech/api/people/81"
+  },
+  "https://www.swapi.tech/api/people?page=9&limit=10": {
+    "message": "ok",
+    "total_records": 82,
+    "total_pages": 9,
+    "previous": "https://www.swapi.tech/api/people?page=8&limit=10",
+    "next": null,
+    "results": [
+      {
+        "uid": "82",
+        "name": "Sly Moore",
+        "url": "https://www.swapi.tech/api/people/82"
+      },
+      {
+        "uid": "83",
+        "name": "Tion Medon",
+        "url": "https://www.swapi.tech/api/people/83"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:04.608Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/people/82": {
+    "uid": "82",
+    "name": "Sly Moore",
+    "url": "https://www.swapi.tech/api/people/82"
+  },
+  "https://www.swapi.tech/api/people/83": {
+    "uid": "83",
+    "name": "Tion Medon",
+    "url": "https://www.swapi.tech/api/people/83"
+  },
+  "https://www.swapi.tech/api/starships": {
+    "message": "ok",
+    "total_records": 36,
+    "total_pages": 4,
+    "previous": null,
+    "next": "https://www.swapi.tech/api/starships?page=2&limit=10",
+    "results": [
+      {
+        "uid": "2",
+        "name": "CR90 corvette",
+        "url": "https://www.swapi.tech/api/starships/2"
+      },
+      {
+        "uid": "3",
+        "name": "Star Destroyer",
+        "url": "https://www.swapi.tech/api/starships/3"
+      },
+      {
+        "uid": "5",
+        "name": "Sentinel-class landing craft",
+        "url": "https://www.swapi.tech/api/starships/5"
+      },
+      {
+        "uid": "9",
+        "name": "Death Star",
+        "url": "https://www.swapi.tech/api/starships/9"
+      },
+      {
+        "uid": "11",
+        "name": "Y-wing",
+        "url": "https://www.swapi.tech/api/starships/11"
+      },
+      {
+        "uid": "10",
+        "name": "Millennium Falcon",
+        "url": "https://www.swapi.tech/api/starships/10"
+      },
+      {
+        "uid": "13",
+        "name": "TIE Advanced x1",
+        "url": "https://www.swapi.tech/api/starships/13"
+      },
+      {
+        "uid": "15",
+        "name": "Executor",
+        "url": "https://www.swapi.tech/api/starships/15"
+      },
+      {
+        "uid": "12",
+        "name": "X-wing",
+        "url": "https://www.swapi.tech/api/starships/12"
+      },
+      {
+        "uid": "17",
+        "name": "Rebel transport",
+        "url": "https://www.swapi.tech/api/starships/17"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:04.833Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/starships/2": {
+    "uid": "2",
+    "name": "CR90 corvette",
+    "url": "https://www.swapi.tech/api/starships/2"
+  },
+  "https://www.swapi.tech/api/starships/3": {
+    "uid": "3",
+    "name": "Star Destroyer",
+    "url": "https://www.swapi.tech/api/starships/3"
+  },
+  "https://www.swapi.tech/api/starships/5": {
+    "uid": "5",
+    "name": "Sentinel-class landing craft",
+    "url": "https://www.swapi.tech/api/starships/5"
+  },
+  "https://www.swapi.tech/api/starships/9": {
+    "uid": "9",
+    "name": "Death Star",
+    "url": "https://www.swapi.tech/api/starships/9"
+  },
+  "https://www.swapi.tech/api/starships/11": {
+    "uid": "11",
+    "name": "Y-wing",
+    "url": "https://www.swapi.tech/api/starships/11"
+  },
+  "https://www.swapi.tech/api/starships/10": {
+    "uid": "10",
+    "name": "Millennium Falcon",
+    "url": "https://www.swapi.tech/api/starships/10"
+  },
+  "https://www.swapi.tech/api/starships/13": {
+    "uid": "13",
+    "name": "TIE Advanced x1",
+    "url": "https://www.swapi.tech/api/starships/13"
+  },
+  "https://www.swapi.tech/api/starships/15": {
+    "uid": "15",
+    "name": "Executor",
+    "url": "https://www.swapi.tech/api/starships/15"
+  },
+  "https://www.swapi.tech/api/starships/12": {
+    "uid": "12",
+    "name": "X-wing",
+    "url": "https://www.swapi.tech/api/starships/12"
+  },
+  "https://www.swapi.tech/api/starships/17": {
+    "uid": "17",
+    "name": "Rebel transport",
+    "url": "https://www.swapi.tech/api/starships/17"
+  },
+  "https://www.swapi.tech/api/starships?page=2&limit=10": {
+    "message": "ok",
+    "total_records": 36,
+    "total_pages": 4,
+    "previous": "https://www.swapi.tech/api/starships?page=1&limit=10",
+    "next": "https://www.swapi.tech/api/starships?page=3&limit=10",
+    "results": [
+      {
+        "uid": "21",
+        "name": "Slave 1",
+        "url": "https://www.swapi.tech/api/starships/21"
+      },
+      {
+        "uid": "22",
+        "name": "Imperial shuttle",
+        "url": "https://www.swapi.tech/api/starships/22"
+      },
+      {
+        "uid": "23",
+        "name": "EF76 Nebulon-B escort frigate",
+        "url": "https://www.swapi.tech/api/starships/23"
+      },
+      {
+        "uid": "28",
+        "name": "A-wing",
+        "url": "https://www.swapi.tech/api/starships/28"
+      },
+      {
+        "uid": "27",
+        "name": "Calamari Cruiser",
+        "url": "https://www.swapi.tech/api/starships/27"
+      },
+      {
+        "uid": "29",
+        "name": "B-wing",
+        "url": "https://www.swapi.tech/api/starships/29"
+      },
+      {
+        "uid": "31",
+        "name": "Republic Cruiser",
+        "url": "https://www.swapi.tech/api/starships/31"
+      },
+      {
+        "uid": "32",
+        "name": "Droid control ship",
+        "url": "https://www.swapi.tech/api/starships/32"
+      },
+      {
+        "uid": "39",
+        "name": "Naboo fighter",
+        "url": "https://www.swapi.tech/api/starships/39"
+      },
+      {
+        "uid": "40",
+        "name": "Naboo Royal Starship",
+        "url": "https://www.swapi.tech/api/starships/40"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:05.654Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/starships/21": {
+    "uid": "21",
+    "name": "Slave 1",
+    "url": "https://www.swapi.tech/api/starships/21"
+  },
+  "https://www.swapi.tech/api/starships/22": {
+    "uid": "22",
+    "name": "Imperial shuttle",
+    "url": "https://www.swapi.tech/api/starships/22"
+  },
+  "https://www.swapi.tech/api/starships/23": {
+    "uid": "23",
+    "name": "EF76 Nebulon-B escort frigate",
+    "url": "https://www.swapi.tech/api/starships/23"
+  },
+  "https://www.swapi.tech/api/starships/28": {
+    "uid": "28",
+    "name": "A-wing",
+    "url": "https://www.swapi.tech/api/starships/28"
+  },
+  "https://www.swapi.tech/api/starships/27": {
+    "uid": "27",
+    "name": "Calamari Cruiser",
+    "url": "https://www.swapi.tech/api/starships/27"
+  },
+  "https://www.swapi.tech/api/starships/29": {
+    "uid": "29",
+    "name": "B-wing",
+    "url": "https://www.swapi.tech/api/starships/29"
+  },
+  "https://www.swapi.tech/api/starships/31": {
+    "uid": "31",
+    "name": "Republic Cruiser",
+    "url": "https://www.swapi.tech/api/starships/31"
+  },
+  "https://www.swapi.tech/api/starships/32": {
+    "uid": "32",
+    "name": "Droid control ship",
+    "url": "https://www.swapi.tech/api/starships/32"
+  },
+  "https://www.swapi.tech/api/starships/39": {
+    "uid": "39",
+    "name": "Naboo fighter",
+    "url": "https://www.swapi.tech/api/starships/39"
+  },
+  "https://www.swapi.tech/api/starships/40": {
+    "uid": "40",
+    "name": "Naboo Royal Starship",
+    "url": "https://www.swapi.tech/api/starships/40"
+  },
+  "https://www.swapi.tech/api/starships?page=3&limit=10": {
+    "message": "ok",
+    "total_records": 36,
+    "total_pages": 4,
+    "previous": "https://www.swapi.tech/api/starships?page=2&limit=10",
+    "next": "https://www.swapi.tech/api/starships?page=4&limit=10",
+    "results": [
+      {
+        "uid": "43",
+        "name": "J-type diplomatic barge",
+        "url": "https://www.swapi.tech/api/starships/43"
+      },
+      {
+        "uid": "41",
+        "name": "Scimitar",
+        "url": "https://www.swapi.tech/api/starships/41"
+      },
+      {
+        "uid": "47",
+        "name": "AA-9 Coruscant freighter",
+        "url": "https://www.swapi.tech/api/starships/47"
+      },
+      {
+        "uid": "48",
+        "name": "Jedi starfighter",
+        "url": "https://www.swapi.tech/api/starships/48"
+      },
+      {
+        "uid": "52",
+        "name": "Republic Assault ship",
+        "url": "https://www.swapi.tech/api/starships/52"
+      },
+      {
+        "uid": "49",
+        "name": "H-type Nubian yacht",
+        "url": "https://www.swapi.tech/api/starships/49"
+      },
+      {
+        "uid": "59",
+        "name": "Trade Federation cruiser",
+        "url": "https://www.swapi.tech/api/starships/59"
+      },
+      {
+        "uid": "58",
+        "name": "Solar Sailer",
+        "url": "https://www.swapi.tech/api/starships/58"
+      },
+      {
+        "uid": "61",
+        "name": "Theta-class T-2c shuttle",
+        "url": "https://www.swapi.tech/api/starships/61"
+      },
+      {
+        "uid": "63",
+        "name": "Republic attack cruiser",
+        "url": "https://www.swapi.tech/api/starships/63"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:06.486Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/starships/43": {
+    "uid": "43",
+    "name": "J-type diplomatic barge",
+    "url": "https://www.swapi.tech/api/starships/43"
+  },
+  "https://www.swapi.tech/api/starships/41": {
+    "uid": "41",
+    "name": "Scimitar",
+    "url": "https://www.swapi.tech/api/starships/41"
+  },
+  "https://www.swapi.tech/api/starships/47": {
+    "uid": "47",
+    "name": "AA-9 Coruscant freighter",
+    "url": "https://www.swapi.tech/api/starships/47"
+  },
+  "https://www.swapi.tech/api/starships/48": {
+    "uid": "48",
+    "name": "Jedi starfighter",
+    "url": "https://www.swapi.tech/api/starships/48"
+  },
+  "https://www.swapi.tech/api/starships/52": {
+    "uid": "52",
+    "name": "Republic Assault ship",
+    "url": "https://www.swapi.tech/api/starships/52"
+  },
+  "https://www.swapi.tech/api/starships/49": {
+    "uid": "49",
+    "name": "H-type Nubian yacht",
+    "url": "https://www.swapi.tech/api/starships/49"
+  },
+  "https://www.swapi.tech/api/starships/59": {
+    "uid": "59",
+    "name": "Trade Federation cruiser",
+    "url": "https://www.swapi.tech/api/starships/59"
+  },
+  "https://www.swapi.tech/api/starships/58": {
+    "uid": "58",
+    "name": "Solar Sailer",
+    "url": "https://www.swapi.tech/api/starships/58"
+  },
+  "https://www.swapi.tech/api/starships/61": {
+    "uid": "61",
+    "name": "Theta-class T-2c shuttle",
+    "url": "https://www.swapi.tech/api/starships/61"
+  },
+  "https://www.swapi.tech/api/starships/63": {
+    "uid": "63",
+    "name": "Republic attack cruiser",
+    "url": "https://www.swapi.tech/api/starships/63"
+  },
+  "https://www.swapi.tech/api/starships?page=4&limit=10": {
+    "message": "ok",
+    "total_records": 36,
+    "total_pages": 4,
+    "previous": "https://www.swapi.tech/api/starships?page=3&limit=10",
+    "next": null,
+    "results": [
+      {
+        "uid": "64",
+        "name": "Naboo star skiff",
+        "url": "https://www.swapi.tech/api/starships/64"
+      },
+      {
+        "uid": "65",
+        "name": "Jedi Interceptor",
+        "url": "https://www.swapi.tech/api/starships/65"
+      },
+      {
+        "uid": "66",
+        "name": "arc-170",
+        "url": "https://www.swapi.tech/api/starships/66"
+      },
+      {
+        "uid": "68",
+        "name": "Banking clan frigte",
+        "url": "https://www.swapi.tech/api/starships/68"
+      },
+      {
+        "uid": "74",
+        "name": "Belbullab-22 starfighter",
+        "url": "https://www.swapi.tech/api/starships/74"
+      },
+      {
+        "uid": "75",
+        "name": "V-wing",
+        "url": "https://www.swapi.tech/api/starships/75"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:07.417Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/starships/64": {
+    "uid": "64",
+    "name": "Naboo star skiff",
+    "url": "https://www.swapi.tech/api/starships/64"
+  },
+  "https://www.swapi.tech/api/starships/65": {
+    "uid": "65",
+    "name": "Jedi Interceptor",
+    "url": "https://www.swapi.tech/api/starships/65"
+  },
+  "https://www.swapi.tech/api/starships/66": {
+    "uid": "66",
+    "name": "arc-170",
+    "url": "https://www.swapi.tech/api/starships/66"
+  },
+  "https://www.swapi.tech/api/starships/68": {
+    "uid": "68",
+    "name": "Banking clan frigte",
+    "url": "https://www.swapi.tech/api/starships/68"
+  },
+  "https://www.swapi.tech/api/starships/74": {
+    "uid": "74",
+    "name": "Belbullab-22 starfighter",
+    "url": "https://www.swapi.tech/api/starships/74"
+  },
+  "https://www.swapi.tech/api/starships/75": {
+    "uid": "75",
+    "name": "V-wing",
+    "url": "https://www.swapi.tech/api/starships/75"
+  },
+  "https://www.swapi.tech/api/vehicles": {
+    "message": "ok",
+    "total_records": 39,
+    "total_pages": 4,
+    "previous": null,
+    "next": "https://www.swapi.tech/api/vehicles?page=2&limit=10",
+    "results": [
+      {
+        "uid": "4",
+        "name": "Sand Crawler",
+        "url": "https://www.swapi.tech/api/vehicles/4"
+      },
+      {
+        "uid": "7",
+        "name": "X-34 landspeeder",
+        "url": "https://www.swapi.tech/api/vehicles/7"
+      },
+      {
+        "uid": "6",
+        "name": "T-16 skyhopper",
+        "url": "https://www.swapi.tech/api/vehicles/6"
+      },
+      {
+        "uid": "8",
+        "name": "TIE/LN starfighter",
+        "url": "https://www.swapi.tech/api/vehicles/8"
+      },
+      {
+        "uid": "14",
+        "name": "Snowspeeder",
+        "url": "https://www.swapi.tech/api/vehicles/14"
+      },
+      {
+        "uid": "18",
+        "name": "AT-AT",
+        "url": "https://www.swapi.tech/api/vehicles/18"
+      },
+      {
+        "uid": "16",
+        "name": "TIE bomber",
+        "url": "https://www.swapi.tech/api/vehicles/16"
+      },
+      {
+        "uid": "19",
+        "name": "AT-ST",
+        "url": "https://www.swapi.tech/api/vehicles/19"
+      },
+      {
+        "uid": "20",
+        "name": "Storm IV Twin-Pod cloud car",
+        "url": "https://www.swapi.tech/api/vehicles/20"
+      },
+      {
+        "uid": "24",
+        "name": "Sail barge",
+        "url": "https://www.swapi.tech/api/vehicles/24"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:08.379Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/vehicles/4": {
+    "uid": "4",
+    "name": "Sand Crawler",
+    "url": "https://www.swapi.tech/api/vehicles/4"
+  },
+  "https://www.swapi.tech/api/vehicles/7": {
+    "uid": "7",
+    "name": "X-34 landspeeder",
+    "url": "https://www.swapi.tech/api/vehicles/7"
+  },
+  "https://www.swapi.tech/api/vehicles/6": {
+    "uid": "6",
+    "name": "T-16 skyhopper",
+    "url": "https://www.swapi.tech/api/vehicles/6"
+  },
+  "https://www.swapi.tech/api/vehicles/8": {
+    "uid": "8",
+    "name": "TIE/LN starfighter",
+    "url": "https://www.swapi.tech/api/vehicles/8"
+  },
+  "https://www.swapi.tech/api/vehicles/14": {
+    "uid": "14",
+    "name": "Snowspeeder",
+    "url": "https://www.swapi.tech/api/vehicles/14"
+  },
+  "https://www.swapi.tech/api/vehicles/18": {
+    "uid": "18",
+    "name": "AT-AT",
+    "url": "https://www.swapi.tech/api/vehicles/18"
+  },
+  "https://www.swapi.tech/api/vehicles/16": {
+    "uid": "16",
+    "name": "TIE bomber",
+    "url": "https://www.swapi.tech/api/vehicles/16"
+  },
+  "https://www.swapi.tech/api/vehicles/19": {
+    "uid": "19",
+    "name": "AT-ST",
+    "url": "https://www.swapi.tech/api/vehicles/19"
+  },
+  "https://www.swapi.tech/api/vehicles/20": {
+    "uid": "20",
+    "name": "Storm IV Twin-Pod cloud car",
+    "url": "https://www.swapi.tech/api/vehicles/20"
+  },
+  "https://www.swapi.tech/api/vehicles/24": {
+    "uid": "24",
+    "name": "Sail barge",
+    "url": "https://www.swapi.tech/api/vehicles/24"
+  },
+  "https://www.swapi.tech/api/vehicles?page=2&limit=10": {
+    "message": "ok",
+    "total_records": 39,
+    "total_pages": 4,
+    "previous": "https://www.swapi.tech/api/vehicles?page=1&limit=10",
+    "next": "https://www.swapi.tech/api/vehicles?page=3&limit=10",
+    "results": [
+      {
+        "uid": "25",
+        "name": "Bantha-II cargo skiff",
+        "url": "https://www.swapi.tech/api/vehicles/25"
+      },
+      {
+        "uid": "30",
+        "name": "Imperial Speeder Bike",
+        "url": "https://www.swapi.tech/api/vehicles/30"
+      },
+      {
+        "uid": "26",
+        "name": "TIE/IN interceptor",
+        "url": "https://www.swapi.tech/api/vehicles/26"
+      },
+      {
+        "uid": "33",
+        "name": "Vulture Droid",
+        "url": "https://www.swapi.tech/api/vehicles/33"
+      },
+      {
+        "uid": "34",
+        "name": "Multi-Troop Transport",
+        "url": "https://www.swapi.tech/api/vehicles/34"
+      },
+      {
+        "uid": "35",
+        "name": "Armored Assault Tank",
+        "url": "https://www.swapi.tech/api/vehicles/35"
+      },
+      {
+        "uid": "36",
+        "name": "Single Trooper Aerial Platform",
+        "url": "https://www.swapi.tech/api/vehicles/36"
+      },
+      {
+        "uid": "37",
+        "name": "C-9979 landing craft",
+        "url": "https://www.swapi.tech/api/vehicles/37"
+      },
+      {
+        "uid": "38",
+        "name": "Tribubble bongo",
+        "url": "https://www.swapi.tech/api/vehicles/38"
+      },
+      {
+        "uid": "42",
+        "name": "Sith speeder",
+        "url": "https://www.swapi.tech/api/vehicles/42"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:09.410Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/vehicles/25": {
+    "uid": "25",
+    "name": "Bantha-II cargo skiff",
+    "url": "https://www.swapi.tech/api/vehicles/25"
+  },
+  "https://www.swapi.tech/api/vehicles/30": {
+    "uid": "30",
+    "name": "Imperial Speeder Bike",
+    "url": "https://www.swapi.tech/api/vehicles/30"
+  },
+  "https://www.swapi.tech/api/vehicles/26": {
+    "uid": "26",
+    "name": "TIE/IN interceptor",
+    "url": "https://www.swapi.tech/api/vehicles/26"
+  },
+  "https://www.swapi.tech/api/vehicles/33": {
+    "uid": "33",
+    "name": "Vulture Droid",
+    "url": "https://www.swapi.tech/api/vehicles/33"
+  },
+  "https://www.swapi.tech/api/vehicles/34": {
+    "uid": "34",
+    "name": "Multi-Troop Transport",
+    "url": "https://www.swapi.tech/api/vehicles/34"
+  },
+  "https://www.swapi.tech/api/vehicles/35": {
+    "uid": "35",
+    "name": "Armored Assault Tank",
+    "url": "https://www.swapi.tech/api/vehicles/35"
+  },
+  "https://www.swapi.tech/api/vehicles/36": {
+    "uid": "36",
+    "name": "Single Trooper Aerial Platform",
+    "url": "https://www.swapi.tech/api/vehicles/36"
+  },
+  "https://www.swapi.tech/api/vehicles/37": {
+    "uid": "37",
+    "name": "C-9979 landing craft",
+    "url": "https://www.swapi.tech/api/vehicles/37"
+  },
+  "https://www.swapi.tech/api/vehicles/38": {
+    "uid": "38",
+    "name": "Tribubble bongo",
+    "url": "https://www.swapi.tech/api/vehicles/38"
+  },
+  "https://www.swapi.tech/api/vehicles/42": {
+    "uid": "42",
+    "name": "Sith speeder",
+    "url": "https://www.swapi.tech/api/vehicles/42"
+  },
+  "https://www.swapi.tech/api/vehicles?page=3&limit=10": {
+    "message": "ok",
+    "total_records": 39,
+    "total_pages": 4,
+    "previous": "https://www.swapi.tech/api/vehicles?page=2&limit=10",
+    "next": "https://www.swapi.tech/api/vehicles?page=4&limit=10",
+    "results": [
+      {
+        "uid": "44",
+        "name": "Zephyr-G swoop bike",
+        "url": "https://www.swapi.tech/api/vehicles/44"
+      },
+      {
+        "uid": "45",
+        "name": "Koro-2 Exodrive airspeeder",
+        "url": "https://www.swapi.tech/api/vehicles/45"
+      },
+      {
+        "uid": "46",
+        "name": "XJ-6 airspeeder",
+        "url": "https://www.swapi.tech/api/vehicles/46"
+      },
+      {
+        "uid": "50",
+        "name": "LAAT/i",
+        "url": "https://www.swapi.tech/api/vehicles/50"
+      },
+      {
+        "uid": "51",
+        "name": "LAAT/c",
+        "url": "https://www.swapi.tech/api/vehicles/51"
+      },
+      {
+        "uid": "53",
+        "name": "AT-TE",
+        "url": "https://www.swapi.tech/api/vehicles/53"
+      },
+      {
+        "uid": "54",
+        "name": "SPHA",
+        "url": "https://www.swapi.tech/api/vehicles/54"
+      },
+      {
+        "uid": "55",
+        "name": "Flitknot speeder",
+        "url": "https://www.swapi.tech/api/vehicles/55"
+      },
+      {
+        "uid": "56",
+        "name": "Neimoidian shuttle",
+        "url": "https://www.swapi.tech/api/vehicles/56"
+      },
+      {
+        "uid": "57",
+        "name": "Geonosian starfighter",
+        "url": "https://www.swapi.tech/api/vehicles/57"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:10.441Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/vehicles/44": {
+    "uid": "44",
+    "name": "Zephyr-G swoop bike",
+    "url": "https://www.swapi.tech/api/vehicles/44"
+  },
+  "https://www.swapi.tech/api/vehicles/45": {
+    "uid": "45",
+    "name": "Koro-2 Exodrive airspeeder",
+    "url": "https://www.swapi.tech/api/vehicles/45"
+  },
+  "https://www.swapi.tech/api/vehicles/46": {
+    "uid": "46",
+    "name": "XJ-6 airspeeder",
+    "url": "https://www.swapi.tech/api/vehicles/46"
+  },
+  "https://www.swapi.tech/api/vehicles/50": {
+    "uid": "50",
+    "name": "LAAT/i",
+    "url": "https://www.swapi.tech/api/vehicles/50"
+  },
+  "https://www.swapi.tech/api/vehicles/51": {
+    "uid": "51",
+    "name": "LAAT/c",
+    "url": "https://www.swapi.tech/api/vehicles/51"
+  },
+  "https://www.swapi.tech/api/vehicles/53": {
+    "uid": "53",
+    "name": "AT-TE",
+    "url": "https://www.swapi.tech/api/vehicles/53"
+  },
+  "https://www.swapi.tech/api/vehicles/54": {
+    "uid": "54",
+    "name": "SPHA",
+    "url": "https://www.swapi.tech/api/vehicles/54"
+  },
+  "https://www.swapi.tech/api/vehicles/55": {
+    "uid": "55",
+    "name": "Flitknot speeder",
+    "url": "https://www.swapi.tech/api/vehicles/55"
+  },
+  "https://www.swapi.tech/api/vehicles/56": {
+    "uid": "56",
+    "name": "Neimoidian shuttle",
+    "url": "https://www.swapi.tech/api/vehicles/56"
+  },
+  "https://www.swapi.tech/api/vehicles/57": {
+    "uid": "57",
+    "name": "Geonosian starfighter",
+    "url": "https://www.swapi.tech/api/vehicles/57"
+  },
+  "https://www.swapi.tech/api/vehicles?page=4&limit=10": {
+    "message": "ok",
+    "total_records": 39,
+    "total_pages": 4,
+    "previous": "https://www.swapi.tech/api/vehicles?page=3&limit=10",
+    "next": null,
+    "results": [
+      {
+        "uid": "60",
+        "name": "Tsmeu-6 personal wheel bike",
+        "url": "https://www.swapi.tech/api/vehicles/60"
+      },
+      {
+        "uid": "62",
+        "name": "Emergency Firespeeder",
+        "url": "https://www.swapi.tech/api/vehicles/62"
+      },
+      {
+        "uid": "69",
+        "name": "Oevvaor jet catamaran",
+        "url": "https://www.swapi.tech/api/vehicles/69"
+      },
+      {
+        "uid": "70",
+        "name": "Raddaugh Gnasp fluttercraft",
+        "url": "https://www.swapi.tech/api/vehicles/70"
+      },
+      {
+        "uid": "67",
+        "name": "Droid tri-fighter",
+        "url": "https://www.swapi.tech/api/vehicles/67"
+      },
+      {
+        "uid": "71",
+        "name": "Clone turbo tank",
+        "url": "https://www.swapi.tech/api/vehicles/71"
+      },
+      {
+        "uid": "72",
+        "name": "Corporate Alliance tank droid",
+        "url": "https://www.swapi.tech/api/vehicles/72"
+      },
+      {
+        "uid": "73",
+        "name": "Droid gunship",
+        "url": "https://www.swapi.tech/api/vehicles/73"
+      },
+      {
+        "uid": "76",
+        "name": "AT-RT",
+        "url": "https://www.swapi.tech/api/vehicles/76"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:11.564Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/vehicles/60": {
+    "uid": "60",
+    "name": "Tsmeu-6 personal wheel bike",
+    "url": "https://www.swapi.tech/api/vehicles/60"
+  },
+  "https://www.swapi.tech/api/vehicles/62": {
+    "uid": "62",
+    "name": "Emergency Firespeeder",
+    "url": "https://www.swapi.tech/api/vehicles/62"
+  },
+  "https://www.swapi.tech/api/vehicles/69": {
+    "uid": "69",
+    "name": "Oevvaor jet catamaran",
+    "url": "https://www.swapi.tech/api/vehicles/69"
+  },
+  "https://www.swapi.tech/api/vehicles/70": {
+    "uid": "70",
+    "name": "Raddaugh Gnasp fluttercraft",
+    "url": "https://www.swapi.tech/api/vehicles/70"
+  },
+  "https://www.swapi.tech/api/vehicles/67": {
+    "uid": "67",
+    "name": "Droid tri-fighter",
+    "url": "https://www.swapi.tech/api/vehicles/67"
+  },
+  "https://www.swapi.tech/api/vehicles/71": {
+    "uid": "71",
+    "name": "Clone turbo tank",
+    "url": "https://www.swapi.tech/api/vehicles/71"
+  },
+  "https://www.swapi.tech/api/vehicles/72": {
+    "uid": "72",
+    "name": "Corporate Alliance tank droid",
+    "url": "https://www.swapi.tech/api/vehicles/72"
+  },
+  "https://www.swapi.tech/api/vehicles/73": {
+    "uid": "73",
+    "name": "Droid gunship",
+    "url": "https://www.swapi.tech/api/vehicles/73"
+  },
+  "https://www.swapi.tech/api/vehicles/76": {
+    "uid": "76",
+    "name": "AT-RT",
+    "url": "https://www.swapi.tech/api/vehicles/76"
+  },
+  "https://www.swapi.tech/api/species": {
+    "message": "ok",
+    "total_records": 37,
+    "total_pages": 4,
+    "previous": null,
+    "next": "https://www.swapi.tech/api/species?page=2&limit=10",
+    "results": [
+      {
+        "uid": "1",
+        "name": "Human",
+        "url": "https://www.swapi.tech/api/species/1"
+      },
+      {
+        "uid": "2",
+        "name": "Droid",
+        "url": "https://www.swapi.tech/api/species/2"
+      },
+      {
+        "uid": "3",
+        "name": "Wookie",
+        "url": "https://www.swapi.tech/api/species/3"
+      },
+      {
+        "uid": "4",
+        "name": "Rodian",
+        "url": "https://www.swapi.tech/api/species/4"
+      },
+      {
+        "uid": "5",
+        "name": "Hutt",
+        "url": "https://www.swapi.tech/api/species/5"
+      },
+      {
+        "uid": "6",
+        "name": "Yoda's species",
+        "url": "https://www.swapi.tech/api/species/6"
+      },
+      {
+        "uid": "7",
+        "name": "Trandoshan",
+        "url": "https://www.swapi.tech/api/species/7"
+      },
+      {
+        "uid": "8",
+        "name": "Mon Calamari",
+        "url": "https://www.swapi.tech/api/species/8"
+      },
+      {
+        "uid": "9",
+        "name": "Ewok",
+        "url": "https://www.swapi.tech/api/species/9"
+      },
+      {
+        "uid": "10",
+        "name": "Sullustan",
+        "url": "https://www.swapi.tech/api/species/10"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:12.691Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/species/1": {
+    "uid": "1",
+    "name": "Human",
+    "url": "https://www.swapi.tech/api/species/1"
+  },
+  "https://www.swapi.tech/api/species/2": {
+    "uid": "2",
+    "name": "Droid",
+    "url": "https://www.swapi.tech/api/species/2"
+  },
+  "https://www.swapi.tech/api/species/3": {
+    "uid": "3",
+    "name": "Wookie",
+    "url": "https://www.swapi.tech/api/species/3"
+  },
+  "https://www.swapi.tech/api/species/4": {
+    "uid": "4",
+    "name": "Rodian",
+    "url": "https://www.swapi.tech/api/species/4"
+  },
+  "https://www.swapi.tech/api/species/5": {
+    "uid": "5",
+    "name": "Hutt",
+    "url": "https://www.swapi.tech/api/species/5"
+  },
+  "https://www.swapi.tech/api/species/6": {
+    "uid": "6",
+    "name": "Yoda's species",
+    "url": "https://www.swapi.tech/api/species/6"
+  },
+  "https://www.swapi.tech/api/species/7": {
+    "uid": "7",
+    "name": "Trandoshan",
+    "url": "https://www.swapi.tech/api/species/7"
+  },
+  "https://www.swapi.tech/api/species/8": {
+    "uid": "8",
+    "name": "Mon Calamari",
+    "url": "https://www.swapi.tech/api/species/8"
+  },
+  "https://www.swapi.tech/api/species/9": {
+    "uid": "9",
+    "name": "Ewok",
+    "url": "https://www.swapi.tech/api/species/9"
+  },
+  "https://www.swapi.tech/api/species/10": {
+    "uid": "10",
+    "name": "Sullustan",
+    "url": "https://www.swapi.tech/api/species/10"
+  },
+  "https://www.swapi.tech/api/species?page=2&limit=10": {
+    "message": "ok",
+    "total_records": 37,
+    "total_pages": 4,
+    "previous": "https://www.swapi.tech/api/species?page=1&limit=10",
+    "next": "https://www.swapi.tech/api/species?page=3&limit=10",
+    "results": [
+      {
+        "uid": "11",
+        "name": "Neimodian",
+        "url": "https://www.swapi.tech/api/species/11"
+      },
+      {
+        "uid": "12",
+        "name": "Gungan",
+        "url": "https://www.swapi.tech/api/species/12"
+      },
+      {
+        "uid": "13",
+        "name": "Toydarian",
+        "url": "https://www.swapi.tech/api/species/13"
+      },
+      {
+        "uid": "14",
+        "name": "Dug",
+        "url": "https://www.swapi.tech/api/species/14"
+      },
+      {
+        "uid": "15",
+        "name": "Twi'lek",
+        "url": "https://www.swapi.tech/api/species/15"
+      },
+      {
+        "uid": "16",
+        "name": "Aleena",
+        "url": "https://www.swapi.tech/api/species/16"
+      },
+      {
+        "uid": "17",
+        "name": "Vulptereen",
+        "url": "https://www.swapi.tech/api/species/17"
+      },
+      {
+        "uid": "18",
+        "name": "Xexto",
+        "url": "https://www.swapi.tech/api/species/18"
+      },
+      {
+        "uid": "19",
+        "name": "Toong",
+        "url": "https://www.swapi.tech/api/species/19"
+      },
+      {
+        "uid": "20",
+        "name": "Cerean",
+        "url": "https://www.swapi.tech/api/species/20"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:13.917Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/species/11": {
+    "uid": "11",
+    "name": "Neimodian",
+    "url": "https://www.swapi.tech/api/species/11"
+  },
+  "https://www.swapi.tech/api/species/12": {
+    "uid": "12",
+    "name": "Gungan",
+    "url": "https://www.swapi.tech/api/species/12"
+  },
+  "https://www.swapi.tech/api/species/13": {
+    "uid": "13",
+    "name": "Toydarian",
+    "url": "https://www.swapi.tech/api/species/13"
+  },
+  "https://www.swapi.tech/api/species/14": {
+    "uid": "14",
+    "name": "Dug",
+    "url": "https://www.swapi.tech/api/species/14"
+  },
+  "https://www.swapi.tech/api/species/15": {
+    "uid": "15",
+    "name": "Twi'lek",
+    "url": "https://www.swapi.tech/api/species/15"
+  },
+  "https://www.swapi.tech/api/species/16": {
+    "uid": "16",
+    "name": "Aleena",
+    "url": "https://www.swapi.tech/api/species/16"
+  },
+  "https://www.swapi.tech/api/species/17": {
+    "uid": "17",
+    "name": "Vulptereen",
+    "url": "https://www.swapi.tech/api/species/17"
+  },
+  "https://www.swapi.tech/api/species/18": {
+    "uid": "18",
+    "name": "Xexto",
+    "url": "https://www.swapi.tech/api/species/18"
+  },
+  "https://www.swapi.tech/api/species/19": {
+    "uid": "19",
+    "name": "Toong",
+    "url": "https://www.swapi.tech/api/species/19"
+  },
+  "https://www.swapi.tech/api/species/20": {
+    "uid": "20",
+    "name": "Cerean",
+    "url": "https://www.swapi.tech/api/species/20"
+  },
+  "https://www.swapi.tech/api/species?page=3&limit=10": {
+    "message": "ok",
+    "total_records": 37,
+    "total_pages": 4,
+    "previous": "https://www.swapi.tech/api/species?page=2&limit=10",
+    "next": "https://www.swapi.tech/api/species?page=4&limit=10",
+    "results": [
+      {
+        "uid": "21",
+        "name": "Nautolan",
+        "url": "https://www.swapi.tech/api/species/21"
+      },
+      {
+        "uid": "22",
+        "name": "Zabrak",
+        "url": "https://www.swapi.tech/api/species/22"
+      },
+      {
+        "uid": "23",
+        "name": "Tholothian",
+        "url": "https://www.swapi.tech/api/species/23"
+      },
+      {
+        "uid": "24",
+        "name": "Iktotchi",
+        "url": "https://www.swapi.tech/api/species/24"
+      },
+      {
+        "uid": "25",
+        "name": "Quermian",
+        "url": "https://www.swapi.tech/api/species/25"
+      },
+      {
+        "uid": "26",
+        "name": "Kel Dor",
+        "url": "https://www.swapi.tech/api/species/26"
+      },
+      {
+        "uid": "27",
+        "name": "Chagrian",
+        "url": "https://www.swapi.tech/api/species/27"
+      },
+      {
+        "uid": "28",
+        "name": "Geonosian",
+        "url": "https://www.swapi.tech/api/species/28"
+      },
+      {
+        "uid": "29",
+        "name": "Mirialan",
+        "url": "https://www.swapi.tech/api/species/29"
+      },
+      {
+        "uid": "30",
+        "name": "Clawdite",
+        "url": "https://www.swapi.tech/api/species/30"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:15.140Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/species/21": {
+    "uid": "21",
+    "name": "Nautolan",
+    "url": "https://www.swapi.tech/api/species/21"
+  },
+  "https://www.swapi.tech/api/species/22": {
+    "uid": "22",
+    "name": "Zabrak",
+    "url": "https://www.swapi.tech/api/species/22"
+  },
+  "https://www.swapi.tech/api/species/23": {
+    "uid": "23",
+    "name": "Tholothian",
+    "url": "https://www.swapi.tech/api/species/23"
+  },
+  "https://www.swapi.tech/api/species/24": {
+    "uid": "24",
+    "name": "Iktotchi",
+    "url": "https://www.swapi.tech/api/species/24"
+  },
+  "https://www.swapi.tech/api/species/25": {
+    "uid": "25",
+    "name": "Quermian",
+    "url": "https://www.swapi.tech/api/species/25"
+  },
+  "https://www.swapi.tech/api/species/26": {
+    "uid": "26",
+    "name": "Kel Dor",
+    "url": "https://www.swapi.tech/api/species/26"
+  },
+  "https://www.swapi.tech/api/species/27": {
+    "uid": "27",
+    "name": "Chagrian",
+    "url": "https://www.swapi.tech/api/species/27"
+  },
+  "https://www.swapi.tech/api/species/28": {
+    "uid": "28",
+    "name": "Geonosian",
+    "url": "https://www.swapi.tech/api/species/28"
+  },
+  "https://www.swapi.tech/api/species/29": {
+    "uid": "29",
+    "name": "Mirialan",
+    "url": "https://www.swapi.tech/api/species/29"
+  },
+  "https://www.swapi.tech/api/species/30": {
+    "uid": "30",
+    "name": "Clawdite",
+    "url": "https://www.swapi.tech/api/species/30"
+  },
+  "https://www.swapi.tech/api/species?page=4&limit=10": {
+    "message": "ok",
+    "total_records": 37,
+    "total_pages": 4,
+    "previous": "https://www.swapi.tech/api/species?page=3&limit=10",
+    "next": null,
+    "results": [
+      {
+        "uid": "31",
+        "name": "Besalisk",
+        "url": "https://www.swapi.tech/api/species/31"
+      },
+      {
+        "uid": "32",
+        "name": "Kaminoan",
+        "url": "https://www.swapi.tech/api/species/32"
+      },
+      {
+        "uid": "33",
+        "name": "Skakoan",
+        "url": "https://www.swapi.tech/api/species/33"
+      },
+      {
+        "uid": "34",
+        "name": "Muun",
+        "url": "https://www.swapi.tech/api/species/34"
+      },
+      {
+        "uid": "35",
+        "name": "Togruta",
+        "url": "https://www.swapi.tech/api/species/35"
+      },
+      {
+        "uid": "36",
+        "name": "Kaleesh",
+        "url": "https://www.swapi.tech/api/species/36"
+      },
+      {
+        "uid": "37",
+        "name": "Pau'an",
+        "url": "https://www.swapi.tech/api/species/37"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:16.461Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/species/31": {
+    "uid": "31",
+    "name": "Besalisk",
+    "url": "https://www.swapi.tech/api/species/31"
+  },
+  "https://www.swapi.tech/api/species/32": {
+    "uid": "32",
+    "name": "Kaminoan",
+    "url": "https://www.swapi.tech/api/species/32"
+  },
+  "https://www.swapi.tech/api/species/33": {
+    "uid": "33",
+    "name": "Skakoan",
+    "url": "https://www.swapi.tech/api/species/33"
+  },
+  "https://www.swapi.tech/api/species/34": {
+    "uid": "34",
+    "name": "Muun",
+    "url": "https://www.swapi.tech/api/species/34"
+  },
+  "https://www.swapi.tech/api/species/35": {
+    "uid": "35",
+    "name": "Togruta",
+    "url": "https://www.swapi.tech/api/species/35"
+  },
+  "https://www.swapi.tech/api/species/36": {
+    "uid": "36",
+    "name": "Kaleesh",
+    "url": "https://www.swapi.tech/api/species/36"
+  },
+  "https://www.swapi.tech/api/species/37": {
+    "uid": "37",
+    "name": "Pau'an",
+    "url": "https://www.swapi.tech/api/species/37"
+  },
+  "https://www.swapi.tech/api/planets": {
+    "message": "ok",
+    "total_records": 60,
+    "total_pages": 6,
+    "previous": null,
+    "next": "https://www.swapi.tech/api/planets?page=2&limit=10",
+    "results": [
+      {
+        "uid": "1",
+        "name": "Tatooine",
+        "url": "https://www.swapi.tech/api/planets/1"
+      },
+      {
+        "uid": "2",
+        "name": "Alderaan",
+        "url": "https://www.swapi.tech/api/planets/2"
+      },
+      {
+        "uid": "3",
+        "name": "Yavin IV",
+        "url": "https://www.swapi.tech/api/planets/3"
+      },
+      {
+        "uid": "4",
+        "name": "Hoth",
+        "url": "https://www.swapi.tech/api/planets/4"
+      },
+      {
+        "uid": "5",
+        "name": "Dagobah",
+        "url": "https://www.swapi.tech/api/planets/5"
+      },
+      {
+        "uid": "6",
+        "name": "Bespin",
+        "url": "https://www.swapi.tech/api/planets/6"
+      },
+      {
+        "uid": "7",
+        "name": "Endor",
+        "url": "https://www.swapi.tech/api/planets/7"
+      },
+      {
+        "uid": "8",
+        "name": "Naboo",
+        "url": "https://www.swapi.tech/api/planets/8"
+      },
+      {
+        "uid": "9",
+        "name": "Coruscant",
+        "url": "https://www.swapi.tech/api/planets/9"
+      },
+      {
+        "uid": "10",
+        "name": "Kamino",
+        "url": "https://www.swapi.tech/api/planets/10"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:17.890Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/planets/1": {
+    "uid": "1",
+    "name": "Tatooine",
+    "url": "https://www.swapi.tech/api/planets/1"
+  },
+  "https://www.swapi.tech/api/planets/2": {
+    "uid": "2",
+    "name": "Alderaan",
+    "url": "https://www.swapi.tech/api/planets/2"
+  },
+  "https://www.swapi.tech/api/planets/3": {
+    "uid": "3",
+    "name": "Yavin IV",
+    "url": "https://www.swapi.tech/api/planets/3"
+  },
+  "https://www.swapi.tech/api/planets/4": {
+    "uid": "4",
+    "name": "Hoth",
+    "url": "https://www.swapi.tech/api/planets/4"
+  },
+  "https://www.swapi.tech/api/planets/5": {
+    "uid": "5",
+    "name": "Dagobah",
+    "url": "https://www.swapi.tech/api/planets/5"
+  },
+  "https://www.swapi.tech/api/planets/6": {
+    "uid": "6",
+    "name": "Bespin",
+    "url": "https://www.swapi.tech/api/planets/6"
+  },
+  "https://www.swapi.tech/api/planets/7": {
+    "uid": "7",
+    "name": "Endor",
+    "url": "https://www.swapi.tech/api/planets/7"
+  },
+  "https://www.swapi.tech/api/planets/8": {
+    "uid": "8",
+    "name": "Naboo",
+    "url": "https://www.swapi.tech/api/planets/8"
+  },
+  "https://www.swapi.tech/api/planets/9": {
+    "uid": "9",
+    "name": "Coruscant",
+    "url": "https://www.swapi.tech/api/planets/9"
+  },
+  "https://www.swapi.tech/api/planets/10": {
+    "uid": "10",
+    "name": "Kamino",
+    "url": "https://www.swapi.tech/api/planets/10"
+  },
+  "https://www.swapi.tech/api/planets?page=2&limit=10": {
+    "message": "ok",
+    "total_records": 60,
+    "total_pages": 6,
+    "previous": "https://www.swapi.tech/api/planets?page=1&limit=10",
+    "next": "https://www.swapi.tech/api/planets?page=3&limit=10",
+    "results": [
+      {
+        "uid": "11",
+        "name": "Geonosis",
+        "url": "https://www.swapi.tech/api/planets/11"
+      },
+      {
+        "uid": "12",
+        "name": "Utapau",
+        "url": "https://www.swapi.tech/api/planets/12"
+      },
+      {
+        "uid": "13",
+        "name": "Mustafar",
+        "url": "https://www.swapi.tech/api/planets/13"
+      },
+      {
+        "uid": "14",
+        "name": "Kashyyyk",
+        "url": "https://www.swapi.tech/api/planets/14"
+      },
+      {
+        "uid": "15",
+        "name": "Polis Massa",
+        "url": "https://www.swapi.tech/api/planets/15"
+      },
+      {
+        "uid": "16",
+        "name": "Mygeeto",
+        "url": "https://www.swapi.tech/api/planets/16"
+      },
+      {
+        "uid": "17",
+        "name": "Felucia",
+        "url": "https://www.swapi.tech/api/planets/17"
+      },
+      {
+        "uid": "18",
+        "name": "Cato Neimoidia",
+        "url": "https://www.swapi.tech/api/planets/18"
+      },
+      {
+        "uid": "19",
+        "name": "Saleucami",
+        "url": "https://www.swapi.tech/api/planets/19"
+      },
+      {
+        "uid": "20",
+        "name": "Stewjon",
+        "url": "https://www.swapi.tech/api/planets/20"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:19.310Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/planets/11": {
+    "uid": "11",
+    "name": "Geonosis",
+    "url": "https://www.swapi.tech/api/planets/11"
+  },
+  "https://www.swapi.tech/api/planets/12": {
+    "uid": "12",
+    "name": "Utapau",
+    "url": "https://www.swapi.tech/api/planets/12"
+  },
+  "https://www.swapi.tech/api/planets/13": {
+    "uid": "13",
+    "name": "Mustafar",
+    "url": "https://www.swapi.tech/api/planets/13"
+  },
+  "https://www.swapi.tech/api/planets/14": {
+    "uid": "14",
+    "name": "Kashyyyk",
+    "url": "https://www.swapi.tech/api/planets/14"
+  },
+  "https://www.swapi.tech/api/planets/15": {
+    "uid": "15",
+    "name": "Polis Massa",
+    "url": "https://www.swapi.tech/api/planets/15"
+  },
+  "https://www.swapi.tech/api/planets/16": {
+    "uid": "16",
+    "name": "Mygeeto",
+    "url": "https://www.swapi.tech/api/planets/16"
+  },
+  "https://www.swapi.tech/api/planets/17": {
+    "uid": "17",
+    "name": "Felucia",
+    "url": "https://www.swapi.tech/api/planets/17"
+  },
+  "https://www.swapi.tech/api/planets/18": {
+    "uid": "18",
+    "name": "Cato Neimoidia",
+    "url": "https://www.swapi.tech/api/planets/18"
+  },
+  "https://www.swapi.tech/api/planets/19": {
+    "uid": "19",
+    "name": "Saleucami",
+    "url": "https://www.swapi.tech/api/planets/19"
+  },
+  "https://www.swapi.tech/api/planets/20": {
+    "uid": "20",
+    "name": "Stewjon",
+    "url": "https://www.swapi.tech/api/planets/20"
+  },
+  "https://www.swapi.tech/api/planets?page=3&limit=10": {
+    "message": "ok",
+    "total_records": 60,
+    "total_pages": 6,
+    "previous": "https://www.swapi.tech/api/planets?page=2&limit=10",
+    "next": "https://www.swapi.tech/api/planets?page=4&limit=10",
+    "results": [
+      {
+        "uid": "21",
+        "name": "Eriadu",
+        "url": "https://www.swapi.tech/api/planets/21"
+      },
+      {
+        "uid": "22",
+        "name": "Corellia",
+        "url": "https://www.swapi.tech/api/planets/22"
+      },
+      {
+        "uid": "23",
+        "name": "Rodia",
+        "url": "https://www.swapi.tech/api/planets/23"
+      },
+      {
+        "uid": "24",
+        "name": "Nal Hutta",
+        "url": "https://www.swapi.tech/api/planets/24"
+      },
+      {
+        "uid": "25",
+        "name": "Dantooine",
+        "url": "https://www.swapi.tech/api/planets/25"
+      },
+      {
+        "uid": "26",
+        "name": "Bestine IV",
+        "url": "https://www.swapi.tech/api/planets/26"
+      },
+      {
+        "uid": "27",
+        "name": "Ord Mantell",
+        "url": "https://www.swapi.tech/api/planets/27"
+      },
+      {
+        "uid": "28",
+        "name": "unknown",
+        "url": "https://www.swapi.tech/api/planets/28"
+      },
+      {
+        "uid": "29",
+        "name": "Trandosha",
+        "url": "https://www.swapi.tech/api/planets/29"
+      },
+      {
+        "uid": "30",
+        "name": "Socorro",
+        "url": "https://www.swapi.tech/api/planets/30"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:20.742Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/planets/21": {
+    "uid": "21",
+    "name": "Eriadu",
+    "url": "https://www.swapi.tech/api/planets/21"
+  },
+  "https://www.swapi.tech/api/planets/22": {
+    "uid": "22",
+    "name": "Corellia",
+    "url": "https://www.swapi.tech/api/planets/22"
+  },
+  "https://www.swapi.tech/api/planets/23": {
+    "uid": "23",
+    "name": "Rodia",
+    "url": "https://www.swapi.tech/api/planets/23"
+  },
+  "https://www.swapi.tech/api/planets/24": {
+    "uid": "24",
+    "name": "Nal Hutta",
+    "url": "https://www.swapi.tech/api/planets/24"
+  },
+  "https://www.swapi.tech/api/planets/25": {
+    "uid": "25",
+    "name": "Dantooine",
+    "url": "https://www.swapi.tech/api/planets/25"
+  },
+  "https://www.swapi.tech/api/planets/26": {
+    "uid": "26",
+    "name": "Bestine IV",
+    "url": "https://www.swapi.tech/api/planets/26"
+  },
+  "https://www.swapi.tech/api/planets/27": {
+    "uid": "27",
+    "name": "Ord Mantell",
+    "url": "https://www.swapi.tech/api/planets/27"
+  },
+  "https://www.swapi.tech/api/planets/28": {
+    "uid": "28",
+    "name": "unknown",
+    "url": "https://www.swapi.tech/api/planets/28"
+  },
+  "https://www.swapi.tech/api/planets/29": {
+    "uid": "29",
+    "name": "Trandosha",
+    "url": "https://www.swapi.tech/api/planets/29"
+  },
+  "https://www.swapi.tech/api/planets/30": {
+    "uid": "30",
+    "name": "Socorro",
+    "url": "https://www.swapi.tech/api/planets/30"
+  },
+  "https://www.swapi.tech/api/planets?page=4&limit=10": {
+    "message": "ok",
+    "total_records": 60,
+    "total_pages": 6,
+    "previous": "https://www.swapi.tech/api/planets?page=3&limit=10",
+    "next": "https://www.swapi.tech/api/planets?page=5&limit=10",
+    "results": [
+      {
+        "uid": "31",
+        "name": "Mon Cala",
+        "url": "https://www.swapi.tech/api/planets/31"
+      },
+      {
+        "uid": "32",
+        "name": "Chandrila",
+        "url": "https://www.swapi.tech/api/planets/32"
+      },
+      {
+        "uid": "33",
+        "name": "Sullust",
+        "url": "https://www.swapi.tech/api/planets/33"
+      },
+      {
+        "uid": "34",
+        "name": "Toydaria",
+        "url": "https://www.swapi.tech/api/planets/34"
+      },
+      {
+        "uid": "35",
+        "name": "Malastare",
+        "url": "https://www.swapi.tech/api/planets/35"
+      },
+      {
+        "uid": "36",
+        "name": "Dathomir",
+        "url": "https://www.swapi.tech/api/planets/36"
+      },
+      {
+        "uid": "37",
+        "name": "Ryloth",
+        "url": "https://www.swapi.tech/api/planets/37"
+      },
+      {
+        "uid": "38",
+        "name": "Aleen Minor",
+        "url": "https://www.swapi.tech/api/planets/38"
+      },
+      {
+        "uid": "39",
+        "name": "Vulpter",
+        "url": "https://www.swapi.tech/api/planets/39"
+      },
+      {
+        "uid": "40",
+        "name": "Troiken",
+        "url": "https://www.swapi.tech/api/planets/40"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:22.265Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/planets/31": {
+    "uid": "31",
+    "name": "Mon Cala",
+    "url": "https://www.swapi.tech/api/planets/31"
+  },
+  "https://www.swapi.tech/api/planets/32": {
+    "uid": "32",
+    "name": "Chandrila",
+    "url": "https://www.swapi.tech/api/planets/32"
+  },
+  "https://www.swapi.tech/api/planets/33": {
+    "uid": "33",
+    "name": "Sullust",
+    "url": "https://www.swapi.tech/api/planets/33"
+  },
+  "https://www.swapi.tech/api/planets/34": {
+    "uid": "34",
+    "name": "Toydaria",
+    "url": "https://www.swapi.tech/api/planets/34"
+  },
+  "https://www.swapi.tech/api/planets/35": {
+    "uid": "35",
+    "name": "Malastare",
+    "url": "https://www.swapi.tech/api/planets/35"
+  },
+  "https://www.swapi.tech/api/planets/36": {
+    "uid": "36",
+    "name": "Dathomir",
+    "url": "https://www.swapi.tech/api/planets/36"
+  },
+  "https://www.swapi.tech/api/planets/37": {
+    "uid": "37",
+    "name": "Ryloth",
+    "url": "https://www.swapi.tech/api/planets/37"
+  },
+  "https://www.swapi.tech/api/planets/38": {
+    "uid": "38",
+    "name": "Aleen Minor",
+    "url": "https://www.swapi.tech/api/planets/38"
+  },
+  "https://www.swapi.tech/api/planets/39": {
+    "uid": "39",
+    "name": "Vulpter",
+    "url": "https://www.swapi.tech/api/planets/39"
+  },
+  "https://www.swapi.tech/api/planets/40": {
+    "uid": "40",
+    "name": "Troiken",
+    "url": "https://www.swapi.tech/api/planets/40"
+  },
+  "https://www.swapi.tech/api/planets?page=5&limit=10": {
+    "message": "ok",
+    "total_records": 60,
+    "total_pages": 6,
+    "previous": "https://www.swapi.tech/api/planets?page=4&limit=10",
+    "next": "https://www.swapi.tech/api/planets?page=6&limit=10",
+    "results": [
+      {
+        "uid": "41",
+        "name": "Tund",
+        "url": "https://www.swapi.tech/api/planets/41"
+      },
+      {
+        "uid": "42",
+        "name": "Haruun Kal",
+        "url": "https://www.swapi.tech/api/planets/42"
+      },
+      {
+        "uid": "43",
+        "name": "Cerea",
+        "url": "https://www.swapi.tech/api/planets/43"
+      },
+      {
+        "uid": "44",
+        "name": "Glee Anselm",
+        "url": "https://www.swapi.tech/api/planets/44"
+      },
+      {
+        "uid": "45",
+        "name": "Iridonia",
+        "url": "https://www.swapi.tech/api/planets/45"
+      },
+      {
+        "uid": "46",
+        "name": "Tholoth",
+        "url": "https://www.swapi.tech/api/planets/46"
+      },
+      {
+        "uid": "47",
+        "name": "Iktotch",
+        "url": "https://www.swapi.tech/api/planets/47"
+      },
+      {
+        "uid": "48",
+        "name": "Quermia",
+        "url": "https://www.swapi.tech/api/planets/48"
+      },
+      {
+        "uid": "49",
+        "name": "Dorin",
+        "url": "https://www.swapi.tech/api/planets/49"
+      },
+      {
+        "uid": "50",
+        "name": "Champala",
+        "url": "https://www.swapi.tech/api/planets/50"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:23.790Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/planets/41": {
+    "uid": "41",
+    "name": "Tund",
+    "url": "https://www.swapi.tech/api/planets/41"
+  },
+  "https://www.swapi.tech/api/planets/42": {
+    "uid": "42",
+    "name": "Haruun Kal",
+    "url": "https://www.swapi.tech/api/planets/42"
+  },
+  "https://www.swapi.tech/api/planets/43": {
+    "uid": "43",
+    "name": "Cerea",
+    "url": "https://www.swapi.tech/api/planets/43"
+  },
+  "https://www.swapi.tech/api/planets/44": {
+    "uid": "44",
+    "name": "Glee Anselm",
+    "url": "https://www.swapi.tech/api/planets/44"
+  },
+  "https://www.swapi.tech/api/planets/45": {
+    "uid": "45",
+    "name": "Iridonia",
+    "url": "https://www.swapi.tech/api/planets/45"
+  },
+  "https://www.swapi.tech/api/planets/46": {
+    "uid": "46",
+    "name": "Tholoth",
+    "url": "https://www.swapi.tech/api/planets/46"
+  },
+  "https://www.swapi.tech/api/planets/47": {
+    "uid": "47",
+    "name": "Iktotch",
+    "url": "https://www.swapi.tech/api/planets/47"
+  },
+  "https://www.swapi.tech/api/planets/48": {
+    "uid": "48",
+    "name": "Quermia",
+    "url": "https://www.swapi.tech/api/planets/48"
+  },
+  "https://www.swapi.tech/api/planets/49": {
+    "uid": "49",
+    "name": "Dorin",
+    "url": "https://www.swapi.tech/api/planets/49"
+  },
+  "https://www.swapi.tech/api/planets/50": {
+    "uid": "50",
+    "name": "Champala",
+    "url": "https://www.swapi.tech/api/planets/50"
+  },
+  "https://www.swapi.tech/api/planets?page=6&limit=10": {
+    "message": "ok",
+    "total_records": 60,
+    "total_pages": 6,
+    "previous": "https://www.swapi.tech/api/planets?page=5&limit=10",
+    "next": null,
+    "results": [
+      {
+        "uid": "51",
+        "name": "Mirial",
+        "url": "https://www.swapi.tech/api/planets/51"
+      },
+      {
+        "uid": "52",
+        "name": "Serenno",
+        "url": "https://www.swapi.tech/api/planets/52"
+      },
+      {
+        "uid": "53",
+        "name": "Concord Dawn",
+        "url": "https://www.swapi.tech/api/planets/53"
+      },
+      {
+        "uid": "54",
+        "name": "Zolan",
+        "url": "https://www.swapi.tech/api/planets/54"
+      },
+      {
+        "uid": "55",
+        "name": "Ojom",
+        "url": "https://www.swapi.tech/api/planets/55"
+      },
+      {
+        "uid": "56",
+        "name": "Skako",
+        "url": "https://www.swapi.tech/api/planets/56"
+      },
+      {
+        "uid": "57",
+        "name": "Muunilinst",
+        "url": "https://www.swapi.tech/api/planets/57"
+      },
+      {
+        "uid": "58",
+        "name": "Shili",
+        "url": "https://www.swapi.tech/api/planets/58"
+      },
+      {
+        "uid": "59",
+        "name": "Kalee",
+        "url": "https://www.swapi.tech/api/planets/59"
+      },
+      {
+        "uid": "60",
+        "name": "Umbara",
+        "url": "https://www.swapi.tech/api/planets/60"
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:25.414Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/planets/51": {
+    "uid": "51",
+    "name": "Mirial",
+    "url": "https://www.swapi.tech/api/planets/51"
+  },
+  "https://www.swapi.tech/api/planets/52": {
+    "uid": "52",
+    "name": "Serenno",
+    "url": "https://www.swapi.tech/api/planets/52"
+  },
+  "https://www.swapi.tech/api/planets/53": {
+    "uid": "53",
+    "name": "Concord Dawn",
+    "url": "https://www.swapi.tech/api/planets/53"
+  },
+  "https://www.swapi.tech/api/planets/54": {
+    "uid": "54",
+    "name": "Zolan",
+    "url": "https://www.swapi.tech/api/planets/54"
+  },
+  "https://www.swapi.tech/api/planets/55": {
+    "uid": "55",
+    "name": "Ojom",
+    "url": "https://www.swapi.tech/api/planets/55"
+  },
+  "https://www.swapi.tech/api/planets/56": {
+    "uid": "56",
+    "name": "Skako",
+    "url": "https://www.swapi.tech/api/planets/56"
+  },
+  "https://www.swapi.tech/api/planets/57": {
+    "uid": "57",
+    "name": "Muunilinst",
+    "url": "https://www.swapi.tech/api/planets/57"
+  },
+  "https://www.swapi.tech/api/planets/58": {
+    "uid": "58",
+    "name": "Shili",
+    "url": "https://www.swapi.tech/api/planets/58"
+  },
+  "https://www.swapi.tech/api/planets/59": {
+    "uid": "59",
+    "name": "Kalee",
+    "url": "https://www.swapi.tech/api/planets/59"
+  },
+  "https://www.swapi.tech/api/planets/60": {
+    "uid": "60",
+    "name": "Umbara",
+    "url": "https://www.swapi.tech/api/planets/60"
+  },
+  "https://www.swapi.tech/api/films": {
+    "message": "ok",
+    "result": [
+      {
+        "properties": {
+          "created": "2025-10-03T23:07:37.760Z",
+          "edited": "2025-10-03T23:07:37.760Z",
+          "starships": [
+            "https://www.swapi.tech/api/starships/2",
+            "https://www.swapi.tech/api/starships/3",
+            "https://www.swapi.tech/api/starships/5",
+            "https://www.swapi.tech/api/starships/9",
+            "https://www.swapi.tech/api/starships/10",
+            "https://www.swapi.tech/api/starships/11",
+            "https://www.swapi.tech/api/starships/12",
+            "https://www.swapi.tech/api/starships/13"
+          ],
+          "vehicles": [
+            "https://www.swapi.tech/api/vehicles/4",
+            "https://www.swapi.tech/api/vehicles/6",
+            "https://www.swapi.tech/api/vehicles/7",
+            "https://www.swapi.tech/api/vehicles/8"
+          ],
+          "planets": [
+            "https://www.swapi.tech/api/planets/1",
+            "https://www.swapi.tech/api/planets/2",
+            "https://www.swapi.tech/api/planets/3"
+          ],
+          "producer": "Gary Kurtz, Rick McCallum",
+          "title": "A New Hope",
+          "episode_id": 4,
+          "director": "George Lucas",
+          "release_date": "1977-05-25",
+          "opening_crawl": "It is a period of civil war.\r\nRebel spaceships, striking\r\nfrom a hidden base, have won\r\ntheir first victory against\r\nthe evil Galactic Empire.\r\n\r\nDuring the battle, Rebel\r\nspies managed to steal secret\r\nplans to the Empire's\r\nultimate weapon, the DEATH\r\nSTAR, an armored space\r\nstation with enough power\r\nto destroy an entire planet.\r\n\r\nPursued by the Empire's\r\nsinister agents, Princess\r\nLeia races home aboard her\r\nstarship, custodian of the\r\nstolen plans that can save her\r\npeople and restore\r\nfreedom to the galaxy....",
+          "characters": [
+            "https://www.swapi.tech/api/people/1",
+            "https://www.swapi.tech/api/people/2",
+            "https://www.swapi.tech/api/people/3",
+            "https://www.swapi.tech/api/people/4",
+            "https://www.swapi.tech/api/people/5",
+            "https://www.swapi.tech/api/people/6",
+            "https://www.swapi.tech/api/people/7",
+            "https://www.swapi.tech/api/people/8",
+            "https://www.swapi.tech/api/people/9",
+            "https://www.swapi.tech/api/people/10",
+            "https://www.swapi.tech/api/people/12",
+            "https://www.swapi.tech/api/people/13",
+            "https://www.swapi.tech/api/people/14",
+            "https://www.swapi.tech/api/people/15",
+            "https://www.swapi.tech/api/people/16",
+            "https://www.swapi.tech/api/people/18",
+            "https://www.swapi.tech/api/people/19",
+            "https://www.swapi.tech/api/people/81"
+          ],
+          "species": [
+            "https://www.swapi.tech/api/species/1",
+            "https://www.swapi.tech/api/species/2",
+            "https://www.swapi.tech/api/species/3",
+            "https://www.swapi.tech/api/species/4",
+            "https://www.swapi.tech/api/species/5"
+          ],
+          "url": "https://www.swapi.tech/api/films/1"
+        },
+        "_id": "5f63a117cf50d100047f9762",
+        "description": "A Star Wars Film",
+        "uid": "1",
+        "__v": 2
+      },
+      {
+        "properties": {
+          "created": "2025-10-03T23:07:37.760Z",
+          "edited": "2025-10-03T23:07:37.760Z",
+          "starships": [
+            "https://www.swapi.tech/api/starships/3",
+            "https://www.swapi.tech/api/starships/10",
+            "https://www.swapi.tech/api/starships/11",
+            "https://www.swapi.tech/api/starships/12",
+            "https://www.swapi.tech/api/starships/15",
+            "https://www.swapi.tech/api/starships/17",
+            "https://www.swapi.tech/api/starships/21",
+            "https://www.swapi.tech/api/starships/22",
+            "https://www.swapi.tech/api/starships/23"
+          ],
+          "vehicles": [
+            "https://www.swapi.tech/api/vehicles/8",
+            "https://www.swapi.tech/api/vehicles/14",
+            "https://www.swapi.tech/api/vehicles/16",
+            "https://www.swapi.tech/api/vehicles/18",
+            "https://www.swapi.tech/api/vehicles/19",
+            "https://www.swapi.tech/api/vehicles/20"
+          ],
+          "planets": [
+            "https://www.swapi.tech/api/planets/4",
+            "https://www.swapi.tech/api/planets/5",
+            "https://www.swapi.tech/api/planets/6",
+            "https://www.swapi.tech/api/planets/27"
+          ],
+          "producer": "Gary Kurtz, Rick McCallum",
+          "title": "The Empire Strikes Back",
+          "episode_id": 5,
+          "director": "Irvin Kershner",
+          "release_date": "1980-05-17",
+          "opening_crawl": "It is a dark time for the\r\nRebellion. Although the Death\r\nStar has been destroyed,\r\nImperial troops have driven the\r\nRebel forces from their hidden\r\nbase and pursued them across\r\nthe galaxy.\r\n\r\nEvading the dreaded Imperial\r\nStarfleet, a group of freedom\r\nfighters led by Luke Skywalker\r\nhas established a new secret\r\nbase on the remote ice world\r\nof Hoth.\r\n\r\nThe evil lord Darth Vader,\r\nobsessed with finding young\r\nSkywalker, has dispatched\r\nthousands of remote probes into\r\nthe far reaches of space....",
+          "characters": [
+            "https://www.swapi.tech/api/people/1",
+            "https://www.swapi.tech/api/people/2",
+            "https://www.swapi.tech/api/people/3",
+            "https://www.swapi.tech/api/people/4",
+            "https://www.swapi.tech/api/people/5",
+            "https://www.swapi.tech/api/people/10",
+            "https://www.swapi.tech/api/people/13",
+            "https://www.swapi.tech/api/people/14",
+            "https://www.swapi.tech/api/people/18",
+            "https://www.swapi.tech/api/people/20",
+            "https://www.swapi.tech/api/people/21",
+            "https://www.swapi.tech/api/people/22",
+            "https://www.swapi.tech/api/people/23",
+            "https://www.swapi.tech/api/people/24",
+            "https://www.swapi.tech/api/people/25",
+            "https://www.swapi.tech/api/people/26"
+          ],
+          "species": [
+            "https://www.swapi.tech/api/species/1",
+            "https://www.swapi.tech/api/species/2",
+            "https://www.swapi.tech/api/species/3",
+            "https://www.swapi.tech/api/species/6",
+            "https://www.swapi.tech/api/species/7"
+          ],
+          "url": "https://www.swapi.tech/api/films/2"
+        },
+        "_id": "5f63a117cf50d100047f9763",
+        "description": "A Star Wars Film",
+        "uid": "2",
+        "__v": 2
+      },
+      {
+        "properties": {
+          "created": "2025-10-03T23:07:37.760Z",
+          "edited": "2025-10-03T23:07:37.760Z",
+          "starships": [
+            "https://www.swapi.tech/api/starships/2",
+            "https://www.swapi.tech/api/starships/3",
+            "https://www.swapi.tech/api/starships/10",
+            "https://www.swapi.tech/api/starships/11",
+            "https://www.swapi.tech/api/starships/12",
+            "https://www.swapi.tech/api/starships/15",
+            "https://www.swapi.tech/api/starships/17",
+            "https://www.swapi.tech/api/starships/22",
+            "https://www.swapi.tech/api/starships/23",
+            "https://www.swapi.tech/api/starships/27",
+            "https://www.swapi.tech/api/starships/28",
+            "https://www.swapi.tech/api/starships/29"
+          ],
+          "vehicles": [
+            "https://www.swapi.tech/api/vehicles/8",
+            "https://www.swapi.tech/api/vehicles/16",
+            "https://www.swapi.tech/api/vehicles/18",
+            "https://www.swapi.tech/api/vehicles/19",
+            "https://www.swapi.tech/api/vehicles/24",
+            "https://www.swapi.tech/api/vehicles/25",
+            "https://www.swapi.tech/api/vehicles/26",
+            "https://www.swapi.tech/api/vehicles/30"
+          ],
+          "planets": [
+            "https://www.swapi.tech/api/planets/1",
+            "https://www.swapi.tech/api/planets/5",
+            "https://www.swapi.tech/api/planets/7",
+            "https://www.swapi.tech/api/planets/8",
+            "https://www.swapi.tech/api/planets/9"
+          ],
+          "producer": "Howard G. Kazanjian, George Lucas, Rick McCallum",
+          "title": "Return of the Jedi",
+          "episode_id": 6,
+          "director": "Richard Marquand",
+          "release_date": "1983-05-25",
+          "opening_crawl": "Luke Skywalker has returned to\r\nhis home planet of Tatooine in\r\nan attempt to rescue his\r\nfriend Han Solo from the\r\nclutches of the vile gangster\r\nJabba the Hutt.\r\n\r\nLittle does Luke know that the\r\nGALACTIC EMPIRE has secretly\r\nbegun construction on a new\r\narmored space station even\r\nmore powerful than the first\r\ndreaded Death Star.\r\n\r\nWhen completed, this ultimate\r\nweapon will spell certain doom\r\nfor the small band of rebels\r\nstruggling to restore freedom\r\nto the galaxy...",
+          "characters": [
+            "https://www.swapi.tech/api/people/1",
+            "https://www.swapi.tech/api/people/2",
+            "https://www.swapi.tech/api/people/3",
+            "https://www.swapi.tech/api/people/4",
+            "https://www.swapi.tech/api/people/5",
+            "https://www.swapi.tech/api/people/10",
+            "https://www.swapi.tech/api/people/13",
+            "https://www.swapi.tech/api/people/14",
+            "https://www.swapi.tech/api/people/16",
+            "https://www.swapi.tech/api/people/18",
+            "https://www.swapi.tech/api/people/20",
+            "https://www.swapi.tech/api/people/21",
+            "https://www.swapi.tech/api/people/22",
+            "https://www.swapi.tech/api/people/25",
+            "https://www.swapi.tech/api/people/27",
+            "https://www.swapi.tech/api/people/28",
+            "https://www.swapi.tech/api/people/29",
+            "https://www.swapi.tech/api/people/30",
+            "https://www.swapi.tech/api/people/31",
+            "https://www.swapi.tech/api/people/45"
+          ],
+          "species": [
+            "https://www.swapi.tech/api/species/1",
+            "https://www.swapi.tech/api/species/2",
+            "https://www.swapi.tech/api/species/3",
+            "https://www.swapi.tech/api/species/5",
+            "https://www.swapi.tech/api/species/6",
+            "https://www.swapi.tech/api/species/8",
+            "https://www.swapi.tech/api/species/9",
+            "https://www.swapi.tech/api/species/10",
+            "https://www.swapi.tech/api/species/15"
+          ],
+          "url": "https://www.swapi.tech/api/films/3"
+        },
+        "_id": "5f63a117cf50d100047f9764",
+        "description": "A Star Wars Film",
+        "uid": "3",
+        "__v": 2
+      },
+      {
+        "properties": {
+          "created": "2025-10-03T23:07:37.760Z",
+          "edited": "2025-10-03T23:07:37.760Z",
+          "starships": [
+            "https://www.swapi.tech/api/starships/31",
+            "https://www.swapi.tech/api/starships/32",
+            "https://www.swapi.tech/api/starships/39",
+            "https://www.swapi.tech/api/starships/40",
+            "https://www.swapi.tech/api/starships/41"
+          ],
+          "vehicles": [
+            "https://www.swapi.tech/api/vehicles/33",
+            "https://www.swapi.tech/api/vehicles/34",
+            "https://www.swapi.tech/api/vehicles/35",
+            "https://www.swapi.tech/api/vehicles/36",
+            "https://www.swapi.tech/api/vehicles/37",
+            "https://www.swapi.tech/api/vehicles/38",
+            "https://www.swapi.tech/api/vehicles/42"
+          ],
+          "planets": [
+            "https://www.swapi.tech/api/planets/1",
+            "https://www.swapi.tech/api/planets/8",
+            "https://www.swapi.tech/api/planets/9"
+          ],
+          "producer": "Rick McCallum",
+          "title": "The Phantom Menace",
+          "episode_id": 1,
+          "director": "George Lucas",
+          "release_date": "1999-05-19",
+          "opening_crawl": "Turmoil has engulfed the\r\nGalactic Republic. The taxation\r\nof trade routes to outlying star\r\nsystems is in dispute.\r\n\r\nHoping to resolve the matter\r\nwith a blockade of deadly\r\nbattleships, the greedy Trade\r\nFederation has stopped all\r\nshipping to the small planet\r\nof Naboo.\r\n\r\nWhile the Congress of the\r\nRepublic endlessly debates\r\nthis alarming chain of events,\r\nthe Supreme Chancellor has\r\nsecretly dispatched two Jedi\r\nKnights, the guardians of\r\npeace and justice in the\r\ngalaxy, to settle the conflict....",
+          "characters": [
+            "https://www.swapi.tech/api/people/2",
+            "https://www.swapi.tech/api/people/3",
+            "https://www.swapi.tech/api/people/10",
+            "https://www.swapi.tech/api/people/11",
+            "https://www.swapi.tech/api/people/16",
+            "https://www.swapi.tech/api/people/20",
+            "https://www.swapi.tech/api/people/21",
+            "https://www.swapi.tech/api/people/32",
+            "https://www.swapi.tech/api/people/33",
+            "https://www.swapi.tech/api/people/34",
+            "https://www.swapi.tech/api/people/35",
+            "https://www.swapi.tech/api/people/36",
+            "https://www.swapi.tech/api/people/37",
+            "https://www.swapi.tech/api/people/38",
+            "https://www.swapi.tech/api/people/39",
+            "https://www.swapi.tech/api/people/40",
+            "https://www.swapi.tech/api/people/41",
+            "https://www.swapi.tech/api/people/42",
+            "https://www.swapi.tech/api/people/43",
+            "https://www.swapi.tech/api/people/44",
+            "https://www.swapi.tech/api/people/46",
+            "https://www.swapi.tech/api/people/47",
+            "https://www.swapi.tech/api/people/48",
+            "https://www.swapi.tech/api/people/49",
+            "https://www.swapi.tech/api/people/50",
+            "https://www.swapi.tech/api/people/51",
+            "https://www.swapi.tech/api/people/52",
+            "https://www.swapi.tech/api/people/53",
+            "https://www.swapi.tech/api/people/54",
+            "https://www.swapi.tech/api/people/55",
+            "https://www.swapi.tech/api/people/56",
+            "https://www.swapi.tech/api/people/57",
+            "https://www.swapi.tech/api/people/58",
+            "https://www.swapi.tech/api/people/59"
+          ],
+          "species": [
+            "https://www.swapi.tech/api/species/1",
+            "https://www.swapi.tech/api/species/2",
+            "https://www.swapi.tech/api/species/6",
+            "https://www.swapi.tech/api/species/11",
+            "https://www.swapi.tech/api/species/12",
+            "https://www.swapi.tech/api/species/13",
+            "https://www.swapi.tech/api/species/14",
+            "https://www.swapi.tech/api/species/15",
+            "https://www.swapi.tech/api/species/16",
+            "https://www.swapi.tech/api/species/17",
+            "https://www.swapi.tech/api/species/18",
+            "https://www.swapi.tech/api/species/19",
+            "https://www.swapi.tech/api/species/20",
+            "https://www.swapi.tech/api/species/21",
+            "https://www.swapi.tech/api/species/22",
+            "https://www.swapi.tech/api/species/23",
+            "https://www.swapi.tech/api/species/24",
+            "https://www.swapi.tech/api/species/25",
+            "https://www.swapi.tech/api/species/26",
+            "https://www.swapi.tech/api/species/27"
+          ],
+          "url": "https://www.swapi.tech/api/films/4"
+        },
+        "_id": "5f63a117cf50d100047f9765",
+        "description": "A Star Wars Film",
+        "uid": "4",
+        "__v": 2
+      },
+      {
+        "properties": {
+          "created": "2025-10-03T23:07:37.760Z",
+          "edited": "2025-10-03T23:07:37.760Z",
+          "starships": [
+            "https://www.swapi.tech/api/starships/21",
+            "https://www.swapi.tech/api/starships/32",
+            "https://www.swapi.tech/api/starships/39",
+            "https://www.swapi.tech/api/starships/43",
+            "https://www.swapi.tech/api/starships/47",
+            "https://www.swapi.tech/api/starships/48",
+            "https://www.swapi.tech/api/starships/49",
+            "https://www.swapi.tech/api/starships/52",
+            "https://www.swapi.tech/api/starships/58"
+          ],
+          "vehicles": [
+            "https://www.swapi.tech/api/vehicles/4",
+            "https://www.swapi.tech/api/vehicles/44",
+            "https://www.swapi.tech/api/vehicles/45",
+            "https://www.swapi.tech/api/vehicles/46",
+            "https://www.swapi.tech/api/vehicles/50",
+            "https://www.swapi.tech/api/vehicles/51",
+            "https://www.swapi.tech/api/vehicles/53",
+            "https://www.swapi.tech/api/vehicles/54",
+            "https://www.swapi.tech/api/vehicles/55",
+            "https://www.swapi.tech/api/vehicles/56",
+            "https://www.swapi.tech/api/vehicles/57"
+          ],
+          "planets": [
+            "https://www.swapi.tech/api/planets/1",
+            "https://www.swapi.tech/api/planets/8",
+            "https://www.swapi.tech/api/planets/9",
+            "https://www.swapi.tech/api/planets/10",
+            "https://www.swapi.tech/api/planets/11"
+          ],
+          "producer": "Rick McCallum",
+          "title": "Attack of the Clones",
+          "episode_id": 2,
+          "director": "George Lucas",
+          "release_date": "2002-05-16",
+          "opening_crawl": "There is unrest in the Galactic\r\nSenate. Several thousand solar\r\nsystems have declared their\r\nintentions to leave the Republic.\r\n\r\nThis separatist movement,\r\nunder the leadership of the\r\nmysterious Count Dooku, has\r\nmade it difficult for the limited\r\nnumber of Jedi Knights to maintain \r\npeace and order in the galaxy.\r\n\r\nSenator Amidala, the former\r\nQueen of Naboo, is returning\r\nto the Galactic Senate to vote\r\non the critical issue of creating\r\nan ARMY OF THE REPUBLIC\r\nto assist the overwhelmed\r\nJedi....",
+          "characters": [
+            "https://www.swapi.tech/api/people/2",
+            "https://www.swapi.tech/api/people/3",
+            "https://www.swapi.tech/api/people/6",
+            "https://www.swapi.tech/api/people/7",
+            "https://www.swapi.tech/api/people/10",
+            "https://www.swapi.tech/api/people/11",
+            "https://www.swapi.tech/api/people/20",
+            "https://www.swapi.tech/api/people/21",
+            "https://www.swapi.tech/api/people/22",
+            "https://www.swapi.tech/api/people/33",
+            "https://www.swapi.tech/api/people/35",
+            "https://www.swapi.tech/api/people/36",
+            "https://www.swapi.tech/api/people/40",
+            "https://www.swapi.tech/api/people/43",
+            "https://www.swapi.tech/api/people/46",
+            "https://www.swapi.tech/api/people/51",
+            "https://www.swapi.tech/api/people/52",
+            "https://www.swapi.tech/api/people/53",
+            "https://www.swapi.tech/api/people/58",
+            "https://www.swapi.tech/api/people/59",
+            "https://www.swapi.tech/api/people/60",
+            "https://www.swapi.tech/api/people/61",
+            "https://www.swapi.tech/api/people/62",
+            "https://www.swapi.tech/api/people/63",
+            "https://www.swapi.tech/api/people/64",
+            "https://www.swapi.tech/api/people/65",
+            "https://www.swapi.tech/api/people/66",
+            "https://www.swapi.tech/api/people/67",
+            "https://www.swapi.tech/api/people/68",
+            "https://www.swapi.tech/api/people/69",
+            "https://www.swapi.tech/api/people/70",
+            "https://www.swapi.tech/api/people/71",
+            "https://www.swapi.tech/api/people/72",
+            "https://www.swapi.tech/api/people/73",
+            "https://www.swapi.tech/api/people/74",
+            "https://www.swapi.tech/api/people/75",
+            "https://www.swapi.tech/api/people/76",
+            "https://www.swapi.tech/api/people/77",
+            "https://www.swapi.tech/api/people/78",
+            "https://www.swapi.tech/api/people/82"
+          ],
+          "species": [
+            "https://www.swapi.tech/api/species/1",
+            "https://www.swapi.tech/api/species/2",
+            "https://www.swapi.tech/api/species/6",
+            "https://www.swapi.tech/api/species/12",
+            "https://www.swapi.tech/api/species/13",
+            "https://www.swapi.tech/api/species/15",
+            "https://www.swapi.tech/api/species/28",
+            "https://www.swapi.tech/api/species/29",
+            "https://www.swapi.tech/api/species/30",
+            "https://www.swapi.tech/api/species/31",
+            "https://www.swapi.tech/api/species/32",
+            "https://www.swapi.tech/api/species/33",
+            "https://www.swapi.tech/api/species/34",
+            "https://www.swapi.tech/api/species/35"
+          ],
+          "url": "https://www.swapi.tech/api/films/5"
+        },
+        "_id": "5f63a117cf50d100047f9766",
+        "description": "A Star Wars Film",
+        "uid": "5",
+        "__v": 2
+      },
+      {
+        "properties": {
+          "created": "2025-10-03T23:07:37.760Z",
+          "edited": "2025-10-03T23:07:37.760Z",
+          "starships": [
+            "https://www.swapi.tech/api/starships/2",
+            "https://www.swapi.tech/api/starships/32",
+            "https://www.swapi.tech/api/starships/48",
+            "https://www.swapi.tech/api/starships/59",
+            "https://www.swapi.tech/api/starships/61",
+            "https://www.swapi.tech/api/starships/63",
+            "https://www.swapi.tech/api/starships/64",
+            "https://www.swapi.tech/api/starships/65",
+            "https://www.swapi.tech/api/starships/66",
+            "https://www.swapi.tech/api/starships/68",
+            "https://www.swapi.tech/api/starships/74",
+            "https://www.swapi.tech/api/starships/75"
+          ],
+          "vehicles": [
+            "https://www.swapi.tech/api/vehicles/33",
+            "https://www.swapi.tech/api/vehicles/50",
+            "https://www.swapi.tech/api/vehicles/53",
+            "https://www.swapi.tech/api/vehicles/56",
+            "https://www.swapi.tech/api/vehicles/60",
+            "https://www.swapi.tech/api/vehicles/62",
+            "https://www.swapi.tech/api/vehicles/67",
+            "https://www.swapi.tech/api/vehicles/69",
+            "https://www.swapi.tech/api/vehicles/70",
+            "https://www.swapi.tech/api/vehicles/71",
+            "https://www.swapi.tech/api/vehicles/72",
+            "https://www.swapi.tech/api/vehicles/73",
+            "https://www.swapi.tech/api/vehicles/76"
+          ],
+          "planets": [
+            "https://www.swapi.tech/api/planets/1",
+            "https://www.swapi.tech/api/planets/2",
+            "https://www.swapi.tech/api/planets/5",
+            "https://www.swapi.tech/api/planets/8",
+            "https://www.swapi.tech/api/planets/9",
+            "https://www.swapi.tech/api/planets/12",
+            "https://www.swapi.tech/api/planets/13",
+            "https://www.swapi.tech/api/planets/14",
+            "https://www.swapi.tech/api/planets/15",
+            "https://www.swapi.tech/api/planets/16",
+            "https://www.swapi.tech/api/planets/17",
+            "https://www.swapi.tech/api/planets/18",
+            "https://www.swapi.tech/api/planets/19"
+          ],
+          "producer": "Rick McCallum",
+          "title": "Revenge of the Sith",
+          "episode_id": 3,
+          "director": "George Lucas",
+          "release_date": "2005-05-19",
+          "opening_crawl": "War! The Republic is crumbling\r\nunder attacks by the ruthless\r\nSith Lord, Count Dooku.\r\nThere are heroes on both sides.\r\nEvil is everywhere.\r\n\r\nIn a stunning move, the\r\nfiendish droid leader, General\r\nGrievous, has swept into the\r\nRepublic capital and kidnapped\r\nChancellor Palpatine, leader of\r\nthe Galactic Senate.\r\n\r\nAs the Separatist Droid Army\r\nattempts to flee the besieged\r\ncapital with their valuable\r\nhostage, two Jedi Knights lead a\r\ndesperate mission to rescue the\r\ncaptive Chancellor....",
+          "characters": [
+            "https://www.swapi.tech/api/people/1",
+            "https://www.swapi.tech/api/people/2",
+            "https://www.swapi.tech/api/people/3",
+            "https://www.swapi.tech/api/people/4",
+            "https://www.swapi.tech/api/people/5",
+            "https://www.swapi.tech/api/people/6",
+            "https://www.swapi.tech/api/people/7",
+            "https://www.swapi.tech/api/people/10",
+            "https://www.swapi.tech/api/people/11",
+            "https://www.swapi.tech/api/people/12",
+            "https://www.swapi.tech/api/people/13",
+            "https://www.swapi.tech/api/people/20",
+            "https://www.swapi.tech/api/people/21",
+            "https://www.swapi.tech/api/people/33",
+            "https://www.swapi.tech/api/people/35",
+            "https://www.swapi.tech/api/people/46",
+            "https://www.swapi.tech/api/people/51",
+            "https://www.swapi.tech/api/people/52",
+            "https://www.swapi.tech/api/people/53",
+            "https://www.swapi.tech/api/people/54",
+            "https://www.swapi.tech/api/people/55",
+            "https://www.swapi.tech/api/people/56",
+            "https://www.swapi.tech/api/people/58",
+            "https://www.swapi.tech/api/people/63",
+            "https://www.swapi.tech/api/people/64",
+            "https://www.swapi.tech/api/people/67",
+            "https://www.swapi.tech/api/people/68",
+            "https://www.swapi.tech/api/people/75",
+            "https://www.swapi.tech/api/people/78",
+            "https://www.swapi.tech/api/people/79",
+            "https://www.swapi.tech/api/people/80",
+            "https://www.swapi.tech/api/people/81",
+            "https://www.swapi.tech/api/people/82",
+            "https://www.swapi.tech/api/people/83"
+          ],
+          "species": [
+            "https://www.swapi.tech/api/species/1",
+            "https://www.swapi.tech/api/species/2",
+            "https://www.swapi.tech/api/species/3",
+            "https://www.swapi.tech/api/species/6",
+            "https://www.swapi.tech/api/species/15",
+            "https://www.swapi.tech/api/species/19",
+            "https://www.swapi.tech/api/species/20",
+            "https://www.swapi.tech/api/species/23",
+            "https://www.swapi.tech/api/species/24",
+            "https://www.swapi.tech/api/species/25",
+            "https://www.swapi.tech/api/species/26",
+            "https://www.swapi.tech/api/species/27",
+            "https://www.swapi.tech/api/species/28",
+            "https://www.swapi.tech/api/species/29",
+            "https://www.swapi.tech/api/species/30",
+            "https://www.swapi.tech/api/species/33",
+            "https://www.swapi.tech/api/species/34",
+            "https://www.swapi.tech/api/species/35",
+            "https://www.swapi.tech/api/species/36",
+            "https://www.swapi.tech/api/species/37"
+          ],
+          "url": "https://www.swapi.tech/api/films/6"
+        },
+        "_id": "5f63a117cf50d100047f9767",
+        "description": "A Star Wars Film",
+        "uid": "6",
+        "__v": 2
+      }
+    ],
+    "apiVersion": "1.0",
+    "timestamp": "2025-10-04T00:55:27.089Z",
+    "support": {
+      "contact": "admin@swapi.tech",
+      "donate": "https://www.paypal.com/donate/?business=2HGAUVTWGR5T2&no_recurring=0&item_name=Support+Swapi+and+keep+the+galaxy%27s+data+free%21+Your+donation+fuels+open-source+innovation+and+helps+us+grow.+Thank+you%21+%F0%9F%9A%80&currency_code=USD",
+      "partnerDiscounts": {
+        "saberMasters": {
+          "link": "https://www.swapi.tech/partner-discount/sabermasters-swapi",
+          "details": "Use this link to automatically get $10 off your purchase!"
+        },
+        "heartMath": {
+          "link": "https://www.heartmath.com/ryanc",
+          "details": "Looking for some Jedi-like inner peace? Take 10% off your heart-brain coherence tools from the HeartMath Institute!"
+        }
+      }
+    },
+    "social": {
+      "discord": "https://discord.gg/zWvA6GPeNG",
+      "reddit": "https://www.reddit.com/r/SwapiOfficial/",
+      "github": "https://github.com/semperry/swapi/blob/main/CONTRIBUTORS.md"
+    }
+  },
+  "https://www.swapi.tech/api/films/1": {
+    "properties": {
+      "created": "2025-10-03T23:07:37.760Z",
+      "edited": "2025-10-03T23:07:37.760Z",
+      "starships": [
+        "https://www.swapi.tech/api/starships/2",
+        "https://www.swapi.tech/api/starships/3",
+        "https://www.swapi.tech/api/starships/5",
+        "https://www.swapi.tech/api/starships/9",
+        "https://www.swapi.tech/api/starships/10",
+        "https://www.swapi.tech/api/starships/11",
+        "https://www.swapi.tech/api/starships/12",
+        "https://www.swapi.tech/api/starships/13"
+      ],
+      "vehicles": [
+        "https://www.swapi.tech/api/vehicles/4",
+        "https://www.swapi.tech/api/vehicles/6",
+        "https://www.swapi.tech/api/vehicles/7",
+        "https://www.swapi.tech/api/vehicles/8"
+      ],
+      "planets": [
+        "https://www.swapi.tech/api/planets/1",
+        "https://www.swapi.tech/api/planets/2",
+        "https://www.swapi.tech/api/planets/3"
+      ],
+      "producer": "Gary Kurtz, Rick McCallum",
+      "title": "A New Hope",
+      "episode_id": 4,
+      "director": "George Lucas",
+      "release_date": "1977-05-25",
+      "opening_crawl": "It is a period of civil war.\r\nRebel spaceships, striking\r\nfrom a hidden base, have won\r\ntheir first victory against\r\nthe evil Galactic Empire.\r\n\r\nDuring the battle, Rebel\r\nspies managed to steal secret\r\nplans to the Empire's\r\nultimate weapon, the DEATH\r\nSTAR, an armored space\r\nstation with enough power\r\nto destroy an entire planet.\r\n\r\nPursued by the Empire's\r\nsinister agents, Princess\r\nLeia races home aboard her\r\nstarship, custodian of the\r\nstolen plans that can save her\r\npeople and restore\r\nfreedom to the galaxy....",
+      "characters": [
+        "https://www.swapi.tech/api/people/1",
+        "https://www.swapi.tech/api/people/2",
+        "https://www.swapi.tech/api/people/3",
+        "https://www.swapi.tech/api/people/4",
+        "https://www.swapi.tech/api/people/5",
+        "https://www.swapi.tech/api/people/6",
+        "https://www.swapi.tech/api/people/7",
+        "https://www.swapi.tech/api/people/8",
+        "https://www.swapi.tech/api/people/9",
+        "https://www.swapi.tech/api/people/10",
+        "https://www.swapi.tech/api/people/12",
+        "https://www.swapi.tech/api/people/13",
+        "https://www.swapi.tech/api/people/14",
+        "https://www.swapi.tech/api/people/15",
+        "https://www.swapi.tech/api/people/16",
+        "https://www.swapi.tech/api/people/18",
+        "https://www.swapi.tech/api/people/19",
+        "https://www.swapi.tech/api/people/81"
+      ],
+      "species": [
+        "https://www.swapi.tech/api/species/1",
+        "https://www.swapi.tech/api/species/2",
+        "https://www.swapi.tech/api/species/3",
+        "https://www.swapi.tech/api/species/4",
+        "https://www.swapi.tech/api/species/5"
+      ],
+      "url": "https://www.swapi.tech/api/films/1"
+    },
+    "_id": "5f63a117cf50d100047f9762",
+    "description": "A Star Wars Film",
+    "uid": "1",
+    "__v": 2
+  },
+  "https://www.swapi.tech/api/films/2": {
+    "properties": {
+      "created": "2025-10-03T23:07:37.760Z",
+      "edited": "2025-10-03T23:07:37.760Z",
+      "starships": [
+        "https://www.swapi.tech/api/starships/3",
+        "https://www.swapi.tech/api/starships/10",
+        "https://www.swapi.tech/api/starships/11",
+        "https://www.swapi.tech/api/starships/12",
+        "https://www.swapi.tech/api/starships/15",
+        "https://www.swapi.tech/api/starships/17",
+        "https://www.swapi.tech/api/starships/21",
+        "https://www.swapi.tech/api/starships/22",
+        "https://www.swapi.tech/api/starships/23"
+      ],
+      "vehicles": [
+        "https://www.swapi.tech/api/vehicles/8",
+        "https://www.swapi.tech/api/vehicles/14",
+        "https://www.swapi.tech/api/vehicles/16",
+        "https://www.swapi.tech/api/vehicles/18",
+        "https://www.swapi.tech/api/vehicles/19",
+        "https://www.swapi.tech/api/vehicles/20"
+      ],
+      "planets": [
+        "https://www.swapi.tech/api/planets/4",
+        "https://www.swapi.tech/api/planets/5",
+        "https://www.swapi.tech/api/planets/6",
+        "https://www.swapi.tech/api/planets/27"
+      ],
+      "producer": "Gary Kurtz, Rick McCallum",
+      "title": "The Empire Strikes Back",
+      "episode_id": 5,
+      "director": "Irvin Kershner",
+      "release_date": "1980-05-17",
+      "opening_crawl": "It is a dark time for the\r\nRebellion. Although the Death\r\nStar has been destroyed,\r\nImperial troops have driven the\r\nRebel forces from their hidden\r\nbase and pursued them across\r\nthe galaxy.\r\n\r\nEvading the dreaded Imperial\r\nStarfleet, a group of freedom\r\nfighters led by Luke Skywalker\r\nhas established a new secret\r\nbase on the remote ice world\r\nof Hoth.\r\n\r\nThe evil lord Darth Vader,\r\nobsessed with finding young\r\nSkywalker, has dispatched\r\nthousands of remote probes into\r\nthe far reaches of space....",
+      "characters": [
+        "https://www.swapi.tech/api/people/1",
+        "https://www.swapi.tech/api/people/2",
+        "https://www.swapi.tech/api/people/3",
+        "https://www.swapi.tech/api/people/4",
+        "https://www.swapi.tech/api/people/5",
+        "https://www.swapi.tech/api/people/10",
+        "https://www.swapi.tech/api/people/13",
+        "https://www.swapi.tech/api/people/14",
+        "https://www.swapi.tech/api/people/18",
+        "https://www.swapi.tech/api/people/20",
+        "https://www.swapi.tech/api/people/21",
+        "https://www.swapi.tech/api/people/22",
+        "https://www.swapi.tech/api/people/23",
+        "https://www.swapi.tech/api/people/24",
+        "https://www.swapi.tech/api/people/25",
+        "https://www.swapi.tech/api/people/26"
+      ],
+      "species": [
+        "https://www.swapi.tech/api/species/1",
+        "https://www.swapi.tech/api/species/2",
+        "https://www.swapi.tech/api/species/3",
+        "https://www.swapi.tech/api/species/6",
+        "https://www.swapi.tech/api/species/7"
+      ],
+      "url": "https://www.swapi.tech/api/films/2"
+    },
+    "_id": "5f63a117cf50d100047f9763",
+    "description": "A Star Wars Film",
+    "uid": "2",
+    "__v": 2
+  },
+  "https://www.swapi.tech/api/films/3": {
+    "properties": {
+      "created": "2025-10-03T23:07:37.760Z",
+      "edited": "2025-10-03T23:07:37.760Z",
+      "starships": [
+        "https://www.swapi.tech/api/starships/2",
+        "https://www.swapi.tech/api/starships/3",
+        "https://www.swapi.tech/api/starships/10",
+        "https://www.swapi.tech/api/starships/11",
+        "https://www.swapi.tech/api/starships/12",
+        "https://www.swapi.tech/api/starships/15",
+        "https://www.swapi.tech/api/starships/17",
+        "https://www.swapi.tech/api/starships/22",
+        "https://www.swapi.tech/api/starships/23",
+        "https://www.swapi.tech/api/starships/27",
+        "https://www.swapi.tech/api/starships/28",
+        "https://www.swapi.tech/api/starships/29"
+      ],
+      "vehicles": [
+        "https://www.swapi.tech/api/vehicles/8",
+        "https://www.swapi.tech/api/vehicles/16",
+        "https://www.swapi.tech/api/vehicles/18",
+        "https://www.swapi.tech/api/vehicles/19",
+        "https://www.swapi.tech/api/vehicles/24",
+        "https://www.swapi.tech/api/vehicles/25",
+        "https://www.swapi.tech/api/vehicles/26",
+        "https://www.swapi.tech/api/vehicles/30"
+      ],
+      "planets": [
+        "https://www.swapi.tech/api/planets/1",
+        "https://www.swapi.tech/api/planets/5",
+        "https://www.swapi.tech/api/planets/7",
+        "https://www.swapi.tech/api/planets/8",
+        "https://www.swapi.tech/api/planets/9"
+      ],
+      "producer": "Howard G. Kazanjian, George Lucas, Rick McCallum",
+      "title": "Return of the Jedi",
+      "episode_id": 6,
+      "director": "Richard Marquand",
+      "release_date": "1983-05-25",
+      "opening_crawl": "Luke Skywalker has returned to\r\nhis home planet of Tatooine in\r\nan attempt to rescue his\r\nfriend Han Solo from the\r\nclutches of the vile gangster\r\nJabba the Hutt.\r\n\r\nLittle does Luke know that the\r\nGALACTIC EMPIRE has secretly\r\nbegun construction on a new\r\narmored space station even\r\nmore powerful than the first\r\ndreaded Death Star.\r\n\r\nWhen completed, this ultimate\r\nweapon will spell certain doom\r\nfor the small band of rebels\r\nstruggling to restore freedom\r\nto the galaxy...",
+      "characters": [
+        "https://www.swapi.tech/api/people/1",
+        "https://www.swapi.tech/api/people/2",
+        "https://www.swapi.tech/api/people/3",
+        "https://www.swapi.tech/api/people/4",
+        "https://www.swapi.tech/api/people/5",
+        "https://www.swapi.tech/api/people/10",
+        "https://www.swapi.tech/api/people/13",
+        "https://www.swapi.tech/api/people/14",
+        "https://www.swapi.tech/api/people/16",
+        "https://www.swapi.tech/api/people/18",
+        "https://www.swapi.tech/api/people/20",
+        "https://www.swapi.tech/api/people/21",
+        "https://www.swapi.tech/api/people/22",
+        "https://www.swapi.tech/api/people/25",
+        "https://www.swapi.tech/api/people/27",
+        "https://www.swapi.tech/api/people/28",
+        "https://www.swapi.tech/api/people/29",
+        "https://www.swapi.tech/api/people/30",
+        "https://www.swapi.tech/api/people/31",
+        "https://www.swapi.tech/api/people/45"
+      ],
+      "species": [
+        "https://www.swapi.tech/api/species/1",
+        "https://www.swapi.tech/api/species/2",
+        "https://www.swapi.tech/api/species/3",
+        "https://www.swapi.tech/api/species/5",
+        "https://www.swapi.tech/api/species/6",
+        "https://www.swapi.tech/api/species/8",
+        "https://www.swapi.tech/api/species/9",
+        "https://www.swapi.tech/api/species/10",
+        "https://www.swapi.tech/api/species/15"
+      ],
+      "url": "https://www.swapi.tech/api/films/3"
+    },
+    "_id": "5f63a117cf50d100047f9764",
+    "description": "A Star Wars Film",
+    "uid": "3",
+    "__v": 2
+  },
+  "https://www.swapi.tech/api/films/4": {
+    "properties": {
+      "created": "2025-10-03T23:07:37.760Z",
+      "edited": "2025-10-03T23:07:37.760Z",
+      "starships": [
+        "https://www.swapi.tech/api/starships/31",
+        "https://www.swapi.tech/api/starships/32",
+        "https://www.swapi.tech/api/starships/39",
+        "https://www.swapi.tech/api/starships/40",
+        "https://www.swapi.tech/api/starships/41"
+      ],
+      "vehicles": [
+        "https://www.swapi.tech/api/vehicles/33",
+        "https://www.swapi.tech/api/vehicles/34",
+        "https://www.swapi.tech/api/vehicles/35",
+        "https://www.swapi.tech/api/vehicles/36",
+        "https://www.swapi.tech/api/vehicles/37",
+        "https://www.swapi.tech/api/vehicles/38",
+        "https://www.swapi.tech/api/vehicles/42"
+      ],
+      "planets": [
+        "https://www.swapi.tech/api/planets/1",
+        "https://www.swapi.tech/api/planets/8",
+        "https://www.swapi.tech/api/planets/9"
+      ],
+      "producer": "Rick McCallum",
+      "title": "The Phantom Menace",
+      "episode_id": 1,
+      "director": "George Lucas",
+      "release_date": "1999-05-19",
+      "opening_crawl": "Turmoil has engulfed the\r\nGalactic Republic. The taxation\r\nof trade routes to outlying star\r\nsystems is in dispute.\r\n\r\nHoping to resolve the matter\r\nwith a blockade of deadly\r\nbattleships, the greedy Trade\r\nFederation has stopped all\r\nshipping to the small planet\r\nof Naboo.\r\n\r\nWhile the Congress of the\r\nRepublic endlessly debates\r\nthis alarming chain of events,\r\nthe Supreme Chancellor has\r\nsecretly dispatched two Jedi\r\nKnights, the guardians of\r\npeace and justice in the\r\ngalaxy, to settle the conflict....",
+      "characters": [
+        "https://www.swapi.tech/api/people/2",
+        "https://www.swapi.tech/api/people/3",
+        "https://www.swapi.tech/api/people/10",
+        "https://www.swapi.tech/api/people/11",
+        "https://www.swapi.tech/api/people/16",
+        "https://www.swapi.tech/api/people/20",
+        "https://www.swapi.tech/api/people/21",
+        "https://www.swapi.tech/api/people/32",
+        "https://www.swapi.tech/api/people/33",
+        "https://www.swapi.tech/api/people/34",
+        "https://www.swapi.tech/api/people/35",
+        "https://www.swapi.tech/api/people/36",
+        "https://www.swapi.tech/api/people/37",
+        "https://www.swapi.tech/api/people/38",
+        "https://www.swapi.tech/api/people/39",
+        "https://www.swapi.tech/api/people/40",
+        "https://www.swapi.tech/api/people/41",
+        "https://www.swapi.tech/api/people/42",
+        "https://www.swapi.tech/api/people/43",
+        "https://www.swapi.tech/api/people/44",
+        "https://www.swapi.tech/api/people/46",
+        "https://www.swapi.tech/api/people/47",
+        "https://www.swapi.tech/api/people/48",
+        "https://www.swapi.tech/api/people/49",
+        "https://www.swapi.tech/api/people/50",
+        "https://www.swapi.tech/api/people/51",
+        "https://www.swapi.tech/api/people/52",
+        "https://www.swapi.tech/api/people/53",
+        "https://www.swapi.tech/api/people/54",
+        "https://www.swapi.tech/api/people/55",
+        "https://www.swapi.tech/api/people/56",
+        "https://www.swapi.tech/api/people/57",
+        "https://www.swapi.tech/api/people/58",
+        "https://www.swapi.tech/api/people/59"
+      ],
+      "species": [
+        "https://www.swapi.tech/api/species/1",
+        "https://www.swapi.tech/api/species/2",
+        "https://www.swapi.tech/api/species/6",
+        "https://www.swapi.tech/api/species/11",
+        "https://www.swapi.tech/api/species/12",
+        "https://www.swapi.tech/api/species/13",
+        "https://www.swapi.tech/api/species/14",
+        "https://www.swapi.tech/api/species/15",
+        "https://www.swapi.tech/api/species/16",
+        "https://www.swapi.tech/api/species/17",
+        "https://www.swapi.tech/api/species/18",
+        "https://www.swapi.tech/api/species/19",
+        "https://www.swapi.tech/api/species/20",
+        "https://www.swapi.tech/api/species/21",
+        "https://www.swapi.tech/api/species/22",
+        "https://www.swapi.tech/api/species/23",
+        "https://www.swapi.tech/api/species/24",
+        "https://www.swapi.tech/api/species/25",
+        "https://www.swapi.tech/api/species/26",
+        "https://www.swapi.tech/api/species/27"
+      ],
+      "url": "https://www.swapi.tech/api/films/4"
+    },
+    "_id": "5f63a117cf50d100047f9765",
+    "description": "A Star Wars Film",
+    "uid": "4",
+    "__v": 2
+  },
+  "https://www.swapi.tech/api/films/5": {
+    "properties": {
+      "created": "2025-10-03T23:07:37.760Z",
+      "edited": "2025-10-03T23:07:37.760Z",
+      "starships": [
+        "https://www.swapi.tech/api/starships/21",
+        "https://www.swapi.tech/api/starships/32",
+        "https://www.swapi.tech/api/starships/39",
+        "https://www.swapi.tech/api/starships/43",
+        "https://www.swapi.tech/api/starships/47",
+        "https://www.swapi.tech/api/starships/48",
+        "https://www.swapi.tech/api/starships/49",
+        "https://www.swapi.tech/api/starships/52",
+        "https://www.swapi.tech/api/starships/58"
+      ],
+      "vehicles": [
+        "https://www.swapi.tech/api/vehicles/4",
+        "https://www.swapi.tech/api/vehicles/44",
+        "https://www.swapi.tech/api/vehicles/45",
+        "https://www.swapi.tech/api/vehicles/46",
+        "https://www.swapi.tech/api/vehicles/50",
+        "https://www.swapi.tech/api/vehicles/51",
+        "https://www.swapi.tech/api/vehicles/53",
+        "https://www.swapi.tech/api/vehicles/54",
+        "https://www.swapi.tech/api/vehicles/55",
+        "https://www.swapi.tech/api/vehicles/56",
+        "https://www.swapi.tech/api/vehicles/57"
+      ],
+      "planets": [
+        "https://www.swapi.tech/api/planets/1",
+        "https://www.swapi.tech/api/planets/8",
+        "https://www.swapi.tech/api/planets/9",
+        "https://www.swapi.tech/api/planets/10",
+        "https://www.swapi.tech/api/planets/11"
+      ],
+      "producer": "Rick McCallum",
+      "title": "Attack of the Clones",
+      "episode_id": 2,
+      "director": "George Lucas",
+      "release_date": "2002-05-16",
+      "opening_crawl": "There is unrest in the Galactic\r\nSenate. Several thousand solar\r\nsystems have declared their\r\nintentions to leave the Republic.\r\n\r\nThis separatist movement,\r\nunder the leadership of the\r\nmysterious Count Dooku, has\r\nmade it difficult for the limited\r\nnumber of Jedi Knights to maintain \r\npeace and order in the galaxy.\r\n\r\nSenator Amidala, the former\r\nQueen of Naboo, is returning\r\nto the Galactic Senate to vote\r\non the critical issue of creating\r\nan ARMY OF THE REPUBLIC\r\nto assist the overwhelmed\r\nJedi....",
+      "characters": [
+        "https://www.swapi.tech/api/people/2",
+        "https://www.swapi.tech/api/people/3",
+        "https://www.swapi.tech/api/people/6",
+        "https://www.swapi.tech/api/people/7",
+        "https://www.swapi.tech/api/people/10",
+        "https://www.swapi.tech/api/people/11",
+        "https://www.swapi.tech/api/people/20",
+        "https://www.swapi.tech/api/people/21",
+        "https://www.swapi.tech/api/people/22",
+        "https://www.swapi.tech/api/people/33",
+        "https://www.swapi.tech/api/people/35",
+        "https://www.swapi.tech/api/people/36",
+        "https://www.swapi.tech/api/people/40",
+        "https://www.swapi.tech/api/people/43",
+        "https://www.swapi.tech/api/people/46",
+        "https://www.swapi.tech/api/people/51",
+        "https://www.swapi.tech/api/people/52",
+        "https://www.swapi.tech/api/people/53",
+        "https://www.swapi.tech/api/people/58",
+        "https://www.swapi.tech/api/people/59",
+        "https://www.swapi.tech/api/people/60",
+        "https://www.swapi.tech/api/people/61",
+        "https://www.swapi.tech/api/people/62",
+        "https://www.swapi.tech/api/people/63",
+        "https://www.swapi.tech/api/people/64",
+        "https://www.swapi.tech/api/people/65",
+        "https://www.swapi.tech/api/people/66",
+        "https://www.swapi.tech/api/people/67",
+        "https://www.swapi.tech/api/people/68",
+        "https://www.swapi.tech/api/people/69",
+        "https://www.swapi.tech/api/people/70",
+        "https://www.swapi.tech/api/people/71",
+        "https://www.swapi.tech/api/people/72",
+        "https://www.swapi.tech/api/people/73",
+        "https://www.swapi.tech/api/people/74",
+        "https://www.swapi.tech/api/people/75",
+        "https://www.swapi.tech/api/people/76",
+        "https://www.swapi.tech/api/people/77",
+        "https://www.swapi.tech/api/people/78",
+        "https://www.swapi.tech/api/people/82"
+      ],
+      "species": [
+        "https://www.swapi.tech/api/species/1",
+        "https://www.swapi.tech/api/species/2",
+        "https://www.swapi.tech/api/species/6",
+        "https://www.swapi.tech/api/species/12",
+        "https://www.swapi.tech/api/species/13",
+        "https://www.swapi.tech/api/species/15",
+        "https://www.swapi.tech/api/species/28",
+        "https://www.swapi.tech/api/species/29",
+        "https://www.swapi.tech/api/species/30",
+        "https://www.swapi.tech/api/species/31",
+        "https://www.swapi.tech/api/species/32",
+        "https://www.swapi.tech/api/species/33",
+        "https://www.swapi.tech/api/species/34",
+        "https://www.swapi.tech/api/species/35"
+      ],
+      "url": "https://www.swapi.tech/api/films/5"
+    },
+    "_id": "5f63a117cf50d100047f9766",
+    "description": "A Star Wars Film",
+    "uid": "5",
+    "__v": 2
+  },
+  "https://www.swapi.tech/api/films/6": {
+    "properties": {
+      "created": "2025-10-03T23:07:37.760Z",
+      "edited": "2025-10-03T23:07:37.760Z",
+      "starships": [
+        "https://www.swapi.tech/api/starships/2",
+        "https://www.swapi.tech/api/starships/32",
+        "https://www.swapi.tech/api/starships/48",
+        "https://www.swapi.tech/api/starships/59",
+        "https://www.swapi.tech/api/starships/61",
+        "https://www.swapi.tech/api/starships/63",
+        "https://www.swapi.tech/api/starships/64",
+        "https://www.swapi.tech/api/starships/65",
+        "https://www.swapi.tech/api/starships/66",
+        "https://www.swapi.tech/api/starships/68",
+        "https://www.swapi.tech/api/starships/74",
+        "https://www.swapi.tech/api/starships/75"
+      ],
+      "vehicles": [
+        "https://www.swapi.tech/api/vehicles/33",
+        "https://www.swapi.tech/api/vehicles/50",
+        "https://www.swapi.tech/api/vehicles/53",
+        "https://www.swapi.tech/api/vehicles/56",
+        "https://www.swapi.tech/api/vehicles/60",
+        "https://www.swapi.tech/api/vehicles/62",
+        "https://www.swapi.tech/api/vehicles/67",
+        "https://www.swapi.tech/api/vehicles/69",
+        "https://www.swapi.tech/api/vehicles/70",
+        "https://www.swapi.tech/api/vehicles/71",
+        "https://www.swapi.tech/api/vehicles/72",
+        "https://www.swapi.tech/api/vehicles/73",
+        "https://www.swapi.tech/api/vehicles/76"
+      ],
+      "planets": [
+        "https://www.swapi.tech/api/planets/1",
+        "https://www.swapi.tech/api/planets/2",
+        "https://www.swapi.tech/api/planets/5",
+        "https://www.swapi.tech/api/planets/8",
+        "https://www.swapi.tech/api/planets/9",
+        "https://www.swapi.tech/api/planets/12",
+        "https://www.swapi.tech/api/planets/13",
+        "https://www.swapi.tech/api/planets/14",
+        "https://www.swapi.tech/api/planets/15",
+        "https://www.swapi.tech/api/planets/16",
+        "https://www.swapi.tech/api/planets/17",
+        "https://www.swapi.tech/api/planets/18",
+        "https://www.swapi.tech/api/planets/19"
+      ],
+      "producer": "Rick McCallum",
+      "title": "Revenge of the Sith",
+      "episode_id": 3,
+      "director": "George Lucas",
+      "release_date": "2005-05-19",
+      "opening_crawl": "War! The Republic is crumbling\r\nunder attacks by the ruthless\r\nSith Lord, Count Dooku.\r\nThere are heroes on both sides.\r\nEvil is everywhere.\r\n\r\nIn a stunning move, the\r\nfiendish droid leader, General\r\nGrievous, has swept into the\r\nRepublic capital and kidnapped\r\nChancellor Palpatine, leader of\r\nthe Galactic Senate.\r\n\r\nAs the Separatist Droid Army\r\nattempts to flee the besieged\r\ncapital with their valuable\r\nhostage, two Jedi Knights lead a\r\ndesperate mission to rescue the\r\ncaptive Chancellor....",
+      "characters": [
+        "https://www.swapi.tech/api/people/1",
+        "https://www.swapi.tech/api/people/2",
+        "https://www.swapi.tech/api/people/3",
+        "https://www.swapi.tech/api/people/4",
+        "https://www.swapi.tech/api/people/5",
+        "https://www.swapi.tech/api/people/6",
+        "https://www.swapi.tech/api/people/7",
+        "https://www.swapi.tech/api/people/10",
+        "https://www.swapi.tech/api/people/11",
+        "https://www.swapi.tech/api/people/12",
+        "https://www.swapi.tech/api/people/13",
+        "https://www.swapi.tech/api/people/20",
+        "https://www.swapi.tech/api/people/21",
+        "https://www.swapi.tech/api/people/33",
+        "https://www.swapi.tech/api/people/35",
+        "https://www.swapi.tech/api/people/46",
+        "https://www.swapi.tech/api/people/51",
+        "https://www.swapi.tech/api/people/52",
+        "https://www.swapi.tech/api/people/53",
+        "https://www.swapi.tech/api/people/54",
+        "https://www.swapi.tech/api/people/55",
+        "https://www.swapi.tech/api/people/56",
+        "https://www.swapi.tech/api/people/58",
+        "https://www.swapi.tech/api/people/63",
+        "https://www.swapi.tech/api/people/64",
+        "https://www.swapi.tech/api/people/67",
+        "https://www.swapi.tech/api/people/68",
+        "https://www.swapi.tech/api/people/75",
+        "https://www.swapi.tech/api/people/78",
+        "https://www.swapi.tech/api/people/79",
+        "https://www.swapi.tech/api/people/80",
+        "https://www.swapi.tech/api/people/81",
+        "https://www.swapi.tech/api/people/82",
+        "https://www.swapi.tech/api/people/83"
+      ],
+      "species": [
+        "https://www.swapi.tech/api/species/1",
+        "https://www.swapi.tech/api/species/2",
+        "https://www.swapi.tech/api/species/3",
+        "https://www.swapi.tech/api/species/6",
+        "https://www.swapi.tech/api/species/15",
+        "https://www.swapi.tech/api/species/19",
+        "https://www.swapi.tech/api/species/20",
+        "https://www.swapi.tech/api/species/23",
+        "https://www.swapi.tech/api/species/24",
+        "https://www.swapi.tech/api/species/25",
+        "https://www.swapi.tech/api/species/26",
+        "https://www.swapi.tech/api/species/27",
+        "https://www.swapi.tech/api/species/28",
+        "https://www.swapi.tech/api/species/29",
+        "https://www.swapi.tech/api/species/30",
+        "https://www.swapi.tech/api/species/33",
+        "https://www.swapi.tech/api/species/34",
+        "https://www.swapi.tech/api/species/35",
+        "https://www.swapi.tech/api/species/36",
+        "https://www.swapi.tech/api/species/37"
+      ],
+      "url": "https://www.swapi.tech/api/films/6"
+    },
+    "_id": "5f63a117cf50d100047f9767",
+    "description": "A Star Wars Film",
+    "uid": "6",
+    "__v": 2
+  }
+}
