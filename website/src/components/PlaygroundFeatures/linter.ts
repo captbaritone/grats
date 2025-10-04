@@ -11,6 +11,7 @@ import GRATS_TYPE_DECLARATIONS from "!!raw-loader!grats/src/Types.ts";
 import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 
 import store from "./store";
+import { err } from "../../../../src/utils/Result";
 
 const GRATS_PATH = "/node_modules/grats/src/index.ts";
 
@@ -64,7 +65,14 @@ function buildSchemaResultWithFsMap(
   };
 
   try {
-    return buildSchemaAndDocResultWithHost(parsedOptions, host.compilerHost);
+    const result = buildSchemaAndDocResultWithHost(
+      parsedOptions,
+      host.compilerHost,
+    );
+    if (result.kind === "ERROR") {
+      return err(new ReportableDiagnostics(host.compilerHost, result.err));
+    }
+    return result;
   } catch (e) {
     const message = `Grats playground bug encountered. Please report this error:\n\n ${e.stack}`;
     throw e;
