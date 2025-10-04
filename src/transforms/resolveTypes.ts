@@ -190,13 +190,22 @@ class TemplateExtractor {
     return this.asNullable(nameResult);
   }
 
+  templateName(typeParams: string[], template: Template): string {
+    const givenName = template.declarationTemplate.name.value;
+
+    // TODO: If we want to support templated names, e.g. `<T><K>Foo` we would do
+    // that here.
+
+    const paramsPrefix = typeParams.join("");
+    return paramsPrefix + givenName;
+  }
+
   materializeTemplate(
     referenceLoc: TsLocatableNode,
     typeParams: string[],
     template: Template,
   ): string {
-    const paramsPrefix = typeParams.join("");
-    const derivedName = paramsPrefix + template.declarationTemplate.name.value;
+    const derivedName = this.templateName(typeParams, template);
     if (this._definedTemplates.has(derivedName)) {
       // We've either already materialized this permutation or we're in the middle
       // of doing so.
