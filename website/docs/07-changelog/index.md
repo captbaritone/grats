@@ -25,6 +25,7 @@ Changes in this section are not yet released. If you need access to these change
 
 - **Bug Fixes**
   - Don't remove built-in directives in exported `GraphQLSchema` when custom directives are defined. ([PR](https://github.com/captbaritone/grats/pull/191)).
+  - Fix crash when a non-GraphQL type parameter is used before a GraphQL type parameter in a generic GraphQL type.
 
 ## 0.0.33
 

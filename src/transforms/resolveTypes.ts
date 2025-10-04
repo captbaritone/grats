@@ -23,7 +23,7 @@ import {
   gqlErr,
   tsErr,
 } from "../utils/DiagnosticError";
-import { extend, nullThrows } from "../utils/helpers";
+import { extend, invariant, nullThrows } from "../utils/helpers";
 import * as E from "../Errors";
 
 type Template = {
@@ -137,15 +137,18 @@ class TemplateExtractor {
       const templateName = template.declarationTemplate.name.value;
       const typeArguments = node.typeArguments ?? [];
 
-      const genericIndexes = new Map();
+      const genericIndexes = new Map<number, ts.EntityName>();
       for (const [node, index] of template.genericNodes) {
         genericIndexes.set(index, node);
       }
 
-      const names: string[] = [];
+      const names: Array<string | null> = [];
       for (let i = 0; i < template.typeParameters.length; i++) {
         const exampleGenericNode = genericIndexes.get(i);
         if (exampleGenericNode == null) {
+          // This type param in the template is not used in a GraphQL position.
+          // We won't include it in the derived name.
+          names.push(null);
           continue;
         }
         const param = template.typeParameters[i];
@@ -190,19 +193,19 @@ class TemplateExtractor {
     return this.asNullable(nameResult);
   }
 
-  templateName(typeParams: string[], template: Template): string {
+  templateName(typeParams: Array<string | null>, template: Template): string {
     const givenName = template.declarationTemplate.name.value;
 
     // TODO: If we want to support templated names, e.g. `<T><K>Foo` we would do
     // that here.
 
-    const paramsPrefix = typeParams.join("");
+    const paramsPrefix = typeParams.filter((name) => name != null).join("");
     return paramsPrefix + givenName;
   }
 
   materializeTemplate(
     referenceLoc: TsLocatableNode,
-    typeParams: string[],
+    typeParams: Array<string | null>,
     template: Template,
   ): string {
     const derivedName = this.templateName(typeParams, template);
@@ -213,9 +216,17 @@ class TemplateExtractor {
     }
     this._definedTemplates.add(derivedName);
 
-    const genericsContext = new Map<ts.Node, string>();
+    // Mapping from the template's type param declaration AST node to the
+    // GraphQL name passed in for this particular use.
+    const genericsContext = new Map<ts.TypeParameterDeclaration, string>();
     for (const i of new Set(template.genericNodes.values())) {
-      const name = nullThrows(typeParams[i]);
+      const name = typeParams[i];
+      invariant(name !== undefined, "typeParams[i] should not be undefined");
+      if (name == null) {
+        // If this type was not used in a GraphQL position, we won't have a
+        // corresponding type argument.
+        continue;
+      }
       const param = nullThrows(template.typeParameters[i]);
       genericsContext.set(param, name);
     }
