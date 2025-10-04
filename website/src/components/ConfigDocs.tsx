@@ -1,10 +1,11 @@
 import type { ConfigSpec } from "grats/src/gratsConfigBeta";
+import React from "react";
 
 export default function ConfigDocs({ configSpec }: { configSpec: ConfigSpec }) {
   return (
     <div>
       {Object.entries(configSpec.properties).map(([key, value]) => (
-        <>
+        <React.Fragment key={key}>
           <hr />
           <div style={{ marginBottom: "3em" }} key={key}>
             <h3
@@ -49,7 +50,7 @@ export default function ConfigDocs({ configSpec }: { configSpec: ConfigSpec }) {
               Default: <DefaultValue value={value} />
             </div>
           </div>
-        </>
+        </React.Fragment>
       ))}
     </div>
   );
