@@ -3,23 +3,15 @@ import { State } from "./store";
 export const URL_VERSION = 1;
 
 const CONTENT = `/** @gqlQueryField */
-export function me(): UserResolver {
-  return new UserResolver();
-}
-
-/**
- * @gqlQueryField
- * @deprecated Please use \`me\` instead.
- */
-export function viewer(): UserResolver {
-  return new UserResolver();
+export function me(): User {
+  return new User();
 }
 
 /**
  * A user in our kick-ass system!
- * @gqlType User
+ * @gqlType
  */
-class UserResolver {
+class User {
   /** @gqlField */
   name: string = "Alice";
 
@@ -27,7 +19,7 @@ class UserResolver {
   greeting(salutation: string): string {
     return \`\${salutation}, \${this.name}\`;
   }
-} `;
+}`;
 
 export const DEFAULT_STATE: State = {
   doc: CONTENT,

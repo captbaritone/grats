@@ -32,6 +32,17 @@
     0 0 5px rgba(255, 255, 255, 0.15), 0 0 3px rgba(255, 255, 255, 0.1);
 }
 
+/**
+ * Something is broken in our webpack plugin and the codicon font is not
+ * being bundled correctly. For now, just load it from the CDN.
+ */
+@font-face {
+  font-family: "codicon";
+  font-display: block;
+  src: url(https://playgroundcdn.typescriptlang.org/cdn/5.9.2/monaco/min/vs/base/browser/ui/codicons/codicon/codicon.ttf)
+    format("truetype");
+}
+
 .cm-editor {
   height: 100%;
   width: 100%;
@@ -63,10 +74,43 @@ h5:hover .hash-link,
 h6:hover .hash-link {
   visibility: visible;
 }
+
 /**
  * Needed to ensure anchor links don't get hidden under the top banner.
  * Copied from .anchorWithStickyNavbar_node_modules-\@docusaurus-theme-classic-lib-theme-Heading-styles-module
  */
 .config-title {
   scroll-margin-top: calc(var(--ifm-navbar-height) + 0.5rem);
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinPulse {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(90deg) scale(1.2);
+  }
+  50% {
+    transform: rotate(180deg) scale(1);
+  }
+  75% {
+    transform: rotate(270deg) scale(0.8);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+/** Reference animation in a class to avoid purging in production build */
+.loading-spinner {
+  animation: spinPulse 2s linear infinite;
 }

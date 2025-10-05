@@ -36,11 +36,16 @@ import {
 } from "./TypeContext";
 import * as E from "./Errors";
 import { traverseJSDocTags } from "./utils/JSDoc";
-import { GraphQLConstructor } from "./GraphQLConstructor";
+import { GraphQLConstructor, loc } from "./GraphQLConstructor";
 import { relativePath } from "./gratsRoot";
 import { ISSUE_URL } from "./Errors";
 import { detectInvalidComments } from "./comments";
-import { extend, invariant } from "./utils/helpers";
+import {
+  bestMatch,
+  extend,
+  invariant,
+  levenshteinDistance,
+} from "./utils/helpers";
 import * as Act from "./CodeActions";
 import {
   InputValueDefinitionNodeOrResolverArg,
@@ -72,7 +77,7 @@ export const IMPLEMENTS_TAG_DEPRECATED = "gqlImplements";
 export const KILLS_PARENT_ON_EXCEPTION_TAG = "killsParentOnException";
 
 // All the tags that start with gql
-export const ALL_TAGS = [
+export const ALL_GQL_TAGS = [
   TYPE_TAG,
   FIELD_TAG,
   SCALAR_TAG,
@@ -82,10 +87,22 @@ export const ALL_TAGS = [
   INPUT_TAG,
   DIRECTIVE_TAG,
   ANNOTATE_TAG,
-];
+  QUERY_FIELD_TAG,
+  MUTATION_FIELD_TAG,
+  SUBSCRIPTION_FIELD_TAG,
+] as const;
 
 const DEPRECATED_TAG = "deprecated";
 export const ONE_OF_TAG = "oneOf";
+
+export const TAGS = [
+  ...ALL_GQL_TAGS,
+  KILLS_PARENT_ON_EXCEPTION_TAG,
+  ONE_OF_TAG,
+] as const;
+
+export type TagName = (typeof TAGS)[number];
+
 // https://github.com/graphql/graphql-js/releases/tag/v16.9.0
 const ONE_OF_MIN_GRAPHQL_JS_VERSION = "16.9.0";
 export const OPERATION_TYPES = new Set(["Query", "Mutation", "Subscription"]);
@@ -276,7 +293,11 @@ class Extractor {
             const lowerCaseTag = tag.tagName.text.toLowerCase();
             if (lowerCaseTag.startsWith("gql")) {
               let reported = false;
-              for (const t of ALL_TAGS) {
+              if (tag.tagName.text === IMPLEMENTS_TAG_DEPRECATED) {
+                this.report(tag.tagName, E.implementsTagDeprecated());
+                break;
+              }
+              for (const t of ALL_GQL_TAGS) {
                 if (t.toLowerCase() === lowerCaseTag) {
                   this.report(
                     tag.tagName,
@@ -293,7 +314,21 @@ class Extractor {
                 }
               }
               if (!reported) {
-                this.report(tag.tagName, E.invalidGratsTag(tag.tagName.text));
+                const suggested = bestMatch(
+                  ALL_GQL_TAGS,
+                  (t) => -levenshteinDistance(t, tag.tagName.text),
+                );
+
+                this.report(
+                  tag.tagName,
+                  E.invalidGratsTag(tag.tagName.text),
+                  [],
+                  {
+                    fixName: `change-to-${suggested}`,
+                    description: `Change to @${suggested}`,
+                    changes: [Act.replaceNode(tag.tagName, suggested)],
+                  },
+                );
               }
             }
           }
@@ -456,14 +491,14 @@ class Extractor {
       // If the first identifier was neither `repeatable` nor `on`, then
       // we expect it to be the directive name.
       if (!on && !repeatable) {
-        name = parser.parseName();
+        name = { ...parser.parseName(), loc: loc(tag) };
         repeatable = parser.expectOptionalKeyword("repeatable");
         parser.expectKeyword("on");
       }
 
-      const locations = parser.delimitedMany(TokenKind.PIPE, () =>
-        parser.parseDirectiveLocation(),
-      );
+      const locations = parser
+        .delimitedMany(TokenKind.PIPE, () => parser.parseDirectiveLocation())
+        .map((location) => ({ ...location, loc: loc(tag) }));
       return { name, repeatable, locations };
     });
 
@@ -761,12 +796,18 @@ class Extractor {
     if (name == null) return null;
 
     const classNode = node.parent;
+
     if (!ts.isClassDeclaration(classNode)) {
-      return this.report(classNode, E.staticMethodOnNonClass());
+      return this.report(classNode, E.staticMethodOnNonClass(), [
+        tsRelated(tag, "Field defined here"),
+      ]);
     }
+    const classBlameNode = classNode.name ?? classNode;
 
     if (!ts.isSourceFile(classNode.parent)) {
-      return this.report(classNode, E.staticMethodClassNotTopLevel());
+      return this.report(classBlameNode, E.staticMethodClassNotTopLevel(), [
+        tsRelated(tag, "Field defined here"),
+      ]);
     }
 
     let exportName: ts.Identifier | null = null;
@@ -776,11 +817,16 @@ class Extractor {
     });
 
     if (!isExported) {
-      return this.report(classNode, E.staticMethodFieldClassNotExported(), [], {
-        fixName: "add-export-keyword-to-class",
-        description: "Add export keyword to class with static @gqlField",
-        changes: [Act.prefixNode(classNode, "export ")],
-      });
+      return this.report(
+        classBlameNode,
+        E.staticMethodFieldClassNotExported(),
+        [tsRelated(tag, "Field defined here")],
+        {
+          fixName: "add-export-keyword-to-class",
+          description: "Add export keyword to class with static @gqlField",
+          changes: [Act.prefixNode(classNode, "export ")],
+        },
+      );
     }
     const isDefault = classNode.modifiers?.some((modifier) => {
       return modifier.kind === ts.SyntaxKind.DefaultKeyword;
@@ -789,8 +835,9 @@ class Extractor {
     if (!isDefault) {
       if (classNode.name == null) {
         return this.report(
-          classNode,
+          classBlameNode,
           E.staticMethodClassWithNamedExportNotNamed(),
+          [tsRelated(tag, "Field defined here")],
         );
       }
       const className = this.expectNameIdentifier(classNode.name);
@@ -847,7 +894,7 @@ class Extractor {
         return parser.parseDirective(true);
       });
       if (directive != null) {
-        directives.push(directive);
+        directives.push({ ...directive, loc: loc(tag) });
       }
     }
 
@@ -1573,7 +1620,7 @@ class Extractor {
     if (tag == null) return null;
 
     if (node.kind === ts.SyntaxKind.ClassDeclaration) {
-      this.report(tag, E.implementsTagOnClass());
+      this.report(tag, E.implementsTagDeprecated());
     }
     if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
       this.report(tag, E.implementsTagOnInterface());

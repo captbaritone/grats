@@ -26,7 +26,7 @@ src/tests/fixtures/type_definitions_from_alias/AliasTypeImplementsInterface.inva
      ~~~~~~~~~~~~~~~~~~~~~
 4  */
   ~
-src/tests/fixtures/type_definitions_from_alias/AliasTypeImplementsInterface.invalid.ts:3:5 - error: `@gqlImplements` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`, `@gqlDirective`, `@gqlAnnotate`.
+src/tests/fixtures/type_definitions_from_alias/AliasTypeImplementsInterface.invalid.ts:3:5 - error: `@gqlImplements` has been deprecated. Instead use `class MyType implements MyInterface`.
 
 3  * @gqlImplements Person
       ~~~~~~~~~~~~~
