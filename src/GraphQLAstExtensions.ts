@@ -1,5 +1,10 @@
 import { ResolverSignature } from "./resolverSignature";
 
+export type ExportDefinition = {
+  tsModulePath: string;
+  exportName: string | null;
+};
+
 /**
  * In most cases we can use directives to annotate constructs
  * however, it't not possible to annotate an individual TypeNode.
@@ -33,10 +38,7 @@ declare module "graphql" {
      */
     wasSynthesized?: boolean;
     hasTypeNameField: boolean;
-    exported?: {
-      tsModulePath: string;
-      exportName: string | null;
-    };
+    exported?: ExportDefinition;
   }
   export interface UnionTypeDefinitionNode {
     /**
@@ -96,10 +98,7 @@ declare module "graphql" {
     /**
      * Grats metadata: Export information for the enum.
      */
-    exported?: {
-      tsModulePath: string;
-      exportName: string | null;
-    };
+    exported?: ExportDefinition;
   }
 
   export interface ScalarTypeDefinitionNode {
@@ -108,9 +107,6 @@ declare module "graphql" {
      * If null, the scalar is either a built-in scalar or a custom scalar that
      * is not exported from a module.
      */
-    exported: {
-      tsModulePath: string;
-      exportName: string;
-    } | null;
+    exported: ExportDefinition | null;
   }
 }

@@ -34,6 +34,7 @@ import TSAstBuilder, { JsonValue } from "./TSAstBuilder";
 import ResolverCodegen from "./resolverCodegen";
 import { Metadata } from "../metadata";
 import { ConstDirectiveNode } from "graphql/language";
+import { ExportDefinition } from "../GraphQLAstExtensions";
 
 // These directives will be added to the schema by default, so we don't need to
 // include them in the generated schema.
@@ -304,12 +305,14 @@ class Codegen {
     if (!this._typeDefinitions.has(varName)) {
       this._typeDefinitions.add(varName);
 
+      const ast = nullThrows(obj.astNode);
+
       this.ts.constDeclaration(
         varName,
         F.createNewExpression(
           this.graphQLImport("GraphQLObjectType"),
           [],
-          [this.objectTypeConfig(obj)],
+          [this.objectTypeConfig(obj, ast.exported || null)],
         ),
         // We need to explicitly specify the type due to circular references in
         // the definition.
@@ -319,11 +322,14 @@ class Codegen {
     return F.createIdentifier(varName);
   }
 
-  objectTypeConfig(obj: GraphQLObjectType): ts.ObjectLiteralExpression {
+  objectTypeConfig(
+    obj: GraphQLObjectType,
+    sourceExport: ExportDefinition | null,
+  ): ts.ObjectLiteralExpression {
     return this.ts.objectLiteral([
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
       this.description(obj.description),
-      this.fields(obj, false),
+      this.fields(obj, false, sourceExport),
       this.interfaces(obj),
       this.extensions(obj.astNode?.directives),
     ]);
@@ -332,11 +338,12 @@ class Codegen {
   fields(
     obj: GraphQLObjectType | GraphQLInterfaceType,
     isInterface: boolean,
+    sourceExport: ExportDefinition | null,
   ): ts.MethodDeclaration {
     const fields = Object.entries(obj.getFields()).map(([name, field]) => {
       return F.createPropertyAssignment(
         name,
-        this.fieldConfig(field, obj.name, isInterface),
+        this.fieldConfig(field, obj.name, isInterface, sourceExport),
       );
     });
 
@@ -369,12 +376,14 @@ class Codegen {
     const varName = `${obj.name}Type`;
     if (!this._typeDefinitions.has(varName)) {
       this._typeDefinitions.add(varName);
+
       this.ts.constDeclaration(
         varName,
         F.createNewExpression(
           this.graphQLImport("GraphQLInterfaceType"),
           [],
-          [this.interfaceTypeConfig(obj)],
+          // TODO: Find interface export if exported.
+          [this.interfaceTypeConfig(obj, null)],
         ),
         // We need to explicitly specify the type due to circular references in
         // the definition.
@@ -384,12 +393,15 @@ class Codegen {
     return F.createIdentifier(varName);
   }
 
-  interfaceTypeConfig(obj: GraphQLInterfaceType): ts.ObjectLiteralExpression {
+  interfaceTypeConfig(
+    obj: GraphQLInterfaceType,
+    sourceExport: ExportDefinition | null,
+  ): ts.ObjectLiteralExpression {
     this._schema.getPossibleTypes(obj);
     return this.ts.objectLiteral([
       this.description(obj.description),
       F.createPropertyAssignment("name", F.createStringLiteral(obj.name)),
-      this.fields(obj, true),
+      this.fields(obj, true, sourceExport),
       this.interfaces(obj),
       this.resolveType(obj),
       this.extensions(obj.astNode?.directives),
@@ -607,6 +619,7 @@ class Codegen {
     field: GraphQLField<unknown, unknown>,
     parentTypeName: string,
     isInterface: boolean,
+    sourceExport: ExportDefinition | null,
   ): ts.ObjectLiteralExpression {
     const props = [
       this.description(field.description),
@@ -620,7 +633,7 @@ class Codegen {
     ];
 
     if (!isInterface) {
-      extend(props, this.fieldMethods(field, parentTypeName));
+      extend(props, this.fieldMethods(field, parentTypeName, sourceExport));
     }
 
     return this.ts.objectLiteral(props);
@@ -629,6 +642,7 @@ class Codegen {
   fieldMethods(
     field: GraphQLField<unknown, unknown>,
     parentTypeName: string,
+    sourceExport: ExportDefinition | null,
   ): Array<ts.ObjectLiteralElementLike | null> {
     // Note: We assume the default name is used here. When custom operation types are supported
     // we'll need to update this.
@@ -637,6 +651,7 @@ class Codegen {
         field.name,
         "resolve",
         parentTypeName,
+        sourceExport,
       );
       return [
         this.resolvers.maybeApplySemanticNullRuntimeCheck(
@@ -648,7 +663,12 @@ class Codegen {
     }
     return [
       // TODO: Maybe avoid adding `assertNonNull` for subscription resolvers?
-      this.resolvers.resolveMethod(field.name, "subscribe", parentTypeName),
+      this.resolvers.resolveMethod(
+        field.name,
+        "subscribe",
+        parentTypeName,
+        sourceExport,
+      ),
       // Identity function (method?)
       this.resolvers.maybeApplySemanticNullRuntimeCheck(
         field,

@@ -8,10 +8,12 @@ import {
 import { nullThrows } from "../utils/helpers";
 import { ResolverArgument, ResolverDefinition, Metadata } from "../metadata";
 import TSAstBuilder from "./TSAstBuilder";
+import { ExportDefinition } from "../GraphQLAstExtensions";
 
 const RESOLVER_ARGS = ["source", "args", "context", "info"] as const;
 
 const F = ts.factory;
+const TYPE_RESOLVER_ARGS = false;
 
 /**
  * Codegen specifically for generating resolver methods for a given field.
@@ -29,16 +31,31 @@ export default class ResolverCodegen {
     fieldName: string,
     methodName: string,
     parentTypeName: string,
+    sourceExport: ExportDefinition | null,
   ): ts.MethodDeclaration | null {
     const { resolver } = this._resolvers.types[parentTypeName][fieldName];
     if (this.isDefaultResolverSignature(fieldName, resolver)) {
       return null;
     }
+
+    const getSourceTypeRef = (): ts.TypeReferenceNode | undefined => {
+      if (sourceExport == null || !TYPE_RESOLVER_ARGS) {
+        return undefined;
+      }
+      const sourceTypeName = `${parentTypeName}SourceType`;
+      this.ts.importUserConstruct(
+        sourceExport.tsModulePath,
+        sourceExport.exportName,
+        sourceTypeName,
+        true,
+      );
+      return F.createTypeReferenceNode(sourceTypeName);
+    };
     switch (resolver.kind) {
       case "property":
         return this.ts.method(
           methodName,
-          [this.ts.param("source")],
+          [this.ts.param("source", getSourceTypeRef())],
           [
             F.createReturnStatement(
               F.createPropertyAccessExpression(
@@ -51,9 +68,12 @@ export default class ResolverCodegen {
       case "method": {
         return this.ts.method(
           methodName,
-          extractUsedParams(resolver.arguments ?? [], true).map((name) =>
-            this.ts.param(name),
-          ),
+          extractUsedParams(resolver.arguments ?? [], true).map((name) => {
+            if (name === "source") {
+              return this.ts.param("source", getSourceTypeRef());
+            }
+            return this.ts.param(name);
+          }),
           [
             F.createReturnStatement(
               F.createCallExpression(
@@ -83,9 +103,12 @@ export default class ResolverCodegen {
         );
         return this.ts.method(
           methodName,
-          extractUsedParams(resolver.arguments ?? []).map((name) =>
-            this.ts.param(name),
-          ),
+          extractUsedParams(resolver.arguments ?? []).map((name) => {
+            if (name === "source") {
+              return this.ts.param("source", getSourceTypeRef());
+            }
+            return this.ts.param(name);
+          }),
           [
             F.createReturnStatement(
               F.createCallExpression(
@@ -114,9 +137,12 @@ export default class ResolverCodegen {
         );
         return this.ts.method(
           methodName,
-          extractUsedParams(resolver.arguments ?? []).map((name) =>
-            this.ts.param(name),
-          ),
+          extractUsedParams(resolver.arguments ?? []).map((name) => {
+            if (name === "source") {
+              return this.ts.param("source", getSourceTypeRef());
+            }
+            return this.ts.param(name);
+          }),
           [
             F.createReturnStatement(
               F.createCallExpression(

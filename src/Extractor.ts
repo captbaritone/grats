@@ -52,6 +52,7 @@ import {
   ResolverArgument,
 } from "./resolverSignature";
 import { Parser } from "graphql/language/parser";
+import { ExportDefinition } from "./GraphQLAstExtensions";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";
@@ -1087,7 +1088,7 @@ class Extractor {
       });
     }
 
-    const exported = {
+    const exported: ExportDefinition = {
       tsModulePath: relativePath(node.getSourceFile().fileName),
       exportName: node.name.text,
     };

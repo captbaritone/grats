@@ -4,6 +4,7 @@ import TSAstBuilder from "./TSAstBuilder";
 import ResolverCodegen from "./resolverCodegen";
 import { Metadata, FieldDefinition } from "../metadata";
 import { GraphQLObjectType, GraphQLSchema } from "graphql";
+import { nullThrows } from "../utils/helpers";
 
 const F = ts.factory;
 
@@ -97,6 +98,7 @@ class Codegen {
         fieldName,
         fieldName,
         typeName,
+        nullThrows(graphQLType.astNode).exported || null,
       );
       const wrapped = this.resolvers.maybeApplySemanticNullRuntimeCheck(
         graphQLType.getFields()[fieldName],

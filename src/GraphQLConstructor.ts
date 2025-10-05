@@ -41,6 +41,7 @@ import {
   InputValueDefinitionNodeOrResolverArg,
   ResolverSignature,
 } from "./resolverSignature";
+import { ExportDefinition } from "./GraphQLAstExtensions";
 
 export class GraphQLConstructor {
   /* Top Level Types */
@@ -90,10 +91,7 @@ export class GraphQLConstructor {
     description: StringValueNode | null,
     directives: readonly ConstDirectiveNode[] | null,
     hasTypeNameField: boolean,
-    exported: {
-      tsModulePath: string;
-      exportName: string | null;
-    } | null,
+    exported: ExportDefinition | null,
   ): ObjectTypeDefinitionNode {
     return {
       kind: Kind.OBJECT_TYPE_DEFINITION,
@@ -133,10 +131,7 @@ export class GraphQLConstructor {
     values: readonly EnumValueDefinitionNode[],
     description: StringValueNode | null,
     directives: readonly ConstDirectiveNode[] | null,
-    exported?: {
-      tsModulePath: string;
-      exportName: string | null;
-    } | null,
+    exported?: ExportDefinition | null,
   ): EnumTypeDefinitionNode {
     return {
       kind: Kind.ENUM_TYPE_DEFINITION,
@@ -258,10 +253,7 @@ export class GraphQLConstructor {
     name: NameNode,
     directives: readonly ConstDirectiveNode[] | null,
     description: StringValueNode | null,
-    exported: {
-      tsModulePath: string;
-      exportName: string;
-    },
+    exported: ExportDefinition | null,
   ): ScalarTypeDefinitionNode {
     return {
       kind: Kind.SCALAR_TYPE_DEFINITION,
