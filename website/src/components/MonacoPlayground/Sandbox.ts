@@ -3,6 +3,8 @@ import type { GratsWorker } from "../../workers/grats.worker";
 import type { SerializableState } from "../PlaygroundFeatures/store";
 import { serializeState } from "../PlaygroundFeatures/urlState";
 import lzstring from "lz-string";
+import GRATS_TYPE_DECLARATIONS from "!!raw-loader!grats/src/Types.ts";
+const GRATS_PATH = "/node_modules/grats/src/index.ts";
 
 const CONTENT = `/** @gqlQueryField */
 export function me(): User {
@@ -182,6 +184,29 @@ window.MonacoEnvironment = {
     }
   },
 };
+
+monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+  ...monaco.languages.typescript.typescriptDefaults.getCompilerOptions(),
+  baseUrl: "./",
+  paths: {
+    grats: [GRATS_PATH],
+  },
+});
+
+monaco.languages.typescript.typescriptDefaults.addExtraLib(
+  GRATS_TYPE_DECLARATIONS,
+  GRATS_PATH,
+);
+
+monaco.languages.typescript.typescriptDefaults.addExtraLib(
+  `
+    export type GraphQLResolveInfo = any;
+    export type GraphQLScalarLiteralParser<T> = any;
+    export type GraphQLScalarSerializer<T> = any;
+    export type GraphQLScalarValueParser<T> = any;
+    `,
+  "/node_modules/graphql/index.ts",
+);
 
 class FormatAdapter implements monaco.languages.DocumentFormattingEditProvider {
   async provideDocumentFormattingEdits(
