@@ -117,6 +117,17 @@ export default class Sandbox {
     this._onDidChange.fire();
   }
 
+  setOutputOption(
+    outputOption: SerializableState["view"]["outputOption"],
+  ): void {
+    this._serializedState.view.outputOption = outputOption;
+    this._onDidChange.fire();
+  }
+
+  getOutputOption(): SerializableState["view"]["outputOption"] {
+    return this._serializedState.view.outputOption;
+  }
+
   getSerializableState(): SerializableState {
     if (this._tsEditor != null) {
       this._serializedState.doc = this._tsEditor.getValue();

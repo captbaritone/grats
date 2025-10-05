@@ -23,18 +23,23 @@ function MonacoEditorComponent() {
   const leftEditorRef = useRef<EditorRef>(null);
   const rightEditorRef = useRef<RightRef>(null);
 
-  const [viewMode, setViewMode] = useState<OutputOption>("sdl");
+  const [viewMode, setViewMode] = useState<OutputOption>(
+    SANDBOX.getOutputOption(),
+  );
   const [nullableByDefault, setNullableByDefault] = useState(true);
 
   return (
     <FillRemainingHeight minHeight={300}>
       <ConfigBar
         viewMode={viewMode}
-        setViewMode={setViewMode}
+        setViewMode={(newViewMode) => {
+          setViewMode(newViewMode);
+          SANDBOX.setOutputOption(newViewMode);
+        }}
         nullableByDefault={nullableByDefault}
         setNullableByDefault={(nullableByDefault) => {
-          SANDBOX.setGratsConfig({ nullableByDefault });
           setNullableByDefault(nullableByDefault);
+          SANDBOX.setGratsConfig({ nullableByDefault });
         }}
       />
       <div
