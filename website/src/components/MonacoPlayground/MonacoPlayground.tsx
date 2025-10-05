@@ -3,7 +3,7 @@ import React, { useRef, useState } from "react";
 import { useColorMode } from "@docusaurus/theme-common";
 import FillRemainingHeight from "@site/src/components/FillRemainingHeight";
 import ConfigBar from "./ConfigBar";
-import { OutputOption } from "../PlaygroundFeatures/store";
+import { OutputOption } from "./State";
 import { Right, RightRef } from "./Right";
 import { SANDBOX } from "./Sandbox";
 import { ResizablePanels } from "./ResizablePanels";

@@ -1,5 +1,5 @@
 import { DEFAULT_STATE } from "./defaultState";
-import { State, SerializableState } from "./store";
+import { State, SerializableState } from "./State";
 import lzstring from "lz-string";
 import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 
