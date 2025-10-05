@@ -1,4 +1,4 @@
-import * as _GratsConfigSpec from "./configSpec.json";
+import * as _GratsConfigSpec from "./configSpecRaw.json";
 import { ConfigSpec } from "./gratsConfig";
 
 // TypeScript does not preserve string literal types when importing JSON.
