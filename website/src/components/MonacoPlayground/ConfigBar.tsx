@@ -2,7 +2,7 @@ import React from "react";
 import FormatButton from "./FormatButton";
 import ShareButton from "./ShareButton";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
-import { OutputOption } from "../PlaygroundFeatures/store";
+import { OutputOption } from "./State";
 
 type Props = {
   viewMode: OutputOption;

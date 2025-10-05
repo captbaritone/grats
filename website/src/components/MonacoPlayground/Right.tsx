@@ -1,7 +1,7 @@
 import React, { useMemo, useState, forwardRef, useEffect } from "react";
 import { useColorMode } from "@docusaurus/theme-common";
 import { SANDBOX } from "./Sandbox";
-import { OutputOption } from "../PlaygroundFeatures/store";
+import { OutputOption } from "./State";
 import { Editor } from "./Editor";
 import { LoadingFallback } from "./LoadingFallback";
 

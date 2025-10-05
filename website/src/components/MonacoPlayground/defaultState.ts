@@ -1,4 +1,4 @@
-import { State } from "./store";
+import { State } from "./State";
 
 export const URL_VERSION = 1;
 

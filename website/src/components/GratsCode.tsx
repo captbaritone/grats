@@ -2,8 +2,8 @@ import React, { useMemo } from "react";
 import CodeBlock from "@theme/CodeBlock";
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
-import { serializeState } from "./PlaygroundFeatures/urlState";
-import { URL_VERSION } from "./PlaygroundFeatures/defaultState";
+import { serializeState } from "./MonacoPlayground/urlState";
+import { URL_VERSION } from "./MonacoPlayground/defaultState";
 import Link from "@docusaurus/Link";
 import { parseLines, useThemeConfig } from "@docusaurus/theme-common/internal";
 

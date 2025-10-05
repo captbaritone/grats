@@ -1,7 +1,7 @@
 import monaco, { IDisposable, Emitter } from "monaco-editor";
 import type { GratsWorker } from "../../workers/grats.worker";
-import type { SerializableState } from "../PlaygroundFeatures/store";
-import { serializeState } from "../PlaygroundFeatures/urlState";
+import type { SerializableState } from "./State";
+import { serializeState } from "./urlState";
 import lzstring from "lz-string";
 import GRATS_TYPE_DECLARATIONS from "!!raw-loader!grats/src/Types.ts";
 const GRATS_PATH = "/node_modules/grats/src/index.ts";
