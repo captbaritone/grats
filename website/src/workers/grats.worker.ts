@@ -180,45 +180,10 @@ export class GratsWorker extends TypeScriptWorker {
     return printExecutableSchema(schema, resolvers, gratsConfig, dest).trim();
   }
 
-  async getTags(): Promise<monaco.languages.CompletionItem[]> {
-    function documentationForTag(name: TagName): string {
-      switch (name) {
-        case "gqlType":
-          return "Defines a GraphQL Object.";
-        case "gqlInterface":
-          return "Defines a GraphQL Interface.";
-        case "gqlUnion":
-          return "Defines a GraphQL Union.";
-        case "gqlEnum":
-          return "Defines a GraphQL Enum.";
-        case "gqlInput":
-          return "Defines a GraphQL Input Object.";
-        case "gqlField":
-          return "Defines a field on a GraphQL Object, Interface, or Input Object.";
-        case "gqlQueryField":
-          return "Defines a top-level Query field.";
-        case "gqlMutationField":
-          return "Defines a top-level Mutation field.";
-        case "gqlSubscriptionField":
-          return "Defines a top-level Subscription field.";
-        case "gqlScalar":
-          return "Defines a custom GraphQL Scalar.";
-        case "gqlDirective":
-          return "Defines a custom GraphQL Directive.";
-        case "gqlAnnotate":
-          return "Attaches a directive to a GraphQL schema element.";
-        case "oneOf":
-          return "Marks an input object with `@oneOf`.";
-        case "killsParentOnException":
-          return "Indicates that a field should be typed as non-nullable and if an error is encountered, bubble that error up to the parent.";
-        default: {
-          // Exhaustive check
-          const _exhaustiveCheck: never = name;
-          throw new Error(`Unknown tag name: ${name}`);
-        }
-      }
-    }
-    return TAGS.map((name) => {
+  async getTagsAtPosition(
+    position: monaco.IPosition,
+  ): Promise<monaco.languages.CompletionList> {
+    const suggestions = TAGS.map((name) => {
       return {
         label: `@${name}`,
         kind: 16, // Enum member, least worst choice
@@ -226,8 +191,15 @@ export class GratsWorker extends TypeScriptWorker {
         detail: documentationForTag(name),
         insertText: name,
         filterText: name, // Needed because we've changed `label` to include `@`
-      } as any;
+        range: {
+          startLineNumber: position.lineNumber,
+          startColumn: position.column,
+          endLineNumber: position.lineNumber,
+          endColumn: position.column,
+        },
+      };
     });
+    return { suggestions };
   }
 }
 
@@ -253,4 +225,42 @@ function commentLines(text: string, prefix: string): string {
     .split("\n")
     .map((line) => `${prefix} ${line}`)
     .join("\n");
+}
+
+function documentationForTag(name: TagName): string {
+  switch (name) {
+    case "gqlType":
+      return "Defines a GraphQL Object.";
+    case "gqlInterface":
+      return "Defines a GraphQL Interface.";
+    case "gqlUnion":
+      return "Defines a GraphQL Union.";
+    case "gqlEnum":
+      return "Defines a GraphQL Enum.";
+    case "gqlInput":
+      return "Defines a GraphQL Input Object.";
+    case "gqlField":
+      return "Defines a field on a GraphQL Object, Interface, or Input Object.";
+    case "gqlQueryField":
+      return "Defines a top-level Query field.";
+    case "gqlMutationField":
+      return "Defines a top-level Mutation field.";
+    case "gqlSubscriptionField":
+      return "Defines a top-level Subscription field.";
+    case "gqlScalar":
+      return "Defines a custom GraphQL Scalar.";
+    case "gqlDirective":
+      return "Defines a custom GraphQL Directive.";
+    case "gqlAnnotate":
+      return "Attaches a directive to a GraphQL schema element.";
+    case "oneOf":
+      return "Marks an input object with `@oneOf`.";
+    case "killsParentOnException":
+      return "Indicates that a field should be typed as non-nullable and if an error is encountered, bubble that error up to the parent.";
+    default: {
+      // Exhaustive check
+      const _exhaustiveCheck: never = name;
+      throw new Error(`Unknown tag name: ${name}`);
+    }
+  }
 }

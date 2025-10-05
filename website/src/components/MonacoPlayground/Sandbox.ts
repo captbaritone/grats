@@ -190,16 +190,16 @@ monaco.languages.registerDocumentFormattingEditProvider(
 );
 
 class CompletionAdapter implements monaco.languages.CompletionItemProvider {
-  _cachedCompletions: monaco.languages.CompletionList | null = null;
+  _debugDisplayName = "GratsCompletions";
   triggerCharacters = ["@"];
-  async provideCompletionItems(_model, _position, _token) {
-    if (this._cachedCompletions == null) {
-      const worker = await SANDBOX.getWorker();
-      const results = await worker.getTags();
-
-      this._cachedCompletions = { suggestions: results };
-    }
-    return this._cachedCompletions;
+  async provideCompletionItems(
+    _model: monaco.editor.ITextModel,
+    position: monaco.Position,
+    _context: monaco.languages.CompletionContext,
+    _token: monaco.CancellationToken,
+  ) {
+    const worker = await SANDBOX.getWorker();
+    return await worker.getTagsAtPosition(position);
   }
 }
 
