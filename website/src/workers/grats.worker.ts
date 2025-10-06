@@ -1,5 +1,9 @@
 import type * as ts from "typescript";
-import { printExecutableSchema } from "../../../src/printSchema";
+import {
+  printExecutableSchema,
+  printEnumsModule,
+} from "../../../src/printSchema";
+import { resolverMapCodegen } from "../../../src/codegen/resolverMapCodegen";
 import { TagName, TAGS } from "../../../src/Extractor";
 // See https://github.com/microsoft/monaco-editor/pull/3488
 import {
@@ -38,8 +42,10 @@ export class GratsWorker extends TypeScriptWorker {
     this._gratsConfig = {
       schemaHeader: "",
       tsSchemaHeader: "",
+      tsClientEnumsHeader: "",
       graphqlSchema: "schema.graphql",
       tsSchema: "schema.ts",
+      tsClientEnums: null,
       nullableByDefault: true,
       strictSemanticNullability: false,
       reportTypeScriptTypeErrors: false,
@@ -82,9 +88,12 @@ export class GratsWorker extends TypeScriptWorker {
     });
   }
 
-  _gratsResult() {
+  _gratsResult(configOverrides?: Partial<GratsConfig>) {
     const program = this.getLanguageService().getProgram();
-    return extractSchemaAndDoc({ raw: { grats: this._gratsConfig } }, program);
+    const config = configOverrides
+      ? { ...this._gratsConfig, ...configOverrides }
+      : this._gratsConfig;
+    return extractSchemaAndDoc({ raw: { grats: config } }, program);
   }
 
   async getSemanticDiagnostics(fileName: string) {
@@ -178,6 +187,29 @@ export class GratsWorker extends TypeScriptWorker {
     const gratsConfig = this._gratsConfig;
     const dest = "schema.ts";
     return printExecutableSchema(schema, resolvers, gratsConfig, dest).trim();
+  }
+
+  async getTsClientEnums(): Promise<string> {
+    const dest = "enums.ts";
+    // Only enable tsClientEnums when generating the enums file
+    const result = this._gratsResult({ tsClientEnums: dest });
+    if (result.kind === "ERROR") {
+      return this.formatErrors(result.err, "// ");
+    }
+    const { schema } = result.value;
+    const gratsConfig = { ...this._gratsConfig, tsClientEnums: dest };
+    return printEnumsModule(schema, gratsConfig, dest).trim();
+  }
+
+  async getResolverMap(): Promise<string> {
+    const result = this._gratsResult();
+    if (result.kind === "ERROR") {
+      return this.formatErrors(result.err, "// ");
+    }
+    const { schema, resolvers } = result.value;
+    const gratsConfig = this._gratsConfig;
+    const dest = "resolvers.ts";
+    return resolverMapCodegen(schema, resolvers, gratsConfig, dest).trim();
   }
 
   async getTagsAtPosition(

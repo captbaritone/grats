@@ -55,7 +55,7 @@ export default function ConfigBar({
       </ConfigBarSide>
       <ConfigBarSide>
         <ConfigBlock>
-          <ConfigBarHeading>View options:</ConfigBarHeading>
+          <ConfigBarHeading>Output:</ConfigBarHeading>
           <Label>
             <select
               value={viewMode}
@@ -65,7 +65,12 @@ export default function ConfigBar({
             >
               <option value="sdl">GraphQL Schema</option>
               <option value="typescript">TypeScript Schema</option>
-              <option value="resolverSignatures">Metadata</option>
+              <option value="tsClientEnums">TypeScript Client Enums</option>
+              <hr />
+              <option value="resolverMap">[Experimental] Resolver Map</option>
+              <option value="resolverSignatures">
+                [Experimental] Metadata
+              </option>
             </select>
           </Label>
         </ConfigBlock>

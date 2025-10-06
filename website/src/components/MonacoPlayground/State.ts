@@ -1,4 +1,9 @@
-export type OutputOption = "sdl" | "typescript" | "resolverSignatures";
+export type OutputOption =
+  | "sdl"
+  | "typescript"
+  | "resolverSignatures"
+  | "tsClientEnums"
+  | "resolverMap";
 export type State = {
   doc: string;
   config: {
@@ -15,6 +20,8 @@ export type State = {
     graphql: string;
     typescript: string;
     resolverSignatures: string;
+    tsClientEnums: string;
+    resolverMap: string;
   };
   VERSION: number;
 };
@@ -26,7 +33,12 @@ export type SerializableState = {
     reportTypeScriptTypeErrors: boolean;
   };
   view: {
-    outputOption: "sdl" | "typescript" | "resolverSignatures";
+    outputOption:
+      | "sdl"
+      | "typescript"
+      | "resolverSignatures"
+      | "tsClientEnums"
+      | "resolverMap";
   };
   VERSION: number;
 };
