@@ -199,10 +199,10 @@ function writeSchemaFilesAndReport(
     console.error(`Grats: Wrote resolver signatures to \`${absOutput}\`.`);
   }
 
-  if (config.raw.grats.EXPERIMENTAL__emitEnums != null) {
+  if (config.raw.grats.tsClientEnums != null) {
     const absOutput = resolve(
       dirname(configPath),
-      config.raw.grats.EXPERIMENTAL__emitEnums,
+      config.raw.grats.tsClientEnums,
     );
     const enumCode = printEnumsModule(schema, gratsConfig, absOutput);
     writeFileSync(absOutput, enumCode);

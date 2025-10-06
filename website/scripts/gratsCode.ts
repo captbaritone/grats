@@ -31,11 +31,11 @@ function processFile(file: string) {
     strictSemanticNullability: false,
     schemaHeader: null,
     tsSchemaHeader: null,
-    EXPERIMENTAL_tsEnumsHeader: null,
+    tsClientEnumsHeader: null,
     EXPERIMENTAL__emitMetadata: false,
     EXPERIMENTAL__emitResolverMap: false,
-    EXPERIMENTAL__emitEnums: null,
-  };
+    tsClientEnums: null,
+  } as any;
   const parsedOptions = {
     options: {},
     raw: {

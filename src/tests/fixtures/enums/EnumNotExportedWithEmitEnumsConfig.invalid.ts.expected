@@ -1,7 +1,7 @@
 -----------------
 INPUT
 ----------------- 
-// {"EXPERIMENTAL__emitEnums": "enums.ts"}
+// {"tsClientEnums": "enums.ts"}
 
 /** @gqlEnum */
 enum Color {
@@ -22,7 +22,7 @@ export function favoriteColor(_: Query): Color {
 OUTPUT
 -----------------
 -- Error Report --
-src/tests/fixtures/enums/EnumNotExportedWithEmitEnumsConfig.invalid.ts:4:1 - error: Expected enum to be exported when `EXPERIMENTAL__emitEnums` is configured. Grats needs to import enum types to build the enums module.
+src/tests/fixtures/enums/EnumNotExportedWithEmitEnumsConfig.invalid.ts:4:1 - error: Expected enum to be exported when `tsClientEnums` is configured. Grats needs to import enum types to build the enums module.
 
   4 enum Color {
     ~~~~~~~~~~~~
@@ -49,7 +49,7 @@ src/tests/fixtures/enums/EnumNotExportedWithEmitEnumsConfig.invalid.ts:4:1 - err
   * Applied fix "Add export keyword to enum with @gqlEnum" in grats/src/tests/fixtures/enums/EnumNotExportedWithEmitEnumsConfig.invalid.ts
 
 -- Fixed Text --
-// {"EXPERIMENTAL__emitEnums": "enums.ts"}
+// {"tsClientEnums": "enums.ts"}
 
 /** @gqlEnum */
 export enum Color {

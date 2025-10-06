@@ -38,7 +38,7 @@ export function applyTypeScriptEnumHeader(
   config: GratsConfig,
   code: string,
 ): string {
-  return formatHeader(config.EXPERIMENTAL_tsEnumsHeader, code);
+  return formatHeader(config.tsClientEnumsHeader, code);
 }
 
 /**

@@ -19,6 +19,13 @@ export type GratsConfig = {
    */
   tsSchema: string;
   /**
+   * Where Grats should write your TypeScript enums file. Path is relative
+   * to the `tsconfig.json` file.
+   * If enabled, Grats will require that all GraphQL enums be defined using
+   * exported TypeScript enums. Set to `null` to disable emitting this file.
+   */
+  tsClientEnums: string | null;
+  /**
    * Should all fields be typed as nullable in accordance with GraphQL best
    * practices?
    * https://graphql.org/learn/best-practices/#nullability
@@ -57,13 +64,12 @@ export type GratsConfig = {
    */
   tsSchemaHeader: string | null;
   /**
-   * EXPERIMENTAL: THIS OPTION WILL BE RENAMED OR REMOVED IN A FUTURE
-   * RELEASE
-   * A string to prepend to the generated TypeScript enums file. Useful for
-   * copyright headers or other information to the generated file. Set to
-   * `null` to omit the default header.
+   * A string to prepend to the TypeScript enums file generated when the
+   * `tsClientEnums` configuration options is set. Useful for copyright
+   * headers or instructions for how to regenerate the file. Set to `null`
+   * to omit the default header.
    */
-  EXPERIMENTAL_tsEnumsHeader: string | null;
+  tsClientEnumsHeader: string | null;
   /**
    * This option allows you configure an extension that will be appended to
    * the end of all import paths in the generated TypeScript schema file.
@@ -88,12 +94,4 @@ export type GratsConfig = {
    * https://the-guild.dev/graphql/tools/docs/resolvers#resolver-map
    */
   EXPERIMENTAL__emitResolverMap: boolean;
-  /**
-   * EXPERIMENTAL: THIS OPTION WILL BE RENAMED OR REMOVED IN A FUTURE
-   * RELEASE
-   * Grats will write an additional modules file alongside the generated
-   * TypeScript schema file which exports all enum types for use in
-   * front-end code.
-   */
-  EXPERIMENTAL__emitEnums: string | null;
 };

@@ -643,9 +643,9 @@ export function scalarNotExported(): string {
 }
 
 export function enumNotExported(): string {
-  return "Expected enum to be exported when `EXPERIMENTAL__emitEnums` is configured. Grats needs to import enum types to build the enums module.";
+  return "Expected enum to be exported when `tsClientEnums` is configured. Grats needs to import enum types to build the enums module.";
 }
 
 export function typeAliasEnumNotSupportedWithEmitEnums(): string {
-  return 'Type alias enums are not supported when `EXPERIMENTAL__emitEnums` is configured. Use `enum` declarations instead. For example: `export enum Status { PENDING = "pending" }`.';
+  return 'Type alias enums are not supported when `tsClientEnums` is configured. Use `enum` declarations instead. For example: `export enum Status { PENDING = "pending" }`.';
 }

@@ -138,7 +138,7 @@ type FieldTypeContext = {
  */
 export function extract(
   sourceFile: ts.SourceFile,
-  config?: { EXPERIMENTAL__emitEnums?: string | null },
+  config?: { tsClientEnums?: string | null },
 ): DiagnosticsResult<ExtractionSnapshot> {
   const extractor = new Extractor(config);
   return extractor.extract(sourceFile);
@@ -157,9 +157,9 @@ class Extractor {
 
   errors: ts.DiagnosticWithLocation[] = [];
   gql: GraphQLConstructor;
-  config?: { EXPERIMENTAL__emitEnums?: string | null };
+  config?: { tsClientEnums?: string | null };
 
-  constructor(config?: { EXPERIMENTAL__emitEnums?: string | null }) {
+  constructor(config?: { tsClientEnums?: string | null }) {
     this.gql = new GraphQLConstructor();
     this.config = config;
   }
@@ -2028,14 +2028,14 @@ class Extractor {
       return;
     }
 
-    // Check if enum must be exported when EXPERIMENTAL__emitEnums is configured
+    // Check if enum must be exported when tsClientEnums is configured
     let exported: { tsModulePath: string; exportName: string | null } | null =
       null;
     const isExported = node.modifiers?.some((modifier) => {
       return modifier.kind === ts.SyntaxKind.ExportKeyword;
     });
 
-    if (this.config?.EXPERIMENTAL__emitEnums != null && !isExported) {
+    if (this.config?.tsClientEnums != null && !isExported) {
       this.report(node, E.enumNotExported(), [], {
         fixName: "add-export-keyword-to-enum",
         description: "Add export keyword to enum with @gqlEnum",
@@ -2083,8 +2083,8 @@ class Extractor {
       return;
     }
 
-    // Prohibit type alias enums when EXPERIMENTAL__emitEnums is configured
-    if (this.config?.EXPERIMENTAL__emitEnums != null) {
+    // Prohibit type alias enums when tsClientEnums is configured
+    if (this.config?.tsClientEnums != null) {
       this.report(node, E.typeAliasEnumNotSupportedWithEmitEnums());
       return;
     }

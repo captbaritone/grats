@@ -1,4 +1,4 @@
-// {"EXPERIMENTAL__emitEnums": "enums.ts"}
+// {"tsClientEnums": "enums.ts"}
 
 /** @gqlEnum */
 export enum Color {

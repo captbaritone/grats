@@ -311,11 +311,11 @@ const testDirs = [
 
       writeFileSync(schemaPath, tsSchema);
 
-      // Generate enums file if EXPERIMENTAL__emitEnums is configured
-      if (parsedOptions.raw.grats.EXPERIMENTAL__emitEnums) {
+      // Generate enums file if tsClientEnums is configured
+      if (parsedOptions.raw.grats.tsClientEnums) {
         const enumsPath = path.join(
           path.dirname(filePath),
-          parsedOptions.raw.grats.EXPERIMENTAL__emitEnums,
+          parsedOptions.raw.grats.tsClientEnums,
         );
         const enumsCode = printEnumsModule(
           schema,
