@@ -1,4 +1,4 @@
-import { State } from "./State";
+import { State, getDefaultPlaygroundConfig } from "./State";
 
 export const URL_VERSION = 1;
 
@@ -23,15 +23,10 @@ class User {
 
 export const DEFAULT_STATE: State = {
   doc: CONTENT,
-  config: {
-    nullableByDefault: true,
-    reportTypeScriptTypeErrors: true,
-    importModuleSpecifierEnding: "",
-  },
+  config: getDefaultPlaygroundConfig(),
   view: {
     outputOption: "sdl",
     showGratsDirectives: false,
   },
-  gratsResult: null,
   VERSION: URL_VERSION,
 };

@@ -1,22 +1,25 @@
-import React from "react";
+import React, { useState, useRef } from "react";
 import FormatButton from "./FormatButton";
 import ShareButton from "./ShareButton";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import { OutputOption } from "./State";
+import ConfigDropdown from "./ConfigModal";
 
 type Props = {
   viewMode: OutputOption;
   setViewMode: (mode: OutputOption) => void;
-  nullableByDefault: boolean;
-  setNullableByDefault: (value: boolean) => void;
+  config: Record<string, any>;
+  onConfigChange: (key: string, value: any) => void;
 };
 
 export default function ConfigBar({
   viewMode,
   setViewMode,
-  nullableByDefault,
-  setNullableByDefault,
+  config,
+  onConfigChange,
 }: Props): JSX.Element {
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  const configButtonRef = useRef<HTMLButtonElement>(null);
   const { gitHash } = useDocusaurusContext().siteConfig.customFields as {
     gitHash: string;
   };
@@ -36,17 +39,39 @@ export default function ConfigBar({
     >
       <ConfigBarSide>
         <ConfigBlock>
-          <ConfigBarHeading>Grats config:</ConfigBarHeading>
-          <Label>
-            <input
-              checked={nullableByDefault}
-              type="checkbox"
-              onChange={(e) => {
-                setNullableByDefault(e.target.checked);
+          <div style={{ position: "relative" }}>
+            <button
+              ref={configButtonRef}
+              onClick={() => {
+                setIsConfigModalOpen(!isConfigModalOpen);
               }}
+              style={{
+                padding: "0.3em 0.8em",
+                fontSize: "0.85rem",
+                backgroundColor: "var(--ifm-color-primary-dark)",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.4em",
+              }}
+            >
+              Config Options
+              <span style={{ fontSize: "0.7em", opacity: 0.9 }}>
+                {isConfigModalOpen ? "▲" : "▼"}
+              </span>
+            </button>
+            <ConfigDropdown
+              isOpen={isConfigModalOpen}
+              onClose={() => setIsConfigModalOpen(false)}
+              config={config}
+              onConfigChange={onConfigChange}
+              buttonRef={configButtonRef}
             />
-            Make fields nullable by default
-          </Label>
+          </div>
         </ConfigBlock>
         <div style={{ display: "flex", gap: "1em" }}>
           <FormatButton />

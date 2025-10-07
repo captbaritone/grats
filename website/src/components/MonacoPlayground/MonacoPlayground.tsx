@@ -11,8 +11,6 @@ import { Editor, EditorRef } from "./Editor";
 
 /**
  * # TODO
- * - [ ] Persist/hydrate view mode to URL
- * - [ ] Semantic nullability? (Other config options?)
  * - [ ] Executable schema
  */
 
@@ -26,43 +24,58 @@ function MonacoEditorComponent() {
   const [viewMode, setViewMode] = useState<OutputOption>(
     SANDBOX.getOutputOption(),
   );
-  const [nullableByDefault, setNullableByDefault] = useState(true);
+
+  // Get initial config from SANDBOX
+  const initialConfig = SANDBOX.getSerializableState().config;
+  const [config, setConfig] = useState(initialConfig);
+
+  const handleConfigChange = (key: string, value: any) => {
+    const newConfig = { ...config, [key]: value };
+    setConfig(newConfig);
+    SANDBOX.setGratsConfig({ [key]: value });
+  };
 
   return (
     <FillRemainingHeight minHeight={300}>
-      <ConfigBar
-        viewMode={viewMode}
-        setViewMode={(newViewMode) => {
-          setViewMode(newViewMode);
-          SANDBOX.setOutputOption(newViewMode);
-        }}
-        nullableByDefault={nullableByDefault}
-        setNullableByDefault={(nullableByDefault) => {
-          setNullableByDefault(nullableByDefault);
-          SANDBOX.setGratsConfig({ nullableByDefault });
-        }}
-      />
       <div
         style={{
           display: "flex",
           flexDirection: "column",
+          flexGrow: 1,
           height: "100%",
         }}
       >
-        <ResizablePanels
-          leftPanel={
-            <Editor
-              ref={leftEditorRef}
-              value={SANDBOX.getSerializableState().doc}
-              language="typescript"
-              theme={theme}
-              onEditorDidMount={(editor) => {
-                SANDBOX.setTsEditor(editor);
-              }}
-            />
-          }
-          rightPanel={<Right ref={rightEditorRef} viewMode={viewMode} />}
+        <ConfigBar
+          viewMode={viewMode}
+          setViewMode={(newViewMode) => {
+            setViewMode(newViewMode);
+            SANDBOX.setOutputOption(newViewMode);
+          }}
+          config={config}
+          onConfigChange={handleConfigChange}
         />
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+          }}
+        >
+          <ResizablePanels
+            leftPanel={
+              <Editor
+                ref={leftEditorRef}
+                value={SANDBOX.getSerializableState().doc}
+                language="typescript"
+                theme={theme}
+                onEditorDidMount={(editor) => {
+                  SANDBOX.setTsEditor(editor);
+                }}
+              />
+            }
+            rightPanel={<Right ref={rightEditorRef} viewMode={viewMode} />}
+          />
+        </div>
       </div>
     </FillRemainingHeight>
   );

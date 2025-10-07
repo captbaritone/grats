@@ -11,10 +11,12 @@ import { GratsConfig } from "./TGratsConfig";
  * - Post/parsing/validation TypeScript type
  * - Runtime validation
  * - Documentation (in code and on website)
+ * - Dynamic config editor in the playground
  *
- * And we need to ensure all three stay in sync. To that end, we define the
+ * And we need to ensure all four stay in sync. To that end, we define the
  * config spec in JSON, which is used to generate the TypeScript type,
- * runtime validation, and documentation.
+ * runtime validation, documentation, and the interactive config editor in
+ * the playground.
  */
 
 export { GratsConfig };

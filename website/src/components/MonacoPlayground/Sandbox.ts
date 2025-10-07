@@ -2,6 +2,7 @@ import monaco, { IDisposable, Emitter } from "monaco-editor";
 import type { GratsWorker } from "../../workers/grats.worker";
 import type { SerializableState } from "./State";
 import { serializeState } from "./urlState";
+import { getDefaultPlaygroundConfig } from "./State";
 import lzstring from "lz-string";
 import GRATS_TYPE_DECLARATIONS from "!!raw-loader!grats/src/Types.ts";
 const GRATS_PATH = "/node_modules/grats/src/index.ts";
@@ -48,13 +49,22 @@ export function stateFromUrl(): SerializableState {
       lzstring.decompressFromEncodedURIComponent(hash.slice(1)),
     );
     if (state.VERSION === 1) {
+      // Merge config defensively: start with current defaults,
+      // then apply any serialized values that exist
+      const config = { ...getDefaultPlaygroundConfig() };
+      if (state.config) {
+        // Only apply known config keys to avoid issues with renamed/removed options
+        for (const key in state.config) {
+          if (key in config) {
+            config[key] = state.config[key];
+          }
+        }
+      }
+      
       return {
         ...DEFAULT_STATE,
         ...state,
-        config: {
-          ...DEFAULT_STATE.config,
-          ...state.config,
-        },
+        config,
         view: {
           ...DEFAULT_STATE.view,
           ...state.view,
@@ -76,6 +86,7 @@ export default class Sandbox {
   _serializedState: SerializableState;
   constructor() {
     this._serializedState = stateFromUrl();
+    console.log("INITIAL STATE", this._serializedState);
     this._workerPromise = new Promise((resolve) => {
       this._resolveWorker = resolve;
     });
