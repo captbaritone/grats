@@ -50,7 +50,9 @@ export default function DynamicConfigEditor({
                 gap: "0.5em",
               }}
             >
-              <strong style={{ fontFamily: "monospace", fontSize: "0.9rem" }}>{key}</strong>
+              <strong style={{ fontFamily: "monospace", fontSize: "0.9rem" }}>
+                {key}
+              </strong>
               {isExperimental && (
                 <span
                   style={{
@@ -77,7 +79,9 @@ export default function DynamicConfigEditor({
               {property.description}
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5em" }}>
+            <div
+              style={{ display: "flex", alignItems: "center", gap: "0.5em" }}
+            >
               <ConfigControl
                 property={property}
                 value={value}
@@ -140,7 +144,14 @@ function NullableCheckbox({
   onChange: (value: ConfigValue) => void;
 }) {
   return (
-    <label style={{ fontSize: "0.75rem", display: "flex", alignItems: "center", gap: "0.3em" }}>
+    <label
+      style={{
+        fontSize: "0.75rem",
+        display: "flex",
+        alignItems: "center",
+        gap: "0.3em",
+      }}
+    >
       <input
         type="checkbox"
         checked={value === null}
@@ -166,9 +177,22 @@ function StringInputWrapper({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.3em", width: "100%" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "0.3em",
+        width: "100%",
+      }}
+    >
       {children}
-      {nullable && <NullableCheckbox value={value} defaultValue={defaultValue} onChange={onChange} />}
+      {nullable && (
+        <NullableCheckbox
+          value={value}
+          defaultValue={defaultValue}
+          onChange={onChange}
+        />
+      )}
     </div>
   );
 }

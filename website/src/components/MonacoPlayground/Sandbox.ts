@@ -60,7 +60,7 @@ export function stateFromUrl(): SerializableState {
           }
         }
       }
-      
+
       return {
         ...DEFAULT_STATE,
         ...state,
