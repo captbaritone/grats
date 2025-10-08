@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import DynamicConfigEditor from "./DynamicConfigEditor";
 import { GratsConfigSpec } from "grats/src/configSpec";
@@ -21,7 +21,7 @@ export default function ConfigDropdown({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isOpen || !buttonRef.current) return;
 
     const updatePosition = () => {
