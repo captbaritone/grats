@@ -1,0 +1,212 @@
+# Permissions
+
+One common challenge of API implementation is enforcing permissions. For example, users may only be allowed to read or modify certain data based on their role, ownership of the data, or other factors.
+
+Three different approaches which work well with Grats are discussed below:
+
+- [Viewer Context Approach](#viewer-context) - Pass context about the user into the data layer and enforce permissions there.
+- [Permission Directives](#permission-directives) - Annotate fields with the permissions required to access them using GraphQL directives and enforce them in the GraphQL layer.
+- [Permission Tokens with Derived Contexts](#permission-tokens-with-derived-contexts) - Leverage TypeScript types and Grats' derived contexts to enforce permissions in a type-safe way.
+
+## Viewer Context
+
+If possible, it's best to enforce permissions as close to the data source as possible and _not_ in the GraphQL layer. This way you can ensure your privacy rules apply regardless of how the data is accessed, whether via GraphQL or some other means.
+
+One highly effective pattern is to have an object representing the user making the request (often called "ViewerContext" or "VC"). Any database fetch that requires specific permissions should require one of these objects as an argument and enforce the permissions at that layer and then use properties on that object to determine if the data can be read/updated. If not, an error should be thrown. Grats makes accessing such an object easy with [Derived Contexts](../04-docblock-tags/04-context.mdx#derived-context-values).
+
+```ts
+/**
+ * This objet can be derived from the request/cookies/etc.
+ * @gqlContext */
+type VC = {
+  role: Role;
+  userId: string | null;
+};
+
+/** @gqlQueryField */
+export function getUserById(vc: VC, userId: string): User {
+  return queryForUser(vc, userId);
+}
+
+// Separate function somewhere in your data layer
+function queryForUser(vc: VC, userId: string): User {
+  if (vc.role !== Role.ADMIN && vc.userId !== userId) {
+    throw new Error("You do not have permission to access this user.");
+  }
+  return db.queryUserById(userId);
+}
+```
+
+The `VC` object can also be passed through model constructors to avoid needing to pass it explicitly through every field resolver:
+
+```ts
+/** @gqlType */
+class User {
+  constructor(private vc: VC /* ... other fields */) {}
+
+  /** @gqlField */
+  post(): Post {
+    return new Post(this.vc);
+  }
+}
+```
+
+## Permission Directives
+
+If you do decide to enforce permissions in the GraphQL layer, one approach is to use [Directives](https://graphql.org/learn/queries/#directives) to annotate fields with the permissions required to access them, and then use a custom [Schema Directive Visitor](https://www.apollographql.com/docs/graphql-tools/schema-directives/) to wrap the field resolvers with permission checks.
+
+This approach means that the permission requirements end up visible in your generated GraphQL schema. It can be useful for clients to know what permissions are required to access certain fields, but in some cases permissions are not intended to be public knowledge, so be sure to consider whether this is appropriate for your use case.
+
+Note that schema directives are not exposed through GraphqL introspection, so they will not be visible to clients who access the schema that way.
+
+Usage on each restricted field looks like this:
+
+```ts
+/**
+ * @gqlQueryField
+ * @gqlAnnotate assert(is: ADMIN)
+ */
+export function getAllUsers(): User[] {
+  return db.queryAllUsers();
+}
+```
+
+Then, after we create our schema, we can use `@graphql-tools/utils` to wrap each field annotated with the directives in a function which first applies the permission check:
+
+```ts
+import { defaultFieldResolver, GraphQLError, GraphQLSchema } from "graphql";
+import { getDirective, MapperKind, mapSchema } from "@graphql-tools/utils";
+
+/** @gqlContext */
+type Ctx = {
+  role: Role;
+};
+
+/** @gqlEnum */
+export enum Role {
+  ADMIN = "ADMIN",
+  USER = "USER",
+  GUEST = "GUEST",
+}
+
+/**
+ * Indicates that a field require the specified roles to access.
+ * @gqlDirective assert on FIELD_DEFINITION
+ */
+export function requiresRole(args: { is: Role }, context: Ctx): void {
+  if (args.is !== context.role) {
+    // Using `GraphQLError` here ensures the error is not masked by Yoga.
+    throw new GraphQLError("You do not have permission to access this field.");
+  }
+}
+
+// Monkey patches the `resolve` function of fields with the `@requiresRole`
+export function applyRolePermissions(schema: GraphQLSchema): GraphQLSchema {
+  return mapSchema(schema, {
+    [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
+      const assertDirective = getDirective(schema, fieldConfig, "assert", [
+        "grats",
+        "directives",
+      ]);
+      if (assertDirective == null || assertDirective.length === 0) {
+        return fieldConfig;
+      }
+
+      const originalResolve = fieldConfig.resolve ?? defaultFieldResolver;
+      fieldConfig.resolve = (source, args, context, info) => {
+        requireRole(assertDirective[0], context);
+        return originalResolve(source, args, context, info);
+      };
+      return fieldConfig;
+    },
+  });
+}
+```
+
+## Permission Tokens with Derived Contexts
+
+Grats' novel [Derived Contexts](../04-docblock-tags/04-context.mdx#derived-context-values) feature can be used to implement a "permission tokens" pattern where permission token is a special object that represents that the bearer has a given permission.
+
+### Assert Tokens
+
+You can construct a derived context type which will cause a field to throw if the user does not have the required permissions.
+
+Usage on each restricted field looks like this:
+
+```ts
+/**
+ * This field will throw for any user that is not an admin. This is enabled
+ * simply by adding an argument typed as `AssertAdminToken`, even if it's
+ * unused.
+ *
+ * @gqlQueryField */
+export function someField(_admin: AssertAdminToken): string {
+  return "You must be an admin!";
+}
+```
+
+Since Grats will call the context deriver as part of field execution, if the derive function throws it will be treated as an error for that field, preventing access.
+
+The implementation of the `AssertAdminToken` type and its derived context function looks like this:
+
+```ts
+/**
+ * The main GraphQL context object, derived from the request/cookies.
+ * @gqlContext
+ */
+type Ctx = {
+  isAdmin: true;
+};
+
+const AdminToken = Symbol("AdminToken");
+
+// Maybe we could use branded types to make this type impossible to
+// construct generally?
+type AssertAdminToken = typeof AdminToken;
+
+/**
+ * @gqlContext
+ */
+export function adminCheck(ctx: Ctx): AssertAdminToken {
+  if (!ctx.isAdmin) {
+    throw new Error("You do not have permission to access this field");
+  }
+  return AdminToken;
+}
+```
+
+### Maybe Tokens
+
+Permission tokens can also be used similarly to the Viewer Context approach above, where the permission token is a required parameter deep in the data layer.
+
+In this case, you can define a "maybe" derived context type which is either the permission token or `null` if the user does not have the required permissions. This yields control to the field resolver to decide how to handle the case where the user does not have the required permissions while ensuring that the permission check is always performed at some point _before_ reaching the data layer.
+
+These two token approaches can also be combined!
+
+```ts
+type MaybeAdminToken = typeof AdminToken | null;
+
+/**
+ * @gqlContext
+ */
+export function maybeAdminToken(ctx: Ctx): MaybeAdminToken {
+  if (ctx.isAdmin) {
+    return AdminToken;
+  }
+  return null;
+}
+
+/** @gqlQueryField */
+export function someField(admin: MaybeAdminToken): string {
+  // TypeScript ensures we somehow handle the case where `admin` is null before
+  // calling into the data layer.
+  if (admin == null) {
+    return null;
+  }
+  return someDataLayerFunction(admin);
+}
+
+function someDataLayerFunction(admin: typeof AdminToken) {
+  return "Here is your data";
+}
+```
