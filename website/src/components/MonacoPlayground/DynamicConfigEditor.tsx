@@ -29,6 +29,9 @@ export default function DynamicConfigEditor({
       {Object.entries(configSpec.properties).map(([key, property]) => {
         const value = config[key] ?? property.default;
         const isExperimental = property.experimental;
+        if (property.ignoreInPlayground) {
+          return null;
+        }
 
         return (
           <div

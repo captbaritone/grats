@@ -56,6 +56,7 @@ type PropertySpec = {
   nullable: boolean;
   default: string | boolean | null;
   experimental?: boolean;
+  ignoreInPlayground?: boolean;
 };
 
 type PropertyType =
