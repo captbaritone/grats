@@ -158,11 +158,11 @@ type Ctx = {
   isAdmin: true;
 };
 
-const AdminToken = Symbol("AdminToken");
+// Use "branded types" to ensure nobody else can construct an AdminToken.
+// https://egghead.io/blog/using-branded-types-in-typescript
+type AdminToken = "AdminToken" & { __brand: "AdminToken" };
 
-// Maybe we could use branded types to make this type impossible to
-// construct generally?
-type AssertAdminToken = typeof AdminToken;
+type AssertAdminToken = AdminToken;
 
 /**
  * @gqlContext
@@ -171,7 +171,7 @@ export function adminCheck(ctx: Ctx): AssertAdminToken {
   if (!ctx.isAdmin) {
     throw new Error("You do not have permission to access this field");
   }
-  return AdminToken;
+  return "AdminToken" as AdminToken;
 }
 ```
 
@@ -184,14 +184,14 @@ In this case, you can define a "maybe" derived context type which is either the 
 These two token approaches can also be combined!
 
 ```ts
-type MaybeAdminToken = typeof AdminToken | null;
+type MaybeAdminToken = AdminToken | null;
 
 /**
  * @gqlContext
  */
 export function maybeAdminToken(ctx: Ctx): MaybeAdminToken {
   if (ctx.isAdmin) {
-    return AdminToken;
+    return "AdminToken" as AdminToken;
   }
   return null;
 }
@@ -206,7 +206,7 @@ export function someField(admin: MaybeAdminToken): string {
   return someDataLayerFunction(admin);
 }
 
-function someDataLayerFunction(admin: typeof AdminToken) {
+function someDataLayerFunction(admin: AdminToken) {
   return "Here is your data";
 }
 ```
