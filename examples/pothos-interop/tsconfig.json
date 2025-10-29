@@ -1,0 +1,15 @@
+{
+  "grats": {
+    "requireExportedTypes": true,
+    "EXPERIMENTAL__emitPothos": "./pothosTypes.ts"
+  },
+  "compilerOptions": {
+    "outDir": "dist",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "esnext",
+    "lib": ["esnext"],
+    "strict": true,
+    "skipLibCheck": true
+  }
+}

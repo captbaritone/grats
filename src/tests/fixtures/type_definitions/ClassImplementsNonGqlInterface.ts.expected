@@ -23,9 +23,10 @@ type User {
   hello: String
 }
 -- TypeScript --
+import type TUser from "./ClassImplementsNonGqlInterface";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
+    const UserType: GraphQLObjectType = new GraphQLObjectType<TUser>({
         name: "User",
         description: "The root of all evil.",
         fields() {

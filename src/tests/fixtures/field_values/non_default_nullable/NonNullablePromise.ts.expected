@@ -18,9 +18,10 @@ type SomeType {
   hello: String!
 }
 -- TypeScript --
+import type TSomeType from "./NonNullablePromise";
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {

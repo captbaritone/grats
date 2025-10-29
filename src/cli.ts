@@ -17,6 +17,7 @@ import {
   printGratsSDL,
   printExecutableSchema,
   printEnumsModule,
+  printPothosTypesModule,
 } from "./printSchema";
 import * as ts from "typescript";
 import {
@@ -189,6 +190,16 @@ function writeSchemaFilesAndReport(
   const absOutput = resolve(dirname(configPath), gratsConfig.graphqlSchema);
   writeFileSync(absOutput, schemaStr);
   console.error(`Grats: Wrote schema to \`${absOutput}\`.`);
+
+  if (config.raw.grats.EXPERIMENTAL__emitPothos) {
+    const pothosOutput = resolve(
+      dirname(configPath),
+      config.raw.grats.EXPERIMENTAL__emitPothos,
+    );
+    const pothosTypesCode = printPothosTypesModule(schema, gratsConfig);
+    writeFileSync(pothosOutput, pothosTypesCode);
+    console.error(`Grats: Wrote Pothos types to \`${pothosOutput}\`.`);
+  }
 
   if (config.raw.grats.EXPERIMENTAL__emitMetadata) {
     const absOutput = resolve(

@@ -37,8 +37,9 @@ type User {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLString } from "graphql";
+import type { User as TUser } from "./NonSubscriptionClassWithAsyncIterable";
 export function getSchema(): GraphQLSchema {
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
+    const UserType: GraphQLObjectType = new GraphQLObjectType<TUser>({
         name: "User",
         fields() {
             return {

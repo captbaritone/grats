@@ -67,6 +67,7 @@ type User implements IPerson {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLList, GraphQLInt, specifiedDirectives, GraphQLInterfaceType, GraphQLString, GraphQLObjectType, defaultFieldResolver } from "graphql";
+import type { User as TUser } from "./semanticNonNullMatchesInterface";
 async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
     const awaited = await value;
     if (awaited == null)
@@ -85,7 +86,7 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
+    const UserType: GraphQLObjectType = new GraphQLObjectType<TUser>({
         name: "User",
         fields() {
             return {

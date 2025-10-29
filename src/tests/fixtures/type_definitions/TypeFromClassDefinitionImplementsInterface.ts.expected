@@ -26,6 +26,7 @@ type User implements Person {
   hello: String
 }
 -- TypeScript --
+import type TUser from "./TypeFromClassDefinitionImplementsInterface";
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
@@ -39,7 +40,7 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
+    const UserType: GraphQLObjectType = new GraphQLObjectType<TUser>({
         name: "User",
         fields() {
             return {

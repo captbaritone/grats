@@ -40,12 +40,17 @@ declare module "graphql" {
     hasTypeNameField: boolean;
     exported?: ExportDefinition;
   }
+
+  export interface InputObjectTypeDefinitionNode {
+    exported?: ExportDefinition;
+  }
   export interface UnionTypeDefinitionNode {
     /**
      * Grats metadata: Indicates that the type was materialized as part of
      * generic type resolution.
      */
     wasSynthesized?: boolean;
+    exported?: ExportDefinition;
   }
   export interface InterfaceTypeDefinitionNode {
     /**
@@ -53,6 +58,7 @@ declare module "graphql" {
      * generic type resolution.
      */
     wasSynthesized?: boolean;
+    exported?: ExportDefinition;
   }
   export interface ObjectTypeExtensionNode {
     /**

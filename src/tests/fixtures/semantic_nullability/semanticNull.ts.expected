@@ -59,8 +59,9 @@ type User {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLList, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLString } from "graphql";
+import type { User as TUser } from "./semanticNull";
 export function getSchema(): GraphQLSchema {
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
+    const UserType: GraphQLObjectType = new GraphQLObjectType<TUser>({
         name: "User",
         fields() {
             return {

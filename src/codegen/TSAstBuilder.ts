@@ -2,6 +2,7 @@ import * as ts from "typescript";
 import { isNonNull } from "../utils/helpers";
 import * as path from "path";
 import { resolveRelativePath } from "../gratsRoot";
+import { ExportDefinition } from "../GraphQLAstExtensions";
 
 type JsonObject = { [key: string]: JsonValue };
 type JsonArray = JsonValue[];
@@ -119,7 +120,7 @@ export default class TSAstBuilder {
     return F.createObjectLiteralExpression(properties.filter(isNonNull), true);
   }
 
-  boolean(value: boolean): ts.BooleanLiteral {
+  boolean(value: boolean): ts.TrueLiteral | ts.FalseLiteral {
     return value ? F.createTrue() : F.createFalse();
   }
 
@@ -200,22 +201,22 @@ export default class TSAstBuilder {
     }
   }
 
-  importDefault(from: string, as: string) {
+  importDefault(from: string, as: string, isTypeOnly: boolean) {
     this._imports.push(
       F.createImportDeclaration(
         undefined,
-        F.createImportClause(false, F.createIdentifier(as), undefined),
+        F.createImportClause(isTypeOnly, F.createIdentifier(as), undefined),
         F.createStringLiteral(from),
       ),
     );
   }
 
   importUserConstruct(
-    tsModulePath: string,
-    exportName: string | null,
+    exported: ExportDefinition,
     localName: string,
     isTypeOnly: boolean,
   ): void {
+    const { exportName, tsModulePath } = exported;
     const abs = resolveRelativePath(tsModulePath);
     const relative = replaceExt(
       path.relative(path.dirname(this._destination), abs),
@@ -223,7 +224,7 @@ export default class TSAstBuilder {
     );
     const modulePath = `./${normalizeRelativePathToPosix(relative)}`;
     if (exportName == null) {
-      this.importDefault(modulePath, localName);
+      this.importDefault(modulePath, localName, isTypeOnly);
     } else {
       this.import(modulePath, [
         { name: exportName, as: localName, isTypeOnly },

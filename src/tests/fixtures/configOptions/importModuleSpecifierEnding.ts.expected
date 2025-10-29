@@ -23,10 +23,11 @@ type SomeType {
   hello: String
 }
 -- TypeScript --
+import type TSomeType from "./importModuleSpecifierEnding.js";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { greeting as someTypeGreetingResolver } from "./importModuleSpecifierEnding.js";
 export function getSchema(): GraphQLSchema {
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {

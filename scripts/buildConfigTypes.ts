@@ -15,6 +15,6 @@ export function writeTypeScriptTypeToDisk(): void {
  */
 ${makeTypeScriptType(GratsConfigSpec)}
 `;
-  const outPath = path.join(__dirname, "TGratsConfig.ts");
+  const outPath = path.join(__dirname, "../src/TGratsConfig.ts");
   fs.writeFileSync(outPath, doc, "utf8");
 }

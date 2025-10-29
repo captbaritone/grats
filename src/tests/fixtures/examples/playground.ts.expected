@@ -51,6 +51,7 @@ type User {
   name: String
 }
 -- TypeScript --
+import type TSomeType from "./playground";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 import { getUser as someTypeGetUserResolver } from "./playground";
 export function getSchema(): GraphQLSchema {
@@ -75,7 +76,7 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {

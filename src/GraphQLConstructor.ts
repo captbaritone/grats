@@ -72,6 +72,7 @@ export class GraphQLConstructor {
     types: NamedTypeNode[],
     description: StringValueNode | null,
     directives: readonly ConstDirectiveNode[] | null,
+    exported: ExportDefinition | null,
   ): UnionTypeDefinitionNode {
     return {
       kind: Kind.UNION_TYPE_DEFINITION,
@@ -80,6 +81,7 @@ export class GraphQLConstructor {
       name,
       types,
       directives: this._optionalList(directives),
+      exported: exported ?? undefined,
     };
   }
 
@@ -113,6 +115,7 @@ export class GraphQLConstructor {
     interfaces: NamedTypeNode[] | null,
     description: StringValueNode | null,
     directives: readonly ConstDirectiveNode[] | null,
+    exported: ExportDefinition | null,
   ): InterfaceTypeDefinitionNode {
     return {
       kind: Kind.INTERFACE_TYPE_DEFINITION,
@@ -122,6 +125,7 @@ export class GraphQLConstructor {
       fields,
       interfaces: interfaces ?? undefined,
       directives: this._optionalList(directives),
+      exported: exported ?? undefined,
     };
   }
 
@@ -271,6 +275,7 @@ export class GraphQLConstructor {
     fields: InputValueDefinitionNode[] | null,
     directives: readonly ConstDirectiveNode[] | null,
     description: StringValueNode | null,
+    exported: ExportDefinition | null,
   ): InputObjectTypeDefinitionNode {
     return {
       kind: Kind.INPUT_OBJECT_TYPE_DEFINITION,
@@ -279,6 +284,7 @@ export class GraphQLConstructor {
       name,
       fields: fields ?? undefined,
       directives: this._optionalList(directives),
+      exported: exported ?? undefined,
     };
   }
 

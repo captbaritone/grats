@@ -1,0 +1,47 @@
+-----------------
+INPUT
+----------------- 
+// {"EXPERIMENTAL__emitPothos": "./pothosGrats.ts", "nullableByDefault": false }
+
+/** @gqlType */
+export class MyType {
+  /** @gqlField */
+  name: string = "Example";
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+type MyType {
+  name: String!
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString } from "graphql";
+import type { MyType as TMyType } from "./defaultNullabilityOff";
+export function getSchema(): GraphQLSchema {
+    const MyTypeType: GraphQLObjectType = new GraphQLObjectType<TMyType>({
+        name: "MyType",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: new GraphQLNonNull(GraphQLString)
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [MyTypeType]
+    });
+}
+
+-- Pothos Types --
+import { MyType as MyTypeInternal } from "./defaultNullabilityOff";
+export type PothosUserSchemaTypes = {
+    Defaults: "v4";
+    Objects: {
+        MyType: MyTypeInternal;
+    };
+    DefaultFieldNullability: false;
+};

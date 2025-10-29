@@ -32,6 +32,8 @@ import { extend } from "../utils/helpers";
 import { Result, ok, err } from "../utils/Result";
 import { applyFixes } from "../fixFixable";
 import { writeTypeScriptTypeToDisk } from "../../scripts/buildConfigTypes";
+import { codegenPothosUserSchemaTypes } from "../codegen/pothosTypeCodegen";
+import TSAstBuilder from "../codegen/TSAstBuilder";
 
 writeTypeScriptTypeToDisk();
 
@@ -245,7 +247,19 @@ const testDirs = [
           print(docSansDirectives),
         );
 
-        return ok(`-- SDL --\n${sdl}\n-- TypeScript --\n${executableSchema}`);
+        let pothosTypesCode: string | null = null;
+        if (parsedOptions.raw.grats.EXPERIMENTAL__emitPothos != null) {
+          pothosTypesCode = codegenPothosUserSchemaTypes(
+            schema,
+            parsedOptions.raw.grats,
+          );
+        }
+
+        let output = `-- SDL --\n${sdl}\n-- TypeScript --\n${executableSchema}`;
+        if (pothosTypesCode != null) {
+          output += `\n-- Pothos Types --\n${pothosTypesCode}`;
+        }
+        return ok(output);
       }
     },
   },
@@ -323,6 +337,19 @@ const testDirs = [
           enumsPath,
         );
         writeFileSync(enumsPath, enumsCode);
+      }
+
+      // Generate the pothos types file if EXPERIMENTAL__emitPothos is configured
+      if (parsedOptions.raw.grats.EXPERIMENTAL__emitPothos != null) {
+        const pothosTypesPath = path.join(
+          path.dirname(filePath),
+          "pothosTypes.ts",
+        );
+        const pothosTypesCode = codegenPothosUserSchemaTypes(
+          schema,
+          parsedOptions.raw.grats,
+        );
+        writeFileSync(pothosTypesPath, pothosTypesCode);
       }
 
       const server = await import(filePath);

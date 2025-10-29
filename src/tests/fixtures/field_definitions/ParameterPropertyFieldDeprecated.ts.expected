@@ -20,9 +20,10 @@ type SomeType {
   hello: String @deprecated(reason: "Don't use this")
 }
 -- TypeScript --
+import type TSomeType from "./ParameterPropertyFieldDeprecated";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {

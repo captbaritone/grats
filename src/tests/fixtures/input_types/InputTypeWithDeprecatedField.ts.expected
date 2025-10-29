@@ -28,6 +28,7 @@ type SomeType {
   hello: String
 }
 -- TypeScript --
+import type TSomeType from "./InputTypeWithDeprecatedField";
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MyInputTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({
@@ -43,7 +44,7 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {

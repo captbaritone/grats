@@ -38,8 +38,10 @@ export function makeResolverSignature(documentAst: DocumentNode): Metadata {
         case "function":
           resolver = {
             kind: "function",
-            path: fieldResolver.path,
-            exportName: fieldResolver.exportName,
+            exported: {
+              tsModulePath: fieldResolver.path,
+              exportName: fieldResolver.exportName,
+            },
             arguments: transformArgs(fieldResolver.arguments),
           };
           break;
@@ -53,8 +55,10 @@ export function makeResolverSignature(documentAst: DocumentNode): Metadata {
         case "staticMethod":
           resolver = {
             kind: "staticMethod",
-            path: fieldResolver.path,
-            exportName: fieldResolver.exportName,
+            exported: {
+              tsModulePath: fieldResolver.path,
+              exportName: fieldResolver.exportName,
+            },
             name: fieldResolver.name,
             arguments: transformArgs(fieldResolver.arguments),
           };
@@ -97,8 +101,10 @@ function transformArg(arg: DirectiveResolverArgument): ResolverArgument {
     case "derivedContext":
       return {
         kind: "derivedContext",
-        path: arg.path,
-        exportName: arg.exportName,
+        exported: {
+          tsModulePath: arg.path,
+          exportName: arg.exportName,
+        },
         args: arg.args.map((arg): ContextArgs => {
           const newArg = transformArg(arg);
           invariant(

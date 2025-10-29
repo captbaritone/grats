@@ -138,7 +138,7 @@ type FieldTypeContext = {
  */
 export function extract(
   sourceFile: ts.SourceFile,
-  config?: { tsClientEnums?: string | null },
+  config: { tsClientEnums?: string | null; requireExportedTypes: boolean },
 ): DiagnosticsResult<ExtractionSnapshot> {
   const extractor = new Extractor(config);
   return extractor.extract(sourceFile);
@@ -157,9 +157,12 @@ class Extractor {
 
   errors: ts.DiagnosticWithLocation[] = [];
   gql: GraphQLConstructor;
-  config?: { tsClientEnums?: string | null };
+  config: { tsClientEnums?: string | null; requireExportedTypes: boolean };
 
-  constructor(config?: { tsClientEnums?: string | null }) {
+  constructor(config: {
+    tsClientEnums?: string | null;
+    requireExportedTypes: boolean;
+  }) {
     this.gql = new GraphQLConstructor();
     this.config = config;
   }
@@ -689,8 +692,17 @@ class Extractor {
 
     const directives = this.collectDirectives(node);
 
+    const exported = this.maybeExported(node);
+
     this.definitions.push(
-      this.gql.unionTypeDefinition(node, name, types, description, directives),
+      this.gql.unionTypeDefinition(
+        node,
+        name,
+        types,
+        description,
+        directives,
+        exported,
+      ),
     );
   }
 
@@ -1077,21 +1089,8 @@ class Extractor {
 
     const directives = this.collectDirectives(node);
 
-    const isExported = node.modifiers?.find(
-      (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
-    );
-    if (!isExported) {
-      this.report(node.name, E.scalarNotExported(), [], {
-        fixName: "add-export-keyword-to-scalar",
-        description: "Add export keyword to type alias with @gqlScalar",
-        changes: [Act.prefixNode(node, "export ")],
-      });
-    }
-
-    const exported: ExportDefinition = {
-      tsModulePath: relativePath(node.getSourceFile().fileName),
-      exportName: node.name.text,
-    };
+    const exported = this.assertExported(node);
+    if (exported == null) return null;
 
     this.definitions.push(
       this.gql.scalarTypeDefinition(
@@ -1102,6 +1101,71 @@ class Extractor {
         exported,
       ),
     );
+  }
+
+  assertExported(node: ts.TypeAliasDeclaration): ExportDefinition | null {
+    const isExported = node.modifiers?.find(
+      (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
+    );
+    if (!isExported) {
+      // TODO: Make this error generic
+      this.report(node.name, E.scalarNotExported(), [], {
+        fixName: "add-export-keyword-to-scalar",
+        description: "Add export keyword to type alias with @gqlScalar",
+        changes: [Act.prefixNode(node, "export ")],
+      });
+      return null;
+    }
+
+    return {
+      tsModulePath: relativePath(node.getSourceFile().fileName),
+      exportName: node.name.text,
+    };
+  }
+
+  maybeExported(
+    node:
+      | ts.TypeAliasDeclaration
+      | ts.ClassDeclaration
+      | ts.TypeAliasDeclaration
+      | ts.InterfaceDeclaration
+      | ts.EnumDeclaration,
+  ): ExportDefinition | null {
+    const isExported = node.modifiers?.find(
+      (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
+    );
+    if (!isExported) {
+      if (this.config.requireExportedTypes) {
+        return this.report(node, E.enumNotExported(), [], {
+          fixName: "add-export-keyword-to-definition",
+          description: "Add export keyword definition",
+          changes: [Act.prefixNode(node, "export ")],
+        });
+      } else {
+        return null;
+      }
+    }
+
+    const isDefault = node.modifiers?.find(
+      (modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword,
+    );
+
+    const tsModulePath = relativePath(node.getSourceFile().fileName);
+
+    // Special case for ClassDeclarations since in some cases they may be missing a name.
+    if (ts.isClassDeclaration(node)) {
+      if (isDefault) return { exportName: null, tsModulePath };
+      if (node.name == null) {
+        // This is invalid TypeScript, but we should still handle it gracefully.
+        return this.report(
+          node,
+          "Expected non-default exported class to have a name.",
+        );
+      }
+      return { exportName: node.name.text, tsModulePath };
+    }
+
+    return { tsModulePath, exportName: isDefault ? null : node.name.text };
   }
 
   inputTypeAliasDeclaration(node: ts.TypeAliasDeclaration, tag: ts.JSDocTag) {
@@ -1126,6 +1190,8 @@ class Extractor {
 
     if (fields == null) return;
 
+    const exported = this.maybeExported(node);
+
     this.definitions.push(
       this.gql.inputObjectTypeDefinition(
         node,
@@ -1133,6 +1199,7 @@ class Extractor {
         fields,
         directives,
         description,
+        exported,
       ),
     );
   }
@@ -1163,6 +1230,8 @@ class Extractor {
 
     const directives = this.collectDirectives(node);
 
+    const exported = this.maybeExported(node);
+
     this.definitions.push(
       this.gql.inputObjectTypeDefinition(
         node,
@@ -1170,6 +1239,7 @@ class Extractor {
         fields,
         directives,
         description,
+        exported,
       ),
     );
   }
@@ -1220,6 +1290,7 @@ class Extractor {
 
     // All fields must be nullable since only one will be present at a time.
     const type = this.gql.nullableType(inner);
+
     return this.gql.inputValueDefinition(
       node,
       this.gql.name(name, name.text),
@@ -1308,22 +1379,7 @@ class Extractor {
 
     const hasTypeName = this.checkForTypenameProperty(node, name.value);
 
-    let exported: { tsModulePath: string; exportName: string | null } | null =
-      null;
-    if (!hasTypeName) {
-      const isExported = node.modifiers?.find(
-        (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
-      );
-      const isDefault = node.modifiers?.find(
-        (modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword,
-      );
-      if (isExported) {
-        exported = {
-          tsModulePath: relativePath(node.getSourceFile().fileName),
-          exportName: isDefault ? null : node.name.text,
-        };
-      }
-    }
+    const exported = this.maybeExported(node);
 
     const directives = this.collectDirectives(node);
 
@@ -1691,6 +1747,8 @@ class Extractor {
 
     const directives = this.collectDirectives(node);
 
+    const exported = this.maybeExported(node);
+
     this.definitions.push(
       this.gql.interfaceTypeDefinition(
         node,
@@ -1699,6 +1757,7 @@ class Extractor {
         interfaces,
         description,
         directives,
+        exported,
       ),
     );
   }
@@ -2029,29 +2088,14 @@ class Extractor {
     }
 
     // Check if enum must be exported when tsClientEnums is configured
-    let exported: { tsModulePath: string; exportName: string | null } | null =
-      null;
-    const isExported = node.modifiers?.some((modifier) => {
-      return modifier.kind === ts.SyntaxKind.ExportKeyword;
-    });
-
-    if (this.config?.tsClientEnums != null && !isExported) {
+    const exported = this.maybeExported(node);
+    if (this.config?.tsClientEnums != null && !exported) {
       this.report(node, E.enumNotExported(), [], {
         fixName: "add-export-keyword-to-enum",
         description: "Add export keyword to enum with @gqlEnum",
         changes: [Act.prefixNode(node, "export ")],
       });
       return;
-    }
-
-    if (isExported) {
-      const isDefault = node.modifiers?.find(
-        (modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword,
-      );
-      exported = {
-        tsModulePath: relativePath(node.getSourceFile().fileName),
-        exportName: isDefault ? null : (node.name?.text ?? null),
-      };
     }
 
     const description = this.collectDescription(node);
@@ -2084,7 +2128,7 @@ class Extractor {
     }
 
     // Prohibit type alias enums when tsClientEnums is configured
-    if (this.config?.tsClientEnums != null) {
+    if (this.config.tsClientEnums != null) {
       this.report(node, E.typeAliasEnumNotSupportedWithEmitEnums());
       return;
     }
@@ -2096,6 +2140,7 @@ class Extractor {
     this.recordTypeName(node, name, "ENUM");
 
     const directives = this.collectDirectives(node);
+    const exported = this.maybeExported(node);
 
     this.definitions.push(
       this.gql.enumTypeDefinition(
@@ -2104,7 +2149,7 @@ class Extractor {
         values,
         description,
         directives,
-        null,
+        exported,
       ),
     );
   }

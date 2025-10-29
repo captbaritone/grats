@@ -27,10 +27,11 @@ type User {
   name: String
 }
 -- TypeScript --
+import type TUser from "./FieldAsStaticClassMethodWithClassAsDefaultExport";
 import queryGetUserResolver from "./FieldAsStaticClassMethodWithClassAsDefaultExport";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
+    const UserType: GraphQLObjectType = new GraphQLObjectType<TUser>({
         name: "User",
         fields() {
             return {

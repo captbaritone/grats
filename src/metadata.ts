@@ -11,6 +11,8 @@
  * for now we are just using TypeScript types.
  */
 
+import { ExportDefinition } from "./GraphQLAstExtensions";
+
 // Note: An example of replacing codegen with a dynamic default resolve powered
 // by this JSON schema:
 // https://gist.github.com/captbaritone/f66d0355645a32494da368d0448b9d7a
@@ -57,8 +59,7 @@ export type PropertyResolver = {
  */
 export type FunctionResolver = {
   kind: "function";
-  path: string; // Path to the module
-  exportName: string | null; // Name of the export. If omitted the function is the default export.
+  exported: ExportDefinition;
   arguments: ResolverArgument[] | null;
 };
 
@@ -76,8 +77,7 @@ export type MethodResolver = {
  */
 export type StaticMethodResolver = {
   kind: "staticMethod";
-  path: string; // Path to the module
-  exportName: string | null; // Export name. If omitted, the class is the default export
+  exported: ExportDefinition;
   name: string; // Method name
   arguments: ResolverArgument[] | null;
 };
@@ -111,8 +111,7 @@ export type ContextArgument = {
 /** A context value which is expressed as a function of the global context */
 export type DerivedContextArgument = {
   kind: "derivedContext";
-  path: string; // Path to the module
-  exportName: string | null; // Export name. If omitted, the class is the default export
+  exported: ExportDefinition;
   args: Array<ContextArgs>;
 };
 

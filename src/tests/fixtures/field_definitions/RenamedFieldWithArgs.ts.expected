@@ -17,9 +17,10 @@ type SomeType {
   greetz(greeting: String!): String
 }
 -- TypeScript --
+import type TSomeType from "./RenamedFieldWithArgs";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {

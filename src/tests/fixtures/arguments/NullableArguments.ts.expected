@@ -26,9 +26,10 @@ type SomeType {
   hello2(greeting: String): String
 }
 -- TypeScript --
+import type TSomeType from "./NullableArguments";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {

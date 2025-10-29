@@ -63,12 +63,7 @@ class EnumCodegen {
     });
 
     // Import the enum
-    this.ts.importUserConstruct(
-      exported.tsModulePath,
-      exported.exportName,
-      localName,
-      false,
-    );
+    this.ts.importUserConstruct(exported, localName, false);
   }
 
   private generateEnumsObject(enumTypes: GraphQLEnumType[]): void {

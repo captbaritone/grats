@@ -28,9 +28,9 @@ type User {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { User as queryGetUserResolver } from "./FieldAsStaticClassMethod";
+import { type User as TUser, User as queryGetUserResolver } from "./FieldAsStaticClassMethod";
 export function getSchema(): GraphQLSchema {
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
+    const UserType: GraphQLObjectType = new GraphQLObjectType<TUser>({
         name: "User",
         fields() {
             return {

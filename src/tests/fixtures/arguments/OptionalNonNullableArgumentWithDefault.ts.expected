@@ -17,9 +17,10 @@ type SomeType {
   hello(greeting: String! = "Hello"): String
 }
 -- TypeScript --
+import type TSomeType from "./OptionalNonNullableArgumentWithDefault";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {

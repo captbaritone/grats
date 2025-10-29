@@ -646,6 +646,10 @@ export function enumNotExported(): string {
   return "Expected enum to be exported when `tsClientEnums` is configured. Grats needs to import enum types to build the enums module.";
 }
 
+export function definitionNotExported(): string {
+  return "Expected GraphQL definition to be exported. Grats needs to import this definitions type into its generated TypeScript schema.";
+}
+
 export function typeAliasEnumNotSupportedWithEmitEnums(): string {
   return 'Type alias enums are not supported when `tsClientEnums` is configured. Use `enum` declarations instead. For example: `export enum Status { PENDING = "pending" }`.';
 }

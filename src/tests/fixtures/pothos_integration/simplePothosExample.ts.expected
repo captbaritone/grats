@@ -1,0 +1,72 @@
+-----------------
+INPUT
+----------------- 
+// {"EXPERIMENTAL__emitPothos": "./pothosGrats.ts"}
+
+/** @gqlType */
+export class MyType {
+  /** @gqlField */
+  name: string = "Example";
+}
+
+/** @gqlEnum */
+export enum MyEnum {
+  VALUE_ONE = "VALUE_ONE",
+  VALUE_TWO = "VALUE_TWO",
+}
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+enum MyEnum {
+  VALUE_ONE
+  VALUE_TWO
+}
+
+type MyType {
+  name: String
+}
+-- TypeScript --
+import { GraphQLSchema, GraphQLEnumType, GraphQLObjectType, GraphQLString } from "graphql";
+import type { MyType as TMyType } from "./simplePothosExample";
+export function getSchema(): GraphQLSchema {
+    const MyEnumType: GraphQLEnumType = new GraphQLEnumType({
+        name: "MyEnum",
+        values: {
+            VALUE_ONE: {
+                value: "VALUE_ONE"
+            },
+            VALUE_TWO: {
+                value: "VALUE_TWO"
+            }
+        }
+    });
+    const MyTypeType: GraphQLObjectType = new GraphQLObjectType<TMyType>({
+        name: "MyType",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [MyEnumType, MyTypeType]
+    });
+}
+
+-- Pothos Types --
+import { MyEnum as MyEnumInternal, MyType as MyTypeInternal } from "./simplePothosExample";
+export type PothosUserSchemaTypes = {
+    Defaults: "v4";
+    Objects: {
+        MyType: MyTypeInternal;
+    };
+    Enums: {
+        MyEnum: MyEnumInternal;
+    };
+    DefaultFieldNullability: true;
+};

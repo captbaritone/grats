@@ -1,0 +1,44 @@
+-----------------
+INPUT
+----------------- 
+// {"EXPERIMENTAL__emitPothos": "./pothosGrats.ts"}
+
+/** @gqlScalar */
+export type MyType = Date;
+
+-----------------
+OUTPUT
+-----------------
+-- SDL --
+scalar MyType
+-- TypeScript --
+import type { GqlScalar } from "grats";
+import type { MyType as MyTypeInternal } from "./customScalar";
+import { GraphQLSchema, GraphQLScalarType } from "graphql";
+export type SchemaConfig = {
+    scalars: {
+        MyType: GqlScalar<MyTypeInternal>;
+    };
+};
+export function getSchema(config: SchemaConfig): GraphQLSchema {
+    const MyTypeType: GraphQLScalarType = new GraphQLScalarType({
+        name: "MyType",
+        ...config.scalars.MyType
+    });
+    return new GraphQLSchema({
+        types: [MyTypeType]
+    });
+}
+
+-- Pothos Types --
+import { MyType as MyTypeInternal } from "./customScalar";
+export type PothosUserSchemaTypes = {
+    Defaults: "v4";
+    Scalars: {
+        MyType: {
+            Output: MyTypeInternal;
+            Input: MyTypeInternal;
+        };
+    };
+    DefaultFieldNullability: true;
+};

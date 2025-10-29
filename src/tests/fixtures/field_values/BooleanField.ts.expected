@@ -17,9 +17,10 @@ type SomeType {
   haveBeenGreeted: Boolean
 }
 -- TypeScript --
+import type TSomeType from "./BooleanField";
 import { GraphQLSchema, GraphQLObjectType, GraphQLBoolean } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {

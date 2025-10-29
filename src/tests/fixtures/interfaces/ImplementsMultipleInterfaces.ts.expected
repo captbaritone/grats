@@ -48,6 +48,7 @@ type User implements Actor & Person {
   name: String
 }
 -- TypeScript --
+import type TSomeType from "./ImplementsMultipleInterfaces";
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const ActorType: GraphQLInterfaceType = new GraphQLInterfaceType({
@@ -86,7 +87,7 @@ export function getSchema(): GraphQLSchema {
             return [ActorType, PersonType];
         }
     });
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {

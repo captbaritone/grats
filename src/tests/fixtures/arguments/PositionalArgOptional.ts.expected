@@ -28,6 +28,7 @@ type SomeType {
   hello(greeting: String): String
 }
 -- TypeScript --
+import type TSomeType from "./PositionalArgOptional";
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const GreetingType: GraphQLInputObjectType = new GraphQLInputObjectType({
@@ -45,7 +46,7 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {

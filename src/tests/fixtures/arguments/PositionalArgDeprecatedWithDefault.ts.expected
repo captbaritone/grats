@@ -31,6 +31,7 @@ type SomeType {
   hello(greeting: Greeting! = {name: "Alice", salutation: "Hullo"} @deprecated(reason: "Unused!")): String
 }
 -- TypeScript --
+import type TSomeType from "./PositionalArgDeprecatedWithDefault";
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const GreetingType: GraphQLInputObjectType = new GraphQLInputObjectType({
@@ -48,7 +49,7 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {

@@ -106,12 +106,7 @@ class Codegen {
 
         const localName = `${type.name}Internal`;
 
-        this.ts.importUserConstruct(
-          exported.tsModulePath,
-          exported.exportName,
-          localName,
-          true,
-        );
+        this.ts.importUserConstruct(exported, localName, true);
 
         return F.createPropertySignature(
           undefined,
@@ -307,11 +302,19 @@ class Codegen {
 
       const ast = nullThrows(obj.astNode);
 
+      let typeArguments: ts.TypeNode[] = [];
+      if (ast.exported != null) {
+        const localType = `T${obj.name}`;
+        this.ts.importUserConstruct(ast.exported, localType, true);
+
+        typeArguments = [F.createTypeReferenceNode(localType)];
+      }
+
       this.ts.constDeclaration(
         varName,
         F.createNewExpression(
           this.graphQLImport("GraphQLObjectType"),
-          [],
+          typeArguments,
           [this.objectTypeConfig(obj, ast.exported || null)],
         ),
         // We need to explicitly specify the type due to circular references in
@@ -439,12 +442,7 @@ class Codegen {
       if (exportedMetadata != null) {
         if (!this._typeNameMappings.has(t.name)) {
           const localName = `${t.name}Class`;
-          this.ts.importUserConstruct(
-            exportedMetadata.tsModulePath,
-            exportedMetadata.exportName,
-            localName,
-            false,
-          );
+          this.ts.importUserConstruct(exportedMetadata, localName, false);
 
           this._typeNameMappings.set(t.name, localName);
         }

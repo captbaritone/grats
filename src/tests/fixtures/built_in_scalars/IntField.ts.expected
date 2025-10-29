@@ -19,9 +19,10 @@ type SomeType {
   age: Int
 }
 -- TypeScript --
+import type TSomeType from "./IntField";
 import { GraphQLSchema, GraphQLObjectType, GraphQLInt } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {

@@ -53,16 +53,24 @@ export type GratsConfig = {
   reportTypeScriptTypeErrors: boolean;
   /**
    * A string to prepend to the generated schema text. Useful for copyright
-   * headers or other information to the generated file. Set to `null` to
-   * omit the default header.
+   * headers or instructions for how to regenerate the file. Set to `null`
+   * to omit the default header.
    */
   schemaHeader: string | null;
   /**
    * A string to prepend to the generated TypeScript schema file. Useful for
-   * copyright headers or other information to the generated file. Set to
-   * `null` to omit the default header.
+   * copyright headers or instructions for how to regenerate the file. Set
+   * to `null` to omit the default header.
    */
   tsSchemaHeader: string | null;
+  /**
+   * Should Grats require that all GraphQL types (objects, interfaces,
+   * unions, enums, input objects) be defined using exported TypeScript
+   * types?
+   * This allows Grats's generated TypeScript executable schema to be more
+   * explicitly typed.
+   */
+  requireExportedTypes: boolean;
   /**
    * A string to prepend to the TypeScript enums file generated when the
    * `tsClientEnums` configuration options is set. Useful for copyright
@@ -78,6 +86,13 @@ export type GratsConfig = {
    * paths must end with `.js`. If set to null, no ending will be appended.
    */
   importModuleSpecifierEnding: string;
+  /**
+   * EXPERIMENTAL: THIS OPTION WILL BE RENAMED OR REMOVED IN A FUTURE
+   * RELEASE
+   * Emit a TypeScript file which creates a Pothos module to enable
+   * interoperability with Pothos GraphQL schema builders.
+   */
+  EXPERIMENTAL__emitPothos: string;
   /**
    * EXPERIMENTAL: THIS OPTION WILL BE RENAMED OR REMOVED IN A FUTURE
    * RELEASE

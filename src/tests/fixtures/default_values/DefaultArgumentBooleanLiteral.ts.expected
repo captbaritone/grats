@@ -25,9 +25,10 @@ type SomeType {
   someField2(greet: Boolean = true): String
 }
 -- TypeScript --
+import type TSomeType from "./DefaultArgumentBooleanLiteral";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLBoolean } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {

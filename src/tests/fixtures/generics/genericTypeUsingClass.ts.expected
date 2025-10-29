@@ -41,7 +41,7 @@ type Query {
 }
 -- TypeScript --
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { createEdge as queryCreateEdgeResolver } from "./genericTypeUsingClass";
+import { type Edge as TPageEdge, createEdge as queryCreateEdgeResolver } from "./genericTypeUsingClass";
 export function getSchema(): GraphQLSchema {
     const PageType: GraphQLObjectType = new GraphQLObjectType({
         name: "Page",
@@ -54,7 +54,7 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
-    const PageEdgeType: GraphQLObjectType = new GraphQLObjectType({
+    const PageEdgeType: GraphQLObjectType = new GraphQLObjectType<TPageEdge>({
         name: "PageEdge",
         fields() {
             return {

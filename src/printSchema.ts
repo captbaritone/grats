@@ -10,6 +10,7 @@ import { Metadata } from "./metadata";
 import { resolverMapCodegen } from "./codegen/resolverMapCodegen";
 import { codegenEnums } from "./codegen/enumCodegen";
 import { mapDefinitions } from "./utils/visitor";
+import { codegenPothosUserSchemaTypes } from "./codegen/pothosTypeCodegen";
 
 /**
  * Prints code for a TypeScript module that exports a GraphQLSchema.
@@ -76,6 +77,13 @@ export function printSDLWithoutMetadata(doc: DocumentNode): string {
     },
   });
   return print(trimmed);
+}
+
+export function printPothosTypesModule(
+  schema: GraphQLSchema,
+  config: GratsConfig,
+): string {
+  return codegenPothosUserSchemaTypes(schema, config);
 }
 
 function formatHeader(header: string | null, code: string): string {

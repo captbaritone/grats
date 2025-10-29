@@ -19,9 +19,10 @@ type SomeType {
   ratio: Float
 }
 -- TypeScript --
+import type TSomeType from "./FloatField";
 import { GraphQLSchema, GraphQLObjectType, GraphQLFloat } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {

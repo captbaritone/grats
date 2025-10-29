@@ -22,6 +22,7 @@ type SomeType {
   hello(greeting: MyString!): String
 }
 -- TypeScript --
+import type TSomeType from "./CustomScalarArgument";
 import type { GqlScalar } from "grats";
 import type { MyString as MyStringInternal } from "./CustomScalarArgument";
 import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
@@ -35,7 +36,7 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
         name: "MyString",
         ...config.scalars.MyString
     });
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {

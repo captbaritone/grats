@@ -1,6 +1,7 @@
 import DefaultNodeClass from "./index";
+import type TDefaultNode from "./index";
 import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType, GraphQLID, GraphQLNonNull } from "graphql";
-import { Guest as GuestClass, ThisNameGetsIgnored as RenamedNodeClass, User as UserClass, node as queryNodeResolver } from "./index";
+import { Guest as GuestClass, ThisNameGetsIgnored as RenamedNodeClass, User as UserClass, node as queryNodeResolver, type Guest as TGuest, type ThisNameGetsIgnored as TRenamedNode, type User as TUser } from "./index";
 export function getSchema(): GraphQLSchema {
     const GqlNodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "GqlNode",
@@ -33,7 +34,7 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
-    const DefaultNodeType: GraphQLObjectType = new GraphQLObjectType({
+    const DefaultNodeType: GraphQLObjectType = new GraphQLObjectType<TDefaultNode>({
         name: "DefaultNode",
         fields() {
             return {
@@ -47,7 +48,7 @@ export function getSchema(): GraphQLSchema {
             return [GqlNodeType];
         }
     });
-    const GuestType: GraphQLObjectType = new GraphQLObjectType({
+    const GuestType: GraphQLObjectType = new GraphQLObjectType<TGuest>({
         name: "Guest",
         fields() {
             return {
@@ -61,7 +62,7 @@ export function getSchema(): GraphQLSchema {
             return [GqlNodeType];
         }
     });
-    const RenamedNodeType: GraphQLObjectType = new GraphQLObjectType({
+    const RenamedNodeType: GraphQLObjectType = new GraphQLObjectType<TRenamedNode>({
         name: "RenamedNode",
         fields() {
             return {
@@ -75,7 +76,7 @@ export function getSchema(): GraphQLSchema {
             return [GqlNodeType];
         }
     });
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
+    const UserType: GraphQLObjectType = new GraphQLObjectType<TUser>({
         name: "User",
         fields() {
             return {

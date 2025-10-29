@@ -43,12 +43,7 @@ export default class ResolverCodegen {
         return undefined;
       }
       const sourceTypeName = `${parentTypeName}SourceType`;
-      this.ts.importUserConstruct(
-        sourceExport.tsModulePath,
-        sourceExport.exportName,
-        sourceTypeName,
-        true,
-      );
+      this.ts.importUserConstruct(sourceExport, sourceTypeName, true);
       return F.createTypeReferenceNode(sourceTypeName);
     };
     switch (resolver.kind) {
@@ -95,12 +90,7 @@ export default class ResolverCodegen {
           parentTypeName,
           fieldName,
         );
-        this.ts.importUserConstruct(
-          resolver.path,
-          resolver.exportName,
-          resolverName,
-          false,
-        );
+        this.ts.importUserConstruct(resolver.exported, resolverName, false);
         return this.ts.method(
           methodName,
           extractUsedParams(resolver.arguments ?? []).map((name) => {
@@ -129,12 +119,7 @@ export default class ResolverCodegen {
           parentTypeName,
           fieldName,
         );
-        this.ts.importUserConstruct(
-          resolver.path,
-          resolver.exportName,
-          resolverName,
-          false,
-        );
+        this.ts.importUserConstruct(resolver.exported, resolverName, false);
         return this.ts.method(
           methodName,
           extractUsedParams(resolver.arguments ?? []).map((name) => {
@@ -211,8 +196,8 @@ export default class ResolverCodegen {
           F.createIdentifier(arg.name),
         );
       case "derivedContext": {
-        const localName = this.getDerivedContextName(arg.path, arg.exportName);
-        this.ts.importUserConstruct(arg.path, arg.exportName, localName, false);
+        const localName = this.getDerivedContextName(arg.exported);
+        this.ts.importUserConstruct(arg.exported, localName, false);
         return F.createCallExpression(
           F.createIdentifier(localName),
           undefined,
@@ -230,7 +215,8 @@ export default class ResolverCodegen {
   // globally unique, like GraphQL type names, so must ensure this name is
   // unique within our module. However, we want to avoid generating a new
   // name for the same derived context more than once.
-  getDerivedContextName(path: string, exportName: string | null): string {
+  getDerivedContextName(exported: ExportDefinition): string {
+    const { tsModulePath: path, exportName } = exported;
     const key = `${path}:${exportName ?? ""}`;
     let name = this._derivedContextNames.get(key);
     if (name == null) {

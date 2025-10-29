@@ -27,6 +27,7 @@ type SomeType {
   hello: MyEnum
 }
 -- TypeScript --
+import type TSomeType from "./EnumFromUnionTypeWithVariantWithDescription";
 import { GraphQLSchema, GraphQLEnumType, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MyEnumType: GraphQLEnumType = new GraphQLEnumType({
@@ -40,7 +41,7 @@ export function getSchema(): GraphQLSchema {
             }
         }
     });
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {

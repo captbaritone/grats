@@ -24,9 +24,10 @@ type SomeType {
   someField1(inputs: [String!] = ["hello", "there"]): String
 }
 -- TypeScript --
+import type TSomeType from "./DefaultArgumentArray";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType<TSomeType>({
         name: "SomeType",
         fields() {
             return {
