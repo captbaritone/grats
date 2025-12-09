@@ -16,7 +16,6 @@ jobs:
           - 20.x # LTS
           - 22.x # LTS
           - 24.x # LTS
-          - 25.x # current
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
