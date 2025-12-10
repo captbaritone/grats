@@ -39,7 +39,7 @@ export class Markdown {
           const fileNamePart = section.fileName
             ? ` title="${section.fileName}"`
             : "";
-          output += `\`\`\`${section.fileType}${fileNamePart}\n${section.content.trim()}\n\`\`\`\n\n`;
+          output += `\`\`\`${section.fileType}${fileNamePart}\n${section.content.trimEnd()}\n\`\`\`\n\n`;
           break;
         }
       }

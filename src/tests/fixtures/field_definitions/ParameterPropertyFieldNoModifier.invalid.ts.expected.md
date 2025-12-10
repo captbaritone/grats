@@ -41,7 +41,7 @@ Learn more: https://grats.capt.dev/docs/docblock-tags/fields#class-based-fields
 #### Applied Fixes
 
 ```text
-* Applied fix "Add 'public' modifier" in grats/src/tests/fixtures/field_definitions/ParameterPropertyFieldNoModifier.invalid.ts
+  * Applied fix "Add 'public' modifier" in grats/src/tests/fixtures/field_definitions/ParameterPropertyFieldNoModifier.invalid.ts
 ```
 
 #### Fixed Text

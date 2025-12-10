@@ -37,7 +37,7 @@ src/tests/fixtures/arguments/OptionalNonNullableArgument.invalid.ts:4:33 - error
 #### Applied Fixes
 
 ```text
-* Applied fix "Add '| null' to the type" in grats/src/tests/fixtures/arguments/OptionalNonNullableArgument.invalid.ts
+  * Applied fix "Add '| null' to the type" in grats/src/tests/fixtures/arguments/OptionalNonNullableArgument.invalid.ts
 ```
 
 #### Fixed Text

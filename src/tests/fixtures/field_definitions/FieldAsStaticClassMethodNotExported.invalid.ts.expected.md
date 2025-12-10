@@ -48,7 +48,7 @@ src/tests/fixtures/field_definitions/FieldAsStaticClassMethodNotExported.invalid
 #### Applied Fixes
 
 ```text
-* Applied fix "Add export keyword to class with static @gqlField" in grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethodNotExported.invalid.ts
+  * Applied fix "Add export keyword to class with static @gqlField" in grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethodNotExported.invalid.ts
 ```
 
 #### Fixed Text

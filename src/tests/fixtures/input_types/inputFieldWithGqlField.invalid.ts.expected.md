@@ -35,7 +35,7 @@ src/tests/fixtures/input_types/inputFieldWithGqlField.invalid.ts:3:7 - error: Th
 #### Applied Fixes
 
 ```text
-* Applied fix "Remove @gqlField tag" in grats/src/tests/fixtures/input_types/inputFieldWithGqlField.invalid.ts
+  * Applied fix "Remove @gqlField tag" in grats/src/tests/fixtures/input_types/inputFieldWithGqlField.invalid.ts
 ```
 
 #### Fixed Text

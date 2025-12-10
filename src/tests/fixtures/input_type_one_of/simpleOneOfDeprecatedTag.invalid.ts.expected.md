@@ -38,7 +38,7 @@ src/tests/fixtures/input_type_one_of/simpleOneOfDeprecatedTag.invalid.ts:3:4 - e
 #### Applied Fixes
 
 ```text
-* Applied fix "Remove @oneOf tag" in grats/src/tests/fixtures/input_type_one_of/simpleOneOfDeprecatedTag.invalid.ts
+  * Applied fix "Remove @oneOf tag" in grats/src/tests/fixtures/input_type_one_of/simpleOneOfDeprecatedTag.invalid.ts
 ```
 
 #### Fixed Text

@@ -48,7 +48,7 @@ src/tests/fixtures/user_error/DuplicateOneOfTag.invalid.ts:3:4 - error: Unexpect
 #### Applied Fixes
 
 ```text
-* Applied fix "Remove duplicate @oneOf tag" in grats/src/tests/fixtures/user_error/DuplicateOneOfTag.invalid.ts
+  * Applied fix "Remove duplicate @oneOf tag" in grats/src/tests/fixtures/user_error/DuplicateOneOfTag.invalid.ts
 ```
 
 #### Fixed Text

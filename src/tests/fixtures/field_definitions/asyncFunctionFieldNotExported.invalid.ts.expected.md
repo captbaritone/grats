@@ -37,7 +37,7 @@ src/tests/fixtures/field_definitions/asyncFunctionFieldNotExported.invalid.ts:2:
 #### Applied Fixes
 
 ```text
-* Applied fix "Add export keyword to function with @gqlField" in grats/src/tests/fixtures/field_definitions/asyncFunctionFieldNotExported.invalid.ts
+  * Applied fix "Add export keyword to function with @gqlField" in grats/src/tests/fixtures/field_definitions/asyncFunctionFieldNotExported.invalid.ts
 ```
 
 #### Fixed Text

@@ -39,7 +39,7 @@ src/tests/fixtures/comments/invalidTagInLinecomment.invalid.ts:1:4 - error: Unex
 #### Applied Fixes
 
 ```text
-* Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/invalidTagInLinecomment.invalid.ts
+  * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/invalidTagInLinecomment.invalid.ts
 ```
 
 #### Fixed Text

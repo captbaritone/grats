@@ -42,7 +42,7 @@ Learn more: https://grats.capt.dev/docs/docblock-tags/fields#class-based-fields
 #### Applied Fixes
 
 ```text
-* Applied fix "Make parameter property public" in grats/src/tests/fixtures/field_definitions/ParameterPropertyFieldReadOnlyPrivate.invalid.ts
+  * Applied fix "Make parameter property public" in grats/src/tests/fixtures/field_definitions/ParameterPropertyFieldReadOnlyPrivate.invalid.ts
 ```
 
 #### Fixed Text

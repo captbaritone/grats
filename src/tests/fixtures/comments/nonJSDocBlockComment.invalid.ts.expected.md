@@ -34,7 +34,7 @@ src/tests/fixtures/comments/nonJSDocBlockComment.invalid.ts:3:4 - error: Unexpec
 #### Applied Fixes
 
 ```text
-* Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/nonJSDocBlockComment.invalid.ts
+  * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/nonJSDocBlockComment.invalid.ts
 ```
 
 #### Fixed Text

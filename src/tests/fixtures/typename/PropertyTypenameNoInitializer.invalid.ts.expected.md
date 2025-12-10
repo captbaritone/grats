@@ -36,7 +36,7 @@ src/tests/fixtures/typename/PropertyTypenameNoInitializer.invalid.ts:3:15 - erro
 #### Applied Fixes
 
 ```text
-* Applied fix "Create Grats-compatible `__typename` type" in grats/src/tests/fixtures/typename/PropertyTypenameNoInitializer.invalid.ts
+  * Applied fix "Create Grats-compatible `__typename` type" in grats/src/tests/fixtures/typename/PropertyTypenameNoInitializer.invalid.ts
 ```
 
 #### Fixed Text

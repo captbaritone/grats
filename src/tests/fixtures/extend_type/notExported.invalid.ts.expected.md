@@ -39,7 +39,7 @@ src/tests/fixtures/extend_type/notExported.invalid.ts:7:10 - error: Expected a `
 #### Applied Fixes
 
 ```text
-* Applied fix "Add export keyword to function with @gqlField" in grats/src/tests/fixtures/extend_type/notExported.invalid.ts
+  * Applied fix "Add export keyword to function with @gqlField" in grats/src/tests/fixtures/extend_type/notExported.invalid.ts
 ```
 
 #### Fixed Text

@@ -28,7 +28,7 @@ src/tests/fixtures/user_error/GqlTagDoesNotExist.invalid.ts:1:6 - error: `@gqlFi
 #### Applied Fixes
 
 ```text
-* Applied fix "Change to @gqlField" in grats/src/tests/fixtures/user_error/GqlTagDoesNotExist.invalid.ts
+  * Applied fix "Change to @gqlField" in grats/src/tests/fixtures/user_error/GqlTagDoesNotExist.invalid.ts
 ```
 
 #### Fixed Text

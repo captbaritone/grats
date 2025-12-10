@@ -54,7 +54,7 @@ src/tests/fixtures/comments/lineComment.invalid.ts:3:6 - error: Unexpected Grats
 #### Applied Fixes
 
 ```text
-* Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/lineComment.invalid.ts
+  * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/lineComment.invalid.ts
   * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/lineComment.invalid.ts
 ```
 

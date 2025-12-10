@@ -36,7 +36,7 @@ src/tests/fixtures/typename/PropertyTypenameNonStringInitializer.invalid.ts:3:16
 #### Applied Fixes
 
 ```text
-* Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/typename/PropertyTypenameNonStringInitializer.invalid.ts
+  * Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/typename/PropertyTypenameNonStringInitializer.invalid.ts
 ```
 
 #### Fixed Text

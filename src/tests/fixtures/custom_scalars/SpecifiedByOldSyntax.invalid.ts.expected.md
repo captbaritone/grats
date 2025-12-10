@@ -38,7 +38,7 @@ src/tests/fixtures/custom_scalars/SpecifiedByOldSyntax.invalid.ts:3:4 - error: T
 #### Applied Fixes
 
 ```text
-* Applied fix "Replace @specifiedBy with @gqlAnnotate" in grats/src/tests/fixtures/custom_scalars/SpecifiedByOldSyntax.invalid.ts
+  * Applied fix "Replace @specifiedBy with @gqlAnnotate" in grats/src/tests/fixtures/custom_scalars/SpecifiedByOldSyntax.invalid.ts
 ```
 
 #### Fixed Text

@@ -36,7 +36,7 @@ src/tests/fixtures/typename/PropertyTypenameMustNeedToBeDeclaredAsConst.invalid.
 #### Applied Fixes
 
 ```text
-* Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/typename/PropertyTypenameMustNeedToBeDeclaredAsConst.invalid.ts
+  * Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/typename/PropertyTypenameMustNeedToBeDeclaredAsConst.invalid.ts
 ```
 
 #### Fixed Text

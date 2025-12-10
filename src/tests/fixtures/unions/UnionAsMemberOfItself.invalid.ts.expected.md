@@ -70,7 +70,7 @@ src/tests/fixtures/unions/UnionAsMemberOfItself.invalid.ts:16:16 - error: Expect
 #### Applied Fixes
 
 ```text
-* Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/unions/UnionAsMemberOfItself.invalid.ts
+  * Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/unions/UnionAsMemberOfItself.invalid.ts
   * Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/unions/UnionAsMemberOfItself.invalid.ts
 ```
 

@@ -62,7 +62,7 @@ src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:3:6 - error: Unexp
 #### Applied Fixes
 
 ```text
-* Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts
+  * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts
   * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts
 ```
 

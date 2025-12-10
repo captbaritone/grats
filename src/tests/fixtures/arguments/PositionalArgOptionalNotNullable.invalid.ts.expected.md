@@ -43,7 +43,7 @@ src/tests/fixtures/arguments/PositionalArgOptionalNotNullable.invalid.ts:10:17 -
 #### Applied Fixes
 
 ```text
-* Applied fix "Add '| null' to the parameter type" in grats/src/tests/fixtures/arguments/PositionalArgOptionalNotNullable.invalid.ts
+  * Applied fix "Add '| null' to the parameter type" in grats/src/tests/fixtures/arguments/PositionalArgOptionalNotNullable.invalid.ts
 ```
 
 #### Fixed Text

@@ -35,7 +35,7 @@ src/tests/fixtures/comments/detachedBlockCommentNotJSDocWithoutStar.invalid.ts:2
 #### Applied Fixes
 
 ```text
-* Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/detachedBlockCommentNotJSDocWithoutStar.invalid.ts
+  * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/detachedBlockCommentNotJSDocWithoutStar.invalid.ts
 ```
 
 #### Fixed Text
