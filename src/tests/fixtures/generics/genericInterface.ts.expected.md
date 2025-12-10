@@ -1,0 +1,101 @@
+## input
+
+```ts title="generics/genericInterface.ts"
+/** @gqlType */
+class User implements Friendly<Dog> {
+  __typename: "User";
+  /** @gqlField */
+  name: string;
+  /** @gqlField */
+  to: Dog;
+}
+
+/** @gqlInterface */
+interface Friendly<T> {
+  /** @gqlField */
+  to: T;
+}
+
+/** @gqlType */
+class Dog {
+  /** @gqlField */
+  name: string;
+  /** @gqlField */
+  bestFriend: Friendly<Dog>;
+}
+```
+
+## Output
+
+### SDL
+
+```graphql
+interface DogFriendly {
+  to: Dog
+}
+
+type Dog {
+  bestFriend: DogFriendly
+  name: String
+}
+
+type User implements DogFriendly {
+  name: String
+  to: Dog
+}
+```
+
+### TypeScript
+
+```ts
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const DogType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Dog",
+        fields() {
+            return {
+                bestFriend: {
+                    name: "bestFriend",
+                    type: DogFriendlyType
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const DogFriendlyType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "DogFriendly",
+        fields() {
+            return {
+                to: {
+                    name: "to",
+                    type: DogType
+                }
+            };
+        }
+    });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                },
+                to: {
+                    name: "to",
+                    type: DogType
+                }
+            };
+        },
+        interfaces() {
+            return [DogFriendlyType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [DogFriendlyType, DogType, UserType]
+    });
+}
+```

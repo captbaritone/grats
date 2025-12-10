@@ -1,0 +1,67 @@
+## input
+
+```ts title="input_types/InputTypeWithDeprecatedField.ts"
+/** @gqlType */
+export default class SomeType {
+  /** @gqlField */
+  hello: string;
+}
+
+/** @gqlInput */
+type MyInputType = {
+  /** Sweet field!
+   * @deprecated Sweet, but stale
+   */
+  someField?: string;
+};
+```
+
+## Output
+
+### SDL
+
+```graphql
+input MyInputType {
+  """Sweet field!"""
+  someField: String @deprecated(reason: "Sweet, but stale")
+}
+
+type SomeType {
+  hello: String
+}
+```
+
+### TypeScript
+
+```ts
+import { GraphQLSchema, GraphQLInputObjectType, GraphQLString, GraphQLObjectType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const MyInputTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        name: "MyInputType",
+        fields() {
+            return {
+                someField: {
+                    description: "Sweet field!",
+                    deprecationReason: "Sweet, but stale",
+                    name: "someField",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                hello: {
+                    name: "hello",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [MyInputTypeType, SomeTypeType]
+    });
+}
+```

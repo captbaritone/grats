@@ -1,0 +1,35 @@
+## input
+
+```ts title="field_definitions/FieldAsStaticClassMethodInNestedScope.invalid.ts"
+function main() {
+  /** @gqlType */
+  class User {
+    /** @gqlField */
+    name: string;
+
+    /** @gqlField */
+    static getUser(_: Query): User {
+      return new User();
+    }
+  }
+}
+
+/** @gqlType */
+type Query = unknown;
+```
+
+## Output
+
+### Error Report
+
+```text
+src/tests/fixtures/field_definitions/FieldAsStaticClassMethodInNestedScope.invalid.ts:3:9 - error: Expected class with a static `@gqlField` method to be a top-level declaration. Grats needs to import resolver methods into its generated schema module, so the resolver's class must be an exported.
+
+3   class User {
+          ~~~~
+
+  src/tests/fixtures/field_definitions/FieldAsStaticClassMethodInNestedScope.invalid.ts:7:9
+    7     /** @gqlField */
+              ~~~~~~~~~~
+    Field defined here
+```

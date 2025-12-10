@@ -3,11 +3,14 @@ import * as path from "path";
 import { diff } from "jest-diff";
 import { ask } from "./yesNo";
 import { Result } from "../utils/Result";
+import { Markdown } from "./Markdown";
 
-type Transformer = (
+export type TransformerResult = Result<Markdown, Markdown> | false;
+
+export type Transformer = (
   code: string,
-  filename: string,
-) => Promise<Result<string, string> | false> | (Result<string, string> | false);
+  fileName: string,
+) => TransformerResult | Promise<TransformerResult>;
 
 /**
  * Looks in a fixtures dir for .ts files, transforms them according to the
@@ -86,7 +89,7 @@ export default class TestRunner {
     fixture: string,
     { interactive }: { interactive: boolean },
   ) {
-    const expectedFileName = fixture + ".expected";
+    const expectedFileName = fixture + ".expected.md";
     const expectedFilePath = path.join(this._fixturesDir, expectedFileName);
     if (this._otherFiles.has(expectedFileName)) {
       this._otherFiles.delete(expectedFileName);
@@ -116,14 +119,19 @@ export default class TestRunner {
         ? transformResult.value
         : transformResult.err;
 
-    const testOutput = `-----------------
-INPUT
------------------ 
-${fixtureContent}
------------------
-OUTPUT
------------------
-${actualOutput}`;
+    const fileType = path.extname(fixture).slice(1);
+
+    const output = new Markdown();
+    output.addHeader(2, "input");
+    output.addCodeBlock(fixtureContent, fileType, fixture);
+    output.addHeader(2, "Output");
+    if (actualOutput instanceof Markdown) {
+      output.addMarkdown(actualOutput);
+    } else {
+      output.addCodeBlock(actualOutput, "");
+    }
+
+    const testOutput = output.toString();
 
     // Validate naming convention: .invalid files should have errors, others should succeed
     const isInvalidTest = fixture.includes(".invalid.");
@@ -177,10 +185,7 @@ ${actualOutput}`;
     }
   }
 
-  async transform(
-    code: string,
-    filename: string,
-  ): Promise<Result<string, string> | false> {
+  async transform(code: string, filename: string): Promise<TransformerResult> {
     try {
       return await this._transformer(code, filename);
     } catch (e) {

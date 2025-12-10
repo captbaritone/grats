@@ -1,0 +1,30 @@
+## input
+
+```ts title="generics/genericTypeUsedAsUnionMemberViaTypeParam.invalid.ts"
+/** @gqlType */
+type Page = {
+  __typename: "Page";
+  /** @gqlField */
+  foo: SomeUnion<Edge<Page>>;
+};
+
+/** @gqlType */
+export class Edge<T> {
+  /** @gqlField */
+  node: T;
+}
+
+/** @gqlUnion */
+type SomeUnion<T> = Page | T;
+```
+
+## Output
+
+### Error Report
+
+```text
+src/tests/fixtures/generics/genericTypeUsedAsUnionMemberViaTypeParam.invalid.ts:5:18 - error: Unexpected generic type used as union member. Generic type may not currently be used as members of a union. Grats requires that all union members define a `__typename` field typed as a string literal matching the type's name. Since generic types are synthesized into multiple types with different names, Grats cannot ensure they have a correct `__typename` property and thus cannot be used as members of a union.
+
+5   foo: SomeUnion<Edge<Page>>;
+                   ~~~~~~~~~~
+```

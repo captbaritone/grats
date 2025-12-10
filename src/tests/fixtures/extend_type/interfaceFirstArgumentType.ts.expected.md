@@ -1,0 +1,72 @@
+## input
+
+```ts title="extend_type/interfaceFirstArgumentType.ts"
+/** @gqlType */
+class SomeType {
+  /** @gqlField */
+  foo: string;
+}
+
+/** @gqlInterface */
+interface IFoo {
+  /** @gqlField */
+  bar: string;
+}
+
+/** @gqlField */
+export function greeting(iFoo: IFoo): string {
+  return "Hello world!";
+}
+```
+
+## Output
+
+### SDL
+
+```graphql
+interface IFoo {
+  bar: String
+  greeting: String
+}
+
+type SomeType {
+  foo: String
+}
+```
+
+### TypeScript
+
+```ts
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const IFooType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "IFoo",
+        fields() {
+            return {
+                bar: {
+                    name: "bar",
+                    type: GraphQLString
+                },
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                foo: {
+                    name: "foo",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [IFooType, SomeTypeType]
+    });
+}
+```

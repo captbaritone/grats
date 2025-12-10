@@ -1,0 +1,77 @@
+## input
+
+```ts title="arguments/GqlTypeUsedAsPositionalArg.ts"
+/** @gqlInput */
+type Greeting = {
+  name: string;
+  salutation: string;
+};
+
+/** @gqlType */
+export default class SomeType {
+  /** @gqlField */
+  hello(greeting: Greeting): string {
+    return `${greeting.salutation} ${greeting.name}!`;
+  }
+}
+```
+
+## Output
+
+### SDL
+
+```graphql
+input Greeting {
+  name: String!
+  salutation: String!
+}
+
+type SomeType {
+  hello(greeting: Greeting!): String
+}
+```
+
+### TypeScript
+
+```ts
+import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const GreetingType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        name: "Greeting",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: new GraphQLNonNull(GraphQLString)
+                },
+                salutation: {
+                    name: "salutation",
+                    type: new GraphQLNonNull(GraphQLString)
+                }
+            };
+        }
+    });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                hello: {
+                    name: "hello",
+                    type: GraphQLString,
+                    args: {
+                        greeting: {
+                            type: new GraphQLNonNull(GreetingType)
+                        }
+                    },
+                    resolve(source, args) {
+                        return source.hello(args.greeting);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [GreetingType, SomeTypeType]
+    });
+}
+```

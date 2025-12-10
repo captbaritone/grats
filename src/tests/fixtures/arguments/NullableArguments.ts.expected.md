@@ -1,0 +1,66 @@
+## input
+
+```ts title="arguments/NullableArguments.ts"
+/** @gqlType */
+export default class SomeType {
+  /** @gqlField */
+  hello1({ greeting }: { greeting?: string | null }): string {
+    return "Hello world!";
+  }
+  /** @gqlField */
+  hello2({
+    greeting,
+  }: {
+    greeting?: string | undefined | void | undefined;
+  }): string {
+    return "Hello world!";
+  }
+}
+```
+
+## Output
+
+### SDL
+
+```graphql
+type SomeType {
+  hello1(greeting: String): String
+  hello2(greeting: String): String
+}
+```
+
+### TypeScript
+
+```ts
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                hello1: {
+                    name: "hello1",
+                    type: GraphQLString,
+                    args: {
+                        greeting: {
+                            type: GraphQLString
+                        }
+                    }
+                },
+                hello2: {
+                    name: "hello2",
+                    type: GraphQLString,
+                    args: {
+                        greeting: {
+                            type: GraphQLString
+                        }
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType]
+    });
+}
+```

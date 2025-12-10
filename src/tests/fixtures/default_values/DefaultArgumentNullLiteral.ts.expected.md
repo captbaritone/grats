@@ -1,0 +1,66 @@
+## input
+
+```ts title="default_values/DefaultArgumentNullLiteral.ts"
+/** @gqlType */
+export default class SomeType {
+  /** @gqlField */
+  someField1({ hello = null }: { hello?: string | null }): string {
+    if (hello === null) return "hello";
+    return "hello";
+  }
+  /** @gqlField */
+  someField2({ hello = undefined }: { hello?: string | undefined }): string {
+    if (hello === null) return "hello";
+    return "hello";
+  }
+}
+```
+
+## Output
+
+### SDL
+
+```graphql
+type SomeType {
+  someField1(hello: String = null): String
+  someField2(hello: String = null): String
+}
+```
+
+### TypeScript
+
+```ts
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                someField1: {
+                    name: "someField1",
+                    type: GraphQLString,
+                    args: {
+                        hello: {
+                            type: GraphQLString,
+                            defaultValue: null
+                        }
+                    }
+                },
+                someField2: {
+                    name: "someField2",
+                    type: GraphQLString,
+                    args: {
+                        hello: {
+                            type: GraphQLString,
+                            defaultValue: null
+                        }
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType]
+    });
+}
+```

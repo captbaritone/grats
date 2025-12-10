@@ -1,0 +1,61 @@
+## input
+
+```ts title="input_types/InputTypeOptionalField.ts"
+/** @gqlType */
+class SomeType {
+  /** @gqlField */
+  hello: string;
+}
+
+/** @gqlInput */
+type MyInputType = {
+  someField?: string;
+};
+```
+
+## Output
+
+### SDL
+
+```graphql
+input MyInputType {
+  someField: String
+}
+
+type SomeType {
+  hello: String
+}
+```
+
+### TypeScript
+
+```ts
+import { GraphQLSchema, GraphQLInputObjectType, GraphQLString, GraphQLObjectType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const MyInputTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        name: "MyInputType",
+        fields() {
+            return {
+                someField: {
+                    name: "someField",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                hello: {
+                    name: "hello",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [MyInputTypeType, SomeTypeType]
+    });
+}
+```

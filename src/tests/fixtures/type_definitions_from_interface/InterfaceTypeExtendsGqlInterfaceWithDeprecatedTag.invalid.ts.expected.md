@@ -1,0 +1,37 @@
+## input
+
+```ts title="type_definitions_from_interface/InterfaceTypeExtendsGqlInterfaceWithDeprecatedTag.invalid.ts"
+/** @gqlInterface */
+interface Person {
+  /** @gqlField */
+  name: string;
+}
+
+/**
+ * @gqlType
+ * @gqlImplements Person
+ */
+export interface User {
+  __typename: "User";
+
+  /** @gqlField */
+  name: string;
+}
+```
+
+## Output
+
+### Error Report
+
+```text
+src/tests/fixtures/type_definitions_from_interface/InterfaceTypeExtendsGqlInterfaceWithDeprecatedTag.invalid.ts:9:4 - error: `@gqlImplements` has been deprecated. Instead use `interface MyType extends MyInterface`.
+
+ 9  * @gqlImplements Person
+      ~~~~~~~~~~~~~~~~~~~~~
+10  */
+   ~
+src/tests/fixtures/type_definitions_from_interface/InterfaceTypeExtendsGqlInterfaceWithDeprecatedTag.invalid.ts:9:5 - error: `@gqlImplements` has been deprecated. Instead use `class MyType implements MyInterface`.
+
+9  * @gqlImplements Person
+      ~~~~~~~~~~~~~
+```

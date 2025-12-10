@@ -16,3 +16,4 @@ examples/incremental-migration/schemas/gratsGeneratedSchema.ts
 # Local Netlify folder
 .netlify
 website/src/workers/ts.worker.mjs
+*.expected.md

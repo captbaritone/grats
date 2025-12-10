@@ -1,0 +1,36 @@
+## input
+
+```ts title="type_definitions_from_alias/AliasTypeImplementsInterface.invalid.ts"
+/**
+ * @gqlType
+ * @gqlImplements Person
+ */
+export type User = {
+  __typename: "User";
+  /** @gqlField */
+  name: string;
+};
+
+/** @gqlInterface */
+interface Person {
+  /** @gqlField */
+  name: string;
+}
+```
+
+## Output
+
+### Error Report
+
+```text
+src/tests/fixtures/type_definitions_from_alias/AliasTypeImplementsInterface.invalid.ts:3:4 - error: `@gqlImplements` has been deprecated. Types which implement GraphQL interfaces should be defined using TypeScript class or interface declarations.
+
+3  * @gqlImplements Person
+     ~~~~~~~~~~~~~~~~~~~~~
+4  */
+  ~
+src/tests/fixtures/type_definitions_from_alias/AliasTypeImplementsInterface.invalid.ts:3:5 - error: `@gqlImplements` has been deprecated. Instead use `class MyType implements MyInterface`.
+
+3  * @gqlImplements Person
+      ~~~~~~~~~~~~~
+```

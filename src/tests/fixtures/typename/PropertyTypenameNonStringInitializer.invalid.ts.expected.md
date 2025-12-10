@@ -1,0 +1,51 @@
+## input
+
+```ts title="typename/PropertyTypenameNonStringInitializer.invalid.ts"
+/** @gqlType */
+export class User {
+  __typename = 1 as const;
+  /** @gqlField */
+  name: string = "Alice";
+}
+```
+
+## Output
+
+### Error Report
+
+```text
+src/tests/fixtures/typename/PropertyTypenameNonStringInitializer.invalid.ts:3:16 - error: Expected `__typename` property initializer to be a string literal. For example: `__typename = "User" as const` or `__typename: "User";`. This is needed to ensure Grats can determine the type of this object during GraphQL execution.
+
+3   __typename = 1 as const;
+                 ~
+```
+
+#### Code Action: "Create Grats-compatible `__typename` property" (fix-typename-property)
+
+```diff
+- Original
++ Fixed
+
+@@ -2,3 +2,3 @@
+  export class User {
+-   __typename = 1 as const;
++   __typename = "User" as const;
+    /** @gqlField */
+```
+
+#### Applied Fixes
+
+```text
+  * Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/typename/PropertyTypenameNonStringInitializer.invalid.ts
+```
+
+#### Fixed Text
+
+```typescript
+/** @gqlType */
+export class User {
+  __typename = "User" as const;
+  /** @gqlField */
+  name: string = "Alice";
+}
+```

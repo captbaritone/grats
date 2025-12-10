@@ -1,0 +1,31 @@
+## input
+
+```ts title="unions/DefineUnionTypeReferencingLiteral.invalid.ts"
+/** @gqlType */
+export default class SomeType {
+  /** @gqlField */
+  me: Actor;
+}
+
+/** @gqlType */
+class User {
+  /** @gqlField */
+  name: string;
+}
+
+/** @gqlUnion */
+type Actor = User | "LOL";
+```
+
+## Output
+
+### Error Report
+
+```text
+src/tests/fixtures/unions/DefineUnionTypeReferencingLiteral.invalid.ts:14:21 - error: Expected `@gqlUnion` union members to be type references. Grats expects union members to be references to something annotated with `@gqlType`.
+
+If you think Grats should be able to infer this union member, please report an issue at https://github.com/captbaritone/grats/issues.
+
+14 type Actor = User | "LOL";
+                       ~~~~~
+```

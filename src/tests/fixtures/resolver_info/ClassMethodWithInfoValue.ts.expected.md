@@ -1,0 +1,48 @@
+## input
+
+```ts title="resolver_info/ClassMethodWithInfoValue.ts"
+import { GqlInfo } from "../../../Types";
+
+/** @gqlType */
+export class SomeType {
+  /** @gqlField greeting */
+  greetz(info: GqlInfo): string {
+    return "Hello";
+  }
+}
+```
+
+## Output
+
+### SDL
+
+```graphql
+type SomeType {
+  greeting: String
+}
+```
+
+### TypeScript
+
+```ts
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    resolve(source, _args, _context, info) {
+                        return source.greetz(info);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType]
+    });
+}
+```

@@ -1,0 +1,67 @@
+## input
+
+```ts title="type_definitions_from_interface/InterfaceTypeExtendsGqlInterface.ts"
+/** @gqlInterface */
+interface Person {
+  /** @gqlField */
+  name: string;
+}
+
+/** @gqlType */
+export interface User extends Person {
+  __typename: "User";
+
+  /** @gqlField */
+  name: string;
+}
+```
+
+## Output
+
+### SDL
+
+```graphql
+interface Person {
+  name: String
+}
+
+type User implements Person {
+  name: String
+}
+```
+
+### TypeScript
+
+```ts
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Person",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        },
+        interfaces() {
+            return [PersonType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [PersonType, UserType]
+    });
+}
+```

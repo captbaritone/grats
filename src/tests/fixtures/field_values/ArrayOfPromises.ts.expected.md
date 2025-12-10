@@ -1,0 +1,48 @@
+## input
+
+```ts title="field_values/ArrayOfPromises.ts"
+/** @gqlType */
+export default class SomeType {
+  /** @gqlField */
+  b: Promise<string>[];
+  /** @gqlField */
+  c: Array<Promise<string>>;
+}
+```
+
+## Output
+
+### SDL
+
+```graphql
+type SomeType {
+  b: [String!]
+  c: [String!]
+}
+```
+
+### TypeScript
+
+```ts
+import { GraphQLSchema, GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                b: {
+                    name: "b",
+                    type: new GraphQLList(new GraphQLNonNull(GraphQLString))
+                },
+                c: {
+                    name: "c",
+                    type: new GraphQLList(new GraphQLNonNull(GraphQLString))
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [SomeTypeType]
+    });
+}
+```
