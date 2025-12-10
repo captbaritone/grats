@@ -86,7 +86,7 @@ export default class TestRunner {
     fixture: string,
     { interactive }: { interactive: boolean },
   ) {
-    const expectedFileName = fixture + ".expected";
+    const expectedFileName = fixture + ".expected.md";
     const expectedFilePath = path.join(this._fixturesDir, expectedFileName);
     if (this._otherFiles.has(expectedFileName)) {
       this._otherFiles.delete(expectedFileName);
