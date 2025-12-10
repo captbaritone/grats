@@ -20,15 +20,20 @@ interface MyInterface {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 """This is my custom directive."""
 directive @max(foo: Int!) on INTERFACE
 
 interface MyInterface @max(foo: 10) {
   myField: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLInterfaceType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MyInterfaceType: GraphQLInterfaceType = new GraphQLInterfaceType({

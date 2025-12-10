@@ -26,12 +26,17 @@ export function greeting(_: Query, ctx: DerivedContext): string {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Query {
   greeting: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { greeting as queryGreetingResolver, createDerivedContext } from "./simpleDerivedContext";
 export function getSchema(): GraphQLSchema {

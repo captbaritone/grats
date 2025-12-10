@@ -25,8 +25,9 @@ export function fullName(user: User): string {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type SomeType {
   me: User
 }
@@ -36,7 +37,11 @@ type User {
   fullName: String
   lastName: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { fullName as userFullNameResolver, me as someTypeMeResolver } from "./userExample";
 export function getSchema(): GraphQLSchema {

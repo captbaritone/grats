@@ -38,15 +38,20 @@ export async function* maybeGreetingsMaybe(
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Subscription {
   greetings: String!
   greetingsMaybe: String
   maybeGreetings: String
   maybeGreetingsMaybe: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString } from "graphql";
 import { greetings as subscriptionGreetingsResolver, greetingsMaybe as subscriptionGreetingsMaybeResolver, maybeGreetings as subscriptionMaybeGreetingsResolver, maybeGreetingsMaybe as subscriptionMaybeGreetingsMaybeResolver } from "./SubscriptionFunctionFieldWithAsyncIterable";
 export function getSchema(): GraphQLSchema {

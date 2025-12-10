@@ -14,12 +14,17 @@ export const greeting = (_: SomeType, name: string): string => {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type SomeType {
   greeting(name: String!): String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 import { greeting as someTypeGreetingResolver } from "./fieldAsExportedArrowFunctionPositionalArgs";
 export function getSchema(): GraphQLSchema {

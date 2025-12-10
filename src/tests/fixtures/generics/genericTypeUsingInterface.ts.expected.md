@@ -26,8 +26,9 @@ export function createEdge(_: Query): Edge<Page> {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Page {
   name: String
 }
@@ -40,7 +41,11 @@ type PageEdge {
 type Query {
   createEdge: PageEdge
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { createEdge as queryCreateEdgeResolver } from "./genericTypeUsingInterface";
 export function getSchema(): GraphQLSchema {

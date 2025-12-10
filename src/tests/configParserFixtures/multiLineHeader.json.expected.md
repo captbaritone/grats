@@ -8,8 +8,9 @@
 
 ## Output
 
-```
--- Parsed Config --
+### Parsed Config
+
+```json
 {
   "graphqlSchema": "./schema.graphql",
   "tsSchema": "./schema.ts",

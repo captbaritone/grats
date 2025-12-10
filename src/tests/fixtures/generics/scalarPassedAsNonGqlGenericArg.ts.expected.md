@@ -16,8 +16,9 @@ type OtherType = {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type OtherType {
   wrapper: Wrapper
 }
@@ -25,7 +26,11 @@ type OtherType {
 type Wrapper {
   value: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const WrapperType: GraphQLObjectType = new GraphQLObjectType({

@@ -24,7 +24,9 @@ export const query = `
 
 ## Output
 
-```
+### Query Result
+
+```json
 {
   "data": {
     "me": {

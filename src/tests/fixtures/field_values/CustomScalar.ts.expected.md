@@ -15,14 +15,19 @@ export default class SomeType {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 scalar MyString
 
 type SomeType {
   hello: MyString
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import type { GqlScalar } from "grats";
 import type { MyString as MyStringInternal } from "./CustomScalar";
 import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType } from "graphql";

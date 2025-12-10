@@ -24,8 +24,9 @@ type ConnectionInput = {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 input ConnectionInput {
   first: Int!
   offset: Int!
@@ -34,7 +35,11 @@ input ConnectionInput {
 type SomeType {
   someField1(input: ConnectionInput = {first: 10, offset: 100}): String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLInt, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const ConnectionInputType: GraphQLInputObjectType = new GraphQLInputObjectType({

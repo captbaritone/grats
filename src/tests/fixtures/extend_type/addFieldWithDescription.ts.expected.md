@@ -17,13 +17,18 @@ export function greeting(_: SomeType): string {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type SomeType {
   """Best field ever!"""
   greeting: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { greeting as someTypeGreetingResolver } from "./addFieldWithDescription";
 export function getSchema(): GraphQLSchema {

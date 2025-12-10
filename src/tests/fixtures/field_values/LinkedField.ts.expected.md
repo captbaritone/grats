@@ -24,8 +24,9 @@ class User {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type SomeType {
   me: User
 }
@@ -34,7 +35,11 @@ type User {
   friends: [User!]
   name: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({

@@ -17,12 +17,17 @@ export function greeting(_: User, ctx: GratsContext): string {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type User {
   greeting: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { greeting as userGreetingResolver } from "./FunctionWithContextValue";
 export function getSchema(): GraphQLSchema {

@@ -40,7 +40,9 @@ export const query = `
 
 ## Output
 
-```
+### Query Result
+
+```json
 {
   "data": {
     "greet": "Hello, Alice!"

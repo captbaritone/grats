@@ -14,12 +14,17 @@ export default class SomeType {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type SomeType {
   ratio: Float
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLFloat } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

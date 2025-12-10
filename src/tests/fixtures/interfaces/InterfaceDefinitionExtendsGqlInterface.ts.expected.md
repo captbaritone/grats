@@ -32,8 +32,9 @@ export interface User extends Mammal, Person {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 interface Mammal {
   legs: Int
 }
@@ -47,7 +48,11 @@ interface User implements Mammal & Person {
   legs: Int
   name: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLInt, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MammalType: GraphQLInterfaceType = new GraphQLInterfaceType({

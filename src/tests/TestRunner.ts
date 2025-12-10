@@ -5,7 +5,7 @@ import { ask } from "./yesNo";
 import { Result } from "../utils/Result";
 import { Markdown } from "./Markdown";
 
-export type TransformerResult = Result<string, string | Markdown> | false;
+export type TransformerResult = Result<Markdown, Markdown> | false;
 
 export type Transformer = (
   code: string,

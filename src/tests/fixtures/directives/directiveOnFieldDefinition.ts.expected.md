@@ -20,8 +20,9 @@ export function likes(args: { first?: Int | null }): string {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 """This is my custom directive."""
 directive @max(foo: Int!) on FIELD_DEFINITION
 
@@ -29,7 +30,11 @@ type Query {
   """All likes in the system. Note that there is no guarantee of order."""
   likes(first: Int): String @max(foo: 10)
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLString } from "graphql";
 import { likes as queryLikesResolver } from "./directiveOnFieldDefinition";
 export function getSchema(): GraphQLSchema {

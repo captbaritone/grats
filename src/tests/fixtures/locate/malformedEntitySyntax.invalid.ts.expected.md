@@ -11,6 +11,8 @@ type User = {
 
 ## Output
 
-```
+### Error Locating Type
+
+```text
 Invalid entity name: `User->name`. Expected `ParentType` or `ParentType.fieldName`.
 ```

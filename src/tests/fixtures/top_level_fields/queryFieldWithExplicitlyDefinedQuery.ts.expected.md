@@ -15,15 +15,20 @@ export type Query = unknown;
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 """
 I might want to explicitly define a type here to provide a description.
 """
 type Query {
   greeting: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { greeting as queryGreetingResolver } from "./queryFieldWithExplicitlyDefinedQuery";
 export function getSchema(): GraphQLSchema {

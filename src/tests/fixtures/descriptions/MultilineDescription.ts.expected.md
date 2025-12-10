@@ -17,8 +17,9 @@ class SomeType {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 """
 ’Twas brillig, and the slithy toves
   Did gyre and gimble in the wabe:
@@ -28,7 +29,11 @@ All mimsy were the borogoves,
 type SomeType {
   name: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

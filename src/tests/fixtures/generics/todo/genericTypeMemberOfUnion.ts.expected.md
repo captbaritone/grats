@@ -23,12 +23,17 @@ class Dog {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Dog {
   name: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const DogType: GraphQLObjectType = new GraphQLObjectType({

@@ -18,8 +18,9 @@ export interface User extends Person {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 interface Person {
   name: String
 }
@@ -27,7 +28,11 @@ interface Person {
 type User implements Person {
   name: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({

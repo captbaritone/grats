@@ -10,10 +10,15 @@ export type UUID = string;
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import type { GqlScalar } from "grats";
 import type { UUID as UUIDInternal } from "./SpecifiedBy";
 import { GraphQLSchema, GraphQLScalarType } from "graphql";

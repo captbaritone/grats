@@ -12,12 +12,17 @@ export function foo(_: Query): string {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Query {
   foo: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { foo as queryFooResolver } from "./QueryAsAliasOfUnknown";
 export function getSchema(): GraphQLSchema {

@@ -31,7 +31,9 @@ export const variables = {
 
 ## Output
 
-```
+### Query Result
+
+```json
 {
   "data": {
     "hello": "123"

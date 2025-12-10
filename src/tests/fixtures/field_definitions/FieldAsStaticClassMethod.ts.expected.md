@@ -18,8 +18,9 @@ type Query = unknown;
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Query {
   getUser: User
 }
@@ -27,7 +28,11 @@ type Query {
 type User {
   name: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { User as queryGetUserResolver } from "./FieldAsStaticClassMethod";
 export function getSchema(): GraphQLSchema {

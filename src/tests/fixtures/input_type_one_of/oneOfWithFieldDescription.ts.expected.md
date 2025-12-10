@@ -15,13 +15,18 @@ export type Greeting =
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 input Greeting @oneOf {
   firstName: String
   lastName: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const GreetingType: GraphQLInputObjectType = new GraphQLInputObjectType({

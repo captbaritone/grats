@@ -28,15 +28,20 @@ export class User {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type User {
   greetings: [String!]!
   greetingsMaybe: [String]!
   maybeGreetings: [String!]
   maybeGreetingsMaybe: [String]
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({

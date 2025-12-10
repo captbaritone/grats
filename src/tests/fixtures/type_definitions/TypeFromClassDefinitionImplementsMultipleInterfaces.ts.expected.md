@@ -26,8 +26,9 @@ export default class User implements Person, GqlNode {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 interface Node {
   id: String
 }
@@ -40,7 +41,11 @@ type User implements Node & Person {
   hello: String
   id: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({

@@ -32,8 +32,9 @@ class Admin implements IPerson {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 interface IPerson {
   greeting: String
   hello: String
@@ -48,7 +49,11 @@ type User implements IPerson {
   greeting: String
   hello: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 import { greeting as adminGreetingResolver, greeting as userGreetingResolver } from "./addStringFieldToInterface";
 export function getSchema(): GraphQLSchema {

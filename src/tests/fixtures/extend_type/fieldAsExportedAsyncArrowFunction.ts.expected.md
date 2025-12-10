@@ -14,12 +14,17 @@ export const greeting = async (_: SomeType): Promise<string> => {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type SomeType {
   greeting: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { greeting as someTypeGreetingResolver } from "./fieldAsExportedAsyncArrowFunction";
 export function getSchema(): GraphQLSchema {

@@ -33,8 +33,9 @@ class UserResolver {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Query {
   me: User
   viewer: User @deprecated(reason: "Please use `me` instead.")
@@ -45,7 +46,11 @@ type User {
   greeting(salutation: String!): String
   name: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 import { me as queryMeResolver, viewer as queryViewerResolver } from "./readme";
 export function getSchema(): GraphQLSchema {

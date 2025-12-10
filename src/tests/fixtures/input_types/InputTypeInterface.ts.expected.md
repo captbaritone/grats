@@ -17,8 +17,9 @@ class User {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 input MyInputType {
   someField: String!
 }
@@ -26,7 +27,11 @@ input MyInputType {
 type User {
   myField(input: MyInputType!): String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MyInputTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({

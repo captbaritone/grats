@@ -27,8 +27,9 @@ class Dog {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 interface DogFriendly {
   to: Dog
 }
@@ -42,7 +43,11 @@ type User implements DogFriendly {
   name: String
   to: Dog
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const DogType: GraphQLObjectType = new GraphQLObjectType({

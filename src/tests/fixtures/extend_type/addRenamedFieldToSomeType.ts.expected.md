@@ -14,12 +14,17 @@ export function greeting(_: SomeType): string {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type SomeType {
   hello: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { greeting as someTypeHelloResolver } from "./addRenamedFieldToSomeType";
 export function getSchema(): GraphQLSchema {

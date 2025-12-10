@@ -8,8 +8,9 @@
 
 ## Output
 
-```
--- Parsed Config --
+### Parsed Config
+
+```json
 {
   "graphqlSchema": "./schema.graphql",
   "tsSchema": "./schema.ts",
@@ -24,6 +25,10 @@
   "EXPERIMENTAL__emitMetadata": true,
   "EXPERIMENTAL__emitResolverMap": false
 }
--- Warnings --
+```
+
+### Warnings
+
+```text
 Grats: The `EXPERIMENTAL__emitMetadata` option is experimental and will be renamed or removed in a future release.
 ```

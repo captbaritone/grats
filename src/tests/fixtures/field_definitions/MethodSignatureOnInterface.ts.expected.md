@@ -10,12 +10,17 @@ interface ICarly {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 interface ICarly {
   name: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const ICarlyType: GraphQLInterfaceType = new GraphQLInterfaceType({

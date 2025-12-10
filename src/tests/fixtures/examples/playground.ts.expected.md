@@ -38,8 +38,9 @@ export function getUser(_: SomeType): UserResolver {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type SomeType {
   getUser: User
   me: User
@@ -51,7 +52,11 @@ type User {
   greeting(salutation: String!): String
   name: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 import { getUser as someTypeGetUserResolver } from "./playground";
 export function getSchema(): GraphQLSchema {

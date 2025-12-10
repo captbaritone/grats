@@ -20,8 +20,9 @@ enum Enum {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 """World's best enum."""
 enum Enum {
   INVALID
@@ -31,7 +32,11 @@ enum Enum {
 type SomeType {
   hello: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLEnumType, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const EnumType: GraphQLEnumType = new GraphQLEnumType({

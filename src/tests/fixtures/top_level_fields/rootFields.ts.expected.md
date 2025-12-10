@@ -23,8 +23,9 @@ export async function* range(from: Int): AsyncIterable<Int> {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Mutation {
   deleteSomething: String
 }
@@ -36,7 +37,11 @@ type Query {
 type Subscription {
   range(from: Int!): Int
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLNonNull } from "graphql";
 import { greeting as queryGreetingResolver, deleteSomething as mutationDeleteSomethingResolver, range as subscriptionRangeResolver } from "./rootFields";
 export function getSchema(): GraphQLSchema {

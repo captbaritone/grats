@@ -25,8 +25,9 @@ export function title(edge: Edge<Page>): string {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Page {
   title: String
 }
@@ -37,7 +38,11 @@ type PageEdge {
   """Re-expose title directly on the edge"""
   title: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { title as pageEdgeTitleResolver } from "./defineFieldOnGeneric";
 export function getSchema(): GraphQLSchema {

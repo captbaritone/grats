@@ -12,12 +12,17 @@ export function myQueryField(): string {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Query {
   myQueryField: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { myQueryField as queryMyQueryFieldResolver } from "./undefinedDirectiveWithoutArgs";
 export function getSchema(): GraphQLSchema {

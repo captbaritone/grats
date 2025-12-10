@@ -13,14 +13,19 @@ export type MyUrl = string;
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 scalar MyUrl
 
 type SomeType {
   hello: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import type { GqlScalar } from "grats";
 import type { MyUrl as MyUrlInternal } from "./DefineCustomScalar";
 import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType, GraphQLString } from "graphql";

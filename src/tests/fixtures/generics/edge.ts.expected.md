@@ -38,8 +38,9 @@ type PageInfo = {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Page {
   name: String
 }
@@ -60,7 +61,11 @@ type PageInfo {
   hasPreviousPage: Boolean
   startCursor: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull, GraphQLBoolean } from "graphql";
 export function getSchema(): GraphQLSchema {
     const PageType: GraphQLObjectType = new GraphQLObjectType({

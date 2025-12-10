@@ -18,8 +18,9 @@ export default class SomeType {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 input Greeting {
   name: String!
   salutation: String!
@@ -28,7 +29,11 @@ input Greeting {
 type SomeType {
   hello(greeting: String): String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const GreetingType: GraphQLInputObjectType = new GraphQLInputObjectType({

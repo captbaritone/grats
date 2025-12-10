@@ -20,7 +20,9 @@ export const query = /* GraphQL */ `
 
 ## Output
 
-```
+### Query Result
+
+```json
 {
   "data": {
     "greeting": "Hello World!"

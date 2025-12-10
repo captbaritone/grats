@@ -21,8 +21,9 @@ export function greeting(iFoo: IFoo): string {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 interface IFoo {
   bar: String
   greeting: String
@@ -31,7 +32,11 @@ interface IFoo {
 type SomeType {
   foo: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const IFooType: GraphQLInterfaceType = new GraphQLInterfaceType({

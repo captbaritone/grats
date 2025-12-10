@@ -21,12 +21,17 @@ export function greeting(
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type SomeType {
   greeting: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { greeting as someTypeGreetingResolver } from "./optionalModelType";
 export function getSchema(): GraphQLSchema {

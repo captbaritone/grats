@@ -96,7 +96,7 @@ const testDirs: TestDir[] = [
     transformer: (
       code: string,
       _fileName: string,
-    ): Result<string, Markdown> => {
+    ): Result<Markdown, Markdown> => {
       const config = JSON.parse(code);
       let parsed: ParsedCommandLineGrats;
       const warnings: string[] = [];
@@ -127,15 +127,15 @@ const testDirs: TestDir[] = [
       }
       console.warn = consoleWarn;
 
-      let result = `-- Parsed Config --\n${JSON.stringify(
-        parsed.raw.grats,
-        null,
-        2,
-      )}`;
+      const markdown = new Markdown();
+
+      markdown.addHeader(3, "Parsed Config");
+      markdown.addCodeBlock(JSON.stringify(parsed.raw.grats, null, 2), "json");
       if (warnings.length > 0) {
-        result += `\n-- Warnings --\n${warnings.join("\n")}`;
+        markdown.addHeader(3, "Warnings");
+        markdown.addCodeBlock(warnings.join("\n"), "text");
       }
-      return ok(result);
+      return ok(markdown);
     },
   },
   {
@@ -229,7 +229,10 @@ const testDirs: TestDir[] = [
       if (locationMatch != null) {
         const locResult = locate(schema, locationMatch[1].trim());
         if (locResult.kind === "ERROR") {
-          return err(locResult.err);
+          const markdown = new Markdown();
+          markdown.addHeader(3, "Error Locating Type");
+          markdown.addCodeBlock(locResult.err, "text");
+          return err(markdown);
         }
 
         return err(
@@ -257,7 +260,13 @@ const testDirs: TestDir[] = [
           print(docSansDirectives),
         );
 
-        return ok(`-- SDL --\n${sdl}\n-- TypeScript --\n${executableSchema}`);
+        const markdown = new Markdown();
+        markdown.addHeader(3, "SDL");
+        markdown.addCodeBlock(sdl, "graphql");
+        markdown.addHeader(3, "TypeScript");
+        markdown.addCodeBlock(executableSchema, "ts");
+
+        return ok(markdown);
       }
     },
   },
@@ -268,7 +277,7 @@ const testDirs: TestDir[] = [
     transformer: async (
       code: string,
       fileName: string,
-    ): Promise<Result<string, Markdown> | false> => {
+    ): Promise<Result<Markdown, Markdown> | false> => {
       const firstLine = code.split("\n")[0];
       let config: Partial<GratsConfig> = {
         nullableByDefault: true,
@@ -367,7 +376,11 @@ const testDirs: TestDir[] = [
         variableValues: server.variables,
       });
 
-      return ok(JSON.stringify(data, null, 2));
+      const markdown = new Markdown();
+      markdown.addHeader(3, "Query Result");
+      markdown.addCodeBlock(JSON.stringify(data, null, 2), "json");
+
+      return ok(markdown);
     },
   },
 ];

@@ -24,8 +24,9 @@ export class User implements IPerson {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 """
 Indicates that a position is semantically non null: it is only null if there is a matching error in the `errors` array.
 In all other cases, the position is non-null.
@@ -66,7 +67,11 @@ interface IPerson {
 type User implements IPerson {
   name: String @semanticNonNull
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLList, GraphQLInt, specifiedDirectives, GraphQLInterfaceType, GraphQLString, GraphQLObjectType, defaultFieldResolver } from "graphql";
 async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
     const awaited = await value;

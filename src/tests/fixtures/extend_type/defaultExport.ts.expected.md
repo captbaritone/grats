@@ -14,12 +14,17 @@ export default function greeting(_: SomeType): string {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type SomeType {
   greeting: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import someTypeGreetingResolver from "./defaultExport";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {

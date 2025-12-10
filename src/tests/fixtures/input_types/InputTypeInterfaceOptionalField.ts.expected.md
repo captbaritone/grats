@@ -9,12 +9,17 @@ interface MyInputType {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 input MyInputType {
   someField: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MyInputTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({

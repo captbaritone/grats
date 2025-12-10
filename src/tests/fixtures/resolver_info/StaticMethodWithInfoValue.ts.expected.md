@@ -20,8 +20,9 @@ type Query = unknown;
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Query {
   greeting: String
 }
@@ -29,7 +30,11 @@ type Query {
 type SomeType {
   someField: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { SomeType as queryGreetingResolver } from "./StaticMethodWithInfoValue";
 export function getSchema(): GraphQLSchema {

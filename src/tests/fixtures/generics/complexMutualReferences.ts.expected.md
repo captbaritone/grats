@@ -24,8 +24,9 @@ type Baz = {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Baz {
   bazField: BazBar
 }
@@ -38,7 +39,11 @@ type BazFoo {
   baz: Baz
   someField: BazBar
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const BazFooType: GraphQLObjectType = new GraphQLObjectType({

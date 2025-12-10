@@ -17,8 +17,9 @@ type MyEnum = "A" | "B";
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 """This is my custom directive."""
 directive @max(foo: Int!) on ENUM
 
@@ -26,7 +27,11 @@ enum MyEnum @max(foo: 10) {
   A
   B
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLEnumType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MyEnumType: GraphQLEnumType = new GraphQLEnumType({

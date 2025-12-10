@@ -29,8 +29,9 @@ export function pageResult(_: Query): Result<Page, Err> {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 union PageErrResult = Err | Page
 
 type Err {
@@ -44,7 +45,11 @@ type Page {
 type Query {
   pageResult: PageErrResult
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLUnionType, GraphQLString } from "graphql";
 import { pageResult as queryPageResultResolver } from "./multiparamGeneric";
 export function getSchema(): GraphQLSchema {

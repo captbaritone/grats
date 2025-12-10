@@ -44,8 +44,9 @@ type PageInfo = {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Page {
   name: String
 }
@@ -70,7 +71,11 @@ type PageInfo {
 type User {
   pages: PageEdgeConnection
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLBoolean } from "graphql";
 export function getSchema(): GraphQLSchema {
     const PageType: GraphQLObjectType = new GraphQLObjectType({

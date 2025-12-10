@@ -14,14 +14,19 @@ type Actor = User;
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 union Actor = User
 
 type User {
   name: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLUnionType, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({

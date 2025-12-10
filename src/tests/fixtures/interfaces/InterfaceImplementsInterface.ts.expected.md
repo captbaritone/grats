@@ -24,8 +24,9 @@ interface Actor extends GqlNode, Person {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 interface Actor implements Node & Person {
   id: String
   name: String
@@ -38,7 +39,11 @@ interface Node {
 interface Person {
   name: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({

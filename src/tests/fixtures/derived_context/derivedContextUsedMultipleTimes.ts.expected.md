@@ -31,13 +31,18 @@ export function farewell(_: Query, ctx: DerivedContext): string {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Query {
   farewell: String
   greeting: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { farewell as queryFarewellResolver, greetingContext, greeting as queryGreetingResolver } from "./derivedContextUsedMultipleTimes";
 export function getSchema(): GraphQLSchema {

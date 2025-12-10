@@ -158,7 +158,9 @@ export const query = gql`
 
 ## Output
 
-```
+### Query Result
+
+```json
 {
   "data": {
     "firstTwo": {

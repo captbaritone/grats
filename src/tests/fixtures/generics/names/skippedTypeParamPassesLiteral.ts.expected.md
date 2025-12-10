@@ -36,8 +36,9 @@ export function connection(): Edge<
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type A {
   a: String
 }
@@ -53,7 +54,11 @@ type BEdge {
 type Query {
   connection: BEdge
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { connection as queryConnectionResolver } from "./skippedTypeParamPassesLiteral";
 export function getSchema(): GraphQLSchema {

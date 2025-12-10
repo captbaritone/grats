@@ -11,12 +11,17 @@ export class SomeNonGraphQLClass {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Query {
   greeting: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { SomeNonGraphQLClass as queryGreetingResolver } from "./queryFieldOnStaticMethod";
 export function getSchema(): GraphQLSchema {

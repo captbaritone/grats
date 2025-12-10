@@ -11,14 +11,19 @@ export default class SomeType {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 # Generated SDL
 
 type SomeType {
   hello: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 // Generated TS
 
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";

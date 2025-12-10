@@ -14,12 +14,17 @@ export function catSound(obj: Cat): string {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Cat {
   catSound: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { catSound as catCatSoundResolver } from "./functionFieldOnTypeDefinedWithInterface";
 export function getSchema(): GraphQLSchema {

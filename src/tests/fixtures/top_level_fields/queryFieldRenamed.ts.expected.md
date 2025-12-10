@@ -9,12 +9,17 @@ export function greetz(): string {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Query {
   greeting: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { greetz as queryGreetingResolver } from "./queryFieldRenamed";
 export function getSchema(): GraphQLSchema {

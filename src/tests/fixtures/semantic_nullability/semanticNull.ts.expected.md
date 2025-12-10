@@ -20,8 +20,9 @@ export class User {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 """
 Indicates that a position is semantically non null: it is only null if there is a matching error in the `errors` array.
 In all other cases, the position is non-null.
@@ -58,7 +59,11 @@ directive @semanticNonNull(levels: [Int] = [0]) on FIELD_DEFINITION
 type User {
   name: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLList, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({

@@ -26,7 +26,9 @@ export const query = `
 
 ## Output
 
-```
+### Query Result
+
+```json
 {
   "data": {
     "hello": "Hello World"

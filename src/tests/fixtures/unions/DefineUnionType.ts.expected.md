@@ -27,8 +27,9 @@ type Actor = User | Entity;
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 union Actor = Entity | User
 
 type Entity {
@@ -42,7 +43,11 @@ type SomeType {
 type User {
   name: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLUnionType, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const EntityType: GraphQLObjectType = new GraphQLObjectType({

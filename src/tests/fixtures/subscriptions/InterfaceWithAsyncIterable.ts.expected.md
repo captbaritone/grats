@@ -10,12 +10,17 @@ export interface NotSubscription {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 interface NotSubscription {
   greetings: [String!]
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLList, GraphQLNonNull, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const NotSubscriptionType: GraphQLInterfaceType = new GraphQLInterfaceType({

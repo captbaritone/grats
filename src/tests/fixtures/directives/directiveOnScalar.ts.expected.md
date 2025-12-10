@@ -17,13 +17,18 @@ export type MyScalar = string;
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 """This is my custom directive."""
 directive @max(foo: Int!) on SCALAR
 
 scalar MyScalar @max(foo: 10)
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import type { GqlScalar } from "grats";
 import type { MyScalar as MyScalarInternal } from "./directiveOnScalar";
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLScalarType } from "graphql";

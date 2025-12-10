@@ -17,10 +17,15 @@ function defer({
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 directive @defer(label: String!, if: Boolean = true) on FRAGMENT_SPREAD | INLINE_FRAGMENT
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLString, GraphQLBoolean, specifiedDirectives } from "graphql";
 export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({

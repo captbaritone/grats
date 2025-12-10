@@ -31,7 +31,9 @@ export const query = `
 
 ## Output
 
-```
+### Query Result
+
+```json
 {
   "data": {
     "hello": "got null"

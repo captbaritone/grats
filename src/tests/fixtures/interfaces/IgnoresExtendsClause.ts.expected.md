@@ -29,8 +29,9 @@ class User extends Person implements Actor {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 interface Actor {
   name: String
 }
@@ -42,7 +43,11 @@ type SomeType {
 type User implements Actor {
   name: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const ActorType: GraphQLInterfaceType = new GraphQLInterfaceType({

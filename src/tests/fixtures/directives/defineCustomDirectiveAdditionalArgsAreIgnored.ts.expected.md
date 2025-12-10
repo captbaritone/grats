@@ -17,11 +17,16 @@ export function customDirective(
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 """This is my custom directive."""
 directive @customDirective(someArg: String!) on FIELD_DEFINITION
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLString, specifiedDirectives } from "graphql";
 export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({

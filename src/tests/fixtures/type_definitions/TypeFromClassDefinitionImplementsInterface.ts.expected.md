@@ -17,8 +17,9 @@ export default class User implements Person {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 interface Person {
   hello: String
 }
@@ -26,7 +27,11 @@ interface Person {
 type User implements Person {
   hello: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({

@@ -15,12 +15,17 @@ interface Foo {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 interface Foo {
   id: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const FooType: GraphQLInterfaceType = new GraphQLInterfaceType({

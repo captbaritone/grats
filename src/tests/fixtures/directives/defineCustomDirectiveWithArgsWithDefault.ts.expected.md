@@ -10,11 +10,16 @@ export function customDirective({ someArg = "Hello" }: { someArg: string }) {}
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 """This is my custom directive."""
 directive @customDirective(someArg: String! = "Hello") on FIELD_DEFINITION
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLString, specifiedDirectives } from "graphql";
 export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({

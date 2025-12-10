@@ -14,8 +14,9 @@ export function hello(greeting: GreetingOptions = "Greetings"): string {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 enum GreetingOptions {
   Greetings
   Hello
@@ -25,7 +26,11 @@ enum GreetingOptions {
 type Query {
   hello(greeting: GreetingOptions! = Greetings): String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLEnumType } from "graphql";
 import { hello as queryHelloResolver } from "./NonNullEnumDefault";
 export function getSchema(): GraphQLSchema {

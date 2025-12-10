@@ -14,12 +14,17 @@ type Query = unknown;
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Query {
   greetz: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { greetz as queryGreetzResolver } from "./FunctionWithInfoValue";
 export function getSchema(): GraphQLSchema {

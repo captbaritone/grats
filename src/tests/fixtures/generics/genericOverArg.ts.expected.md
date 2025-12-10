@@ -25,8 +25,9 @@ export function someField(_: Query): SomeClass<SomeInput> {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 input SomeInput {
   someField: String!
 }
@@ -38,7 +39,11 @@ type Query {
 type SomeInputSomeClass {
   someField(someArg: SomeInput): String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInputObjectType, GraphQLNonNull } from "graphql";
 import { someField as querySomeFieldResolver } from "./genericOverArg";
 export function getSchema(): GraphQLSchema {

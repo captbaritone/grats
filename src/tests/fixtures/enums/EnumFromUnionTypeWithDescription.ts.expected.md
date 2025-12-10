@@ -16,8 +16,9 @@ type MyEnum = "VALID" | "INVALID";
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 """Hello!"""
 enum MyEnum {
   INVALID
@@ -27,7 +28,11 @@ enum MyEnum {
 type SomeType {
   hello: MyEnum
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLEnumType, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MyEnumType: GraphQLEnumType = new GraphQLEnumType({

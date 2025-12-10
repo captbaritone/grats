@@ -16,12 +16,17 @@ export interface IPerson extends IThing {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 interface IPerson {
   name: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({

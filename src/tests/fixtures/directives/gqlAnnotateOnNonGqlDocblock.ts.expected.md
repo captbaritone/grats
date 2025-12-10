@@ -12,10 +12,15 @@ export function foo() {}
 
 ## Output
 
-```
--- SDL --
+### SDL
 
--- TypeScript --
+```graphql
+
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema } from "graphql";
 export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({

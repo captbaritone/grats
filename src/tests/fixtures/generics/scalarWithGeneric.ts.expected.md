@@ -8,10 +8,15 @@ export type MyScalar<T> = T;
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 scalar MyScalar
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import type { GqlScalar } from "grats";
 import type { MyScalar as MyScalarInternal } from "./scalarWithGeneric";
 import { GraphQLSchema, GraphQLScalarType } from "graphql";

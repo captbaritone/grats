@@ -19,15 +19,20 @@ type MyType = {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 """This is my custom directive."""
 directive @max(foo: Int!) on INPUT_OBJECT
 
 input MyType @max(foo: 10) {
   myField: String!
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLInputObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const MyTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({

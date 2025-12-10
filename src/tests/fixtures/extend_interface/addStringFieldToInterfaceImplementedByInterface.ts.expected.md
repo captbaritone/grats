@@ -37,8 +37,9 @@ class Admin implements IPerson, IThing {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 interface IPerson implements IThing {
   greeting: String
 }
@@ -54,7 +55,11 @@ type Admin implements IPerson & IThing {
 type User implements IPerson & IThing {
   greeting: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 import { greeting as adminGreetingResolver, greeting as userGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";
 export function getSchema(): GraphQLSchema {

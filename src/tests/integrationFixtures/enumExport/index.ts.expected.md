@@ -52,7 +52,9 @@ export const query = /* GraphQL */ `
 
 ## Output
 
-```
+### Query Result
+
+```json
 {
   "data": {
     "favoriteColor": "red",

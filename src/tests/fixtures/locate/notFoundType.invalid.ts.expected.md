@@ -11,6 +11,8 @@ type User = {
 
 ## Output
 
-```
+### Error Locating Type
+
+```text
 Cannot locate type `WhoopsNotARealType`.
 ```

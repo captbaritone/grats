@@ -17,13 +17,18 @@ interface IPerson {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 """The root of all evil."""
 type User {
   hello: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({

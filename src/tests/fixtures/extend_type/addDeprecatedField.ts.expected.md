@@ -17,12 +17,17 @@ export function greeting(query: SomeType): string {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type SomeType {
   greeting: String @deprecated(reason: "Because reasons")
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { greeting as someTypeGreetingResolver } from "./addDeprecatedField";
 export function getSchema(): GraphQLSchema {

@@ -61,8 +61,9 @@ class Group {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 type Group {
   description: String
   members: [User!]
@@ -81,7 +82,11 @@ type User {
   groups: [Group!]
   name: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull } from "graphql";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({

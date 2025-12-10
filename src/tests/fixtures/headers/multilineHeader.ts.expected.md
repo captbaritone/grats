@@ -11,8 +11,9 @@ export default class SomeType {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 # Generated SDL
 
 # multi-line
@@ -20,7 +21,11 @@ export default class SomeType {
 type SomeType {
   hello: String
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 // Generated TS
 
 // multi-line

@@ -27,8 +27,9 @@ export type SomeType = {
 
 ## Output
 
-```
--- SDL --
+### SDL
+
+```graphql
 union PageResult = Err | Page
 
 type Err {
@@ -42,7 +43,11 @@ type Page {
 type SomeType {
   pageResult: PageResult
 }
--- TypeScript --
+```
+
+### TypeScript
+
+```ts
 import { GraphQLSchema, GraphQLUnionType, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const ErrType: GraphQLObjectType = new GraphQLObjectType({
