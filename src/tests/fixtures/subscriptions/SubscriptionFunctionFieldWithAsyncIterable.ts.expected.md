@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts"
 // { "nullableByDefault": false }
 /** @gqlType */
 export type Subscription = unknown;
@@ -34,10 +34,11 @@ export async function* maybeGreetingsMaybe(
 ): AsyncIterable<string | null> | null {
   return null;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Subscription {
   greetings: String!
@@ -101,3 +102,4 @@ export function getSchema(): GraphQLSchema {
         types: [SubscriptionType]
     });
 }
+```

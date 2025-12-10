@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="interfaces/IgnoresExtendsClause.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -25,10 +25,11 @@ class User extends Person implements Actor {
   /** @gqlField */
   name: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface Actor {
   name: String
@@ -84,3 +85,4 @@ export function getSchema(): GraphQLSchema {
         types: [ActorType, SomeTypeType, UserType]
     });
 }
+```

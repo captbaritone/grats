@@ -1,15 +1,16 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="type_definitions_from_alias/AliasType.ts"
 /** @gqlType */
 export type SomeType = {
   /** @gqlField */
   hello: string;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   hello: String
@@ -32,3 +33,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

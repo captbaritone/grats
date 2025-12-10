@@ -1,15 +1,16 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_values/OptionalProperty.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
   hello?: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   hello: String
@@ -32,3 +33,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

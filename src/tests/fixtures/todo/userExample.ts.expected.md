@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="todo/userExample.ts"
 /** @gqlType */
 type SomeType = {};
 
@@ -21,10 +21,11 @@ type User = {
 export function fullName(user: User): string {
   return `${user.firstName} ${user.lastName}`;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   me: User
@@ -79,3 +80,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType, UserType]
     });
 }
+```

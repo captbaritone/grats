@@ -1,15 +1,16 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="directives/defineCustomDirectiveWithArgs.ts"
 /**
  * This is my custom directive.
  * @gqlDirective on FIELD_DEFINITION
  */
 export function customDirective(arg: { someArg: string }) {}
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """This is my custom directive."""
 directive @customDirective(someArg: String!) on FIELD_DEFINITION
@@ -30,3 +31,4 @@ export function getSchema(): GraphQLSchema {
         types: []
     });
 }
+```

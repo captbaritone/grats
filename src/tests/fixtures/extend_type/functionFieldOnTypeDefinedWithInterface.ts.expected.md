@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="extend_type/functionFieldOnTypeDefinedWithInterface.ts"
 // https://twitter.com/edvinwennerdahl/status/1748436186840904103
 
 /** @gqlType */
@@ -10,10 +10,11 @@ interface Cat {}
 export function catSound(obj: Cat): string {
   return "meow";
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Cat {
   catSound: String
@@ -40,3 +41,4 @@ export function getSchema(): GraphQLSchema {
         types: [CatType]
     });
 }
+```

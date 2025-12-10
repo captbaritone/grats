@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_values/LinkedField.ts"
 /** @gqlType */
 class SomeType {
   /** @gqlField */
@@ -20,10 +20,11 @@ class User {
     return [new User()];
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   me: User
@@ -66,3 +67,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType, UserType]
     });
 }
+```

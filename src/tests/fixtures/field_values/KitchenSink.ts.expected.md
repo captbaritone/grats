@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_values/KitchenSink.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -57,10 +57,11 @@ class Group {
     return [new User()];
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Group {
   description: String
@@ -168,3 +169,4 @@ export function getSchema(): GraphQLSchema {
         types: [GroupType, SomeTypeType, UserType]
     });
 }
+```

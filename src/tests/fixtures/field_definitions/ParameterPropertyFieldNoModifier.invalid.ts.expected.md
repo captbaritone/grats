@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_definitions/ParameterPropertyFieldNoModifier.invalid.ts"
 /** @gqlType */
 export default class SomeType {
   constructor(
@@ -10,10 +10,11 @@ export default class SomeType {
     console.log(hello);
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/field_definitions/ParameterPropertyFieldNoModifier.invalid.ts:5:5 - error: Expected `@gqlField` constructor parameter to be a parameter property. This requires a modifier such as `public` or `readonly` before the parameter name.
 
@@ -46,3 +47,4 @@ export default class SomeType {
     console.log(hello);
   }
 }
+```

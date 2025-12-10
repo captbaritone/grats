@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="resolveTypeViaClass/index.ts"
 import { ID } from "../../../Types";
 
 /** @gqlInterface */
@@ -84,10 +84,11 @@ export const query = /* GraphQL */ `
     }
   }
 `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "user": {
@@ -107,3 +108,4 @@ OUTPUT
     }
   }
 }
+```

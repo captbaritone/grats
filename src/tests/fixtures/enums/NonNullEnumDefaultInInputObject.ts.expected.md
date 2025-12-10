@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="enums/NonNullEnumDefaultInInputObject.ts"
 // https://github.com/captbaritone/grats/issues/174
 
 /** @gqlEnum */
@@ -17,10 +17,11 @@ export function hello(
 ): string {
   return `${input.greeting} World`;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 enum GreetingOptions {
   Greetings
@@ -91,3 +92,4 @@ export function getSchema(): GraphQLSchema {
         types: [GreetingOptionsType, GreetingInputType, QueryType]
     });
 }
+```

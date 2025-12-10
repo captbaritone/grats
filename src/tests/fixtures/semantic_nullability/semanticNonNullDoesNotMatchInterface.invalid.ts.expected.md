@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="semantic_nullability/semanticNonNullDoesNotMatchInterface.invalid.ts"
 // { "strictSemanticNullability": true }
 
 /** @gqlInterface */
@@ -21,10 +21,11 @@ export class User implements IPerson {
     return "Alice";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/semantic_nullability/semanticNonNullDoesNotMatchInterface.invalid.ts:6:11 - error: Interface field `User.name` expects a non-nullable type but `IPerson.name` is nullable.
 
 6   name(): string;
@@ -34,3 +35,4 @@ src/tests/fixtures/semantic_nullability/semanticNonNullDoesNotMatchInterface.inv
     14   name(): string | null {
                  ~~~~~~~~~~~~~
     Related location
+```

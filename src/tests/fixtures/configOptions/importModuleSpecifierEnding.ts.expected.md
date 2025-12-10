@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="configOptions/importModuleSpecifierEnding.ts"
 // {"importModuleSpecifierEnding": ".js"}
 
 /** @gqlType */
@@ -13,10 +13,11 @@ export default class SomeType {
 export function greeting(t: SomeType): string {
   return t.hello + " world!";
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   greeting: String
@@ -48,3 +49,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

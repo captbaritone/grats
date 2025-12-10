@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_values/RenamedType.ts"
 /** @gqlType User */
 class UserResolver {
   /** @gqlField */
@@ -12,10 +12,11 @@ class SomeType {
   /** @gqlField */
   me: UserResolver;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   me: User
@@ -53,3 +54,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType, UserType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="default_values/DefaultArgumentStringLiteralBackticks.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -8,10 +8,11 @@ export default class SomeType {
     return `${greeting} world!`;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   hello(greeting: String! = "hello"): String
@@ -40,3 +41,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

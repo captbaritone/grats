@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="type_definitions/TypeFromClassDefinitionImplementsMultipleInterfaces.ts"
 /** @gqlInterface Node */
 interface GqlNode {
   /** @gqlField */
@@ -22,10 +22,11 @@ export default class User implements Person, GqlNode {
   /** @gqlField */
   id: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface Node {
   id: String
@@ -86,3 +87,4 @@ export function getSchema(): GraphQLSchema {
         types: [NodeType, PersonType, UserType]
     });
 }
+```

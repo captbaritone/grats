@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="semantic_nullability/nonNullDoesNotMatchInterface.invalid.ts"
 /** @gqlInterface */
 interface IPerson {
   /**
@@ -22,10 +22,11 @@ export class User implements IPerson {
     return "Alice";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/semantic_nullability/nonNullDoesNotMatchInterface.invalid.ts:4:7 - error: Interface field IPerson.name expects type String! but User.name is type String.
 
 4    * @killsParentOnException
@@ -35,3 +36,4 @@ src/tests/fixtures/semantic_nullability/nonNullDoesNotMatchInterface.invalid.ts:
     15   name(): string | null {
                  ~~~~~~~~~~~~~
     Related location
+```

@@ -1,12 +1,13 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="todo/RedefineBuiltinScalar.ts"
 /** @gqlScalar String */
 export type MyUrl = string;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 
 -- TypeScript --
@@ -16,3 +17,4 @@ export function getSchema(): GraphQLSchema {
         types: []
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="directives/gqlAnnotateOnNonGqlDocblock.ts"
 // Because @gqlAnnotate can go on argument definitions which don't have any
 // `@gql` tag, we can't report this as an error for now.
 
@@ -8,10 +8,11 @@ INPUT
  * @gqlAnnotate max(foo: ["a", "b"])
  */
 export function foo() {}
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 
 -- TypeScript --
@@ -21,3 +22,4 @@ export function getSchema(): GraphQLSchema {
         types: []
     });
 }
+```

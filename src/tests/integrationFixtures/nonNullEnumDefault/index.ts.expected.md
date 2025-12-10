@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="nonNullEnumDefault/index.ts"
 // https://github.com/captbaritone/grats/issues/174
 
 /** @gqlEnum */
@@ -16,12 +16,14 @@ export const query = /* GraphQL */ `
     hello
   }
 `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "hello": "Greetings World"
   }
 }
+```

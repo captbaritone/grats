@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="interfaces/ImplementsInterfaceWithTypeParam.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -25,10 +25,11 @@ class User implements Person<string> {
 
   other: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface Person {
   name: String
@@ -84,3 +85,4 @@ export function getSchema(): GraphQLSchema {
         types: [PersonType, SomeTypeType, UserType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="default_values/DefaultArgumentNumberLiteral.ts"
 import { Float, Int } from "../../../Types";
 
 /** @gqlType */
@@ -14,10 +14,11 @@ export default class SomeType {
     return `${scale} world!`;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   floatField(scale: Float! = 10): String
@@ -57,3 +58,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

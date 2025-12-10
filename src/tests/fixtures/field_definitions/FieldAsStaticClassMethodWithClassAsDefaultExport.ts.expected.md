@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_definitions/FieldAsStaticClassMethodWithClassAsDefaultExport.ts"
 /** @gqlType */
 export default class User {
   /** @gqlField */
@@ -14,10 +14,11 @@ export default class User {
 
 /** @gqlType */
 type Query = unknown;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Query {
   getUser: User
@@ -60,3 +61,4 @@ export function getSchema(): GraphQLSchema {
         types: [QueryType, UserType]
     });
 }
+```

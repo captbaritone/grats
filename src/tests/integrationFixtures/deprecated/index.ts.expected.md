@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="deprecated/index.ts"
 /**
  * @gqlQueryField
  * @deprecated For reasons
@@ -22,12 +22,14 @@ export const query = `
       hello
     }
   `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "hello": "Hello World"
   }
 }
+```

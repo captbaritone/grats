@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_values/BooleanField.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -8,10 +8,11 @@ export default class SomeType {
     return false;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   haveBeenGreeted: Boolean
@@ -34,3 +35,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

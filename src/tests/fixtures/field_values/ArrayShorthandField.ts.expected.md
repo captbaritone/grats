@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_values/ArrayShorthandField.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -8,10 +8,11 @@ export default class SomeType {
     return ["Hello world!"];
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   hello: [String!]
@@ -34,3 +35,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/missingGqlGenericTypeArg.invalid.ts"
 /** @gqlType */
 type Edge<T> = {
   /** @gqlField */
@@ -14,10 +14,11 @@ export type PageConnection = {
   /** @gqlField */
   edges: Edge</* Oops! */>[];
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/generics/missingGqlGenericTypeArg.invalid.ts:12:10 - error: Missing type argument for generic GraphQL type. Expected `Edge` to be passed a GraphQL type argument for type parameter `T`.
 
 12   edges: Edge</* Oops! */>[];
@@ -31,3 +32,4 @@ src/tests/fixtures/generics/missingGqlGenericTypeArg.invalid.ts:12:10 - error: M
     4   node: T;
               ~
     and expects a GraphQL type because it was used in a GraphQL position here.
+```

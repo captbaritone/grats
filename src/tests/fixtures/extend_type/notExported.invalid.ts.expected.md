@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="extend_type/notExported.invalid.ts"
 /** @gqlType */
 class SomeType {
   // No fields
@@ -10,10 +10,11 @@ class SomeType {
 function greeting(_: Query): string {
   return `Hello World`;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/extend_type/notExported.invalid.ts:7:10 - error: Expected a `@gqlField` function to be a named export. Grats needs to import resolver functions into its generated schema module, so the resolver function must be a named export.
 
@@ -44,3 +45,4 @@ class SomeType {
 export function greeting(_: Query): string {
   return `Hello World`;
 }
+```

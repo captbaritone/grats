@@ -1,13 +1,14 @@
------------------
-INPUT
------------------ 
+## input
+
+```json title="experimentalField.json"
 {
   "EXPERIMENTAL__emitMetadata": true
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Parsed Config --
 {
   "graphqlSchema": "./schema.graphql",
@@ -25,3 +26,4 @@ OUTPUT
 }
 -- Warnings --
 Grats: The `EXPERIMENTAL__emitMetadata` option is experimental and will be renamed or removed in a future release.
+```

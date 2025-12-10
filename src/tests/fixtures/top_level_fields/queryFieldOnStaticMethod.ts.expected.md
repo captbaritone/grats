@@ -1,16 +1,17 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="top_level_fields/queryFieldOnStaticMethod.ts"
 export class SomeNonGraphQLClass {
   /** @gqlQueryField */
   static greeting(): string {
     return "Hello world";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Query {
   greeting: String
@@ -38,3 +39,4 @@ export function getSchema(): GraphQLSchema {
         types: [QueryType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/todo/genericTypeMemberOfUnion.ts"
 /** @gqlType */
 export class User<T> {
   __typename: "User";
@@ -19,10 +19,11 @@ class Dog {
   /** @gqlField */
   name: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Dog {
   name: String
@@ -45,3 +46,4 @@ export function getSchema(): GraphQLSchema {
         types: [DogType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="unions/UnionAsMemberOfItself.invalid.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -23,10 +23,11 @@ class Entity {
 
 /** @gqlUnion */
 type Actor = User | Entity | Actor;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/unions/UnionAsMemberOfItself.invalid.ts:9:16 - error: Expected `__typename` property initializer to be an expression with a const assertion. For example: `__typename = "User" as const` or `__typename: "User";`. This is needed to ensure Grats can determine the type of this object during GraphQL execution.
 
@@ -85,3 +86,4 @@ class Entity {
 
 /** @gqlUnion */
 type Actor = User | Entity | Actor;
+```

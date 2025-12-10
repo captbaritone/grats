@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/result.ts"
 /** @gqlType */
 type Err = {
   __typename: "Err";
@@ -23,10 +23,11 @@ export type SomeType = {
   /** @gqlField */
   pageResult: Result<Page>;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 union PageResult = Err | Page
 
@@ -87,3 +88,4 @@ export function getSchema(): GraphQLSchema {
         types: [PageResultType, ErrType, PageType, SomeTypeType]
     });
 }
+```

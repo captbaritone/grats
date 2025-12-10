@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="directives/directiveOnScalar.ts"
 import { Int } from "../../../Types";
 /**
  * This is my custom directive.
@@ -13,10 +13,11 @@ export function max(args: { foo: Int }) {}
  * @gqlAnnotate max(foo: 10)
  */
 export type MyScalar = string;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """This is my custom directive."""
 directive @max(foo: Int!) on SCALAR
@@ -60,3 +61,4 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
         types: [MyScalarType]
     });
 }
+```

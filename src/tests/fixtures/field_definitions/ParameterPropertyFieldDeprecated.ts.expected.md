@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_definitions/ParameterPropertyFieldDeprecated.ts"
 /** @gqlType */
 export default class SomeType {
   constructor(
@@ -11,10 +11,11 @@ export default class SomeType {
     public hello: string,
   ) {}
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   hello: String @deprecated(reason: "Don't use this")
@@ -38,3 +39,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

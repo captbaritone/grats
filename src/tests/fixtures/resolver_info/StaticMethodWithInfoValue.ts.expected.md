@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="resolver_info/StaticMethodWithInfoValue.ts"
 import { GqlInfo } from "../../../Types";
 
 /** @gqlType */
@@ -16,10 +16,11 @@ export class SomeType {
 
 /** @gqlType */
 type Query = unknown;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Query {
   greeting: String
@@ -62,3 +63,4 @@ export function getSchema(): GraphQLSchema {
         types: [QueryType, SomeTypeType]
     });
 }
+```

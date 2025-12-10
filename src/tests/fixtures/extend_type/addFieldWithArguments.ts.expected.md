@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="extend_type/addFieldWithArguments.ts"
 /** @gqlType */
 class SomeType {
   // No fields
@@ -10,10 +10,11 @@ class SomeType {
 export function greeting(_: SomeType, args: { name: string }): string {
   return `Hello ${args.name}!`;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   greeting(name: String!): String
@@ -45,3 +46,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

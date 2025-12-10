@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="descriptions/BlankLinesFollowTypeTag.ts"
 /**
  * @gqlType
  *
@@ -13,10 +13,11 @@ class SomeType {
   /** @gqlField */
   name: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   name: String
@@ -39,3 +40,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

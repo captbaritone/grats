@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="examples/playground.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -34,10 +34,11 @@ class UserResolver {
 export function getUser(_: SomeType): UserResolver {
   return new UserResolver();
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   getUser: User
@@ -102,3 +103,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType, UserType]
     });
 }
+```

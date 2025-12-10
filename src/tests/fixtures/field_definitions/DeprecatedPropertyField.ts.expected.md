@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_definitions/DeprecatedPropertyField.ts"
 /** @gqlType */
 export default class SomeType {
   /**
@@ -9,10 +9,11 @@ export default class SomeType {
    */
   hello: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   hello: String @deprecated(reason: "Use something else.")
@@ -36,3 +37,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

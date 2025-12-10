@@ -1,16 +1,17 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="comments/detachedBlockCommentNotJSDocWithoutStar.invalid.ts"
 /*
    @gqlType
 */
 /**
  * Foo
  */
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/comments/detachedBlockCommentNotJSDocWithoutStar.invalid.ts:2:4 - error: Unexpected Grats tag in non-JSDoc-style block comment. Grats only looks for tags in JSDoc-style block comments which start with `/**`. For more information see: https://grats.capt.dev/docs/getting-started/comment-syntax
 
@@ -37,3 +38,4 @@ src/tests/fixtures/comments/detachedBlockCommentNotJSDocWithoutStar.invalid.ts:2
 /**
  * Foo
  */
+```

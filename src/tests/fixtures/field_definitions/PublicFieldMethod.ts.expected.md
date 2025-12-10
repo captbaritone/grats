@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_definitions/PublicFieldMethod.ts"
 /** @gqlType */
 export class User {
   /** @gqlField */
@@ -8,10 +8,11 @@ export class User {
     return "Hello";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type User {
   greet: String
@@ -34,3 +35,4 @@ export function getSchema(): GraphQLSchema {
         types: [UserType]
     });
 }
+```

@@ -1,12 +1,13 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="user_error/WrongCaseGqlTag.invalid.ts"
 /** @GQLField */
 function field() {}
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/user_error/WrongCaseGqlTag.invalid.ts:1:6 - error: Incorrect casing for Grats tag `@GQLField`. Use `@gqlField` instead.
 
@@ -29,3 +30,4 @@ src/tests/fixtures/user_error/WrongCaseGqlTag.invalid.ts:1:6 - error: Incorrect 
 -- Fixed Text --
 /** @gqlField */
 function field() {}
+```

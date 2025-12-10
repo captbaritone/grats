@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="semantic_nullability/semanticNull.ts"
 // { "strictSemanticNullability": true }
 
 /** @gqlType */
@@ -16,10 +16,11 @@ export class User {
     return "Alice";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """
 Indicates that a position is semantically non null: it is only null if there is a matching error in the `errors` array.
@@ -86,3 +87,4 @@ export function getSchema(): GraphQLSchema {
         types: [UserType]
     });
 }
+```

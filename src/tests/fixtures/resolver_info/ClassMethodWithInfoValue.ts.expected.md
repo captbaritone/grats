@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="resolver_info/ClassMethodWithInfoValue.ts"
 import { GqlInfo } from "../../../Types";
 
 /** @gqlType */
@@ -10,10 +10,11 @@ export class SomeType {
     return "Hello";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   greeting: String
@@ -39,3 +40,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

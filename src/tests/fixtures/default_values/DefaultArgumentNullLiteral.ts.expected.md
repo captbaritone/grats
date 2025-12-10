@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="default_values/DefaultArgumentNullLiteral.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -14,10 +14,11 @@ export default class SomeType {
     return "hello";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   someField1(hello: String = null): String
@@ -57,3 +58,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

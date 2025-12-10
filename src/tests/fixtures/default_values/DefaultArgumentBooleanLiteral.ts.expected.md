@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="default_values/DefaultArgumentBooleanLiteral.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -15,10 +15,11 @@ export default class SomeType {
     return "hello";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   someField1(greet: Boolean = false): String
@@ -58,3 +59,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

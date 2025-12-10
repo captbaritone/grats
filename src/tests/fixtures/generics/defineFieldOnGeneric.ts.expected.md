@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/defineFieldOnGeneric.ts"
 /** @gqlType */
 type Edge<T> = {
   /** @gqlField */
@@ -21,10 +21,11 @@ type Page = {
 export function title(edge: Edge<Page>): string {
   return edge.node.title;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Page {
   title: String
@@ -78,3 +79,4 @@ export function getSchema(): GraphQLSchema {
         types: [PageType, PageEdgeType]
     });
 }
+```

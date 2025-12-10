@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_values/non_default_nullable/NonNullablePromise.ts"
 // { "nullableByDefault": false }
 /** @gqlType */
 export default class SomeType {
@@ -9,10 +9,11 @@ export default class SomeType {
     return Promise.resolve("Hello world!");
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   hello: String!
@@ -35,3 +36,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

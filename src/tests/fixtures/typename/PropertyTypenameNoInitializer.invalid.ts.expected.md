@@ -1,16 +1,17 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="typename/PropertyTypenameNoInitializer.invalid.ts"
 /** @gqlType */
 export class User {
   __typename: string;
   /** @gqlField */
   name: string = "Alice";
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/typename/PropertyTypenameNoInitializer.invalid.ts:3:15 - error: Expected `__typename` property signature to specify the typename as a string literal string type. For example `__typename: "User";`. This is needed to ensure Grats can determine the type of this object during GraphQL execution.
 
@@ -38,3 +39,4 @@ export class User {
   /** @gqlField */
   name: string = "Alice";
 }
+```

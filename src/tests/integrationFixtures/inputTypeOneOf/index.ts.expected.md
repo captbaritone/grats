@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="inputTypeOneOf/index.ts"
 import { ID } from "../../..";
 
 /** @gqlInput */
@@ -36,12 +36,14 @@ export const query = `
       greet(greeting: { name: "Alice" })
     }
   `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "greet": "Hello, Alice!"
   }
 }
+```

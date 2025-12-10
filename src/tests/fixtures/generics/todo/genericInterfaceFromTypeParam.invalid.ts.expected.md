@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/todo/genericInterfaceFromTypeParam.invalid.ts"
 /** @gqlType */
 export class User<T> implements Friendly<T> {
   __typename: "User";
@@ -21,11 +21,13 @@ class Dog {
   /** @gqlField */
   bestFriend: User<Dog>;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/generics/todo/genericInterfaceFromTypeParam.invalid.ts:2:33 - error: Unexpected `implements` on generic `gqlType`. Generic types may not currently declare themselves as implementing interfaces. Grats requires that all types which implement an interface define a `__typename` field typed as a string literal matching the type's name. Since generic types are synthesized into multiple types with different names, Grats cannot ensure they have a correct `__typename` property and thus declare themselves as interface implementors.
 
 2 export class User<T> implements Friendly<T> {
                                   ~~~~~~~~
+```

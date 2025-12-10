@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="numericID/index.ts"
 import { ID } from "../../../Types";
 
 /**
@@ -27,12 +27,14 @@ export const query = /* GraphQL */ `
 export const variables = {
   someID: 123,
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "hello": "123"
   }
 }
+```

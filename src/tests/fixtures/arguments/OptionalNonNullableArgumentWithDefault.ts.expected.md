@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="arguments/OptionalNonNullableArgumentWithDefault.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -8,10 +8,11 @@ export default class SomeType {
     return `${greeting ?? "Hello"} World!`;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   hello(greeting: String! = "Hello"): String
@@ -40,3 +41,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="input_types/InputTypeReferencingOutputType.invalid.ts"
 /** @gqlType */
 class SomeType {
   /** @gqlField */
@@ -11,11 +11,13 @@ class SomeType {
 type MyInputType = {
   someField: SomeType;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/input_types/InputTypeReferencingOutputType.invalid.ts:9:14 - error: The type of MyInputType.someField must be Input Type but got: SomeType!.
 
 9   someField: SomeType;
                ~~~~~~~~
+```

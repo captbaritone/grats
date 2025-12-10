@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="descriptions/MultilineDescription.ts"
 /**
  * ’Twas brillig, and the slithy toves
  *   Did gyre and gimble in the wabe:
@@ -13,10 +13,11 @@ class SomeType {
   /** @gqlField */
   name: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """
 ’Twas brillig, and the slithy toves
@@ -46,3 +47,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="interfaces/InterfaceWithDeprecatedField.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -23,10 +23,11 @@ class User implements IPerson {
   /** @gqlField */
   name?: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface IPerson {
   name: String @deprecated(reason: "Not used anymore")
@@ -83,3 +84,4 @@ export function getSchema(): GraphQLSchema {
         types: [IPersonType, SomeTypeType, UserType]
     });
 }
+```

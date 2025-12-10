@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="input_types/InputTypeInterface.ts"
 /** @gqlInput */
 interface MyInputType {
   someField: string;
@@ -13,10 +13,11 @@ class User {
     return args.input.someField;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 input MyInputType {
   someField: String!
@@ -59,3 +60,4 @@ export function getSchema(): GraphQLSchema {
         types: [MyInputTypeType, UserType]
     });
 }
+```

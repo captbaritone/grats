@@ -1,16 +1,17 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="headers/customHeaders.ts"
 // {"schemaHeader": "# Generated SDL", "tsSchemaHeader": "// Generated TS"}
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
   hello: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 # Generated SDL
 
@@ -37,3 +38,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

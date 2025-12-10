@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="enums/NonNullPluralEnumDefaults.ts"
 // https://github.com/captbaritone/grats/issues/174
 
 /** @gqlEnum */
@@ -12,10 +12,11 @@ export function hello(
 ): string {
   return `${greeting.join(", ")} World`;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 enum GreetingOptions {
   Greetings
@@ -72,3 +73,4 @@ export function getSchema(): GraphQLSchema {
         types: [GreetingOptionsType, QueryType]
     });
 }
+```

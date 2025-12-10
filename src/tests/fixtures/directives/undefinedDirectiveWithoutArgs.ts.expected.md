@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="directives/undefinedDirectiveWithoutArgs.ts"
 /**
  * @gqlQueryField
  * @myDirective This will be ignored and assumed to be a TypeScript tag
@@ -8,10 +8,11 @@ INPUT
 export function myQueryField(): string {
   return "myQueryField";
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Query {
   myQueryField: String
@@ -39,3 +40,4 @@ export function getSchema(): GraphQLSchema {
         types: [QueryType]
     });
 }
+```

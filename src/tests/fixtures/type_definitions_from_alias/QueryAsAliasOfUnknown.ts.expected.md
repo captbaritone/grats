@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="type_definitions_from_alias/QueryAsAliasOfUnknown.ts"
 /** @gqlType */
 type Query = unknown;
 
@@ -8,10 +8,11 @@ type Query = unknown;
 export function foo(_: Query): string {
   return "foo";
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Query {
   foo: String
@@ -39,3 +40,4 @@ export function getSchema(): GraphQLSchema {
         types: [QueryType]
     });
 }
+```

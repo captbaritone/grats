@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="arguments/PositionalArgOptional.ts"
 /** @gqlInput */
 type Greeting = {
   name: string;
@@ -14,10 +14,11 @@ export default class SomeType {
     return `${greeting ?? "Hello"} World`;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 input Greeting {
   name: String!
@@ -68,3 +69,4 @@ export function getSchema(): GraphQLSchema {
         types: [GreetingType, SomeTypeType]
     });
 }
+```

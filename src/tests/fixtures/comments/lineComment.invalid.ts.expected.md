@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="comments/lineComment.invalid.ts"
 // @gqlType
 export default class Composer {
   // @gqlField
@@ -8,10 +8,11 @@ export default class Composer {
     return `/composer/`;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/comments/lineComment.invalid.ts:1:4 - error: Unexpected Grats tag in line (`//`) comment. Grats looks for tags in JSDoc-style block comments. e.g. `/** @gqlType */`. For more information see: https://grats.capt.dev/docs/getting-started/comment-syntax
 
@@ -54,3 +55,4 @@ export default class Composer {
     return `/composer/`;
   }
 }
+```

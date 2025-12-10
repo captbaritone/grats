@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="typename/PropertySignatureTypenameNonLiteralType.invalid.ts"
 /** @gqlType */
 export class User implements IPerson {
   __typename: string;
@@ -13,10 +13,11 @@ export interface IPerson {
   /** @gqlField */
   name: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/typename/PropertySignatureTypenameNonLiteralType.invalid.ts:3:15 - error: Expected `__typename` property signature to specify the typename as a string literal string type. For example `__typename: "User";`. This is needed to ensure Grats can determine the type of this object during GraphQL execution.
 
@@ -50,3 +51,4 @@ export interface IPerson {
   /** @gqlField */
   name: string;
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="extend_type/fieldAsArrowFunctionNotExported.invalid.ts"
 /** @gqlType */
 class SomeType {
   // No fields
@@ -10,10 +10,11 @@ class SomeType {
 const greeting = (_: SomeType): string => {
   return `Hello World`;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/extend_type/fieldAsArrowFunctionNotExported.invalid.ts:7:7 - error: Expected `@gqlField` to be an exported top-level declaration. Grats needs to import resolver functions into its generated schema module, so the resolver function must be exported from the module.
 
@@ -44,3 +45,4 @@ class SomeType {
 export const greeting = (_: SomeType): string => {
   return `Hello World`;
 };
+```

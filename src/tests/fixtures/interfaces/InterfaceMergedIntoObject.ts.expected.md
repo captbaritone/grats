@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="interfaces/InterfaceMergedIntoObject.ts"
 declare const Foo: {
   prototype: Foo;
   new (): Foo;
@@ -11,10 +11,11 @@ interface Foo {
   /** @gqlField */
   id: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface Foo {
   id: String
@@ -37,3 +38,4 @@ export function getSchema(): GraphQLSchema {
         types: [FooType]
     });
 }
+```

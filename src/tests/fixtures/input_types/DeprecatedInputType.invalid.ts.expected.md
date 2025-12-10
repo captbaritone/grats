@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="input_types/DeprecatedInputType.invalid.ts"
 /** @gqlType */
 export class SomeType {
   /** @gqlField */
@@ -15,11 +15,13 @@ export class SomeType {
 type MyInputType = {
   someField: string;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/input_types/DeprecatedInputType.invalid.ts:10:5 - error: Directive "@deprecated" may not be used on INPUT_OBJECT.
 
 10  * @deprecated This old thing?
        ~~~~~~~~~~
+```

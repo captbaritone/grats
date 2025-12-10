@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="built_in_scalars/IdField.ts"
 import { ID } from "../../../Types";
 
 /** @gqlType */
@@ -10,10 +10,11 @@ export default class SomeType {
     return "QUERY_ID";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   id: ID
@@ -36,3 +37,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

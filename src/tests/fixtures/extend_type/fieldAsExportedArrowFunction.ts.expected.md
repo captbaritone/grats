@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="extend_type/fieldAsExportedArrowFunction.ts"
 /** @gqlType */
 class SomeType {
   // No fields
@@ -10,10 +10,11 @@ class SomeType {
 export const greeting = (_: SomeType): string => {
   return `Hello World`;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   greeting: String
@@ -40,3 +41,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_definitions/RenamedFieldWithDescription.ts"
 /** @gqlType */
 class SomeType {
   /**
@@ -19,10 +19,11 @@ class SomeType {
     return "Hello world!";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   """Number 1 greeting."""
@@ -60,3 +61,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

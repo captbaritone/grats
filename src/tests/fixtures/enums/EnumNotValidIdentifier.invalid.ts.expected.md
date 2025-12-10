@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="enums/EnumNotValidIdentifier.invalid.ts"
 /** @gqlType */
 class SomeType {
   /** @gqlField */
@@ -12,11 +12,13 @@ export enum Enum {
   VALID = "VALID",
   INVALID = "NOT AT ALL VALID",
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/enums/EnumNotValidIdentifier.invalid.ts:10:13 - error: Names must only contain [_a-zA-Z0-9] but "NOT AT ALL VALID" does not.
 
 10   INVALID = "NOT AT ALL VALID",
                ~~~~~~~~~~~~~~~~~~
+```

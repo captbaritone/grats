@@ -3,6 +3,7 @@ import * as path from "path";
 import { diff } from "jest-diff";
 import { ask } from "./yesNo";
 import { Result } from "../utils/Result";
+import { Markdown } from "./Markdown";
 
 type Transformer = (
   code: string,
@@ -116,14 +117,15 @@ export default class TestRunner {
         ? transformResult.value
         : transformResult.err;
 
-    const testOutput = `-----------------
-INPUT
------------------ 
-${fixtureContent}
------------------
-OUTPUT
------------------
-${actualOutput}`;
+    const fileType = path.extname(fixture).slice(1);
+
+    const output = new Markdown();
+    output.addHeader(2, "input");
+    output.addCodeBlock(fixtureContent, fileType, fixture);
+    output.addHeader(2, "Output");
+    output.addCodeBlock(actualOutput, "");
+
+    const testOutput = output.toString();
 
     // Validate naming convention: .invalid files should have errors, others should succeed
     const isInvalidTest = fixture.includes(".invalid.");

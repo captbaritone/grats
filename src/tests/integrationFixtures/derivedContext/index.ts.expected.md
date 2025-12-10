@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="derivedContext/index.ts"
 /** @gqlContext */
 type Ctx = {};
 
@@ -21,12 +21,14 @@ export const query = `
       hello
     }
   `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "hello": "Hello Roger"
   }
 }
+```

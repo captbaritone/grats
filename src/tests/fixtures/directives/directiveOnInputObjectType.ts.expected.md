@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="directives/directiveOnInputObjectType.ts"
 import { Int } from "../../../Types";
 /**
  * This is my custom directive.
@@ -15,10 +15,11 @@ export function max(args: { foo: Int }) {}
 type MyType = {
   myField: string;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """This is my custom directive."""
 directive @max(foo: Int!) on INPUT_OBJECT
@@ -64,3 +65,4 @@ export function getSchema(): GraphQLSchema {
         types: [MyTypeType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_definitions/PrivateAndProtectedFieldMethods.invalid.ts"
 /** @gqlType */
 export class User {
   /** @gqlField */
@@ -12,10 +12,11 @@ export class User {
     return "Hello";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/field_definitions/PrivateAndProtectedFieldMethods.invalid.ts:4:3 - error: Unexpected access modifier on `@gqlField` method. GraphQL fields must be able to be called by the GraphQL executor.
 
 4   private greet(): string {
@@ -24,3 +25,4 @@ src/tests/fixtures/field_definitions/PrivateAndProtectedFieldMethods.invalid.ts:
 
 8   protected greet2(): string {
     ~~~~~~~~~
+```

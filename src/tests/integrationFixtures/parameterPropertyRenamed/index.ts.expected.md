@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="parameterPropertyRenamed/index.ts"
 /** @gqlQueryField */
 export function me(): User {
   return new User();
@@ -21,10 +21,11 @@ export const query = `
     }
   }
 `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "me": {
@@ -32,3 +33,4 @@ OUTPUT
     }
   }
 }
+```

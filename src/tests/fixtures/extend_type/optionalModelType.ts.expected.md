@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="extend_type/optionalModelType.ts"
 /** @gqlType */
 class SomeType {
   // No fields
@@ -17,10 +17,11 @@ export function greeting(
   }
   return "Hello world!";
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   greeting: String
@@ -47,3 +48,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

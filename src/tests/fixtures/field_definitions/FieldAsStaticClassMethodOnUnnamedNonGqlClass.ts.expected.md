@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_definitions/FieldAsStaticClassMethodOnUnnamedNonGqlClass.ts"
 export default class {
   /** @gqlField */
   static greet(_: Query): string {
@@ -10,10 +10,11 @@ export default class {
 
 /** @gqlType */
 type Query = unknown;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Query {
   greet: String
@@ -41,3 +42,4 @@ export function getSchema(): GraphQLSchema {
         types: [QueryType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="directives/directiveArgFieldInvalid.invalid.ts"
 /**
  * @gqlInput
  */
@@ -18,10 +18,11 @@ export function customDirective(args: { foo: MyInput }) {}
 export function myQueryField(): string {
   return "myQueryField";
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 GraphQL request:1:27 - error: String cannot represent a non string value: 10
 
 1 @customDirective(foo: {a: 10})
@@ -31,3 +32,4 @@ GraphQL request:1:27 - error: String cannot represent a non string value: 10
     4 type MyInput = { a: string };
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Parent input type defined here
+```

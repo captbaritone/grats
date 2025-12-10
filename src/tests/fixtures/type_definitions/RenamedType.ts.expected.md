@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="type_definitions/RenamedType.ts"
 /**
  * @gqlType SomeType
  */
@@ -10,10 +10,11 @@ class MyClass {
     return "Hello world!";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   hello: String
@@ -36,3 +37,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

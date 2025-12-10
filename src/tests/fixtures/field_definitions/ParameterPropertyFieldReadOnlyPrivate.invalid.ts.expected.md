@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_definitions/ParameterPropertyFieldReadOnlyPrivate.invalid.ts"
 /** @gqlType */
 export default class SomeType {
   constructor(
@@ -11,10 +11,11 @@ export default class SomeType {
     private readonly hello: string,
   ) {}
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/field_definitions/ParameterPropertyFieldReadOnlyPrivate.invalid.ts:8:5 - error: Expected `@gqlField` parameter property to be public. Valid modifiers for `@gqlField` parameter properties are  `public` and `readonly`.
 
@@ -48,3 +49,4 @@ export default class SomeType {
     public readonly hello: string,
   ) {}
 }
+```

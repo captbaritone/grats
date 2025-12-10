@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="killsParentOnExceptionOnQuery/index.ts"
 /**
  * @gqlQueryField
  * @killsParentOnException
@@ -20,10 +20,11 @@ export const query = `
     hello
   }
 `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "errors": [
     {
@@ -41,3 +42,4 @@ OUTPUT
   ],
   "data": null
 }
+```

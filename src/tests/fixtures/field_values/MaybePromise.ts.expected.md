@@ -1,15 +1,16 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_values/MaybePromise.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
   b: Promise<string> | null;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   b: String
@@ -32,3 +33,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

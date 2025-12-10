@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="input_types/InputTypeWithFieldDescription.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -12,10 +12,11 @@ type MyInputType = {
   /** Sweet field! */
   someField: string;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 input MyInputType {
   """Sweet field!"""
@@ -55,3 +56,4 @@ export function getSchema(): GraphQLSchema {
         types: [MyInputTypeType, SomeTypeType]
     });
 }
+```

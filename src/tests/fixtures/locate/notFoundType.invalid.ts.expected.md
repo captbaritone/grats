@@ -1,14 +1,16 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="locate/notFoundType.invalid.ts"
 // Locate: WhoopsNotARealType
 /** @gqlType */
 type User = {
   /** @gqlField */
   name: string;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 Cannot locate type `WhoopsNotARealType`.
+```

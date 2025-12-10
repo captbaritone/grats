@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="unions/DefineUnionTypeWithInterfaces.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -23,10 +23,11 @@ interface Entity {
 
 /** @gqlUnion */
 type Actor = User | Entity;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 union Actor = Entity | User
 
@@ -87,3 +88,4 @@ export function getSchema(): GraphQLSchema {
         types: [ActorType, EntityType, SomeTypeType, UserType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="interfaces/InterfaceWithDescription.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -25,10 +25,11 @@ class User implements IPerson {
   /** @gqlField */
   name: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """An interface describing the common elements of all people types."""
 interface IPerson {
@@ -86,3 +87,4 @@ export function getSchema(): GraphQLSchema {
         types: [IPersonType, SomeTypeType, UserType]
     });
 }
+```

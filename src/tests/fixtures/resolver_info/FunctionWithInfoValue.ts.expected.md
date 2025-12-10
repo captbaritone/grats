@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="resolver_info/FunctionWithInfoValue.ts"
 import { GqlInfo } from "../../../Types";
 
 /** @gqlField */
@@ -10,10 +10,11 @@ export function greetz(_: Query, info: GqlInfo): string {
 
 /** @gqlType */
 type Query = unknown;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Query {
   greetz: String
@@ -41,3 +42,4 @@ export function getSchema(): GraphQLSchema {
         types: [QueryType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="typename/UnionMemberMissingTypename.invalid.ts"
 /** @gqlType */
 class User {
   /** @gqlField */
@@ -15,10 +15,11 @@ class Group {
 
 /** @gqlUnion */
 export type MyUnion = User | Group;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/typename/UnionMemberMissingTypename.invalid.ts:8:7 - error: Cannot resolve typename. The type `Group` is a member of `MyUnion`, so it must either have a `__typename` property or be an exported class.
 
 8 class Group {
@@ -37,3 +38,4 @@ src/tests/fixtures/typename/UnionMemberMissingTypename.invalid.ts:2:7 - error: C
     14 export type MyUnion = User | Group;
                    ~~~~~~~
     MyUnion is defined here:
+```

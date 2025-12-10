@@ -1,15 +1,16 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_definitions/MethodSignatureOnInterface.ts"
 /** @gqlInterface */
 interface ICarly {
   /** @gqlField */
   name(): string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface ICarly {
   name: String
@@ -32,3 +33,4 @@ export function getSchema(): GraphQLSchema {
         types: [ICarlyType]
     });
 }
+```

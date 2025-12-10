@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/names/skippedTypeParamPassesLiteral.ts"
 /** @gqlType */
 type Edge<From, To> = {
   /** @gqlField */
@@ -32,10 +32,11 @@ export function connection(): Edge<
     },
   };
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type A {
   a: String
@@ -108,3 +109,4 @@ export function getSchema(): GraphQLSchema {
         types: [AType, BType, BEdgeType, QueryType]
     });
 }
+```

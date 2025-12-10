@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/arrayPassedToGeneric.invalid.ts"
 /** @gqlType */
 type Page = {
   /** @gqlField */
@@ -26,10 +26,11 @@ type Foo = {
   /** @gqlField */
   c: SomeType<Page | null>;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/generics/arrayPassedToGeneric.invalid.ts:19:15 - error: Expected `SomeType` to be passed a GraphQL type argument for type parameter `T`.
 
 19   a: SomeType<Page[]>;
@@ -60,3 +61,4 @@ src/tests/fixtures/generics/arrayPassedToGeneric.invalid.ts:24:15 - error: Expec
     10   someField: T;
                     ~
     and expects a GraphQL type because it was used in a GraphQL position here.
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="promiseOfPromise/index.ts"
 /** @gqlQueryField */
 export function promiseOfPromise(): Promise<Promise<string>> {
   return promiseOf(promiseOf("Hello world!"));
@@ -22,13 +22,15 @@ export const query = `
     promiseOfPromise
     promiseOfPromisePromise
   }`;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "promiseOfPromise": "Hello world!",
     "promiseOfPromisePromise": "Hello world!"
   }
 }
+```

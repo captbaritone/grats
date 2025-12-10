@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="unions/UnionWithDescription.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -26,10 +26,11 @@ class Entity {
  * @gqlUnion
  */
 type Actor = User | Entity;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """One type to rule them all, and in a union bind them."""
 union Actor = Entity | User
@@ -92,3 +93,4 @@ export function getSchema(): GraphQLSchema {
         types: [ActorType, EntityType, SomeTypeType, UserType]
     });
 }
+```

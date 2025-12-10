@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/genericReferencedMoreThanOnce.ts"
 /** @gqlType */
 type Err = {
   __typename: "Err";
@@ -25,10 +25,11 @@ export type SomeType = {
   /** @gqlField */
   alsoPageResult: Result<Page>;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 union PageResult = Err | Page
 
@@ -94,3 +95,4 @@ export function getSchema(): GraphQLSchema {
         types: [PageResultType, ErrType, PageType, SomeTypeType]
     });
 }
+```

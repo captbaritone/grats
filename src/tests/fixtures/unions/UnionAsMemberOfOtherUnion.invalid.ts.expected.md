@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="unions/UnionAsMemberOfOtherUnion.invalid.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -33,11 +33,13 @@ type Foo = User | Entity;
 
 /** @gqlUnion */
 type Actor = Admin | Foo;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/unions/UnionAsMemberOfOtherUnion.invalid.ts:32:22 - error: Union type Actor can only include Object types, it cannot include Foo.
 
 32 type Actor = Admin | Foo;
                         ~~~
+```

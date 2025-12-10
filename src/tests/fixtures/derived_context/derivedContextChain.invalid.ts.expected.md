@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="derived_context/derivedContextChain.invalid.ts"
 /** @gqlContext */
 type RootContext = { userName: string };
 
@@ -47,10 +47,11 @@ export function consumingMultipleContexts(
 ): string {
   return `${root.userName} ${a.greeting} ${b.greeting} ${everything.greeting}`;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/derived_context/derivedContextChain.invalid.ts:6:5 - error: Cyclic dependency detected in derived context. This derived context value depends upon itself.
 
 6 /** @gqlContext */
@@ -85,3 +86,4 @@ src/tests/fixtures/derived_context/derivedContextChain.invalid.ts:6:5 - error: C
     14 export function createDerivedContextB(ctx: DerivedContextA): DerivedContextB {
                                              ~~~~~~~~~~~~~~~~~~~~
     Which ultimately creates a cycle back to the initial derived context
+```

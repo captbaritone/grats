@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="interfaces/InterfaceDefinitionExtendsGqlInterface.ts"
 import { Int } from "../../../Types";
 
 /** @gqlInterface */
@@ -28,10 +28,11 @@ export interface User extends Mammal, Person {
   /** @gqlField */
   legs: Int;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface Mammal {
   legs: Int
@@ -100,3 +101,4 @@ export function getSchema(): GraphQLSchema {
         types: [MammalType, PersonType, UserType]
     });
 }
+```

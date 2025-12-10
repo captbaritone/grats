@@ -1,11 +1,12 @@
------------------
-INPUT
------------------ 
-/** @gqlFiled */
+## input
 
------------------
-OUTPUT
------------------
+```ts title="user_error/GqlTagDoesNotExist.invalid.ts"
+/** @gqlFiled */
+```
+
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/user_error/GqlTagDoesNotExist.invalid.ts:1:6 - error: `@gqlFiled` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`, `@gqlDirective`, `@gqlAnnotate`, `@gqlQueryField`, `@gqlMutationField`, `@gqlSubscriptionField`.
 
@@ -26,3 +27,4 @@ src/tests/fixtures/user_error/GqlTagDoesNotExist.invalid.ts:1:6 - error: `@gqlFi
 
 -- Fixed Text --
 /** @gqlField */
+```

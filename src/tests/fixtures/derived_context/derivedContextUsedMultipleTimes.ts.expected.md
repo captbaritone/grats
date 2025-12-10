@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="derived_context/derivedContextUsedMultipleTimes.ts"
 /** @gqlContext */
 type RootContext = {
   userName: string;
@@ -27,10 +27,11 @@ export function greeting(_: Query, ctx: DerivedContext): string {
 export function farewell(_: Query, ctx: DerivedContext): string {
   return `${ctx.greeting}... NOT!`;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Query {
   farewell: String
@@ -66,3 +67,4 @@ export function getSchema(): GraphQLSchema {
         types: [QueryType]
     });
 }
+```

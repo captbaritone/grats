@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="descriptions/BlankLinesAroundDescription.ts"
 /**
  *
  *
@@ -26,10 +26,11 @@ class SomeType {
   /** @gqlField */
   name: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """Sup"""
 type SomeType {
@@ -54,3 +55,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

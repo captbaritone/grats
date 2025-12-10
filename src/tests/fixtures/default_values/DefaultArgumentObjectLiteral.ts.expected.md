@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="default_values/DefaultArgumentObjectLiteral.ts"
 import { Int } from "../../../Types";
 
 /** @gqlType */
@@ -20,10 +20,11 @@ type ConnectionInput = {
   first: Int;
   offset: Int;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 input ConnectionInput {
   first: Int!
@@ -75,3 +76,4 @@ export function getSchema(): GraphQLSchema {
         types: [ConnectionInputType, SomeTypeType]
     });
 }
+```

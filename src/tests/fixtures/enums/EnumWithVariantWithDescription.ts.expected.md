@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="enums/EnumWithVariantWithDescription.ts"
 /** @gqlType */
 class SomeType {
   /** @gqlField */
@@ -14,10 +14,11 @@ enum Enum {
   /** Invalid enum value. */
   INVALID = "INVALID",
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 enum Enum {
   """Invalid enum value."""
@@ -60,3 +61,4 @@ export function getSchema(): GraphQLSchema {
         types: [EnumType, SomeTypeType]
     });
 }
+```

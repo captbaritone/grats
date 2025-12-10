@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="complexPlurals/index.ts"
 /** @gqlQueryField */
 export function arrayOfPromises(): Promise<string>[] {
   return [
@@ -48,10 +48,11 @@ export const query = `
       # asyncIterableOfArrayOfPromises
     }
   `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "arrayOfPromises": [
@@ -74,3 +75,4 @@ OUTPUT
     ]
   }
 }
+```

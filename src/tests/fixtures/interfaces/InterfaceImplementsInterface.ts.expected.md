@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="interfaces/InterfaceImplementsInterface.ts"
 /** @gqlInterface Node */
 interface GqlNode {
   /** @gqlField */
@@ -20,10 +20,11 @@ interface Actor extends GqlNode, Person {
   /** @gqlField */
   name: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface Actor implements Node & Person {
   id: String
@@ -84,3 +85,4 @@ export function getSchema(): GraphQLSchema {
         types: [ActorType, NodeType, PersonType]
     });
 }
+```

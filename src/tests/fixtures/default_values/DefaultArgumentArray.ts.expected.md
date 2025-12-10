@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="default_values/DefaultArgumentArray.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -15,10 +15,11 @@ export default class SomeType {
     return inputs.join("|");
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   someField1(inputs: [String!] = ["hello", "there"]): String
@@ -50,3 +51,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

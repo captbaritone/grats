@@ -1,15 +1,16 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="custom_scalars/SpecifiedBy.ts"
 /**
  * @gqlScalar
  * @gqlAnnotate specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
  */
 export type UUID = string;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
 -- TypeScript --
@@ -31,3 +32,4 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
         types: [UUIDType]
     });
 }
+```

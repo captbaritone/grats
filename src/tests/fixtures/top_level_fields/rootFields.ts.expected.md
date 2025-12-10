@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="top_level_fields/rootFields.ts"
 import { Int } from "../../../Types";
 /** @gqlQueryField */
 export function greeting(): string {
@@ -19,10 +19,11 @@ export async function* range(from: Int): AsyncIterable<Int> {
     yield i;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Mutation {
   deleteSomething: String
@@ -96,3 +97,4 @@ export function getSchema(): GraphQLSchema {
         types: [MutationType, QueryType, SubscriptionType]
     });
 }
+```

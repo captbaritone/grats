@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="descriptions/DescriptionFollowsTypeTag.invalid.ts"
 /**
  * @gqlType
  *
@@ -12,10 +12,11 @@ export type Query = unknown;
 export function queryField(_: Query): string {
   return "";
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/descriptions/DescriptionFollowsTypeTag.invalid.ts:2:4 - error: Expected text following a `@gqlType` tag to be a GraphQL name. If you intended this text to be a description, place it at the top of the docblock before any `@tags`.
 
 2  * @gqlType
@@ -26,3 +27,4 @@ src/tests/fixtures/descriptions/DescriptionFollowsTypeTag.invalid.ts:2:4 - error
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 5  */
   ~
+```

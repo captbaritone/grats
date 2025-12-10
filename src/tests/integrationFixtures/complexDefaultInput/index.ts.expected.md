@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="complexDefaultInput/index.ts"
 /**
  * @gqlInput
  */
@@ -24,12 +24,14 @@ export const query = `
       hello
     }
   `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "hello": "Sup"
   }
 }
+```

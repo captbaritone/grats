@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="connectionExample/index.ts"
 import { Int } from "../../../Types";
 
 /** @gqlQueryField */
@@ -154,10 +154,11 @@ export const query = gql`
     }
   }
 `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "firstTwo": {
@@ -216,3 +217,4 @@ OUTPUT
     }
   }
 }
+```

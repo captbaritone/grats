@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_definitions/FieldAsStaticClassMethodNotExported.invalid.ts"
 /** @gqlType */
 class User {
   /** @gqlField */
@@ -14,10 +14,11 @@ class User {
 
 /** @gqlType */
 type Query = unknown;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/field_definitions/FieldAsStaticClassMethodNotExported.invalid.ts:2:7 - error: Expected `@gqlField` static method's class to be exported. Grats needs to import resolvers into its generated schema module, so the resolver class must be an exported.
 
@@ -56,3 +57,4 @@ export class User {
 
 /** @gqlType */
 type Query = unknown;
+```

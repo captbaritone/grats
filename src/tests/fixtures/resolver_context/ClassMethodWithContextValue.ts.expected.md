@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="resolver_context/ClassMethodWithContextValue.ts"
 /** @gqlContext */
 type GratsContext = {
   greeting: string;
@@ -13,10 +13,11 @@ export class SomeType {
     return ctx.greeting;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   greeting: String
@@ -42,3 +43,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

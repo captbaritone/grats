@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/genericTypeUsingClass.ts"
 /** @gqlType */
 type Page = {
   /** @gqlField */
@@ -22,10 +22,11 @@ type Query = unknown;
 export function createEdge(_: Query): Edge<Page> {
   return { node: { name: "My Page" }, cursor: "cursor" };
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Page {
   name: String
@@ -88,3 +89,4 @@ export function getSchema(): GraphQLSchema {
         types: [PageType, PageEdgeType, QueryType]
     });
 }
+```

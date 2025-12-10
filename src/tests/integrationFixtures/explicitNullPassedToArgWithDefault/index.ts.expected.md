@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="explicitNullPassedToArgWithDefault/index.ts"
 /**
  * Validating what graphql-js does when an explicit null is passed to an argument
  * with a default value.
@@ -27,12 +27,14 @@ export const query = `
       hello(someArg: null)
     }
   `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "hello": "got null"
   }
 }
+```

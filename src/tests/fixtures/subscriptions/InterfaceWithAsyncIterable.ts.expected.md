@@ -1,15 +1,16 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="subscriptions/InterfaceWithAsyncIterable.ts"
 /** @gqlInterface */
 export interface NotSubscription {
   /** @gqlField */
   greetings(): AsyncIterable<string>;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface NotSubscription {
   greetings: [String!]
@@ -32,3 +33,4 @@ export function getSchema(): GraphQLSchema {
         types: [NotSubscriptionType]
     });
 }
+```

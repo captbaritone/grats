@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="extend_interface/addStringFieldToInterfaceImplementedByInterface.ts"
 /** @gqlField */
 export function greeting(thing: IThing): string {
   return `Hello ${thing.name}!`;
@@ -33,10 +33,11 @@ class Admin implements IPerson, IThing {
   name: string;
   // Should have greeting added
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface IPerson implements IThing {
   greeting: String
@@ -120,3 +121,4 @@ export function getSchema(): GraphQLSchema {
         types: [IPersonType, IThingType, AdminType, UserType]
     });
 }
+```

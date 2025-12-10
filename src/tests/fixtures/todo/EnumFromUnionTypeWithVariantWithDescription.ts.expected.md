@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="todo/EnumFromUnionTypeWithVariantWithDescription.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -13,10 +13,11 @@ type MyEnum =
   | "VALID"
   /** INVALIDATED! */
   | "INVALID";
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 enum MyEnum {
   INVALID
@@ -55,3 +56,4 @@ export function getSchema(): GraphQLSchema {
         types: [MyEnumType, SomeTypeType]
     });
 }
+```

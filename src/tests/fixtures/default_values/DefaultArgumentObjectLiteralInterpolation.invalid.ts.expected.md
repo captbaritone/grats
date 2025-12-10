@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="default_values/DefaultArgumentObjectLiteralInterpolation.invalid.ts"
 import { Int } from "../../../Types";
 
 const first = 10;
@@ -22,10 +22,11 @@ type ConnectionInput = {
   first: Int;
   offset: Int;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/default_values/DefaultArgumentObjectLiteralInterpolation.invalid.ts:9:15 - error: Expected property to be a default assignment. For example: `{ first = 10}`. Grats needs to extract a literal GraphQL value here, and that requires Grats being able to see the literal value in the source code.
 
 If you think Grats should be able to infer this constant value, please report an issue at https://github.com/captbaritone/grats/issues.
@@ -38,3 +39,4 @@ If you think Grats should be able to infer this constant value, please report an
 
 9     input = { first, offset },
                        ~~~~~~
+```

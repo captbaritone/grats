@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="type_definitions/RenamedTypeWithoutClassName.invalid.ts"
 /**
  * @gqlType SomeType
  */
@@ -10,10 +10,11 @@ export default class {
     return "Hello world!";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/type_definitions/RenamedTypeWithoutClassName.invalid.ts:4:1 - error: Unexpected `@gqlType` annotation on unnamed class declaration. Grats uses the name of the class to derive the name of the GraphQL type. Consider naming the class.
 
   4 export default class {
@@ -25,3 +26,4 @@ src/tests/fixtures/type_definitions/RenamedTypeWithoutClassName.invalid.ts:4:1 -
     ~~~
   9 }
     ~
+```

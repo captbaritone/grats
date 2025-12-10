@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="user_error/DuplicateOneOfTag.invalid.ts"
 /**
  * @gqlInput
  * @oneOf
@@ -9,10 +9,11 @@ INPUT
 type Foo = {
   a: string;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/user_error/DuplicateOneOfTag.invalid.ts:3:4 - error: Unexpected duplicate `@oneOf` tag. Grats does not accept multiple instances of the same tag.
 
@@ -50,3 +51,4 @@ src/tests/fixtures/user_error/DuplicateOneOfTag.invalid.ts:3:4 - error: Unexpect
 type Foo = {
   a: string;
 };
+```

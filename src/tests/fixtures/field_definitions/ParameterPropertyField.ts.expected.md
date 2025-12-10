@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_definitions/ParameterPropertyField.ts"
 /** @gqlType */
 export default class SomeType {
   constructor(
@@ -8,10 +8,11 @@ export default class SomeType {
     public hello: string,
   ) {}
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   hello: String
@@ -34,3 +35,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_definitions/RenamedField.ts"
 /** @gqlType */
 class SomeType {
   /** @gqlField greeting */
@@ -11,10 +11,11 @@ class SomeType {
     return "Hello world!";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   greeting: String
@@ -48,3 +49,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

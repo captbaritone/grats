@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="resolver_context/MultipleClassMethodsReferencingContextValue.ts"
 /** @gqlContext */
 type GratsContext = {
   greeting: string;
@@ -18,10 +18,11 @@ export class SomeType {
     return ctx.greeting;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   alsoGreeting: String
@@ -55,3 +56,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

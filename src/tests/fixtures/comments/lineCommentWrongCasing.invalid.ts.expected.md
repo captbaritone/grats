@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="comments/lineCommentWrongCasing.invalid.ts"
 // @GQLtYPE
 export default class Composer {
   // @gqlfield
@@ -8,10 +8,11 @@ export default class Composer {
     return `/composer/`;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:1:4 - error: `@GQLtYPE` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`, `@gqlDirective`, `@gqlAnnotate`, `@gqlQueryField`, `@gqlMutationField`, `@gqlSubscriptionField`.
 
@@ -62,3 +63,4 @@ export default class Composer {
     return `/composer/`;
   }
 }
+```

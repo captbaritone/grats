@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_definitions/DeprecatedMethodField.ts"
 /** @gqlType */
 export default class SomeType {
   /**
@@ -11,10 +11,11 @@ export default class SomeType {
     return "Hello world!";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   hello: String @deprecated(reason: "Use something else.")
@@ -38,3 +39,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

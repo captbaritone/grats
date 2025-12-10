@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="positionalNonNullArgWithDefault/index.ts"
 /** @gqlQueryField */
 export function hello(greeting: string = "Hello"): string {
   return `${greeting}, world!`;
@@ -11,12 +11,14 @@ export const query = `
       hello
     }
   `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "hello": "Hello, world!"
   }
 }
+```

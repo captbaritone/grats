@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="arguments/ArgumentWithDescription.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -11,10 +11,11 @@ export default class SomeType {
     return `${args.greeting} world!`;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   hello(
@@ -46,3 +47,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

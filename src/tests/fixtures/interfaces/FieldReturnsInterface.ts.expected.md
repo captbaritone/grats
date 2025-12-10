@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="interfaces/FieldReturnsInterface.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -21,10 +21,11 @@ class User implements IPerson {
   /** @gqlField */
   name: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface Person {
   name: String
@@ -80,3 +81,4 @@ export function getSchema(): GraphQLSchema {
         types: [PersonType, SomeTypeType, UserType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="resolver_context/MultipleContextValuesUsed.invalid.ts"
 /** @gqlContext */
 type GratsContext = {
   greeting: string;
@@ -22,10 +22,11 @@ export class SomeType {
     return ctx.greeting;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/resolver_context/MultipleContextValuesUsed.invalid.ts:6:5 - error: Unexpected duplicate `@gqlContext` tag. Only one type in a project may be annotated with the `@gqlContext`.
 
 6 /** @gqlContext */
@@ -35,3 +36,4 @@ src/tests/fixtures/resolver_context/MultipleContextValuesUsed.invalid.ts:6:5 - e
     1 /** @gqlContext */
           ~~~~~~~~~~~~
     `@gqlContext` previously defined here.
+```

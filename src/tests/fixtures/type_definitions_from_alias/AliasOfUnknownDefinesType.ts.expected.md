@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="type_definitions_from_alias/AliasOfUnknownDefinesType.ts"
 /** @gqlType */
 export type SomeType = unknown;
 
@@ -8,10 +8,11 @@ export type SomeType = unknown;
 export function greeting(_: SomeType): string {
   return "Hello world";
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   greeting: String
@@ -38,3 +39,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

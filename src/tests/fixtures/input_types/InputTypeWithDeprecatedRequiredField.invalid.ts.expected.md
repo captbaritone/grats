@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="input_types/InputTypeWithDeprecatedRequiredField.invalid.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -14,10 +14,11 @@ type MyInputType = {
    */
   someField: string;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/input_types/InputTypeWithDeprecatedRequiredField.invalid.ts:10:7 - error: Required input field MyInputType.someField cannot be deprecated.
 
 10    * @deprecated Sweet, but stale
@@ -27,3 +28,4 @@ src/tests/fixtures/input_types/InputTypeWithDeprecatedRequiredField.invalid.ts:1
     12   someField: string;
                     ~~~~~~
     Related location
+```

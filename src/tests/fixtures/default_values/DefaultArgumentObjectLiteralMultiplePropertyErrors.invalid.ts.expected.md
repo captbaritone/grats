@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="default_values/DefaultArgumentObjectLiteralMultiplePropertyErrors.invalid.ts"
 import { Int } from "../../../Types";
 
 /** @gqlType */
@@ -24,10 +24,11 @@ type ConnectionInput = {
   first: Int;
   offset: Int;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/default_values/DefaultArgumentObjectLiteralMultiplePropertyErrors.invalid.ts:7:22 - error: Expected GraphQL field argument default values to be a literal. Grats interprets argument defaults as GraphQL default values, which must be literals. For example: `10` or `"foo"`.
 
 If you think Grats should be able to infer this constant value, please report an issue at https://github.com/captbaritone/grats/issues.
@@ -40,3 +41,4 @@ If you think Grats should be able to infer this constant value, please report an
 
 7     input = { first: func(), offset: func() },
                                        ~~~~~~
+```

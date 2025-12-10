@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="arguments/PositionalArgDeprecatedOptional.ts"
 /** @gqlInput */
 type Greeting = {
   name: string;
@@ -17,10 +17,11 @@ export default class SomeType {
     return `Hullo`;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 input Greeting {
   name: String!
@@ -72,3 +73,4 @@ export function getSchema(): GraphQLSchema {
         types: [GreetingType, SomeTypeType]
     });
 }
+```

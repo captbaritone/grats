@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="killsParentOnExceptionReturnsNull/index.ts"
 /** @gqlQueryField */
 export function me(): User {
   return new User();
@@ -25,10 +25,11 @@ export const query = `
     }
   }
 `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "errors": [
     {
@@ -49,3 +50,4 @@ OUTPUT
     "me": null
   }
 }
+```

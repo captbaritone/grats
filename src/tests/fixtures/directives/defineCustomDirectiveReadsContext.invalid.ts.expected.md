@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="directives/defineCustomDirectiveReadsContext.invalid.ts"
 /** @gqlContext */
 type Ctx = {};
 
@@ -9,11 +9,13 @@ type Ctx = {};
  * @gqlDirective on FIELD_DEFINITION
  */
 export function customDirective(oops: Ctx) {}
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/directives/defineCustomDirectiveReadsContext.invalid.ts:8:33 - error: Expected first argument of a `@gqlDirective` function to be typed using an inline object literal.
 
 8 export function customDirective(oops: Ctx) {}
                                   ~~~~~~~~~
+```

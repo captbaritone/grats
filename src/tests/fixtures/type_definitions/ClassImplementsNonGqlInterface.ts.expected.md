@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="type_definitions/ClassImplementsNonGqlInterface.ts"
 /**
  * The root of all evil.
  * @gqlType
@@ -13,10 +13,11 @@ export default class User implements IPerson {
 interface IPerson {
   hello: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """The root of all evil."""
 type User {
@@ -41,3 +42,4 @@ export function getSchema(): GraphQLSchema {
         types: [UserType]
     });
 }
+```

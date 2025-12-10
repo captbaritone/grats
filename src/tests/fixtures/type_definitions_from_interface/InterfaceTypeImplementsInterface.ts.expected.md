@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="type_definitions_from_interface/InterfaceTypeImplementsInterface.ts"
 /** @gqlType */
 export default interface User extends HasName {
   __typename: "User";
@@ -16,10 +16,11 @@ interface HasName {
   /** @gqlField */
   name: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface HasName {
   name: String
@@ -65,3 +66,4 @@ export function getSchema(): GraphQLSchema {
         types: [HasNameType, UserType]
     });
 }
+```

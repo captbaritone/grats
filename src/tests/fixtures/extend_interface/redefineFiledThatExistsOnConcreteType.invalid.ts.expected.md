@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="extend_interface/redefineFiledThatExistsOnConcreteType.invalid.ts"
 /** @gqlInterface */
 interface IPerson {
   name: string;
@@ -25,10 +25,11 @@ class User implements IPerson {
     return `Hello ${this.name}!`;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/extend_interface/redefineFiledThatExistsOnConcreteType.invalid.ts:21:3 - error: Field "User.greeting" can only be defined once.
 
 21   greeting(): string {
@@ -38,3 +39,4 @@ src/tests/fixtures/extend_interface/redefineFiledThatExistsOnConcreteType.invali
     9 export function greeting(person: IPerson): string {
                       ~~~~~~~~
     Related location
+```

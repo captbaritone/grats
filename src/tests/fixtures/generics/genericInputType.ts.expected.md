@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/genericInputType.ts"
 /** @gqlInput */
 type SomeInput<T> = {
   someField: T;
@@ -18,10 +18,11 @@ class SomeClass {
     return args.someArg.someField.anotherField;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 input AnotherInput {
   anotherField: String!
@@ -79,3 +80,4 @@ export function getSchema(): GraphQLSchema {
         types: [AnotherInputType, AnotherInputSomeInputType, SomeClassType]
     });
 }
+```

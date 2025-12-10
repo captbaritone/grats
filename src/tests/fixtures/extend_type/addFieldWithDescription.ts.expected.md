@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="extend_type/addFieldWithDescription.ts"
 /** @gqlType */
 class SomeType {
   // No fields
@@ -13,10 +13,11 @@ class SomeType {
 export function greeting(_: SomeType): string {
   return "Hello world!";
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   """Best field ever!"""
@@ -45,3 +46,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

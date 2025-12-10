@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="locate/genericType.invalid.ts"
 // Locate: PageEdge
 
 /** @gqlType */
@@ -36,11 +36,13 @@ type PageInfo = {
   /** @gqlField */
   endCursor: string;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/locate/genericType.invalid.ts:20:10 - error: Located here
 
 20   edges: Edge<Page>[];
             ~~~~~~~~~~
+```

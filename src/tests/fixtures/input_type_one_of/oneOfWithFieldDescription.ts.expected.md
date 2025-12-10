@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="input_type_one_of/oneOfWithFieldDescription.ts"
 // Known issue, descriptions are not parsed?
 
 /**
@@ -11,10 +11,11 @@ export type Greeting =
   | { firstName: string }
   /** Last Name */
   | { lastName: string };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 input Greeting @oneOf {
   firstName: String
@@ -43,3 +44,4 @@ export function getSchema(): GraphQLSchema {
         types: [GreetingType]
     });
 }
+```

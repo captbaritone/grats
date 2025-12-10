@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="input_types/InputTypeReturnedFromField.invalid.ts"
 /** @gqlType */
 class SomeType {
   /** @gqlField */
@@ -17,10 +17,11 @@ class MyType {
 type MyInputType = {
   someField: MyType;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/input_types/InputTypeReturnedFromField.invalid.ts:15:14 - error: The type of MyInputType.someField must be Input Type but got: MyType!.
 
 15   someField: MyType;
@@ -29,3 +30,4 @@ src/tests/fixtures/input_types/InputTypeReturnedFromField.invalid.ts:10:16 - err
 
 10   someField(): MyInputType;
                   ~~~~~~~~~~~
+```

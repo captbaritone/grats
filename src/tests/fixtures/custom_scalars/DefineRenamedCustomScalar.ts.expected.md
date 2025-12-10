@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="custom_scalars/DefineRenamedCustomScalar.ts"
 /** @gqlType */
 class SomeType {
   /** @gqlField */
@@ -9,10 +9,11 @@ class SomeType {
 
 /** @gqlScalar CustomName */
 export type MyUrl = string;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 scalar CustomName
 
@@ -48,3 +49,4 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
         types: [CustomNameType, SomeTypeType]
     });
 }
+```

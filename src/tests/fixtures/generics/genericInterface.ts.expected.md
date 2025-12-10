@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/genericInterface.ts"
 /** @gqlType */
 class User implements Friendly<Dog> {
   __typename: "User";
@@ -23,10 +23,11 @@ class Dog {
   /** @gqlField */
   bestFriend: Friendly<Dog>;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface DogFriendly {
   to: Dog
@@ -92,3 +93,4 @@ export function getSchema(): GraphQLSchema {
         types: [DogFriendlyType, DogType, UserType]
     });
 }
+```

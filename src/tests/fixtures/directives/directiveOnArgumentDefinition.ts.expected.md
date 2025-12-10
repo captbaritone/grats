@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="directives/directiveOnArgumentDefinition.ts"
 import { Int } from "../../../Types";
 /**
  * This is my custom directive.
@@ -17,10 +17,11 @@ export function likes(args: {
 }): string {
   return "hello";
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """This is my custom directive."""
 directive @max(foo: Int!) on ARGUMENT_DEFINITION
@@ -78,3 +79,4 @@ export function getSchema(): GraphQLSchema {
         types: [QueryType]
     });
 }
+```

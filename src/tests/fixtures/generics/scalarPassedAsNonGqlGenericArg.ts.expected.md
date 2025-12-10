@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/scalarPassedAsNonGqlGenericArg.ts"
 /** @gqlType */
 type Wrapper<T> = {
   /** @gqlField */
@@ -12,10 +12,11 @@ type OtherType = {
   /** @gqlField */
   wrapper: Wrapper<string>;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type OtherType {
   wrapper: Wrapper
@@ -53,3 +54,4 @@ export function getSchema(): GraphQLSchema {
         types: [OtherTypeType, WrapperType]
     });
 }
+```

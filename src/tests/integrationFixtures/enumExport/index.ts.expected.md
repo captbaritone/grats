@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="enumExport/index.ts"
 // {"tsClientEnums": "enums.ts"}
 
 /** @gqlEnum */
@@ -48,10 +48,11 @@ export const query = /* GraphQL */ `
     colorName(color: red)
   }
 `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "favoriteColor": "red",
@@ -59,3 +60,4 @@ OUTPUT
     "colorName": "Red"
   }
 }
+```

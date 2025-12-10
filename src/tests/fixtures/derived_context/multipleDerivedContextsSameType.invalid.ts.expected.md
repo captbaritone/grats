@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="derived_context/multipleDerivedContextsSameType.invalid.ts"
 /** @gqlContext */
 type RootContext = {
   userName: string;
@@ -27,10 +27,11 @@ type Query = unknown;
 export function greeting(_: Query, ctx: DerivedContext): string {
   return ctx.greeting;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/derived_context/multipleDerivedContextsSameType.invalid.ts:6:1 - error: Multiple derived contexts defined for given type
 
 6 type DerivedContext = {
@@ -48,3 +49,4 @@ src/tests/fixtures/derived_context/multipleDerivedContextsSameType.invalid.ts:6:
     10 /** @gqlContext */
            ~~~~~~~~~~~~
     Another here
+```

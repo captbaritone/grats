@@ -1,13 +1,14 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/scalarWithGeneric.ts"
 // T is not inspected by Grats, so this is fine.
 /** @gqlScalar */
 export type MyScalar<T> = T;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 scalar MyScalar
 -- TypeScript --
@@ -28,3 +29,4 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
         types: [MyScalarType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="examples/readme.ts"
 /** @gqlType */
 type Query = unknown;
 
@@ -29,10 +29,11 @@ class UserResolver {
     return `${args.salutation}, ${this.name}`;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Query {
   me: User
@@ -96,3 +97,4 @@ export function getSchema(): GraphQLSchema {
         types: [QueryType, UserType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/referencingMethodGeneric.invalid.ts"
 /** @gqlType */
 type Query = unknown;
 
@@ -8,10 +8,11 @@ type Query = unknown;
 export function greeting<T>(_: Query): T {
   return null as any;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/generics/referencingMethodGeneric.invalid.ts:5:40 - error: Type parameter not valid
 
 5 export function greeting<T>(_: Query): T {
@@ -21,3 +22,4 @@ src/tests/fixtures/generics/referencingMethodGeneric.invalid.ts:5:40 - error: Ty
     5 export function greeting<T>(_: Query): T {
                                ~
     Defined here
+```

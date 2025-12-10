@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/complexMutualReferences.ts"
 /** @gqlType */
 type Foo<T> = {
   /** @gqlField */
@@ -20,10 +20,11 @@ type Baz = {
   /** @gqlField */
   bazField: Bar<Baz>;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Baz {
   bazField: BazBar
@@ -81,3 +82,4 @@ export function getSchema(): GraphQLSchema {
         types: [BazType, BazBarType, BazFooType]
     });
 }
+```

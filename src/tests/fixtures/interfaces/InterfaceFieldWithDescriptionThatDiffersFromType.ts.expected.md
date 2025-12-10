@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="interfaces/InterfaceFieldWithDescriptionThatDiffersFromType.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -27,10 +27,11 @@ class User implements IPerson {
    */
   name: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface IPerson {
   """The person's name"""
@@ -90,3 +91,4 @@ export function getSchema(): GraphQLSchema {
         types: [IPersonType, SomeTypeType, UserType]
     });
 }
+```

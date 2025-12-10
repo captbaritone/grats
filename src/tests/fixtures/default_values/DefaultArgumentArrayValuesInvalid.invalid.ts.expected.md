@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="default_values/DefaultArgumentArrayValuesInvalid.invalid.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -19,10 +19,11 @@ export default class SomeType {
 function func(): string {
   return "sup";
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/default_values/DefaultArgumentArrayValuesInvalid.invalid.ts:5:15 - error: Expected GraphQL field argument default values to be a literal. Grats interprets argument defaults as GraphQL default values, which must be literals. For example: `10` or `"foo"`.
 
 If you think Grats should be able to infer this constant value, please report an issue at https://github.com/captbaritone/grats/issues.
@@ -35,3 +36,4 @@ If you think Grats should be able to infer this constant value, please report an
 
 5     inputs = [func(), func()],
                         ~~~~~~
+```

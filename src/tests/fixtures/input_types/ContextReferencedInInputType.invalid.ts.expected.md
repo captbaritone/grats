@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="input_types/ContextReferencedInInputType.invalid.ts"
 /** @gqlContext */
 type SomeType = {
   hello: string;
@@ -10,10 +10,11 @@ type SomeType = {
 type MyInputType = {
   someField: SomeType;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/input_types/ContextReferencedInInputType.invalid.ts:8:14 - error: Cannot use `gqlContext` as a type in GraphQL type position.
 
 8   someField: SomeType;
@@ -23,3 +24,4 @@ src/tests/fixtures/input_types/ContextReferencedInInputType.invalid.ts:8:14 - er
     1 /** @gqlContext */
           ~~~~~~~~~~~~
     Defined here
+```

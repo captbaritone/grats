@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_definitions/MultipleFieldsAsStaticClassMethods.ts"
 /** @gqlType */
 export class User {
   /** @gqlField */
@@ -19,10 +19,11 @@ export class User {
 
 /** @gqlType */
 type Query = unknown;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Query {
   getUser: User
@@ -73,3 +74,4 @@ export function getSchema(): GraphQLSchema {
         types: [QueryType, UserType]
     });
 }
+```

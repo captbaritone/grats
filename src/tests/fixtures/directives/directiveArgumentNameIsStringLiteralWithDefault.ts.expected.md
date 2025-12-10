@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="directives/directiveArgumentNameIsStringLiteralWithDefault.ts"
 // https://github.com/captbaritone/grats/issues/166#issuecomment-2753130827
 
 /**
@@ -13,10 +13,11 @@ function defer({
   label: string;
   if?: boolean | null;
 }): void {}
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 directive @defer(label: String!, if: Boolean = true) on FRAGMENT_SPREAD | INLINE_FRAGMENT
 -- TypeScript --
@@ -39,3 +40,4 @@ export function getSchema(): GraphQLSchema {
         types: []
     });
 }
+```

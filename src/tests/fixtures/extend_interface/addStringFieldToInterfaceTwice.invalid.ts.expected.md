@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="extend_interface/addStringFieldToInterfaceTwice.invalid.ts"
 /** @gqlInterface */
 interface IPerson {
   name: string;
@@ -33,10 +33,11 @@ class Admin implements IPerson {
   /** @gqlField */
   hello: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/extend_interface/addStringFieldToInterfaceTwice.invalid.ts:9:17 - error: Field "IPerson.greeting" can only be defined once.
 
 9 export function greeting(person: IPerson): string {
@@ -64,3 +65,4 @@ src/tests/fixtures/extend_interface/addStringFieldToInterfaceTwice.invalid.ts:9:
     13 /** @gqlField greeting */
            ~~~~~~~~~~~~~~~~~~~
     Related location
+```

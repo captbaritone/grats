@@ -1,14 +1,15 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="input_type_one_of/oneOfFieldTypeList.ts"
 /**
  * @gqlInput
  */
 export type Greeting = { firstName: string } | { lastName: Array<string> };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 input Greeting @oneOf {
   firstName: String
@@ -37,3 +38,4 @@ export function getSchema(): GraphQLSchema {
         types: [GreetingType]
     });
 }
+```

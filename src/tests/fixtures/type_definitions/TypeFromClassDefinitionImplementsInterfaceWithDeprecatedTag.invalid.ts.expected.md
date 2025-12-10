@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="type_definitions/TypeFromClassDefinitionImplementsInterfaceWithDeprecatedTag.invalid.ts"
 /** @gqlInterface */
 interface Person {
   /** @gqlField */
@@ -16,10 +16,11 @@ export default class User {
   /** @gqlField */
   hello: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/type_definitions/TypeFromClassDefinitionImplementsInterfaceWithDeprecatedTag.invalid.ts:9:4 - error: `@gqlImplements` has been deprecated. Instead use `class MyType implements MyInterface`.
 
  9  * @gqlImplements Person
@@ -30,3 +31,4 @@ src/tests/fixtures/type_definitions/TypeFromClassDefinitionImplementsInterfaceWi
 
 9  * @gqlImplements Person
       ~~~~~~~~~~~~~
+```

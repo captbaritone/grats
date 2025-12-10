@@ -1,15 +1,16 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="directives/defineCustomDirectiveRepeatable.ts"
 /**
  * This is my custom directive.
  * @gqlDirective repeatable on FIELD_DEFINITION
  */
 function customDirective() {}
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """This is my custom directive."""
 directive @customDirective repeatable on FIELD_DEFINITION
@@ -26,3 +27,4 @@ export function getSchema(): GraphQLSchema {
         types: []
     });
 }
+```

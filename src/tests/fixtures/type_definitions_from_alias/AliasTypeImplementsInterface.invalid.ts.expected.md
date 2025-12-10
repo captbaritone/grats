@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="type_definitions_from_alias/AliasTypeImplementsInterface.invalid.ts"
 /**
  * @gqlType
  * @gqlImplements Person
@@ -16,10 +16,11 @@ interface Person {
   /** @gqlField */
   name: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/type_definitions_from_alias/AliasTypeImplementsInterface.invalid.ts:3:4 - error: `@gqlImplements` has been deprecated. Types which implement GraphQL interfaces should be defined using TypeScript class or interface declarations.
 
 3  * @gqlImplements Person
@@ -30,3 +31,4 @@ src/tests/fixtures/type_definitions_from_alias/AliasTypeImplementsInterface.inva
 
 3  * @gqlImplements Person
       ~~~~~~~~~~~~~
+```

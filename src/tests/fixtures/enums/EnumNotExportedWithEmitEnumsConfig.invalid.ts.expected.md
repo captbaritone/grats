@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="enums/EnumNotExportedWithEmitEnumsConfig.invalid.ts"
 // {"tsClientEnums": "enums.ts"}
 
 /** @gqlEnum */
@@ -17,10 +17,11 @@ type Query = unknown;
 export function favoriteColor(_: Query): Color {
   return Color.RED;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/enums/EnumNotExportedWithEmitEnumsConfig.invalid.ts:4:1 - error: Expected enum to be exported when `tsClientEnums` is configured. Grats needs to import enum types to build the enums module.
 
@@ -65,3 +66,4 @@ type Query = unknown;
 export function favoriteColor(_: Query): Color {
   return Color.RED;
 }
+```

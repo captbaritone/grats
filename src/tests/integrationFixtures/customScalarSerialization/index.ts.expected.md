@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="customScalarSerialization/index.ts"
 import type { SchemaConfig } from "./schema";
 
 /** @gqlScalar */
@@ -57,10 +57,11 @@ export const variables = {
   someVar: 123,
   someOtherVar: "456",
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "hello": "123",
@@ -68,3 +69,4 @@ OUTPUT
     "alsoHello": "5"
   }
 }
+```

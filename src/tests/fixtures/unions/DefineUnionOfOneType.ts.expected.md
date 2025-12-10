@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="unions/DefineUnionOfOneType.ts"
 /** @gqlType */
 class User {
   __typename = "User" as const;
@@ -10,10 +10,11 @@ class User {
 
 /** @gqlUnion */
 type Actor = User;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 union Actor = User
 
@@ -44,3 +45,4 @@ export function getSchema(): GraphQLSchema {
         types: [ActorType, UserType]
     });
 }
+```

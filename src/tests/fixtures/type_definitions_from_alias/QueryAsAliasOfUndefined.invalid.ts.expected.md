@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="type_definitions_from_alias/QueryAsAliasOfUndefined.invalid.ts"
 /** @gqlType */
 type Query = undefined;
 
@@ -8,11 +8,13 @@ type Query = undefined;
 export function foo(_: Query): string {
   return "foo";
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/type_definitions_from_alias/QueryAsAliasOfUndefined.invalid.ts:2:14 - error: Expected `@gqlType` type to be an object type literal (`{ }`) or `unknown`. For example: `type Foo = { bar: string }` or `type Query = unknown`.
 
 2 type Query = undefined;
                ~~~~~~~~~
+```

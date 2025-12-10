@@ -1,13 +1,14 @@
------------------
-INPUT
------------------ 
+## input
+
+```json title="multiLineHeader.json"
 {
   "schemaHeader": ["/**", " * An amazing GraphQL schema", " */"]
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Parsed Config --
 {
   "graphqlSchema": "./schema.graphql",
@@ -23,3 +24,4 @@ OUTPUT
   "EXPERIMENTAL__emitMetadata": false,
   "EXPERIMENTAL__emitResolverMap": false
 }
+```

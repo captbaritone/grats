@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_values/CustomScalar.ts"
 /** @gqlScalar */
 export type MyString = string;
 
@@ -11,10 +11,11 @@ export default class SomeType {
     return "Hello world!";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 scalar MyString
 
@@ -50,3 +51,4 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
         types: [MyStringType, SomeTypeType]
     });
 }
+```

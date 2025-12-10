@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="getAcessor/index.ts"
 /** @gqlQueryField */
 export function me(): User {
   return new User();
@@ -20,10 +20,11 @@ export const query = `
       hello
     }
   }`;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "me": {
@@ -31,3 +32,4 @@ OUTPUT
     }
   }
 }
+```

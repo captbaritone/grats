@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="interfaces/extendInterfaceWithNonGqlType.ts"
 interface IThing {
   name: string;
 }
@@ -12,10 +12,11 @@ export interface IPerson extends IThing {
   /** @gqlField */
   name: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface IPerson {
   name: String
@@ -38,3 +39,4 @@ export function getSchema(): GraphQLSchema {
         types: [IPersonType]
     });
 }
+```

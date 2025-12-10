@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="extend_type/interfaceFirstArgumentType.ts"
 /** @gqlType */
 class SomeType {
   /** @gqlField */
@@ -17,10 +17,11 @@ interface IFoo {
 export function greeting(iFoo: IFoo): string {
   return "Hello world!";
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface IFoo {
   bar: String
@@ -63,3 +64,4 @@ export function getSchema(): GraphQLSchema {
         types: [IFooType, SomeTypeType]
     });
 }
+```

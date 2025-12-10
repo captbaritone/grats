@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="locate/genericTypeField.invalid.ts"
 // Locate: PageEdge.cursor
 
 /** @gqlType */
@@ -36,11 +36,13 @@ type PageInfo = {
   /** @gqlField */
   endCursor: string;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/locate/genericTypeField.invalid.ts:14:3 - error: Located here
 
 14   cursor: string;
      ~~~~~~
+```

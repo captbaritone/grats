@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="directives/directiveOnEnumValue.ts"
 import { Int } from "../../../Types";
 /**
  * This is my custom directive.
@@ -16,10 +16,11 @@ enum MyEnum {
   a = "A",
   b = "B",
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """This is my custom directive."""
 directive @max(foo: Int!) on ENUM_VALUE
@@ -66,3 +67,4 @@ export function getSchema(): GraphQLSchema {
         types: [MyEnumType]
     });
 }
+```

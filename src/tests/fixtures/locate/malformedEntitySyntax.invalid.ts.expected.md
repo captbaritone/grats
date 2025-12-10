@@ -1,14 +1,16 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="locate/malformedEntitySyntax.invalid.ts"
 // Locate: User->name
 /** @gqlType */
 type User = {
   /** @gqlField */
   name: string;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 Invalid entity name: `User->name`. Expected `ParentType` or `ParentType.fieldName`.
+```

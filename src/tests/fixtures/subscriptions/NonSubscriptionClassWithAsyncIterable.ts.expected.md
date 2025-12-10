@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="subscriptions/NonSubscriptionClassWithAsyncIterable.ts"
 // { "nullableByDefault": false }
 /** @gqlType */
 export class User {
@@ -24,10 +24,11 @@ export class User {
     null;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type User {
   greetings: [String!]!
@@ -65,3 +66,4 @@ export function getSchema(): GraphQLSchema {
         types: [UserType]
     });
 }
+```

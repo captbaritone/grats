@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="directives/directiveOnUnion.ts"
 import { Int } from "../../../Types";
 /**
  * This is my custom directive.
@@ -31,10 +31,11 @@ type B = {
   /** @gqlField */
   myField: string;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """This is my custom directive."""
 directive @max(foo: Int!) on UNION
@@ -103,3 +104,4 @@ export function getSchema(): GraphQLSchema {
         types: [MyUnionType, AType, BType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="arguments/PositionalArgOptionalNotNullable.invalid.ts"
 /** @gqlInput */
 type Greeting = {
   name: string;
@@ -14,10 +14,11 @@ export default class SomeType {
     return `${greeting ?? "Hello"} World`;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/arguments/PositionalArgOptionalNotNullable.invalid.ts:10:17 - error: Unexpected optional argument that does not also accept `null`. Optional arguments in GraphQL may get passed an explicit `null` value by the GraphQL executor. This means optional arguments must be typed to also accept `null`. Consider adding `| null` to the end of the argument type.
 
@@ -52,3 +53,4 @@ export default class SomeType {
     return `${greeting ?? "Hello"} World`;
   }
 }
+```

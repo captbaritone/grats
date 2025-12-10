@@ -1,15 +1,16 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="custom_scalars/SpecifiedByOldSyntax.invalid.ts"
 /**
  * @gqlScalar
  * @specifiedBy https://tools.ietf.org/html/rfc4122
  */
 export type UUID = string;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/custom_scalars/SpecifiedByOldSyntax.invalid.ts:3:4 - error: The `@specifiedBy` tag has been deprecated in favor of `@gqlAnnotate`. Use `@gqlAnnotate specifiedBy(url: "http://example.com")` instead.
 
@@ -38,3 +39,4 @@ src/tests/fixtures/custom_scalars/SpecifiedByOldSyntax.invalid.ts:3:4 - error: T
  * @gqlScalar
  * @gqlAnnotate specifiedBy(url: "https://tools.ietf.org/html/rfc4122")*/
 export type UUID = string;
+```

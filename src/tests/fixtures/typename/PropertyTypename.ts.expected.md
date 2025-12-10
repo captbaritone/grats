@@ -1,16 +1,17 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="typename/PropertyTypename.ts"
 /** @gqlType */
 export class User {
   __typename = "User" as const;
   /** @gqlField */
   name: string = "Alice";
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type User {
   name: String
@@ -33,3 +34,4 @@ export function getSchema(): GraphQLSchema {
         types: [UserType]
     });
 }
+```

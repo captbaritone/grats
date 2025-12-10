@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="typename/PropertySignatureTypename.ts"
 /** @gqlType */
 export class User implements IPerson {
   __typename: "User";
@@ -13,10 +13,11 @@ export interface IPerson {
   /** @gqlField */
   name: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface IPerson {
   name: String
@@ -57,3 +58,4 @@ export function getSchema(): GraphQLSchema {
         types: [IPersonType, UserType]
     });
 }
+```

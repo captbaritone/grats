@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="skipInclude/index.ts"
 /** @gqlQueryField */
 export function greeting(): string {
   return "Hello World!";
@@ -16,12 +16,14 @@ export const query = /* GraphQL */ `
     greeting @include(if: true)
   }
 `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "greeting": "Hello World!"
   }
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="resolver_context/ContextValueReadTwice.ts"
 // No valid reason to do this, but just asserting that it works, since it happens to.
 
 /** @gqlType */
@@ -13,10 +13,11 @@ export class SomeType {
 
 /** @gqlContext */
 type SomeOtherType = { greeting?: string };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   greeting: String
@@ -42,3 +43,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

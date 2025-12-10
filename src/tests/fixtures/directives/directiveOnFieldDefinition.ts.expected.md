@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="directives/directiveOnFieldDefinition.ts"
 import { Int } from "../../../Types";
 /**
  * This is my custom directive.
@@ -16,10 +16,11 @@ export function max(args: { foo: Int }) {}
 export function likes(args: { first?: Int | null }): string {
   return "hello";
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """This is my custom directive."""
 directive @max(foo: Int!) on FIELD_DEFINITION
@@ -77,3 +78,4 @@ export function getSchema(): GraphQLSchema {
         types: [QueryType]
     });
 }
+```

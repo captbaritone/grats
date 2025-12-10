@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="built_in_scalars/IntField.ts"
 import { Int } from "../../../Types";
 
 /** @gqlType */
@@ -10,10 +10,11 @@ export default class SomeType {
     return 10;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   age: Int
@@ -36,3 +37,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

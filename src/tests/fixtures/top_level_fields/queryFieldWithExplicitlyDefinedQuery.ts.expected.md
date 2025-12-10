@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="top_level_fields/queryFieldWithExplicitlyDefinedQuery.ts"
 /** @gqlQueryField */
 export function greeting(): string {
   return "Hello world";
@@ -11,10 +11,11 @@ export function greeting(): string {
  *
  * @gqlType */
 export type Query = unknown;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """
 I might want to explicitly define a type here to provide a description.
@@ -46,3 +47,4 @@ export function getSchema(): GraphQLSchema {
         types: [QueryType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="type_definitions/ClassWithDescriptionAndCustomName.ts"
 /**
  * The root of all evil.
  *
@@ -10,10 +10,11 @@ export default class NotQuery {
   /** @gqlField */
   hello: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """The root of all evil."""
 type SomeType {
@@ -38,3 +39,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

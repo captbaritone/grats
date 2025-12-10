@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="directives/defineCustomDirectiveAdditionalArgsAreIgnored.ts"
 import { GraphQLFieldResolver } from "graphql";
 
 /**
@@ -13,10 +13,11 @@ export function customDirective(
 ) {
   //
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """This is my custom directive."""
 directive @customDirective(someArg: String!) on FIELD_DEFINITION
@@ -37,3 +38,4 @@ export function getSchema(): GraphQLSchema {
         types: []
     });
 }
+```

@@ -1,16 +1,17 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="headers/multilineHeader.ts"
 // {"schemaHeader": ["# Generated SDL\n", "# multi-line"], "tsSchemaHeader": ["// Generated TS\n", "// multi-line"]}
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
   hello: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 # Generated SDL
 
@@ -41,3 +42,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

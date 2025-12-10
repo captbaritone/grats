@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_definitions/StringFieldWithDescription.ts"
 /** @gqlType */
 export default class SomeType {
   /**
@@ -11,10 +11,11 @@ export default class SomeType {
     return "Hello world!";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   """Greet the world!"""
@@ -39,3 +40,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

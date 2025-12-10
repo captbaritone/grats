@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/edge.ts"
 /** @gqlType */
 type Page = {
   /** @gqlField */
@@ -34,10 +34,11 @@ type PageInfo = {
   /** @gqlField */
   endCursor: string;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Page {
   name: String
@@ -130,3 +131,4 @@ export function getSchema(): GraphQLSchema {
         types: [PageType, PageConnectionType, PageEdgeType, PageInfoType]
     });
 }
+```

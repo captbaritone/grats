@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="arguments/NullableArgumentErrors.invalid.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -21,10 +21,11 @@ export default class SomeType {
     return "Hello world!";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/arguments/NullableArgumentErrors.invalid.ts:4:26 - error: Expected nullable argument to _also_ be optional (`?`). graphql-js may omit properties on the argument object where an undefined GraphQL variable is passed, or if the argument is omitted in the operation text. To ensure your resolver is capable of handling this scenario, add a `?` to the end of the argument name to make it optional. e.g. `{greeting?: string | null}`
 
@@ -96,3 +97,4 @@ export default class SomeType {
     return "Hello world!";
   }
 }
+```

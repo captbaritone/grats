@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="directives/defineCustomDirectiveArgsIsNever.ts"
 import { GraphQLFieldResolver } from "graphql";
 
 /**
@@ -13,10 +13,11 @@ export function customDirective(
 ) {
   //
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 """This is my custom directive."""
 directive @customDirective on FIELD_DEFINITION
@@ -32,3 +33,4 @@ export function getSchema(): GraphQLSchema {
         types: []
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="aliasedMethod/index.ts"
 /** @gqlContext */
 type GraphqlContext = {};
 
@@ -27,10 +27,11 @@ export const query = /* GraphQL */ `
     }
   }
 `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "data": {
     "someType": {
@@ -38,3 +39,4 @@ OUTPUT
     }
   }
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="interfaces/ImplementsMultipleInterfaces.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -27,10 +27,11 @@ class User implements Person, Actor {
   /** @gqlField */
   name: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface Actor {
   name: String
@@ -101,3 +102,4 @@ export function getSchema(): GraphQLSchema {
         types: [ActorType, PersonType, SomeTypeType, UserType]
     });
 }
+```

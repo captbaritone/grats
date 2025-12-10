@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="strictSemanticNullability/index.ts"
 // { "strictSemanticNullability": true }
 
 /** @gqlQueryField */
@@ -58,10 +58,11 @@ export const query = `
     }
   }
 `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "errors": [
     {
@@ -124,3 +125,4 @@ OUTPUT
     }
   }
 }
+```

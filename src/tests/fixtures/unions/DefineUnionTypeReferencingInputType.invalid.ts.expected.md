@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="unions/DefineUnionTypeReferencingInputType.invalid.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -20,11 +20,13 @@ type Entity = {
 
 /** @gqlUnion */
 type Actor = User | Entity;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/unions/DefineUnionTypeReferencingInputType.invalid.ts:19:21 - error: Union type Actor can only include Object types, it cannot include Entity.
 
 19 type Actor = User | Entity;
                        ~~~~~~
+```

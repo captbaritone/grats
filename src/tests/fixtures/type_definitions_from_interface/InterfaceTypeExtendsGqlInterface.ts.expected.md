@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="type_definitions_from_interface/InterfaceTypeExtendsGqlInterface.ts"
 /** @gqlInterface */
 interface Person {
   /** @gqlField */
@@ -14,10 +14,11 @@ export interface User extends Person {
   /** @gqlField */
   name: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface Person {
   name: String
@@ -58,3 +59,4 @@ export function getSchema(): GraphQLSchema {
         types: [PersonType, UserType]
     });
 }
+```

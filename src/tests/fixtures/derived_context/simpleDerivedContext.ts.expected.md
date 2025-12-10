@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="derived_context/simpleDerivedContext.ts"
 /** @gqlContext */
 type RootContext = {
   userName: string;
@@ -22,10 +22,11 @@ type Query = unknown;
 export function greeting(_: Query, ctx: DerivedContext): string {
   return ctx.greeting;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Query {
   greeting: String
@@ -53,3 +54,4 @@ export function getSchema(): GraphQLSchema {
         types: [QueryType]
     });
 }
+```

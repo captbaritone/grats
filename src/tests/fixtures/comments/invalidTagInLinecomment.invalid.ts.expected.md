@@ -1,16 +1,17 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="comments/invalidTagInLinecomment.invalid.ts"
 // @gqlTyp
 export default class Composer {
   url(): string {
     return `/composer/`;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- Error Report --
 src/tests/fixtures/comments/invalidTagInLinecomment.invalid.ts:1:4 - error: `@gqlTyp` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`, `@gqlDirective`, `@gqlAnnotate`, `@gqlQueryField`, `@gqlMutationField`, `@gqlSubscriptionField`.
 
@@ -41,3 +42,4 @@ export default class Composer {
     return `/composer/`;
   }
 }
+```

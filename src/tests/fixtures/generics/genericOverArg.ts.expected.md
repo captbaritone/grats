@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/genericOverArg.ts"
 /** @gqlType */
 export class SomeClass<T> {
   /** @gqlField */
@@ -21,10 +21,11 @@ type Query = unknown;
 export function someField(_: Query): SomeClass<SomeInput> {
   return new SomeClass();
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 input SomeInput {
   someField: String!
@@ -87,3 +88,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeInputType, QueryType, SomeInputSomeClassType]
     });
 }
+```

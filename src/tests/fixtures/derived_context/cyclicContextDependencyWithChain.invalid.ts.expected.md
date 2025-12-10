@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="derived_context/cyclicContextDependencyWithChain.invalid.ts"
 /** @gqlContext */
 type RootContext = {
   userName: string;
@@ -40,10 +40,11 @@ type Query = unknown;
 export function greeting(_: Query, ctx: A): string {
   return ctx.greeting;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/derived_context/cyclicContextDependencyWithChain.invalid.ts:10:5 - error: Cyclic dependency detected in derived context. This derived context value depends upon itself.
 
 10 /** @gqlContext */
@@ -61,3 +62,4 @@ src/tests/fixtures/derived_context/cyclicContextDependencyWithChain.invalid.ts:1
     29 export function c(ctx: RootContext, a: A): C {
                                            ~~~~
     Which ultimately creates a cycle back to the initial derived context
+```

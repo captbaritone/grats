@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="nonNullableListIncludesNull/index.ts"
 /** @gqlQueryField */
 export function someList(): string[] {
   // @ts-ignore
@@ -19,10 +19,11 @@ export const query = `
     someListOfLists
   }
 `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "errors": [
     {
@@ -58,3 +59,4 @@ OUTPUT
     "someListOfLists": null
   }
 }
+```

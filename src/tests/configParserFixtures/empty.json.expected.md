@@ -1,11 +1,12 @@
------------------
-INPUT
------------------ 
-{}
+## input
 
------------------
-OUTPUT
------------------
+```json title="empty.json"
+{}
+```
+
+## Output
+
+```
 -- Parsed Config --
 {
   "graphqlSchema": "./schema.graphql",
@@ -21,3 +22,4 @@ OUTPUT
   "EXPERIMENTAL__emitMetadata": false,
   "EXPERIMENTAL__emitResolverMap": false
 }
+```

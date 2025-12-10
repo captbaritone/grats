@@ -1,14 +1,15 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="top_level_fields/queryFieldRenamed.ts"
 /** @gqlQueryField greeting */
 export function greetz(): string {
   return "Hello world";
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type Query {
   greeting: String
@@ -36,3 +37,4 @@ export function getSchema(): GraphQLSchema {
         types: [QueryType]
     });
 }
+```

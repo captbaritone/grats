@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="resolverErrorElidedToNull/index.ts"
 /** @gqlQueryField */
 export function alwaysThrows(): string {
   throw new Error("This should null out the field");
@@ -11,10 +11,11 @@ export const query = `
     alwaysThrows
   }
 `;
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 {
   "errors": [
     {
@@ -34,3 +35,4 @@ OUTPUT
     "alwaysThrows": null
   }
 }
+```

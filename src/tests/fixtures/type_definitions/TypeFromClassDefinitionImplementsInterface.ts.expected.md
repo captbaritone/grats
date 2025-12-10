@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="type_definitions/TypeFromClassDefinitionImplementsInterface.ts"
 /** @gqlInterface */
 interface Person {
   /** @gqlField */
@@ -13,10 +13,11 @@ export default class User implements Person {
   /** @gqlField */
   hello: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface Person {
   hello: String
@@ -57,3 +58,4 @@ export function getSchema(): GraphQLSchema {
         types: [PersonType, UserType]
     });
 }
+```

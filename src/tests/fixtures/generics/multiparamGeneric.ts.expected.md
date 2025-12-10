@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/multiparamGeneric.ts"
 /** @gqlUnion */
 type Result<V, E> = V | E;
 
@@ -25,10 +25,11 @@ type Query = unknown;
 export function pageResult(_: Query): Result<Page, Err> {
   return { title: "Hello", __typename: "Page" };
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 union PageErrResult = Err | Page
 
@@ -94,3 +95,4 @@ export function getSchema(): GraphQLSchema {
         types: [PageErrResultType, ErrType, PageType, QueryType]
     });
 }
+```

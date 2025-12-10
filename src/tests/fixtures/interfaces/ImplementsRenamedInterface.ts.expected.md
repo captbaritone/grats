@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="interfaces/ImplementsRenamedInterface.ts"
 /** @gqlInterface Person */
 interface DONT_USE_THIS {
   /** @gqlField */
@@ -13,10 +13,11 @@ class User implements DONT_USE_THIS {
   /** @gqlField */
   name: string;
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 interface Person {
   name: String
@@ -57,3 +58,4 @@ export function getSchema(): GraphQLSchema {
         types: [PersonType, UserType]
     });
 }
+```

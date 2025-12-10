@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="resolver_context/ContextValueOptional.ts"
 /** @gqlType */
 export class SomeType {
   /** @gqlField */
@@ -14,10 +14,11 @@ export class SomeType {
 
 /** @gqlContext */
 type SomeOtherType = { greeting: string };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   greeting: String
@@ -43,3 +44,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

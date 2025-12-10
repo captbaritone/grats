@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="regression/fieldFollowedByDeprecated.ts"
 /** @gqlType */
 class User {
   /**
@@ -11,10 +11,11 @@ class User {
     return "Sup";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type User {
   name: String @deprecated
@@ -41,3 +42,4 @@ export function getSchema(): GraphQLSchema {
         types: [UserType]
     });
 }
+```

@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="built_in_scalars/FloatFieldAliasedImport.ts"
 import { Float as LocalFloat } from "../../../Types";
 
 /** @gqlType */
@@ -10,10 +10,11 @@ export default class SomeType {
     return 10;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   ratio: Float
@@ -36,3 +37,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```

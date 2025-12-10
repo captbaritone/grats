@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="generics/scalarPassedAsGenericArg.invalid.ts"
 /** @gqlType */
 type Wrapper<T> = {
   /** @gqlField */
@@ -12,10 +12,11 @@ type OtherType = {
   /** @gqlField */
   wrapper: Wrapper<string>;
 };
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/generics/scalarPassedAsGenericArg.invalid.ts:10:20 - error: Expected `Wrapper` to be passed a GraphQL type argument for type parameter `T`.
 
 10   wrapper: Wrapper<string>;
@@ -29,3 +30,4 @@ src/tests/fixtures/generics/scalarPassedAsGenericArg.invalid.ts:10:20 - error: E
     4   value: T;
                ~
     and expects a GraphQL type because it was used in a GraphQL position here.
+```

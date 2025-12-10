@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="arguments/DeprecatedRequiredArgument.invalid.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -13,10 +13,11 @@ export default class SomeType {
     return "Hello world!";
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 src/tests/fixtures/arguments/DeprecatedRequiredArgument.invalid.ts:7:10 - error: Required argument SomeType.hello(greeting:) cannot be deprecated.
 
 7     /** @deprecated Not used anymore */
@@ -26,3 +27,4 @@ src/tests/fixtures/arguments/DeprecatedRequiredArgument.invalid.ts:7:10 - error:
     8     greeting: string;
                     ~~~~~~
     Related location
+```

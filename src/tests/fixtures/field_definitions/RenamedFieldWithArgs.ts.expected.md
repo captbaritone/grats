@@ -1,6 +1,6 @@
------------------
-INPUT
------------------ 
+## input
+
+```ts title="field_definitions/RenamedFieldWithArgs.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField greetz */
@@ -8,10 +8,11 @@ export default class SomeType {
     return `${args.greeting} world!`;
   }
 }
+```
 
------------------
-OUTPUT
------------------
+## Output
+
+```
 -- SDL --
 type SomeType {
   greetz(greeting: String!): String
@@ -42,3 +43,4 @@ export function getSchema(): GraphQLSchema {
         types: [SomeTypeType]
     });
 }
+```
