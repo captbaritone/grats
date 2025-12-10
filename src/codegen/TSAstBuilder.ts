@@ -56,9 +56,10 @@ export default class TSAstBuilder {
     name: string,
     params: ts.ParameterDeclaration[],
     statements: ts.Statement[],
+    isAsync: boolean = false,
   ): ts.MethodDeclaration {
     return F.createMethodDeclaration(
-      undefined,
+      isAsync ? [F.createModifier(ts.SyntaxKind.AsyncKeyword)] : undefined,
       undefined,
       name,
       undefined,

@@ -411,8 +411,14 @@ class Extractor {
     if (returnType == null) {
       return this.report(node, E.missingReturnTypeForDerivedResolver());
     }
-    if (!ts.isTypeReferenceNode(returnType)) {
-      return this.report(returnType, E.missingReturnTypeForDerivedResolver());
+
+    // Check if the return type is Promise<T> and unwrap it
+    const unwrapped = this.maybeUnwrapPromiseType(returnType);
+    if (unwrapped === null) return null;
+    const { type: innerType, isAsync } = unwrapped;
+
+    if (!ts.isTypeReferenceNode(innerType)) {
+      return this.report(innerType, E.missingReturnTypeForDerivedResolver());
     }
 
     const funcName = this.namedFunctionExportName(node);
@@ -434,8 +440,9 @@ class Extractor {
         path: tsModulePath,
         exportName: funcName?.text ?? null,
         args: paramResults.resolverParams,
+        async: isAsync,
       },
-      returnType,
+      innerType,
     );
   }
 
@@ -2592,6 +2599,30 @@ class Extractor {
     return null;
   }
 
+  /**
+   * Unwraps a Promise<T> type to T, tracking whether it was async.
+   * Returns null if there's an error (e.g., Promise without type arguments).
+   */
+  maybeUnwrapPromiseType(
+    type: ts.TypeNode,
+  ): { type: ts.TypeNode; isAsync: boolean } | null {
+    if (!ts.isTypeReferenceNode(type)) {
+      return { type, isAsync: false };
+    }
+
+    const typeName = type.typeName;
+    if (ts.isIdentifier(typeName) && typeName.text === "Promise") {
+      if (type.typeArguments == null || type.typeArguments.length !== 1) {
+        //
+        this.report(type, E.wrapperMissingTypeArg(typeName.text));
+        return null;
+      }
+      return { type: type.typeArguments[0], isAsync: true };
+    }
+
+    return { type, isAsync: false };
+  }
+
   typeReference(
     node: ts.TypeReferenceNode,
     ctx: FieldTypeContext,
@@ -2632,10 +2663,9 @@ class Extractor {
         return this.gql.nonNullType(node, listType);
       }
       case "Promise": {
-        if (node.typeArguments == null) {
-          return this.report(node, E.wrapperMissingTypeArg());
-        }
-        const element = this.collectType(node.typeArguments[0], ctx);
+        const unwrapped = this.maybeUnwrapPromiseType(node);
+        if (unwrapped === null) return null;
+        const element = this.collectType(unwrapped.type, ctx);
         if (element == null) return null;
         return element;
       }

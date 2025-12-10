@@ -255,8 +255,8 @@ export function methodMissingType() {
   return "Expected GraphQL field methods to have an explicitly defined return type. Grats needs to be able to see the type of the field to generate its type in the GraphQL schema.";
 }
 
-export function wrapperMissingTypeArg() {
-  return `Expected wrapper type reference to have type arguments. Grats needs to be able to see the return type in order to generate a GraphQL schema.`;
+export function wrapperMissingTypeArg(wrapperTypeName: string) {
+  return `Expected \`${wrapperTypeName}\` type to have exactly one type argument. Grats needs to be able to see the inner type in order to generate a GraphQL schema.`;
 }
 
 export function invalidWrapperOnInputType(wrapperName: string) {
@@ -607,7 +607,7 @@ export function invalidDerivedContextArgType() {
 }
 
 export function missingReturnTypeForDerivedResolver() {
-  return 'Expected derived resolver to have an explicit return type. This is needed to allow Grats to "see" which type to treat as a derived context type.';
+  return 'Expected derived resolver\'s return type to be a named type alias, e.g. `: SomeType`. This is needed to allow Grats to "see" which type declaration to treat as the derived context type.';
 }
 
 export function derivedResolverInvalidReturnType() {

@@ -114,6 +114,7 @@ export type DerivedContextArgument = {
   path: string; // Path to the module
   exportName: string | null; // Export name. If omitted, the class is the default export
   args: Array<ContextArgs>;
+  async: boolean;
 };
 
 /** The GraphQL info object */

@@ -64,11 +64,14 @@ export default class ResolverCodegen {
               ),
             ),
           ],
+          false,
         );
       case "method": {
+        const args = resolver.arguments ?? [];
+        const isAsync = args.some(usesAsyncDerivedContext);
         return this.ts.method(
           methodName,
-          extractUsedParams(resolver.arguments ?? [], true).map((name) => {
+          extractUsedParams(args, true).map((name) => {
             if (name === "source") {
               return this.ts.param("source", getSourceTypeRef());
             }
@@ -82,12 +85,13 @@ export default class ResolverCodegen {
                   F.createIdentifier(resolver.name ?? fieldName),
                 ),
                 [],
-                (resolver.arguments ?? []).map((arg) => {
+                args.map((arg) => {
                   return this.resolverParam(arg);
                 }),
               ),
             ),
           ],
+          isAsync,
         );
       }
       case "function": {
@@ -101,9 +105,11 @@ export default class ResolverCodegen {
           resolverName,
           false,
         );
+        const args = resolver.arguments ?? [];
+        const isAsync = args.some(usesAsyncDerivedContext);
         return this.ts.method(
           methodName,
-          extractUsedParams(resolver.arguments ?? []).map((name) => {
+          extractUsedParams(args).map((name) => {
             if (name === "source") {
               return this.ts.param("source", getSourceTypeRef());
             }
@@ -114,12 +120,13 @@ export default class ResolverCodegen {
               F.createCallExpression(
                 F.createIdentifier(resolverName),
                 undefined,
-                (resolver.arguments ?? []).map((arg) => {
+                args.map((arg) => {
                   return this.resolverParam(arg);
                 }),
               ),
             ),
           ],
+          isAsync,
         );
       }
       case "staticMethod": {
@@ -135,9 +142,11 @@ export default class ResolverCodegen {
           resolverName,
           false,
         );
+        const args = resolver.arguments ?? [];
+        const isAsync = args.some(usesAsyncDerivedContext);
         return this.ts.method(
           methodName,
-          extractUsedParams(resolver.arguments ?? []).map((name) => {
+          extractUsedParams(args).map((name) => {
             if (name === "source") {
               return this.ts.param("source", getSourceTypeRef());
             }
@@ -151,12 +160,13 @@ export default class ResolverCodegen {
                   F.createIdentifier(resolver.name),
                 ),
                 undefined,
-                (resolver.arguments ?? []).map((arg) => {
+                args.map((arg) => {
                   return this.resolverParam(arg);
                 }),
               ),
             ),
           ],
+          isAsync,
         );
       }
       default:
@@ -213,11 +223,16 @@ export default class ResolverCodegen {
       case "derivedContext": {
         const localName = this.getDerivedContextName(arg.path, arg.exportName);
         this.ts.importUserConstruct(arg.path, arg.exportName, localName, false);
-        return F.createCallExpression(
+        const callExpr = F.createCallExpression(
           F.createIdentifier(localName),
           undefined,
           arg.args.map((arg) => this.resolverParam(arg)),
         );
+        // If the derived context is async, we need to await it
+        if (arg.async) {
+          return F.createAwaitExpression(callExpr);
+        }
+        return callExpr;
       }
 
       default:
@@ -356,6 +371,16 @@ function usesContext(param: ResolverArgument) {
       return true;
     case "derivedContext":
       return param.args.some(usesContext);
+    default:
+      return false;
+  }
+}
+
+// Check if any param is or uses an async derived context
+function usesAsyncDerivedContext(param: ResolverArgument): boolean {
+  switch (param.kind) {
+    case "derivedContext":
+      return param.async || param.args.some(usesAsyncDerivedContext);
     default:
       return false;
   }
