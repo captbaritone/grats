@@ -5,7 +5,7 @@
 - **Features**
   - Added support for async derived context functions. Derived context functions can now return `Promise<T>` and Grats will automatically generate the necessary `await` expressions in resolver code.
 
-<!-- Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag. -->
+Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
 ## 0.0.34
 
