@@ -8,6 +8,8 @@
 
 ## Output
 
-```
+### Error Report
+
+```text
 error: The Grats config option `importModuleSpecifierEnding` must be a `string` if provided.
 ```

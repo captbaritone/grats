@@ -11,7 +11,9 @@ type User = {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/locate/typeField.invalid.ts:5:3 - error: Located here
 
 5   name: string;

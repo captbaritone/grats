@@ -10,7 +10,9 @@ type User = {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/locate/inputType.invalid.ts:3:6 - error: Located here
 
 3 type User = {

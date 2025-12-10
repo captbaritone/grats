@@ -93,7 +93,10 @@ const testDirs: TestDir[] = [
     fixturesDir: configFixturesDir,
     testFilePattern: /\.json$/,
     ignoreFilePattern: null,
-    transformer: (code: string, _fileName: string): Result<string, string> => {
+    transformer: (
+      code: string,
+      _fileName: string,
+    ): Result<string, Markdown> => {
       const config = JSON.parse(code);
       let parsed: ParsedCommandLineGrats;
       const warnings: string[] = [];
@@ -112,9 +115,10 @@ const testDirs: TestDir[] = [
         });
         if (parsedResult.kind === "ERROR") {
           return err(
-            ReportableDiagnostics.fromDiagnostics(
-              parsedResult.err,
-            ).formatDiagnosticsWithContext(),
+            formatDiagnosticsWithContext(
+              code,
+              ReportableDiagnostics.fromDiagnostics(parsedResult.err),
+            ),
           );
         }
         parsed = parsedResult.value;
@@ -229,9 +233,12 @@ const testDirs: TestDir[] = [
         }
 
         return err(
-          new ReportableDiagnostics(compilerHost, [
-            gqlErr({ loc: locResult.value }, "Located here"),
-          ]).formatDiagnosticsWithContext(),
+          formatDiagnosticsWithContext(
+            code,
+            new ReportableDiagnostics(compilerHost, [
+              gqlErr({ loc: locResult.value }, "Located here"),
+            ]),
+          ),
         );
       } else {
         const docSansDirectives = {
@@ -261,7 +268,7 @@ const testDirs: TestDir[] = [
     transformer: async (
       code: string,
       fileName: string,
-    ): Promise<Result<string, string> | false> => {
+    ): Promise<Result<string, Markdown> | false> => {
       const firstLine = code.split("\n")[0];
       let config: Partial<GratsConfig> = {
         nullableByDefault: true,
@@ -289,6 +296,8 @@ const testDirs: TestDir[] = [
         fileNames: files,
       });
       if (parsedOptionsResult.kind === "ERROR") {
+        // We don't expect integration tests to error during config parsing
+        // so we throw here instead of returning a Markdown result.
         throw new Error(
           ReportableDiagnostics.fromDiagnostics(
             parsedOptionsResult.err,
@@ -298,6 +307,8 @@ const testDirs: TestDir[] = [
       const parsedOptions = parsedOptionsResult.value;
       const schemaResult = buildSchemaAndDocResult(parsedOptions);
       if (schemaResult.kind === "ERROR") {
+        // We don't expect integration tests to error GraphQL schema building
+        // so we throw here instead of returning a Markdown result.
         throw new Error(
           ReportableDiagnostics.fromDiagnostics(
             schemaResult.err,

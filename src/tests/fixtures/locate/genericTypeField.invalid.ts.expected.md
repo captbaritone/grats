@@ -40,7 +40,9 @@ type PageInfo = {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/locate/genericTypeField.invalid.ts:14:3 - error: Located here
 
 14   cursor: string;

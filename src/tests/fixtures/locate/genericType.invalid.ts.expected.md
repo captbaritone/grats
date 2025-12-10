@@ -40,7 +40,9 @@ type PageInfo = {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/locate/genericType.invalid.ts:20:10 - error: Located here
 
 20   edges: Edge<Page>[];

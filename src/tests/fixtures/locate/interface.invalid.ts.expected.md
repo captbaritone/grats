@@ -11,7 +11,9 @@ interface Person {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/locate/interface.invalid.ts:3:11 - error: Located here
 
 3 interface Person {

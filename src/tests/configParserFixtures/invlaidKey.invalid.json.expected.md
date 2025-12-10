@@ -8,6 +8,8 @@
 
 ## Output
 
-```
+### Error Report
+
+```text
 error: Unknown Grats config option `lol`.
 ```
