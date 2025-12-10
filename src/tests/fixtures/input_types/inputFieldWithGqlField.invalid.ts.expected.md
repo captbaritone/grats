@@ -10,15 +10,18 @@ type Foo = {
 
 ## Output
 
-```
--- Error Report --
+### Error Report
+
+```text
 src/tests/fixtures/input_types/inputFieldWithGqlField.invalid.ts:3:7 - error: The tag `@gqlField` is not needed on fields of input types. All fields are automatically included as part of the input type. This tag can be safely removed.
 
 3   /** @gqlField */
         ~~~~~~~~~~
+```
 
+#### Code Action: "Remove @gqlField tag" (remove-gql-field-from-input)
 
--- Code Action: "Remove @gqlField tag" (remove-gql-field-from-input) --
+```diff
 - Original
 + Fixed
 
@@ -27,11 +30,17 @@ src/tests/fixtures/input_types/inputFieldWithGqlField.invalid.ts:3:7 - error: Th
 -   /** @gqlField */
 +   
     name: string;
+```
 
--- Applied Fixes --
-  * Applied fix "Remove @gqlField tag" in grats/src/tests/fixtures/input_types/inputFieldWithGqlField.invalid.ts
+#### Applied Fixes
 
--- Fixed Text --
+```text
+* Applied fix "Remove @gqlField tag" in grats/src/tests/fixtures/input_types/inputFieldWithGqlField.invalid.ts
+```
+
+#### Fixed Text
+
+```typescript
 /** @gqlInput */
 type Foo = {
   

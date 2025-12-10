@@ -37,7 +37,9 @@ class Admin implements IPerson {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/extend_interface/addStringFieldToInterfaceTwice.invalid.ts:9:17 - error: Field "IPerson.greeting" can only be defined once.
 
 9 export function greeting(person: IPerson): string {

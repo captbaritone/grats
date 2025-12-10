@@ -14,7 +14,9 @@ export default class {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/type_definitions/RenamedTypeWithoutClassName.invalid.ts:4:1 - error: Unexpected `@gqlType` annotation on unnamed class declaration. Grats uses the name of the class to derive the name of the GraphQL type. Consider naming the class.
 
   4 export default class {

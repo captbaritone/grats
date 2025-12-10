@@ -26,7 +26,9 @@ type ConnectionInput = {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/default_values/DefaultArgumentObjectLiteralDynamicPropertyName.invalid.ts:9:15 - error: Expected a name identifier. Grats expected to find a name here which it could use to derive the GraphQL name.
 
 9     input = { [x]: 10, offset: 100 },

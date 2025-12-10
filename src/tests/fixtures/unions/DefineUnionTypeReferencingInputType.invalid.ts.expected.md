@@ -24,7 +24,9 @@ type Actor = User | Entity;
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/unions/DefineUnionTypeReferencingInputType.invalid.ts:19:21 - error: Union type Actor can only include Object types, it cannot include Entity.
 
 19 type Actor = User | Entity;

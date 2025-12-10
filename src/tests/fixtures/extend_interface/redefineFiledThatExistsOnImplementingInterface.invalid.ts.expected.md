@@ -27,7 +27,9 @@ interface User extends IPerson {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/extend_interface/redefineFiledThatExistsOnImplementingInterface.invalid.ts:21:3 - error: Field "User.greeting" can only be defined once.
 
 21   greeting(): string;

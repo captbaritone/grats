@@ -20,7 +20,9 @@ interface Person {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/type_definitions_from_alias/AliasTypeImplementsInterface.invalid.ts:3:4 - error: `@gqlImplements` has been deprecated. Types which implement GraphQL interfaces should be defined using TypeScript class or interface declarations.
 
 3  * @gqlImplements Person

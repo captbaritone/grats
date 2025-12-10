@@ -18,8 +18,9 @@ type Query = unknown;
 
 ## Output
 
-```
--- Error Report --
+### Error Report
+
+```text
 src/tests/fixtures/field_definitions/FieldAsStaticClassMethodNotExported.invalid.ts:2:7 - error: Expected `@gqlField` static method's class to be exported. Grats needs to import resolvers into its generated schema module, so the resolver class must be an exported.
 
 2 class User {
@@ -29,8 +30,11 @@ src/tests/fixtures/field_definitions/FieldAsStaticClassMethodNotExported.invalid
     6   /** @gqlField */
             ~~~~~~~~~~
     Field defined here
+```
 
--- Code Action: "Add export keyword to class with static @gqlField" (add-export-keyword-to-class) --
+#### Code Action: "Add export keyword to class with static @gqlField" (add-export-keyword-to-class)
+
+```diff
 - Original
 + Fixed
 
@@ -39,11 +43,17 @@ src/tests/fixtures/field_definitions/FieldAsStaticClassMethodNotExported.invalid
 - class User {
 + export class User {
     /** @gqlField */
+```
 
--- Applied Fixes --
-  * Applied fix "Add export keyword to class with static @gqlField" in grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethodNotExported.invalid.ts
+#### Applied Fixes
 
--- Fixed Text --
+```text
+* Applied fix "Add export keyword to class with static @gqlField" in grats/src/tests/fixtures/field_definitions/FieldAsStaticClassMethodNotExported.invalid.ts
+```
+
+#### Fixed Text
+
+```typescript
 /** @gqlType */
 export class User {
   /** @gqlField */

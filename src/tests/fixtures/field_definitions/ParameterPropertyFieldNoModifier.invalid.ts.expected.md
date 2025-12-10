@@ -14,17 +14,20 @@ export default class SomeType {
 
 ## Output
 
-```
--- Error Report --
+### Error Report
+
+```text
 src/tests/fixtures/field_definitions/ParameterPropertyFieldNoModifier.invalid.ts:5:5 - error: Expected `@gqlField` constructor parameter to be a parameter property. This requires a modifier such as `public` or `readonly` before the parameter name.
 
 Learn more: https://grats.capt.dev/docs/docblock-tags/fields#class-based-fields
 
 5     hello: string,
       ~~~~~~~~~~~~~
+```
 
+#### Code Action: "Add 'public' modifier" (add-public-modifier)
 
--- Code Action: "Add 'public' modifier" (add-public-modifier) --
+```diff
 - Original
 + Fixed
 
@@ -33,11 +36,17 @@ Learn more: https://grats.capt.dev/docs/docblock-tags/fields#class-based-fields
 -     hello: string,
 +     public hello: string,
     ) {
+```
 
--- Applied Fixes --
-  * Applied fix "Add 'public' modifier" in grats/src/tests/fixtures/field_definitions/ParameterPropertyFieldNoModifier.invalid.ts
+#### Applied Fixes
 
--- Fixed Text --
+```text
+* Applied fix "Add 'public' modifier" in grats/src/tests/fixtures/field_definitions/ParameterPropertyFieldNoModifier.invalid.ts
+```
+
+#### Fixed Text
+
+```typescript
 /** @gqlType */
 export default class SomeType {
   constructor(

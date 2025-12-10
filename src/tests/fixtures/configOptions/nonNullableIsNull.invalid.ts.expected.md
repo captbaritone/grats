@@ -11,6 +11,8 @@ export default class SomeType {
 
 ## Output
 
-```
+### Error Report
+
+```text
 error: The Grats config option `tsSchema` must be a `string` if provided.
 ```

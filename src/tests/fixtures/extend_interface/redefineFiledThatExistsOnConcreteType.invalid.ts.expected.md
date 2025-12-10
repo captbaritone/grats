@@ -29,7 +29,9 @@ class User implements IPerson {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/extend_interface/redefineFiledThatExistsOnConcreteType.invalid.ts:21:3 - error: Field "User.greeting" can only be defined once.
 
 21   greeting(): string {

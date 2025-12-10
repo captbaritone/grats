@@ -11,6 +11,8 @@ export default class SomeType {
 
 ## Output
 
-```
+### Error Report
+
+```text
 error: Unknown Grats config option `invalidKey`.
 ```

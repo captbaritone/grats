@@ -13,8 +13,9 @@ type Foo = {
 
 ## Output
 
-```
--- Error Report --
+### Error Report
+
+```text
 src/tests/fixtures/user_error/DuplicateOneOfTag.invalid.ts:3:4 - error: Unexpected duplicate `@oneOf` tag. Grats does not accept multiple instances of the same tag.
 
 3  * @oneOf
@@ -28,8 +29,11 @@ src/tests/fixtures/user_error/DuplicateOneOfTag.invalid.ts:3:4 - error: Unexpect
     5  */
       ~
     Additional tag
+```
 
--- Code Action: "Remove duplicate @oneOf tag" (remove-duplicate-tag) --
+#### Code Action: "Remove duplicate @oneOf tag" (remove-duplicate-tag)
+
+```diff
 - Original
 + Fixed
 
@@ -39,11 +43,17 @@ src/tests/fixtures/user_error/DuplicateOneOfTag.invalid.ts:3:4 - error: Unexpect
 -  */
 +  * */
   type Foo = {
+```
 
--- Applied Fixes --
-  * Applied fix "Remove duplicate @oneOf tag" in grats/src/tests/fixtures/user_error/DuplicateOneOfTag.invalid.ts
+#### Applied Fixes
 
--- Fixed Text --
+```text
+* Applied fix "Remove duplicate @oneOf tag" in grats/src/tests/fixtures/user_error/DuplicateOneOfTag.invalid.ts
+```
+
+#### Fixed Text
+
+```typescript
 /**
  * @gqlInput
  * @oneOf

@@ -12,7 +12,9 @@ export function greeting<T>(_: Query): T {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/generics/referencingMethodGeneric.invalid.ts:5:40 - error: Type parameter not valid
 
 5 export function greeting<T>(_: Query): T {

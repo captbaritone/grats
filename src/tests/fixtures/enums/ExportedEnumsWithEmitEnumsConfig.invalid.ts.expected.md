@@ -29,7 +29,9 @@ export function status(_: Query): Status {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/enums/ExportedEnumsWithEmitEnumsConfig.invalid.ts:11:1 - error: Type alias enums are not supported when `tsClientEnums` is configured. Use `enum` declarations instead. For example: `export enum Status { PENDING = "pending" }`.
 
 11 export type Status = "PENDING" | "COMPLETE" | "CANCELLED";

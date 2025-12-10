@@ -12,7 +12,9 @@ export default class SomeType {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/arguments/AsyncIterableArgument.invalid.ts:4:27 - error: `AsyncIterable` is not a valid as an input type.
 
 4   hello(args: { greeting: AsyncIterable<string> }): string {

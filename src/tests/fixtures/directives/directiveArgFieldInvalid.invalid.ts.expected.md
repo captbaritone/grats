@@ -22,7 +22,9 @@ export function myQueryField(): string {
 
 ## Output
 
-```
+### Error Report
+
+```text
 GraphQL request:1:27 - error: String cannot represent a non string value: 10
 
 1 @customDirective(foo: {a: 10})

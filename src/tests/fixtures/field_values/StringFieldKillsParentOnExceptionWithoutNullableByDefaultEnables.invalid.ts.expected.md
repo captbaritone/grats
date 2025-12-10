@@ -16,7 +16,9 @@ export default class SomeType {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/field_values/StringFieldKillsParentOnExceptionWithoutNullableByDefaultEnables.invalid.ts:6:7 - error: Unexpected `@killsParentOnException` tag. `@killsParentOnException` is only supported when the Grats config option `nullableByDefault` is enabled in your `tsconfig.json`.
 
 6    * @killsParentOnException

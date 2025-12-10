@@ -11,6 +11,8 @@ export default class SomeType {
 
 ## Output
 
-```
+### Error Report
+
+```text
 error: Expected property `schemaHeader` to be a string or array of strings, but got ["Hello",1].
 ```

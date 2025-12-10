@@ -30,7 +30,9 @@ type Foo = {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/generics/arrayPassedToGeneric.invalid.ts:19:15 - error: Expected `SomeType` to be passed a GraphQL type argument for type parameter `T`.
 
 19   a: SomeType<Page[]>;

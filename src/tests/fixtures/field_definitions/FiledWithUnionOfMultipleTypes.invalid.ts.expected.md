@@ -12,7 +12,9 @@ export default class SomeType {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/field_definitions/FiledWithUnionOfMultipleTypes.invalid.ts:4:12 - error: Expected exactly one non-nullish type. GraphQL does not support fields returning an arbitrary union of types. Consider defining an explicit `@gqlUnion` union type and returning that.
 
 4   hello(): string | boolean {

@@ -11,8 +11,9 @@ export default class Composer {
 
 ## Output
 
-```
--- Error Report --
+### Error Report
+
+```text
 src/tests/fixtures/comments/invalidTagInLinecomment.invalid.ts:1:4 - error: `@gqlTyp` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`, `@gqlDirective`, `@gqlAnnotate`, `@gqlQueryField`, `@gqlMutationField`, `@gqlSubscriptionField`.
 
 1 // @gqlTyp
@@ -21,9 +22,11 @@ src/tests/fixtures/comments/invalidTagInLinecomment.invalid.ts:1:4 - error: Unex
 
 1 // @gqlTyp
      ~~~~~~~
+```
 
+#### Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment)
 
--- Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment) --
+```diff
 - Original
 + Fixed
 
@@ -31,11 +34,17 @@ src/tests/fixtures/comments/invalidTagInLinecomment.invalid.ts:1:4 - error: Unex
 - // @gqlTyp
 + /** @gqlTyp */
   export default class Composer {
+```
 
--- Applied Fixes --
-  * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/invalidTagInLinecomment.invalid.ts
+#### Applied Fixes
 
--- Fixed Text --
+```text
+* Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/invalidTagInLinecomment.invalid.ts
+```
+
+#### Fixed Text
+
+```typescript
 /** @gqlTyp */
 export default class Composer {
   url(): string {

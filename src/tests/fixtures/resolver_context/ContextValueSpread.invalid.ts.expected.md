@@ -15,7 +15,9 @@ type SomeOtherType = { greeting: string };
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/resolver_context/ContextValueSpread.invalid.ts:4:12 - error: Unexpected spread argument in resolver. Grats expects all resolver arguments to be a single, explicitly-typed argument.
 
 4   greeting(...ctx: SomeOtherType[]): string {

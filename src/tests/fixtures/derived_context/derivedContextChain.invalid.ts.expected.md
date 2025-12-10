@@ -51,7 +51,9 @@ export function consumingMultipleContexts(
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/derived_context/derivedContextChain.invalid.ts:6:5 - error: Cyclic dependency detected in derived context. This derived context value depends upon itself.
 
 6 /** @gqlContext */

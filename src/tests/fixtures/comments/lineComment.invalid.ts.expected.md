@@ -12,8 +12,9 @@ export default class Composer {
 
 ## Output
 
-```
--- Error Report --
+### Error Report
+
+```text
 src/tests/fixtures/comments/lineComment.invalid.ts:1:4 - error: Unexpected Grats tag in line (`//`) comment. Grats looks for tags in JSDoc-style block comments. e.g. `/** @gqlType */`. For more information see: https://grats.capt.dev/docs/getting-started/comment-syntax
 
 1 // @gqlType
@@ -23,9 +24,11 @@ src/tests/fixtures/comments/lineComment.invalid.ts:3:6 - error: Unexpected Grats
 
 3   // @gqlField
        ~~~~~~~~~
+```
 
+#### Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment)
 
--- Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment) --
+```diff
 - Original
 + Fixed
 
@@ -33,7 +36,11 @@ src/tests/fixtures/comments/lineComment.invalid.ts:3:6 - error: Unexpected Grats
 - // @gqlType
 + /** @gqlType */
   export default class Composer {
--- Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment) --
+```
+
+#### Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment)
+
+```diff
 - Original
 + Fixed
 
@@ -42,12 +49,18 @@ src/tests/fixtures/comments/lineComment.invalid.ts:3:6 - error: Unexpected Grats
 -   // @gqlField
 +   /** @gqlField */
     url(): string {
+```
 
--- Applied Fixes --
-  * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/lineComment.invalid.ts
-  * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/lineComment.invalid.ts
+#### Applied Fixes
 
--- Fixed Text --
+```text
+* Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/lineComment.invalid.ts
+  * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/lineComment.invalid.ts
+```
+
+#### Fixed Text
+
+```typescript
 /** @gqlType */
 export default class Composer {
   /** @gqlField */

@@ -16,7 +16,9 @@ type OtherType = {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/generics/scalarPassedAsGenericArg.invalid.ts:10:20 - error: Expected `Wrapper` to be passed a GraphQL type argument for type parameter `T`.
 
 10   wrapper: Wrapper<string>;

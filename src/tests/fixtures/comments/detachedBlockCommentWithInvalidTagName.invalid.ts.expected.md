@@ -11,7 +11,9 @@
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/comments/detachedBlockCommentWithInvalidTagName.invalid.ts:2:4 - error: `@gqlTyp` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`, `@gqlDirective`, `@gqlAnnotate`, `@gqlQueryField`, `@gqlMutationField`, `@gqlSubscriptionField`.
 
 2  * @gqlTyp

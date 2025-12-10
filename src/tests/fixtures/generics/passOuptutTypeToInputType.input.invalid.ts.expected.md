@@ -22,7 +22,9 @@ class SomeClass {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/generics/passOuptutTypeToInputType.input.invalid.ts:3:14 - error: The type of SomeClassSomeInput.someField must be Input Type but got: SomeClass!.
 
 3   someField: T;

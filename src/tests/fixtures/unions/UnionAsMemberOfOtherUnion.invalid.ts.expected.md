@@ -37,7 +37,9 @@ type Actor = Admin | Foo;
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/unions/UnionAsMemberOfOtherUnion.invalid.ts:32:22 - error: Union type Actor can only include Object types, it cannot include Foo.
 
 32 type Actor = Admin | Foo;

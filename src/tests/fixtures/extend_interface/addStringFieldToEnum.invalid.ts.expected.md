@@ -12,7 +12,9 @@ export function greeting(myEnum: MyEnum): string {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/extend_interface/addStringFieldToEnum.invalid.ts:5:34 - error: Unexpected type passed to `@gqlField` function. `@gqlField` functions can only be used to extend `@gqlType` and `@gqlInterface` types.
 
 5 export function greeting(myEnum: MyEnum): string {

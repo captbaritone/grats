@@ -18,7 +18,9 @@ export default class SomeType {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/field_values/DuplicateFields.invalid.ts:6:3 - error: Field "SomeType.hello" can only be defined once.
 
 6   hello(): string {

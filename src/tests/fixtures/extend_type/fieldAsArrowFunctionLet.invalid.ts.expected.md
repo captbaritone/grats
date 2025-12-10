@@ -14,7 +14,9 @@ export let greeting = (_: SomeType): string => {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/extend_type/fieldAsArrowFunctionLet.invalid.ts:7:8 - error: Expected `@gqlField` arrow function to be declared as `const`.
 
 7 export let greeting = (_: SomeType): string => {

@@ -20,7 +20,9 @@ export default class User {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/type_definitions/TypeFromClassDefinitionImplementsInterfaceWithDeprecatedTag.invalid.ts:9:4 - error: `@gqlImplements` has been deprecated. Instead use `class MyType implements MyInterface`.
 
  9  * @gqlImplements Person

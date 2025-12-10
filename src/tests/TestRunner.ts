@@ -5,10 +5,12 @@ import { ask } from "./yesNo";
 import { Result } from "../utils/Result";
 import { Markdown } from "./Markdown";
 
-type Transformer = (
+export type TransformerResult = Result<string, string | Markdown> | false;
+
+export type Transformer = (
   code: string,
-  filename: string,
-) => Promise<Result<string, string> | false> | (Result<string, string> | false);
+  fileName: string,
+) => TransformerResult | Promise<TransformerResult>;
 
 /**
  * Looks in a fixtures dir for .ts files, transforms them according to the
@@ -123,7 +125,11 @@ export default class TestRunner {
     output.addHeader(2, "input");
     output.addCodeBlock(fixtureContent, fileType, fixture);
     output.addHeader(2, "Output");
-    output.addCodeBlock(actualOutput, "");
+    if (actualOutput instanceof Markdown) {
+      output.addMarkdown(actualOutput);
+    } else {
+      output.addCodeBlock(actualOutput, "");
+    }
 
     const testOutput = output.toString();
 
@@ -179,10 +185,7 @@ export default class TestRunner {
     }
   }
 
-  async transform(
-    code: string,
-    filename: string,
-  ): Promise<Result<string, string> | false> {
+  async transform(code: string, filename: string): Promise<TransformerResult> {
     try {
       return await this._transformer(code, filename);
     } catch (e) {

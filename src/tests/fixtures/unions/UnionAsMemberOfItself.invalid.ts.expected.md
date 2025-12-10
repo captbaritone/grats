@@ -27,8 +27,9 @@ type Actor = User | Entity | Actor;
 
 ## Output
 
-```
--- Error Report --
+### Error Report
+
+```text
 src/tests/fixtures/unions/UnionAsMemberOfItself.invalid.ts:9:16 - error: Expected `__typename` property initializer to be an expression with a const assertion. For example: `__typename = "User" as const` or `__typename: "User";`. This is needed to ensure Grats can determine the type of this object during GraphQL execution.
 
 9   __typename = "User";
@@ -38,9 +39,11 @@ src/tests/fixtures/unions/UnionAsMemberOfItself.invalid.ts:16:16 - error: Expect
 
 16   __typename = "Entity";
                   ~~~~~~~~
+```
 
+#### Code Action: "Create Grats-compatible `__typename` property" (fix-typename-property)
 
--- Code Action: "Create Grats-compatible `__typename` property" (fix-typename-property) --
+```diff
 - Original
 + Fixed
 
@@ -49,7 +52,11 @@ src/tests/fixtures/unions/UnionAsMemberOfItself.invalid.ts:16:16 - error: Expect
 -   __typename = "User";
 +   __typename = "User" as const;
     /** @gqlField */
--- Code Action: "Create Grats-compatible `__typename` property" (fix-typename-property) --
+```
+
+#### Code Action: "Create Grats-compatible `__typename` property" (fix-typename-property)
+
+```diff
 - Original
 + Fixed
 
@@ -58,12 +65,18 @@ src/tests/fixtures/unions/UnionAsMemberOfItself.invalid.ts:16:16 - error: Expect
 -   __typename = "Entity";
 +   __typename = "Entity" as const;
     /** @gqlField */
+```
 
--- Applied Fixes --
-  * Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/unions/UnionAsMemberOfItself.invalid.ts
-  * Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/unions/UnionAsMemberOfItself.invalid.ts
+#### Applied Fixes
 
--- Fixed Text --
+```text
+* Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/unions/UnionAsMemberOfItself.invalid.ts
+  * Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/unions/UnionAsMemberOfItself.invalid.ts
+```
+
+#### Fixed Text
+
+```typescript
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */

@@ -21,7 +21,9 @@ export interface User {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/type_definitions_from_interface/InterfaceTypeExtendsGqlInterfaceWithDeprecatedTag.invalid.ts:9:4 - error: `@gqlImplements` has been deprecated. Instead use `interface MyType extends MyInterface`.
 
  9  * @gqlImplements Person

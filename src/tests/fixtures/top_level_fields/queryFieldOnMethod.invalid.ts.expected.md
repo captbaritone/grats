@@ -11,7 +11,9 @@ export class SomeNonGraphQLClass {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/top_level_fields/queryFieldOnMethod.invalid.ts:2:7 - error: `@gqlQueryField` can only be used on function or static method declarations.
 
 2   /** @gqlQueryField */

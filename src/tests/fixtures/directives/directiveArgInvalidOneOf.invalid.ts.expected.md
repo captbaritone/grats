@@ -22,7 +22,9 @@ export function myQueryField(): string {
 
 ## Output
 
-```
+### Error Report
+
+```text
 GraphQL request:1:23 - error: OneOf Input Object "MyInput" must specify exactly one key.
 
 1 @customDirective(foo: {a: "a", b: "b"})

@@ -12,7 +12,9 @@ export function myQueryField(): string {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/directives/undefinedDirectiveWithArgs.invalid.ts:3:4 - error: Unknown directive "@myDirective".
 
 3  * @gqlAnnotate myDirective(someArg: "someValue")

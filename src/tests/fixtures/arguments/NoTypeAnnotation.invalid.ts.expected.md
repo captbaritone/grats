@@ -12,7 +12,9 @@ export default class SomeType {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/arguments/NoTypeAnnotation.invalid.ts:4:9 - error: Missing type annotation for resolver argument. Expected all resolver arguments to have an explicit type annotation. Grats needs to be able to see the type of the arguments to generate an executable GraphQL schema.
 
 4   hello(args): string {

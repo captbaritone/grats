@@ -26,7 +26,9 @@ export class SomeType {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/resolver_context/MultipleContextValuesUsed.invalid.ts:6:5 - error: Unexpected duplicate `@gqlContext` tag. Only one type in a project may be annotated with the `@gqlContext`.
 
 6 /** @gqlContext */

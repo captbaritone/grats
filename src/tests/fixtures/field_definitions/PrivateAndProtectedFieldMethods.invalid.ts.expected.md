@@ -16,7 +16,9 @@ export class User {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/field_definitions/PrivateAndProtectedFieldMethods.invalid.ts:4:3 - error: Unexpected access modifier on `@gqlField` method. GraphQL fields must be able to be called by the GraphQL executor.
 
 4   private greet(): string {

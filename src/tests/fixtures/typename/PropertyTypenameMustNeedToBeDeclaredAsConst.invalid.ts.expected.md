@@ -11,15 +11,18 @@ export class User {
 
 ## Output
 
-```
--- Error Report --
+### Error Report
+
+```text
 src/tests/fixtures/typename/PropertyTypenameMustNeedToBeDeclaredAsConst.invalid.ts:3:16 - error: Expected `__typename` property initializer to be an expression with a const assertion. For example: `__typename = "User" as const` or `__typename: "User";`. This is needed to ensure Grats can determine the type of this object during GraphQL execution.
 
 3   __typename = "User";
                  ~~~~~~
+```
 
+#### Code Action: "Create Grats-compatible `__typename` property" (fix-typename-property)
 
--- Code Action: "Create Grats-compatible `__typename` property" (fix-typename-property) --
+```diff
 - Original
 + Fixed
 
@@ -28,11 +31,17 @@ src/tests/fixtures/typename/PropertyTypenameMustNeedToBeDeclaredAsConst.invalid.
 -   __typename = "User";
 +   __typename = "User" as const;
     /** @gqlField */
+```
 
--- Applied Fixes --
-  * Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/typename/PropertyTypenameMustNeedToBeDeclaredAsConst.invalid.ts
+#### Applied Fixes
 
--- Fixed Text --
+```text
+* Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/typename/PropertyTypenameMustNeedToBeDeclaredAsConst.invalid.ts
+```
+
+#### Fixed Text
+
+```typescript
 /** @gqlType */
 export class User {
   __typename = "User" as const;

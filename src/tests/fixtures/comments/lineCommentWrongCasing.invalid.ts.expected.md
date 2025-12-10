@@ -12,8 +12,9 @@ export default class Composer {
 
 ## Output
 
-```
--- Error Report --
+### Error Report
+
+```text
 src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:1:4 - error: `@GQLtYPE` is not a valid Grats tag. Valid tags are: `@gqlType`, `@gqlField`, `@gqlScalar`, `@gqlInterface`, `@gqlEnum`, `@gqlUnion`, `@gqlInput`, `@gqlDirective`, `@gqlAnnotate`, `@gqlQueryField`, `@gqlMutationField`, `@gqlSubscriptionField`.
 
 1 // @GQLtYPE
@@ -31,9 +32,11 @@ src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:3:6 - error: Unexp
 
 3   // @gqlfield
        ~~~~~~~~~
+```
 
+#### Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment)
 
--- Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment) --
+```diff
 - Original
 + Fixed
 
@@ -41,7 +44,11 @@ src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:3:6 - error: Unexp
 - // @GQLtYPE
 + /** @GQLtYPE */
   export default class Composer {
--- Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment) --
+```
+
+#### Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment)
+
+```diff
 - Original
 + Fixed
 
@@ -50,12 +57,18 @@ src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:3:6 - error: Unexp
 -   // @gqlfield
 +   /** @gqlfield */
     url(): string {
+```
 
--- Applied Fixes --
-  * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts
-  * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts
+#### Applied Fixes
 
--- Fixed Text --
+```text
+* Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts
+  * Applied fix "Convert to a docblock comment" in grats/src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts
+```
+
+#### Fixed Text
+
+```typescript
 /** @GQLtYPE */
 export default class Composer {
   /** @gqlfield */

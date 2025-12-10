@@ -7,15 +7,18 @@ function field() {}
 
 ## Output
 
-```
--- Error Report --
+### Error Report
+
+```text
 src/tests/fixtures/user_error/WrongCaseGqlTag.invalid.ts:1:6 - error: Incorrect casing for Grats tag `@GQLField`. Use `@gqlField` instead.
 
 1 /** @GQLField */
        ~~~~~~~~
+```
 
+#### Code Action: "Change to @gqlField" (fix-grats-tag-casing)
 
--- Code Action: "Change to @gqlField" (fix-grats-tag-casing) --
+```diff
 - Original
 + Fixed
 
@@ -23,11 +26,17 @@ src/tests/fixtures/user_error/WrongCaseGqlTag.invalid.ts:1:6 - error: Incorrect 
 - /** @GQLField */
 + /** @gqlField */
   function field() {}
+```
 
--- Applied Fixes --
-  * Applied fix "Change to @gqlField" in grats/src/tests/fixtures/user_error/WrongCaseGqlTag.invalid.ts
+#### Applied Fixes
 
--- Fixed Text --
+```text
+* Applied fix "Change to @gqlField" in grats/src/tests/fixtures/user_error/WrongCaseGqlTag.invalid.ts
+```
+
+#### Fixed Text
+
+```typescript
 /** @gqlField */
 function field() {}
 ```

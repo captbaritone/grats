@@ -21,7 +21,9 @@ type MyInputType = {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/input_types/InputTypeReturnedFromField.invalid.ts:15:14 - error: The type of MyInputType.someField must be Input Type but got: MyType!.
 
 15   someField: MyType;

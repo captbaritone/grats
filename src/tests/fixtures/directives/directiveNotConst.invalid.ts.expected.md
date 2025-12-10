@@ -15,7 +15,9 @@ export function myQueryField(): string {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/directives/directiveNotConst.invalid.ts:6:4 - error: Syntax Error: Unexpected variable "$foo" in constant value.
 
 6  * @gqlAnnotate myDirective(someArg: $foo)

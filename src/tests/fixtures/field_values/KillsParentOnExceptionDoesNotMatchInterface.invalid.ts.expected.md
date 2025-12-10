@@ -26,7 +26,9 @@ export class User implements IPerson {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/field_values/KillsParentOnExceptionDoesNotMatchInterface.invalid.ts:4:7 - error: Interface field IPerson.name expects type String! but User.name is type String.
 
 4    * @killsParentOnException

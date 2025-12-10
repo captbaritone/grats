@@ -19,7 +19,9 @@ export type MyUnion = User | Group;
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/typename/UnionMemberMissingTypename.invalid.ts:8:7 - error: Cannot resolve typename. The type `Group` is a member of `MyUnion`, so it must either have a `__typename` property or be an exported class.
 
 8 class Group {

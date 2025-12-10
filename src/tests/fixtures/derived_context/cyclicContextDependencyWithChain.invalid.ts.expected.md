@@ -44,7 +44,9 @@ export function greeting(_: Query, ctx: A): string {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/derived_context/cyclicContextDependencyWithChain.invalid.ts:10:5 - error: Cyclic dependency detected in derived context. This derived context value depends upon itself.
 
 10 /** @gqlContext */

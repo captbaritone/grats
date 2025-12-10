@@ -1,5 +1,5 @@
 import * as path from "path";
-import TestRunner from "./TestRunner";
+import TestRunner, { Transformer, TransformerResult } from "./TestRunner";
 import {
   buildSchemaAndDocResult,
   buildSchemaAndDocResultWithHost,
@@ -32,6 +32,7 @@ import { extend } from "../utils/helpers";
 import { Result, ok, err } from "../utils/Result";
 import { applyFixes } from "../fixFixable";
 import { writeTypeScriptTypeToDisk } from "../../scripts/buildConfigTypes";
+import { Markdown } from "./Markdown";
 
 writeTypeScriptTypeToDisk();
 
@@ -80,7 +81,14 @@ const fixturesDir = path.join(__dirname, "fixtures");
 const configFixturesDir = path.join(__dirname, "configParserFixtures");
 const integrationFixturesDir = path.join(__dirname, "integrationFixtures");
 
-const testDirs = [
+type TestDir = {
+  fixturesDir: string;
+  testFilePattern: RegExp;
+  ignoreFilePattern: RegExp | null;
+  transformer: Transformer;
+};
+
+const testDirs: TestDir[] = [
   {
     fixturesDir: configFixturesDir,
     testFilePattern: /\.json$/,
@@ -130,10 +138,7 @@ const testDirs = [
     fixturesDir,
     testFilePattern: /\.ts$/,
     ignoreFilePattern: null,
-    transformer: (
-      code: string,
-      fileName: string,
-    ): Result<string, string> | false => {
+    transformer: (code: string, fileName: string): TransformerResult => {
       const firstLine = code.split("\n")[0];
       let config: Partial<GratsConfig> = {
         nullableByDefault: true,
@@ -385,7 +390,7 @@ function printSDLFromSchemaWithoutDirectives(schema: GraphQLSchema): string {
 function formatDiagnosticsWithContext(
   code: string,
   diagnostics: ReportableDiagnostics,
-): string {
+): Markdown {
   const formatted = diagnostics.formatDiagnosticsWithContext();
 
   const actions: {
@@ -435,8 +440,12 @@ function formatDiagnosticsWithContext(
     });
   }
 
+  const markdown = new Markdown();
+  markdown.addHeader(3, "Error Report");
+  markdown.addCodeBlock(formatted, "text");
+
   if (actions.length === 0) {
-    return formatted;
+    return markdown;
   }
 
   const fixable = diagnostics._diagnostics.filter((d) => d.fix != null);
@@ -445,7 +454,13 @@ function formatDiagnosticsWithContext(
     logEvents.push(event);
   }
 
-  let fixedText = "";
+  for (const action of actions) {
+    markdown.addHeader(
+      4,
+      `Code Action: "${action.description}" (${action.fixName})`,
+    );
+    markdown.addCodeBlock(action.diff, "diff");
+  }
 
   if (fixable.length > 0) {
     const fileName = fixable[0].file?.fileName;
@@ -459,16 +474,13 @@ function formatDiagnosticsWithContext(
 
     writeFileSync(fileName, current, "utf8");
 
-    fixedText = `\n\n-- Applied Fixes --\n${logEvents.join("\n")}\n\n-- Fixed Text --\n${newText}`;
+    markdown.addHeader(4, "Applied Fixes");
+    markdown.addCodeBlock(logEvents.join("\n"), "text");
+    markdown.addHeader(4, "Fixed Text");
+    markdown.addCodeBlock(newText, "typescript");
   }
 
-  const actionText = actions
-    .map((action) => {
-      return `-- Code Action: "${action.description}" (${action.fixName}) --\n${action.diff}`;
-    })
-    .join("\n");
-
-  return `-- Error Report --\n${formatted}\n${actionText}${fixedText}`;
+  return markdown;
 }
 
 program.parse();

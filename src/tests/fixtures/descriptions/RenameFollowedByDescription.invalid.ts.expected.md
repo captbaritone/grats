@@ -14,7 +14,9 @@ class SomeType {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/descriptions/RenameFollowedByDescription.invalid.ts:2:4 - error: Expected text following a `@gqlType` tag to be a GraphQL name. If you intended this text to be a description, place it at the top of the docblock before any `@tags`.
 
 2  * @gqlType User

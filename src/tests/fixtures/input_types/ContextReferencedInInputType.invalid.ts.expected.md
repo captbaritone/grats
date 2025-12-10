@@ -14,7 +14,9 @@ type MyInputType = {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/input_types/ContextReferencedInInputType.invalid.ts:8:14 - error: Cannot use `gqlContext` as a type in GraphQL type position.
 
 8   someField: SomeType;

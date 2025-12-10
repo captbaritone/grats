@@ -29,7 +29,9 @@ export function greeting(_: Query, ctx: DerivedContext): string {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/derived_context/simpleDerivedContextReadsRandomType.invalid.ts:13:3 - error: Invalid type for derived context function argument. Derived context functions may only accept other `@gqlContext` types as arguments.
 
 13   oops: string,

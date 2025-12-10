@@ -17,15 +17,18 @@ export interface IPerson {
 
 ## Output
 
-```
--- Error Report --
+### Error Report
+
+```text
 src/tests/fixtures/typename/PropertySignatureTypenameIncorrectName.invalid.ts:3:15 - error: Expected `__typename` property to be `"User"`. This is needed to ensure Grats can determine the type of this object during GraphQL execution.
 
 3   __typename: "Group";
                 ~~~~~~~
+```
 
+#### Code Action: "Create Grats-compatible `__typename` type" (fix-typename-type)
 
--- Code Action: "Create Grats-compatible `__typename` type" (fix-typename-type) --
+```diff
 - Original
 + Fixed
 
@@ -34,11 +37,17 @@ src/tests/fixtures/typename/PropertySignatureTypenameIncorrectName.invalid.ts:3:
 -   __typename: "Group";
 +   __typename: "User";
     /** @gqlField */
+```
 
--- Applied Fixes --
-  * Applied fix "Create Grats-compatible `__typename` type" in grats/src/tests/fixtures/typename/PropertySignatureTypenameIncorrectName.invalid.ts
+#### Applied Fixes
 
--- Fixed Text --
+```text
+* Applied fix "Create Grats-compatible `__typename` type" in grats/src/tests/fixtures/typename/PropertySignatureTypenameIncorrectName.invalid.ts
+```
+
+#### Fixed Text
+
+```typescript
 /** @gqlType */
 export class User implements IPerson {
   __typename: "User";

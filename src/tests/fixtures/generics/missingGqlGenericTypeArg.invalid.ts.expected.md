@@ -18,7 +18,9 @@ export type PageConnection = {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/generics/missingGqlGenericTypeArg.invalid.ts:12:10 - error: Missing type argument for generic GraphQL type. Expected `Edge` to be passed a GraphQL type argument for type parameter `T`.
 
 12   edges: Edge</* Oops! */>[];

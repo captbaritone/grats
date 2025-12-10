@@ -13,7 +13,9 @@ type Foo = {
 
 ## Output
 
-```
+### Error Report
+
+```text
 src/tests/fixtures/user_error/KillsParentOnExceptionOnNonField.invalid.ts:1:6 - error: Unexpected `@killsParentOnException`. `@killsParentOnException` can only be used in field annotation docblocks. Perhaps you are missing a `@gqlField` tag?
 
 1 /** @killsParentOnException */
