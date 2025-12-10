@@ -99,6 +99,7 @@ function transformArg(arg: DirectiveResolverArgument): ResolverArgument {
         kind: "derivedContext",
         path: arg.path,
         exportName: arg.exportName,
+        async: arg.async,
         args: arg.args.map((arg): ContextArgs => {
           const newArg = transformArg(arg);
           invariant(

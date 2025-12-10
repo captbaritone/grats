@@ -66,6 +66,7 @@ export type DerivedContextResolverArgument = {
   exportName: string | null;
   args: Array<DerivedContextResolverArgument | ContextResolverArgument>;
   node: ts.Node;
+  async: boolean;
 };
 
 export type InformationResolverArgument = {

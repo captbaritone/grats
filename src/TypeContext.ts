@@ -27,6 +27,7 @@ export type DerivedResolverDefinition = {
   exportName: string | null;
   args: ResolverArgument[];
   kind: "DERIVED_CONTEXT";
+  async: boolean;
 };
 
 export type NameDefinition = {

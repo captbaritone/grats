@@ -181,7 +181,7 @@ class ResolverParamsResolver {
     definition: DerivedResolverDefinition,
     seenDerivedContextValues?: Map<string, ts.Node>,
   ): ResolverArgument | null {
-    const { path, exportName, args } = definition;
+    const { path, exportName, args, async } = definition;
     const key = `${path}:${exportName}`;
     if (seenDerivedContextValues == null) {
       // We're resolving the arg of a resolver. Initiate the map.
@@ -220,7 +220,14 @@ class ResolverParamsResolver {
           );
       }
     }
-    return { kind: "derivedContext", node, path, exportName, args: newArgs };
+    return {
+      kind: "derivedContext",
+      node,
+      path,
+      exportName,
+      args: newArgs,
+      async,
+    };
   }
 
   resolveToPositionalArg(

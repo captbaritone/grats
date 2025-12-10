@@ -29,7 +29,7 @@ export function greeting(_: Query, ctx: DerivedContext): string {
 ### Error Report
 
 ```text
-src/tests/fixtures/derived_context/derivedContextNonNamedReturnType.invalid.ts:11:57 - error: Expected derived resolver to have an explicit return type. This is needed to allow Grats to "see" which type to treat as a derived context type.
+src/tests/fixtures/derived_context/derivedContextNonNamedReturnType.invalid.ts:11:57 - error: Expected derived resolver's return type to be a named type alias, e.g. `: SomeType`. This is needed to allow Grats to "see" which type declaration to treat as the derived context type.
 
 11 export function createDerivedContext(ctx: RootContext): { greeting: string } {
                                                            ~~~~~~~~~~~~~~~~~~~~
