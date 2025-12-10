@@ -111,6 +111,8 @@ jobs:
           node-version: "20.x"
           registry-url: "https://registry.npmjs.org"
           cache: "pnpm"
+      - name: Ensure npm 11.5.1 or later for trusted publishing
+        run: npm install -g npm@11.7.0
       - name: Install dependencies
         run: pnpm install
       - name: Build latest (main) version
@@ -120,6 +122,4 @@ jobs:
         env:
           RELEASE_COMMIT_SHA: ${{ github.sha }}
       - name: Publish
-        run: pnpm publish --tag main --access=public --no-git-checks --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm publish --tag main --access=public --no-git-checks
