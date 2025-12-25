@@ -97,6 +97,55 @@ export interface ITypeContextForResolveTypes extends ITypeContext {
 }
 
 /**
+ * Public interface for TypeContext.
+ *
+ * Used to track TypeScript references and resolve type names between
+ * TypeScript and GraphQL.
+ */
+export interface ITypeContext {
+  /** Resolves an unresolved NameNode to its actual GraphQL name */
+  resolveUnresolvedNamedType(unresolved: NameNode): DiagnosticResult<NameNode>;
+
+  /** Checks if an unresolved NameNode refers to a GraphQL type */
+  unresolvedNameIsGraphQL(unresolved: NameNode): boolean;
+
+  /** Gets the declaration definition for a GraphQL NameNode */
+  gqlNameDefinitionForGqlName(
+    nameNode: NameNode,
+  ): DiagnosticResult<DeclarationDefinition>;
+
+  /** Gets the GraphQL name for a TypeScript entity name */
+  gqlNameForTsName(node: ts.EntityName): DiagnosticResult<string>;
+}
+
+/**
+ * Additional methods implemented by TypeContext for use during type resolution.
+ */
+export interface ITypeContextForResolveTypes extends ITypeContext {
+  /**
+   * Gets the TypeScript declaration for a TypeScript entity name.
+   */
+  tsDeclarationForTsName(node: ts.EntityName): DiagnosticResult<ts.Declaration>;
+
+  /**
+   * Gets the TypeScript declaration for a GraphQL definition node
+   * Currently used exclusively for taking a GraphQL declaration and
+   * finding its TypeScript declaration in order to find generic type
+   * parameters.
+   */
+  tsDeclarationForGqlDefinition(
+    definition:
+      | ObjectTypeDefinitionNode
+      | UnionTypeDefinitionNode
+      | InputObjectTypeDefinitionNode
+      | InterfaceTypeDefinitionNode,
+  ): ts.Declaration;
+
+  /** Gets the TypeScript entity name associated with a GraphQL NameNode */
+  getEntityName(name: NameNode): ts.EntityName | null;
+}
+
+/**
  * Used to track TypeScript references.
  *
  * If a TS method is typed as returning `MyType`, we need to look at that type's
