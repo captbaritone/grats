@@ -45,7 +45,7 @@ export type NameDefinition = {
 
 export type DeclarationDefinition = NameDefinition | DerivedResolverDefinition;
 
-type TsIdentifier = number;
+import type { TsIdentifier } from "./utils/helpers";
 
 /**
  * Public interface for TypeContext.

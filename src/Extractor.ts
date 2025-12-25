@@ -45,6 +45,7 @@ import {
   extend,
   invariant,
   levenshteinDistance,
+  TsIdentifier,
 } from "./utils/helpers";
 import * as Act from "./CodeActions";
 import {
@@ -122,7 +123,7 @@ export type ExtractionSnapshot = {
    * name. This will be resolved in a later pass since it may reference a type
    * defined in another file and extraction is done on a per-file basis.
    */
-  readonly unresolvedNames: Map<number /* TsIdentifier */, ts.EntityName>;
+  readonly unresolvedNames: Map<TsIdentifier, ts.EntityName>;
 
   /** Map from a TypeScript declaration to the extracted GraphQL name and kind. */
   readonly nameDefinitions: Map<ts.DeclarationStatement, NameDefinition>;
@@ -178,7 +179,7 @@ export function extract(
 class Extractor {
   // Snapshot data. See comments on fields on ExtractionSnapshot for details.
   definitions: DefinitionNode[] = [];
-  unresolvedNames: Map<number /* TsIdentifier */, ts.EntityName> = new Map();
+  unresolvedNames: Map<TsIdentifier, ts.EntityName> = new Map();
   nameDefinitions: Map<ts.DeclarationStatement, NameDefinition> = new Map();
   implicitNameDefinitions: Map<DeclarationDefinition, ts.TypeReferenceNode> =
     new Map();
