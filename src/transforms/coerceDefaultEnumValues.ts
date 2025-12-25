@@ -11,7 +11,6 @@ import {
   TypeNode,
   visit,
 } from "graphql";
-import { TypeContext } from "../TypeContext";
 
 /**
  * This transform visits argument default values checking for values used in
@@ -48,7 +47,6 @@ import { TypeContext } from "../TypeContext";
  * assumption that a later validation pass will detect the error.
  */
 export function coerceDefaultEnumValues(
-  _ctx: TypeContext,
   definitions: Array<DefinitionNode>,
 ): DefinitionNode[] {
   const coercer = new Coercer(definitions);

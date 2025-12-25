@@ -1,4 +1,4 @@
-import { NameDefinition, TypeContext } from "../TypeContext";
+import { DeclarationDefinition, NameDefinition } from "../TypeContext";
 import { err, ok } from "../utils/Result";
 import {
   DiagnosticsResult,
@@ -9,12 +9,12 @@ import {
 import * as E from "../Errors";
 
 export function validateDuplicateContextOrInfo(
-  ctx: TypeContext,
+  definitions: Iterable<DeclarationDefinition>,
 ): DiagnosticsResult<void> {
   const errors: FixableDiagnosticWithLocation[] = [];
   let infoDefinition: null | NameDefinition = null;
   let ctxDefinition: null | NameDefinition = null;
-  for (const namedDefinition of ctx.allDefinitions()) {
+  for (const namedDefinition of definitions) {
     switch (namedDefinition.kind) {
       case "CONTEXT":
         if (ctxDefinition != null) {

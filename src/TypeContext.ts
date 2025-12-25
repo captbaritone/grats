@@ -48,6 +48,55 @@ export type DeclarationDefinition = NameDefinition | DerivedResolverDefinition;
 type TsIdentifier = number;
 
 /**
+ * Public interface for TypeContext.
+ *
+ * Used to track TypeScript references and resolve type names between
+ * TypeScript and GraphQL.
+ */
+export interface ITypeContext {
+  /** Resolves an unresolved NameNode to its actual GraphQL name */
+  resolveUnresolvedNamedType(unresolved: NameNode): DiagnosticResult<NameNode>;
+
+  /** Checks if an unresolved NameNode refers to a GraphQL type */
+  unresolvedNameIsGraphQL(unresolved: NameNode): boolean;
+
+  /** Gets the declaration definition for a GraphQL NameNode */
+  gqlNameDefinitionForGqlName(
+    nameNode: NameNode,
+  ): DiagnosticResult<DeclarationDefinition>;
+
+  /** Gets the GraphQL name for a TypeScript entity name */
+  gqlNameForTsName(node: ts.EntityName): DiagnosticResult<string>;
+}
+
+/**
+ * Additional methods implemented by TypeContext for use during type resolution.
+ */
+export interface ITypeContextForResolveTypes extends ITypeContext {
+  /**
+   * Gets the TypeScript declaration for a TypeScript entity name.
+   */
+  tsDeclarationForTsName(node: ts.EntityName): DiagnosticResult<ts.Declaration>;
+
+  /**
+   * Gets the TypeScript declaration for a GraphQL definition node
+   * Currently used exclusively for taking a GraphQL declaration and
+   * finding its TypeScript declaration in order to find generic type
+   * parameters.
+   */
+  tsDeclarationForGqlDefinition(
+    definition:
+      | ObjectTypeDefinitionNode
+      | UnionTypeDefinitionNode
+      | InputObjectTypeDefinitionNode
+      | InterfaceTypeDefinitionNode,
+  ): ts.Declaration;
+
+  /** Gets the TypeScript entity name associated with a GraphQL NameNode */
+  getEntityName(name: NameNode): ts.EntityName | null;
+}
+
+/**
  * Used to track TypeScript references.
  *
  * If a TS method is typed as returning `MyType`, we need to look at that type's
@@ -59,13 +108,13 @@ type TsIdentifier = number;
  * parsed all the files, we traverse the GraphQL schema, resolving all the dummy
  * type references.
  */
-export class TypeContext {
-  checker: ts.TypeChecker;
+export class TypeContext implements ITypeContext, ITypeContextForResolveTypes {
+  private checker: ts.TypeChecker;
 
-  _declarationToDefinition: Map<ts.Declaration, DeclarationDefinition> =
+  private _declarationToDefinition: Map<ts.Declaration, DeclarationDefinition> =
     new Map();
-  _unresolvedNodes: Map<TsIdentifier, ts.EntityName> = new Map();
-  _idToDeclaration: Map<TsIdentifier, ts.Declaration> = new Map();
+  private _unresolvedNodes: Map<TsIdentifier, ts.EntityName> = new Map();
+  private _idToDeclaration: Map<TsIdentifier, ts.Declaration> = new Map();
 
   static fromSnapshot(
     checker: ts.TypeChecker,
@@ -73,9 +122,7 @@ export class TypeContext {
   ): DiagnosticsResult<TypeContext> {
     const errors: FixableDiagnosticWithLocation[] = [];
     const self = new TypeContext(checker);
-    for (const [node, typeName] of snapshot.unresolvedNames) {
-      self._markUnresolvedType(node, typeName);
-    }
+    self._unresolvedNodes = snapshot.unresolvedNames;
     for (const [node, definition] of snapshot.nameDefinitions) {
       self._recordDeclaration(node, definition);
     }
@@ -122,16 +169,7 @@ export class TypeContext {
     this._declarationToDefinition.set(node, definition);
   }
 
-  // Record that a type references `node`
-  private _markUnresolvedType(node: ts.EntityName, name: NameNode) {
-    this._unresolvedNodes.set(name.tsIdentifier, node);
-  }
-
-  allDefinitions(): Iterable<DeclarationDefinition> {
-    return this._declarationToDefinition.values();
-  }
-
-  findSymbolDeclaration(startSymbol: ts.Symbol): ts.Declaration | null {
+  private findSymbolDeclaration(startSymbol: ts.Symbol): ts.Declaration | null {
     const symbol = this.resolveSymbol(startSymbol);
     const declaration = symbol.declarations?.[0];
     return declaration ?? null;
