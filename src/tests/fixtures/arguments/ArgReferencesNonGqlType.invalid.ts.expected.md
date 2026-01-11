@@ -1,4 +1,6 @@
-## input
+# arguments/ArgReferencesNonGqlType.invalid.ts
+
+## Input
 
 ```ts title="arguments/ArgReferencesNonGqlType.invalid.ts"
 type NotGraphql = any;

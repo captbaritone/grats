@@ -1,4 +1,6 @@
-## input
+# field_definitions/PublicFieldMethod.ts
+
+## Input
 
 ```ts title="field_definitions/PublicFieldMethod.ts"
 /** @gqlType */

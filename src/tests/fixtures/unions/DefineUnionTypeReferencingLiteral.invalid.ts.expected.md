@@ -1,4 +1,6 @@
-## input
+# unions/DefineUnionTypeReferencingLiteral.invalid.ts
+
+## Input
 
 ```ts title="unions/DefineUnionTypeReferencingLiteral.invalid.ts"
 /** @gqlType */

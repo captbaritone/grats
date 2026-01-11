@@ -1,4 +1,6 @@
-## input
+# input_types/InputTypeInterfaceMethod.invalid.ts
+
+## Input
 
 ```ts title="input_types/InputTypeInterfaceMethod.invalid.ts"
 /** @gqlInput */

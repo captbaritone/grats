@@ -1,4 +1,6 @@
-## input
+# type_definitions_from_alias/AliasIsArrayNotLiteral.invalid.ts
+
+## Input
 
 ```ts title="type_definitions_from_alias/AliasIsArrayNotLiteral.invalid.ts"
 /** @gqlType */

@@ -1,4 +1,6 @@
-## input
+# directives/defineCustomDirectiveRepeatable.ts
+
+## Input
 
 ```ts title="directives/defineCustomDirectiveRepeatable.ts"
 /**

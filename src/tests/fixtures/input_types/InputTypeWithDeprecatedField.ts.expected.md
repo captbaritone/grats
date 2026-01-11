@@ -1,4 +1,6 @@
-## input
+# input_types/InputTypeWithDeprecatedField.ts
+
+## Input
 
 ```ts title="input_types/InputTypeWithDeprecatedField.ts"
 /** @gqlType */

@@ -1,4 +1,6 @@
-## input
+# generics/genericTypeUsingClass.ts
+
+## Input
 
 ```ts title="generics/genericTypeUsingClass.ts"
 /** @gqlType */

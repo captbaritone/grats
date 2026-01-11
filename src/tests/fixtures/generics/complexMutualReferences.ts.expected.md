@@ -1,4 +1,6 @@
-## input
+# generics/complexMutualReferences.ts
+
+## Input
 
 ```ts title="generics/complexMutualReferences.ts"
 /** @gqlType */

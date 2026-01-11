@@ -1,4 +1,6 @@
-## input
+# generics/todo/genericTypeMemberOfUnion.ts
+
+## Input
 
 ```ts title="generics/todo/genericTypeMemberOfUnion.ts"
 /** @gqlType */

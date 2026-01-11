@@ -1,4 +1,6 @@
-## input
+# parameterPropertyRenamed/index.ts
+
+## Input
 
 ```ts title="parameterPropertyRenamed/index.ts"
 /** @gqlQueryField */

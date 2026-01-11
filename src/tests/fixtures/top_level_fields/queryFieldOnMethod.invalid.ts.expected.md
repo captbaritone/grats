@@ -1,4 +1,6 @@
-## input
+# top_level_fields/queryFieldOnMethod.invalid.ts
+
+## Input
 
 ```ts title="top_level_fields/queryFieldOnMethod.invalid.ts"
 export class SomeNonGraphQLClass {

@@ -1,4 +1,6 @@
-## input
+# extend_type/optionalModelType.ts
+
+## Input
 
 ```ts title="extend_type/optionalModelType.ts"
 /** @gqlType */

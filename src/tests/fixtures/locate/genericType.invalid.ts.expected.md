@@ -1,4 +1,6 @@
-## input
+# locate/genericType.invalid.ts
+
+## Input
 
 ```ts title="locate/genericType.invalid.ts"
 // Locate: PageEdge

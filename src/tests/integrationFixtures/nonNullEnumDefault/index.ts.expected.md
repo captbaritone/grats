@@ -1,4 +1,6 @@
-## input
+# nonNullEnumDefault/index.ts
+
+## Input
 
 ```ts title="nonNullEnumDefault/index.ts"
 // https://github.com/captbaritone/grats/issues/174

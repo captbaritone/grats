@@ -1,4 +1,6 @@
-## input
+# generics/undefinedTypeUsedAsGenericTypeArg.invalid.ts
+
+## Input
 
 ```ts title="generics/undefinedTypeUsedAsGenericTypeArg.invalid.ts"
 /** @gqlType */

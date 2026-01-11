@@ -1,4 +1,6 @@
-## input
+# arguments/ArgumentWithDescription.ts
+
+## Input
 
 ```ts title="arguments/ArgumentWithDescription.ts"
 /** @gqlType */

@@ -1,4 +1,6 @@
-## input
+# custom_scalars/SpecifiedBy.ts
+
+## Input
 
 ```ts title="custom_scalars/SpecifiedBy.ts"
 /**

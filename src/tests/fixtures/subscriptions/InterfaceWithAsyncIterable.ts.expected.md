@@ -1,4 +1,6 @@
-## input
+# subscriptions/InterfaceWithAsyncIterable.ts
+
+## Input
 
 ```ts title="subscriptions/InterfaceWithAsyncIterable.ts"
 /** @gqlInterface */

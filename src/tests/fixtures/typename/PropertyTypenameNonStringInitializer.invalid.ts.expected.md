@@ -1,4 +1,6 @@
-## input
+# typename/PropertyTypenameNonStringInitializer.invalid.ts
+
+## Input
 
 ```ts title="typename/PropertyTypenameNonStringInitializer.invalid.ts"
 /** @gqlType */

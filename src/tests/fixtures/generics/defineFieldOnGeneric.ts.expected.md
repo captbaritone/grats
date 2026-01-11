@@ -1,4 +1,6 @@
-## input
+# generics/defineFieldOnGeneric.ts
+
+## Input
 
 ```ts title="generics/defineFieldOnGeneric.ts"
 /** @gqlType */

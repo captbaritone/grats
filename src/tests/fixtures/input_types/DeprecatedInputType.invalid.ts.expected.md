@@ -1,4 +1,6 @@
-## input
+# input_types/DeprecatedInputType.invalid.ts
+
+## Input
 
 ```ts title="input_types/DeprecatedInputType.invalid.ts"
 /** @gqlType */

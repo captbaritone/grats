@@ -1,4 +1,6 @@
-## input
+# getAcessor/index.ts
+
+## Input
 
 ```ts title="getAcessor/index.ts"
 /** @gqlQueryField */

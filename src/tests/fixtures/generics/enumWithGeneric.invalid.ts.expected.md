@@ -1,4 +1,6 @@
-## input
+# generics/enumWithGeneric.invalid.ts
+
+## Input
 
 ```ts title="generics/enumWithGeneric.invalid.ts"
 /** @gqlEnum */

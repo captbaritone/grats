@@ -1,4 +1,6 @@
-## input
+# promiseOfPromise/index.ts
+
+## Input
 
 ```ts title="promiseOfPromise/index.ts"
 /** @gqlQueryField */

@@ -1,4 +1,6 @@
-## input
+# interfaces/InterfaceWithCustomName.ts
+
+## Input
 
 ```ts title="interfaces/InterfaceWithCustomName.ts"
 /** @gqlType */

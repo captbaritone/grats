@@ -1,4 +1,6 @@
-## input
+# built_in_scalars/IdField.ts
+
+## Input
 
 ```ts title="built_in_scalars/IdField.ts"
 import { ID } from "../../../Types";

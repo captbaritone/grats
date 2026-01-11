@@ -1,4 +1,6 @@
-## input
+# arguments/NullableArgumentErrors.invalid.ts
+
+## Input
 
 ```ts title="arguments/NullableArgumentErrors.invalid.ts"
 /** @gqlType */

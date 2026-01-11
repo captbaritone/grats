@@ -1,4 +1,6 @@
-## input
+# custom_scalars/SpecifiedByOnEnum.invalid.ts
+
+## Input
 
 ```ts title="custom_scalars/SpecifiedByOnEnum.invalid.ts"
 /**

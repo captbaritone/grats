@@ -1,4 +1,6 @@
-## input
+# locate/fieldOnScalar.invalid.ts
+
+## Input
 
 ```ts title="locate/fieldOnScalar.invalid.ts"
 // Locate: Date.name

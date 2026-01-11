@@ -1,4 +1,6 @@
-## input
+# generics/multiparamGeneric.ts
+
+## Input
 
 ```ts title="generics/multiparamGeneric.ts"
 /** @gqlUnion */

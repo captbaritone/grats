@@ -1,4 +1,6 @@
-## input
+# field_definitions/GetAcessorField.ts
+
+## Input
 
 ```ts title="field_definitions/GetAcessorField.ts"
 /** @gqlType */

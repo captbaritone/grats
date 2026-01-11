@@ -1,4 +1,6 @@
-## input
+# field_definitions/MethodFieldMissingType.invalid.ts
+
+## Input
 
 ```ts title="field_definitions/MethodFieldMissingType.invalid.ts"
 /** @gqlType */

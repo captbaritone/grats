@@ -122,7 +122,8 @@ export default class TestRunner {
     const fileType = path.extname(fixture).slice(1);
 
     const output = new Markdown();
-    output.addHeader(2, "input");
+    output.addHeader(1, fixture);
+    output.addHeader(2, "Input");
     output.addCodeBlock(fixtureContent, fileType, fixture);
     output.addHeader(2, "Output");
     if (actualOutput instanceof Markdown) {

@@ -1,4 +1,6 @@
-## input
+# default_values/NonLiteralDefaultValue.invalid.ts
+
+## Input
 
 ```ts title="default_values/NonLiteralDefaultValue.invalid.ts"
 /** @gqlType */

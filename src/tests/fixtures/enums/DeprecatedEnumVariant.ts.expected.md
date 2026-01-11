@@ -1,4 +1,6 @@
-## input
+# enums/DeprecatedEnumVariant.ts
+
+## Input
 
 ```ts title="enums/DeprecatedEnumVariant.ts"
 /** @gqlType */

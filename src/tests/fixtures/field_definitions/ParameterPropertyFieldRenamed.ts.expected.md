@@ -1,4 +1,6 @@
-## input
+# field_definitions/ParameterPropertyFieldRenamed.ts
+
+## Input
 
 ```ts title="field_definitions/ParameterPropertyFieldRenamed.ts"
 /** @gqlType */

@@ -1,4 +1,6 @@
-## input
+# derived_context/derivedContextPromiseNonReferenceInner.invalid.ts
+
+## Input
 
 ```ts title="derived_context/derivedContextPromiseNonReferenceInner.invalid.ts"
 /** @gqlContext */

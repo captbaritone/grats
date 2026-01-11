@@ -1,4 +1,6 @@
-## input
+# extend_type/notExported.invalid.ts
+
+## Input
 
 ```ts title="extend_type/notExported.invalid.ts"
 /** @gqlType */

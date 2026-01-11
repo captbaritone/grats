@@ -1,4 +1,6 @@
-## input
+# arguments/PromiseArgument.invalid.ts
+
+## Input
 
 ```ts title="arguments/PromiseArgument.invalid.ts"
 /** @gqlType */

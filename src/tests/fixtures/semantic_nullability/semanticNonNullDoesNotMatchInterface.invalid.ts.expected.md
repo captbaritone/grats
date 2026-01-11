@@ -1,4 +1,6 @@
-## input
+# semantic_nullability/semanticNonNullDoesNotMatchInterface.invalid.ts
+
+## Input
 
 ```ts title="semantic_nullability/semanticNonNullDoesNotMatchInterface.invalid.ts"
 // { "strictSemanticNullability": true }

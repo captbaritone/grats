@@ -1,4 +1,6 @@
-## input
+# interfaces/InterfaceDefinitionExtendsGqlInterface.ts
+
+## Input
 
 ```ts title="interfaces/InterfaceDefinitionExtendsGqlInterface.ts"
 import { Int } from "../../../Types";

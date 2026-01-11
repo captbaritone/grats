@@ -1,4 +1,6 @@
-## input
+# generics/connection.ts
+
+## Input
 
 ```ts title="generics/connection.ts"
 /** @gqlType */

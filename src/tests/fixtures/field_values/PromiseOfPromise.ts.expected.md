@@ -1,4 +1,6 @@
-## input
+# field_values/PromiseOfPromise.ts
+
+## Input
 
 ```ts title="field_values/PromiseOfPromise.ts"
 /** @gqlType */

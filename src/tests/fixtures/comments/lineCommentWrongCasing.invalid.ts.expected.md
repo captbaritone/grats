@@ -1,4 +1,6 @@
-## input
+# comments/lineCommentWrongCasing.invalid.ts
+
+## Input
 
 ```ts title="comments/lineCommentWrongCasing.invalid.ts"
 // @GQLtYPE

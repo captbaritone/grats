@@ -1,4 +1,6 @@
-## input
+# enums/ImplicitlyNumericEnum.invalid.ts
+
+## Input
 
 ```ts title="enums/ImplicitlyNumericEnum.invalid.ts"
 /** @gqlEnum */

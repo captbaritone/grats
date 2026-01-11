@@ -1,4 +1,6 @@
-## input
+# generics/scalarPassedAsNonGqlGenericArg.ts
+
+## Input
 
 ```ts title="generics/scalarPassedAsNonGqlGenericArg.ts"
 /** @gqlType */

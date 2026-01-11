@@ -1,4 +1,6 @@
-## input
+# type_definitions/ClassWithDescriptionAndCustomName.ts
+
+## Input
 
 ```ts title="type_definitions/ClassWithDescriptionAndCustomName.ts"
 /**

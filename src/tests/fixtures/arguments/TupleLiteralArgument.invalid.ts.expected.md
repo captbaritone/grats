@@ -1,4 +1,6 @@
-## input
+# arguments/TupleLiteralArgument.invalid.ts
+
+## Input
 
 ```ts title="arguments/TupleLiteralArgument.invalid.ts"
 /** @gqlType */

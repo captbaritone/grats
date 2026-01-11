@@ -1,4 +1,6 @@
-## input
+# field_definitions/DeprecatedPropertyField.ts
+
+## Input
 
 ```ts title="field_definitions/DeprecatedPropertyField.ts"
 /** @gqlType */

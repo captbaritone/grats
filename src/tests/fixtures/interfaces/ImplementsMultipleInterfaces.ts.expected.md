@@ -1,4 +1,6 @@
-## input
+# interfaces/ImplementsMultipleInterfaces.ts
+
+## Input
 
 ```ts title="interfaces/ImplementsMultipleInterfaces.ts"
 /** @gqlType */

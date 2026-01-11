@@ -1,4 +1,6 @@
-## input
+# type_definitions/TypeFromClassDefinitionImplementsInterfaceWithDeprecatedTag.invalid.ts
+
+## Input
 
 ```ts title="type_definitions/TypeFromClassDefinitionImplementsInterfaceWithDeprecatedTag.invalid.ts"
 /** @gqlInterface */

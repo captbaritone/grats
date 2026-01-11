@@ -1,4 +1,6 @@
-## input
+# directives/defineCustomDirectiveReadsContext.invalid.ts
+
+## Input
 
 ```ts title="directives/defineCustomDirectiveReadsContext.invalid.ts"
 /** @gqlContext */

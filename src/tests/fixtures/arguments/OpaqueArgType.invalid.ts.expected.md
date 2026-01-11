@@ -1,4 +1,6 @@
-## input
+# arguments/OpaqueArgType.invalid.ts
+
+## Input
 
 ```ts title="arguments/OpaqueArgType.invalid.ts"
 type SomeType = any;

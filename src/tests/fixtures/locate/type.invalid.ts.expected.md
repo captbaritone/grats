@@ -1,4 +1,6 @@
-## input
+# locate/type.invalid.ts
+
+## Input
 
 ```ts title="locate/type.invalid.ts"
 // Locate: User

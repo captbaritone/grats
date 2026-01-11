@@ -1,4 +1,6 @@
-## input
+# arguments/AsyncIterableArgument.invalid.ts
+
+## Input
 
 ```ts title="arguments/AsyncIterableArgument.invalid.ts"
 /** @gqlType */

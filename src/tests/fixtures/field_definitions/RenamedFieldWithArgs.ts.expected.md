@@ -1,4 +1,6 @@
-## input
+# field_definitions/RenamedFieldWithArgs.ts
+
+## Input
 
 ```ts title="field_definitions/RenamedFieldWithArgs.ts"
 /** @gqlType */

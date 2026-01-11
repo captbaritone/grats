@@ -1,4 +1,6 @@
-## input
+# field_definitions/ReferenceNonGraphQLType.invalid.ts
+
+## Input
 
 ```ts title="field_definitions/ReferenceNonGraphQLType.invalid.ts"
 type SomeUndefienedType = string;

@@ -1,4 +1,6 @@
-## input
+# nonNullArgWithDefault/index.ts
+
+## Input
 
 ```ts title="nonNullArgWithDefault/index.ts"
 /** @gqlQueryField */

@@ -1,4 +1,6 @@
-## input
+# configOptions/invalidKey.invalid.ts
+
+## Input
 
 ```ts title="configOptions/invalidKey.invalid.ts"
 // {"invalidKey": "Oops"}

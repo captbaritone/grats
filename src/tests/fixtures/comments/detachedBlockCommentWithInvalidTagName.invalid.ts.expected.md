@@ -1,4 +1,6 @@
-## input
+# comments/detachedBlockCommentWithInvalidTagName.invalid.ts
+
+## Input
 
 ```ts title="comments/detachedBlockCommentWithInvalidTagName.invalid.ts"
 /**

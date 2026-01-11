@@ -1,4 +1,6 @@
-## input
+# extend_type/addFieldWithDescription.ts
+
+## Input
 
 ```ts title="extend_type/addFieldWithDescription.ts"
 /** @gqlType */

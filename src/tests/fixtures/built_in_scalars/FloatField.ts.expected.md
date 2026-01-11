@@ -1,4 +1,6 @@
-## input
+# built_in_scalars/FloatField.ts
+
+## Input
 
 ```ts title="built_in_scalars/FloatField.ts"
 import { Float } from "../../../Types";

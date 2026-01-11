@@ -1,4 +1,6 @@
-## input
+# field_definitions/FieldAsStaticClassMethodInNestedScope.invalid.ts
+
+## Input
 
 ```ts title="field_definitions/FieldAsStaticClassMethodInNestedScope.invalid.ts"
 function main() {

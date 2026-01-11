@@ -1,4 +1,6 @@
-## input
+# generics/genericOverArg.ts
+
+## Input
 
 ```ts title="generics/genericOverArg.ts"
 /** @gqlType */

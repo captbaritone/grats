@@ -1,4 +1,6 @@
-## input
+# locate/typeField.invalid.ts
+
+## Input
 
 ```ts title="locate/typeField.invalid.ts"
 // Locate: User.name

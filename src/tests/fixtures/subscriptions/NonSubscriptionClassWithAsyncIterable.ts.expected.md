@@ -1,4 +1,6 @@
-## input
+# subscriptions/NonSubscriptionClassWithAsyncIterable.ts
+
+## Input
 
 ```ts title="subscriptions/NonSubscriptionClassWithAsyncIterable.ts"
 // { "nullableByDefault": false }

@@ -1,4 +1,6 @@
-## input
+# enumExport/index.ts
+
+## Input
 
 ```ts title="enumExport/index.ts"
 // {"tsClientEnums": "enums.ts"}

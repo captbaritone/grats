@@ -1,4 +1,6 @@
-## input
+# comments/detachedBlockCommentWithKillsParent.invalid.ts
+
+## Input
 
 ```ts title="comments/detachedBlockCommentWithKillsParent.invalid.ts"
 /**

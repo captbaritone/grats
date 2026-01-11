@@ -1,4 +1,6 @@
-## input
+# directives/defineCustomDirectiveMultipleLocations.ts
+
+## Input
 
 ```ts title="directives/defineCustomDirectiveMultipleLocations.ts"
 /**

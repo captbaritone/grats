@@ -1,4 +1,6 @@
-## input
+# directives/directiveOnUnion.ts
+
+## Input
 
 ```ts title="directives/directiveOnUnion.ts"
 import { Int } from "../../../Types";

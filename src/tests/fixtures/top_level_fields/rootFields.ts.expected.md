@@ -1,4 +1,6 @@
-## input
+# top_level_fields/rootFields.ts
+
+## Input
 
 ```ts title="top_level_fields/rootFields.ts"
 import { Int } from "../../../Types";

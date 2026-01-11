@@ -1,4 +1,6 @@
-## input
+# enums/ExportedEnumsWithEmitEnumsConfig.invalid.ts
+
+## Input
 
 ```ts title="enums/ExportedEnumsWithEmitEnumsConfig.invalid.ts"
 // {"tsClientEnums": "enums.ts"}

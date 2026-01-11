@@ -1,4 +1,6 @@
-## input
+# type_definitions/RenamedTypeWithoutClassName.invalid.ts
+
+## Input
 
 ```ts title="type_definitions/RenamedTypeWithoutClassName.invalid.ts"
 /**

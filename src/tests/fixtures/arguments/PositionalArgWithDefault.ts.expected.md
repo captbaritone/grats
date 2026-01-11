@@ -1,4 +1,6 @@
-## input
+# arguments/PositionalArgWithDefault.ts
+
+## Input
 
 ```ts title="arguments/PositionalArgWithDefault.ts"
 /** @gqlType */

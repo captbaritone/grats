@@ -1,4 +1,6 @@
-## input
+# field_values/CustomScalar.ts
+
+## Input
 
 ```ts title="field_values/CustomScalar.ts"
 /** @gqlScalar */

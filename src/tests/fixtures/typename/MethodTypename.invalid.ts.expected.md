@@ -1,4 +1,6 @@
-## input
+# typename/MethodTypename.invalid.ts
+
+## Input
 
 ```ts title="typename/MethodTypename.invalid.ts"
 /** @gqlType */

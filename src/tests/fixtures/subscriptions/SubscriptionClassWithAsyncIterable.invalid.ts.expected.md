@@ -1,4 +1,6 @@
-## input
+# subscriptions/SubscriptionClassWithAsyncIterable.invalid.ts
+
+## Input
 
 ```ts title="subscriptions/SubscriptionClassWithAsyncIterable.invalid.ts"
 /** @gqlType */

@@ -1,4 +1,6 @@
-## input
+# locate/notFoundType.invalid.ts
+
+## Input
 
 ```ts title="locate/notFoundType.invalid.ts"
 // Locate: WhoopsNotARealType

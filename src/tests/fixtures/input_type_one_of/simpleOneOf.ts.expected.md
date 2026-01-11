@@ -1,4 +1,6 @@
-## input
+# input_type_one_of/simpleOneOf.ts
+
+## Input
 
 ```ts title="input_type_one_of/simpleOneOf.ts"
 /**

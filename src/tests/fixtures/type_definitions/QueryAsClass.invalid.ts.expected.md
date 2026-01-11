@@ -1,4 +1,6 @@
-## input
+# type_definitions/QueryAsClass.invalid.ts
+
+## Input
 
 ```ts title="type_definitions/QueryAsClass.invalid.ts"
 /** @gqlType */

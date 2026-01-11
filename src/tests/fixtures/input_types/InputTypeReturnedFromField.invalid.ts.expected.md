@@ -1,4 +1,6 @@
-## input
+# input_types/InputTypeReturnedFromField.invalid.ts
+
+## Input
 
 ```ts title="input_types/InputTypeReturnedFromField.invalid.ts"
 /** @gqlType */

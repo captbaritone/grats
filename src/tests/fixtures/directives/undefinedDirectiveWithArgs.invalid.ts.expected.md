@@ -1,4 +1,6 @@
-## input
+# directives/undefinedDirectiveWithArgs.invalid.ts
+
+## Input
 
 ```ts title="directives/undefinedDirectiveWithArgs.invalid.ts"
 /**

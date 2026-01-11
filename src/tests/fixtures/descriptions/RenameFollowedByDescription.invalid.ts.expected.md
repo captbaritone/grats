@@ -1,4 +1,6 @@
-## input
+# descriptions/RenameFollowedByDescription.invalid.ts
+
+## Input
 
 ```ts title="descriptions/RenameFollowedByDescription.invalid.ts"
 /**

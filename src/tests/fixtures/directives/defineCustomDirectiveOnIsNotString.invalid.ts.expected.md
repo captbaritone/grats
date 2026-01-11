@@ -1,4 +1,6 @@
-## input
+# directives/defineCustomDirectiveOnIsNotString.invalid.ts
+
+## Input
 
 ```ts title="directives/defineCustomDirectiveOnIsNotString.invalid.ts"
 /**

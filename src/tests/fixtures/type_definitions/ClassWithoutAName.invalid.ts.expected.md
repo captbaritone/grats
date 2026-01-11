@@ -1,4 +1,6 @@
-## input
+# type_definitions/ClassWithoutAName.invalid.ts
+
+## Input
 
 ```ts title="type_definitions/ClassWithoutAName.invalid.ts"
 /**

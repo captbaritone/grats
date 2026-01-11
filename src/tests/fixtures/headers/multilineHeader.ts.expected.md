@@ -1,4 +1,6 @@
-## input
+# headers/multilineHeader.ts
+
+## Input
 
 ```ts title="headers/multilineHeader.ts"
 // {"schemaHeader": ["# Generated SDL\n", "# multi-line"], "tsSchemaHeader": ["// Generated TS\n", "// multi-line"]}

@@ -1,4 +1,6 @@
-## input
+# typename/ImplementorMissingTypename.invalid.ts
+
+## Input
 
 ```ts title="typename/ImplementorMissingTypename.invalid.ts"
 /** @gqlType */

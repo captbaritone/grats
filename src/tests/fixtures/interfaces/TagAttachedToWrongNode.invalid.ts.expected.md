@@ -1,4 +1,6 @@
-## input
+# interfaces/TagAttachedToWrongNode.invalid.ts
+
+## Input
 
 ```ts title="interfaces/TagAttachedToWrongNode.invalid.ts"
 /** @gqlInterface Person */

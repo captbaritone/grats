@@ -1,4 +1,6 @@
-## input
+# typename/PropertyTypenameMustNeedToBeDeclaredAsExactlyConst.invalid.ts
+
+## Input
 
 ```ts title="typename/PropertyTypenameMustNeedToBeDeclaredAsExactlyConst.invalid.ts"
 /** @gqlType */

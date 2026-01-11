@@ -1,4 +1,6 @@
-## input
+# field_definitions/FieldOnArbitraryParam.invalid.ts
+
+## Input
 
 ```ts title="field_definitions/FieldOnArbitraryParam.invalid.ts"
 class Foo {

@@ -1,4 +1,6 @@
-## input
+# directives/defineCustomDirectiveNoLocation.invalid.ts
+
+## Input
 
 ```ts title="directives/defineCustomDirectiveNoLocation.invalid.ts"
 /**

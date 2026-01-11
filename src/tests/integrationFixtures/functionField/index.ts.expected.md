@@ -1,4 +1,6 @@
-## input
+# functionField/index.ts
+
+## Input
 
 ```ts title="functionField/index.ts"
 /** @gqlQueryField */

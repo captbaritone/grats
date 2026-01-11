@@ -1,4 +1,6 @@
-## input
+# resolver_context/ContextValueMissingTypeAnnotation.invalid.ts
+
+## Input
 
 ```ts title="resolver_context/ContextValueMissingTypeAnnotation.invalid.ts"
 /** @gqlType */

@@ -1,4 +1,6 @@
-## input
+# interfaces/InterfaceFieldWithDescriptionThatDiffersFromType.ts
+
+## Input
 
 ```ts title="interfaces/InterfaceFieldWithDescriptionThatDiffersFromType.ts"
 /** @gqlType */

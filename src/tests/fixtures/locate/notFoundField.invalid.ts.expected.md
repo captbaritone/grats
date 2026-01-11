@@ -1,4 +1,6 @@
-## input
+# locate/notFoundField.invalid.ts
+
+## Input
 
 ```ts title="locate/notFoundField.invalid.ts"
 // Locate: User.not_a_field

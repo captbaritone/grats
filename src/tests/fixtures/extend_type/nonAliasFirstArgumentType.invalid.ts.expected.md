@@ -1,4 +1,6 @@
-## input
+# extend_type/nonAliasFirstArgumentType.invalid.ts
+
+## Input
 
 ```ts title="extend_type/nonAliasFirstArgumentType.invalid.ts"
 /** @gqlType */

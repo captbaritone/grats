@@ -1,4 +1,6 @@
-## input
+# descriptions/DescriptionFollowsTypeTag.invalid.ts
+
+## Input
 
 ```ts title="descriptions/DescriptionFollowsTypeTag.invalid.ts"
 /**

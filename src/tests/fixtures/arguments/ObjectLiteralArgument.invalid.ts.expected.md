@@ -1,4 +1,6 @@
-## input
+# arguments/ObjectLiteralArgument.invalid.ts
+
+## Input
 
 ```ts title="arguments/ObjectLiteralArgument.invalid.ts"
 /** @gqlType */

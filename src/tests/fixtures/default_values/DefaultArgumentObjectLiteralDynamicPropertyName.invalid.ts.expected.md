@@ -1,4 +1,6 @@
-## input
+# default_values/DefaultArgumentObjectLiteralDynamicPropertyName.invalid.ts
+
+## Input
 
 ```ts title="default_values/DefaultArgumentObjectLiteralDynamicPropertyName.invalid.ts"
 import { Int } from "../../../Types";

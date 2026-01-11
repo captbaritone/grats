@@ -1,4 +1,6 @@
-## input
+# directives/directiveWithSyntaxError.invalid.ts
+
+## Input
 
 ```ts title="directives/directiveWithSyntaxError.invalid.ts"
 // Because @myDirective is followed by `(` we assume it's expected to be parsed

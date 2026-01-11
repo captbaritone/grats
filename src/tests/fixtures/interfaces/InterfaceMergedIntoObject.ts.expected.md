@@ -1,4 +1,6 @@
-## input
+# interfaces/InterfaceMergedIntoObject.ts
+
+## Input
 
 ```ts title="interfaces/InterfaceMergedIntoObject.ts"
 declare const Foo: {

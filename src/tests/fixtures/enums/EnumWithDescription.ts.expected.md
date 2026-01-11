@@ -1,4 +1,6 @@
-## input
+# enums/EnumWithDescription.ts
+
+## Input
 
 ```ts title="enums/EnumWithDescription.ts"
 /** @gqlType */

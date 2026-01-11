@@ -1,4 +1,6 @@
-## input
+# resolver_info/FunctionWithInfoValue.ts
+
+## Input
 
 ```ts title="resolver_info/FunctionWithInfoValue.ts"
 import { GqlInfo } from "../../../Types";

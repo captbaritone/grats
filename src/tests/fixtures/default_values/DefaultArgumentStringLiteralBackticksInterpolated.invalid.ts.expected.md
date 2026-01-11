@@ -1,4 +1,6 @@
-## input
+# default_values/DefaultArgumentStringLiteralBackticksInterpolated.invalid.ts
+
+## Input
 
 ```ts title="default_values/DefaultArgumentStringLiteralBackticksInterpolated.invalid.ts"
 const CONSTANT = "constant";

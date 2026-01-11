@@ -1,4 +1,6 @@
-## input
+# resolver_context/ContextValueBeforeArgs.ts
+
+## Input
 
 ```ts title="resolver_context/ContextValueBeforeArgs.ts"
 /** @gqlType */

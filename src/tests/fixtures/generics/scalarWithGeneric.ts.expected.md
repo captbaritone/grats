@@ -1,4 +1,6 @@
-## input
+# generics/scalarWithGeneric.ts
+
+## Input
 
 ```ts title="generics/scalarWithGeneric.ts"
 // T is not inspected by Grats, so this is fine.

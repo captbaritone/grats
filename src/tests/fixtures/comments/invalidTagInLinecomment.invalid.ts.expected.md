@@ -1,4 +1,6 @@
-## input
+# comments/invalidTagInLinecomment.invalid.ts
+
+## Input
 
 ```ts title="comments/invalidTagInLinecomment.invalid.ts"
 // @gqlTyp

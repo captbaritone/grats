@@ -1,4 +1,6 @@
-## input
+# field_definitions/DeprecatedMethodField.ts
+
+## Input
 
 ```ts title="field_definitions/DeprecatedMethodField.ts"
 /** @gqlType */

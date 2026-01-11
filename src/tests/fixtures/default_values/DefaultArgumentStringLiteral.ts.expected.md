@@ -1,4 +1,6 @@
-## input
+# default_values/DefaultArgumentStringLiteral.ts
+
+## Input
 
 ```ts title="default_values/DefaultArgumentStringLiteral.ts"
 /** @gqlType */

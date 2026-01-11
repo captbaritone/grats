@@ -1,4 +1,6 @@
-## input
+# generics/arrayPassedToGeneric.invalid.ts
+
+## Input
 
 ```ts title="generics/arrayPassedToGeneric.invalid.ts"
 /** @gqlType */

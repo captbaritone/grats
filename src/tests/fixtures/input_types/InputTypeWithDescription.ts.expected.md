@@ -1,4 +1,6 @@
-## input
+# input_types/InputTypeWithDescription.ts
+
+## Input
 
 ```ts title="input_types/InputTypeWithDescription.ts"
 /** @gqlType */

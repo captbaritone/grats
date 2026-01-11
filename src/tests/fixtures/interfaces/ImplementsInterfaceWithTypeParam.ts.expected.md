@@ -1,4 +1,6 @@
-## input
+# interfaces/ImplementsInterfaceWithTypeParam.ts
+
+## Input
 
 ```ts title="interfaces/ImplementsInterfaceWithTypeParam.ts"
 /** @gqlType */

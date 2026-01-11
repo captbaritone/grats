@@ -1,4 +1,6 @@
-## input
+# field_values/LinkedFieldWithTypeArg.ts
+
+## Input
 
 ```ts title="field_values/LinkedFieldWithTypeArg.ts"
 /** @gqlType */

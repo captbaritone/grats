@@ -1,4 +1,6 @@
-## input
+# derived_context/simpleDerivedContext.ts
+
+## Input
 
 ```ts title="derived_context/simpleDerivedContext.ts"
 /** @gqlContext */

@@ -1,4 +1,6 @@
-## input
+# derived_context/derivedContextPromiseValid.ts
+
+## Input
 
 ```ts title="derived_context/derivedContextPromiseValid.ts"
 /** @gqlContext */

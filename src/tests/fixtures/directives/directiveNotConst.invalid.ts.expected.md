@@ -1,4 +1,6 @@
-## input
+# directives/directiveNotConst.invalid.ts
+
+## Input
 
 ```ts title="directives/directiveNotConst.invalid.ts"
 // Because @myDirective is followed by `(` we assume it's expected to be parsed

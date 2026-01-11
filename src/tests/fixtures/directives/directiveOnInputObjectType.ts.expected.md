@@ -1,4 +1,6 @@
-## input
+# directives/directiveOnInputObjectType.ts
+
+## Input
 
 ```ts title="directives/directiveOnInputObjectType.ts"
 import { Int } from "../../../Types";

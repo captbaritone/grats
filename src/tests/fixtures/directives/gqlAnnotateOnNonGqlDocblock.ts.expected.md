@@ -1,4 +1,6 @@
-## input
+# directives/gqlAnnotateOnNonGqlDocblock.ts
+
+## Input
 
 ```ts title="directives/gqlAnnotateOnNonGqlDocblock.ts"
 // Because @gqlAnnotate can go on argument definitions which don't have any

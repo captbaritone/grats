@@ -1,4 +1,6 @@
-## input
+# type_definitions/ClassImplementsNonGqlInterface.ts
+
+## Input
 
 ```ts title="type_definitions/ClassImplementsNonGqlInterface.ts"
 /**

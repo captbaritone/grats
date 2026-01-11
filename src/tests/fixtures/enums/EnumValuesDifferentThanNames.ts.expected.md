@@ -1,4 +1,6 @@
-## input
+# enums/EnumValuesDifferentThanNames.ts
+
+## Input
 
 ```ts title="enums/EnumValuesDifferentThanNames.ts"
 /** @gqlType */

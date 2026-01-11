@@ -1,4 +1,6 @@
-## input
+# directives/defineCustomDirectiveCustomName.ts
+
+## Input
 
 ```ts title="directives/defineCustomDirectiveCustomName.ts"
 /**

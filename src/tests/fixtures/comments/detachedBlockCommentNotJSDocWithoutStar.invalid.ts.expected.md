@@ -1,4 +1,6 @@
-## input
+# comments/detachedBlockCommentNotJSDocWithoutStar.invalid.ts
+
+## Input
 
 ```ts title="comments/detachedBlockCommentNotJSDocWithoutStar.invalid.ts"
 /*

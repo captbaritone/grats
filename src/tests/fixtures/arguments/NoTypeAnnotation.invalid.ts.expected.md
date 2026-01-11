@@ -1,4 +1,6 @@
-## input
+# arguments/NoTypeAnnotation.invalid.ts
+
+## Input
 
 ```ts title="arguments/NoTypeAnnotation.invalid.ts"
 /** @gqlType */

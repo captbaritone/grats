@@ -1,4 +1,6 @@
-## input
+# top_level_fields/queryFieldOnStaticMethod.ts
+
+## Input
 
 ```ts title="top_level_fields/queryFieldOnStaticMethod.ts"
 export class SomeNonGraphQLClass {

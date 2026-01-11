@@ -1,4 +1,6 @@
-## input
+# field_definitions/ReferenceUndefinedType.invalid.ts
+
+## Input
 
 ```ts title="field_definitions/ReferenceUndefinedType.invalid.ts"
 /** @gqlType */

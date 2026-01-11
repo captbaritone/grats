@@ -1,4 +1,6 @@
-## input
+# examples/readme.ts
+
+## Input
 
 ```ts title="examples/readme.ts"
 /** @gqlType */

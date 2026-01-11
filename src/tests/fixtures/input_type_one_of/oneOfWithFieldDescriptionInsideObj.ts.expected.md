@@ -1,4 +1,6 @@
-## input
+# input_type_one_of/oneOfWithFieldDescriptionInsideObj.ts
+
+## Input
 
 ```ts title="input_type_one_of/oneOfWithFieldDescriptionInsideObj.ts"
 // Known issue, descriptions are not parsed?

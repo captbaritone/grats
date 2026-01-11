@@ -1,4 +1,6 @@
-## input
+# resolver_context/ContextValueTypedAsUnknown.invalid.ts
+
+## Input
 
 ```ts title="resolver_context/ContextValueTypedAsUnknown.invalid.ts"
 /** @gqlType */

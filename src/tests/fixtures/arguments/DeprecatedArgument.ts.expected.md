@@ -1,4 +1,6 @@
-## input
+# arguments/DeprecatedArgument.ts
+
+## Input
 
 ```ts title="arguments/DeprecatedArgument.ts"
 /** @gqlType */

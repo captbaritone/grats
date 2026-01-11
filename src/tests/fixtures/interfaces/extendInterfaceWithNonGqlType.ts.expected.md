@@ -1,4 +1,6 @@
-## input
+# interfaces/extendInterfaceWithNonGqlType.ts
+
+## Input
 
 ```ts title="interfaces/extendInterfaceWithNonGqlType.ts"
 interface IThing {

@@ -1,4 +1,6 @@
-## input
+# complexPlurals/index.ts
+
+## Input
 
 ```ts title="complexPlurals/index.ts"
 /** @gqlQueryField */

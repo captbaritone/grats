@@ -1,4 +1,6 @@
-## input
+# typename/PropertyTypenameDoesNotMatchDeclaredName.invalid.ts
+
+## Input
 
 ```ts title="typename/PropertyTypenameDoesNotMatchDeclaredName.invalid.ts"
 /** @gqlType User */

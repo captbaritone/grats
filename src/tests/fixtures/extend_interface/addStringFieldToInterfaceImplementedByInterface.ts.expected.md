@@ -1,4 +1,6 @@
-## input
+# extend_interface/addStringFieldToInterfaceImplementedByInterface.ts
+
+## Input
 
 ```ts title="extend_interface/addStringFieldToInterfaceImplementedByInterface.ts"
 /** @gqlField */

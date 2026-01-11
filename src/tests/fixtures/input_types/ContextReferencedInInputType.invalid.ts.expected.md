@@ -1,4 +1,6 @@
-## input
+# input_types/ContextReferencedInInputType.invalid.ts
+
+## Input
 
 ```ts title="input_types/ContextReferencedInInputType.invalid.ts"
 /** @gqlContext */

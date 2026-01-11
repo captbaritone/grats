@@ -1,4 +1,6 @@
-## input
+# arguments/OptionalNonNullableArgumentWithDefault.ts
+
+## Input
 
 ```ts title="arguments/OptionalNonNullableArgumentWithDefault.ts"
 /** @gqlType */

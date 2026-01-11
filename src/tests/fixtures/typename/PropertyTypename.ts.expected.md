@@ -1,4 +1,6 @@
-## input
+# typename/PropertyTypename.ts
+
+## Input
 
 ```ts title="typename/PropertyTypename.ts"
 /** @gqlType */

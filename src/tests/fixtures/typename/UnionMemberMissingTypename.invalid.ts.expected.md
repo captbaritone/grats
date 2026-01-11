@@ -1,4 +1,6 @@
-## input
+# typename/UnionMemberMissingTypename.invalid.ts
+
+## Input
 
 ```ts title="typename/UnionMemberMissingTypename.invalid.ts"
 /** @gqlType */
