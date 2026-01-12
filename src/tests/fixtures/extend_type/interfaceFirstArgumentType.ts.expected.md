@@ -1,4 +1,6 @@
-## input
+# extend_type/interfaceFirstArgumentType.ts
+
+## Input
 
 ```ts title="extend_type/interfaceFirstArgumentType.ts"
 /** @gqlType */

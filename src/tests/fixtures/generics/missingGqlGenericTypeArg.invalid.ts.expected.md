@@ -1,4 +1,6 @@
-## input
+# generics/missingGqlGenericTypeArg.invalid.ts
+
+## Input
 
 ```ts title="generics/missingGqlGenericTypeArg.invalid.ts"
 /** @gqlType */

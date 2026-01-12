@@ -1,4 +1,6 @@
-## input
+# unions/DefineUnionTypeContainingInterface.invalid.ts
+
+## Input
 
 ```ts title="unions/DefineUnionTypeContainingInterface.invalid.ts"
 /** @gqlType */

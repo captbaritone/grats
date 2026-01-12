@@ -1,4 +1,6 @@
-## input
+# enums/EnumFromUnionTypeOfStringLiteral.ts
+
+## Input
 
 ```ts title="enums/EnumFromUnionTypeOfStringLiteral.ts"
 /** @gqlType */

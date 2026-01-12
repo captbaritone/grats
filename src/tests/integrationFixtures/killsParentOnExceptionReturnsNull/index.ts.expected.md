@@ -1,4 +1,6 @@
-## input
+# killsParentOnExceptionReturnsNull/index.ts
+
+## Input
 
 ```ts title="killsParentOnExceptionReturnsNull/index.ts"
 /** @gqlQueryField */

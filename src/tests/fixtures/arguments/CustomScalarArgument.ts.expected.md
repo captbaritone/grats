@@ -1,4 +1,6 @@
-## input
+# arguments/CustomScalarArgument.ts
+
+## Input
 
 ```ts title="arguments/CustomScalarArgument.ts"
 /** @gqlScalar */

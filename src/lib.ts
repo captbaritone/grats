@@ -106,7 +106,7 @@ export function extractSchemaAndDoc(
       // Collect validation errors
       const validationResult = concatResults(
         validateMergedInterfaces(checker, snapshot.interfaceDeclarations),
-        validateDuplicateContextOrInfo(ctx),
+        validateDuplicateContextOrInfo(snapshot.nameDefinitions.values()),
       );
 
       const docResult = new ResultPipe(validationResult)
@@ -120,7 +120,7 @@ export function extractSchemaAndDoc(
         .andThen((definitions) => resolveTypes(ctx, definitions))
         // Convert string literals used as default values for enums into GraphQL
         // enums where appropriate.
-        .map((definitions) => coerceDefaultEnumValues(ctx, definitions))
+        .map((definitions) => coerceDefaultEnumValues(definitions))
         // If you define a field on an interface using the functional style, we
         // need to add that field to each concrete type as well. This must be
         // done after all types are created, but before we validate the schema.

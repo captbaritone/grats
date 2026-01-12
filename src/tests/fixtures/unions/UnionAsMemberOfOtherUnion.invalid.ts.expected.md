@@ -1,4 +1,6 @@
-## input
+# unions/UnionAsMemberOfOtherUnion.invalid.ts
+
+## Input
 
 ```ts title="unions/UnionAsMemberOfOtherUnion.invalid.ts"
 /** @gqlType */

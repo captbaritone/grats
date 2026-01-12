@@ -1,4 +1,6 @@
-## input
+# interfaces/InterfaceExtendsInterface.ts
+
+## Input
 
 ```ts title="interfaces/InterfaceExtendsInterface.ts"
 /** @gqlInterface Node */

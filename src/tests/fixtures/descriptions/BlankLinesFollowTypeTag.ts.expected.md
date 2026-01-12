@@ -1,4 +1,6 @@
-## input
+# descriptions/BlankLinesFollowTypeTag.ts
+
+## Input
 
 ```ts title="descriptions/BlankLinesFollowTypeTag.ts"
 /**

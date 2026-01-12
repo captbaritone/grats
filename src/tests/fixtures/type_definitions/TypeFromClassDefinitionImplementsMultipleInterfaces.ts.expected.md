@@ -1,4 +1,6 @@
-## input
+# type_definitions/TypeFromClassDefinitionImplementsMultipleInterfaces.ts
+
+## Input
 
 ```ts title="type_definitions/TypeFromClassDefinitionImplementsMultipleInterfaces.ts"
 /** @gqlInterface Node */

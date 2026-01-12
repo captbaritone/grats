@@ -1,4 +1,6 @@
-## input
+# explicitNullPassedToArgWithDefault/index.ts
+
+## Input
 
 ```ts title="explicitNullPassedToArgWithDefault/index.ts"
 /**

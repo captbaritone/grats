@@ -1,4 +1,6 @@
-## input
+# deprecated/index.ts
+
+## Input
 
 ```ts title="deprecated/index.ts"
 /**

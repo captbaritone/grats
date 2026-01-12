@@ -1,4 +1,6 @@
-## input
+# interfaces/InterfaceMergedIntoClass.invalid.ts
+
+## Input
 
 ```ts title="interfaces/InterfaceMergedIntoClass.invalid.ts"
 class Foo {

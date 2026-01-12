@@ -1,4 +1,6 @@
-## input
+# extend_type/fieldAsArrowFunctionVar.invalid.ts
+
+## Input
 
 ```ts title="extend_type/fieldAsArrowFunctionVar.invalid.ts"
 /** @gqlType */

@@ -1,4 +1,6 @@
-## input
+# extend_interface/addStringFieldToInterfaceTwice.invalid.ts
+
+## Input
 
 ```ts title="extend_interface/addStringFieldToInterfaceTwice.invalid.ts"
 /** @gqlInterface */

@@ -1,4 +1,6 @@
-## input
+# enums/TypeAliasEnumNotAllowedWithEmitEnums.invalid.ts
+
+## Input
 
 ```ts title="enums/TypeAliasEnumNotAllowedWithEmitEnums.invalid.ts"
 // {"tsClientEnums": "enums.ts"}

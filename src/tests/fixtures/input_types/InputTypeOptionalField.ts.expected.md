@@ -1,4 +1,6 @@
-## input
+# input_types/InputTypeOptionalField.ts
+
+## Input
 
 ```ts title="input_types/InputTypeOptionalField.ts"
 /** @gqlType */

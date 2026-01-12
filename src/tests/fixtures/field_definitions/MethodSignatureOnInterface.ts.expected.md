@@ -1,4 +1,6 @@
-## input
+# field_definitions/MethodSignatureOnInterface.ts
+
+## Input
 
 ```ts title="field_definitions/MethodSignatureOnInterface.ts"
 /** @gqlInterface */

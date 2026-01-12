@@ -24,9 +24,15 @@ export function astNode<T>(item: { astNode?: T | undefined | null }): T {
   return item.astNode;
 }
 
+/**
+ * A branded type representing a unique identifier for TypeScript nodes.
+ * Used to track data about nodes in lookup data structures.
+ */
+export type TsIdentifier = number & { readonly __brand: "TsIdentifier" };
+
 let i = 0;
-export function uniqueId() {
-  return i++;
+export function uniqueId(): TsIdentifier {
+  return i++ as TsIdentifier;
 }
 
 export function invariant(

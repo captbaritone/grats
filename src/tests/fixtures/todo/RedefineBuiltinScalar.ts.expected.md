@@ -1,4 +1,6 @@
-## input
+# todo/RedefineBuiltinScalar.ts
+
+## Input
 
 ```ts title="todo/RedefineBuiltinScalar.ts"
 /** @gqlScalar String */

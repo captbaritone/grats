@@ -1,4 +1,6 @@
-## input
+# input_types/InputTypeReferencingOutputType.invalid.ts
+
+## Input
 
 ```ts title="input_types/InputTypeReferencingOutputType.invalid.ts"
 /** @gqlType */

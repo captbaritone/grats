@@ -1,4 +1,6 @@
-## input
+# arguments/GqlTypeUsedAsPositionalArg.ts
+
+## Input
 
 ```ts title="arguments/GqlTypeUsedAsPositionalArg.ts"
 /** @gqlInput */

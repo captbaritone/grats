@@ -1,4 +1,5 @@
 import { ResolverSignature } from "./resolverSignature";
+import { TsIdentifier } from "./utils/helpers";
 
 export type ExportDefinition = {
   tsModulePath: string;
@@ -29,7 +30,7 @@ declare module "graphql" {
      * Grats metadata: A unique identifier for the node. Used to track
      * data about nodes in lookup data structures.
      */
-    tsIdentifier: number;
+    tsIdentifier: TsIdentifier;
   }
   export interface ObjectTypeDefinitionNode {
     /**

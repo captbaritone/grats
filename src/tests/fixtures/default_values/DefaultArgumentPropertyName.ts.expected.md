@@ -1,4 +1,6 @@
-## input
+# default_values/DefaultArgumentPropertyName.ts
+
+## Input
 
 ```ts title="default_values/DefaultArgumentPropertyName.ts"
 /** @gqlType */

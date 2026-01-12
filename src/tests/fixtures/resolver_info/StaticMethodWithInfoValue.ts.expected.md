@@ -1,4 +1,6 @@
-## input
+# resolver_info/StaticMethodWithInfoValue.ts
+
+## Input
 
 ```ts title="resolver_info/StaticMethodWithInfoValue.ts"
 import { GqlInfo } from "../../../Types";

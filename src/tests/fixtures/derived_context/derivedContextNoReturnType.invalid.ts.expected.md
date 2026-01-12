@@ -1,4 +1,6 @@
-## input
+# derived_context/derivedContextNoReturnType.invalid.ts
+
+## Input
 
 ```ts title="derived_context/derivedContextNoReturnType.invalid.ts"
 /** @gqlContext */

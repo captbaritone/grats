@@ -1,4 +1,6 @@
-## input
+# interfaces/InterfaceWithDeprecatedField.ts
+
+## Input
 
 ```ts title="interfaces/InterfaceWithDeprecatedField.ts"
 /** @gqlType */

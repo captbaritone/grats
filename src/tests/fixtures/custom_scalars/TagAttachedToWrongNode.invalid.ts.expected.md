@@ -1,4 +1,6 @@
-## input
+# custom_scalars/TagAttachedToWrongNode.invalid.ts
+
+## Input
 
 ```ts title="custom_scalars/TagAttachedToWrongNode.invalid.ts"
 /** @gqlScalar Matrix */

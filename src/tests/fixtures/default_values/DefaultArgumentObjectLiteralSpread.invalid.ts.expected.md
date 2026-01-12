@@ -1,4 +1,6 @@
-## input
+# default_values/DefaultArgumentObjectLiteralSpread.invalid.ts
+
+## Input
 
 ```ts title="default_values/DefaultArgumentObjectLiteralSpread.invalid.ts"
 import { Int } from "../../../Types";

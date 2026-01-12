@@ -1,4 +1,6 @@
-## input
+# field_definitions/asyncFunctionFieldNotExported.invalid.ts
+
+## Input
 
 ```ts title="field_definitions/asyncFunctionFieldNotExported.invalid.ts"
 /** @gqlField */

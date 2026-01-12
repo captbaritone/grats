@@ -1,4 +1,6 @@
-## input
+# enums/EnumFromUnionTypeNotLiteral.invalid.ts
+
+## Input
 
 ```ts title="enums/EnumFromUnionTypeNotLiteral.invalid.ts"
 /** @gqlType */

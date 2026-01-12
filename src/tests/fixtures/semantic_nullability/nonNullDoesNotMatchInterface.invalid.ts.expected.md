@@ -1,4 +1,6 @@
-## input
+# semantic_nullability/nonNullDoesNotMatchInterface.invalid.ts
+
+## Input
 
 ```ts title="semantic_nullability/nonNullDoesNotMatchInterface.invalid.ts"
 /** @gqlInterface */

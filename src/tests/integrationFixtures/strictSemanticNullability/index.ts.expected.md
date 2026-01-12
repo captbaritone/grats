@@ -1,4 +1,6 @@
-## input
+# strictSemanticNullability/index.ts
+
+## Input
 
 ```ts title="strictSemanticNullability/index.ts"
 // { "strictSemanticNullability": true }

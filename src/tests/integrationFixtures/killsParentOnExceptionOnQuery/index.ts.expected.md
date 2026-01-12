@@ -1,4 +1,6 @@
-## input
+# killsParentOnExceptionOnQuery/index.ts
+
+## Input
 
 ```ts title="killsParentOnExceptionOnQuery/index.ts"
 /**

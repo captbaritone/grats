@@ -1,4 +1,6 @@
-## input
+# complexDefaultInput/index.ts
+
+## Input
 
 ```ts title="complexDefaultInput/index.ts"
 /**

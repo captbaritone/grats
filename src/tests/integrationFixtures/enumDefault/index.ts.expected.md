@@ -1,4 +1,6 @@
-## input
+# enumDefault/index.ts
+
+## Input
 
 ```ts title="enumDefault/index.ts"
 // https://github.com/captbaritone/grats/issues/172#issuecomment-2685496600

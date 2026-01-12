@@ -1,4 +1,6 @@
-## input
+# directives/directiveArgumentNameIsStringLiteralWithDefault.ts
+
+## Input
 
 ```ts title="directives/directiveArgumentNameIsStringLiteralWithDefault.ts"
 // https://github.com/captbaritone/grats/issues/166#issuecomment-2753130827

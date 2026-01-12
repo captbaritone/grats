@@ -1,4 +1,6 @@
-## input
+# customScalarSerialization/index.ts
+
+## Input
 
 ```ts title="customScalarSerialization/index.ts"
 import type { SchemaConfig } from "./schema";

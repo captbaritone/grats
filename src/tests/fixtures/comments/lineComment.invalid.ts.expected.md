@@ -1,4 +1,6 @@
-## input
+# comments/lineComment.invalid.ts
+
+## Input
 
 ```ts title="comments/lineComment.invalid.ts"
 // @gqlType

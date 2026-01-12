@@ -1,4 +1,6 @@
-## input
+# top_level_fields/queryFieldRenamed.ts
+
+## Input
 
 ```ts title="top_level_fields/queryFieldRenamed.ts"
 /** @gqlQueryField greeting */

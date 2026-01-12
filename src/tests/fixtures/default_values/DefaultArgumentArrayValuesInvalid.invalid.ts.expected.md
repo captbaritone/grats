@@ -1,4 +1,6 @@
-## input
+# default_values/DefaultArgumentArrayValuesInvalid.invalid.ts
+
+## Input
 
 ```ts title="default_values/DefaultArgumentArrayValuesInvalid.invalid.ts"
 /** @gqlType */

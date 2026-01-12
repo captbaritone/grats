@@ -1,4 +1,6 @@
-## input
+# regression/fieldFollowedByDeprecated.ts
+
+## Input
 
 ```ts title="regression/fieldFollowedByDeprecated.ts"
 /** @gqlType */

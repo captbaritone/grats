@@ -1,4 +1,6 @@
-## input
+# typename/PropertySignatureTypenameNonLiteralType.invalid.ts
+
+## Input
 
 ```ts title="typename/PropertySignatureTypenameNonLiteralType.invalid.ts"
 /** @gqlType */

@@ -1,4 +1,6 @@
-## input
+# enums/NonNullEnumDefaultInInputObject.ts
+
+## Input
 
 ```ts title="enums/NonNullEnumDefaultInInputObject.ts"
 // https://github.com/captbaritone/grats/issues/174

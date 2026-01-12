@@ -1,4 +1,6 @@
-## input
+# default_values/DefaultArgumentObjectLiteralInterpolation.invalid.ts
+
+## Input
 
 ```ts title="default_values/DefaultArgumentObjectLiteralInterpolation.invalid.ts"
 import { Int } from "../../../Types";

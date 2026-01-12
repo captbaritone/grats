@@ -1,4 +1,6 @@
-## input
+# field_values/ArrayShorthandField.ts
+
+## Input
 
 ```ts title="field_values/ArrayShorthandField.ts"
 /** @gqlType */

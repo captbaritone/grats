@@ -1,4 +1,6 @@
-## input
+# arguments/MultipleParamsTypedAsTypeLiteral.invalid.ts
+
+## Input
 
 ```ts title="arguments/MultipleParamsTypedAsTypeLiteral.invalid.ts"
 /** @gqlType */

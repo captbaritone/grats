@@ -1,4 +1,6 @@
-## input
+# field_definitions/MultipleFieldsAsStaticClassMethods.ts
+
+## Input
 
 ```ts title="field_definitions/MultipleFieldsAsStaticClassMethods.ts"
 /** @gqlType */

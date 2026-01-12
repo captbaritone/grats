@@ -1,4 +1,6 @@
-## input
+# directives/defineCustomDirectiveWithArgsNonScalar.ts
+
+## Input
 
 ```ts title="directives/defineCustomDirectiveWithArgsNonScalar.ts"
 /** @gqlInput */

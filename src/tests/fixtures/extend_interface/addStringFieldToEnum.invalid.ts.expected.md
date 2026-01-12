@@ -1,4 +1,6 @@
-## input
+# extend_interface/addStringFieldToEnum.invalid.ts
+
+## Input
 
 ```ts title="extend_interface/addStringFieldToEnum.invalid.ts"
 /** @gqlEnum */

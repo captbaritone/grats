@@ -1,4 +1,6 @@
-## input
+# default_values/DefaultArgumentStringLiteralBackticks.ts
+
+## Input
 
 ```ts title="default_values/DefaultArgumentStringLiteralBackticks.ts"
 /** @gqlType */

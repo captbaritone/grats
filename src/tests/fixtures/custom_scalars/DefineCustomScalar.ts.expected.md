@@ -1,4 +1,6 @@
-## input
+# custom_scalars/DefineCustomScalar.ts
+
+## Input
 
 ```ts title="custom_scalars/DefineCustomScalar.ts"
 /** @gqlType */

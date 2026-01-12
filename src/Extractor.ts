@@ -45,6 +45,7 @@ import {
   extend,
   invariant,
   levenshteinDistance,
+  TsIdentifier,
 } from "./utils/helpers";
 import * as Act from "./CodeActions";
 import {
@@ -111,14 +112,45 @@ export const OPERATION_TYPES = new Set(["Query", "Mutation", "Subscription"]);
 type ArgDefaults = Map<string, ts.Expression>;
 
 export type ExtractionSnapshot = {
+  /** GraphQL definitions extracted from the TypeScript source file. */
   readonly definitions: DefinitionNode[];
-  readonly unresolvedNames: Map<ts.EntityName, NameNode>;
+
+  /**
+   * Map from a TypeScript AST node that may reference a GraphQL type to a
+   * GraphQL NameNode. Note that at extraction time we don't actually know the
+   * GraphQL name that this references, or if it even references a valid Grats
+   * type. So, the `NameNode` passed here will generally have a placeholder
+   * name. This will be resolved in a later pass since it may reference a type
+   * defined in another file and extraction is done on a per-file basis.
+   */
+  readonly unresolvedNames: Map<TsIdentifier, ts.EntityName>;
+
+  /** Map from a TypeScript declaration to the extracted GraphQL name and kind. */
   readonly nameDefinitions: Map<ts.DeclarationStatement, NameDefinition>;
+
+  /**
+   * Some declarations (notably derived context functions) are not actually the
+   * declaration that will become a special GraphQL value, but rather they
+   * _reference_ a type which will implicitly become a special type to Grats.
+   */
   readonly implicitNameDefinitions: Map<
     DeclarationDefinition,
     ts.TypeReferenceNode
   >;
+
+  /**
+   * Records which named GraphQL types define a `__typename` field.
+   * This is used to ensure all types which are members of an abstract type
+   * (union or interface) define a `__typename` field which is required to
+   * determine their GraphQL type at runtime.
+   */
   readonly typesWithTypename: Set<string>;
+
+  /**
+   * TypeScript interfaces which have been used to define GraphQL types. This is
+   * used in a later validation pass to ensure we never use merged interfaces,
+   * since merged interfaces have surprising behaviors which can lead to bugs.
+   */
   readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
 };
 
@@ -145,10 +177,9 @@ export function extract(
 }
 
 class Extractor {
+  // Snapshot data. See comments on fields on ExtractionSnapshot for details.
   definitions: DefinitionNode[] = [];
-
-  // Snapshot data
-  unresolvedNames: Map<ts.EntityName, NameNode> = new Map();
+  unresolvedNames: Map<TsIdentifier, ts.EntityName> = new Map();
   nameDefinitions: Map<ts.DeclarationStatement, NameDefinition> = new Map();
   implicitNameDefinitions: Map<DeclarationDefinition, ts.TypeReferenceNode> =
     new Map();
@@ -165,7 +196,7 @@ class Extractor {
   }
 
   markUnresolvedType(node: ts.EntityName, name: NameNode) {
-    this.unresolvedNames.set(node, name);
+    this.unresolvedNames.set(name.tsIdentifier, node);
   }
 
   recordTypeName(

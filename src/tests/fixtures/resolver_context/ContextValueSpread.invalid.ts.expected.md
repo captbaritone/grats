@@ -1,4 +1,6 @@
-## input
+# resolver_context/ContextValueSpread.invalid.ts
+
+## Input
 
 ```ts title="resolver_context/ContextValueSpread.invalid.ts"
 /** @gqlType */

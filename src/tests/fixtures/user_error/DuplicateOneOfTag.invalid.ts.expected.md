@@ -1,4 +1,6 @@
-## input
+# user_error/DuplicateOneOfTag.invalid.ts
+
+## Input
 
 ```ts title="user_error/DuplicateOneOfTag.invalid.ts"
 /**

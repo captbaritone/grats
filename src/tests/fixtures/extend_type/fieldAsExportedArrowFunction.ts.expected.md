@@ -1,4 +1,6 @@
-## input
+# extend_type/fieldAsExportedArrowFunction.ts
+
+## Input
 
 ```ts title="extend_type/fieldAsExportedArrowFunction.ts"
 /** @gqlType */

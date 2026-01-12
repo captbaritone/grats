@@ -1,4 +1,6 @@
-## input
+# interfaces/ImplementsRenamedInterface.ts
+
+## Input
 
 ```ts title="interfaces/ImplementsRenamedInterface.ts"
 /** @gqlInterface Person */

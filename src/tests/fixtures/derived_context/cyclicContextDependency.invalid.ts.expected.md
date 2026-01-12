@@ -1,4 +1,6 @@
-## input
+# derived_context/cyclicContextDependency.invalid.ts
+
+## Input
 
 ```ts title="derived_context/cyclicContextDependency.invalid.ts"
 /** @gqlContext */

@@ -1,4 +1,6 @@
-## input
+# todo/EnumFromUnionTypeWithVariantWithDescription.ts
+
+## Input
 
 ```ts title="todo/EnumFromUnionTypeWithVariantWithDescription.ts"
 /** @gqlType */

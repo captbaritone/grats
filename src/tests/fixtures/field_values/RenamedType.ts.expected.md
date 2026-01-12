@@ -1,4 +1,6 @@
-## input
+# field_values/RenamedType.ts
+
+## Input
 
 ```ts title="field_values/RenamedType.ts"
 /** @gqlType User */

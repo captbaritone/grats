@@ -1,4 +1,6 @@
-## input
+# comments/nonJSDocBlockComment.invalid.ts
+
+## Input
 
 ```ts title="comments/nonJSDocBlockComment.invalid.ts"
 // Oops! Forgot to use two asterisks for the JSDoc block comment.

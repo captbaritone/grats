@@ -1,4 +1,6 @@
-## input
+# custom_scalars/SpecifiedByOldSyntax.invalid.ts
+
+## Input
 
 ```ts title="custom_scalars/SpecifiedByOldSyntax.invalid.ts"
 /**

@@ -1,4 +1,6 @@
-## input
+# field_definitions/ParameterPropertyFieldReadOnly.ts
+
+## Input
 
 ```ts title="field_definitions/ParameterPropertyFieldReadOnly.ts"
 /** @gqlType */

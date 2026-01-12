@@ -1,4 +1,6 @@
-## input
+# top_level_fields/rootSubscriptionFieldNotAsyncIterable.invalid.ts
+
+## Input
 
 ```ts title="top_level_fields/rootSubscriptionFieldNotAsyncIterable.invalid.ts"
 /** @gqlSubscriptionField */

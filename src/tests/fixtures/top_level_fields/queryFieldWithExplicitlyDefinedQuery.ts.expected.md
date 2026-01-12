@@ -1,4 +1,6 @@
-## input
+# top_level_fields/queryFieldWithExplicitlyDefinedQuery.ts
+
+## Input
 
 ```ts title="top_level_fields/queryFieldWithExplicitlyDefinedQuery.ts"
 /** @gqlQueryField */

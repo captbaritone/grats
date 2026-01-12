@@ -1,4 +1,6 @@
-## input
+# field_definitions/FieldAsStaticClassMethodNotExported.invalid.ts
+
+## Input
 
 ```ts title="field_definitions/FieldAsStaticClassMethodNotExported.invalid.ts"
 /** @gqlType */

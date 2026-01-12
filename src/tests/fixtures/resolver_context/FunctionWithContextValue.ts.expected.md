@@ -1,4 +1,6 @@
-## input
+# resolver_context/FunctionWithContextValue.ts
+
+## Input
 
 ```ts title="resolver_context/FunctionWithContextValue.ts"
 /** @gqlContext */

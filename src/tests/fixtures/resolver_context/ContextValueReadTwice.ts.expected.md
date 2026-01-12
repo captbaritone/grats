@@ -1,4 +1,6 @@
-## input
+# resolver_context/ContextValueReadTwice.ts
+
+## Input
 
 ```ts title="resolver_context/ContextValueReadTwice.ts"
 // No valid reason to do this, but just asserting that it works, since it happens to.

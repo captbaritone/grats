@@ -1,4 +1,6 @@
-## input
+# generics/genericReferencedMoreThanOnce.ts
+
+## Input
 
 ```ts title="generics/genericReferencedMoreThanOnce.ts"
 /** @gqlType */

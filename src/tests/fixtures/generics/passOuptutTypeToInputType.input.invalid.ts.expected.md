@@ -1,4 +1,6 @@
-## input
+# generics/passOuptutTypeToInputType.input.invalid.ts
+
+## Input
 
 ```ts title="generics/passOuptutTypeToInputType.input.invalid.ts"
 /** @gqlInput */

@@ -1,4 +1,6 @@
-## input
+# field_definitions/FieldDefinedOnNonGqlType.invalid.ts
+
+## Input
 
 ```ts title="field_definitions/FieldDefinedOnNonGqlType.invalid.ts"
 class Foo {

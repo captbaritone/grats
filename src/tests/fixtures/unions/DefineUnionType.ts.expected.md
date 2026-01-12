@@ -1,4 +1,6 @@
-## input
+# unions/DefineUnionType.ts
+
+## Input
 
 ```ts title="unions/DefineUnionType.ts"
 /** @gqlType */

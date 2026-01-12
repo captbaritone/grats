@@ -1,4 +1,6 @@
-## input
+# resolverErrorElidedToNull/index.ts
+
+## Input
 
 ```ts title="resolverErrorElidedToNull/index.ts"
 /** @gqlQueryField */

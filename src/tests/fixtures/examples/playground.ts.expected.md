@@ -1,4 +1,6 @@
-## input
+# examples/playground.ts
+
+## Input
 
 ```ts title="examples/playground.ts"
 /** @gqlType */

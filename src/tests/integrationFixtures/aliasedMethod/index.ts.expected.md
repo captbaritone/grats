@@ -1,4 +1,6 @@
-## input
+# aliasedMethod/index.ts
+
+## Input
 
 ```ts title="aliasedMethod/index.ts"
 /** @gqlContext */

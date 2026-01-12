@@ -1,4 +1,6 @@
-## input
+# extend_type/fieldAsExportedMultipleVariables.invalid.ts
+
+## Input
 
 ```ts title="extend_type/fieldAsExportedMultipleVariables.invalid.ts"
 /** @gqlType */

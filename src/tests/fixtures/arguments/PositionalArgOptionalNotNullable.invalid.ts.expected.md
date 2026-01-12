@@ -1,4 +1,6 @@
-## input
+# arguments/PositionalArgOptionalNotNullable.invalid.ts
+
+## Input
 
 ```ts title="arguments/PositionalArgOptionalNotNullable.invalid.ts"
 /** @gqlInput */

@@ -1,4 +1,6 @@
-## input
+# headers/customHeaders.ts
+
+## Input
 
 ```ts title="headers/customHeaders.ts"
 // {"schemaHeader": "# Generated SDL", "tsSchemaHeader": "// Generated TS"}

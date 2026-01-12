@@ -8,7 +8,7 @@ import {
 } from "graphql";
 import {
   DerivedResolverDefinition,
-  TypeContext,
+  ITypeContext,
   UNRESOLVED_REFERENCE_NAME,
 } from "../TypeContext";
 import { err, ok } from "../utils/Result";
@@ -31,7 +31,7 @@ import * as E from "../Errors";
 import { GraphQLConstructor } from "../GraphQLConstructor";
 
 export function resolveResolverParams(
-  ctx: TypeContext,
+  ctx: ITypeContext,
   definitions: Array<DefinitionNode>,
 ): DiagnosticsResult<DefinitionNode[]> {
   const resolver = new ResolverParamsResolver(ctx);
@@ -39,10 +39,10 @@ export function resolveResolverParams(
 }
 
 class ResolverParamsResolver {
-  ctx: TypeContext;
+  ctx: ITypeContext;
   gql: GraphQLConstructor;
   errors: FixableDiagnosticWithLocation[] = [];
-  constructor(ctx: TypeContext) {
+  constructor(ctx: ITypeContext) {
     this.ctx = ctx;
     this.gql = new GraphQLConstructor();
   }

@@ -1,4 +1,6 @@
-## input
+# generics/referencingMethodGeneric.invalid.ts
+
+## Input
 
 ```ts title="generics/referencingMethodGeneric.invalid.ts"
 /** @gqlType */

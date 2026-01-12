@@ -1,4 +1,6 @@
-## input
+# generics/todo/genericInterfaceFromTypeParam.invalid.ts
+
+## Input
 
 ```ts title="generics/todo/genericInterfaceFromTypeParam.invalid.ts"
 /** @gqlType */

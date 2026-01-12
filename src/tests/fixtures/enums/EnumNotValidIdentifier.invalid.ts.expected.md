@@ -1,4 +1,6 @@
-## input
+# enums/EnumNotValidIdentifier.invalid.ts
+
+## Input
 
 ```ts title="enums/EnumNotValidIdentifier.invalid.ts"
 /** @gqlType */

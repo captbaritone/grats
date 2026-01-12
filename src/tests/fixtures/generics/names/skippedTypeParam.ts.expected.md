@@ -1,4 +1,6 @@
-## input
+# generics/names/skippedTypeParam.ts
+
+## Input
 
 ```ts title="generics/names/skippedTypeParam.ts"
 /** @gqlType */

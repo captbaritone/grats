@@ -1,4 +1,6 @@
-## input
+# directives/defineCustomDirectiveArgsIsNever.ts
+
+## Input
 
 ```ts title="directives/defineCustomDirectiveArgsIsNever.ts"
 import { GraphQLFieldResolver } from "graphql";

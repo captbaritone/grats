@@ -1,4 +1,6 @@
-## input
+# descriptions/BlankLinesAroundDescription.ts
+
+## Input
 
 ```ts title="descriptions/BlankLinesAroundDescription.ts"
 /**

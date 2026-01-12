@@ -1,4 +1,6 @@
-## input
+# extend_interface/redefineFiledThatExistsOnImplementingInterface.invalid.ts
+
+## Input
 
 ```ts title="extend_interface/redefineFiledThatExistsOnImplementingInterface.invalid.ts"
 /** @gqlInterface */

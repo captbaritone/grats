@@ -1,4 +1,6 @@
-## input
+# generics/genericTypeUsedAsUnionMemberViaTypeParam.invalid.ts
+
+## Input
 
 ```ts title="generics/genericTypeUsedAsUnionMemberViaTypeParam.invalid.ts"
 /** @gqlType */

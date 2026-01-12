@@ -1,4 +1,6 @@
-## input
+# configOptions/nonNullableIsNull.invalid.ts
+
+## Input
 
 ```ts title="configOptions/nonNullableIsNull.invalid.ts"
 // {"tsSchema": null}

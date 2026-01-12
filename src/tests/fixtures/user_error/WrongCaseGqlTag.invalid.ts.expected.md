@@ -1,4 +1,6 @@
-## input
+# user_error/WrongCaseGqlTag.invalid.ts
+
+## Input
 
 ```ts title="user_error/WrongCaseGqlTag.invalid.ts"
 /** @GQLField */

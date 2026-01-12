@@ -1,4 +1,6 @@
-## input
+# comments/commentFollowsDecorator.invalid.ts
+
+## Input
 
 ```ts title="comments/commentFollowsDecorator.invalid.ts"
 @ObjectType()

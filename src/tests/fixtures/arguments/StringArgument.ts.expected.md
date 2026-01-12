@@ -1,4 +1,6 @@
-## input
+# arguments/StringArgument.ts
+
+## Input
 
 ```ts title="arguments/StringArgument.ts"
 /** @gqlType */

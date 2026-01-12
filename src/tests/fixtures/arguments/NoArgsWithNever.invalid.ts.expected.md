@@ -1,4 +1,6 @@
-## input
+# arguments/NoArgsWithNever.invalid.ts
+
+## Input
 
 ```ts title="arguments/NoArgsWithNever.invalid.ts"
 /** @gqlType */

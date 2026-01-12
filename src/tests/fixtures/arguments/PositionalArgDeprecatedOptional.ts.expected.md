@@ -1,4 +1,6 @@
-## input
+# arguments/PositionalArgDeprecatedOptional.ts
+
+## Input
 
 ```ts title="arguments/PositionalArgDeprecatedOptional.ts"
 /** @gqlInput */

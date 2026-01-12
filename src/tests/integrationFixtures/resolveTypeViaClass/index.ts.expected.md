@@ -1,4 +1,6 @@
-## input
+# resolveTypeViaClass/index.ts
+
+## Input
 
 ```ts title="resolveTypeViaClass/index.ts"
 import { ID } from "../../../Types";

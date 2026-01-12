@@ -1,4 +1,6 @@
-## input
+# field_definitions/StringFieldWithDescription.ts
+
+## Input
 
 ```ts title="field_definitions/StringFieldWithDescription.ts"
 /** @gqlType */

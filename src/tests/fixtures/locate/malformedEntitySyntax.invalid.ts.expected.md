@@ -1,4 +1,6 @@
-## input
+# locate/malformedEntitySyntax.invalid.ts
+
+## Input
 
 ```ts title="locate/malformedEntitySyntax.invalid.ts"
 // Locate: User->name

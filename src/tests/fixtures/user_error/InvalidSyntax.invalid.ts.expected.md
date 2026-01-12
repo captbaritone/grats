@@ -1,4 +1,6 @@
-## input
+# user_error/InvalidSyntax.invalid.ts
+
+## Input
 
 ```ts title="user_error/InvalidSyntax.invalid.ts"
 /** @gqlType */

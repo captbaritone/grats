@@ -1,4 +1,6 @@
-## input
+# unions/UnionAsMemberOfItself.invalid.ts
+
+## Input
 
 ```ts title="unions/UnionAsMemberOfItself.invalid.ts"
 /** @gqlType */

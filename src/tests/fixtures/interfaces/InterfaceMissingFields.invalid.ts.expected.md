@@ -1,4 +1,6 @@
-## input
+# interfaces/InterfaceMissingFields.invalid.ts
+
+## Input
 
 ```ts title="interfaces/InterfaceMissingFields.invalid.ts"
 /** @gqlInterface */

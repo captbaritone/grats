@@ -1,4 +1,6 @@
-## input
+# input_types/InputTypeMergedInterface.invalid.ts
+
+## Input
 
 ```ts title="input_types/InputTypeMergedInterface.invalid.ts"
 interface MyInputType {

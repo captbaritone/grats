@@ -1,4 +1,6 @@
-## input
+# type_definitions/ClassMissingFields.invalid.ts
+
+## Input
 
 ```ts title="type_definitions/ClassMissingFields.invalid.ts"
 /** @gqlType */

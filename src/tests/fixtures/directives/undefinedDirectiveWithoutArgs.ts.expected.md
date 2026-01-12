@@ -1,4 +1,6 @@
-## input
+# directives/undefinedDirectiveWithoutArgs.ts
+
+## Input
 
 ```ts title="directives/undefinedDirectiveWithoutArgs.ts"
 /**

@@ -1,4 +1,6 @@
-## input
+# built_in_scalars/IntField.ts
+
+## Input
 
 ```ts title="built_in_scalars/IntField.ts"
 import { Int } from "../../../Types";

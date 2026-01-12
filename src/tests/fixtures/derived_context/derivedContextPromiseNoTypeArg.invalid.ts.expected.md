@@ -1,4 +1,6 @@
-## input
+# derived_context/derivedContextPromiseNoTypeArg.invalid.ts
+
+## Input
 
 ```ts title="derived_context/derivedContextPromiseNoTypeArg.invalid.ts"
 /** @gqlContext */

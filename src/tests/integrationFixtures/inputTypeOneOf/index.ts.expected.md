@@ -1,4 +1,6 @@
-## input
+# inputTypeOneOf/index.ts
+
+## Input
 
 ```ts title="inputTypeOneOf/index.ts"
 import { ID } from "../../..";

@@ -1,4 +1,6 @@
-## input
+# type_definitions_from_interface/InterfaceTypeExtendsGqlInterfaceWithDeprecatedTag.invalid.ts
+
+## Input
 
 ```ts title="type_definitions_from_interface/InterfaceTypeExtendsGqlInterfaceWithDeprecatedTag.invalid.ts"
 /** @gqlInterface */

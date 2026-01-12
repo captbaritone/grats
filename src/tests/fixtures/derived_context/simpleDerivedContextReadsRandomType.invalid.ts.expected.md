@@ -1,4 +1,6 @@
-## input
+# derived_context/simpleDerivedContextReadsRandomType.invalid.ts
+
+## Input
 
 ```ts title="derived_context/simpleDerivedContextReadsRandomType.invalid.ts"
 /** @gqlContext */

@@ -1,4 +1,6 @@
-## input
+# interfaces/tag/ImplementsTagWithoutTypeOrInterface.invalid.ts
+
+## Input
 
 ```ts title="interfaces/tag/ImplementsTagWithoutTypeOrInterface.invalid.ts"
 /** @gqlImplements Node */

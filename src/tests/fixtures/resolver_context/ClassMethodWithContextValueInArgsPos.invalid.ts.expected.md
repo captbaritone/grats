@@ -1,4 +1,6 @@
-## input
+# resolver_context/ClassMethodWithContextValueInArgsPos.invalid.ts
+
+## Input
 
 ```ts title="resolver_context/ClassMethodWithContextValueInArgsPos.invalid.ts"
 type GratsContext = {

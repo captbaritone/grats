@@ -6,7 +6,7 @@ import {
   ObjectTypeDefinitionNode,
 } from "graphql";
 import { OPERATION_TYPES } from "../Extractor";
-import { nullThrows } from "../utils/helpers";
+import { nullThrows, TsIdentifier } from "../utils/helpers";
 import { visitDefinitions } from "../utils/visitor";
 
 /**
@@ -41,7 +41,7 @@ export function addImplicitRootTypes(doc: DocumentNode): DocumentNode {
     const name: NameNode = {
       kind: Kind.NAME,
       value: typeName,
-      tsIdentifier: -1,
+      tsIdentifier: -1 as TsIdentifier,
       loc,
     };
     rootTypes.push({

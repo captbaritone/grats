@@ -1,4 +1,6 @@
-## input
+# extend_type/addFieldWithArguments.ts
+
+## Input
 
 ```ts title="extend_type/addFieldWithArguments.ts"
 /** @gqlType */

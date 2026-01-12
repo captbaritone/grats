@@ -1,4 +1,6 @@
-## input
+# field_definitions/PrivateAndProtectedFieldMethods.invalid.ts
+
+## Input
 
 ```ts title="field_definitions/PrivateAndProtectedFieldMethods.invalid.ts"
 /** @gqlType */

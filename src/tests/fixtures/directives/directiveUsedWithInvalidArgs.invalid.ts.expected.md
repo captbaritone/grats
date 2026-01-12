@@ -1,4 +1,6 @@
-## input
+# directives/directiveUsedWithInvalidArgs.invalid.ts
+
+## Input
 
 ```ts title="directives/directiveUsedWithInvalidArgs.invalid.ts"
 /**

@@ -1,4 +1,6 @@
-## input
+# resolver_info/ClassMethodWithInfoValue.ts
+
+## Input
 
 ```ts title="resolver_info/ClassMethodWithInfoValue.ts"
 import { GqlInfo } from "../../../Types";

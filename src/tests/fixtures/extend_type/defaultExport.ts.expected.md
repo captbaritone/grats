@@ -1,4 +1,6 @@
-## input
+# extend_type/defaultExport.ts
+
+## Input
 
 ```ts title="extend_type/defaultExport.ts"
 /** @gqlType */

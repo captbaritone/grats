@@ -1,4 +1,6 @@
-## input
+# empty.json
+
+## Input
 
 ```json title="empty.json"
 {}

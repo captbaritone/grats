@@ -1,4 +1,6 @@
-## input
+# type_definitions/RenamedTypeNewLine.invalid.ts
+
+## Input
 
 ```ts title="type_definitions/RenamedTypeNewLine.invalid.ts"
 /**

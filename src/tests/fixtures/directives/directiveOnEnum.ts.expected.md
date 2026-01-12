@@ -1,4 +1,6 @@
-## input
+# directives/directiveOnEnum.ts
+
+## Input
 
 ```ts title="directives/directiveOnEnum.ts"
 import { Int } from "../../../Types";

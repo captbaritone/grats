@@ -1,4 +1,6 @@
-## input
+# input_types/InputTypeInterfacePromiseField.invalid.ts
+
+## Input
 
 ```ts title="input_types/InputTypeInterfacePromiseField.invalid.ts"
 /** @gqlInput */

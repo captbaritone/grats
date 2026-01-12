@@ -1,4 +1,6 @@
-## input
+# field_definitions/FieldAsStaticClassMethodOnNonGqlClass.ts
+
+## Input
 
 ```ts title="field_definitions/FieldAsStaticClassMethodOnNonGqlClass.ts"
 export class SomeClass {

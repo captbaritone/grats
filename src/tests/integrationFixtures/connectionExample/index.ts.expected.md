@@ -1,4 +1,6 @@
-## input
+# connectionExample/index.ts
+
+## Input
 
 ```ts title="connectionExample/index.ts"
 import { Int } from "../../../Types";

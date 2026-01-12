@@ -1,4 +1,6 @@
-## input
+# locate/genericTypeField.invalid.ts
+
+## Input
 
 ```ts title="locate/genericTypeField.invalid.ts"
 // Locate: PageEdge.cursor

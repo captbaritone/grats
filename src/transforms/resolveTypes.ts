@@ -98,8 +98,9 @@ class TemplateExtractor {
   }
 
   /**
-   * Walks GraphQL ASTs and expands generic types into their concrete types
-   * adding their materialized definitions to the `_definitions` array as we go.
+   * Given a concrete (non-Generic) GraphQL type, walks GraphQL ASTs and expands
+   * generic types into their concrete types adding their materialized
+   * definitions to the `_definitions` array as we go.
    *
    * **Note:** Here we also detect generics being used as members of a union and
    * report that as an error.
@@ -126,6 +127,7 @@ class TemplateExtractor {
     if (declaration == null) return null;
 
     if (generics != null) {
+      // Maybe this node references a generic!
       const genericName = generics.get(declaration);
       if (genericName != null) {
         return genericName;
@@ -314,12 +316,31 @@ class TemplateExtractor {
 
   // --- Helpers ---
 
+  /**
+   * Given a name within a non-Generic GraphQL definition, finds the corresponding
+   * TypeScript node representing the type reference.
+   *
+   * For example, in:
+   *
+   * ```ts
+   * // gqlType
+   * type User {
+   *   // gqlField
+   *   friend: Person
+   * }
+   * ```
+   *
+   * Given the `Person` NameNode, this will return the TypeScript TypeReferenceNode
+   * which represents the `Person` TypeScript AST node.
+   */
   getReferenceNode(name: NameNode): EntityNameWithTypeArguments | null {
     const node = this.ctx.getEntityName(name);
     if (node == null) {
       return null;
     }
-    if (ts.isTypeReferenceNode(node.parent)) return node.parent;
+    if (ts.isTypeReferenceNode(node.parent)) {
+      return node.parent;
+    }
     // Heritage clauses are not actually type references since they have
     // runtime semantics. Instead they are an "ExpressionWithTypeArguments"
     if (

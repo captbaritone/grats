@@ -1,4 +1,6 @@
-## input
+# arguments/PositionalArgAndArgs.invalid.ts
+
+## Input
 
 ```ts title="arguments/PositionalArgAndArgs.invalid.ts"
 /** @gqlInput */

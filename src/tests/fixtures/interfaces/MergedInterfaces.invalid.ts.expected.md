@@ -1,4 +1,6 @@
-## input
+# interfaces/MergedInterfaces.invalid.ts
+
+## Input
 
 ```ts title="interfaces/MergedInterfaces.invalid.ts"
 import { ID } from "../../../types";

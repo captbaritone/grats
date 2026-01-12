@@ -1,4 +1,6 @@
-## input
+# field_definitions/PropertyFieldMissingType.invalid.ts
+
+## Input
 
 ```ts title="field_definitions/PropertyFieldMissingType.invalid.ts"
 /** @gqlType */

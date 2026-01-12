@@ -1,4 +1,6 @@
-## input
+# configOptions/importModuleSpecifierEnding.ts
+
+## Input
 
 ```ts title="configOptions/importModuleSpecifierEnding.ts"
 // {"importModuleSpecifierEnding": ".js"}

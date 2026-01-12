@@ -1,4 +1,6 @@
-## input
+# nonNullableFieldIsNull.invalid.json
+
+## Input
 
 ```json title="nonNullableFieldIsNull.invalid.json"
 {

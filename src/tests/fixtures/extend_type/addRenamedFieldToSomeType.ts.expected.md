@@ -1,4 +1,6 @@
-## input
+# extend_type/addRenamedFieldToSomeType.ts
+
+## Input
 
 ```ts title="extend_type/addRenamedFieldToSomeType.ts"
 /** @gqlType */

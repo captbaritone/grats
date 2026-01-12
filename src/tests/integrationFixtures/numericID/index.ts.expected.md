@@ -1,4 +1,6 @@
-## input
+# numericID/index.ts
+
+## Input
 
 ```ts title="numericID/index.ts"
 import { ID } from "../../../Types";

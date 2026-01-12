@@ -1,4 +1,6 @@
-## input
+# directives/directiveOnScalar.ts
+
+## Input
 
 ```ts title="directives/directiveOnScalar.ts"
 import { Int } from "../../../Types";

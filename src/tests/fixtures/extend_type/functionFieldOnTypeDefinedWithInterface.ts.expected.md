@@ -1,4 +1,6 @@
-## input
+# extend_type/functionFieldOnTypeDefinedWithInterface.ts
+
+## Input
 
 ```ts title="extend_type/functionFieldOnTypeDefinedWithInterface.ts"
 // https://twitter.com/edvinwennerdahl/status/1748436186840904103

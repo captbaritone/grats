@@ -1,4 +1,6 @@
-## input
+# type_definitions/TypeFromClassDefinitionImplementsInterface.ts
+
+## Input
 
 ```ts title="type_definitions/TypeFromClassDefinitionImplementsInterface.ts"
 /** @gqlInterface */

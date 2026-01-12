@@ -1,4 +1,6 @@
-## input
+# extend_interface/addStringFieldToNonGrats.invalid.ts
+
+## Input
 
 ```ts title="extend_interface/addStringFieldToNonGrats.invalid.ts"
 type SomeNonGratsType = string;

@@ -1,4 +1,6 @@
-## input
+# configOptions/headerIsArrayWithNumber.invalid.ts
+
+## Input
 
 ```ts title="configOptions/headerIsArrayWithNumber.invalid.ts"
 // {"schemaHeader": ["Hello", 1]}

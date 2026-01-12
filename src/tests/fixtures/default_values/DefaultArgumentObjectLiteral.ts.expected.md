@@ -1,4 +1,6 @@
-## input
+# default_values/DefaultArgumentObjectLiteral.ts
+
+## Input
 
 ```ts title="default_values/DefaultArgumentObjectLiteral.ts"
 import { Int } from "../../../Types";

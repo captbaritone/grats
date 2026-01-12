@@ -1,4 +1,6 @@
-## input
+# skipInclude/index.ts
+
+## Input
 
 ```ts title="skipInclude/index.ts"
 /** @gqlQueryField */

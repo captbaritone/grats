@@ -1,4 +1,6 @@
-## input
+# default_values/DefaultArgumentObjectLiteralMultiplePropertyErrors.invalid.ts
+
+## Input
 
 ```ts title="default_values/DefaultArgumentObjectLiteralMultiplePropertyErrors.invalid.ts"
 import { Int } from "../../../Types";

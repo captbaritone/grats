@@ -1,4 +1,6 @@
-## input
+# resolver_context/MultipleClassMethodsReferencingContextValue.ts
+
+## Input
 
 ```ts title="resolver_context/MultipleClassMethodsReferencingContextValue.ts"
 /** @gqlContext */

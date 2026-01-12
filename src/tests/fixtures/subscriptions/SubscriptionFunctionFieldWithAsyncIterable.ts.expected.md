@@ -1,4 +1,6 @@
-## input
+# subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts
+
+## Input
 
 ```ts title="subscriptions/SubscriptionFunctionFieldWithAsyncIterable.ts"
 // { "nullableByDefault": false }

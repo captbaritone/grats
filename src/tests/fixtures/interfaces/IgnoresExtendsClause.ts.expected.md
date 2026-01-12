@@ -1,4 +1,6 @@
-## input
+# interfaces/IgnoresExtendsClause.ts
+
+## Input
 
 ```ts title="interfaces/IgnoresExtendsClause.ts"
 /** @gqlType */
