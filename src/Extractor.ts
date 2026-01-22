@@ -2624,6 +2624,10 @@ class Extractor {
       return this.report(node, E.ambiguousNumberType());
     } else if (ts.isTypeLiteralNode(node)) {
       return this.report(node, E.unsupportedTypeLiteral());
+    } else if (ts.isTypeOperatorNode(node)) {
+      if (node.operator === ts.SyntaxKind.ReadonlyKeyword) {
+        return this.collectType(node.type, ctx);
+      }
     }
     // TODO: Better error message. This is okay if it's a type reference, but everything else is not.
     this.reportUnhandled(node, "type", E.unknownGraphQLType());
