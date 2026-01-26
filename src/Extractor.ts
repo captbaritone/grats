@@ -2622,6 +2622,22 @@ class Extractor {
       return this.gql.nonNullType(node, this.gql.namedType(node, "Boolean"));
     } else if (node.kind === ts.SyntaxKind.NumberKeyword) {
       return this.report(node, E.ambiguousNumberType());
+    } else if (ts.isLiteralTypeNode(node)) {
+      // Literal types are only valid in output positions. In input positions,
+      // GraphQL cannot enforce that only this specific value is passed.
+      if (ctx.kind === "INPUT") {
+        return this.report(node, E.literalTypeInInputPosition());
+      }
+      if (
+        node.literal.kind === ts.SyntaxKind.TrueKeyword ||
+        node.literal.kind === ts.SyntaxKind.FalseKeyword
+      ) {
+        return this.gql.nonNullType(node, this.gql.namedType(node, "Boolean"));
+      } else if (ts.isStringLiteral(node.literal)) {
+        return this.gql.nonNullType(node, this.gql.namedType(node, "String"));
+      } else if (ts.isNumericLiteral(node.literal)) {
+        return this.report(node, E.ambiguousNumberLiteralType());
+      }
     } else if (ts.isTypeLiteralNode(node)) {
       return this.report(node, E.unsupportedTypeLiteral());
     } else if (ts.isTypeOperatorNode(node)) {

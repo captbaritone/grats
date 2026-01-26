@@ -5,6 +5,7 @@
 - **Features**
   - Added support for async derived context functions. Derived context functions can now return `Promise<T>` and Grats will automatically generate the necessary `await` expressions in resolver code.
   - Added support for `readonly T[]` as parsable GraphQL types.
+  - Added support for literal `boolean` and `string` types in output positions. A field returning `true` will be typed as `Boolean`, and `"hello"` as `String`.
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
