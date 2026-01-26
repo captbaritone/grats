@@ -280,6 +280,14 @@ export function ambiguousNumberType() {
   return `Unexpected number type. GraphQL supports both Int and Float, making \`number\` ambiguous. Instead, import the \`Int\` or \`Float\` type from \`${LIBRARY_IMPORT_NAME}\` and use that. e.g. \`import type { Int, Float } from "${LIBRARY_IMPORT_NAME}";\`.`;
 }
 
+export function ambiguousNumberLiteralType() {
+  return `Unexpected numeric literal type. GraphQL supports both Int and Float. To ensure Grats infers the correct type, use the \`Int\` or \`Float\` type from \`${LIBRARY_IMPORT_NAME}\` instead. e.g. \`import type { Int, Float } from "${LIBRARY_IMPORT_NAME}";\`.`;
+}
+
+export function literalTypeInInputPosition() {
+  return `Literal types like \`true\`, \`"hello"\`, or \`42\` cannot be used in GraphQL input positions (e.g., field arguments). GraphQL has no way to enforce that only this specific value is passed. Use the broader type (\`Boolean\`, \`String\`, \`Int\`, etc.) instead.`;
+}
+
 export function defaultValueIsNotLiteral() {
   return 'Expected GraphQL field argument default values to be a literal. Grats interprets argument defaults as GraphQL default values, which must be literals. For example: `10` or `"foo"`.';
 }
