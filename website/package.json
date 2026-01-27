@@ -16,13 +16,13 @@
     "word-count": "find . -type f \\( -name \\*.md -o -name \\*.mdx \\) -exec wc -w {} + | awk '{total += $1} END {print total}'"
   },
   "dependencies": {
-    "@algolia/client-search": "^4.17.0",
-    "@docusaurus/core": "3.7.0",
-    "@docusaurus/preset-classic": "3.7.0",
-    "@docusaurus/theme-classic": "3.7.0",
-    "@docusaurus/theme-common": "3.7.0",
-    "@docusaurus/theme-mermaid": "3.7.0",
-    "@docusaurus/types": "3.7.0",
+    "@algolia/client-search": "^4.25.3",
+    "@docusaurus/core": "3.9.2",
+    "@docusaurus/preset-classic": "3.9.2",
+    "@docusaurus/theme-classic": "3.9.2",
+    "@docusaurus/theme-common": "3.9.2",
+    "@docusaurus/theme-mermaid": "3.9.2",
+    "@docusaurus/types": "3.9.2",
     "@graphql-tools/utils": "^9.2.1",
     "@mdx-js/react": "^3.0.0",
     "@types/node": "^18.15.0",
@@ -45,8 +45,8 @@
     "webpack": "^5.78.0"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "3.7.0",
-    "@docusaurus/tsconfig": "3.7.0",
+    "@docusaurus/module-type-aliases": "3.9.2",
+    "@docusaurus/tsconfig": "3.9.2",
     "@types/react": "^18.2.29",
     "graphql-relay": "^0.10.0",
     "monaco-editor-webpack-plugin": "^7.1.0",
