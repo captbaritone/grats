@@ -2170,6 +2170,10 @@ class Extractor {
       ];
     }
 
+    if (ts.isIndexedAccessTypeNode(node.type)) {
+      return this.enumTypeAliasConstArrayVariants(node, node.type);
+    }
+
     if (!ts.isUnionTypeNode(node.type)) {
       this.reportUnhandled(node.type, "union", E.enumTagOnInvalidNode());
       return null;
@@ -2205,6 +2209,153 @@ class Extractor {
     }
 
     return values;
+  }
+
+  enumTypeAliasConstArrayVariants(
+    node: ts.TypeAliasDeclaration,
+    indexedAccessType: ts.IndexedAccessTypeNode,
+  ): EnumValueDefinitionNode[] | null {
+    let objectType: ts.TypeNode = indexedAccessType.objectType;
+    while (ts.isParenthesizedTypeNode(objectType)) {
+      objectType = objectType.type;
+    }
+
+    if (
+      !ts.isTypeQueryNode(objectType) ||
+      !ts.isIdentifier(objectType.exprName) ||
+      indexedAccessType.indexType.kind !== ts.SyntaxKind.NumberKeyword
+    ) {
+      this.reportUnhandled(
+        indexedAccessType,
+        "union",
+        E.enumTagOnInvalidNode(),
+      );
+      return null;
+    }
+
+    const declaration = this.findTopLevelConstDeclaration(
+      node.getSourceFile(),
+      objectType.exprName.text,
+    );
+    if (declaration == null) {
+      this.reportUnhandled(
+        indexedAccessType,
+        "union",
+        E.enumTagOnInvalidNode(),
+      );
+      return null;
+    }
+
+    const arrayLiteral = this.constAssertionArrayExpression(declaration);
+    if (arrayLiteral == null) {
+      this.reportUnhandled(
+        indexedAccessType,
+        "union",
+        E.enumTagOnInvalidNode(),
+      );
+      return null;
+    }
+
+    if (arrayLiteral.elements.length === 0) {
+      this.report(arrayLiteral, E.enumTypeAliasConstArrayEmpty());
+      return null;
+    }
+
+    const values: EnumValueDefinitionNode[] = [];
+    const seenValues = new Map<string, ts.StringLiteral>();
+    for (const element of arrayLiteral.elements) {
+      if (!ts.isStringLiteral(element)) {
+        this.reportUnhandled(
+          element,
+          "union member",
+          E.enumVariantNotStringLiteral(),
+        );
+        continue;
+      }
+
+      const duplicateValueNode = seenValues.get(element.text);
+      if (duplicateValueNode != null) {
+        this.report(element, E.enumVariantDuplicateValue(element.text), [
+          tsRelated(
+            duplicateValueNode,
+            "Previous enum member with this value.",
+          ),
+        ]);
+        continue;
+      }
+
+      seenValues.set(element.text, element);
+
+      const errorMessage = graphQLNameValidationMessage(element.text);
+      if (errorMessage != null) {
+        this.report(element, errorMessage);
+      }
+
+      values.push(
+        this.gql.enumValueDefinition(
+          node,
+          this.gql.name(element, element.text),
+          undefined,
+          null,
+          null,
+        ),
+      );
+    }
+
+    return values;
+  }
+
+  findTopLevelConstDeclaration(
+    sourceFile: ts.SourceFile,
+    name: string,
+  ): ts.VariableDeclaration | null {
+    for (const statement of sourceFile.statements) {
+      if (!ts.isVariableStatement(statement)) {
+        continue;
+      }
+
+      if ((statement.declarationList.flags & ts.NodeFlags.Const) === 0) {
+        continue;
+      }
+
+      for (const declaration of statement.declarationList.declarations) {
+        if (!ts.isIdentifier(declaration.name)) {
+          continue;
+        }
+
+        if (declaration.name.text === name) {
+          return declaration;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  constAssertionArrayExpression(
+    declaration: ts.VariableDeclaration,
+  ): ts.ArrayLiteralExpression | null {
+    if (declaration.initializer == null) {
+      return null;
+    }
+
+    if (!ts.isAsExpression(declaration.initializer)) {
+      return null;
+    }
+
+    if (
+      !ts.isTypeReferenceNode(declaration.initializer.type) ||
+      !ts.isIdentifier(declaration.initializer.type.typeName) ||
+      declaration.initializer.type.typeName.text !== "const"
+    ) {
+      return null;
+    }
+
+    if (!ts.isArrayLiteralExpression(declaration.initializer.expression)) {
+      return null;
+    }
+
+    return declaration.initializer.expression;
   }
 
   collectEnumValues(
