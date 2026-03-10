@@ -1,0 +1,86 @@
+# Welcome to Grats
+
+**What if building a GraphQL server were as simple as adding annotations to your TypeScript code?**
+
+When you write your GraphQL server in TypeScript, your fields and resolvers are _already_ annotated with type information. _Grats leverages your existing type annotations to extract an executable GraphQL schema from your generic TypeScript resolver code._
+
+By making your TypeScript implementation and its types the source of truth, you never have to worry about validating that your implementation matches your schema. Your implementation _is_ your schema!
+
+## Examples
+
+Grats is flexible enough to work with both class-based and functional approaches to authoring GraphQL types and resolvers.
+
+```ts
+/**
+ * A user in our kick-ass system!
+ * @gqlType */
+class User {
+  /** @gqlQueryField */
+  static me(): User {
+    return new User();
+  }
+
+  /** @gqlField */
+  name: string = "Alice";
+
+  /** @gqlField */
+  greeting(salutation: string): string {
+    return `${salutation}, ${this.name}`;
+  }
+}
+```
+
+_Generated GraphQL schema:_
+
+```ts
+/** @gqlQueryField */
+export function me(): User {
+  return { name: "Alice" };
+}
+
+/**
+ * A user in our kick-ass system!
+ * @gqlType */
+type User = {
+  /** @gqlField */
+  name: string;
+};
+
+/** @gqlField */
+export function greeting(user: User, salutation: string): string {
+  return `${salutation}, ${user.name}`;
+}
+```
+
+## Output
+
+Both of the above examples define the following GraphQL schema:
+
+```graphql
+type Query {
+  me: User
+}
+
+"""
+A user in our kick-ass system!
+"""
+type User {
+  name: String
+  greeting(salutation: String!): String
+}
+```
+
+## How it works
+
+Grats works as a **build step** which statically analyzes your TypeScript code and generates a TypeScript module defining an executable schema. It also creates a `.graphql` schema file which can be used by clients and other tools.
+
+To tell Grats which parts of your code to expose in the schema, simply annotate them with [docblock tags](./docblock-tags.md) like `/** @gqlField */`. Grats will scan your code for these tags and use them to automatically build your schema.
+
+> **TIP:**
+> Docblock tags generally correspond one-to-one with GraphQL schema constructs. You should be able to intuitively add Grats annotations to your code without having to learn a new DSL. If you guess wrong, Grats will let you know with a helpful error message.
+> 
+> For example, in some cases Grats may prompt you to use more explicit type annotations to ensure that it can "see" all the relevant type information.
+
+-   To try Grats in your own project, check out our [Quick Start](./getting-started/quick-start.md)
+-   To quickly try out Grat's syntax in action, try the
+-   For a deep dive on Grats' _implementation_, check out [How Grats Works](./faq/how-grats-works.md) in our FAQ

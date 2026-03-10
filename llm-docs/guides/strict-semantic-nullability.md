@@ -1,0 +1,95 @@
+# Strict Semantic Nullability
+
+Strict Semantic Nullability is an an early-stage idea being explored by the GraphQL Working Group. In an attempt to help the community understand the idea and its implications, Grats includes experimental support.
+
+> **CAUTION:**
+> Because Strict Semantic Nullability is still in flux, the implementation and behavior within Grats are subject to change as we learn more about the idea and its implications.
+
+## What is Strict Semantic Nullability?
+
+Today fields in GraphQL can be typed as either nullable or non-nullable. However, this distinction is overloaded, since null values are used to represent both "true" null values as well as values that are in an error state. Strict Semantic Nullability aims to tease these two concepts apart by allowing the schema to indicate fields which will only be null in the case of error. This allows clients which handle field errors out of band, for example by discarding any query with errors, to treat these fields as non-nullable.
+
+This allows client code to make an informed decision about the expected nullability of a field, avoiding tedious null checks of values that are never null in practice, while also ensuring expected nulls are appropriately handled.
+
+## How does Grats support Strict Semantic Nullability?
+
+The [current RFC](https://github.com/graphql/graphql-spec/pull/1065) for Strict Semantic Nullability proposes new Schema syntax for declaring output types which are only null in the case of error. However, new syntax requires support from many tools in the GraphQL ecosystem, including GraphQL servers, clients, and IDEs. In order to allow developers to experiment with Strict Semantic Nullability today, Grats uses [a directive](https://specs.apollo.dev/nullability/v0.2/) instead of new syntax. This is noisier, but allows developers to experiment with the idea without waiting for new syntax to be supported.
+
+```graphql
+directive @semanticNonNull(levels: [Int] = [0]) on FIELD_DEFINITION
+```
+
+Fields annotated with this directive can be assumed by clients to only be null in a case where the errors metadata includes an explicit error for this field or value. Apollo Kotlin is one client that has [experimental support for this directive](https://www.apollographql.com/docs/kotlin/v4/advanced/nullability/#handle-semantic-non-null-with-semanticnonnull).
+
+Grats implements Strict Semantic Nullability on top of its existing `nullableByDefault` feature. When `nullableByDefault` is enabled, Grats will type every field in the schema as nullable, even if the TypeScript type is non-nullable. When Strict Semantic Nullability is enabled, Grats will continue to generate nullable fields, but if the TypeScript type is non-nullable, it will additionally add the `@semanticNonNull` directive to the field. This lets error-handling clients know that the field is only null in the case of error.
+
+## Example
+
+With Strict Semantic Nullability enabled, a field that returns a non-nullable string will be typed as nullable, but will also include the `@semanticNonNull` directive.
+
+```typescript
+/** @gqlField */
+export function name(user: User): string {
+  return user.name;
+}
+```
+
+```graphql
+type User {
+  name: String @semanticNonNull
+}
+```
+
+To see an full project example of Strict Semantic Nullability in action, check out the [example project](../examples/strict-semantic-nullability.md).
+
+## Enabling Strict Semantic Nullability
+
+Strict Semantic Nullability can be enabled in your Grats config within your `tsconfig.json` file. Note that you must also have `nullableByDefault` enabled.
+
+tsconfig.json
+
+```json
+{
+  "grats": {
+    "nullableByDefault": true,
+    "strictSemanticNullability": true
+    // ... other Grats config ...
+  },
+  "compilerOptions": {
+    // ... TypeScript config...
+  }
+}
+```
+
+## Limitations
+
+Grats aims to let the community experiment with Strict Semantic Nullability, this involves supporting some of the proposed RFC, but not all of it. In particular:
+
+-   Grats does not support using introspection to determine if a field is semantically non-null
+-   Grats does not support declaring items within a list as being semantically non-null.
+
+> **INFO:**
+> Grats does not support marking list items as semantically non-null because most resolvers are not written in such a way that indiviudal items in the list can error in a way that does not result in the list resolver itself throwing. Generally this can only happen if you return an `Iterable` and it throws when calling `next()`.
+
+## Runtime Validation
+
+When Strict Semantic Nullability is enabled, Grats will insert runtime validation to ensure that fields marked as semantically non-null never return null. This validation will throw an error if the field returns null, indicating that the field is in an error state. This is necessary because TypeScript is not fully sound, and it is possible to return null from a function that is typed as non-nullable:
+
+```typescript
+/** @gqlQueryField */
+export function aString(): string {
+  const someArr: string[] = [];
+  return someArr[0]; // Oops! Out of bounds access!
+}
+```
+
+## Further Reading
+
+-   [True Nullability Schema](https://github.com/graphql/graphql-wg/discussions/1394)
+-   [Strict Semantic Nullability](https://github.com/graphql/graphql-wg/discussions/1410)
+-   [RFC: SemanticNonNull type (null only on error)](https://github.com/graphql/graphql-spec/pull/1065)
+-   [Apollo's specification for this directive](https://specs.apollo.dev/nullability/v0.2/)
+-   [Support for `@SemanticNonNull` in Apollo Kotlin](https://www.apollographql.com/docs/kotlin/v4/advanced/nullability/#handle-semantic-non-null-with-semanticnonnull) added in [4.0.0-beta.3](https://github.com/apollographql/apollo-kotlin/releases/tag/v4.0.0-beta.3)
+-   [Example project showing this feature used with experimental support in Relay](https://github.com/captbaritone/grats-relay-example/pull/1)
+-   [Semantic Nullability - A Path Toward Safe NonNull Fields](https://www.youtube.com/watch?v=kVYlplb1gKk)\ - My talk at GraphQL Conf. 2024 explaining Semantic Nullability
+-   [Awesome Semantic Nullability](https://github.com/captbaritone/awesome-semantic-nullability/)\ - A list of projects and tools that support or implement Strict Semantic Nullability

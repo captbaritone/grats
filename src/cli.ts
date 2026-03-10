@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+// LLM agent docs: See the llm-docs/ directory in the package root for
+// Markdown documentation covering all Grats features and configuration.
+
 import * as E from "./Errors";
 import { Location } from "graphql";
 import { getParsedTsConfig } from "./";

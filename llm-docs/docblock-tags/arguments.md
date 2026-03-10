@@ -1,0 +1,119 @@
+# Arguments
+
+Any resolver argument that is typed with a valid GraphQL type will be inferred as a GraphQL argument. Grats will automatically generate the appropriate schema definition based on the type of the argument and its name.
+
+```ts
+/** @gqlType */
+class MyType {
+  /** @gqlField */
+  myField(greeting: string): string {
+    return `${greeting} World`;
+  }
+}
+```
+
+## Functional style fields
+
+In functional style fields, _the source object must always be the first argument_, so GraphQL arguments must come after the source object.
+
+```ts
+/** @gqlField */
+export function greeting(user: User, salutation: string): string {
+  return `${salutation} ${user.name}`;
+}
+```
+
+## Default values
+
+TypeScript default values will be used to infer the default value for the argument in the schema. Note that the default value must be parsable as a valid GraphQL literal.
+
+```ts
+class MyClass {
+  /** @gqlField */
+  myField(greeting: string = "Hello"): string {
+    return `${greeting} World`;
+  }
+}
+```
+
+## Deprecated arguments
+
+Optional arguments can be marked as `@deprecated` by using the `@deprecated` JSDoc tag:
+
+```ts
+class MyClass {
+  /** @gqlField */
+  myField(
+    /** @deprecated Unused! */
+    greeting?: string | null,
+  ): string {
+    return `Hello World`;
+  }
+}
+```
+
+## Nullable arguments
+
+If you define your argument as nullable in your GraphQL schema, `graphql-js` may pass either an explicit `null` if the user passes an explicit null or simply not define the argument if the user omits the argument or passes it a nullable variable which ends up not being passed to the operation.
+
+To account for this, Grats will require that any argument that is either nullable (`someArg: T | null`) or optional (`someArg?: T`) be defined as _both_ nullable and optional: `someArg?: T | null`.
+
+This ensures your resolver code handles both possible cases.
+
+The one exception is if your argument has a default value. In that case, you may opt to mark your argument as optional but not nullable.
+
+```ts
+/** @gqlQueryField */
+export function greeting(name?: string = "Max"): string {
+  return `Hello, ${name}`;
+}
+```
+
+Will result in the following schema:
+
+```graphql
+type Query {
+  greeting(name: String! = "Max"): String!
+}
+```
+
+Note that the `name` argument is marked as non-nullable in the schema. This means the user may not pass an explicit `null`, but if the argument is omitted, the default value will be used.
+
+## Object-map style fields
+
+If you wish to match the `graphql-js` resolver signature more directly, you may also define your arguments using a single object argument. The argument may appear in any position, but may not be combined with positional GraphQL arguments. _This is not Grats' recommended style, but it is fully supported_.
+
+```ts
+/** @gqlType */
+class MyType {
+  /** @gqlField */
+  myField(args: { greeting: string }): string {
+    return `${args.greeting} World`;
+  }
+}
+```
+
+Default values in this style can be defined by using the `=` operator with destructuring. Note that you must perform the destructuring in the argument list, not in the function body:
+
+```ts
+class MyClass {
+  /** @gqlField */
+  myField({ greeting = "Hello" }: { greeting: string }): string {
+    return `${greeting} World`;
+  }
+}
+```
+
+Like positional arguments, object-map arguments can be marked as `@deprecated` by using the `@deprecated` JSDoc tag:
+
+```ts
+class MyClass {
+  /** @gqlField */
+  myField(_: {
+    /** @deprecated Unused! */
+    greeting?: string;
+  }): string {
+    return `Hello World`;
+  }
+}
+```
