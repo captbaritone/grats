@@ -4,17 +4,17 @@
  */
 
 import type { GqlScalar } from "grats";
-import type { GqlDate as DateInternal } from "./graphql/CustomScalars";
+import type { GqlDate as DateInternal } from "./graphql/CustomScalars.js";
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLList, GraphQLString, GraphQLScalarType, GraphQLID, GraphQLInterfaceType, GraphQLBoolean, GraphQLInputObjectType } from "graphql";
-import { id as likeIdResolver, id as userIdResolver, id as postIdResolver, node as queryNodeResolver, nodes as queryNodesResolver } from "./graphql/Node";
-import { nodes as postConnectionNodesResolver, posts as queryPostsResolver } from "./models/PostConnection";
-import { nodes as likeConnectionNodesResolver, likes as queryLikesResolver, postLikes as subscriptionPostLikesResolver } from "./models/LikeConnection";
-import { getVc } from "./ViewerContext";
-import { nodes as userConnectionNodesResolver, users as queryUsersResolver } from "./models/UserConnection";
-import { Viewer as queryViewerResolver } from "./models/Viewer";
-import { createLike as mutationCreateLikeResolver } from "./models/Like";
-import { createPost as mutationCreatePostResolver } from "./models/Post";
-import { createUser as mutationCreateUserResolver } from "./models/User";
+import { id as likeIdResolver, id as userIdResolver, id as postIdResolver, node as queryNodeResolver, nodes as queryNodesResolver } from "./graphql/Node.js";
+import { nodes as postConnectionNodesResolver, posts as queryPostsResolver } from "./models/PostConnection.js";
+import { nodes as likeConnectionNodesResolver, likes as queryLikesResolver, postLikes as subscriptionPostLikesResolver } from "./models/LikeConnection.js";
+import { getVc } from "./ViewerContext.js";
+import { nodes as userConnectionNodesResolver, users as queryUsersResolver } from "./models/UserConnection.js";
+import { Viewer as queryViewerResolver } from "./models/Viewer.js";
+import { createLike as mutationCreateLikeResolver } from "./models/Like.js";
+import { createPost as mutationCreatePostResolver } from "./models/Post.js";
+import { createUser as mutationCreateUserResolver } from "./models/User.js";
 export type SchemaConfig = {
     scalars: {
         Date: GqlScalar<DateInternal>;

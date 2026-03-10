@@ -9,11 +9,11 @@ import {
   DiagnosticsWithoutLocationResult,
   gqlErr,
   gqlRelated,
-} from "../utils/DiagnosticError";
-import { err, ok } from "../utils/Result";
-import { GratsConfig } from "../gratsConfig";
-import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
-import { astNode } from "../utils/helpers";
+} from "../utils/DiagnosticError.js";
+import { err, ok } from "../utils/Result.js";
+import { GratsConfig } from "../gratsConfig.js";
+import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives.js";
+import { astNode } from "../utils/helpers.js";
 
 /**
  * Ensure that all semantically non-nullable fields on an interface are also

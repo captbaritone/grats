@@ -1,6 +1,7 @@
 {
   "name": "grats",
   "version": "0.0.35",
+  "type": "module",
   "main": "dist/src/index.js",
   "bin": "dist/src/cli.js",
   "types": "dist/src/index.d.ts",
@@ -11,16 +12,16 @@
     "llm-docs"
   ],
   "scripts": {
-    "test": "ts-node src/tests/test.ts",
+    "test": "tsx src/tests/test.ts",
     "test-example-projects": "node src/tests/testExampleProjects.mjs",
-    "build": "rm -rf dist/ && tsc --build",
+    "build": "rm -rf dist/ && tsc --build && cp src/configSpecRaw.json dist/src/configSpecRaw.json",
     "format": "prettier . --write",
     "lint": "eslint . && prettier . --check",
-    "profile": "ts-node scripts/profile.ts"
+    "profile": "tsx scripts/profile.ts"
   },
   "dependencies": {
     "commander": "^14.0.1",
-    "graphql": "^16.11.0",
+    "graphql": "17.0.0-alpha.11",
     "semver": "^7.7.2",
     "typescript": "5.9.2"
   },
@@ -38,7 +39,8 @@
     "path-browserify": "^1.0.1",
     "prettier": "^3.6.2",
     "process": "^0.11.10",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.0"
   },
   "prettier": {
     "trailingComma": "all"

@@ -10,25 +10,25 @@ import {
   DerivedResolverDefinition,
   ITypeContext,
   UNRESOLVED_REFERENCE_NAME,
-} from "../TypeContext";
-import { err, ok } from "../utils/Result";
+} from "../TypeContext.js";
+import { err, ok } from "../utils/Result.js";
 import {
   DiagnosticsResult,
   FixableDiagnosticWithLocation,
   gqlErr,
   tsErr,
   tsRelated,
-} from "../utils/DiagnosticError";
-import { invariant, nullThrows } from "../utils/helpers";
+} from "../utils/DiagnosticError.js";
+import { invariant, nullThrows } from "../utils/helpers.js";
 import {
   ContextResolverArgument,
   DerivedContextResolverArgument,
   NamedResolverArgument,
   ResolverArgument,
   UnresolvedResolverArgument,
-} from "../resolverSignature";
-import * as E from "../Errors";
-import { GraphQLConstructor } from "../GraphQLConstructor";
+} from "../resolverSignature.js";
+import * as E from "../Errors.js";
+import { GraphQLConstructor } from "../GraphQLConstructor.js";
 
 export function resolveResolverParams(
   ctx: ITypeContext,

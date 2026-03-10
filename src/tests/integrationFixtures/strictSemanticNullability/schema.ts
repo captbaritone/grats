@@ -1,5 +1,5 @@
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLList, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLString, defaultFieldResolver, GraphQLInterfaceType } from "graphql";
-import { actuallyReturnsAsyncNull as queryActuallyReturnsAsyncNullResolver, actuallyReturnsNull as queryActuallyReturnsNullResolver, me as queryMeResolver, names as subscriptionNamesResolver } from "./index";
+import { actuallyReturnsAsyncNull as queryActuallyReturnsAsyncNullResolver, actuallyReturnsNull as queryActuallyReturnsNullResolver, me as queryMeResolver, names as subscriptionNamesResolver } from "./index.js";
 async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
     const awaited = await value;
     if (awaited == null)

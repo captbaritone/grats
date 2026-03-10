@@ -12,19 +12,19 @@ import {
   UnionTypeDefinitionNode,
   visit,
 } from "graphql";
-import { loc } from "../GraphQLConstructor";
-import { TypeContext } from "../TypeContext";
+import { loc } from "../GraphQLConstructor.js";
+import { TypeContext } from "../TypeContext.js";
 import * as ts from "typescript";
-import { err, ok } from "../utils/Result";
+import { err, ok } from "../utils/Result.js";
 import {
   DiagnosticResult,
   DiagnosticsResult,
   TsLocatableNode,
   gqlErr,
   tsErr,
-} from "../utils/DiagnosticError";
-import { extend, invariant, nullThrows } from "../utils/helpers";
-import * as E from "../Errors";
+} from "../utils/DiagnosticError.js";
+import { extend, invariant, nullThrows } from "../utils/helpers.js";
+import * as E from "../Errors.js";
 
 type Template = {
   declarationTemplate: TypeDefinitionNode;

@@ -10,9 +10,9 @@ import {
   TypeNode,
   visit,
 } from "graphql";
-import { DiagnosticsResult, gqlErr } from "../utils/DiagnosticError";
-import { err, ok } from "../utils/Result";
-import * as E from "../Errors";
+import { DiagnosticsResult, gqlErr } from "../utils/DiagnosticError.js";
+import { err, ok } from "../utils/Result.js";
+import * as E from "../Errors.js";
 
 /**
  * Ensure that all fields on `Subscription` return an AsyncIterable and transform

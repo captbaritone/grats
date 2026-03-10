@@ -1,9 +1,9 @@
 import DataLoader from "dataloader";
-import { getPostsByIds, getUsersByIds, getLikesByIds } from "./Database";
+import { getPostsByIds, getUsersByIds, getLikesByIds } from "./Database.js";
 import { YogaInitialContext } from "graphql-yoga";
-import { Post } from "./models/Post";
-import { User } from "./models/User";
-import { Like } from "./models/Like";
+import { Post } from "./models/Post.js";
+import { User } from "./models/User.js";
+import { Like } from "./models/Like.js";
 
 /**
  * Viewer Context

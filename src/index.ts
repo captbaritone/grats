@@ -2,17 +2,17 @@
 // Markdown documentation covering all Grats features and configuration.
 
 import * as ts from "typescript";
-import { ParsedCommandLineGrats, validateGratsOptions } from "./gratsConfig";
-import { DiagnosticsWithoutLocationResult } from "./utils/DiagnosticError";
-import { err } from "./utils/Result";
+import { ParsedCommandLineGrats, validateGratsOptions } from "./gratsConfig.js";
+import { DiagnosticsWithoutLocationResult } from "./utils/DiagnosticError.js";
+import { err } from "./utils/Result.js";
 
-export { printSDLWithoutMetadata } from "./printSchema";
-export * from "./Types";
-export * from "./lib";
+export { printSDLWithoutMetadata } from "./printSchema.js";
+export * from "./Types.js";
+export * from "./lib.js";
 // Used by the experimental TypeScript plugin
-export { extract } from "./Extractor";
-export { codegen } from "./codegen/schemaCodegen";
-export { ReportableDiagnostics } from "./utils/DiagnosticError";
+export { extract } from "./Extractor.js";
+export { codegen } from "./codegen/schemaCodegen.js";
+export { ReportableDiagnostics } from "./utils/DiagnosticError.js";
 
 // #FIXME: Report diagnostics instead of throwing!
 export function getParsedTsConfig(

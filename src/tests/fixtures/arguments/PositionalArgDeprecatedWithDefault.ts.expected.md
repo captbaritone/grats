@@ -32,7 +32,7 @@ input Greeting {
 }
 
 type SomeType {
-  hello(greeting: Greeting! = {name: "Alice", salutation: "Hullo"} @deprecated(reason: "Unused!")): String
+  hello(greeting: Greeting! = { name: "Alice", salutation: "Hullo" } @deprecated(reason: "Unused!")): String
 }
 ```
 

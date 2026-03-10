@@ -33,7 +33,7 @@ export async function main() {
     let prevType = "";
     if (fileIndex > 0) {
       prevType = `Type${fileIndex - 1}`;
-      prelude = `import { ${prevType} } from "./file${fileIndex - 1}";\n`;
+      prelude = `import { ${prevType} } from "./file${fileIndex - 1}.js";\n`;
       edge = `  /** @gqlField */
   previous(): ${prevType} {
     return new ${prevType}();

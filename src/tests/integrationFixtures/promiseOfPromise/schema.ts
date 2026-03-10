@@ -1,5 +1,5 @@
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { promiseOfPromise as queryPromiseOfPromiseResolver, promiseOfPromisePromise as queryPromiseOfPromisePromiseResolver } from "./index";
+import { promiseOfPromise as queryPromiseOfPromiseResolver, promiseOfPromisePromise as queryPromiseOfPromisePromiseResolver } from "./index.js";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",

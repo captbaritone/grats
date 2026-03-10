@@ -1,6 +1,6 @@
-import * as express from "express";
+import express from "express";
 import { createHandler } from "graphql-http/lib/use/express";
-import { getSchema } from "./schema";
+import { getSchema } from "./schema.js";
 
 const app = express();
 

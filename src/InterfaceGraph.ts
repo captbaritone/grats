@@ -1,5 +1,5 @@
-import { TypeContext } from "./TypeContext";
-import { DefaultMap } from "./utils/helpers";
+import { TypeContext } from "./TypeContext.js";
+import { DefaultMap } from "./utils/helpers.js";
 import { DefinitionNode, Kind } from "graphql";
 
 export type InterfaceImplementor = { kind: "TYPE" | "INTERFACE"; name: string };

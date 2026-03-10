@@ -42,7 +42,7 @@ type User {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull } from "graphql";
-import { User as queryGetUserResolver, User as queryGetUsersResolver } from "./MultipleFieldsAsStaticClassMethods";
+import { User as queryGetUserResolver, User as queryGetUsersResolver } from "./MultipleFieldsAsStaticClassMethods.js";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",

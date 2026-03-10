@@ -1,4 +1,4 @@
-import { VC } from "../ViewerContext";
+import { VC } from "../ViewerContext.js";
 
 /**
  * Generic model class built around a database row

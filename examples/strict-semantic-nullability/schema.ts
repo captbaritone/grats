@@ -3,12 +3,12 @@
  * Do not manually edit. Regenerate by running `npx grats`.
  */
 
-import UserClass from "./models/User";
-import queryAllUsersResolver from "./models/User";
-import queryMeResolver from "./models/User";
+import UserClass from "./models/User.js";
+import queryAllUsersResolver from "./models/User.js";
+import queryMeResolver from "./models/User.js";
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLList, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLNonNull, GraphQLString, defaultFieldResolver, GraphQLInterfaceType } from "graphql";
-import { person as queryPersonResolver } from "./interfaces/IPerson";
-import { countdown as subscriptionCountdownResolver, nullItems as subscriptionNullItemsResolver, nullIterable as subscriptionNullIterableResolver } from "./Subscription";
+import { person as queryPersonResolver } from "./interfaces/IPerson.js";
+import { countdown as subscriptionCountdownResolver, nullItems as subscriptionNullItemsResolver, nullIterable as subscriptionNullIterableResolver } from "./Subscription.js";
 async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
     const awaited = await value;
     if (awaited == null)

@@ -1,5 +1,5 @@
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { derived, User as queryCurrentUserResolver, hello as queryHelloResolver, user as queryUserResolver } from "./index";
+import { derived, User as queryCurrentUserResolver, hello as queryHelloResolver, user as queryUserResolver } from "./index.js";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",

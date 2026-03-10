@@ -26,7 +26,7 @@ type Query {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { foo as queryFooResolver } from "./QueryAsAliasOfUnknown";
+import { foo as queryFooResolver } from "./QueryAsAliasOfUnknown.js";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",

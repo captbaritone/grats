@@ -1,5 +1,5 @@
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { goodBye as queryGoodByeResolver, hello as queryHelloResolver } from "./index";
+import { goodBye as queryGoodByeResolver, hello as queryHelloResolver } from "./index.js";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",

@@ -1,5 +1,5 @@
 import * as ts from "typescript";
-import { DiagnosticsResult } from "./DiagnosticError";
+import { DiagnosticsResult } from "./DiagnosticError.js";
 
 export type Result<T, E> = Ok<T> | Err<E>;
 

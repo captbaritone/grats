@@ -5,9 +5,9 @@ import {
   NameNode,
   ObjectTypeDefinitionNode,
 } from "graphql";
-import { OPERATION_TYPES } from "../Extractor";
-import { nullThrows, TsIdentifier } from "../utils/helpers";
-import { visitDefinitions } from "../utils/visitor";
+import { OPERATION_TYPES } from "../Extractor.js";
+import { nullThrows, TsIdentifier } from "../utils/helpers.js";
+import { visitDefinitions } from "../utils/visitor.js";
 
 /**
  * Ensure any root types which have been extended with `@gqlQueryField` and

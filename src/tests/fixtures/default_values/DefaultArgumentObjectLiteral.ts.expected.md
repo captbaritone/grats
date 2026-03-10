@@ -35,7 +35,7 @@ input ConnectionInput {
 }
 
 type SomeType {
-  someField1(input: ConnectionInput = {first: 10, offset: 100}): String
+  someField1(input: ConnectionInput = { first: 10, offset: 100 }): String
 }
 ```
 

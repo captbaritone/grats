@@ -1,11 +1,11 @@
-import * as DB from "../Database";
-import { VC } from "../ViewerContext";
-import { GraphQLNode, getLocalTypeAssert } from "../graphql/Node";
-import { User } from "./User";
-import { Model } from "./Model";
-import { GqlInfo, ID, Int } from "../../../dist/src";
-import { GqlDate } from "../graphql/CustomScalars";
-import { LikeConnection } from "./LikeConnection";
+import * as DB from "../Database.js";
+import { VC } from "../ViewerContext.js";
+import { GraphQLNode, getLocalTypeAssert } from "../graphql/Node.js";
+import { User } from "./User.js";
+import { Model } from "./Model.js";
+import { GqlInfo, ID, Int } from "../../../dist/src/index.js";
+import { GqlDate } from "../graphql/CustomScalars.js";
+import { LikeConnection } from "./LikeConnection.js";
 import { connectionFromSelectOrCount } from "../graphql/gqlUtils.js";
 
 /**

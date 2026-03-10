@@ -36,7 +36,7 @@ type Query {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLList, GraphQLEnumType } from "graphql";
-import { hello as queryHelloResolver } from "./NonNullPluralEnumDefaults";
+import { hello as queryHelloResolver } from "./NonNullPluralEnumDefaults.js";
 export function getSchema(): GraphQLSchema {
     const GreetingOptionsType: GraphQLEnumType = new GraphQLEnumType({
         name: "GreetingOptions",

@@ -29,7 +29,7 @@ type SomeType {
 
 ```ts
 import type { GqlScalar } from "grats";
-import type { MyUrl as MyUrlInternal } from "./DefineCustomScalar";
+import type { MyUrl as MyUrlInternal } from "./DefineCustomScalar.js";
 import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType, GraphQLString } from "graphql";
 export type SchemaConfig = {
     scalars: {

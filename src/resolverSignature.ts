@@ -9,7 +9,7 @@ import {
   StringValueNode,
   TypeNode,
 } from "graphql";
-import { DiagnosticResult } from "./utils/DiagnosticError";
+import { DiagnosticResult } from "./utils/DiagnosticError.js";
 
 /**
  * Describes the backing resolver for a field. This broadly matches the metadata
