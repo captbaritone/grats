@@ -78,7 +78,10 @@ program
 
 program
   .command("locate")
-  .argument("<ENTITY>", "GraphQL entity to locate. E.g. `User` or `User.id`")
+  .argument(
+    "<COORDINATE>",
+    "Schema coordinate to locate. E.g. `User`, `User.name`, `Query.user(id:)`, `@deprecated`",
+  )
   .option(
     "--tsconfig <TSCONFIG>",
     "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",

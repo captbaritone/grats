@@ -16,5 +16,5 @@ type User = {
 ### Error Locating Type
 
 ```text
-Cannot locate type `WhoopsNotARealType`.
+Could not resolve schema coordinate: `WhoopsNotARealType`.
 ```
