@@ -47,7 +47,7 @@ type SomeInputSomeClass {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInputObjectType, GraphQLNonNull } from "graphql";
-import { someField as querySomeFieldResolver } from "./genericOverArg";
+import { someField as querySomeFieldResolver } from "./genericOverArg.js";
 export function getSchema(): GraphQLSchema {
     const SomeInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
         name: "SomeInput",

@@ -71,11 +71,9 @@ export type GratsConfig = {
    */
   tsClientEnumsHeader: string | null;
   /**
-   * This option allows you configure an extension that will be appended to
-   * the end of all import paths in the generated TypeScript schema file.
-   * When building a package that uses ES modules, import paths must not
-   * omit the file extension. In TypeScript code this generally means import
-   * paths must end with `.js`. If set to null, no ending will be appended.
+   * The extension appended to the end of all import paths in the generated
+   * TypeScript schema file. Defaults to `.js` which works for both CommonJS
+   * and ES module projects. Set to an empty string to omit the extension.
    */
   importModuleSpecifierEnding: string;
   /**

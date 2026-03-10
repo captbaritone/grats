@@ -38,7 +38,7 @@ type Query {
 
 ```ts
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLString } from "graphql";
-import { likes as queryLikesResolver } from "./directiveOnFieldDefinition";
+import { likes as queryLikesResolver } from "./directiveOnFieldDefinition.js";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",

@@ -45,7 +45,7 @@ type Subscription {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLNonNull } from "graphql";
-import { greeting as queryGreetingResolver, deleteSomething as mutationDeleteSomethingResolver, range as subscriptionRangeResolver } from "./rootFields";
+import { greeting as queryGreetingResolver, deleteSomething as mutationDeleteSomethingResolver, range as subscriptionRangeResolver } from "./rootFields.js";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",

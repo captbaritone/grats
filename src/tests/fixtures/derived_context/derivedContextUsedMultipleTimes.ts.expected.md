@@ -46,7 +46,7 @@ type Query {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { farewell as queryFarewellResolver, greetingContext, greeting as queryGreetingResolver } from "./derivedContextUsedMultipleTimes";
+import { farewell as queryFarewellResolver, greetingContext, greeting as queryGreetingResolver } from "./derivedContextUsedMultipleTimes.js";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",

@@ -62,7 +62,7 @@ type Query {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { connection as queryConnectionResolver } from "./skippedTypeParamPassesLiteral";
+import { connection as queryConnectionResolver } from "./skippedTypeParamPassesLiteral.js";
 export function getSchema(): GraphQLSchema {
     const BType: GraphQLObjectType = new GraphQLObjectType({
         name: "B",

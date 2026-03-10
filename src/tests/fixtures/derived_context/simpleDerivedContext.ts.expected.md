@@ -40,7 +40,7 @@ type Query {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { greeting as queryGreetingResolver, createDerivedContext } from "./simpleDerivedContext";
+import { greeting as queryGreetingResolver, createDerivedContext } from "./simpleDerivedContext.js";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",

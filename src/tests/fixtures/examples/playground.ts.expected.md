@@ -60,7 +60,7 @@ type User {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
-import { getUser as someTypeGetUserResolver } from "./playground";
+import { getUser as someTypeGetUserResolver } from "./playground.js";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
