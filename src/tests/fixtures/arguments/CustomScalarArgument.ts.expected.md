@@ -31,7 +31,7 @@ type SomeType {
 
 ```ts
 import type { GqlScalar } from "grats";
-import type { MyString as MyStringInternal } from "./CustomScalarArgument";
+import type { MyString as MyStringInternal } from "./CustomScalarArgument.js";
 import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 export type SchemaConfig = {
     scalars: {

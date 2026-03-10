@@ -14,7 +14,7 @@
   "scripts": {
     "test": "tsx src/tests/test.ts",
     "test-example-projects": "node src/tests/testExampleProjects.mjs",
-    "build": "rm -rf dist/ && tsc --build",
+    "build": "rm -rf dist/ && tsc --build && cp src/configSpecRaw.json dist/src/configSpecRaw.json",
     "format": "prettier . --write",
     "lint": "eslint . && prettier . --check",
     "profile": "tsx scripts/profile.ts"

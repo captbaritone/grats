@@ -38,7 +38,7 @@ src/tests/fixtures/typename/PropertyTypenameDoesNotMatchDeclaredName.invalid.ts:
 #### Applied Fixes
 
 ```text
-  * Applied fix "Create Grats-compatible `__typename` property" in src/tests/fixtures/typename/PropertyTypenameDoesNotMatchDeclaredName.invalid.ts
+  * Applied fix "Create Grats-compatible `__typename` property" in grats/src/tests/fixtures/typename/PropertyTypenameDoesNotMatchDeclaredName.invalid.ts
 ```
 
 #### Fixed Text

@@ -31,7 +31,7 @@ type User {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { greeting as userGreetingResolver } from "./FunctionWithContextValue";
+import { greeting as userGreetingResolver } from "./FunctionWithContextValue.js";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",

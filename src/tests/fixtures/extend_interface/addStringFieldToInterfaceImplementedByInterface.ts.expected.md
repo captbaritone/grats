@@ -63,7 +63,7 @@ type User implements IPerson & IThing {
 
 ```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
-import { greeting as adminGreetingResolver, greeting as userGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";
+import { greeting as adminGreetingResolver, greeting as userGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface.js";
 export function getSchema(): GraphQLSchema {
     const IThingType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IThing",

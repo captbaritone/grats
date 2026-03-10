@@ -38,7 +38,7 @@ type SomeType {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { SomeType as queryGreetingResolver } from "./StaticMethodWithInfoValue";
+import { SomeType as queryGreetingResolver } from "./StaticMethodWithInfoValue.js";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",

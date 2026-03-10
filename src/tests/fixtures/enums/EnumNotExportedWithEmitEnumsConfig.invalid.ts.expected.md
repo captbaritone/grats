@@ -55,7 +55,7 @@ src/tests/fixtures/enums/EnumNotExportedWithEmitEnumsConfig.invalid.ts:4:1 - err
 #### Applied Fixes
 
 ```text
-  * Applied fix "Add export keyword to enum with @gqlEnum" in src/tests/fixtures/enums/EnumNotExportedWithEmitEnumsConfig.invalid.ts
+  * Applied fix "Add export keyword to enum with @gqlEnum" in grats/src/tests/fixtures/enums/EnumNotExportedWithEmitEnumsConfig.invalid.ts
 ```
 
 #### Fixed Text

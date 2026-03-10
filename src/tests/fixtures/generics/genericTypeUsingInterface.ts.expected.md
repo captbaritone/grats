@@ -49,7 +49,7 @@ type Query {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { createEdge as queryCreateEdgeResolver } from "./genericTypeUsingInterface";
+import { createEdge as queryCreateEdgeResolver } from "./genericTypeUsingInterface.js";
 export function getSchema(): GraphQLSchema {
     const PageType: GraphQLObjectType = new GraphQLObjectType({
         name: "Page",

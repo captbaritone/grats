@@ -28,7 +28,7 @@ type Query {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { SomeClass as queryGreetResolver } from "./FieldAsStaticClassMethodOnNonGqlClass";
+import { SomeClass as queryGreetResolver } from "./FieldAsStaticClassMethodOnNonGqlClass.js";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",

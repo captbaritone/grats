@@ -285,7 +285,6 @@ const testDirs: TestDir[] = [
       const firstLine = code.split("\n")[0];
       let config: Partial<GratsConfig> = {
         nullableByDefault: true,
-        importModuleSpecifierEnding: ".js",
       };
       if (firstLine.startsWith("// {")) {
         const json = firstLine.slice(3);

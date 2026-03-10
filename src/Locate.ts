@@ -11,6 +11,9 @@ import { nullThrows } from "./utils/helpers.js";
  * Given a schema coordinate string, locate the entity in the schema
  * and return its source location.
  *
+ * Uses the Schema Coordinates spec:
+ * https://spec.graphql.org/draft/#sec-Schema-Coordinates
+ *
  * Supports all schema coordinate forms:
  * - `Type` — named type
  * - `Type.field` — field on object/interface type

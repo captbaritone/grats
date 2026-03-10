@@ -27,7 +27,7 @@ type SomeType {
 ### TypeScript
 
 ```ts
-import someTypeGreetingResolver from "./defaultExport";
+import someTypeGreetingResolver from "./defaultExport.js";
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

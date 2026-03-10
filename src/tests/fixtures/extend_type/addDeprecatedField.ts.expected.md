@@ -31,7 +31,7 @@ type SomeType {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { greeting as someTypeGreetingResolver } from "./addDeprecatedField";
+import { greeting as someTypeGreetingResolver } from "./addDeprecatedField.js";
 export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",

@@ -88,9 +88,9 @@ src/tests/fixtures/arguments/NullableArgumentErrors.invalid.ts:12:26 - error: Ex
 #### Applied Fixes
 
 ```text
-  * Applied fix "Make argument optional" in src/tests/fixtures/arguments/NullableArgumentErrors.invalid.ts
-  * Applied fix "Make argument optional" in src/tests/fixtures/arguments/NullableArgumentErrors.invalid.ts
-  * Applied fix "Make argument optional" in src/tests/fixtures/arguments/NullableArgumentErrors.invalid.ts
+  * Applied fix "Make argument optional" in grats/src/tests/fixtures/arguments/NullableArgumentErrors.invalid.ts
+  * Applied fix "Make argument optional" in grats/src/tests/fixtures/arguments/NullableArgumentErrors.invalid.ts
+  * Applied fix "Make argument optional" in grats/src/tests/fixtures/arguments/NullableArgumentErrors.invalid.ts
 ```
 
 #### Fixed Text

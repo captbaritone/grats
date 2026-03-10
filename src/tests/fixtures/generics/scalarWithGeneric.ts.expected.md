@@ -20,7 +20,7 @@ scalar MyScalar
 
 ```ts
 import type { GqlScalar } from "grats";
-import type { MyScalar as MyScalarInternal } from "./scalarWithGeneric";
+import type { MyScalar as MyScalarInternal } from "./scalarWithGeneric.js";
 import { GraphQLSchema, GraphQLScalarType } from "graphql";
 export type SchemaConfig = {
     scalars: {
