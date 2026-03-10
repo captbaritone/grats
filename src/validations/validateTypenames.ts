@@ -1,9 +1,9 @@
 import * as ts from "typescript";
 import {
-  GraphQLInterfaceType,
   GraphQLSchema,
   Kind,
   isAbstractType,
+  isInterfaceType,
   isType,
 } from "graphql";
 import {
@@ -34,22 +34,20 @@ export function validateTypenames(
       // Synthesized type cannot guarantee that they have the correct __typename field, so we
       // prevent their use in interfaces and unions.
       if (ast.kind === Kind.OBJECT_TYPE_DEFINITION && ast.wasSynthesized) {
-        const message =
-          type instanceof GraphQLInterfaceType
-            ? E.genericTypeImplementsInterface()
-            : E.genericTypeUsedAsUnionMember();
+        const message = isInterfaceType(type)
+          ? E.genericTypeImplementsInterface()
+          : E.genericTypeUsedAsUnionMember();
         errors.push(gqlErr(ast.name, message));
       } else if (!hasTypename.has(implementor.name) && ast.exported == null) {
-        const message =
-          type instanceof GraphQLInterfaceType
-            ? E.concreteTypenameImplementingInterfaceCannotBeResolved(
-                implementor.name,
-                type.name,
-              )
-            : E.concreteTypenameInUnionCannotBeResolved(
-                implementor.name,
-                type.name,
-              );
+        const message = isInterfaceType(type)
+          ? E.concreteTypenameImplementingInterfaceCannotBeResolved(
+              implementor.name,
+              type.name,
+            )
+          : E.concreteTypenameInUnionCannotBeResolved(
+              implementor.name,
+              type.name,
+            );
 
         const err = gqlErr(ast.name, message, [
           gqlRelated(

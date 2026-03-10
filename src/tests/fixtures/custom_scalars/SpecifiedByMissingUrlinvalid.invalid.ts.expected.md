@@ -15,7 +15,7 @@ export type UUID = string;
 ### Error Report
 
 ```text
-src/tests/fixtures/custom_scalars/SpecifiedByMissingUrlinvalid.invalid.ts:3:4 - error: Directive "@specifiedBy" argument "url" of type "String!" is required, but it was not provided.
+src/tests/fixtures/custom_scalars/SpecifiedByMissingUrlinvalid.invalid.ts:3:4 - error: Argument "@specifiedBy(url:)" of type "String!" is required, but it was not provided.
 
 3  * @gqlAnnotate specifiedBy
      ~~~~~~~~~~~~~~~~~~~~~~~~

@@ -1,4 +1,5 @@
 import {
+  ConstDirectiveNode,
   GraphQLAbstractType,
   GraphQLArgument,
   GraphQLDirective,
@@ -33,7 +34,6 @@ import { naturalCompare } from "../utils/naturalCompare.js";
 import TSAstBuilder, { JsonValue } from "./TSAstBuilder.js";
 import ResolverCodegen from "./resolverCodegen.js";
 import { Metadata } from "../metadata.js";
-import { ConstDirectiveNode } from "graphql/language/index.js";
 import { ExportDefinition } from "../GraphQLAstExtensions.js";
 
 // These directives will be added to the schema by default, so we don't need to
@@ -95,7 +95,7 @@ class Codegen {
   schemaDeclarationExport(): void {
     const scalars = Object.values(this._schema.getTypeMap())
       .filter((type) => {
-        return type instanceof GraphQLScalarType;
+        return isScalarType(type);
       })
       .filter((type) => !BUILT_IN_SCALARS.has(type.name))
       .map((type) => {
@@ -691,15 +691,20 @@ class Codegen {
   }
 
   argConfig(arg: GraphQLArgument): ts.Expression {
+    // In graphql-js v17, defaultValue is deprecated in favor of `default`.
+    const argDefault = arg.default;
     return this.ts.objectLiteral([
       this.description(arg.description),
       this.deprecated(arg),
       F.createPropertyAssignment("type", this.typeReference(arg.type)),
-      // TODO: arg.defaultValue seems to be missing for complex objects
-      arg.defaultValue !== undefined
+      argDefault !== undefined
         ? F.createPropertyAssignment(
             "defaultValue",
-            this.defaultValue(arg.defaultValue),
+            this.defaultValue(
+              argDefault.value !== undefined
+                ? argDefault.value
+                : valueFromASTUntyped(argDefault.literal!),
+            ),
           )
         : null,
       this.extensions(arg.astNode?.directives),
