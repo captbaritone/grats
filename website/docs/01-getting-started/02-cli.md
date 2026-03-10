@@ -56,30 +56,42 @@ Options:
   -h, --help                 display help for command
 
 Commands:
-  locate [options] <ENTITY>
+  locate [options] <COORDINATE>
 ```
 
 ## Locate
 
-The `locate` command reports the location (file, line, column) at which a given type or field is defined in your code. `grats locate` can also be invoked by other tools. For example the click-to-definition feature of an GraphQL editor integration could use invoke this command to find the location of a type or field.
+The `locate` command reports the location (file, line, column) at which a given schema element is defined in your code. It accepts a [Schema Coordinate](https://spec.graphql.org/draft/#sec-Schema-Coordinates) as its argument.
+
+`grats locate` can also be invoked by other tools. For example the click-to-definition feature of a GraphQL editor integration could invoke this command to find the location of a type or field.
 
 For example, Relay's VSCode Extension is [exploring](https://github.com/facebook/relay/pull/4434) adding the ability to leverage such a tool.
 
 ```bash
+# Locate a named type
+npx grats locate User
+
 # Locate a field
 npx grats locate User.name
 
-# Locate a named type
-npx grats locate User
+# Locate a field argument
+npx grats locate "Query.user(id:)"
+
+# Locate an enum value
+npx grats locate "MyEnum.VALUE"
+
+# Locate a directive
+npx grats locate @deprecated
 ```
 
 ### Options
 
 ```
-Usage: grats locate [options] <ENTITY>
+Usage: grats locate [options] <COORDINATE>
 
 Arguments:
-ENTITY                 GraphQL entity to locate. E.g. `User` or `User.id`
+COORDINATE             Schema coordinate to locate. E.g. `User`, `User.name`,
+                       `Query.user(id:)`, `@deprecated`
 
 Options:
   --tsconfig <TSCONFIG>  Path to tsconfig.json. Defaults to auto-detecting based on the current working directory
