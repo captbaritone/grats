@@ -22,7 +22,7 @@ module.exports = function docsExportPlugin(_context, _options) {
       // Filter to only /docs/ routes, excluding exact "/docs" or "/docs/"
       // which is typically a redirect/index that duplicates "/docs/getting-started/"
       const docsRoutes = routesPaths.filter(
-        (r) => r.startsWith("/docs/") && r !== "/docs/"
+        (r) => r.startsWith("/docs/") && r !== "/docs/",
       );
 
       const turndown = createTurndownService();
@@ -30,7 +30,9 @@ module.exports = function docsExportPlugin(_context, _options) {
       for (const route of docsRoutes) {
         const htmlPath = path.join(outDir, route, "index.html");
         if (!fs.existsSync(htmlPath)) {
-          console.warn(`[docs-export] HTML not found for route ${route}: ${htmlPath}`);
+          console.warn(
+            `[docs-export] HTML not found for route ${route}: ${htmlPath}`,
+          );
           continue;
         }
 
@@ -64,7 +66,9 @@ module.exports = function docsExportPlugin(_context, _options) {
 
         const articleHtml = article.html();
         if (!articleHtml) {
-          console.warn(`[docs-export] Empty article content for route ${route}`);
+          console.warn(
+            `[docs-export] Empty article content for route ${route}`,
+          );
           continue;
         }
 
@@ -81,7 +85,9 @@ module.exports = function docsExportPlugin(_context, _options) {
         fs.writeFileSync(outFilePath, markdown + "\n", "utf-8");
       }
 
-      console.log(`[docs-export] Exported ${docsRoutes.length} docs to ${docsOutDir}`);
+      console.log(
+        `[docs-export] Exported ${docsRoutes.length} docs to ${docsOutDir}`,
+      );
     },
   };
 };
@@ -206,7 +212,11 @@ function createTurndownService() {
       // Prefix every line with > to keep multi-line admonitions inside the blockquote
       var trimmed = content.trim();
       var lines = trimmed.split("\n");
-      var quoted = lines.map(function (line) { return "> " + line; }).join("\n");
+      var quoted = lines
+        .map(function (line) {
+          return "> " + line;
+        })
+        .join("\n");
       return "\n\n> **" + type + ":**\n" + quoted + "\n\n";
     },
   });
