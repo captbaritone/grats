@@ -44,26 +44,19 @@ module.exports = function docsExportPlugin(_context, _options) {
         }
 
         // Remove elements we don't want in the exported docs
-        // Breadcrumbs
         article.find("nav.theme-doc-breadcrumbs").remove();
-        // Pagination (prev/next links)
         article.find("nav.pagination-nav").remove();
-        // "Edit this page" links
         article.find("a.theme-edit-this-page").remove();
-        // Table of contents (inline)
         article.find("aside.theme-doc-toc-mobile, .table-of-contents").remove();
-        // Theme toggler / copy buttons inside code blocks
         article.find("button.clean-btn").remove();
-        // Playground links (absolute-positioned links inside code blocks)
         article.find('a[href^="/playground"]').remove();
-
-        // Remove hidden tab panels (inactive tabs from GratsCode mode="both")
-        article.find('[role="tabpanel"][hidden]').remove();
-        // Remove tab navigation (the tab buttons themselves)
-        article.find('ul[role="tablist"]').remove();
-
-        // Strip the hash-link anchors that Docusaurus adds to headings
         article.find("a.hash-link").remove();
+
+        // For tabbed content (GratsCode mode="both"): keep both tab panels
+        // but remove the tab navigation UI. Unhide hidden panels so their
+        // content is included in the output.
+        article.find('ul[role="tablist"]').remove();
+        article.find('[role="tabpanel"][hidden]').removeAttr("hidden");
 
         // Replace <br> tags inside code blocks with newlines so that
         // textContent preserves line breaks (Prism uses <br> for line breaks)
@@ -75,7 +68,10 @@ module.exports = function docsExportPlugin(_context, _options) {
           continue;
         }
 
-        const markdown = turndown.turndown(articleHtml);
+        let markdown = turndown.turndown(articleHtml);
+
+        // Convert absolute /docs/... links to relative .md paths
+        markdown = convertDocsLinks(markdown, route);
 
         // Build output path: /docs/getting-started/configuration -> docs/getting-started/configuration.md
         const relativePath = route.replace(/^\/docs\//, "").replace(/\/$/, "");
@@ -90,6 +86,42 @@ module.exports = function docsExportPlugin(_context, _options) {
   };
 };
 
+/**
+ * Convert absolute /docs/... links to relative .md paths.
+ *
+ * e.g. from route /docs/docblock-tags/types:
+ *   /docs/resolvers/renaming        -> ../resolvers/renaming.md
+ *   /docs/getting-started/          -> ../getting-started.md
+ *   /docs/faq/design-principles#foo -> ../faq/design-principles.md#foo
+ */
+function convertDocsLinks(markdown, currentRoute) {
+  // Current file's directory relative to docs root
+  // e.g. /docs/docblock-tags/types -> currentDir = "docblock-tags"
+  const currentPath = currentRoute.replace(/^\/docs\//, "").replace(/\/$/, "");
+  const currentDir = path.dirname(currentPath);
+
+  return markdown.replace(/\]\(\/docs\/(.*?)\)/g, (_match, target) => {
+    // Split off anchor
+    const hashIndex = target.indexOf("#");
+    const pathPart = hashIndex >= 0 ? target.slice(0, hashIndex) : target;
+    const anchor = hashIndex >= 0 ? target.slice(hashIndex) : "";
+
+    // Strip trailing slash to normalize
+    const cleanPath = pathPart.replace(/\/$/, "");
+    if (!cleanPath) {
+      // Link to /docs/ itself
+      return "](./getting-started.md" + anchor + ")";
+    }
+
+    let relativePath = path.relative(currentDir, cleanPath);
+    if (!relativePath.startsWith(".")) {
+      relativePath = "./" + relativePath;
+    }
+
+    return "](" + relativePath + ".md" + anchor + ")";
+  });
+}
+
 function createTurndownService() {
   const turndown = new TurndownService({
     headingStyle: "atx",
@@ -97,48 +129,60 @@ function createTurndownService() {
     bulletListMarker: "-",
   });
 
+  // Reduce over-escaping for agent-friendly output. Turndown's default escape
+  // aggressively escapes `, *, _, [, ], #, etc. which makes technical docs
+  // with code references and type signatures harder to read. We only escape
+  // characters that would create unwanted block-level markdown structures.
+  turndown.escape = function (str) {
+    return str
+      .replace(/^(#{1,6}\s)/gm, "\\$1")
+      .replace(/^(\s*>)/gm, "\\$1")
+      .replace(/^(\s*[-*+]\s)/gm, "\\$1")
+      .replace(/^(\s*\d+\.\s)/gm, "\\$1");
+  };
+
   // Rule: fenced code blocks — extract language from class="language-xxx"
   // and strip Prism syntax-highlighting spans
   turndown.addRule("fencedCodeBlock", {
-    filter(node) {
+    filter: function (node) {
       return (
         node.nodeName === "PRE" &&
         node.firstChild &&
         node.firstChild.nodeName === "CODE"
       );
     },
-    replacement(_content, node) {
-      const code = node.firstChild;
+    replacement: function (_content, node) {
+      var code = node.firstChild;
       // Language class may be on <pre> or <code> (Prism puts it on <pre>)
-      const preClass = node.getAttribute("class") || "";
-      const codeClass = code.getAttribute("class") || "";
-      const langMatch =
+      var preClass = node.getAttribute("class") || "";
+      var codeClass = code.getAttribute("class") || "";
+      var langMatch =
         preClass.match(/language-(\S+)/) || codeClass.match(/language-(\S+)/);
-      const lang = langMatch ? langMatch[1] : "";
+      var lang = langMatch ? langMatch[1] : "";
 
       // Get text content, which automatically strips all HTML tags (Prism spans, etc.)
-      const text = code.textContent || "";
+      var text = code.textContent || "";
 
       // Trim trailing newline that Docusaurus often adds
-      const trimmed = text.replace(/\n$/, "");
+      var trimmed = text.replace(/\n$/, "");
 
-      return `\n\n\`\`\`${lang}\n${trimmed}\n\`\`\`\n\n`;
+      return "\n\n```" + lang + "\n" + trimmed + "\n```\n\n";
     },
   });
 
   // Rule: inline code — preserve backtick-wrapped code
   turndown.addRule("inlineCode", {
-    filter(node) {
+    filter: function (node) {
       return (
         node.nodeName === "CODE" &&
         node.parentNode &&
         node.parentNode.nodeName !== "PRE"
       );
     },
-    replacement(content) {
+    replacement: function (content) {
       if (!content) return "";
       // If content contains backticks, use double backticks
-      if (content.includes("`")) {
+      if (content.indexOf("`") !== -1) {
         return "`` " + content + " ``";
       }
       return "`" + content + "`";
@@ -148,33 +192,34 @@ function createTurndownService() {
   // Rule: Docusaurus admonitions (note, tip, warning, etc.)
   // These render as <div class="theme-admonition theme-admonition-note ...">
   turndown.addRule("admonition", {
-    filter(node) {
+    filter: function (node) {
       return (
         node.nodeName === "DIV" &&
         (node.getAttribute("class") || "").includes("theme-admonition")
       );
     },
-    replacement(content, node) {
-      const classAttr = node.getAttribute("class") || "";
-      const typeMatch = classAttr.match(/theme-admonition-(\w+)/);
-      const type = typeMatch ? typeMatch[1].toUpperCase() : "NOTE";
+    replacement: function (content, node) {
+      var classAttr = node.getAttribute("class") || "";
+      var typeMatch = classAttr.match(/theme-admonition-(\w+)/);
+      var type = typeMatch ? typeMatch[1].toUpperCase() : "NOTE";
 
-      // The content includes the admonition title (first child) + body
-      const trimmed = content.trim();
-      return `\n\n> **${type}:** ${trimmed}\n\n`;
+      // Prefix every line with > to keep multi-line admonitions inside the blockquote
+      var trimmed = content.trim();
+      var lines = trimmed.split("\n");
+      var quoted = lines.map(function (line) { return "> " + line; }).join("\n");
+      return "\n\n> **" + type + ":**\n" + quoted + "\n\n";
     },
   });
 
   // Rule: strip admonition icon SVGs and titles (fold into the admonition rule above)
   turndown.addRule("admonitionIcon", {
-    filter(node) {
-      // Remove the admonition heading/icon container
+    filter: function (node) {
       return (
         node.nodeName === "DIV" &&
         (node.getAttribute("class") || "").includes("admonitionHeading")
       );
     },
-    replacement() {
+    replacement: function () {
       return "";
     },
   });
@@ -182,19 +227,18 @@ function createTurndownService() {
   // Rule: Docusaurus details/summary (collapsible sections)
   turndown.addRule("details", {
     filter: "details",
-    replacement(content, node) {
-      const summary = node.querySelector("summary");
-      const summaryText = summary ? summary.textContent.trim() : "Details";
-      // Remove the summary text from content since we're using it as a header
-      const body = content.replace(summaryText, "").trim();
-      return `\n\n**${summaryText}**\n\n${body}\n\n`;
+    replacement: function (content, node) {
+      var summary = node.querySelector("summary");
+      var summaryText = summary ? summary.textContent.trim() : "Details";
+      var body = content.replace(summaryText, "").trim();
+      return "\n\n**" + summaryText + "**\n\n" + body + "\n\n";
     },
   });
 
   // Strip SVG elements entirely
   turndown.addRule("svg", {
     filter: "svg",
-    replacement() {
+    replacement: function () {
       return "";
     },
   });
