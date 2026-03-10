@@ -5,5 +5,8 @@ dist/
 .claude
 performance.cpuprofile
 
+# Generated docs (built by website/plugins/docs-export.js)
+docs/
+
 # Local Netlify folder
 .netlify
