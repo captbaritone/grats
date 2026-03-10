@@ -1,0 +1,16 @@
+# Why Prohibit Concrete Root Values?
+
+In most cases you won't need to explicitly define the root types `Query`, `Mutation` or `Subscription` since they will be implicitly created if you add fields to them with the `@gqlQueryField`, `@gqlMutationField` or `@gqlSubscriptionField` tags.
+
+However, if you wish to explicitly define one of these types in order to add a description to it, Grats will require that you define it as a type alias of `unknown`. For example:
+
+```typescript
+/**
+ * My great description
+ * @gqlType */
+type Query = unknown;
+```
+
+Grats forces this constraint because the semantics of the root value is not well defined across GraphQL server implementations. For example, Yoga does not allow you to define a root value, where as other server implementations use a single root value that is shared by all resolvers. Additionally, it's not specified if the root value should be shared by all requests or regenerated for each request.
+
+There are some valid uses for a concrete root value, such as dependency injection, but in general dependency injection can be more easily achieved by using [context](../docblock-tags/context.md). If you believe you have a valid use case for a concrete root value, please [open an issue](https://github.com/captbaritone/grats/issues).

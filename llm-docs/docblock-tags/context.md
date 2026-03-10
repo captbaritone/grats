@@ -1,0 +1,104 @@
+# Context
+
+In addition to the [arguments object](./arguments.md), each resolver method/function may also access a [context value](https://graphql.org/learn/execution/#root-fields--resolvers). Context is the standard way to implement dependency injection for GraphQL resolvers. Typically the context value will be an object including the current request, information about the requesting user, as well as a database connection and per-request caches, such as [DataLoaders](https://github.com/graphql/dataloader).
+
+To define the context object type, you must use the `@gqlContext` tag. This tag should be placed directly above the type definition for your context object.
+
+```ts
+/** @gqlContext */
+type GQLCtx = {
+  req: Request;
+  userID: string;
+  db: Database;
+};
+```
+
+## Consuming context values in resolvers
+
+Grats will detect any resolver parameter that is typed using the `@gqlContext` type and ensure that the context object is passed to the resolver in that position:
+
+```ts
+/** @gqlContext */
+type GQLCtx = {
+  req: Request;
+  userID: string;
+  db: Database;
+};
+
+/** @gqlQueryField */
+export function me(ctx: GQLCtx): User {
+  return ctx.db.users.getById(ctx.userID);
+}
+```
+
+> **TIP:**
+> Unlike `graphql-js`, Grats does not require that the context object be passed as a specific positional argument to the resolver. You can place the context object anywhere in the argument list, as long as the type is annotated with the `@gqlContext` type.
+
+## Derived context values
+
+In some cases you may have a context value that is expensive to create, or is only used in some resolvers. In these cases you can define a _derived resolver_. A derived resolver is a function which produces a context value. It may optionally read, as arguments, other context values, including other derived context values.
+
+Once a derived resolver is defined, the type it returns becomes a new context type. **Any resolver argument with this type will receive the value produced by the derived resolver returning that type.**
+
+```tsx
+type DB = {
+  selectUser(): { name: string };
+  /*...*/
+};
+
+/** @gqlContext */
+type Ctx = { db: DB };
+
+/** @gqlContext */
+export function getDb(ctx: Ctx): DB {
+  return ctx.db;
+}
+
+/**
+ * A field which reads a derived context. Grats will invoke the above `getDb`
+ * function and pass it to this resolver function.
+ *
+ * @gqlQueryField */
+export function me(db: DB): string {
+  return db.selectUser().name;
+}
+```
+
+Derived context functions will be called individually by each resolve that wants to access the derived context value. If you want the result to be reused across multiple resolvers, you should memoize the result:
+
+```tsx
+class DB {
+  selectUser(): { name: string } {
+    return { name: "Alice" };
+  }
+}
+
+/** @gqlContext */
+type Ctx = {};
+
+// A derived context resolver cached using a WeakMap to ensure the value is
+// computed at most once per request.
+
+const DB_CACHE = new WeakMap<Ctx, DB>();
+
+/** @gqlContext */
+export function getDb(ctx: Ctx): DB {
+  if (!DB_CACHE.has(ctx)) {
+    DB_CACHE.set(ctx, new DB());
+  }
+  return DB_CACHE.get(ctx)!;
+}
+
+/**
+ * @gqlQueryField */
+export function me(db: DB): string {
+  return db.selectUser().name;
+}
+```
+
+## Constructing your root context object
+
+How you construct your context object will vary based on your GraphQL server library. See your GraphQL server library's documentation for more information.
+
+> **CAUTION:**
+> Grats can ensure that every resolver is expecting the same annotated root context type, but it cannot ensure that the root context value you construct and pass in matches that type. **It is up to you to ensure that your root context value is constructed correctly and passed to the GraphQL execution engine.**

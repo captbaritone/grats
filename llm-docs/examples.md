@@ -1,0 +1,36 @@
+# Examples
+
+Working minimal code examples are often the best way to see how a library should be configured. It gives a working starting point that one can borrow from when setting up their own project. To that end, Grats' repository contains a number of examples that demonstrate how to use Grats with various frameworks and libraries. Each example is covered by our integration tests to ensure it's in working order.
+
+## Grats with other libraries
+
+-   [Apollo Server](./examples/apollo-server.md)\ - A very minimal example of using Grats with Apollo Server.
+-   [GraphQL HTTP](./examples/graphql-http.md)\ - Simple demo project integrating Grats, [Express](http://expressjs.com/) and [graphql-http](https://graphql-http.com/).
+-   [Yoga](./examples/yoga.md)\ - Simple demo project integrating Grats and [Yoga](https://github.com/dotansimha/graphql-yoga) with Node's built-in HTTP server. This example also includes an working example of GraphQL subscriptions.
+-   [NextJS](./examples/next-js.md)\ - Simple demo project integrating Grats and [Next.js](https://nextjs.org/) and [Yoga](https://github.com/dotansimha/graphql-yoga).
+
+## Capabilities of Grats
+
+-   [Strict Semantic Nullabilty](./examples/strict-semantic-nullability.md)
+    -   This example demonstrates Grats' experimental support for [Strict Semantic Nullability](https://grats.capt.dev/docs/guides/strict-semantic-nullability).
+-   [Production App](./examples/production-app.md)
+    -   Demonstrates many of the practical concerns of implementing GraphQL in production.
+    -   Node/Connection (Relay schema)
+    -   Dataloader pattern
+    -   Subscriptions
+    -   @stream
+    -   Custom scalars
+    -   GraphQL context
+
+## Standalone examples
+
+Examples of Grats outside of the Grats repository:
+
+-   [Grats Relay Example](https://github.com/captbaritone/grats-relay-example)
+    -   Shows configuring Grats and Relay together
+    -   Click to defintion from field use to resolver
+-   [Winamp Skin Museum](https://github.com/captbaritone/webamp/tree/master/packages/skin-database)
+    -   The [Winamp Skin Museum](https://skins.webamp.org/) uses Grats to power its GraphQL API
+
+> **NOTE:**
+> If you would like a working example of Grats used with a framework or library that isn't covered here, please reach out on [Discord](https://capt.dev/grats-chat) or [Twitter](https://twitter.com/captbaritone).
