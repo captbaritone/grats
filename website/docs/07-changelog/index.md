@@ -1,10 +1,11 @@
 # Changelog
 
-<!--
 ## Next (UNRELEASED)
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
--->
+
+- **Features**
+  - The Grats npm package now includes an `llm-docs/` directory containing agent-friendly Markdown documentation. AI coding agents can use these docs to understand Grats' API and conventions without needing to access the website.
 
 ## 0.0.35
 
