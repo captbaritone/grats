@@ -8,7 +8,7 @@
   "files": [
     "dist",
     "!dist/src/tests",
-    "docs"
+    "llm-docs"
   ],
   "scripts": {
     "test": "ts-node src/tests/test.ts",

@@ -6,7 +6,7 @@ dist/
 performance.cpuprofile
 
 # Generated docs (built by website/plugins/docs-export.js)
-docs/
+llm-docs/
 
 # Local Netlify folder
 .netlify

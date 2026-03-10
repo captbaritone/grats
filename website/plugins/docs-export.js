@@ -17,7 +17,7 @@ module.exports = function docsExportPlugin(_context, _options) {
 
     async postBuild({ routesPaths, outDir }) {
       const projectRoot = path.resolve(__dirname, "../..");
-      const docsOutDir = path.join(projectRoot, "docs");
+      const docsOutDir = path.join(projectRoot, "llm-docs");
 
       // Filter to only /docs/ routes, excluding exact "/docs" or "/docs/"
       // which is typically a redirect/index that duplicates "/docs/getting-started/"
@@ -55,10 +55,13 @@ module.exports = function docsExportPlugin(_context, _options) {
         article.find("a.hash-link").remove();
 
         // For tabbed content (GratsCode mode="both"): keep both tab panels
-        // but remove the tab navigation UI. Unhide hidden panels so their
-        // content is included in the output.
+        // but remove the tab navigation UI. Unhide hidden panels and insert
+        // a label so readers know the GraphQL block is generated output.
         article.find('ul[role="tablist"]').remove();
-        article.find('[role="tabpanel"][hidden]').removeAttr("hidden");
+        article.find('[role="tabpanel"][hidden]').each((_i, el) => {
+          $(el).removeAttr("hidden");
+          $("<p><em>Generated GraphQL schema:</em></p>").insertBefore(el);
+        });
 
         // Replace <br> tags inside code blocks with newlines so that
         // textContent preserves line breaks (Prism uses <br> for line breaks)
