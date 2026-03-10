@@ -7,7 +7,8 @@
   "license": "MIT",
   "files": [
     "dist",
-    "!dist/src/tests"
+    "!dist/src/tests",
+    "docs"
   ],
   "scripts": {
     "test": "ts-node src/tests/test.ts",

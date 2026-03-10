@@ -79,10 +79,10 @@ module.exports = function docsExportPlugin(_context, _options) {
 
         // Build output path: /docs/getting-started/configuration -> docs/getting-started/configuration.md
         const relativePath = route.replace(/^\/docs\//, "").replace(/\/$/, "");
-        const outFilePath = path.join(docsOutDir, relativePath + ".md");
+        const outFilePath = path.join(docsOutDir, `${relativePath}.md`);
 
         fs.mkdirSync(path.dirname(outFilePath), { recursive: true });
-        fs.writeFileSync(outFilePath, markdown + "\n", "utf-8");
+        fs.writeFileSync(outFilePath, `${markdown}\n`, "utf-8");
       }
 
       console.log(
@@ -116,15 +116,15 @@ function convertDocsLinks(markdown, currentRoute) {
     const cleanPath = pathPart.replace(/\/$/, "");
     if (!cleanPath) {
       // Link to /docs/ itself
-      return "](./getting-started.md" + anchor + ")";
+      return `](./getting-started.md${anchor})`;
     }
 
     let relativePath = path.relative(currentDir, cleanPath);
     if (!relativePath.startsWith(".")) {
-      relativePath = "./" + relativePath;
+      relativePath = `./${relativePath}`;
     }
 
-    return "](" + relativePath + ".md" + anchor + ")";
+    return `](${relativePath}.md${anchor})`;
   });
 }
 
@@ -139,7 +139,7 @@ function createTurndownService() {
   // aggressively escapes `, *, _, [, ], #, etc. which makes technical docs
   // with code references and type signatures harder to read. We only escape
   // characters that would create unwanted block-level markdown structures.
-  turndown.escape = function (str) {
+  turndown.escape = (str) => {
     return str
       .replace(/^(#{1,6}\s)/gm, "\\$1")
       .replace(/^(\s*>)/gm, "\\$1")
@@ -150,107 +150,88 @@ function createTurndownService() {
   // Rule: fenced code blocks — extract language from class="language-xxx"
   // and strip Prism syntax-highlighting spans
   turndown.addRule("fencedCodeBlock", {
-    filter: function (node) {
-      return (
-        node.nodeName === "PRE" &&
-        node.firstChild &&
-        node.firstChild.nodeName === "CODE"
-      );
-    },
-    replacement: function (_content, node) {
-      var code = node.firstChild;
+    filter: (node) =>
+      node.nodeName === "PRE" &&
+      node.firstChild &&
+      node.firstChild.nodeName === "CODE",
+    replacement: (_content, node) => {
+      const code = node.firstChild;
       // Language class may be on <pre> or <code> (Prism puts it on <pre>)
-      var preClass = node.getAttribute("class") || "";
-      var codeClass = code.getAttribute("class") || "";
-      var langMatch =
+      const preClass = node.getAttribute("class") || "";
+      const codeClass = code.getAttribute("class") || "";
+      const langMatch =
         preClass.match(/language-(\S+)/) || codeClass.match(/language-(\S+)/);
-      var lang = langMatch ? langMatch[1] : "";
+      const lang = langMatch ? langMatch[1] : "";
 
       // Get text content, which automatically strips all HTML tags (Prism spans, etc.)
-      var text = code.textContent || "";
+      const text = code.textContent || "";
 
       // Trim trailing newline that Docusaurus often adds
-      var trimmed = text.replace(/\n$/, "");
+      const trimmed = text.replace(/\n$/, "");
 
-      return "\n\n```" + lang + "\n" + trimmed + "\n```\n\n";
+      return `\n\n\`\`\`${lang}\n${trimmed}\n\`\`\`\n\n`;
     },
   });
 
   // Rule: inline code — preserve backtick-wrapped code
   turndown.addRule("inlineCode", {
-    filter: function (node) {
-      return (
-        node.nodeName === "CODE" &&
-        node.parentNode &&
-        node.parentNode.nodeName !== "PRE"
-      );
-    },
-    replacement: function (content) {
+    filter: (node) =>
+      node.nodeName === "CODE" &&
+      node.parentNode &&
+      node.parentNode.nodeName !== "PRE",
+    replacement: (content) => {
       if (!content) return "";
-      // If content contains backticks, use double backticks
-      if (content.indexOf("`") !== -1) {
-        return "`` " + content + " ``";
+      if (content.includes("`")) {
+        return `\`\` ${content} \`\``;
       }
-      return "`" + content + "`";
+      return `\`${content}\``;
     },
   });
 
   // Rule: Docusaurus admonitions (note, tip, warning, etc.)
   // These render as <div class="theme-admonition theme-admonition-note ...">
   turndown.addRule("admonition", {
-    filter: function (node) {
-      return (
-        node.nodeName === "DIV" &&
-        (node.getAttribute("class") || "").includes("theme-admonition")
-      );
-    },
-    replacement: function (content, node) {
-      var classAttr = node.getAttribute("class") || "";
-      var typeMatch = classAttr.match(/theme-admonition-(\w+)/);
-      var type = typeMatch ? typeMatch[1].toUpperCase() : "NOTE";
+    filter: (node) =>
+      node.nodeName === "DIV" &&
+      (node.getAttribute("class") || "").includes("theme-admonition"),
+    replacement: (content, node) => {
+      const classAttr = node.getAttribute("class") || "";
+      const typeMatch = classAttr.match(/theme-admonition-(\w+)/);
+      const type = typeMatch ? typeMatch[1].toUpperCase() : "NOTE";
 
       // Prefix every line with > to keep multi-line admonitions inside the blockquote
-      var trimmed = content.trim();
-      var lines = trimmed.split("\n");
-      var quoted = lines
-        .map(function (line) {
-          return "> " + line;
-        })
+      const trimmed = content.trim();
+      const quoted = trimmed
+        .split("\n")
+        .map((line) => `> ${line}`)
         .join("\n");
-      return "\n\n> **" + type + ":**\n" + quoted + "\n\n";
+      return `\n\n> **${type}:**\n${quoted}\n\n`;
     },
   });
 
   // Rule: strip admonition icon SVGs and titles (fold into the admonition rule above)
   turndown.addRule("admonitionIcon", {
-    filter: function (node) {
-      return (
-        node.nodeName === "DIV" &&
-        (node.getAttribute("class") || "").includes("admonitionHeading")
-      );
-    },
-    replacement: function () {
-      return "";
-    },
+    filter: (node) =>
+      node.nodeName === "DIV" &&
+      (node.getAttribute("class") || "").includes("admonitionHeading"),
+    replacement: () => "",
   });
 
   // Rule: Docusaurus details/summary (collapsible sections)
   turndown.addRule("details", {
     filter: "details",
-    replacement: function (content, node) {
-      var summary = node.querySelector("summary");
-      var summaryText = summary ? summary.textContent.trim() : "Details";
-      var body = content.replace(summaryText, "").trim();
-      return "\n\n**" + summaryText + "**\n\n" + body + "\n\n";
+    replacement: (content, node) => {
+      const summary = node.querySelector("summary");
+      const summaryText = summary ? summary.textContent.trim() : "Details";
+      const body = content.replace(summaryText, "").trim();
+      return `\n\n**${summaryText}**\n\n${body}\n\n`;
     },
   });
 
   // Strip SVG elements entirely
   turndown.addRule("svg", {
     filter: "svg",
-    replacement: function () {
-      return "";
-    },
+    replacement: () => "",
   });
 
   return turndown;
