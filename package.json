@@ -11,12 +11,12 @@
     "llm-docs"
   ],
   "scripts": {
-    "test": "ts-node src/tests/test.ts",
+    "test": "tsx src/tests/test.ts",
     "test-example-projects": "node src/tests/testExampleProjects.mjs",
     "build": "rm -rf dist/ && tsc --build",
     "format": "prettier . --write",
     "lint": "eslint . && prettier . --check",
-    "profile": "ts-node scripts/profile.ts"
+    "profile": "tsx scripts/profile.ts"
   },
   "dependencies": {
     "commander": "^14.0.1",
@@ -38,7 +38,7 @@
     "path-browserify": "^1.0.1",
     "prettier": "^3.6.2",
     "process": "^0.11.10",
-    "ts-node": "^10.9.2"
+    "tsx": "^4.19.0"
   },
   "prettier": {
     "trailingComma": "all"

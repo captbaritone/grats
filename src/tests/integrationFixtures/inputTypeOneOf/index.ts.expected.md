@@ -3,7 +3,7 @@
 ## Input
 
 ```ts title="inputTypeOneOf/index.ts"
-import { ID } from "../../..";
+import { ID } from "../../../Types.js";
 
 /** @gqlInput */
 type UserPayload = {

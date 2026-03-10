@@ -1,5 +1,5 @@
 import type { GqlScalar } from "grats";
-import { type CustomScalar as CustomScalarInternal, hello as queryHelloResolver } from "./index";
+import { type CustomScalar as CustomScalarInternal, hello as queryHelloResolver } from "./index.js";
 import { GraphQLSchema, GraphQLObjectType, GraphQLScalarType, GraphQLNonNull } from "graphql";
 export type SchemaConfig = {
     scalars: {

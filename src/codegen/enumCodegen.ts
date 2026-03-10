@@ -1,8 +1,8 @@
 import { GraphQLEnumType, GraphQLSchema, isEnumType } from "graphql";
 import * as ts from "typescript";
 import { GratsConfig } from "../gratsConfig.js";
-import { nullThrows } from "../utils/helpers";
-import TSAstBuilder from "./TSAstBuilder";
+import { nullThrows } from "../utils/helpers.js";
+import TSAstBuilder from "./TSAstBuilder.js";
 
 const F = ts.factory;
 

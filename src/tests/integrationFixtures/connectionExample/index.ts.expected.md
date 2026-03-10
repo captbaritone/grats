@@ -3,7 +3,7 @@
 ## Input
 
 ```ts title="connectionExample/index.ts"
-import { Int } from "../../../Types";
+import { Int } from "../../../Types.js";
 
 /** @gqlQueryField */
 export function firstHundredIntegers(args: {

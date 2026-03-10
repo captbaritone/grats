@@ -1,4 +1,4 @@
-import { ID } from "../../../Types";
+import { ID } from "../../../Types.js";
 
 /** @gqlInterface */
 interface GqlNode {

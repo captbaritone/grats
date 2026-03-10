@@ -4,12 +4,12 @@ import {
   print,
   specifiedScalarTypes,
 } from "graphql";
-import { GratsConfig } from "./gratsConfig";
-import { codegen } from "./codegen/schemaCodegen";
-import { Metadata } from "./metadata";
-import { resolverMapCodegen } from "./codegen/resolverMapCodegen";
-import { codegenEnums } from "./codegen/enumCodegen";
-import { mapDefinitions } from "./utils/visitor";
+import { GratsConfig } from "./gratsConfig.js";
+import { codegen } from "./codegen/schemaCodegen.js";
+import { Metadata } from "./metadata.js";
+import { resolverMapCodegen } from "./codegen/resolverMapCodegen.js";
+import { codegenEnums } from "./codegen/enumCodegen.js";
+import { mapDefinitions } from "./utils/visitor.js";
 
 /**
  * Prints code for a TypeScript module that exports a GraphQLSchema.

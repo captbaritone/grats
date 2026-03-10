@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
-import { makeTypeScriptType } from "../src/gratsConfig";
-import { GratsConfigSpec } from "../src/configSpec";
+import { makeTypeScriptType } from "../src/gratsConfig.js";
+import { GratsConfigSpec } from "../src/configSpec.js";
 
 export function writeTypeScriptTypeToDisk(): void {
   const doc = `/**

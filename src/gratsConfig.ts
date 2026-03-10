@@ -1,9 +1,9 @@
 import * as ts from "typescript";
-import { err, ok, Result } from "./utils/Result";
-import { invariant } from "./utils/helpers";
-import { locationlessErr } from "./utils/DiagnosticError";
-import { GratsConfigSpec } from "./configSpec";
-import { GratsConfig } from "./TGratsConfig";
+import { err, ok, Result } from "./utils/Result.js";
+import { invariant } from "./utils/helpers.js";
+import { locationlessErr } from "./utils/DiagnosticError.js";
+import { GratsConfigSpec } from "./configSpec.js";
+import type { GratsConfig } from "./TGratsConfig.js";
 
 /**
  * For Grats's config object we need the following:

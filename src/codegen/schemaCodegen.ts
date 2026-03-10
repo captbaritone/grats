@@ -27,14 +27,14 @@ import {
   valueFromASTUntyped,
 } from "graphql";
 import * as ts from "typescript";
-import { extend, nullThrows } from "../utils/helpers";
+import { extend, nullThrows } from "../utils/helpers.js";
 import { GratsConfig } from "../gratsConfig.js";
-import { naturalCompare } from "../utils/naturalCompare";
-import TSAstBuilder, { JsonValue } from "./TSAstBuilder";
-import ResolverCodegen from "./resolverCodegen";
-import { Metadata } from "../metadata";
-import { ConstDirectiveNode } from "graphql/language";
-import { ExportDefinition } from "../GraphQLAstExtensions";
+import { naturalCompare } from "../utils/naturalCompare.js";
+import TSAstBuilder, { JsonValue } from "./TSAstBuilder.js";
+import ResolverCodegen from "./resolverCodegen.js";
+import { Metadata } from "../metadata.js";
+import { ConstDirectiveNode } from "graphql/language/index.js";
+import { ExportDefinition } from "../GraphQLAstExtensions.js";
 
 // These directives will be added to the schema by default, so we don't need to
 // include them in the generated schema.

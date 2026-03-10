@@ -1,4 +1,4 @@
-import { Int } from "../../../Types";
+import { Int } from "../../../Types.js";
 
 /** @gqlQueryField */
 export function firstHundredIntegers(args: {

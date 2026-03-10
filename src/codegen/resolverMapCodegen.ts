@@ -1,10 +1,10 @@
 import * as ts from "typescript";
-import { GratsConfig } from "../gratsConfig";
-import TSAstBuilder from "./TSAstBuilder";
-import ResolverCodegen from "./resolverCodegen";
-import { Metadata, FieldDefinition } from "../metadata";
+import { GratsConfig } from "../gratsConfig.js";
+import TSAstBuilder from "./TSAstBuilder.js";
+import ResolverCodegen from "./resolverCodegen.js";
+import { Metadata, FieldDefinition } from "../metadata.js";
 import { GraphQLObjectType, GraphQLSchema } from "graphql";
-import { nullThrows } from "../utils/helpers";
+import { nullThrows } from "../utils/helpers.js";
 
 const F = ts.factory;
 

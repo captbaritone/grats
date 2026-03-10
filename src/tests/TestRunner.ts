@@ -1,9 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
 import { diff } from "jest-diff";
-import { ask } from "./yesNo";
-import { Result } from "../utils/Result";
-import { Markdown } from "./Markdown";
+import { ask } from "./yesNo.js";
+import { Result } from "../utils/Result.js";
+import { Markdown } from "./Markdown.js";
 
 export type TransformerResult = Result<Markdown, Markdown> | false;
 

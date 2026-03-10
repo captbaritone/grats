@@ -35,13 +35,13 @@ import {
   EnumValueNode,
 } from "graphql";
 import * as ts from "typescript";
-import { uniqueId } from "./utils/helpers";
-import { DiagnosticResult, TsLocatableNode } from "./utils/DiagnosticError";
+import { uniqueId } from "./utils/helpers.js";
+import { DiagnosticResult, TsLocatableNode } from "./utils/DiagnosticError.js";
 import {
   InputValueDefinitionNodeOrResolverArg,
   ResolverSignature,
-} from "./resolverSignature";
-import { ExportDefinition } from "./GraphQLAstExtensions";
+} from "./resolverSignature.js";
+import { ExportDefinition } from "./GraphQLAstExtensions.js";
 
 export class GraphQLConstructor {
   /* Top Level Types */

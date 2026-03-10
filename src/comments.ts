@@ -1,12 +1,12 @@
 import * as ts from "typescript";
-import { rangeErr } from "./utils/DiagnosticError";
-import * as E from "./Errors";
-import * as Act from "./CodeActions";
+import { rangeErr } from "./utils/DiagnosticError.js";
+import * as E from "./Errors.js";
+import * as Act from "./CodeActions.js";
 import {
   ALL_GQL_TAGS,
   KILLS_PARENT_ON_EXCEPTION_TAG,
   ONE_OF_TAG,
-} from "./Extractor";
+} from "./Extractor.js";
 
 // A line that starts with optional *s followed by @gql or @killsParentOnException
 const BLOCK_COMMENT_REGEX =

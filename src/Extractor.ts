@@ -26,34 +26,34 @@ import {
   DiagnosticsResult,
   gqlErr,
   DiagnosticResult,
-} from "./utils/DiagnosticError";
-import { err, ok } from "./utils/Result";
+} from "./utils/DiagnosticError.js";
+import { err, ok } from "./utils/Result.js";
 import * as ts from "typescript";
 import {
   DeclarationDefinition,
   NameDefinition,
   UNRESOLVED_REFERENCE_NAME,
-} from "./TypeContext";
-import * as E from "./Errors";
-import { traverseJSDocTags } from "./utils/JSDoc";
-import { GraphQLConstructor, loc } from "./GraphQLConstructor";
-import { relativePath } from "./gratsRoot";
-import { ISSUE_URL } from "./Errors";
-import { detectInvalidComments } from "./comments";
+} from "./TypeContext.js";
+import * as E from "./Errors.js";
+import { traverseJSDocTags } from "./utils/JSDoc.js";
+import { GraphQLConstructor, loc } from "./GraphQLConstructor.js";
+import { relativePath } from "./gratsRoot.js";
+import { ISSUE_URL } from "./Errors.js";
+import { detectInvalidComments } from "./comments.js";
 import {
   bestMatch,
   extend,
   invariant,
   levenshteinDistance,
   TsIdentifier,
-} from "./utils/helpers";
-import * as Act from "./CodeActions";
+} from "./utils/helpers.js";
+import * as Act from "./CodeActions.js";
 import {
   InputValueDefinitionNodeOrResolverArg,
   ResolverArgument,
-} from "./resolverSignature";
-import { Parser } from "graphql/language/parser";
-import { ExportDefinition } from "./GraphQLAstExtensions";
+} from "./resolverSignature.js";
+import { Parser } from "graphql/language/parser.js";
+import { ExportDefinition } from "./GraphQLAstExtensions.js";
 
 export const LIBRARY_IMPORT_NAME = "grats";
 export const LIBRARY_NAME = "Grats";

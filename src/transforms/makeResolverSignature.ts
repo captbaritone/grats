@@ -5,9 +5,9 @@ import {
   Metadata,
   FieldDefinition,
   ContextArgs,
-} from "../metadata";
-import { invariant, nullThrows } from "../utils/helpers";
-import { ResolverArgument as DirectiveResolverArgument } from "../resolverSignature";
+} from "../metadata.js";
+import { invariant, nullThrows } from "../utils/helpers.js";
+import { ResolverArgument as DirectiveResolverArgument } from "../resolverSignature.js";
 
 export function makeResolverSignature(documentAst: DocumentNode): Metadata {
   const resolvers: Metadata = {
