@@ -1,6 +1,7 @@
 {
   "name": "grats",
   "version": "0.0.35",
+  "type": "module",
   "main": "dist/src/index.js",
   "bin": "dist/src/cli.js",
   "types": "dist/src/index.d.ts",

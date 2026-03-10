@@ -12,7 +12,7 @@
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
     "typecheck": "tsc",
-    "grats": "ts-node ./scripts/gratsCode.ts",
+    "grats": "tsx ./scripts/gratsCode.ts",
     "word-count": "find . -type f \\( -name \\*.md -o -name \\*.mdx \\) -exec wc -w {} + | awk '{total += $1} END {print total}'"
   },
   "dependencies": {
@@ -53,7 +53,7 @@
     "cheerio": "^1.2.0",
     "graphql-relay": "^0.10.0",
     "monaco-editor-webpack-plugin": "^7.1.0",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
     "typescript": "5.9.2"
   },
   "browserslist": {

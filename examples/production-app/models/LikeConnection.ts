@@ -1,11 +1,11 @@
 import { GqlInfo, Int } from "grats";
-import * as DB from "../Database";
-import { VC } from "../ViewerContext";
-import { Like } from "./Like";
-import { PageInfo } from "../graphql/Connection";
-import { PubSub } from "../PubSub";
+import * as DB from "../Database.js";
+import { VC } from "../ViewerContext.js";
+import { Like } from "./Like.js";
+import { PageInfo } from "../graphql/Connection.js";
+import { PubSub } from "../PubSub.js";
 import { filter, map, pipe } from "graphql-yoga";
-import { getLocalTypeAssert } from "../graphql/Node";
+import { getLocalTypeAssert } from "../graphql/Node.js";
 import { connectionFromSelectOrCount } from "../graphql/gqlUtils.js";
 
 /** @gqlType */

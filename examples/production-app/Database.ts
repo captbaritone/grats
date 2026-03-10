@@ -1,8 +1,8 @@
-import { PubSub } from "./PubSub";
-import { VC } from "./ViewerContext";
-import { Like } from "./models/Like";
-import { Post } from "./models/Post";
-import { User } from "./models/User";
+import { PubSub } from "./PubSub.js";
+import { VC } from "./ViewerContext.js";
+import { Like } from "./models/Like.js";
+import { Post } from "./models/Post.js";
+import { User } from "./models/User.js";
 
 /**
  * This module is intended to represent a database.

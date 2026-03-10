@@ -3,12 +3,12 @@
  * Do not manually edit. Regenerate by running `npx grats`.
  */
 
-import UserClass from "./models/User";
-import queryAllUsersResolver from "./models/User";
-import queryMeResolver from "./models/User";
+import UserClass from "./models/User.js";
+import queryAllUsersResolver from "./models/User.js";
+import queryMeResolver from "./models/User.js";
 import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLString, GraphQLInterfaceType, GraphQLInt } from "graphql";
-import { person as queryPersonResolver } from "./interfaces/IPerson";
-import { countdown as subscriptionCountdownResolver } from "./Subscription";
+import { person as queryPersonResolver } from "./interfaces/IPerson.js";
+import { countdown as subscriptionCountdownResolver } from "./Subscription.js";
 export function getSchema(): GraphQLSchema {
     const GroupType: GraphQLObjectType = new GraphQLObjectType({
         name: "Group",

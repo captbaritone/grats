@@ -1,5 +1,5 @@
 import { version as gratsTsVersion } from "typescript";
-import type * as TS from "typescript/lib/tsserverlibrary";
+import type * as TS from "typescript";
 import { extract } from "../Extractor.js";
 import { FAKE_ERROR_CODE } from "../utils/DiagnosticError.js";
 import { nullThrows } from "../utils/helpers.js";

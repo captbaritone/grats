@@ -1,4 +1,5 @@
 import * as path from "path";
+import { fileURLToPath } from "url";
 import TestRunner, { Transformer, TransformerResult } from "./TestRunner.js";
 import {
   buildSchemaAndDocResult,
@@ -75,6 +76,9 @@ program
       process.exit(1);
     }
   });
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const gratsDir = path.join(__dirname, "../..");
 const fixturesDir = path.join(__dirname, "fixtures");

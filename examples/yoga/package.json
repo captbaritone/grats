@@ -2,6 +2,7 @@
   "name": "grats-example-yoga",
   "version": "0.0.0",
   "description": "Example server showcasing Grats used with Yoga",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "tsc && node dist/server.js",

@@ -1,6 +1,7 @@
 {
   "grats": {
-    "nullableByDefault": false
+    "nullableByDefault": false,
+    "importModuleSpecifierEnding": ".js"
   },
   "compilerOptions": {
     "outDir": "dist",

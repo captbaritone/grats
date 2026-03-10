@@ -1,6 +1,6 @@
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
-import { getSchema } from "./schema";
+import { getSchema } from "./schema.js";
 
 async function main() {
   const server = new ApolloServer({ schema: getSchema() });
