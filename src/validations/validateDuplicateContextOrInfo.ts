@@ -1,12 +1,12 @@
-import { DeclarationDefinition, NameDefinition } from "../TypeContext";
-import { err, ok } from "../utils/Result";
+import { DeclarationDefinition, NameDefinition } from "../TypeContext.js";
+import { err, ok } from "../utils/Result.js";
 import {
   DiagnosticsResult,
   FixableDiagnosticWithLocation,
   gqlErr,
   gqlRelated,
-} from "../utils/DiagnosticError";
-import * as E from "../Errors";
+} from "../utils/DiagnosticError.js";
+import * as E from "../Errors.js";
 
 export function validateDuplicateContextOrInfo(
   definitions: Iterable<DeclarationDefinition>,

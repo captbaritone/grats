@@ -1,11 +1,11 @@
-import * as DB from "../Database";
-import { VC } from "../ViewerContext";
-import { GraphQLNode, getLocalTypeAssert } from "../graphql/Node";
-import { User } from "./User";
-import { Model } from "./Model";
-import { ID } from "../../../dist/src";
-import { GqlDate } from "../graphql/CustomScalars";
-import { Post } from "./Post";
+import * as DB from "../Database.js";
+import { VC } from "../ViewerContext.js";
+import { GraphQLNode, getLocalTypeAssert } from "../graphql/Node.js";
+import { User } from "./User.js";
+import { Model } from "./Model.js";
+import { ID } from "../../../dist/src/index.js";
+import { GqlDate } from "../graphql/CustomScalars.js";
+import { Post } from "./Post.js";
 
 /**
  * A reaction from a user indicating that they like a post.

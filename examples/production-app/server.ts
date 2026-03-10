@@ -1,10 +1,10 @@
 import { createServer } from "node:http";
 import { createYoga } from "graphql-yoga";
-import { getSchema } from "./schema";
-import { VC } from "./ViewerContext";
-import { scalarConfig } from "./graphql/CustomScalars";
+import { getSchema } from "./schema.js";
+import { VC } from "./ViewerContext.js";
+import { scalarConfig } from "./graphql/CustomScalars.js";
 import { useDeferStream } from "@graphql-yoga/plugin-defer-stream";
-import { applyCreditLimit } from "./graphql/directives";
+import { applyCreditLimit } from "./graphql/directives.js";
 
 let schema = getSchema({ scalars: scalarConfig });
 schema = applyCreditLimit(schema);

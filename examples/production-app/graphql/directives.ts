@@ -1,6 +1,6 @@
 import { defaultFieldResolver, GraphQLError, GraphQLSchema } from "graphql";
 import { Int } from "grats";
-import { Ctx } from "../ViewerContext";
+import { Ctx } from "../ViewerContext.js";
 import { getDirective, MapperKind, mapSchema } from "@graphql-tools/utils";
 
 /**

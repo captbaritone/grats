@@ -1,5 +1,5 @@
-import IPerson from "../interfaces/IPerson";
-import Group from "./Group";
+import IPerson from "../interfaces/IPerson.js";
+import Group from "./Group.js";
 
 /** @gqlType User */
 export default class UserResolver implements IPerson {

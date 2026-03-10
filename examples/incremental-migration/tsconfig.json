@@ -1,6 +1,7 @@
 {
   "grats": {
     "nullableByDefault": false,
+    "importModuleSpecifierEnding": ".js",
     "tsSchema": "./schemas/gratsGeneratedSchema.ts",
     "graphqlSchema": "gratsSchema.graphql",
     "tsSchemaHeader": "// DO NOT USE DIRECTLY. Prefer the merged schema in `./mergedSchema.ts`.",

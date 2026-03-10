@@ -1,5 +1,5 @@
-import { ResolverSignature } from "./resolverSignature";
-import { TsIdentifier } from "./utils/helpers";
+import { ResolverSignature } from "./resolverSignature.js";
+import { TsIdentifier } from "./utils/helpers.js";
 
 export type ExportDefinition = {
   tsModulePath: string;

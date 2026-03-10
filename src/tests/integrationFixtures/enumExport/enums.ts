@@ -3,7 +3,7 @@
  * Do not manually edit. Regenerate by running `npx grats`.
  */
 
-import { Color as ColorEnum, Priority as PriorityEnum } from "./index";
+import { Color as ColorEnum, Priority as PriorityEnum } from "./index.js";
 export const enums = {
     Color: ColorEnum,
     Priority: PriorityEnum

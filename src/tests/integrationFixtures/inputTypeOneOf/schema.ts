@@ -1,5 +1,5 @@
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLInputObjectType, GraphQLID } from "graphql";
-import { greet as queryGreetResolver } from "./index";
+import { greet as queryGreetResolver } from "./index.js";
 export function getSchema(): GraphQLSchema {
     const UserPayloadType: GraphQLInputObjectType = new GraphQLInputObjectType({
         name: "UserPayload",

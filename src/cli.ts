@@ -3,37 +3,55 @@
 // LLM agent docs: See the llm-docs/ directory in the package root for
 // Markdown documentation covering all Grats features and configuration.
 
-import * as E from "./Errors";
+import * as E from "./Errors.js";
 import { Location } from "graphql";
-import { getParsedTsConfig } from "./";
+import { getParsedTsConfig } from "./index.js";
 import {
   SchemaAndDoc,
   buildSchemaAndDocResult,
   extractSchemaAndDoc,
-} from "./lib";
+} from "./lib.js";
 import { Command } from "commander";
-import { writeFileSync } from "fs";
+import { writeFileSync, readFileSync } from "fs";
 import { resolve, dirname } from "path";
-import { version } from "../package.json";
-import { locate } from "./Locate";
+import { fileURLToPath } from "url";
+import { locate } from "./Locate.js";
 import {
   printGratsSDL,
   printExecutableSchema,
   printEnumsModule,
-} from "./printSchema";
+} from "./printSchema.js";
 import * as ts from "typescript";
 import {
   diagnosticsMessage,
   locationlessErr,
   ReportableDiagnostics,
   DiagnosticsWithoutLocationResult,
-} from "./utils/DiagnosticError";
-import { GratsConfig, ParsedCommandLineGrats } from "./gratsConfig";
-import { err, ok } from "./utils/Result";
-import { cacheFromProgram, cachesAreEqual, RunCache } from "./runCache";
-import { withFixesFixed, FixOptions, applyFixes } from "./fixFixable";
+} from "./utils/DiagnosticError.js";
+import { GratsConfig, ParsedCommandLineGrats } from "./gratsConfig.js";
+import { err, ok } from "./utils/Result.js";
+import { cacheFromProgram, cachesAreEqual, RunCache } from "./runCache.js";
+import { withFixesFixed, FixOptions, applyFixes } from "./fixFixable.js";
 
 type BuildOptions = FixOptions;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const version = readPackageVersion();
+
+function readPackageVersion(): string {
+  // Works from both source (src/cli.ts → ../package.json)
+  // and compiled output (dist/src/cli.js → ../../package.json)
+  for (const relPath of ["../package.json", "../../package.json"]) {
+    try {
+      const pkg = JSON.parse(readFileSync(resolve(__dirname, relPath), "utf8"));
+      if (pkg.name === "grats") return pkg.version;
+    } catch {
+      // Ignore missing/unreadable package.json files
+    }
+  }
+  return "unknown";
+}
 
 const program = new Command();
 
@@ -57,7 +75,10 @@ program
 
 program
   .command("locate")
-  .argument("<ENTITY>", "GraphQL entity to locate. E.g. `User` or `User.id`")
+  .argument(
+    "<COORDINATE>",
+    "Schema coordinate to locate. E.g. `User`, `User.name`, `Query.user(id:)`, `@deprecated`",
+  )
   .option(
     "--tsconfig <TSCONFIG>",
     "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",

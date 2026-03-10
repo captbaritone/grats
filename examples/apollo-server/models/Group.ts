@@ -1,4 +1,4 @@
-import User from "./User";
+import User from "./User.js";
 
 /** @gqlType */
 export default class Group {

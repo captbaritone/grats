@@ -1,7 +1,7 @@
-import * as DB from "../Database";
-import { VC } from "../ViewerContext";
-import { Post } from "./Post";
-import { User } from "./User";
+import * as DB from "../Database.js";
+import { VC } from "../ViewerContext.js";
+import { Post } from "./Post.js";
+import { User } from "./User.js";
 
 /**
  * The currently authenticated viewer.

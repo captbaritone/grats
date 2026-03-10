@@ -1,5 +1,7 @@
 {
-  "grats": {},
+  "grats": {
+    "importModuleSpecifierEnding": ".js"
+  },
   "compilerOptions": {
     "outDir": "dist",
     "module": "NodeNext",

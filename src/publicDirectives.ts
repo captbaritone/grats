@@ -6,7 +6,7 @@ import {
   Location,
   parse,
 } from "graphql";
-import { uniqueId } from "./utils/helpers";
+import { uniqueId } from "./utils/helpers.js";
 
 /**
  * Grats supports some additional, non-spec server directives in order to

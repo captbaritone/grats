@@ -1,9 +1,10 @@
 import * as path from "path";
-import TestRunner, { Transformer, TransformerResult } from "./TestRunner";
+import { fileURLToPath } from "url";
+import TestRunner, { Transformer, TransformerResult } from "./TestRunner.js";
 import {
   buildSchemaAndDocResult,
   buildSchemaAndDocResultWithHost,
-} from "../lib";
+} from "../lib.js";
 import * as ts from "typescript";
 import {
   buildASTSchema,
@@ -14,25 +15,25 @@ import {
   specifiedScalarTypes,
 } from "graphql";
 import { Command } from "commander";
-import { locate } from "../Locate";
-import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError";
+import { locate } from "../Locate.js";
+import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError.js";
 import { readFileSync, writeFileSync } from "fs";
-import { codegen } from "../codegen/schemaCodegen";
-import { printEnumsModule } from "../printSchema";
+import { codegen } from "../codegen/schemaCodegen.js";
+import { printEnumsModule } from "../printSchema.js";
 import { diff } from "jest-diff";
 import * as semver from "semver";
 import {
   GratsConfig,
   ParsedCommandLineGrats,
   validateGratsOptions,
-} from "../gratsConfig";
-import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
-import { applySDLHeader, applyTypeScriptHeader } from "../printSchema";
-import { extend } from "../utils/helpers";
-import { Result, ok, err } from "../utils/Result";
-import { applyFixes } from "../fixFixable";
-import { writeTypeScriptTypeToDisk } from "../../scripts/buildConfigTypes";
-import { Markdown } from "./Markdown";
+} from "../gratsConfig.js";
+import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives.js";
+import { applySDLHeader, applyTypeScriptHeader } from "../printSchema.js";
+import { extend } from "../utils/helpers.js";
+import { Result, ok, err } from "../utils/Result.js";
+import { applyFixes } from "../fixFixable.js";
+import { writeTypeScriptTypeToDisk } from "../../scripts/buildConfigTypes.js";
+import { Markdown } from "./Markdown.js";
 
 writeTypeScriptTypeToDisk();
 
@@ -75,6 +76,9 @@ program
       process.exit(1);
     }
   });
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const gratsDir = path.join(__dirname, "../..");
 const fixturesDir = path.join(__dirname, "fixtures");
@@ -281,6 +285,7 @@ const testDirs: TestDir[] = [
       const firstLine = code.split("\n")[0];
       let config: Partial<GratsConfig> = {
         nullableByDefault: true,
+        importModuleSpecifierEnding: ".js",
       };
       if (firstLine.startsWith("// {")) {
         const json = firstLine.slice(3);

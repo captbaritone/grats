@@ -41,7 +41,7 @@ src/tests/fixtures/extend_type/fieldAsArrowFunctionNotExported.invalid.ts:7:7 - 
 #### Applied Fixes
 
 ```text
-  * Applied fix "Add export keyword to exported arrow function with @gqlField" in grats/src/tests/fixtures/extend_type/fieldAsArrowFunctionNotExported.invalid.ts
+  * Applied fix "Add export keyword to exported arrow function with @gqlField" in src/tests/fixtures/extend_type/fieldAsArrowFunctionNotExported.invalid.ts
 ```
 
 #### Fixed Text

@@ -1,8 +1,8 @@
 import { GqlInfo, Int } from "grats";
-import * as DB from "../Database";
-import { VC } from "../ViewerContext";
-import { User } from "./User";
-import { Connection } from "../graphql/Connection";
+import * as DB from "../Database.js";
+import { VC } from "../ViewerContext.js";
+import { User } from "./User.js";
+import { Connection } from "../graphql/Connection.js";
 import { connectionFromSelectOrCount } from "../graphql/gqlUtils.js";
 
 /**

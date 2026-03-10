@@ -1,8 +1,8 @@
 import { DocumentNode, Kind } from "graphql";
-import { DiagnosticsResult, gqlErr } from "../utils/DiagnosticError";
-import { ok } from "../utils/Result";
+import { DiagnosticsResult, gqlErr } from "../utils/DiagnosticError.js";
+import { ok } from "../utils/Result.js";
 import { DiagnosticWithLocation } from "typescript";
-import * as E from "../Errors";
+import * as E from "../Errors.js";
 
 /**
  * Grats depends upon graphql-js for implementing spec-compliant GraphQL schema

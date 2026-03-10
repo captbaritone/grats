@@ -16,5 +16,5 @@ type User = {
 ### Error Locating Type
 
 ```text
-Cannot locate field `not_a_field` on type `User`.
+Could not resolve schema coordinate: `User.not_a_field`.
 ```

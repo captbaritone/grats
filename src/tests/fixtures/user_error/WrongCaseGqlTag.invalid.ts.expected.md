@@ -33,7 +33,7 @@ src/tests/fixtures/user_error/WrongCaseGqlTag.invalid.ts:1:6 - error: Incorrect 
 #### Applied Fixes
 
 ```text
-  * Applied fix "Change to @gqlField" in grats/src/tests/fixtures/user_error/WrongCaseGqlTag.invalid.ts
+  * Applied fix "Change to @gqlField" in src/tests/fixtures/user_error/WrongCaseGqlTag.invalid.ts
 ```
 
 #### Fixed Text

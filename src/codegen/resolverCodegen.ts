@@ -1,14 +1,14 @@
 import { ConstDirectiveNode, GraphQLField } from "graphql";
 import * as ts from "typescript";
-import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives";
+import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives.js";
 import {
   ASSERT_NON_NULL_HELPER,
   createAssertNonNullHelper,
-} from "../codegenHelpers";
-import { nullThrows } from "../utils/helpers";
-import { ResolverArgument, ResolverDefinition, Metadata } from "../metadata";
-import TSAstBuilder from "./TSAstBuilder";
-import { ExportDefinition } from "../GraphQLAstExtensions";
+} from "../codegenHelpers.js";
+import { nullThrows } from "../utils/helpers.js";
+import { ResolverArgument, ResolverDefinition, Metadata } from "../metadata.js";
+import TSAstBuilder from "./TSAstBuilder.js";
+import { ExportDefinition } from "../GraphQLAstExtensions.js";
 
 const RESOLVER_ARGS = ["source", "args", "context", "info"] as const;
 
