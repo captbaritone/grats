@@ -1,6 +1,6 @@
 import { fromGlobalId, toGlobalId } from "graphql-relay";
 import { ID } from "grats";
-import { VC } from "../ViewerContext";
+import { VC } from "../ViewerContext.js";
 
 /**
  * Converts a globally unique ID into a local ID asserting

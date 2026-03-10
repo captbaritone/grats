@@ -1,6 +1,6 @@
 import { createServer } from "node:http";
 import { createYoga } from "graphql-yoga";
-import { schema } from "./schemas/mergedSchema";
+import { schema } from "./schemas/mergedSchema.js";
 
 const yoga = createYoga({ schema });
 

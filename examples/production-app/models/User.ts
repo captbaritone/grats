@@ -1,9 +1,9 @@
-import * as DB from "../Database";
-import { VC } from "../ViewerContext";
-import { GraphQLNode } from "../graphql/Node";
-import { Model } from "./Model";
-import { Post } from "./Post";
-import { Connection } from "../graphql/Connection";
+import * as DB from "../Database.js";
+import { VC } from "../ViewerContext.js";
+import { GraphQLNode } from "../graphql/Node.js";
+import { Model } from "./Model.js";
+import { Post } from "./Post.js";
+import { Connection } from "../graphql/Connection.js";
 import { GqlInfo, Int } from "../../../dist/src/Types.js";
 import { connectionFromSelectOrCount } from "../graphql/gqlUtils.js";
 

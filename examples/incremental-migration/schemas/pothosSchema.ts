@@ -1,4 +1,4 @@
-import { Users, Posts, Comments, User, Post, Comment } from "../models";
+import { Users, Posts, Comments, User, Post, Comment } from "../models.js";
 import SchemaBuilder from "@pothos/core";
 const builder = new SchemaBuilder({});
 

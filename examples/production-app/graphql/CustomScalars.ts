@@ -1,5 +1,5 @@
 import { Kind } from "graphql";
-import type { SchemaConfig } from "../schema";
+import type { SchemaConfig } from "../schema.js";
 
 // TODO: Consider switching serialization to follow https://ibm.github.io/graphql-specs/custom-scalars/date.html
 

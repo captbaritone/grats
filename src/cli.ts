@@ -12,9 +12,9 @@ import {
   extractSchemaAndDoc,
 } from "./lib.js";
 import { Command } from "commander";
-import { writeFileSync } from "fs";
+import { writeFileSync, readFileSync } from "fs";
 import { resolve, dirname } from "path";
-import { version } from "../package.json";
+import { fileURLToPath } from "url";
 import { locate } from "./Locate.js";
 import {
   printGratsSDL,
@@ -34,6 +34,27 @@ import { cacheFromProgram, cachesAreEqual, RunCache } from "./runCache.js";
 import { withFixesFixed, FixOptions, applyFixes } from "./fixFixable.js";
 
 type BuildOptions = FixOptions;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const version = readPackageVersion();
+
+function readPackageVersion(): string {
+  // Works from both source (src/cli.ts → ../package.json)
+  // and compiled output (dist/src/cli.js → ../../package.json)
+  for (const relPath of ["../package.json", "../../package.json"]) {
+    try {
+      const pkg = JSON.parse(readFileSync(resolve(__dirname, relPath), "utf8"));
+      if (pkg.name === "grats") return pkg.version;
+    } catch {
+      // Ignore missing/unreadable package.json files
+    }
+  }
+  console.error(
+    "Grats: Could not determine package version. Please report this issue at https://github.com/captbaritone/grats/issues",
+  );
+  return "unknown";
+}
 
 const program = new Command();
 

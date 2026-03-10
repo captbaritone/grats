@@ -1,6 +1,7 @@
 {
   "grats": {
-    "nullableByDefault": false
+    "nullableByDefault": false,
+    "importModuleSpecifierEnding": ""
   },
   "compilerOptions": {
     "target": "es5",

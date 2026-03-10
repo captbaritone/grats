@@ -1,7 +1,8 @@
 {
   "grats": {
     "nullableByDefault": true,
-    "strictSemanticNullability": true
+    "strictSemanticNullability": true,
+    "importModuleSpecifierEnding": ".js"
   },
   "compilerOptions": {
     "outDir": "dist",
