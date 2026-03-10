@@ -1,3 +1,6 @@
+// LLM agent docs: See the llm-docs/ directory in the package root for
+// Markdown documentation covering all Grats features and configuration.
+
 import * as ts from "typescript";
 import { ParsedCommandLineGrats, validateGratsOptions } from "./gratsConfig";
 import { DiagnosticsWithoutLocationResult } from "./utils/DiagnosticError";
