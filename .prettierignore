@@ -17,3 +17,4 @@ examples/incremental-migration/schemas/gratsGeneratedSchema.ts
 .netlify
 website/src/workers/ts.worker.mjs
 *.expected.md
+llm-docs/
