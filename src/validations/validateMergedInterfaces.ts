@@ -1,11 +1,11 @@
 import * as ts from "typescript";
-import * as E from "../Errors";
+import * as E from "../Errors.js";
 import {
   DiagnosticsWithoutLocationResult,
   tsErr,
   tsRelated,
-} from "../utils/DiagnosticError";
-import { err, ok } from "../utils/Result";
+} from "../utils/DiagnosticError.js";
+import { err, ok } from "../utils/Result.js";
 
 /**
  * Prevent using merged interfaces as GraphQL interfaces.

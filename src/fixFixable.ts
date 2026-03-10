@@ -2,9 +2,9 @@ import * as ts from "typescript";
 import {
   DiagnosticsWithoutLocationResult,
   FixableDiagnostic,
-} from "./utils/DiagnosticError";
+} from "./utils/DiagnosticError.js";
 import { writeFileSync, readFileSync } from "fs";
-import { relativePath } from "./gratsRoot";
+import { relativePath } from "./gratsRoot.js";
 
 export type FixOptions = {
   fix: boolean;

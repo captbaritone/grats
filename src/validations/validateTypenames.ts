@@ -10,10 +10,10 @@ import {
   DiagnosticsWithoutLocationResult,
   gqlErr,
   gqlRelated,
-} from "../utils/DiagnosticError";
-import { err, ok } from "../utils/Result";
-import { nullThrows } from "../utils/helpers";
-import * as E from "../Errors";
+} from "../utils/DiagnosticError.js";
+import { err, ok } from "../utils/Result.js";
+import { nullThrows } from "../utils/helpers.js";
+import * as E from "../Errors.js";
 
 /**
  * Ensure that every type which implements an interface or is a member of a

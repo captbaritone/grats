@@ -1,5 +1,5 @@
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLEnumType } from "graphql";
-import { colorName as queryColorNameResolver, currentPriority as queryCurrentPriorityResolver, favoriteColor as queryFavoriteColorResolver } from "./index";
+import { colorName as queryColorNameResolver, currentPriority as queryCurrentPriorityResolver, favoriteColor as queryFavoriteColorResolver } from "./index.js";
 export function getSchema(): GraphQLSchema {
     const ColorType: GraphQLEnumType = new GraphQLEnumType({
         name: "Color",

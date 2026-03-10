@@ -9,6 +9,10 @@ module.exports = function (_context, _options) {
           fallback: {
             path: require.resolve("path-browserify"),
           },
+          // Map .js extensions to .ts for ESM-style imports in TypeScript source
+          extensionAlias: {
+            ".js": [".ts", ".tsx", ".js"],
+          },
         },
         node: {
           __dirname: "mock",

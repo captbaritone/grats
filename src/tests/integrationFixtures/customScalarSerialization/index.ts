@@ -1,4 +1,4 @@
-import type { SchemaConfig } from "./schema";
+import type { SchemaConfig } from "./schema.js";
 
 /** @gqlScalar */
 export type CustomScalar = number;

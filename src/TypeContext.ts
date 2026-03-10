@@ -13,11 +13,11 @@ import {
   gqlRelated,
   DiagnosticsResult,
   FixableDiagnosticWithLocation,
-} from "./utils/DiagnosticError";
-import { err, ok } from "./utils/Result";
-import * as E from "./Errors";
-import { ExtractionSnapshot } from "./Extractor";
-import { ResolverArgument } from "./resolverSignature";
+} from "./utils/DiagnosticError.js";
+import { err, ok } from "./utils/Result.js";
+import * as E from "./Errors.js";
+import { ExtractionSnapshot } from "./Extractor.js";
+import { ResolverArgument } from "./resolverSignature.js";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
@@ -45,7 +45,7 @@ export type NameDefinition = {
 
 export type DeclarationDefinition = NameDefinition | DerivedResolverDefinition;
 
-import type { TsIdentifier } from "./utils/helpers";
+import type { TsIdentifier } from "./utils/helpers.js";
 
 /**
  * Public interface for TypeContext.

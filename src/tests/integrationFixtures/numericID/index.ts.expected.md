@@ -3,7 +3,7 @@
 ## Input
 
 ```ts title="numericID/index.ts"
-import { ID } from "../../../Types";
+import { ID } from "../../../Types.js";
 
 /**
  * Validating that graphql-js will coerce a numeric ID to a string.

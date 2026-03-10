@@ -15,9 +15,9 @@ import {
   DiagnosticsWithoutLocationResult,
   gqlErr,
   gqlRelated,
-} from "../utils/DiagnosticError";
-import { err, ok } from "../utils/Result";
-import { nullThrows } from "../utils/helpers";
+} from "../utils/DiagnosticError.js";
+import { err, ok } from "../utils/Result.js";
+import { nullThrows } from "../utils/helpers.js";
 
 /**
  * Surprisingly, the GraphQL spec (and therefore graphql-js) does not enforce
