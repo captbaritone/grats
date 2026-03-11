@@ -3,7 +3,7 @@ import { GratsConfig } from "../gratsConfig.js";
 import TSAstBuilder from "./TSAstBuilder.js";
 import ResolverCodegen from "./resolverCodegen.js";
 import { Metadata, FieldDefinition } from "../metadata.js";
-import { GraphQLObjectType, GraphQLSchema } from "graphql";
+import { GraphQLSchema, isObjectType } from "graphql";
 import { nullThrows } from "../utils/helpers.js";
 
 const F = ts.factory;
@@ -89,7 +89,7 @@ class Codegen {
     fieldDefinitions: Record<string, FieldDefinition>,
   ): ts.ObjectLiteralElementLike[] {
     const graphQLType = this._schema.getType(typeName);
-    if (!(graphQLType instanceof GraphQLObjectType)) {
+    if (!isObjectType(graphQLType)) {
       throw new Error(`Type ${typeName} is not an object type`);
     }
     const fields: ts.ObjectLiteralElementLike[] = [];

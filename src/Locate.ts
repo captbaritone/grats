@@ -1,9 +1,9 @@
 import {
-  GraphQLInputObjectType,
-  GraphQLInterfaceType,
-  GraphQLObjectType,
   GraphQLSchema,
   Location,
+  isObjectType,
+  isInterfaceType,
+  isInputObjectType,
 } from "graphql";
 import { Result, err, ok } from "./utils/Result.js";
 import { nullThrows } from "./utils/helpers.js";
@@ -40,11 +40,7 @@ export function locate(
   }
 
   if (
-    !(
-      type instanceof GraphQLObjectType ||
-      type instanceof GraphQLInterfaceType ||
-      type instanceof GraphQLInputObjectType
-    )
+    !(isObjectType(type) || isInterfaceType(type) || isInputObjectType(type))
   ) {
     return err(
       `Cannot locate field \`${entity.field}\` on type \`${entity.parent}\`. Only object types, interfaces, and input objects have fields.`,

@@ -37,7 +37,7 @@ input GreetingInput {
 }
 
 type Query {
-  hello(input: GreetingInput! = {greeting: Greetings}): String
+  hello(input: GreetingInput! = { greeting: Greetings }): String
 }
 ```
 

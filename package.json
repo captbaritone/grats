@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "commander": "^14.0.1",
-    "graphql": "^16.11.0",
+    "graphql": "17.0.0-alpha.11",
     "semver": "^7.7.2",
     "typescript": "5.9.2"
   },
