@@ -13,5 +13,5 @@ export type Date = string;
 ### Error Locating Type
 
 ```text
-Cannot locate field `name` on type `Date`. Only object types, interfaces, and input objects have fields.
+Invalid schema coordinate: `Date.name`. Expected "Date" to be an Enum, Input Object, Object or Interface type.
 ```

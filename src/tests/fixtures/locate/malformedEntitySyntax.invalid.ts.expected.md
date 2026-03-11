@@ -16,5 +16,5 @@ type User = {
 ### Error Locating Type
 
 ```text
-Invalid entity name: `User->name`. Expected `ParentType` or `ParentType.fieldName`.
+Invalid schema coordinate: `User->name`. Syntax Error: Invalid character: "-".
 ```
