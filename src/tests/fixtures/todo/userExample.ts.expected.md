@@ -45,7 +45,7 @@ type User {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { fullName as userFullNameResolver, me as someTypeMeResolver } from "./userExample";
+import { fullName as userFullNameResolver, me as someTypeMeResolver } from "./userExample.js";
 export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",

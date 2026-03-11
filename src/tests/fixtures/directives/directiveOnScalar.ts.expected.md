@@ -32,7 +32,7 @@ scalar MyScalar @max(foo: 10)
 
 ```ts
 import type { GqlScalar } from "grats";
-import type { MyScalar as MyScalarInternal } from "./directiveOnScalar";
+import type { MyScalar as MyScalarInternal } from "./directiveOnScalar.js";
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLScalarType } from "graphql";
 export type SchemaConfig = {
     scalars: {

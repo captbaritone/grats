@@ -57,7 +57,7 @@ type User implements IPerson {
 
 ```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
-import { greeting as adminGreetingResolver, greeting as userGreetingResolver } from "./addStringFieldToInterface";
+import { greeting as adminGreetingResolver, greeting as userGreetingResolver } from "./addStringFieldToInterface.js";
 export function getSchema(): GraphQLSchema {
     const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IPerson",

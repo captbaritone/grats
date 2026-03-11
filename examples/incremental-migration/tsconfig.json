@@ -4,8 +4,7 @@
     "tsSchema": "./schemas/gratsGeneratedSchema.ts",
     "graphqlSchema": "gratsSchema.graphql",
     "tsSchemaHeader": "// DO NOT USE DIRECTLY. Prefer the merged schema in `./mergedSchema.ts`.",
-    "schemaHeader": "# DO NOT USE DIRECTLY. Prefer the merged schema in `../schema.graphql`.",
-    "importModuleSpecifierEnding": ".js"
+    "schemaHeader": "# DO NOT USE DIRECTLY. Prefer the merged schema in `../schema.graphql`."
   },
   "compilerOptions": {
     "outDir": "dist",

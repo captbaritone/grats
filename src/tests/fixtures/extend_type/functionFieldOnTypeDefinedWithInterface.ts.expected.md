@@ -28,7 +28,7 @@ type Cat {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { catSound as catCatSoundResolver } from "./functionFieldOnTypeDefinedWithInterface";
+import { catSound as catCatSoundResolver } from "./functionFieldOnTypeDefinedWithInterface.js";
 export function getSchema(): GraphQLSchema {
     const CatType: GraphQLObjectType = new GraphQLObjectType({
         name: "Cat",

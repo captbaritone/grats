@@ -53,7 +53,7 @@ type Query {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLUnionType, GraphQLString } from "graphql";
-import { pageResult as queryPageResultResolver } from "./multiparamGeneric";
+import { pageResult as queryPageResultResolver } from "./multiparamGeneric.js";
 export function getSchema(): GraphQLSchema {
     const ErrType: GraphQLObjectType = new GraphQLObjectType({
         name: "Err",

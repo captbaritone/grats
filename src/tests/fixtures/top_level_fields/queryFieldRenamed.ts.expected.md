@@ -23,7 +23,7 @@ type Query {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { greetz as queryGreetingResolver } from "./queryFieldRenamed";
+import { greetz as queryGreetingResolver } from "./queryFieldRenamed.js";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
