@@ -4,6 +4,7 @@ GraphQL enums can be defined by placing a `@gqlEnum` docblock directly before a:
 
 - TypeScript enum declaration
 - Type alias of a union of string literals
+- Type alias of a const-array member type query (for example `typeof VALUES[number]`)
 
 ```ts
 /**
@@ -46,3 +47,45 @@ This is due to the fact that TypeScript does not see JSDoc comments as
 /** @gqlEnum */
 type MyEnum = "OK" | "ERROR";
 ```
+
+We also support defining enums from a const array using a type query. This is
+useful when you want one source of truth for both runtime code and type-level
+checks. For example, you can use the const array at runtime to check whether a
+user-supplied list covers all enum values:
+
+```ts
+const ALL_SHOW_STATUSES = ["DRAFT", "SCHEDULED", "PUBLISHED"] as const;
+
+/** @gqlEnum */
+type ShowStatus = (typeof ALL_SHOW_STATUSES)[number];
+
+/** @gqlInput */
+type ShowStatusFilter = { anyOf: ShowStatus[] };
+
+function applyFilter(filter: ShowStatusFilter) {
+  // Because ALL_SHOW_STATUSES is a real array, we can compare at runtime
+  if (filter.anyOf.length === ALL_SHOW_STATUSES.length) {
+    // No filtering needed — every status was selected
+    return getAllShows();
+  }
+  return getShowsByStatus(filter.anyOf);
+}
+```
+
+This form is intentionally strict right now. Grats expects all of the following:
+
+- `ALL_SHOW_STATUSES` must be a local top-level `const`
+- The initializer must be a direct `as const` array literal
+- The array must be non-empty
+- Every value must be a unique string literal
+- Every value must be a valid GraphQL enum name
+
+Because this is still a type-alias enum form, it has the same tradeoffs as
+string-literal unions:
+
+- You cannot add descriptions to enum values
+- You cannot mark enum values as deprecated
+
+Type-alias enums (including this form) are also not supported when
+`tsClientEnums` is enabled. In that case, use an exported TypeScript
+`enum` declaration instead.

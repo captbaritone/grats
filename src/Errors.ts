@@ -236,7 +236,7 @@ export function argNotTyped() {
 }
 
 export function enumTagOnInvalidNode() {
-  return `Expected \`@${ENUM_TAG}\` to be a union type, or a string literal in the edge case of a single value enum. For example: \`type MyEnum = "foo" | "bar"\` or \`type MyEnum = "foo"\`.`;
+  return `Expected \`@${ENUM_TAG}\` to be a union type, a string literal in the edge case of a single value enum, or a const array member type query. For example: \`type MyEnum = "foo" | "bar"\`, \`type MyEnum = "foo"\`, or \`const VALUES = ["foo", "bar"] as const; type MyEnum = typeof VALUES[number]\`.`;
 }
 
 export function enumVariantNotStringLiteral() {
@@ -245,6 +245,14 @@ export function enumVariantNotStringLiteral() {
 
 export function enumVariantMissingInitializer() {
   return `Expected \`@${ENUM_TAG}\` enum members to have string literal initializers. For example: \`FOO = 'foo'\`. In GraphQL enum values are strings, and Grats needs to be able to see the concrete value of the enum member to generate the GraphQL schema.`;
+}
+
+export function enumTypeAliasConstArrayEmpty() {
+  return `Expected \`@${ENUM_TAG}\` const array to include at least one string literal value. For example: \`const VALUES = ["foo"] as const; type MyEnum = typeof VALUES[number]\`.`;
+}
+
+export function enumVariantDuplicateValue(value: string) {
+  return `Expected \`@${ENUM_TAG}\` enum members to be unique. Found duplicate value \`${value}\`.`;
 }
 
 export function gqlEntityMissingName() {

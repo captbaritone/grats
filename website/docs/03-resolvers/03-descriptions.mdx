@@ -35,6 +35,10 @@ In some cases, TypeScript does not support "attaching" docblock comments to cert
 
 For example, Grats is **not** currently able to attach descriptions to enum values defined using a type union.
 
+The same limitation applies to const-array-backed enum aliases (`type MyEnum =
+typeof VALUES[number]`). In both forms, Grats can read the enum values, but
+TypeScript does not provide attachable enum-value docblock metadata.
+
 <GratsCode mode="ts" out={EnumFail} />
 
 Will _incorrectly_ extract this GraphQL:

@@ -56,6 +56,21 @@ are "attached" to a given AST node, and TypeScript doesn't see those comments as
 attached to anything. In the future we could explore implementing our own
 comment attachment, but it is a difficult problem.
 
+## Const-array-backed `@gqlEnum` aliases are intentionally narrow
+
+Grats supports enum aliases written as `type MyEnum = typeof VALUES[number]`,
+but this support is intentionally syntax-based and local.
+
+Today, Grats expects `VALUES` to be a local top-level `const` initialized as a
+direct `as const` array literal. Forms like imports, alias chains, and
+spread/computed arrays are currently not supported.
+
+This is a deliberate tradeoff to keep extraction predictable and avoid depending
+on broader semantic evaluation during extraction.
+
+When using this form, Grats also validates that the array is non-empty, values
+are unique, and each value is a valid GraphQL enum name.
+
 ## Alternate comment types
 
 It would be nice if Grats supported other comment types, such as regular block
