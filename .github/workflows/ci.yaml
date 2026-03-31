@@ -3,6 +3,7 @@ name: Node.js CI
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
     branches: [main]
 
@@ -91,11 +92,10 @@ jobs:
         run: pnpm install
       - name: Lint
         run: pnpm run lint
-  main-release:
-    name: Publish dev version to NPM
+  publish:
+    name: Publish to NPM
     runs-on: ubuntu-latest
-    environment: CI
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'captbaritone/grats'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && github.repository == 'captbaritone/grats'
     needs: [build, test, lint]
     permissions:
       contents: read
@@ -115,11 +115,16 @@ jobs:
         run: npm install -g npm@11.7.0
       - name: Install dependencies
         run: pnpm install
-      - name: Build latest (main) version
+      - name: Build
         run: pnpm run build
-      - name: Set package version
+      - name: Set dev version (main branch)
+        if: github.ref == 'refs/heads/main'
         run: pnpm version --no-git-tag-version 0.0.0-main-${RELEASE_COMMIT_SHA:0:8}
         env:
           RELEASE_COMMIT_SHA: ${{ github.sha }}
-      - name: Publish
+      - name: Publish dev version (main branch)
+        if: github.ref == 'refs/heads/main'
         run: pnpm publish --tag main --access=public --no-git-checks
+      - name: Publish release (tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: pnpm publish --access=public --no-git-checks
