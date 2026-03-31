@@ -4,6 +4,10 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
+## 0.0.36
+
+-   **Breaking Changes**
+    -   Grats is now published as an ES module. If you were importing Grats using `require()`, you will need to switch to `import` or use a dynamic `import()`.
 -   **Features**
     -   The Grats npm package now includes an `llm-docs/` directory containing agent-friendly Markdown documentation. AI coding agents can use these docs to understand Grats' API and conventions without needing to access the website.
 
