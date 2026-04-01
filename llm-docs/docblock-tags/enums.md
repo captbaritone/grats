@@ -4,6 +4,7 @@ GraphQL enums can be defined by placing a `@gqlEnum` docblock directly before a:
 
 -   TypeScript enum declaration
 -   Type alias of a union of string literals
+-   Type alias deriving from a const array (`(typeof X)[number]`) or const object (`(typeof X)[keyof typeof X]`)
 
 ```ts
 /**
@@ -43,3 +44,36 @@ This is due to the fact that TypeScript does not see JSDoc comments as "attachin
 /** @gqlEnum */
 type MyEnum = "OK" | "ERROR";
 ```
+
+## Runtime-accessible enums
+
+If you need runtime access to enum values without using TypeScript's `enum` syntax, Grats supports two idiomatic ways of defining JavaScript enum values in TypeScript
+
+### Const array
+
+```ts
+const ALL_STATUSES = ["DRAFT", "PUBLISHED", "ARCHIVED"] as const;
+
+/** @gqlEnum */
+type Status = (typeof ALL_STATUSES)[number];
+```
+
+Like union-of-literal enums, const arrays do not support descriptions or `@deprecated` on individual values. Use a const object or TypeScript `enum` if you need those.
+
+### Const object
+
+Const objects allow you to define human-readable keys that map to GraphQL enum values, similar to TypeScript `enum` declarations:
+
+```ts
+const Status = {
+  Draft: "DRAFT",
+  Published: "PUBLISHED",
+  Archived: "ARCHIVED",
+} as const;
+
+/** @gqlEnum */
+type Status = (typeof Status)[keyof typeof Status];
+```
+
+> **INFO:**
+> The const declaration must be the immediately preceding statement before the `@gqlEnum` type alias. This ensures the actual list of enum values are colocated with the `@gqlEnum` annotation.
