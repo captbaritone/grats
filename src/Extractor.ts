@@ -2170,6 +2170,10 @@ class Extractor {
       ];
     }
 
+    if (ts.isIndexedAccessTypeNode(node.type)) {
+      return this.enumTypeAliasFromPrecedingConst(node, node.type);
+    }
+
     if (!ts.isUnionTypeNode(node.type)) {
       this.reportUnhandled(node.type, "union", E.enumTagOnInvalidNode());
       return null;
@@ -2200,6 +2204,239 @@ class Extractor {
           directives,
           null,
           null,
+        ),
+      );
+    }
+
+    return values;
+  }
+
+  /**
+   * Handle `@gqlEnum` type aliases that derive their values from a preceding
+   * const declaration. Supports two patterns:
+   *
+   * - Const array: `(typeof VALUES)[number]`
+   * - Const object: `(typeof OBJ)[keyof typeof OBJ]`
+   *
+   * The const declaration must be the immediately preceding statement to ensure
+   * it's clear which declarations contribute to the GraphQL schema.
+   */
+  enumTypeAliasFromPrecedingConst(
+    node: ts.TypeAliasDeclaration,
+    indexedAccess: ts.IndexedAccessTypeNode,
+  ): EnumValueDefinitionNode[] | null {
+    // Unwrap parenthesized types: `(typeof X)[number]` vs `typeof X[number]`
+    let objectType: ts.TypeNode = indexedAccess.objectType;
+    while (ts.isParenthesizedTypeNode(objectType)) {
+      objectType = objectType.type;
+    }
+
+    // The object type must be `typeof X` where X is an identifier
+    if (
+      !ts.isTypeQueryNode(objectType) ||
+      !ts.isIdentifier(objectType.exprName)
+    ) {
+      this.reportUnhandled(indexedAccess, "union", E.enumTagOnInvalidNode());
+      return null;
+    }
+
+    const referencedName = objectType.exprName.text;
+
+    // Determine the pattern from the index type
+    let isArrayPattern: boolean;
+    if (indexedAccess.indexType.kind === ts.SyntaxKind.NumberKeyword) {
+      // (typeof X)[number] — const array
+      isArrayPattern = true;
+    } else if (
+      ts.isTypeOperatorNode(indexedAccess.indexType) &&
+      indexedAccess.indexType.operator === ts.SyntaxKind.KeyOfKeyword &&
+      ts.isTypeQueryNode(indexedAccess.indexType.type) &&
+      ts.isIdentifier(indexedAccess.indexType.type.exprName) &&
+      indexedAccess.indexType.type.exprName.text === referencedName
+    ) {
+      // (typeof X)[keyof typeof X] — const object
+      isArrayPattern = false;
+    } else {
+      this.reportUnhandled(indexedAccess, "union", E.enumTagOnInvalidNode());
+      return null;
+    }
+
+    // Find the preceding statement in the containing block (source file,
+    // namespace body, etc.)
+    const container = node.parent;
+    if (!("statements" in container)) {
+      this.report(indexedAccess, E.enumConstMustPrecedeTypeAlias());
+      return null;
+    }
+    const statements = container.statements as ts.NodeArray<ts.Statement>;
+    const nodeIndex = statements.indexOf(node);
+    if (nodeIndex <= 0) {
+      this.report(indexedAccess, E.enumConstMustPrecedeTypeAlias());
+      return null;
+    }
+
+    const precedingStatement = statements[nodeIndex - 1];
+
+    // Preceding statement must be a const variable statement
+    if (
+      !ts.isVariableStatement(precedingStatement) ||
+      (precedingStatement.declarationList.flags & ts.NodeFlags.Const) === 0
+    ) {
+      this.report(indexedAccess, E.enumConstMustPrecedeTypeAlias());
+      return null;
+    }
+
+    const declarations = precedingStatement.declarationList.declarations;
+    if (declarations.length !== 1) {
+      this.report(indexedAccess, E.enumConstMustPrecedeTypeAlias());
+      return null;
+    }
+
+    const declaration = declarations[0];
+    if (!ts.isIdentifier(declaration.name)) {
+      this.report(indexedAccess, E.enumConstMustPrecedeTypeAlias());
+      return null;
+    }
+
+    // Validate the name matches
+    if (declaration.name.text !== referencedName) {
+      this.report(
+        indexedAccess,
+        E.enumConstNameMismatch(referencedName, declaration.name.text),
+      );
+      return null;
+    }
+
+    // Extract the `as const` expression, handling both `X as const` and `X as const satisfies T`
+    const constExpr = this.extractAsConstExpression(declaration);
+    if (constExpr == null) {
+      this.report(indexedAccess, E.enumConstMissingAsConst());
+      return null;
+    }
+
+    if (isArrayPattern) {
+      return this.enumValuesFromArrayLiteral(node, constExpr);
+    } else {
+      return this.enumValuesFromObjectLiteral(node, constExpr);
+    }
+  }
+
+  /**
+   * Given a variable declaration, extract the inner expression from an
+   * `as const` or `as const satisfies T` assertion. Returns null if the
+   * declaration doesn't use `as const`.
+   */
+  extractAsConstExpression(
+    declaration: ts.VariableDeclaration,
+  ): ts.Expression | null {
+    if (declaration.initializer == null) {
+      return null;
+    }
+
+    let expr = declaration.initializer;
+
+    // Handle `X as const satisfies T` — the satisfies wraps the as-expression
+    if (ts.isSatisfiesExpression(expr)) {
+      expr = expr.expression;
+    }
+
+    // Must be `X as const`
+    if (!ts.isAsExpression(expr)) {
+      return null;
+    }
+
+    if (
+      !ts.isTypeReferenceNode(expr.type) ||
+      !ts.isIdentifier(expr.type.typeName) ||
+      expr.type.typeName.text !== "const"
+    ) {
+      return null;
+    }
+
+    return expr.expression;
+  }
+
+  enumValuesFromArrayLiteral(
+    node: ts.TypeAliasDeclaration,
+    expr: ts.Expression,
+  ): EnumValueDefinitionNode[] | null {
+    if (!ts.isArrayLiteralExpression(expr)) {
+      this.report(expr, E.enumConstInvalidExpression());
+      return null;
+    }
+
+    const values: EnumValueDefinitionNode[] = [];
+
+    for (const element of expr.elements) {
+      if (!ts.isStringLiteral(element)) {
+        this.reportUnhandled(
+          element,
+          "union member",
+          E.enumVariantNotStringLiteral(),
+        );
+        continue;
+      }
+
+      const errorMessage = graphQLNameValidationMessage(element.text);
+      if (errorMessage != null) {
+        this.report(element, errorMessage);
+      }
+
+      values.push(
+        this.gql.enumValueDefinition(
+          node,
+          this.gql.name(element, element.text),
+          undefined,
+          null,
+          null,
+        ),
+      );
+    }
+
+    return values;
+  }
+
+  enumValuesFromObjectLiteral(
+    node: ts.TypeAliasDeclaration,
+    expr: ts.Expression,
+  ): EnumValueDefinitionNode[] | null {
+    if (!ts.isObjectLiteralExpression(expr)) {
+      this.report(expr, E.enumConstInvalidExpression());
+      return null;
+    }
+
+    const values: EnumValueDefinitionNode[] = [];
+
+    for (const prop of expr.properties) {
+      if (
+        !ts.isPropertyAssignment(prop) ||
+        !ts.isStringLiteral(prop.initializer)
+      ) {
+        this.reportUnhandled(
+          prop,
+          "enum value",
+          E.enumVariantNotStringLiteral(),
+        );
+        continue;
+      }
+
+      const value = prop.initializer;
+
+      const errorMessage = graphQLNameValidationMessage(value.text);
+      if (errorMessage != null) {
+        this.report(value, errorMessage);
+      }
+
+      const description = this.collectDescription(prop);
+      const directives = this.collectDirectives(prop);
+
+      values.push(
+        this.gql.enumValueDefinition(
+          prop,
+          this.gql.name(value, value.text),
+          directives,
+          description,
+          prop.name.getText(),
         ),
       );
     }

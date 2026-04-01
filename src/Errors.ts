@@ -236,7 +236,7 @@ export function argNotTyped() {
 }
 
 export function enumTagOnInvalidNode() {
-  return `Expected \`@${ENUM_TAG}\` to be a union type, or a string literal in the edge case of a single value enum. For example: \`type MyEnum = "foo" | "bar"\` or \`type MyEnum = "foo"\`.`;
+  return `Expected \`@${ENUM_TAG}\` to be a union type, a string literal in the edge case of a single value enum, or a const array/object type query (e.g. \`(typeof VALUES)[number]\` or \`(typeof OBJ)[keyof typeof OBJ]\`). For example: \`type MyEnum = "foo" | "bar"\` or \`type MyEnum = "foo"\`.`;
 }
 
 export function enumVariantNotStringLiteral() {
@@ -245,6 +245,22 @@ export function enumVariantNotStringLiteral() {
 
 export function enumVariantMissingInitializer() {
   return `Expected \`@${ENUM_TAG}\` enum members to have string literal initializers. For example: \`FOO = 'foo'\`. In GraphQL enum values are strings, and Grats needs to be able to see the concrete value of the enum member to generate the GraphQL schema.`;
+}
+
+export function enumConstMustPrecedeTypeAlias() {
+  return `When deriving a \`@${ENUM_TAG}\` from a const value using \`typeof\`, the const declaration must be the immediately preceding statement. Grats requires this co-location to ensure it's clear which declarations contribute to the GraphQL schema. For example:\n\nconst VALUES = ["FOO", "BAR"] as const;\n\n/** @${ENUM_TAG} */\ntype MyEnum = (typeof VALUES)[number];`;
+}
+
+export function enumConstMissingAsConst() {
+  return `Expected the const declaration preceding this \`@${ENUM_TAG}\` to use \`as const\`. Grats needs the literal types to determine the enum values. For example: \`const VALUES = ["FOO", "BAR"] as const;\``;
+}
+
+export function enumConstInvalidExpression() {
+  return `Expected the const declaration preceding this \`@${ENUM_TAG}\` to be an array literal or object literal with \`as const\`. For example: \`const VALUES = ["FOO", "BAR"] as const;\` or \`const OBJ = { Foo: "FOO" } as const;\``;
+}
+
+export function enumConstNameMismatch(expected: string, found: string) {
+  return `Expected the \`const\` declaration immediately before this \`@${ENUM_TAG}\` to be named \`${expected}\` (to match \`typeof ${expected}\`), but found \`${found}\`. The \`const\` referenced in the type must be the immediately preceding statement. Grats requires this co-location to ensure it's clear which declarations contribute to the GraphQL schema.`;
 }
 
 export function gqlEntityMissingName() {
