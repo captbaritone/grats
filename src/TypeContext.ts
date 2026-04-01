@@ -171,8 +171,20 @@ export class TypeContext implements ITypeContext, ITypeContextForResolveTypes {
 
   private findSymbolDeclaration(startSymbol: ts.Symbol): ts.Declaration | null {
     const symbol = this.resolveSymbol(startSymbol);
-    const declaration = symbol.declarations?.[0];
-    return declaration ?? null;
+    const declarations = symbol.declarations;
+    if (declarations == null || declarations.length === 0) {
+      return null;
+    }
+    // When a symbol has multiple declarations (e.g., `const X` and `type X`
+    // sharing a name), prefer the one registered in the GraphQL schema.
+    if (declarations.length > 1) {
+      for (const decl of declarations) {
+        if (this._declarationToDefinition.has(decl)) {
+          return decl;
+        }
+      }
+    }
+    return declarations[0];
   }
 
   // Follow symbol aliases until we find the original symbol. Accounts for
