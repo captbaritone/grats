@@ -1,0 +1,32 @@
+const ALL_STATUSES = ["DRAFT", "PUBLISHED", "ARCHIVED"] as const;
+
+/** @gqlEnum */
+type Status = (typeof ALL_STATUSES)[number];
+
+=== SNIP ===
+enum Status {
+  ARCHIVED
+  DRAFT
+  PUBLISHED
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLEnumType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const StatusType: GraphQLEnumType = new GraphQLEnumType({
+        name: "Status",
+        values: {
+            ARCHIVED: {
+                value: "ARCHIVED"
+            },
+            DRAFT: {
+                value: "DRAFT"
+            },
+            PUBLISHED: {
+                value: "PUBLISHED"
+            }
+        }
+    });
+    return new GraphQLSchema({
+        types: [StatusType]
+    });
+}

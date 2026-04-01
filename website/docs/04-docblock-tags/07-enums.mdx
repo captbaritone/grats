@@ -1,3 +1,7 @@
+import GratsCode from "@site/src/components/GratsCode";
+import EnumConstArray from "!!raw-loader!./snippets/07-enum-const-array.out";
+import EnumConstObject from "!!raw-loader!./snippets/07-enum-const-object.out";
+
 # Enums
 
 GraphQL enums can be defined by placing a `@gqlEnum` docblock directly before a:
@@ -51,35 +55,22 @@ type MyEnum = "OK" | "ERROR";
 ## Runtime-accessible enums
 
 If you need runtime access to enum values without using TypeScript's `enum`
-syntax, Grats supports two idiomatic ways of defining JavaScript enum values in TypeScript
+syntax, Grats supports deriving enums from const arrays and const objects.
+
+:::info
+The const declaration must be the immediately preceding statement before the `@gqlEnum` type alias. This ensures the actual list of enum values are colocated with the `@gqlEnum` annotation.
+:::
 
 ### Const array
 
-```ts
-const ALL_STATUSES = ["DRAFT", "PUBLISHED", "ARCHIVED"] as const;
-
-/** @gqlEnum */
-type Status = (typeof ALL_STATUSES)[number];
-```
+<GratsCode out={EnumConstArray} mode="both" />
 
 Like union-of-literal enums, const arrays do not support descriptions or `@deprecated` on individual values. Use a const object or TypeScript `enum` if you need those.
 
 ### Const object
 
 Const objects allow you to define human-readable keys that map to GraphQL enum
-values, similar to TypeScript `enum` declarations:
+values, similar to TypeScript `enum` declarations. Unlike arrays, object
+properties support descriptions and `@deprecated` tags:
 
-```ts
-const Status = {
-  Draft: "DRAFT",
-  Published: "PUBLISHED",
-  Archived: "ARCHIVED",
-} as const;
-
-/** @gqlEnum */
-type Status = (typeof Status)[keyof typeof Status];
-```
-
-:::info
-The const declaration must be the immediately preceding statement before the `@gqlEnum` type alias. This ensures the actual list of enum values are colocated with the `@gqlEnum` annotation.
-:::
+<GratsCode out={EnumConstObject} mode="both" />

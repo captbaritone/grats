@@ -47,33 +47,58 @@ type MyEnum = "OK" | "ERROR";
 
 ## Runtime-accessible enums
 
-If you need runtime access to enum values without using TypeScript's `enum` syntax, Grats supports two idiomatic ways of defining JavaScript enum values in TypeScript
+If you need runtime access to enum values without using TypeScript's `enum` syntax, Grats supports deriving enums from const arrays and const objects.
+
+> **INFO:**
+> The const declaration must be the immediately preceding statement before the `@gqlEnum` type alias. This ensures the actual list of enum values are colocated with the `@gqlEnum` annotation.
 
 ### Const array
 
-```ts
+```tsx
 const ALL_STATUSES = ["DRAFT", "PUBLISHED", "ARCHIVED"] as const;
 
 /** @gqlEnum */
 type Status = (typeof ALL_STATUSES)[number];
 ```
 
+_Generated GraphQL schema:_
+
+```graphql
+enum Status {
+  ARCHIVED
+  DRAFT
+  PUBLISHED
+}
+```
+
 Like union-of-literal enums, const arrays do not support descriptions or `@deprecated` on individual values. Use a const object or TypeScript `enum` if you need those.
 
 ### Const object
 
-Const objects allow you to define human-readable keys that map to GraphQL enum values, similar to TypeScript `enum` declarations:
+Const objects allow you to define human-readable keys that map to GraphQL enum values, similar to TypeScript `enum` declarations. Unlike arrays, object properties support descriptions and `@deprecated` tags:
 
-```ts
+```tsx
 const Status = {
+  /** Currently being edited */
   Draft: "DRAFT",
+  /** Available to readers */
   Published: "PUBLISHED",
-  Archived: "ARCHIVED",
+  /** @deprecated Use DRAFT instead */
+  Hidden: "HIDDEN",
 } as const;
 
 /** @gqlEnum */
 type Status = (typeof Status)[keyof typeof Status];
 ```
 
-> **INFO:**
-> The const declaration must be the immediately preceding statement before the `@gqlEnum` type alias. This ensures the actual list of enum values are colocated with the `@gqlEnum` annotation.
+_Generated GraphQL schema:_
+
+```graphql
+enum Status {
+  """Currently being edited"""
+  DRAFT
+  HIDDEN @deprecated(reason: "Use DRAFT instead")
+  """Available to readers"""
+  PUBLISHED
+}
+```

@@ -1,0 +1,44 @@
+const Status = {
+  /** Currently being edited */
+  Draft: "DRAFT",
+  /** Available to readers */
+  Published: "PUBLISHED",
+  /** @deprecated Use DRAFT instead */
+  Hidden: "HIDDEN",
+} as const;
+
+/** @gqlEnum */
+type Status = (typeof Status)[keyof typeof Status];
+
+=== SNIP ===
+enum Status {
+  """Currently being edited"""
+  DRAFT
+  HIDDEN @deprecated(reason: "Use DRAFT instead")
+  """Available to readers"""
+  PUBLISHED
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLEnumType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const StatusType: GraphQLEnumType = new GraphQLEnumType({
+        name: "Status",
+        values: {
+            DRAFT: {
+                description: "Currently being edited",
+                value: "DRAFT"
+            },
+            HIDDEN: {
+                deprecationReason: "Use DRAFT instead",
+                value: "HIDDEN"
+            },
+            PUBLISHED: {
+                description: "Available to readers",
+                value: "PUBLISHED"
+            }
+        }
+    });
+    return new GraphQLSchema({
+        types: [StatusType]
+    });
+}
