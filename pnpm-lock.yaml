@@ -17,9 +17,6 @@ importers:
       semver:
         specifier: ^7.7.2
         version: 7.7.2
-      typescript:
-        specifier: 5.9.2
-        version: 5.9.2
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.3.1
@@ -63,6 +60,9 @@ importers:
       tsx:
         specifier: ^4.19.0
         version: 4.21.0
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
 
   examples/apollo-server:
     dependencies:
