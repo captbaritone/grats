@@ -5,10 +5,10 @@ GraphQL unions can be defined by placing a `@gqlUnion` docblock directly before 
 -   Type alias of a union of object types
 -   Type alias of reference to a single object type (for unions with one member)
 
-```ts
+```tsx
 /**
  * A description of my union.
- * @gqlUnion <optional name of the union, if different from type name>
+ * @gqlUnion
  */
 type MyUnion = User | Post;
 
@@ -27,6 +27,22 @@ class Post {
 
   /** @gqlField */
   author: User;
+}
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+"""A description of my union."""
+union MyUnion = Post | User
+
+type Post {
+  author: User
+  content: String
+}
+
+type User {
+  name: String
 }
 ```
 

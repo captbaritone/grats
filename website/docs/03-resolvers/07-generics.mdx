@@ -1,3 +1,7 @@
+import GratsCode from "@site/src/components/GratsCode";
+import GenericsBasic from "!!raw-loader!./snippets/07-generics-basic.out";
+import GenericsNesting from "!!raw-loader!./snippets/07-generics-nesting.out";
+
 # Generics
 
 _This page contains the formal documentation of how generics behave in Grats, for an explanation of how to think about generics and practical examples of how to use them, see our [Generics Guide](../05-guides/07-generics.mdx)._
@@ -12,16 +16,7 @@ When a `@gql*` type declaration contains references to its type parameters in po
 
 ## Examples
 
-```typescript
-/** @gqlType */
-type Edge<T> = {
-  node: T;
-  cursor: string;
-};
-
-/** @gqlUnion */
-type Result<T> = T | GqlError;
-```
+<GratsCode out={GenericsBasic} mode="both" />
 
 ## Type Parameters
 
@@ -51,13 +46,7 @@ There are two different ways that generics can nest:
 
 A type parameter of a declaration can be passed as a type argument to another generic type.
 
-```typescript
-/** @gqlType */
-type Connection<T> = {
-  edges: Edge<T>[];
-  pageInfo: PageInfo;
-};
-```
+<GratsCode out={GenericsNesting} mode="both" />
 
 A generic type can be passed a type argument which is itself a generic type with its own type arguments.
 

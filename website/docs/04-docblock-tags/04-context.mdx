@@ -1,4 +1,6 @@
 import GratsCode from "@site/src/components/GratsCode";
+import ContextDefinition from "!!raw-loader!./snippets/04-context-definition.out";
+import ContextUsage from "!!raw-loader!./snippets/04-context-usage.out";
 import DerivedContext from "!!raw-loader!./snippets/04-derived-context.out";
 import DerivedContextMemoized from "!!raw-loader!./snippets/04-derived-context-memoized.out";
 
@@ -8,36 +10,13 @@ In addition to the [arguments object](./03-arguments.mdx), each resolver method/
 
 To define the context object type, you must use the `@gqlContext` tag. This tag should be placed directly above the type definition for your context object.
 
-```ts
-/** @gqlContext */
-type GQLCtx = {
-  req: Request;
-  userID: string;
-  db: Database;
-};
-```
+<GratsCode out={ContextDefinition} mode="ts" />
 
 ## Consuming context values in resolvers
 
 Grats will detect any resolver parameter that is typed using the `@gqlContext` type and ensure that the context object is passed to the resolver in that position:
 
-```ts
-// trim-start
-/** @gqlContext */
-type GQLCtx = {
-  req: Request;
-  userID: string;
-  db: Database;
-};
-
-// trim-end
-/** @gqlQueryField */
-// highlight-start
-export function me(ctx: GQLCtx): User {
-  // highlight-end
-  return ctx.db.users.getById(ctx.userID);
-}
-```
+<GratsCode out={ContextUsage} mode="ts" />
 
 :::tip
 Unlike `graphql-js`, Grats does not require that the context object be passed as a specific positional argument to the resolver. You can place the context object anywhere in the argument list, as long as the type is annotated with the `@gqlContext` type.

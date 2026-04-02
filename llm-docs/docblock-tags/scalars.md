@@ -4,12 +4,19 @@ GraphQL custom scalars can be defined by placing a `@gqlScalar` docblock directl
 
 -   Type alias declaration
 
-```ts
+```tsx
 /**
  * A description of my custom scalar.
- * @gqlScalar <optional name of the scalar, if different from type name>
+ * @gqlScalar
  */
 export type MyCustomString = string;
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+"""A description of my custom scalar."""
+scalar MyCustomString
 ```
 
 ## Built-In Scalars

@@ -1,11 +1,10 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import CodeBlock from "@theme/CodeBlock";
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { serializeState } from "./MonacoPlayground/urlState";
 import { URL_VERSION } from "./MonacoPlayground/defaultState";
 import Link from "@docusaurus/Link";
 import { parseLines, useThemeConfig } from "@docusaurus/theme-common/internal";
+import { usePrismTheme } from "@docusaurus/theme-common";
 
 type Props = {
   out: string;
@@ -37,22 +36,50 @@ export default function GratsCode({ out, mode }: Props) {
     case "codegen":
       return <CodeBlock language="tsx">{codegen}</CodeBlock>;
     case "both":
-      return (
-        <Tabs>
-          <TabItem value="typescript" label="TypeScript" default>
-            <div style={{ position: "relative" }}>
-              <CodeBlock language="tsx">{ts}</CodeBlock>
-              <PlaygroundLink ts={ts} />
-            </div>
-          </TabItem>
-          <TabItem value="graphql" label="GraphQL" default>
-            <CodeBlock language="graphql">{gql}</CodeBlock>
-          </TabItem>
-        </Tabs>
-      );
+      return <BothView ts={ts} gql={gql} />;
     default:
       throw new Error(`Unexpected GratsCode mode "${mode}".`);
   }
+}
+
+function BothView({ ts, gql }: { ts: string; gql: string }) {
+  const [tab, setTab] = useState<"ts" | "gql">("ts");
+  const prismTheme = usePrismTheme();
+  const bgColor = prismTheme.plain.backgroundColor as string;
+
+  return (
+    <div className="grats-both">
+      <div className="grats-both__bar">
+        <button
+          className={`grats-both__tab ${
+            tab === "ts" ? "grats-both__tab--active" : ""
+          }`}
+          onClick={() => setTab("ts")}
+          style={tab === "ts" ? { background: bgColor } : undefined}
+        >
+          TypeScript
+        </button>
+        <button
+          className={`grats-both__tab ${
+            tab === "gql" ? "grats-both__tab--active" : ""
+          }`}
+          onClick={() => setTab("gql")}
+          style={tab === "gql" ? { background: bgColor } : undefined}
+        >
+          GraphQL
+        </button>
+      </div>
+      <div
+        style={tab === "ts" ? { position: "relative" } : { display: "none" }}
+      >
+        <CodeBlock language="tsx">{ts}</CodeBlock>
+        <PlaygroundLink ts={ts} />
+      </div>
+      <div style={tab === "gql" ? {} : { display: "none" }}>
+        <CodeBlock language="graphql">{gql}</CodeBlock>
+      </div>
+    </div>
+  );
 }
 
 function PlaygroundLink({ ts }) {

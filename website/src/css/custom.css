@@ -114,3 +114,36 @@ h6:hover .hash-link {
 .loading-spinner {
   animation: spinPulse 2s linear infinite;
 }
+
+/* Compact tab bar for GratsCode "both" mode */
+.grats-both {
+  margin-bottom: var(--ifm-leading);
+}
+
+.grats-both__bar {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 0;
+}
+
+.grats-both__tab {
+  background: var(--ifm-color-emphasis-200);
+  border: none;
+  padding: 0.2rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--ifm-color-emphasis-700);
+  border-radius: var(--ifm-code-border-radius) var(--ifm-code-border-radius) 0 0;
+}
+
+.grats-both__tab--active {
+  color: var(--ifm-color-emphasis-900);
+}
+
+/* Remove top border-radius from the code block since the tabs sit above */
+.grats-both .theme-code-block {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  margin-bottom: 0;
+}

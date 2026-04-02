@@ -1,0 +1,27 @@
+/** @gqlInput */
+interface MyInput {
+  name: string;
+}
+
+=== SNIP ===
+input MyInput {
+  name: String!
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const MyInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        name: "MyInput",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: new GraphQLNonNull(GraphQLString)
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [MyInputType]
+    });
+}

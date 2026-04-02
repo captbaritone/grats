@@ -2,6 +2,9 @@
 
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
+import GratsCode from "@site/src/components/GratsCode";
+import HeroClass from "!!raw-loader!./snippets/hero-class.out";
+import HeroFunctional from "!!raw-loader!./snippets/hero-functional.out";
 
 **What if building a GraphQL server were as simple as adding annotations to your TypeScript code?**
 
@@ -16,48 +19,12 @@ Grats is flexible enough to work with both class-based and functional approaches
 <Tabs>
   <TabItem value="oop" label="Classes" default>
 
-```ts
-/**
- * A user in our kick-ass system!
- * @gqlType */
-class User {
-  /** @gqlQueryField */
-  static me(): User {
-    return new User();
-  }
-
-  /** @gqlField */
-  name: string = "Alice";
-
-  /** @gqlField */
-  greeting(salutation: string): string {
-    return `${salutation}, ${this.name}`;
-  }
-}
-```
+<GratsCode out={HeroClass} mode="ts" />
 
   </TabItem>
   <TabItem value="fp" label="Functional">
 
-```ts
-/** @gqlQueryField */
-export function me(): User {
-  return { name: "Alice" };
-}
-
-/**
- * A user in our kick-ass system!
- * @gqlType */
-type User = {
-  /** @gqlField */
-  name: string;
-};
-
-/** @gqlField */
-export function greeting(user: User, salutation: string): string {
-  return `${salutation}, ${user.name}`;
-}
-```
+<GratsCode out={HeroFunctional} mode="ts" />
 
   </TabItem>
 </Tabs>

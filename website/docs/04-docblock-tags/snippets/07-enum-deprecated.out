@@ -1,0 +1,36 @@
+/** @gqlEnum */
+enum MyEnum {
+  OK = "OK",
+  /** @deprecated Please use OK instead. */
+  OKAY = "OKAY",
+  ERROR = "ERROR",
+}
+
+=== SNIP ===
+enum MyEnum {
+  ERROR
+  OK
+  OKAY @deprecated(reason: "Please use OK instead.")
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLEnumType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const MyEnumType: GraphQLEnumType = new GraphQLEnumType({
+        name: "MyEnum",
+        values: {
+            ERROR: {
+                value: "ERROR"
+            },
+            OK: {
+                value: "OK"
+            },
+            OKAY: {
+                deprecationReason: "Please use OK instead.",
+                value: "OKAY"
+            }
+        }
+    });
+    return new GraphQLSchema({
+        types: [MyEnumType]
+    });
+}

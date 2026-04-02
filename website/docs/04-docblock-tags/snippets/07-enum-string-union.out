@@ -1,0 +1,26 @@
+/** @gqlEnum */
+type MyEnum = "OK" | "ERROR";
+
+=== SNIP ===
+enum MyEnum {
+  ERROR
+  OK
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLEnumType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const MyEnumType: GraphQLEnumType = new GraphQLEnumType({
+        name: "MyEnum",
+        values: {
+            ERROR: {
+                value: "ERROR"
+            },
+            OK: {
+                value: "OK"
+            }
+        }
+    });
+    return new GraphQLSchema({
+        types: [MyEnumType]
+    });
+}

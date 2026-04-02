@@ -1,0 +1,42 @@
+// trim-start
+/** @gqlType */
+type GqlError = {
+  __typename: "GqlError";
+  /** @gqlField */
+  message: string;
+};
+
+// trim-end
+/** @gqlType */
+type Edge<T> = {
+  /** @gqlField */
+  node: T;
+  /** @gqlField */
+  cursor: string;
+};
+
+/** @gqlUnion */
+type Result<T> = T | GqlError;
+
+=== SNIP ===
+type GqlError {
+  message: String
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const GqlErrorType: GraphQLObjectType = new GraphQLObjectType({
+        name: "GqlError",
+        fields() {
+            return {
+                message: {
+                    name: "message",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [GqlErrorType]
+    });
+}

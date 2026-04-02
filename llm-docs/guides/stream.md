@@ -4,7 +4,27 @@ Grats allows you to define fields which return a single item at a time in order 
 
 ## Example
 
-```ts
+```tsx
+/** @gqlContext */
+type Ctx = {
+  vc: string;
+};
+
+/** @gqlType */
+class Post {
+  /** @gqlField */
+  id: string;
+  constructor(row: { id: string }) {
+    this.id = row.id;
+  }
+}
+
+const DB = {
+  async selectPosts(_vc: string): Promise<{ id: string }[]> {
+    return [];
+  },
+};
+
 /** @gqlType */
 class Viewer {
   /**
@@ -22,6 +42,24 @@ class Viewer {
       yield new Post(row);
     }
   }
+}
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+type Post {
+  id: String
+}
+
+type Viewer {
+  """
+  An "algorithmically generated" feed of posts.
+  
+  **Note:** Due to the extreme complexity of this algorithm, it can be slow.
+  It is recommended to use `@stream` to avoid blocking the client.
+  """
+  feed: [Post!]
 }
 ```
 

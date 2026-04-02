@@ -1,19 +1,13 @@
+import GratsCode from "@site/src/components/GratsCode";
+import InfoExample from "!!raw-loader!./snippets/04-info.out";
+
 # Info
 
 In addition to the [arguments](./03-arguments.mdx), and [context](./04-context.mdx) objects, each resolver method/function may also access the [info](https://graphql.org/learn/execution/#root-fields--resolvers) object. The `info` object contains information about the current execution state, including the field name, field type, and the AST node for the field. It's most commonly used to implement advanced features such as optimizations.
 
 Grats will detect any resolver parameter that is typed using the `GqlInfo` type exported by Grats:
 
-```ts
-import { GqlInfo } from "grats";
-
-/** @gqlQueryField */
-// highlight-start
-export function greeting(info: GqlInfo): User {
-  // highlight-end
-  return `Greetings from the ${info.fieldName} field!`;
-}
-```
+<GratsCode out={InfoExample} mode="both" />
 
 For an example of using the `info` object to implement a look-ahead optimization, see the look-ahead optimization for Connections to use count query for requests that only read count in `graphql/gqlUtils.ts` in the [Production App Example](../05-examples/10-production-app.md).
 

@@ -1,3 +1,8 @@
+import GratsCode from "@site/src/components/GratsCode";
+import InputTypeAlias from "!!raw-loader!./snippets/09-input-type-alias.out";
+import InputInterface from "!!raw-loader!./snippets/09-input-interface.out";
+import InputDeprecated from "!!raw-loader!./snippets/09-input-deprecated.out";
+
 # Inputs
 
 GraphQL input types can be defined by placing a `@gqlInput` docblock directly before a:
@@ -5,22 +10,9 @@ GraphQL input types can be defined by placing a `@gqlInput` docblock directly be
 - Type alias declaration
 - Interface declaration
 
-```ts
-/**
- * Description of my input type
- * @gqlInput <optional name of the input, if different from type name>
- */
-type MyInput = {
-  name: string;
-};
-```
+<GratsCode out={InputTypeAlias} mode="both" />
 
-```ts
-/** @gqlInput */
-interface MyInput {
-  name: string;
-}
-```
+<GratsCode out={InputInterface} mode="both" />
 
 Unlike with type or interface fields, every property of an input type is automatically included as part of the GraphQL definition. You do not need to annotate individual properties with `@gqlField`.
 
@@ -28,14 +20,7 @@ Unlike with type or interface fields, every property of an input type is automat
 
 Individual optional fields can be marked as `@deprecated` in the GraphQL schema using the `@deprecated` JSDoc tag:
 
-```ts
-/** @gqlInput */
-type MyInput = {
-  name: string;
-  /** @deprecated Don't ask for age any more */
-  age?: number;
-};
-```
+<GratsCode out={InputDeprecated} mode="both" />
 
 ## Merged Interfaces
 

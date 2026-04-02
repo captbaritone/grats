@@ -1,0 +1,41 @@
+// trim-start
+/** @gqlType */
+// trim-end
+class MyClass {
+  /** @gqlField */
+  myField(greeting: string = "Hello"): string {
+    return `${greeting} World`;
+  }
+}
+
+=== SNIP ===
+type MyClass {
+  myField(greeting: String! = "Hello"): String
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const MyClassType: GraphQLObjectType = new GraphQLObjectType({
+        name: "MyClass",
+        fields() {
+            return {
+                myField: {
+                    name: "myField",
+                    type: GraphQLString,
+                    args: {
+                        greeting: {
+                            type: new GraphQLNonNull(GraphQLString),
+                            defaultValue: "Hello"
+                        }
+                    },
+                    resolve(source, args) {
+                        return source.myField(args.greeting);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [MyClassType]
+    });
+}

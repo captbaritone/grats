@@ -1,0 +1,32 @@
+/**
+ * Description of my input type
+ * @gqlInput
+ */
+type MyInput = {
+  name: string;
+};
+
+=== SNIP ===
+"""Description of my input type"""
+input MyInput {
+  name: String!
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const MyInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        description: "Description of my input type",
+        name: "MyInput",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: new GraphQLNonNull(GraphQLString)
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [MyInputType]
+    });
+}

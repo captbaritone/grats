@@ -14,7 +14,25 @@ If possible, it's best to enforce permissions as close to the data source as pos
 
 One highly effective pattern is to have an object representing the user making the request (often called "ViewerContext" or "VC"). Any database fetch that requires specific permissions should require one of these objects as an argument and enforce the permissions at that layer and then use properties on that object to determine if the data can be read/updated. If not, an error should be thrown. Grats makes accessing such an object easy with [Derived Contexts](../docblock-tags/context.md#derived-context-values).
 
-```ts
+```tsx
+/** @gqlEnum */
+enum Role {
+  ADMIN = "ADMIN",
+  USER = "USER",
+}
+
+/** @gqlType */
+type User = {
+  /** @gqlField */
+  name: string;
+};
+
+const db = {
+  queryUserById(_userId: string): User {
+    return { name: "Alice" };
+  },
+};
+
 /**
  * This objet can be derived from the request/cookies/etc.
  * @gqlContext */
@@ -39,7 +57,17 @@ function queryForUser(vc: VC, userId: string): User {
 
 The `VC` object can also be passed through model constructors to avoid needing to pass it explicitly through every field resolver:
 
-```ts
+```tsx
+type VC = {};
+
+/** @gqlType */
+class Post {
+  constructor(_vc: VC) {}
+
+  /** @gqlField */
+  title: string;
+}
+
 /** @gqlType */
 class User {
   constructor(private vc: VC /* ... other fields */) {}
@@ -61,13 +89,62 @@ Note that schema directives are not exposed through GraphqL introspection, so th
 
 Usage on each restricted field looks like this:
 
-```ts
+```tsx
+/** @gqlEnum */
+enum Role {
+  ADMIN = "ADMIN",
+  USER = "USER",
+  GUEST = "GUEST",
+}
+
+/** @gqlContext */
+type Ctx = {
+  role: Role;
+};
+
+/**
+ * @gqlDirective assert on FIELD_DEFINITION
+ */
+export function requiresRole(_args: { is: Role }, _context: Ctx): void {}
+
+/** @gqlType */
+type User = {
+  /** @gqlField */
+  name: string;
+};
+
+const db = {
+  queryAllUsers(): User[] {
+    return [];
+  },
+};
+
 /**
  * @gqlQueryField
  * @gqlAnnotate assert(is: ADMIN)
  */
 export function getAllUsers(): User[] {
   return db.queryAllUsers();
+}
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+directive @assert(is: Role!) on FIELD_DEFINITION
+
+enum Role {
+  ADMIN
+  GUEST
+  USER
+}
+
+type Query {
+  getAllUsers: [User!] @assert(is: ADMIN)
+}
+
+type User {
+  name: String
 }
 ```
 
@@ -114,7 +191,7 @@ export function applyRolePermissions(schema: GraphQLSchema): GraphQLSchema {
 
       const originalResolve = fieldConfig.resolve ?? defaultFieldResolver;
       fieldConfig.resolve = (source, args, context, info) => {
-        requireRole(assertDirective[0], context);
+        requiresRole(assertDirective[0] as { is: Role }, context);
         return originalResolve(source, args, context, info);
       };
       return fieldConfig;
@@ -133,7 +210,23 @@ You can construct a derived context type which will cause a field to throw if th
 
 Usage on each restricted field looks like this:
 
-```ts
+```tsx
+type AdminToken = "AdminToken" & { __brand: "AdminToken" };
+type AssertAdminToken = AdminToken;
+
+/** @gqlContext */
+type Ctx = {
+  isAdmin: true;
+};
+
+/** @gqlContext */
+export function adminCheck(ctx: Ctx): AssertAdminToken {
+  if (!ctx.isAdmin) {
+    throw new Error("You do not have permission to access this field");
+  }
+  return "AdminToken" as AdminToken;
+}
+
 /**
  * This field will throw for any user that is not an admin. This is enabled
  * simply by adding an argument typed as `AssertAdminToken`, even if it's
@@ -149,7 +242,7 @@ Since Grats will call the context deriver as part of field execution, if the der
 
 The implementation of the `AssertAdminToken` type and its derived context function looks like this:
 
-```ts
+```tsx
 /**
  * The main GraphQL context object, derived from the request/cookies.
  * @gqlContext
@@ -183,7 +276,16 @@ In this case, you can define a "maybe" derived context type which is either the 
 
 These two token approaches can also be combined!
 
-```ts
+```tsx
+type AdminToken = "AdminToken" & { __brand: "AdminToken" };
+
+/**
+ * @gqlContext
+ */
+type Ctx = {
+  isAdmin: boolean;
+};
+
 type MaybeAdminToken = AdminToken | null;
 
 /**
@@ -197,7 +299,7 @@ export function maybeAdminToken(ctx: Ctx): MaybeAdminToken {
 }
 
 /** @gqlQueryField */
-export function someField(admin: MaybeAdminToken): string {
+export function someField(admin: MaybeAdminToken): string | null {
   // TypeScript ensures we somehow handle the case where `admin` is null before
   // calling into the data layer.
   if (admin == null) {
@@ -206,7 +308,7 @@ export function someField(admin: MaybeAdminToken): string {
   return someDataLayerFunction(admin);
 }
 
-function someDataLayerFunction(admin: AdminToken) {
+function someDataLayerFunction(_admin: AdminToken) {
   return "Here is your data";
 }
 ```
