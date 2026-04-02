@@ -66,12 +66,12 @@ module.exports = function docsExportPlugin(_context, _options) {
         // For custom GratsCode tab bar: remove the tab buttons and unhide
         // the hidden panel (which uses display:none in SSR).
         article.find(".grats-both__bar").remove();
-        article.find('.grats-both > div[style*="display:none"]').each(
-          (_i, el) => {
+        article
+          .find('.grats-both > div[style*="display:none"]')
+          .each((_i, el) => {
             $(el).removeAttr("style");
             $("<p><em>Generated GraphQL schema:</em></p>").insertBefore(el);
-          },
-        );
+          });
 
         // Replace <br> tags inside code blocks with newlines so that
         // textContent preserves line breaks (Prism uses <br> for line breaks)

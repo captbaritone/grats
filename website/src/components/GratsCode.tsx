@@ -69,7 +69,9 @@ function BothView({ ts, gql }: { ts: string; gql: string }) {
           GraphQL
         </button>
       </div>
-      <div style={tab === "ts" ? { position: "relative" } : { display: "none" }}>
+      <div
+        style={tab === "ts" ? { position: "relative" } : { display: "none" }}
+      >
         <CodeBlock language="tsx">{ts}</CodeBlock>
         <PlaygroundLink ts={ts} />
       </div>
