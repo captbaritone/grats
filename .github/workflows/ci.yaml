@@ -17,10 +17,6 @@ jobs:
           - 20.x # LTS
           - 22.x # LTS
           - 24.x # LTS
-        typescript-version: &typescript-versions
-          - "5.5"
-          - "5.7"
-          - "~5.9"
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
@@ -33,8 +29,6 @@ jobs:
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install
-      - name: Install TypeScript ${{ matrix.typescript-version }}
-        run: pnpm add -wD typescript@${{ matrix.typescript-version }}
       - name: Build
         run: pnpm run build
       - name: Install dependencies
@@ -62,7 +56,10 @@ jobs:
     strategy:
       matrix:
         node-version: *node-versions
-        typescript-version: *typescript-versions
+        typescript-version:
+          - "5.5"
+          - "5.7"
+          - "~5.9"
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
