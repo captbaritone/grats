@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Install TypeScript ${{ matrix.typescript-version }}
-        run: pnpm add -D typescript@${{ matrix.typescript-version }}
+        run: pnpm add -wD typescript@${{ matrix.typescript-version }}
       - name: Build
         run: pnpm run build
       - name: Install dependencies
@@ -76,7 +76,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Install TypeScript ${{ matrix.typescript-version }}
-        run: pnpm add -D typescript@${{ matrix.typescript-version }}
+        run: pnpm add -wD typescript@${{ matrix.typescript-version }}
       - name: Build # Integration tests depend upon having .js versions created by tsc
         run: pnpm run build
       - name: Unit Tests
