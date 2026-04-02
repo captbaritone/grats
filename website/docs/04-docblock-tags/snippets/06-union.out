@@ -1,0 +1,77 @@
+// highlight-start
+/**
+ * A description of my union.
+ * @gqlUnion
+ */
+type MyUnion = User | Post;
+// highlight-end
+
+/** @gqlType */
+class User {
+  __typename: "User";
+  /** @gqlField */
+  name: string;
+}
+
+/** @gqlType */
+class Post {
+  __typename: "Post";
+  /** @gqlField */
+  content: string;
+
+  /** @gqlField */
+  author: User;
+}
+
+=== SNIP ===
+"""A description of my union."""
+union MyUnion = Post | User
+
+type Post {
+  author: User
+  content: String
+}
+
+type User {
+  name: String
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLUnionType, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const PostType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Post",
+        fields() {
+            return {
+                author: {
+                    name: "author",
+                    type: UserType
+                },
+                content: {
+                    name: "content",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const MyUnionType: GraphQLUnionType = new GraphQLUnionType({
+        name: "MyUnion",
+        description: "A description of my union.",
+        types() {
+            return [PostType, UserType];
+        }
+    });
+    return new GraphQLSchema({
+        types: [MyUnionType, PostType, UserType]
+    });
+}

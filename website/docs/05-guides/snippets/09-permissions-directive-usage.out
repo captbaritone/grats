@@ -1,0 +1,122 @@
+// trim-start
+/** @gqlEnum */
+enum Role {
+  ADMIN = "ADMIN",
+  USER = "USER",
+  GUEST = "GUEST",
+}
+
+/** @gqlContext */
+type Ctx = {
+  role: Role;
+};
+
+/**
+ * @gqlDirective assert on FIELD_DEFINITION
+ */
+export function requiresRole(_args: { is: Role }, _context: Ctx): void {}
+
+/** @gqlType */
+type User = {
+  /** @gqlField */
+  name: string;
+};
+
+const db = {
+  queryAllUsers(): User[] {
+    return [];
+  },
+};
+
+// trim-end
+/**
+ * @gqlQueryField
+ * @gqlAnnotate assert(is: ADMIN)
+ */
+export function getAllUsers(): User[] {
+  return db.queryAllUsers();
+}
+
+=== SNIP ===
+directive @assert(is: Role!) on FIELD_DEFINITION
+
+enum Role {
+  ADMIN
+  GUEST
+  USER
+}
+
+type Query {
+  getAllUsers: [User!] @assert(is: ADMIN)
+}
+
+type User {
+  name: String
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLEnumType, specifiedDirectives, GraphQLObjectType, GraphQLList, GraphQLString } from "graphql";
+import { getAllUsers as queryGetAllUsersResolver } from "./09-permissions-directive-usage.grats";
+export function getSchema(): GraphQLSchema {
+    const RoleType: GraphQLEnumType = new GraphQLEnumType({
+        name: "Role",
+        values: {
+            ADMIN: {
+                value: "ADMIN"
+            },
+            GUEST: {
+                value: "GUEST"
+            },
+            USER: {
+                value: "USER"
+            }
+        }
+    });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                getAllUsers: {
+                    name: "getAllUsers",
+                    type: new GraphQLList(new GraphQLNonNull(UserType)),
+                    extensions: {
+                        grats: {
+                            directives: [{
+                                    name: "assert",
+                                    args: {
+                                        is: "ADMIN"
+                                    }
+                                }]
+                        }
+                    },
+                    resolve() {
+                        return queryGetAllUsersResolver();
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        directives: [...specifiedDirectives, new GraphQLDirective({
+                name: "assert",
+                locations: [DirectiveLocation.FIELD_DEFINITION],
+                args: {
+                    is: {
+                        type: new GraphQLNonNull(RoleType)
+                    }
+                }
+            })],
+        query: QueryType,
+        types: [RoleType, QueryType, UserType]
+    });
+}

@@ -45,6 +45,8 @@ One key piece of this strategy is support for comments `// trim-start` and `// t
 
 **For example:**
 
+TypeScriptGraphQL
+
 ```tsx
 const DB: any = {};
 
@@ -57,18 +59,6 @@ type User = {
 /** @gqlQueryField */
 export function userById(id: string): User {
   return DB.getUserById(id);
-}
-```
-
-_Generated GraphQL schema:_
-
-```graphql
-type Query {
-  userById(id: String!): User
-}
-
-type User {
-  name: String
 }
 ```
 

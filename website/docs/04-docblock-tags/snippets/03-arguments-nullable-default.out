@@ -1,0 +1,38 @@
+/** @gqlQueryField */
+export function greeting(name: string = "Max"): string {
+  return `Hello, ${name}`;
+}
+
+=== SNIP ===
+type Query {
+  greeting(name: String! = "Max"): String
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
+import { greeting as queryGreetingResolver } from "./03-arguments-nullable-default.grats";
+export function getSchema(): GraphQLSchema {
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    args: {
+                        name: {
+                            type: new GraphQLNonNull(GraphQLString),
+                            defaultValue: "Max"
+                        }
+                    },
+                    resolve(_source, args) {
+                        return queryGreetingResolver(args.name);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType]
+    });
+}

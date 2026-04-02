@@ -1,58 +1,36 @@
+import GratsCode from "@site/src/components/GratsCode";
+import ArgumentsBasic from "!!raw-loader!./snippets/03-arguments-basic.out";
+import ArgumentsFunctional from "!!raw-loader!./snippets/03-arguments-functional.out";
+import ArgumentsDefault from "!!raw-loader!./snippets/03-arguments-default.out";
+import ArgumentsDeprecated from "!!raw-loader!./snippets/03-arguments-deprecated.out";
+import ArgumentsObjectMap from "!!raw-loader!./snippets/03-arguments-object-map.out";
+import ArgumentsObjectMapDefault from "!!raw-loader!./snippets/03-arguments-object-map-default.out";
+import ArgumentsObjectMapDeprecated from "!!raw-loader!./snippets/03-arguments-object-map-deprecated.out";
+import ArgumentsNullableDefault from "!!raw-loader!./snippets/03-arguments-nullable-default.out";
+
 # Arguments
 
 Any resolver argument that is typed with a valid GraphQL type will be inferred as a GraphQL argument. Grats will automatically generate the appropriate schema definition based on the type of the argument and its name.
 
-```ts
-/** @gqlType */
-class MyType {
-  /** @gqlField */
-  // highlight-start
-  myField(greeting: string): string {
-    // highlight-end
-    return `${greeting} World`;
-  }
-}
-```
+<GratsCode out={ArgumentsBasic} mode="both" />
 
 ## Functional style fields
 
 In functional style fields, _the source object must always be the first argument_, so GraphQL arguments must come after the source object.
 
-```ts
-/** @gqlField */
-export function greeting(user: User, salutation: string): string {
-  return `${salutation} ${user.name}`;
-}
-```
+<GratsCode out={ArgumentsFunctional} mode="both" />
 
 ## Default values
 
 TypeScript default values will be used to infer the default value for the argument in the schema. Note that the default value must be parsable as a valid GraphQL literal.
 
-```ts
-class MyClass {
-  /** @gqlField */
-  myField(greeting: string = "Hello"): string {
-    return `${greeting} World`;
-  }
-}
-```
+<GratsCode out={ArgumentsDefault} mode="both" />
 
 ## Deprecated arguments
 
 Optional arguments can be marked as `@deprecated` by using the `@deprecated` JSDoc tag:
 
-```ts
-class MyClass {
-  /** @gqlField */
-  myField(
-    /** @deprecated Unused! */
-    greeting?: string | null,
-  ): string {
-    return `Hello World`;
-  }
-}
-```
+<GratsCode out={ArgumentsDeprecated} mode="both" />
 
 ## Nullable arguments
 
@@ -64,20 +42,11 @@ This ensures your resolver code handles both possible cases.
 
 The one exception is if your argument has a default value. In that case, you may opt to mark your argument as optional but not nullable.
 
-```ts
-/** @gqlQueryField */
-export function greeting(name?: string = "Max"): string {
-  return `Hello, ${name}`;
-}
-```
+<GratsCode out={ArgumentsNullableDefault} mode="ts" />
 
 Will result in the following schema:
 
-```graphql
-type Query {
-  greeting(name: String! = "Max"): String!
-}
-```
+<GratsCode out={ArgumentsNullableDefault} mode="gql" />
 
 Note that the `name` argument is marked as non-nullable in the schema. This means the user may not pass an explicit `null`, but if the argument is omitted, the default value will be used.
 
@@ -85,39 +54,12 @@ Note that the `name` argument is marked as non-nullable in the schema. This mean
 
 If you wish to match the `graphql-js` resolver signature more directly, you may also define your arguments using a single object argument. The argument may appear in any position, but may not be combined with positional GraphQL arguments. _This is not Grats' recommended style, but it is fully supported_.
 
-```ts
-/** @gqlType */
-class MyType {
-  /** @gqlField */
-  // highlight-start
-  myField(args: { greeting: string }): string {
-    // highlight-end
-    return `${args.greeting} World`;
-  }
-}
-```
+<GratsCode out={ArgumentsObjectMap} mode="both" />
 
 Default values in this style can be defined by using the `=` operator with destructuring. Note that you must perform the destructuring in the argument list, not in the function body:
 
-```ts
-class MyClass {
-  /** @gqlField */
-  myField({ greeting = "Hello" }: { greeting: string }): string {
-    return `${greeting} World`;
-  }
-}
-```
+<GratsCode out={ArgumentsObjectMapDefault} mode="both" />
 
 Like positional arguments, object-map arguments can be marked as `@deprecated` by using the `@deprecated` JSDoc tag:
 
-```ts
-class MyClass {
-  /** @gqlField */
-  myField(_: {
-    /** @deprecated Unused! */
-    greeting?: string;
-  }): string {
-    return `Hello World`;
-  }
-}
-```
+<GratsCode out={ArgumentsObjectMapDeprecated} mode="both" />

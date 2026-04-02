@@ -1,0 +1,68 @@
+// trim-start
+type Database = {
+  users: { getById(id: string): User };
+};
+
+/** @gqlType */
+type User = {
+  /** @gqlField */
+  name: string;
+};
+
+// trim-end
+/** @gqlContext */
+type GQLCtx = {
+  req: Request;
+  userID: string;
+  db: Database;
+};
+
+/** @gqlQueryField */
+// highlight-start
+export function me(ctx: GQLCtx): User {
+  // highlight-end
+  return ctx.db.users.getById(ctx.userID);
+}
+
+=== SNIP ===
+type Query {
+  me: User
+}
+
+type User {
+  name: String
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+import { me as queryMeResolver } from "./04-context-usage.grats";
+export function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                me: {
+                    name: "me",
+                    type: UserType,
+                    resolve(_source, _args, context) {
+                        return queryMeResolver(context);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType, UserType]
+    });
+}

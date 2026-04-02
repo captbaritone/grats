@@ -10,11 +10,11 @@ By making your TypeScript implementation and its types the source of truth, you 
 
 Grats is flexible enough to work with both class-based and functional approaches to authoring GraphQL types and resolvers.
 
-```ts
+```tsx
 /**
  * A user in our kick-ass system!
  * @gqlType */
-class User {
+export class User {
   /** @gqlQueryField */
   static me(): User {
     return new User();
@@ -32,7 +32,7 @@ class User {
 
 _Generated GraphQL schema:_
 
-```ts
+```tsx
 /** @gqlQueryField */
 export function me(): User {
   return { name: "Alice" };

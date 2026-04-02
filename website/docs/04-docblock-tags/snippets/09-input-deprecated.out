@@ -1,0 +1,39 @@
+// trim-start
+import { Int } from "grats";
+
+// trim-end
+/** @gqlInput */
+type MyInput = {
+  name: string;
+  /** @deprecated Don't ask for age any more */
+  age?: Int;
+};
+
+=== SNIP ===
+input MyInput {
+  age: Int @deprecated(reason: "Don't ask for age any more")
+  name: String!
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLInputObjectType, GraphQLInt, GraphQLNonNull, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const MyInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        name: "MyInput",
+        fields() {
+            return {
+                age: {
+                    deprecationReason: "Don't ask for age any more",
+                    name: "age",
+                    type: GraphQLInt
+                },
+                name: {
+                    name: "name",
+                    type: new GraphQLNonNull(GraphQLString)
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [MyInputType]
+    });
+}

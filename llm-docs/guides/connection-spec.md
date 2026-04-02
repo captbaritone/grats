@@ -18,6 +18,8 @@ Grats' support for [generic types](./generics.md) is a perfect fit for modeling 
 > **INFO:**
 > For a full working example of Connections in action, see our [Production App](../examples/production-app.md) example app.
 
+TypeScriptGraphQL
+
 ```tsx
 import { Int } from "grats";
 
@@ -79,33 +81,4 @@ declare function connectionFromArray<T>(
     before?: string | null;
   },
 ): Connection<T>;
-```
-
-_Generated GraphQL schema:_
-
-```graphql
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean
-  hasPreviousPage: Boolean
-  startCursor: String
-}
-
-type Query {
-  users(after: String, before: String, first: Int, last: Int): UserConnection
-}
-
-type User {
-  name: String
-}
-
-type UserConnection {
-  edges: [UserEdge!]
-  pageInfo: PageInfo
-}
-
-type UserEdge {
-  cursor: String
-  node: User
-}
 ```

@@ -2,7 +2,9 @@
 
 Any resolver argument that is typed with a valid GraphQL type will be inferred as a GraphQL argument. Grats will automatically generate the appropriate schema definition based on the type of the argument and its name.
 
-```ts
+TypeScriptGraphQL
+
+```tsx
 /** @gqlType */
 class MyType {
   /** @gqlField */
@@ -16,7 +18,15 @@ class MyType {
 
 In functional style fields, _the source object must always be the first argument_, so GraphQL arguments must come after the source object.
 
-```ts
+TypeScriptGraphQL
+
+```tsx
+/** @gqlType */
+type User = {
+  /** @gqlField */
+  name: string;
+};
+
 /** @gqlField */
 export function greeting(user: User, salutation: string): string {
   return `${salutation} ${user.name}`;
@@ -27,7 +37,10 @@ export function greeting(user: User, salutation: string): string {
 
 TypeScript default values will be used to infer the default value for the argument in the schema. Note that the default value must be parsable as a valid GraphQL literal.
 
-```ts
+TypeScriptGraphQL
+
+```tsx
+/** @gqlType */
 class MyClass {
   /** @gqlField */
   myField(greeting: string = "Hello"): string {
@@ -40,7 +53,10 @@ class MyClass {
 
 Optional arguments can be marked as `@deprecated` by using the `@deprecated` JSDoc tag:
 
-```ts
+TypeScriptGraphQL
+
+```tsx
+/** @gqlType */
 class MyClass {
   /** @gqlField */
   myField(
@@ -62,9 +78,9 @@ This ensures your resolver code handles both possible cases.
 
 The one exception is if your argument has a default value. In that case, you may opt to mark your argument as optional but not nullable.
 
-```ts
+```tsx
 /** @gqlQueryField */
-export function greeting(name?: string = "Max"): string {
+export function greeting(name: string = "Max"): string {
   return `Hello, ${name}`;
 }
 ```
@@ -73,7 +89,7 @@ Will result in the following schema:
 
 ```graphql
 type Query {
-  greeting(name: String! = "Max"): String!
+  greeting(name: String! = "Max"): String
 }
 ```
 
@@ -83,7 +99,9 @@ Note that the `name` argument is marked as non-nullable in the schema. This mean
 
 If you wish to match the `graphql-js` resolver signature more directly, you may also define your arguments using a single object argument. The argument may appear in any position, but may not be combined with positional GraphQL arguments. _This is not Grats' recommended style, but it is fully supported_.
 
-```ts
+TypeScriptGraphQL
+
+```tsx
 /** @gqlType */
 class MyType {
   /** @gqlField */
@@ -95,7 +113,10 @@ class MyType {
 
 Default values in this style can be defined by using the `=` operator with destructuring. Note that you must perform the destructuring in the argument list, not in the function body:
 
-```ts
+TypeScriptGraphQL
+
+```tsx
+/** @gqlType */
 class MyClass {
   /** @gqlField */
   myField({ greeting = "Hello" }: { greeting: string }): string {
@@ -106,12 +127,15 @@ class MyClass {
 
 Like positional arguments, object-map arguments can be marked as `@deprecated` by using the `@deprecated` JSDoc tag:
 
-```ts
+TypeScriptGraphQL
+
+```tsx
+/** @gqlType */
 class MyClass {
   /** @gqlField */
   myField(_: {
     /** @deprecated Unused! */
-    greeting?: string;
+    greeting?: string | null;
   }): string {
     return `Hello World`;
   }

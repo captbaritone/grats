@@ -12,10 +12,21 @@ When a `@gql*` type declaration contains references to its type parameters in po
 
 ## Examples
 
-```typescript
+TypeScriptGraphQL
+
+```tsx
+/** @gqlType */
+type GqlError = {
+  __typename: "GqlError";
+  /** @gqlField */
+  message: string;
+};
+
 /** @gqlType */
 type Edge<T> = {
+  /** @gqlField */
   node: T;
+  /** @gqlField */
   cursor: string;
 };
 
@@ -50,10 +61,28 @@ There are two different ways that generics can nest:
 
 A type parameter of a declaration can be passed as a type argument to another generic type.
 
-```typescript
+TypeScriptGraphQL
+
+```tsx
+/** @gqlType */
+type Edge<T> = {
+  /** @gqlField */
+  node: T;
+  /** @gqlField */
+  cursor: string;
+};
+
+/** @gqlType */
+type PageInfo = {
+  /** @gqlField */
+  hasNextPage: boolean;
+};
+
 /** @gqlType */
 type Connection<T> = {
+  /** @gqlField */
   edges: Edge<T>[];
+  /** @gqlField */
   pageInfo: PageInfo;
 };
 ```

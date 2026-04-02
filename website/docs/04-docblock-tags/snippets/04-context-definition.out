@@ -1,0 +1,20 @@
+// trim-start
+type Database = {};
+
+// trim-end
+/** @gqlContext */
+type GQLCtx = {
+  req: Request;
+  userID: string;
+  db: Database;
+};
+
+=== SNIP ===
+
+=== SNIP ===
+import { GraphQLSchema } from "graphql";
+export function getSchema(): GraphQLSchema {
+    return new GraphQLSchema({
+        types: []
+    });
+}

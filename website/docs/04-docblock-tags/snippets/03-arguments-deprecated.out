@@ -1,0 +1,44 @@
+// trim-start
+/** @gqlType */
+// trim-end
+class MyClass {
+  /** @gqlField */
+  myField(
+    /** @deprecated Unused! */
+    greeting?: string | null,
+  ): string {
+    return `Hello World`;
+  }
+}
+
+=== SNIP ===
+type MyClass {
+  myField(greeting: String @deprecated(reason: "Unused!")): String
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const MyClassType: GraphQLObjectType = new GraphQLObjectType({
+        name: "MyClass",
+        fields() {
+            return {
+                myField: {
+                    name: "myField",
+                    type: GraphQLString,
+                    args: {
+                        greeting: {
+                            deprecationReason: "Unused!",
+                            type: GraphQLString
+                        }
+                    },
+                    resolve(source, args) {
+                        return source.myField(args.greeting);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [MyClassType]
+    });
+}

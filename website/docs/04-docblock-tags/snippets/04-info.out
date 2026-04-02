@@ -1,0 +1,36 @@
+import { GqlInfo } from "grats";
+
+/** @gqlQueryField */
+// highlight-start
+export function greeting(info: GqlInfo): string {
+  // highlight-end
+  return `Greetings from the ${info.fieldName} field!`;
+}
+
+=== SNIP ===
+type Query {
+  greeting: String
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+import { greeting as queryGreetingResolver } from "./04-info.grats";
+export function getSchema(): GraphQLSchema {
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    resolve(_source, _args, _context, info) {
+                        return queryGreetingResolver(info);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType]
+    });
+}

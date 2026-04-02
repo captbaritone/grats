@@ -1,3 +1,6 @@
+import GratsCode from "@site/src/components/GratsCode";
+import Union from "!!raw-loader!./snippets/06-union.out";
+
 # Unions
 
 GraphQL unions can be defined by placing a `@gqlUnion` docblock directly before a:
@@ -5,32 +8,7 @@ GraphQL unions can be defined by placing a `@gqlUnion` docblock directly before 
 - Type alias of a union of object types
 - Type alias of reference to a single object type (for unions with one member)
 
-```ts
-// highlight-start
-/**
- * A description of my union.
- * @gqlUnion <optional name of the union, if different from type name>
- */
-type MyUnion = User | Post;
-// highlight-end
-
-/** @gqlType */
-class User {
-  __typename: "User";
-  /** @gqlField */
-  name: string;
-}
-
-/** @gqlType */
-class Post {
-  __typename: "Post";
-  /** @gqlField */
-  content: string;
-
-  /** @gqlField */
-  author: User;
-}
-```
+<GratsCode out={Union} mode="both" />
 
 :::note
 All the types referenced in the TypeScript union but be explicitly annotated with `@gqlType`. Grats will remind you with a helpful error message if you forget.

@@ -1,0 +1,23 @@
+/**
+ * The main GraphQL context object, derived from the request/cookies.
+ * @gqlContext
+ */
+type Ctx = {
+  isAdmin: true;
+};
+
+// Use "branded types" to ensure nobody else can construct an AdminToken.
+// https://egghead.io/blog/using-branded-types-in-typescript
+type AdminToken = "AdminToken" & { __brand: "AdminToken" };
+
+type AssertAdminToken = AdminToken;
+
+/**
+ * @gqlContext
+ */
+export function adminCheck(ctx: Ctx): AssertAdminToken {
+  if (!ctx.isAdmin) {
+    throw new Error("You do not have permission to access this field");
+  }
+  return "AdminToken" as AdminToken;
+}

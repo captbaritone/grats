@@ -19,6 +19,8 @@ These tags may be placed before a:
 
 If you want to group root fields that return or modify a specific type with that type's backing class, you can define them as part of that type's class using static methods:
 
+TypeScriptGraphQL
+
 ```tsx
 /** @gqlType */
 export class User {
@@ -31,18 +33,6 @@ export class User {
   static me(): User {
     return new User("Elizabeth");
   }
-}
-```
-
-_Generated GraphQL schema:_
-
-```graphql
-type Query {
-  me: User
-}
-
-type User {
-  name: String
 }
 ```
 

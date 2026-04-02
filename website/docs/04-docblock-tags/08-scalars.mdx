@@ -1,4 +1,5 @@
 import GratsCode from "@site/src/components/GratsCode";
+import ScalarDefinition from "!!raw-loader!./snippets/08-scalar-definition.out";
 import SpecifiedBy from "!!raw-loader!./snippets/08-specified-by.out";
 
 # Scalars
@@ -7,13 +8,7 @@ GraphQL custom scalars can be defined by placing a `@gqlScalar` docblock directl
 
 - Type alias declaration
 
-```ts
-/**
- * A description of my custom scalar.
- * @gqlScalar <optional name of the scalar, if different from type name>
- */
-export type MyCustomString = string;
-```
+<GratsCode out={ScalarDefinition} mode="both" />
 
 ## Built-In Scalars
 

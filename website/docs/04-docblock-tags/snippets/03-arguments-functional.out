@@ -1,0 +1,49 @@
+// trim-start
+/** @gqlType */
+type User = {
+  /** @gqlField */
+  name: string;
+};
+
+// trim-end
+/** @gqlField */
+export function greeting(user: User, salutation: string): string {
+  return `${salutation} ${user.name}`;
+}
+
+=== SNIP ===
+type User {
+  greeting(salutation: String!): String
+  name: String
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
+import { greeting as userGreetingResolver } from "./03-arguments-functional.grats";
+export function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    args: {
+                        salutation: {
+                            type: new GraphQLNonNull(GraphQLString)
+                        }
+                    },
+                    resolve(source, args) {
+                        return userGreetingResolver(source, args.salutation);
+                    }
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [UserType]
+    });
+}

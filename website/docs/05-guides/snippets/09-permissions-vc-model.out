@@ -1,0 +1,59 @@
+// trim-start
+type VC = {};
+
+/** @gqlType */
+class Post {
+  constructor(_vc: VC) {}
+
+  /** @gqlField */
+  title: string;
+}
+
+// trim-end
+/** @gqlType */
+class User {
+  constructor(private vc: VC /* ... other fields */) {}
+
+  /** @gqlField */
+  post(): Post {
+    return new Post(this.vc);
+  }
+}
+
+=== SNIP ===
+type Post {
+  title: String
+}
+
+type User {
+  post: Post
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const PostType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Post",
+        fields() {
+            return {
+                title: {
+                    name: "title",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                post: {
+                    name: "post",
+                    type: PostType
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [PostType, UserType]
+    });
+}

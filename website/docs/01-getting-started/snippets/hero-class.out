@@ -1,0 +1,75 @@
+/**
+ * A user in our kick-ass system!
+ * @gqlType */
+export class User {
+  /** @gqlQueryField */
+  static me(): User {
+    return new User();
+  }
+
+  /** @gqlField */
+  name: string = "Alice";
+
+  /** @gqlField */
+  greeting(salutation: string): string {
+    return `${salutation}, ${this.name}`;
+  }
+}
+
+=== SNIP ===
+type Query {
+  me: User
+}
+
+"""A user in our kick-ass system!"""
+type User {
+  greeting(salutation: String!): String
+  name: String
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
+import { User as queryMeResolver } from "./hero-class.grats";
+export function getSchema(): GraphQLSchema {
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        description: "A user in our kick-ass system!",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    args: {
+                        salutation: {
+                            type: new GraphQLNonNull(GraphQLString)
+                        }
+                    },
+                    resolve(source, args) {
+                        return source.greeting(args.salutation);
+                    }
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                me: {
+                    name: "me",
+                    type: UserType,
+                    resolve() {
+                        return queryMeResolver.me();
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType, UserType]
+    });
+}

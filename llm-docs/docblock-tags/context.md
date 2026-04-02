@@ -4,7 +4,9 @@ In addition to the [arguments object](./arguments.md), each resolver method/func
 
 To define the context object type, you must use the `@gqlContext` tag. This tag should be placed directly above the type definition for your context object.
 
-```ts
+```tsx
+type Database = {};
+
 /** @gqlContext */
 type GQLCtx = {
   req: Request;
@@ -17,7 +19,17 @@ type GQLCtx = {
 
 Grats will detect any resolver parameter that is typed using the `@gqlContext` type and ensure that the context object is passed to the resolver in that position:
 
-```ts
+```tsx
+type Database = {
+  users: { getById(id: string): User };
+};
+
+/** @gqlType */
+type User = {
+  /** @gqlField */
+  name: string;
+};
+
 /** @gqlContext */
 type GQLCtx = {
   req: Request;

@@ -4,7 +4,29 @@ Grats allows you to define fields which return a single item at a time in order 
 
 ## Example
 
-```ts
+TypeScriptGraphQL
+
+```tsx
+/** @gqlContext */
+type Ctx = {
+  vc: string;
+};
+
+/** @gqlType */
+class Post {
+  /** @gqlField */
+  id: string;
+  constructor(row: { id: string }) {
+    this.id = row.id;
+  }
+}
+
+const DB = {
+  async selectPosts(_vc: string): Promise<{ id: string }[]> {
+    return [];
+  },
+};
+
 /** @gqlType */
 class Viewer {
   /**

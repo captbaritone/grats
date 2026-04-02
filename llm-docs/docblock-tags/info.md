@@ -4,11 +4,13 @@ In addition to the [arguments](./arguments.md), and [context](./context.md) obje
 
 Grats will detect any resolver parameter that is typed using the `GqlInfo` type exported by Grats:
 
-```ts
+TypeScriptGraphQL
+
+```tsx
 import { GqlInfo } from "grats";
 
 /** @gqlQueryField */
-export function greeting(info: GqlInfo): User {
+export function greeting(info: GqlInfo): string {
   return `Greetings from the ${info.fieldName} field!`;
 }
 ```

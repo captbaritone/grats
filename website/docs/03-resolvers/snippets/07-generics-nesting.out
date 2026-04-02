@@ -1,0 +1,46 @@
+// trim-start
+/** @gqlType */
+type Edge<T> = {
+  /** @gqlField */
+  node: T;
+  /** @gqlField */
+  cursor: string;
+};
+
+/** @gqlType */
+type PageInfo = {
+  /** @gqlField */
+  hasNextPage: boolean;
+};
+
+// trim-end
+/** @gqlType */
+type Connection<T> = {
+  /** @gqlField */
+  edges: Edge<T>[];
+  /** @gqlField */
+  pageInfo: PageInfo;
+};
+
+=== SNIP ===
+type PageInfo {
+  hasNextPage: Boolean
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLObjectType, GraphQLBoolean } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const PageInfoType: GraphQLObjectType = new GraphQLObjectType({
+        name: "PageInfo",
+        fields() {
+            return {
+                hasNextPage: {
+                    name: "hasNextPage",
+                    type: GraphQLBoolean
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        types: [PageInfoType]
+    });
+}

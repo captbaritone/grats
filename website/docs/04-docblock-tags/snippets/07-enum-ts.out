@@ -1,0 +1,40 @@
+/**
+ * A description of my enum.
+ * @gqlEnum
+ */
+enum MyEnum {
+  /** A description of my variant */
+  OK = "OK",
+  /** A description of my other variant */
+  ERROR = "ERROR",
+}
+
+=== SNIP ===
+"""A description of my enum."""
+enum MyEnum {
+  """A description of my other variant"""
+  ERROR
+  """A description of my variant"""
+  OK
+}
+=== SNIP ===
+import { GraphQLSchema, GraphQLEnumType } from "graphql";
+export function getSchema(): GraphQLSchema {
+    const MyEnumType: GraphQLEnumType = new GraphQLEnumType({
+        description: "A description of my enum.",
+        name: "MyEnum",
+        values: {
+            ERROR: {
+                description: "A description of my other variant",
+                value: "ERROR"
+            },
+            OK: {
+                description: "A description of my variant",
+                value: "OK"
+            }
+        }
+    });
+    return new GraphQLSchema({
+        types: [MyEnumType]
+    });
+}

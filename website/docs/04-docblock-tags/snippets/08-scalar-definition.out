@@ -1,0 +1,28 @@
+/**
+ * A description of my custom scalar.
+ * @gqlScalar
+ */
+export type MyCustomString = string;
+
+=== SNIP ===
+"""A description of my custom scalar."""
+scalar MyCustomString
+=== SNIP ===
+import type { GqlScalar } from "grats";
+import type { MyCustomString as MyCustomStringInternal } from "./08-scalar-definition.grats";
+import { GraphQLSchema, GraphQLScalarType } from "graphql";
+export type SchemaConfig = {
+    scalars: {
+        MyCustomString: GqlScalar<MyCustomStringInternal>;
+    };
+};
+export function getSchema(config: SchemaConfig): GraphQLSchema {
+    const MyCustomStringType: GraphQLScalarType = new GraphQLScalarType({
+        description: "A description of my custom scalar.",
+        name: "MyCustomString",
+        ...config.scalars.MyCustomString
+    });
+    return new GraphQLSchema({
+        types: [MyCustomStringType]
+    });
+}
