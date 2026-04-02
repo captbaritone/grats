@@ -16,8 +16,6 @@ Lets consider a common pain point: You have a field which you know will error so
 
 A manual implementation might look like:
 
-TypeScriptGraphQL
-
 ```tsx
 /** @gqlUnion */
 export type MyValueResult = MyValue | MyError;
@@ -50,9 +48,25 @@ function getMyValue(): MyValue {
 }
 ```
 
-But if we want to have many fields like this, we'd have to manually define a `*Result` type for each type of value we want to return. Let's define a generic `Result<T>` type which is reusable to make this more streamlined.
+_Generated GraphQL schema:_
 
-TypeScriptGraphQL
+```graphql
+union MyValueResult = MyError | MyValue
+
+type MyError {
+  message: String
+}
+
+type MyValue {
+  value: String
+}
+
+type Query {
+  myValue: MyValueResult
+}
+```
+
+But if we want to have many fields like this, we'd have to manually define a `*Result` type for each type of value we want to return. Let's define a generic `Result<T>` type which is reusable to make this more streamlined.
 
 ```tsx
 /** @gqlUnion */
@@ -103,6 +117,31 @@ function getMyValue(): MyValue {
 
 function getMyOtherValue(): MyOtherValue {
   return { value: "Hello, World!", __typename: "MyOtherValue" };
+}
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+union MyOtherValueResult = MyError | MyOtherValue
+
+union MyValueResult = MyError | MyValue
+
+type MyError {
+  message: String
+}
+
+type MyOtherValue {
+  value: String
+}
+
+type MyValue {
+  value: String
+}
+
+type Query {
+  myOtherValue: MyOtherValueResult
+  myValue: MyValueResult
 }
 ```
 

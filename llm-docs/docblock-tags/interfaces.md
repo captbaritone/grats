@@ -19,8 +19,6 @@ interface MyClass {
 
 If you wish to define field which has a single implementation that is shared by all implementors, you can use the [function style of `@gqlField`](./fields.md#functional-style-fields) to define the field. This will automatically add the field to all implementors of the interface.
 
-TypeScriptGraphQL
-
 ```tsx
 /** @gqlInterface */
 interface Greetable {
@@ -45,6 +43,25 @@ class Pet implements Greetable {
   __typename: "Pet";
   /** @gqlField */
   name: string;
+}
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+interface Greetable {
+  greeting: String
+  name: String
+}
+
+type Pet implements Greetable {
+  greeting: String
+  name: String
+}
+
+type User implements Greetable {
+  greeting: String
+  name: String
 }
 ```
 

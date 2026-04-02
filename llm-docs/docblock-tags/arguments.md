@@ -2,8 +2,6 @@
 
 Any resolver argument that is typed with a valid GraphQL type will be inferred as a GraphQL argument. Grats will automatically generate the appropriate schema definition based on the type of the argument and its name.
 
-TypeScriptGraphQL
-
 ```tsx
 /** @gqlType */
 class MyType {
@@ -14,11 +12,17 @@ class MyType {
 }
 ```
 
+_Generated GraphQL schema:_
+
+```graphql
+type MyType {
+  myField(greeting: String!): String
+}
+```
+
 ## Functional style fields
 
 In functional style fields, _the source object must always be the first argument_, so GraphQL arguments must come after the source object.
-
-TypeScriptGraphQL
 
 ```tsx
 /** @gqlType */
@@ -33,11 +37,18 @@ export function greeting(user: User, salutation: string): string {
 }
 ```
 
+_Generated GraphQL schema:_
+
+```graphql
+type User {
+  greeting(salutation: String!): String
+  name: String
+}
+```
+
 ## Default values
 
 TypeScript default values will be used to infer the default value for the argument in the schema. Note that the default value must be parsable as a valid GraphQL literal.
-
-TypeScriptGraphQL
 
 ```tsx
 /** @gqlType */
@@ -49,11 +60,17 @@ class MyClass {
 }
 ```
 
+_Generated GraphQL schema:_
+
+```graphql
+type MyClass {
+  myField(greeting: String! = "Hello"): String
+}
+```
+
 ## Deprecated arguments
 
 Optional arguments can be marked as `@deprecated` by using the `@deprecated` JSDoc tag:
-
-TypeScriptGraphQL
 
 ```tsx
 /** @gqlType */
@@ -65,6 +82,14 @@ class MyClass {
   ): string {
     return `Hello World`;
   }
+}
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+type MyClass {
+  myField(greeting: String @deprecated(reason: "Unused!")): String
 }
 ```
 
@@ -99,8 +124,6 @@ Note that the `name` argument is marked as non-nullable in the schema. This mean
 
 If you wish to match the `graphql-js` resolver signature more directly, you may also define your arguments using a single object argument. The argument may appear in any position, but may not be combined with positional GraphQL arguments. _This is not Grats' recommended style, but it is fully supported_.
 
-TypeScriptGraphQL
-
 ```tsx
 /** @gqlType */
 class MyType {
@@ -111,9 +134,15 @@ class MyType {
 }
 ```
 
-Default values in this style can be defined by using the `=` operator with destructuring. Note that you must perform the destructuring in the argument list, not in the function body:
+_Generated GraphQL schema:_
 
-TypeScriptGraphQL
+```graphql
+type MyType {
+  myField(greeting: String!): String
+}
+```
+
+Default values in this style can be defined by using the `=` operator with destructuring. Note that you must perform the destructuring in the argument list, not in the function body:
 
 ```tsx
 /** @gqlType */
@@ -125,9 +154,15 @@ class MyClass {
 }
 ```
 
-Like positional arguments, object-map arguments can be marked as `@deprecated` by using the `@deprecated` JSDoc tag:
+_Generated GraphQL schema:_
 
-TypeScriptGraphQL
+```graphql
+type MyClass {
+  myField(greeting: String! = "Hello"): String
+}
+```
+
+Like positional arguments, object-map arguments can be marked as `@deprecated` by using the `@deprecated` JSDoc tag:
 
 ```tsx
 /** @gqlType */
@@ -139,5 +174,13 @@ class MyClass {
   }): string {
     return `Hello World`;
   }
+}
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+type MyClass {
+  myField(greeting: String @deprecated(reason: "Unused!")): String
 }
 ```

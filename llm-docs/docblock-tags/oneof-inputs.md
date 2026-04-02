@@ -13,8 +13,6 @@ You _do not_ need to use [`@gqlAnnotate`](./directive-annotations.md) to add the
 > **WARNING:**
 > OneOf is not supported in versions of graphql-js earlier than `v16.9.0`. If you are using an older version of graphql-js, you will need to upgrade to use this feature.
 
-TypeScriptGraphQL
-
 ```tsx
 /**
  * @gqlInput
@@ -22,11 +20,18 @@ TypeScriptGraphQL
 export type UserBy = { email: string } | { username: string };
 ```
 
+_Generated GraphQL schema:_
+
+```graphql
+input UserBy @oneOf {
+  email: String
+  username: String
+}
+```
+
 ## OneOf input field descriptions
 
 TypeScript does not support docblocks "attach" to a member of a union. Therefore, if you want to provide a description for a field of a OneOf input, place it above the field, within the object literal:
-
-TypeScriptGraphQL
 
 ```tsx
 /**
@@ -43,13 +48,22 @@ export type UserBy =
     };
 ```
 
+_Generated GraphQL schema:_
+
+```graphql
+input UserBy @oneOf {
+  """Fetch the user by email"""
+  email: String
+  """Fetch the user by username"""
+  username: String
+}
+```
+
 ## Working with OneOf inputs
 
 When handling one of these types in TypeScript it is a best practice to use an exhaustive switch. This way, if you add a new option to the union, TypeScript will trigger an error in all the locations where you handle the union.
 
 _As of TypeScript 5.3.0_, TypeScript supports a pattern called [Switch True Narrowing](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-3.html#switch-true-narrowing) which can be used to ensure that you have handled all the possible options in this type of union. It looks like this:
-
-TypeScriptGraphQL
 
 ```tsx
 /**
@@ -88,6 +102,24 @@ class User {
   static fromUsername(username: string): User {
     return new User(undefined, username);
   }
+}
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+input UserBy @oneOf {
+  email: String
+  username: String
+}
+
+type Query {
+  getUser(by: UserBy!): User
+}
+
+type User {
+  email: String
+  username: String
 }
 ```
 

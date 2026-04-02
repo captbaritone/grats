@@ -89,8 +89,6 @@ Note that schema directives are not exposed through GraphqL introspection, so th
 
 Usage on each restricted field looks like this:
 
-TypeScriptGraphQL
-
 ```tsx
 /** @gqlEnum */
 enum Role {
@@ -127,6 +125,26 @@ const db = {
  */
 export function getAllUsers(): User[] {
   return db.queryAllUsers();
+}
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+directive @assert(is: Role!) on FIELD_DEFINITION
+
+enum Role {
+  ADMIN
+  GUEST
+  USER
+}
+
+type Query {
+  getAllUsers: [User!] @assert(is: ADMIN)
+}
+
+type User {
+  name: String
 }
 ```
 

@@ -66,8 +66,6 @@ In most cases you won't need to manually define the three operation types `Query
 
 However, if you _do_ wish to explicitly define one of these types (for example to add a description) they _must_ be defined as a type alias of of `unknown`. E.g. `type Query = unknown;`. If you attempt to define them any other way, Grats will report an error. You can read more in this FAQ entry: [Why Prohibit Root Values](../faq/why-prohibit-root-values.md).
 
-TypeScriptGraphQL
-
 ```tsx
 /**
  * # Welcome to GenericCorp's GraphQL Schema!
@@ -80,6 +78,19 @@ type Query = unknown;
 /** @gqlQueryField */
 export function greet(): string {
   return "Hello world";
+}
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+"""
+# Welcome to GenericCorp's GraphQL Schema!
+
+This is root type of our system. Everything you need can be access from here.
+"""
+type Query {
+  greet: String
 }
 ```
 

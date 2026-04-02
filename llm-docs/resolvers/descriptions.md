@@ -11,8 +11,6 @@ See [Comment Syntax](../getting-started/comment-syntax.md) for more details.
 
 ## Example
 
-TypeScriptGraphQL
-
 ```tsx
 /**
  * A registered user of the system.
@@ -30,6 +28,22 @@ class User {
   ): string {
     return `${greeting} World`;
   }
+}
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+"""A registered user of the system."""
+type User {
+  """
+  A friendly greeting for the user, intended for
+  their first visit.
+  """
+  hello(
+    """The salutation to use"""
+    greeting: String!
+  ): String
 }
 ```
 

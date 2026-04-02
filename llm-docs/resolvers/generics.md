@@ -12,8 +12,6 @@ When a `@gql*` type declaration contains references to its type parameters in po
 
 ## Examples
 
-TypeScriptGraphQL
-
 ```tsx
 /** @gqlType */
 type GqlError = {
@@ -32,6 +30,14 @@ type Edge<T> = {
 
 /** @gqlUnion */
 type Result<T> = T | GqlError;
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+type GqlError {
+  message: String
+}
 ```
 
 ## Type Parameters
@@ -61,8 +67,6 @@ There are two different ways that generics can nest:
 
 A type parameter of a declaration can be passed as a type argument to another generic type.
 
-TypeScriptGraphQL
-
 ```tsx
 /** @gqlType */
 type Edge<T> = {
@@ -85,6 +89,14 @@ type Connection<T> = {
   /** @gqlField */
   pageInfo: PageInfo;
 };
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+type PageInfo {
+  hasNextPage: Boolean
+}
 ```
 
 A generic type can be passed a type argument which is itself a generic type with its own type arguments.

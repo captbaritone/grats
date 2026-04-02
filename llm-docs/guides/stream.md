@@ -4,8 +4,6 @@ Grats allows you to define fields which return a single item at a time in order 
 
 ## Example
 
-TypeScriptGraphQL
-
 ```tsx
 /** @gqlContext */
 type Ctx = {
@@ -44,6 +42,24 @@ class Viewer {
       yield new Post(row);
     }
   }
+}
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+type Post {
+  id: String
+}
+
+type Viewer {
+  """
+  An "algorithmically generated" feed of posts.
+  
+  **Note:** Due to the extreme complexity of this algorithm, it can be slow.
+  It is recommended to use `@stream` to avoid blocking the client.
+  """
+  feed: [Post!]
 }
 ```
 

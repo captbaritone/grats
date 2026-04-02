@@ -6,8 +6,6 @@ GraphQL enums can be defined by placing a `@gqlEnum` docblock directly before a:
 -   Type alias of a union of string literals
 -   Type alias deriving from a const array (`(typeof X)[number]`) or const object (`(typeof X)[keyof typeof X]`)
 
-TypeScriptGraphQL
-
 ```tsx
 /**
  * A description of my enum.
@@ -21,11 +19,21 @@ enum MyEnum {
 }
 ```
 
+_Generated GraphQL schema:_
+
+```graphql
+"""A description of my enum."""
+enum MyEnum {
+  """A description of my other variant"""
+  ERROR
+  """A description of my variant"""
+  OK
+}
+```
+
 Note that the values of the enum are used as the GraphQL enum values, and must be string literals.
 
 To mark a variants as deprecated, use the `@deprecated` JSDoc tag directly before it:
-
-TypeScriptGraphQL
 
 ```tsx
 /** @gqlEnum */
@@ -37,6 +45,16 @@ enum MyEnum {
 }
 ```
 
+_Generated GraphQL schema:_
+
+```graphql
+enum MyEnum {
+  ERROR
+  OK
+  OKAY @deprecated(reason: "Please use OK instead.")
+}
+```
+
 We also support defining enums using a union of string literals, however there are some limitations to this approach:
 
 -   You cannot add descriptions to enum values
@@ -44,11 +62,18 @@ We also support defining enums using a union of string literals, however there a
 
 This is due to the fact that TypeScript does not see JSDoc comments as "attaching" to string literal types.
 
-TypeScriptGraphQL
-
 ```tsx
 /** @gqlEnum */
 type MyEnum = "OK" | "ERROR";
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+enum MyEnum {
+  ERROR
+  OK
+}
 ```
 
 ## Runtime-accessible enums
@@ -60,8 +85,6 @@ If you need runtime access to enum values without using TypeScript's `enum` synt
 
 ### Const array
 
-TypeScriptGraphQL
-
 ```tsx
 const ALL_STATUSES = ["DRAFT", "PUBLISHED", "ARCHIVED"] as const;
 
@@ -69,13 +92,21 @@ const ALL_STATUSES = ["DRAFT", "PUBLISHED", "ARCHIVED"] as const;
 type Status = (typeof ALL_STATUSES)[number];
 ```
 
+_Generated GraphQL schema:_
+
+```graphql
+enum Status {
+  ARCHIVED
+  DRAFT
+  PUBLISHED
+}
+```
+
 Like union-of-literal enums, const arrays do not support descriptions or `@deprecated` on individual values. Use a const object or TypeScript `enum` if you need those.
 
 ### Const object
 
 Const objects allow you to define human-readable keys that map to GraphQL enum values, similar to TypeScript `enum` declarations. Unlike arrays, object properties support descriptions and `@deprecated` tags:
-
-TypeScriptGraphQL
 
 ```tsx
 const Status = {
@@ -89,4 +120,16 @@ const Status = {
 
 /** @gqlEnum */
 type Status = (typeof Status)[keyof typeof Status];
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+enum Status {
+  """Currently being edited"""
+  DRAFT
+  HIDDEN @deprecated(reason: "Use DRAFT instead")
+  """Available to readers"""
+  PUBLISHED
+}
 ```

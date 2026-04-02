@@ -4,14 +4,19 @@ GraphQL custom scalars can be defined by placing a `@gqlScalar` docblock directl
 
 -   Type alias declaration
 
-TypeScriptGraphQL
-
 ```tsx
 /**
  * A description of my custom scalar.
  * @gqlScalar
  */
 export type MyCustomString = string;
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+"""A description of my custom scalar."""
+scalar MyCustomString
 ```
 
 ## Built-In Scalars
@@ -36,14 +41,18 @@ class Math {
 
 The GraphQL specification defines the [`@specifiedBy`](https://spec.graphql.org/draft/#sec--specifiedBy) directive which can be added to custom scalar definitions. The directive provides a "scalar specification URL for specifying the behavior of custom scalar types.". Grats' support for [annotating your schema with directives](./directive-annotations.md) lets you add this directive to your custom scalars:
 
-TypeScriptGraphQL
-
 ```tsx
 /**
  * @gqlScalar
  * @gqlAnnotate specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
  */
 export type UUID = string;
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
 ```
 
 ## Serialization and Parsing of Custom Scalars

@@ -4,8 +4,6 @@ Graphql-js expects subscription fields to return an `AsyncIterable`. Grats enfor
 
 ## Example
 
-TypeScriptGraphQL
-
 ```tsx
 import { Int } from "grats";
 
@@ -19,6 +17,14 @@ export async function* countdown(): AsyncIterable<Int> {
 
 function sleep(s: number) {
   return new Promise((resolve) => setTimeout(resolve, s * 1000));
+}
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+type Subscription {
+  countdown: Int
 }
 ```
 

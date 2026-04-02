@@ -5,8 +5,6 @@ GraphQL input types can be defined by placing a `@gqlInput` docblock directly be
 -   Type alias declaration
 -   Interface declaration
 
-TypeScriptGraphQL
-
 ```tsx
 /**
  * Description of my input type
@@ -17,7 +15,14 @@ type MyInput = {
 };
 ```
 
-TypeScriptGraphQL
+_Generated GraphQL schema:_
+
+```graphql
+"""Description of my input type"""
+input MyInput {
+  name: String!
+}
+```
 
 ```tsx
 /** @gqlInput */
@@ -26,13 +31,19 @@ interface MyInput {
 }
 ```
 
+_Generated GraphQL schema:_
+
+```graphql
+input MyInput {
+  name: String!
+}
+```
+
 Unlike with type or interface fields, every property of an input type is automatically included as part of the GraphQL definition. You do not need to annotate individual properties with `@gqlField`.
 
 ## Deprecated fields
 
 Individual optional fields can be marked as `@deprecated` in the GraphQL schema using the `@deprecated` JSDoc tag:
-
-TypeScriptGraphQL
 
 ```tsx
 import { Int } from "grats";
@@ -43,6 +54,15 @@ type MyInput = {
   /** @deprecated Don't ask for age any more */
   age?: Int;
 };
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+input MyInput {
+  age: Int @deprecated(reason: "Don't ask for age any more")
+  name: String!
+}
 ```
 
 ## Merged Interfaces
