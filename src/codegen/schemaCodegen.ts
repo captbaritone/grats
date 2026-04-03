@@ -653,11 +653,18 @@ class Codegen {
         parentTypeName,
         sourceExport,
       );
-      return [
+      const withSemanticNull =
         this.resolvers.maybeApplySemanticNullRuntimeCheck(
           field,
           resolve,
           "resolve",
+        );
+      return [
+        this.resolvers.maybeApplyFieldDirectiveWrappers(
+          field,
+          withSemanticNull,
+          "resolve",
+          this._schema,
         ),
       ];
     }

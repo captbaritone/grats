@@ -88,6 +88,14 @@ declare module "graphql" {
     isAmbiguous?: boolean;
   }
 
+  export interface DirectiveDefinitionNode {
+    /**
+     * Grats metadata: Export information for directives that return FieldDirective.
+     * When present, the directive function wraps field resolvers at runtime.
+     */
+    exported?: ExportDefinition;
+  }
+
   export interface EnumValueDefinitionNode {
     /**
      * Grats metadata: The TypeScript name of the enum value.
