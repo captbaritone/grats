@@ -126,7 +126,7 @@ const testDirs: TestDir[] = [
           );
         }
         parsed = parsedResult.value;
-      } catch (e) {
+      } catch (e: any) {
         return err(e.message);
       }
       console.warn = consoleWarn;
@@ -191,7 +191,7 @@ const testDirs: TestDir[] = [
           );
         }
         parsedOptions = parsedOptionsResult.value;
-      } catch (e) {
+      } catch (e: any) {
         return err(e.message);
       }
 

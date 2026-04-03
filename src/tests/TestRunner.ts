@@ -189,7 +189,7 @@ export default class TestRunner {
   async transform(code: string, filename: string): Promise<TransformerResult> {
     try {
       return await this._transformer(code, filename);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
       return { kind: "ERROR", err: e.message };
     }

@@ -6,6 +6,10 @@ Changes in this section are not yet released. If you need access to these change
 
 - **Features**
   - Added support for deriving `@gqlEnum` from const arrays (`(typeof X)[number]`) and const objects (`(typeof X)[keyof typeof X]`). This allows defining enums with runtime-accessible values without using TypeScript's `enum` syntax. The const declaration must immediately precede the type alias. See [enum docs](../04-docblock-tags/07-enums.mdx#runtime-accessible-enums) for details.
+- **Improvements**
+  - `typescript` is now a peer dependency (`>=5.5`) instead of a direct dependency, allowing you to use your own TypeScript version. ([PR](https://github.com/captbaritone/grats/pull/228))
+  - Added support for TypeScript 6.0. ([PR](https://github.com/captbaritone/grats/pull/228))
+  - CI now tests against TypeScript 5.5, 5.7, 5.9, and 6.0.
 
 ## 0.0.36
 

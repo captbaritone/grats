@@ -59,7 +59,7 @@ export function visitDefinitions(doc: DocumentNode, visitors: Visitor) {
   });
 }
 
-const emptyArray = [];
+const emptyArray: never[] = [];
 
 /**
  * Simplified, more performant, version of graphql-js's visit function that only

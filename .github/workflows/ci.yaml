@@ -57,9 +57,10 @@ jobs:
       matrix:
         node-version: *node-versions
         typescript-version:
-          - "5.5"
-          - "5.7"
-          - "~5.9"
+          - "5.5.4"
+          - "5.7.3"
+          - "5.9.3"
+          - "6.0.2"
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2

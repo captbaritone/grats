@@ -28,7 +28,6 @@
     "typescript": ">=5.5"
   },
   "devDependencies": {
-    "typescript": "5.9.2",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.36.0",
     "@types/node": "^24.5.2",
@@ -42,7 +41,8 @@
     "path-browserify": "^1.0.1",
     "prettier": "^3.6.2",
     "process": "^0.11.10",
-    "tsx": "^4.19.0"
+    "tsx": "^4.19.0",
+    "typescript": "5.9.2"
   },
   "prettier": {
     "trailingComma": "all"
