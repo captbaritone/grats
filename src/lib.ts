@@ -112,7 +112,7 @@ export function extractSchemaAndDoc(
 
       // Resolve which directive definitions return `FieldDirective` and
       // record their export information for codegen.
-      resolveFieldDirectives(checker, snapshot.definitions);
+      resolveFieldDirectives(ctx, snapshot.definitions);
 
       const docResult = new ResultPipe(validationResult)
         // Filter out any `implements` clauses that are not GraphQL interfaces.
