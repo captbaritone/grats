@@ -4,10 +4,8 @@ import { getSchema } from "./schema.js";
 import { VC } from "./ViewerContext.js";
 import { scalarConfig } from "./graphql/CustomScalars.js";
 import { useDeferStream } from "@graphql-yoga/plugin-defer-stream";
-import { applyCreditLimit } from "./graphql/directives.js";
 
-let schema = getSchema({ scalars: scalarConfig });
-schema = applyCreditLimit(schema);
+const schema = getSchema({ scalars: scalarConfig });
 
 const yoga = createYoga({
   schema,

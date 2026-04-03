@@ -565,28 +565,11 @@ class Extractor {
       description,
     );
 
-    // If the directive function returns `FieldDirective` from grats, record
-    // the export information so codegen can wrap field resolvers at runtime.
-    if (this.returnsFieldDirective(node)) {
-      const tsModulePath = relativePath(node.getSourceFile().fileName);
-      directive.exported = {
-        tsModulePath,
-        exportName: node.name?.text ?? null,
-      };
-    }
+    // Store the TS function declaration so the resolveFieldDirectives
+    // transform can check the return type with the type checker.
+    directive.tsFunctionDeclaration = node;
 
     this.definitions.push(directive);
-  }
-
-  // Check if a directive function's return type annotation is `FieldDirective`.
-  // This is a syntactic check — we match the identifier name.
-  returnsFieldDirective(node: ts.FunctionDeclaration): boolean {
-    const returnType = node.type;
-    if (returnType == null) return false;
-    if (!ts.isTypeReferenceNode(returnType)) return false;
-    const typeName = returnType.typeName;
-    if (!ts.isIdentifier(typeName)) return false;
-    return typeName.text === "FieldDirective";
   }
 
   extractDirectiveArgs(

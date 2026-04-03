@@ -30,21 +30,23 @@ The `VC` object can also be passed through model constructors to avoid needing t
 
 ## Permission Directives
 
-If you do decide to enforce permissions in the GraphQL layer, one approach is to use [Directives](https://graphql.org/learn/queries/#directives) to annotate fields with the permissions required to access them, and then use a custom [Schema Directive Visitor](https://www.apollographql.com/docs/graphql-tools/schema-directives/) to wrap the field resolvers with permission checks.
+If you do decide to enforce permissions in the GraphQL layer, one approach is to use [Directives](https://graphql.org/learn/queries/#directives) to annotate fields with the permissions required to access them.
+
+By returning [`FieldDirective`](../04-docblock-tags/11-directive-definitions.mdx#field-directive-wrappers) from your directive function, Grats will automatically wrap the field resolver with your permission check — no manual schema transformation needed.
 
 This approach means that the permission requirements end up visible in your generated GraphQL schema. It can be useful for clients to know what permissions are required to access certain fields, but in some cases permissions are not intended to be public knowledge, so be sure to consider whether this is appropriate for your use case.
 
-Note that schema directives are not exposed through GraphqL introspection, so they will not be visible to clients who access the schema that way.
+Note that schema directives are not exposed through GraphQL introspection, so they will not be visible to clients who access the schema that way.
 
 Usage on each restricted field looks like this:
 
 <GratsCode out={PermissionsDirectiveUsage} mode="both" />
 
-Then, after we create our schema, we can use `@graphql-tools/utils` to wrap each field annotated with the directives in a function which first applies the permission check:
+The directive implementation uses `FieldDirective` to wrap the resolver with a permission check:
 
 ```ts
-import { defaultFieldResolver, GraphQLError, GraphQLSchema } from "graphql";
-import { getDirective, MapperKind, mapSchema } from "@graphql-tools/utils";
+import { GraphQLError } from "graphql";
+import { FieldDirective } from "grats";
 
 /** @gqlContext */
 type Ctx = {
@@ -59,36 +61,18 @@ export enum Role {
 }
 
 /**
- * Indicates that a field require the specified roles to access.
+ * Indicates that a field requires the specified role to access.
  * @gqlDirective assert on FIELD_DEFINITION
  */
-export function requiresRole(args: { is: Role }, context: Ctx): void {
-  if (args.is !== context.role) {
-    // Using `GraphQLError` here ensures the error is not masked by Yoga.
-    throw new GraphQLError("You do not have permission to access this field.");
-  }
-}
-
-// Monkey patches the `resolve` function of fields with the `@requiresRole`
-export function applyRolePermissions(schema: GraphQLSchema): GraphQLSchema {
-  return mapSchema(schema, {
-    [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-      const assertDirective = getDirective(schema, fieldConfig, "assert", [
-        "grats",
-        "directives",
-      ]);
-      if (assertDirective == null || assertDirective.length === 0) {
-        return fieldConfig;
-      }
-
-      const originalResolve = fieldConfig.resolve ?? defaultFieldResolver;
-      fieldConfig.resolve = (source, args, context, info) => {
-        requiresRole(assertDirective[0] as { is: Role }, context);
-        return originalResolve(source, args, context, info);
-      };
-      return fieldConfig;
-    },
-  });
+export function requiresRole(args: { is: Role }): FieldDirective {
+  return (next) => (source, resolverArgs, context: Ctx, info) => {
+    if (args.is !== context.role) {
+      throw new GraphQLError(
+        "You do not have permission to access this field.",
+      );
+    }
+    return next(source, resolverArgs, context, info);
+  };
 }
 ```
 

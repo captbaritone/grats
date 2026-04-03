@@ -1,3 +1,4 @@
+import * as ts from "typescript";
 import { ResolverSignature } from "./resolverSignature.js";
 import { TsIdentifier } from "./utils/helpers.js";
 
@@ -94,6 +95,11 @@ declare module "graphql" {
      * When present, the directive function wraps field resolvers at runtime.
      */
     exported?: ExportDefinition;
+    /**
+     * Grats metadata: The TypeScript function declaration for this directive.
+     * Used by the resolveFieldDirectives transform to check the return type.
+     */
+    tsFunctionDeclaration?: ts.FunctionDeclaration;
   }
 
   export interface EnumValueDefinitionNode {

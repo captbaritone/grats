@@ -7,6 +7,7 @@ import type { GqlScalar } from "grats";
 import type { GqlDate as DateInternal } from "./graphql/CustomScalars.js";
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLList, GraphQLString, GraphQLScalarType, GraphQLID, GraphQLInterfaceType, GraphQLBoolean, GraphQLInputObjectType } from "graphql";
 import { id as likeIdResolver, id as userIdResolver, id as postIdResolver, node as queryNodeResolver, nodes as queryNodesResolver } from "./graphql/Node.js";
+import { debitCredits, debitCredits as debitCredits_1 } from "./graphql/directives.js";
 import { nodes as postConnectionNodesResolver, posts as queryPostsResolver } from "./models/PostConnection.js";
 import { nodes as likeConnectionNodesResolver, likes as queryLikesResolver, postLikes as subscriptionPostLikesResolver } from "./models/LikeConnection.js";
 import { getVc } from "./ViewerContext.js";
@@ -91,9 +92,9 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
                                 }]
                         }
                     },
-                    resolve(source, args, _context, info) {
+                    resolve: debitCredits({ credits: 10 })(function resolve(source, args, _context, info) {
                         return source.likes(args, info);
-                    }
+                    })
                 },
                 publishedAt: {
                     description: "The date and time at which the post was created.",
@@ -388,9 +389,9 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
                                 }]
                         }
                     },
-                    resolve(_source, args, context, info) {
+                    resolve: debitCredits_1({ credits: 10 })(function resolve(_source, args, context, info) {
                         return queryLikesResolver(args, getVc(context), info);
-                    }
+                    })
                 },
                 node: {
                     description: "Fetch a single `Node` by its globally unique ID.",
@@ -674,7 +675,7 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
         directives: [...specifiedDirectives, new GraphQLDirective({
                 name: "cost",
                 locations: [DirectiveLocation.FIELD_DEFINITION],
-                description: "Some fields cost credits to access. This directive specifies how many credits\na given field costs.",
+                description: "Some fields cost credits to access. This directive specifies how many credits\na given field costs.\n\nBy returning `FieldDirective`, Grats will automatically wrap the resolver\nfunction with this directive's implementation \u2014 no manual `mapSchema` needed.",
                 args: {
                     credits: {
                         type: new GraphQLNonNull(GraphQLInt)
