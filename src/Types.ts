@@ -61,7 +61,6 @@ export type GqlScalar<TInternal> = {
  * automatically compose the directive wrapper around the resolver in the
  * generated schema.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type FieldDirective = (
   next: GraphQLFieldResolver<any, any>,
 ) => GraphQLFieldResolver<any, any>;

@@ -1,5 +1,5 @@
-import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLString, specifiedDirectives, GraphQLObjectType, GraphQLList } from "graphql";
-import { getLog as queryGetLogResolver, greeting as queryGreetingResolver, logged, doubled } from "./index.js";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLString, GraphQLBoolean, specifiedDirectives, GraphQLObjectType, GraphQLList } from "graphql";
+import { getLog as queryGetLogResolver, greeting as queryGreetingResolver, uppercased, logged } from "./index.js";
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
@@ -20,19 +20,21 @@ export function getSchema(): GraphQLSchema {
                         grats: {
                             directives: [
                                 {
-                                    name: "doubled",
-                                    args: {}
-                                },
-                                {
                                     name: "logged",
                                     args: {
                                         label: "greeting"
+                                    }
+                                },
+                                {
+                                    name: "uppercased",
+                                    args: {
+                                        enabled: true
                                     }
                                 }
                             ]
                         }
                     },
-                    resolve: doubled()(logged({ label: "greeting" })(function resolve(source) {
+                    resolve: logged({ label: "greeting" })(uppercased({ enabled: true })(function resolve(source) {
                         return queryGreetingResolver(source);
                     }))
                 }
@@ -41,16 +43,21 @@ export function getSchema(): GraphQLSchema {
     });
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "doubled",
-                locations: [DirectiveLocation.FIELD_DEFINITION],
-                description: "Doubles the result of a string field."
-            }), new GraphQLDirective({
                 name: "logged",
                 locations: [DirectiveLocation.FIELD_DEFINITION],
                 description: "Logs field access before resolving.",
                 args: {
                     label: {
                         type: new GraphQLNonNull(GraphQLString)
+                    }
+                }
+            }), new GraphQLDirective({
+                name: "uppercased",
+                locations: [DirectiveLocation.FIELD_DEFINITION],
+                description: "Uppercases the result of a string field.",
+                args: {
+                    enabled: {
+                        type: new GraphQLNonNull(GraphQLBoolean)
                     }
                 }
             })],

@@ -14,13 +14,13 @@ export function logged(args: { label: string }): FieldDirective {
 }
 
 /**
- * Doubles the result of a string field.
+ * Uppercases the result of a string field.
  * @gqlDirective on FIELD_DEFINITION
  */
-export function doubled(_args: never): FieldDirective {
+export function uppercased(args: { enabled: boolean }): FieldDirective {
   return (next) => (source, resolverArgs, context, info) => {
     const result = next(source, resolverArgs, context, info);
-    return result + result;
+    return args.enabled ? String(result).toUpperCase() : result;
   };
 }
 
@@ -30,7 +30,7 @@ type Query = unknown;
 /**
  * @gqlField
  * @gqlAnnotate logged(label: "greeting")
- * @gqlAnnotate doubled
+ * @gqlAnnotate uppercased(enabled: true)
  */
 export function greeting(_: Query): string {
   return "hi";

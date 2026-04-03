@@ -52,9 +52,10 @@ function returnsFieldDirective(
   if (symbol == null) return false;
 
   // Follow aliases (e.g. re-exports)
-  const resolved = symbol.flags & ts.SymbolFlags.Alias
-    ? checker.getAliasedSymbol(symbol)
-    : symbol;
+  const resolved =
+    symbol.flags & ts.SymbolFlags.Alias
+      ? checker.getAliasedSymbol(symbol)
+      : symbol;
 
   // Check that the resolved symbol's declaration is in the grats module
   const declarations = resolved.declarations;
