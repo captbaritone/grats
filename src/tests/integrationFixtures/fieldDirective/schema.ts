@@ -9,8 +9,8 @@ export function getSchema(): GraphQLSchema {
                     description: "Returns the log of directive invocations.",
                     name: "getLog",
                     type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
-                    resolve(source) {
-                        return queryGetLogResolver(source);
+                    resolve() {
+                        return queryGetLogResolver();
                     }
                 },
                 greeting: {
@@ -34,8 +34,8 @@ export function getSchema(): GraphQLSchema {
                             ]
                         }
                     },
-                    resolve: logged({ label: "greeting" })(uppercased({ enabled: true })(function resolve(source) {
-                        return queryGreetingResolver(source);
+                    resolve: logged({ label: "greeting" })(uppercased({ enabled: true })(function resolve() {
+                        return queryGreetingResolver();
                     }))
                 }
             };

@@ -1,23 +1,22 @@
 import { Int, FieldDirective } from "../../../Types";
+import { GraphQLFieldResolver } from "graphql";
 
 /**
  * Limits the rate of field resolution.
  * @gqlDirective on FIELD_DEFINITION
  */
 export function rateLimit(args: { max: Int }): FieldDirective {
-  return (next) => (source, args, context, info) => {
-    return next(source, args, context, info);
-  };
+  return (next: GraphQLFieldResolver<unknown, unknown>) =>
+    (source, args, context, info) => {
+      return next(source, args, context, info);
+    };
 }
-
-/** @gqlType */
-type Query = unknown;
 
 /**
  * All likes in the system.
- * @gqlField
+ * @gqlQueryField
  * @gqlAnnotate rateLimit(max: 10)
  */
-export function likes(_: Query): string {
+export function likes(): string {
   return "hello";
 }

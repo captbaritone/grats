@@ -4,6 +4,7 @@
 
 ```ts title="fieldDirective/index.ts"
 import { Int, FieldDirective } from "../../../Types.js";
+import { GraphQLFieldResolver } from "graphql";
 
 const log: string[] = [];
 
@@ -12,10 +13,11 @@ const log: string[] = [];
  * @gqlDirective on FIELD_DEFINITION
  */
 export function logged(args: { label: string }): FieldDirective {
-  return (next) => (source, resolverArgs, context, info) => {
-    log.push(args.label);
-    return next(source, resolverArgs, context, info);
-  };
+  return (next: GraphQLFieldResolver<unknown, unknown>) =>
+    (source, resolverArgs, context, info) => {
+      log.push(args.label);
+      return next(source, resolverArgs, context, info);
+    };
 }
 
 /**
@@ -23,29 +25,27 @@ export function logged(args: { label: string }): FieldDirective {
  * @gqlDirective on FIELD_DEFINITION
  */
 export function uppercased(args: { enabled: boolean }): FieldDirective {
-  return (next) => (source, resolverArgs, context, info) => {
-    const result = next(source, resolverArgs, context, info);
-    return args.enabled ? String(result).toUpperCase() : result;
-  };
+  return (next: GraphQLFieldResolver<unknown, unknown>) =>
+    (source, resolverArgs, context, info) => {
+      const result = next(source, resolverArgs, context, info);
+      return args.enabled ? String(result).toUpperCase() : result;
+    };
 }
 
-/** @gqlType */
-type Query = unknown;
-
 /**
- * @gqlField
+ * @gqlQueryField
  * @gqlAnnotate logged(label: "greeting")
  * @gqlAnnotate uppercased(enabled: true)
  */
-export function greeting(_: Query): string {
+export function greeting(): string {
   return "hi";
 }
 
 /**
  * Returns the log of directive invocations.
- * @gqlField
+ * @gqlQueryField
  */
-export function getLog(_: Query): string[] {
+export function getLog(): string[] {
   return log;
 }
 

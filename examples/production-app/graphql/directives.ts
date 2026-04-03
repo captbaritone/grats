@@ -1,4 +1,4 @@
-import { GraphQLError } from "graphql";
+import { GraphQLError, GraphQLFieldResolver } from "graphql";
 import { Int, FieldDirective } from "grats";
 import { Ctx } from "../ViewerContext.js";
 
@@ -12,14 +12,15 @@ import { Ctx } from "../ViewerContext.js";
  * @gqlDirective cost on FIELD_DEFINITION
  */
 export function debitCredits(args: { credits: Int }): FieldDirective {
-  return (next) => (source, resolverArgs, context: Ctx, info) => {
-    if (context.credits < args.credits) {
-      // Using `GraphQLError` here ensures the error is not masked by Yoga.
-      throw new GraphQLError(
-        `Insufficient credits remaining. This field cost ${args.credits} credits.`,
-      );
-    }
-    context.credits -= args.credits;
-    return next(source, resolverArgs, context, info);
-  };
+  return (next: GraphQLFieldResolver<unknown, Ctx>) =>
+    (source, resolverArgs, context, info) => {
+      if (context.credits < args.credits) {
+        // Using `GraphQLError` here ensures the error is not masked by Yoga.
+        throw new GraphQLError(
+          `Insufficient credits remaining. This field cost ${args.credits} credits.`,
+        );
+      }
+      context.credits -= args.credits;
+      return next(source, resolverArgs, context, info);
+    };
 }

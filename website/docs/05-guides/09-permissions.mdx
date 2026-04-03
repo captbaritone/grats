@@ -45,7 +45,7 @@ Usage on each restricted field looks like this:
 The directive implementation uses `FieldDirective` to wrap the resolver with a permission check:
 
 ```ts
-import { GraphQLError } from "graphql";
+import { GraphQLError, GraphQLFieldResolver } from "graphql";
 import { FieldDirective } from "grats";
 
 /** @gqlContext */
@@ -65,14 +65,15 @@ export enum Role {
  * @gqlDirective assert on FIELD_DEFINITION
  */
 export function requiresRole(args: { is: Role }): FieldDirective {
-  return (next) => (source, resolverArgs, context: Ctx, info) => {
-    if (args.is !== context.role) {
-      throw new GraphQLError(
-        "You do not have permission to access this field.",
-      );
-    }
-    return next(source, resolverArgs, context, info);
-  };
+  return (next: GraphQLFieldResolver<unknown, Ctx>) =>
+    (source, resolverArgs, context, info) => {
+      if (args.is !== context.role) {
+        throw new GraphQLError(
+          "You do not have permission to access this field.",
+        );
+      }
+      return next(source, resolverArgs, context, info);
+    };
 }
 ```
 
