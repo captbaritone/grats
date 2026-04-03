@@ -14,7 +14,7 @@ function cost(args: { credits: Int }) {
 }
 ```
 
-While the directive is defined as a function, unlike field resolvers, _Grats will not invoke your function_. However, having a function whose type matches the arguments of your directive can be useful for writing code which will accept the arguments of your directive.
+By default, the directive is defined as a metadata-only function — Grats will not invoke it. However, having a function whose type matches the arguments of your directive can be useful for writing code which will accept the arguments of your directive.
 
 To annotate part of your schema with a directive, see [`@gqlAnnotate`](./directive-annotations.md).
 
@@ -72,3 +72,25 @@ function myDirective(args: {
   // ...
 }
 ```
+
+## Field Directive Wrappers
+
+For directives on `FIELD_DEFINITION` that need to execute logic at runtime (e.g. auth checks, rate limiting, logging), you can have your directive function return `FieldDirective` from `grats`. When Grats sees this return type, it will automatically wrap the field's resolver with your directive function — no manual `mapSchema` wiring required.
+
+```tsx
+import { Int, FieldDirective } from "grats";
+/**
+ * Limits the rate of field resolution.
+ * @gqlDirective on FIELD_DEFINITION
+ */
+export function rateLimit(args: { max: Int }): FieldDirective {
+  return (next) => (source, args, context, info) => {
+    // Custom logic runs before the resolver
+    return next(source, args, context, info);
+  };
+}
+```
+
+The directive function is called with its arguments and must return a function that takes the next resolver and returns a wrapped resolver. Multiple `FieldDirective` directives on the same field compose naturally — the outermost directive in the annotation list wraps first.
+
+For directives that are purely metadata (consumed by clients or infrastructure rather than during execution), omit the return type or return `void`.

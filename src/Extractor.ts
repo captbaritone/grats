@@ -556,16 +556,20 @@ class Extractor {
       name = this.gql.name(id, id.text);
     }
 
-    this.definitions.push(
-      this.gql.directiveDefinition(
-        node,
-        name,
-        args,
-        tagData.repeatable,
-        tagData.locations,
-        description,
-      ),
+    const directive = this.gql.directiveDefinition(
+      node,
+      name,
+      args,
+      tagData.repeatable,
+      tagData.locations,
+      description,
     );
+
+    // Store the TS function declaration so the resolveFieldDirectives
+    // transform can check the return type with the type checker.
+    directive.tsFunctionDeclaration = node;
+
+    this.definitions.push(directive);
   }
 
   extractDirectiveArgs(

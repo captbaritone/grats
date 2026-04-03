@@ -1,4 +1,10 @@
-import { ConstDirectiveNode, GraphQLField } from "graphql";
+import {
+  ConstDirectiveNode,
+  DirectiveDefinitionNode,
+  GraphQLField,
+  GraphQLSchema,
+  valueFromASTUntyped,
+} from "graphql";
 import * as ts from "typescript";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives.js";
 import {
@@ -7,7 +13,7 @@ import {
 } from "../codegenHelpers.js";
 import { nullThrows } from "../utils/helpers.js";
 import { ResolverArgument, ResolverDefinition, Metadata } from "../metadata.js";
-import TSAstBuilder from "./TSAstBuilder.js";
+import TSAstBuilder, { JsonValue } from "./TSAstBuilder.js";
 import { ExportDefinition } from "../GraphQLAstExtensions.js";
 
 const RESOLVER_ARGS = ["source", "args", "context", "info"] as const;
@@ -297,6 +303,103 @@ export default class ResolverCodegen {
       throw new Error(`Expected method to have a return statement`);
     }
     return { ...method, body: F.createBlock(newBodyStatements, true) };
+  }
+
+  // If any directives annotated on this field return `FieldDirective`, wrap
+  // the resolve method by composing each directive's wrapper around the
+  // resolver function. Given directives A and B, the output is:
+  //   resolve: A({ arg: val })(B({ arg: val })(function resolve(...) { ... }))
+  maybeApplyFieldDirectiveWrappers(
+    field: GraphQLField<unknown, unknown>,
+    method_: ts.MethodDeclaration | null,
+    methodName: string,
+    schema: GraphQLSchema,
+  ): ts.ObjectLiteralElementLike | null {
+    const fieldDirectives = field.astNode?.directives ?? [];
+
+    // Build a map of directive name -> definition for quick lookup
+    const directiveDefs = new Map<string, DirectiveDefinitionNode>();
+    for (const d of schema.getDirectives()) {
+      if (d.astNode?.exported != null) {
+        directiveDefs.set(d.name, d.astNode);
+      }
+    }
+
+    // Collect the field directive wrappers that need to be applied
+    const wrappers: Array<{
+      def: DirectiveDefinitionNode;
+      annotation: ConstDirectiveNode;
+    }> = [];
+    for (const annotation of fieldDirectives) {
+      const def = directiveDefs.get(annotation.name.value);
+      if (def != null) {
+        wrappers.push({ def, annotation });
+      }
+    }
+
+    if (wrappers.length === 0) {
+      return method_;
+    }
+
+    // We need a concrete method to wrap
+    const method = method_ ?? this.defaultResolverMethod(methodName);
+
+    // Convert the method declaration into a function expression
+    const funcExpr = F.createFunctionExpression(
+      method.modifiers as readonly ts.Modifier[] | undefined,
+      method.asteriskToken,
+      methodName,
+      method.typeParameters,
+      method.parameters,
+      method.type,
+      method.body ?? F.createBlock([]),
+    );
+
+    // Wrap the function expression with each directive call.
+    // Innermost directive is last in the list (applied first at runtime).
+    let wrapped: ts.Expression = funcExpr;
+    for (let i = wrappers.length - 1; i >= 0; i--) {
+      const { def, annotation } = wrappers[i];
+      const exported = nullThrows(def.exported);
+      const localName = this.ts.getUniqueName(
+        exported.exportName ?? "directive",
+      );
+      this.ts.importUserConstruct(
+        exported.tsModulePath,
+        exported.exportName,
+        localName,
+        false,
+      );
+
+      // Build the directive arguments object
+      const directiveArgs: ts.ObjectLiteralElementLike[] = [];
+      if (annotation.arguments != null) {
+        for (const arg of annotation.arguments) {
+          directiveArgs.push(
+            F.createPropertyAssignment(
+              arg.name.value,
+              this.ts.json(valueFromASTUntyped(arg.value) as JsonValue),
+            ),
+          );
+        }
+      }
+
+      // directiveFn({ arg: value })(wrapped)
+      wrapped = F.createCallExpression(
+        F.createCallExpression(
+          F.createIdentifier(localName),
+          undefined,
+          directiveArgs.length > 0
+            ? [F.createObjectLiteralExpression(directiveArgs, false)]
+            : [],
+        ),
+        undefined,
+        [wrapped],
+      );
+    }
+
+    // Return as a property assignment: `resolve: wrappedExpression`
+    return F.createPropertyAssignment(methodName, wrapped);
   }
 
   defaultResolverMethod(methodName: string): ts.MethodDeclaration {

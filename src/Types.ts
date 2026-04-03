@@ -1,4 +1,5 @@
 import type {
+  GraphQLFieldResolver,
   GraphQLResolveInfo,
   GraphQLScalarLiteralParser,
   GraphQLScalarSerializer,
@@ -53,3 +54,13 @@ export type GqlScalar<TInternal> = {
    */
   parseLiteral?: GraphQLScalarLiteralParser<TInternal>;
 };
+
+/**
+ * Return type for directive functions that should wrap field resolvers
+ * at runtime. When a directive function returns `FieldDirective`, Grats will
+ * automatically compose the directive wrapper around the resolver in the
+ * generated schema.
+ */
+export type FieldDirective = (
+  next: GraphQLFieldResolver<any, any>,
+) => GraphQLFieldResolver<any, any>;

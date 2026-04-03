@@ -4,6 +4,7 @@ import DirectiveLocations from "!!raw-loader!./snippets/11-directive-locations.o
 import DirectiveArgs from "!!raw-loader!./snippets/11-directive-args.out";
 import DirectiveArgsDefault from "!!raw-loader!./snippets/11-directive-args-defaults.out";
 import DirectiveArgsDeprecated from "!!raw-loader!./snippets/11-directive-args-deprecated.out";
+import FieldDirectiveWrapper from "!!raw-loader!./snippets/11-field-directive.out";
 
 # Directive Definitions
 
@@ -13,7 +14,7 @@ You can define GraphQL directives by placing a `@gqlDirective` before a:
 
 <GratsCode out={DirectiveDef} mode="ts" />
 
-While the directive is defined as a function, unlike field resolvers, _Grats will not invoke your function_. However, having a function whose type matches the arguments of your directive can be useful for writing code which will accept the arguments of your directive.
+By default, the directive is defined as a metadata-only function — Grats will not invoke it. However, having a function whose type matches the arguments of your directive can be useful for writing code which will accept the arguments of your directive.
 
 To annotate part of your schema with a directive, see [`@gqlAnnotate`](./12-directive-annotations.mdx).
 
@@ -42,3 +43,13 @@ Default values in this style can be defined by using the `=` operator with destr
 Arguments can be marked as `@deprecated` by using the `@deprecated` JSDoc tag:
 
 <GratsCode out={DirectiveArgsDeprecated} mode="ts" />
+
+## Field Directive Wrappers
+
+For directives on `FIELD_DEFINITION` that need to execute logic at runtime (e.g. auth checks, rate limiting, logging), you can have your directive function return `FieldDirective` from `grats`. When Grats sees this return type, it will automatically wrap the field's resolver with your directive function — no manual `mapSchema` wiring required.
+
+<GratsCode out={FieldDirectiveWrapper} mode="ts" />
+
+The directive function is called with its arguments and must return a function that takes the next resolver and returns a wrapped resolver. Multiple `FieldDirective` directives on the same field compose naturally — the outermost directive in the annotation list wraps first.
+
+For directives that are purely metadata (consumed by clients or infrastructure rather than during execution), omit the return type or return `void`.

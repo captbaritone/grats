@@ -301,6 +301,16 @@ export class TypeContext implements ITypeContext, ITypeContextForResolveTypes {
     return ok(nameDefinition.name.value);
   }
 
+  /**
+   * Given a TypeScript node, resolve its symbol to a declaration, following
+   * aliases. Returns null if the symbol or declaration cannot be found.
+   */
+  resolveNodeDeclaration(node: ts.Node): ts.Declaration | null {
+    const symbol = this.checker.getSymbolAtLocation(node);
+    if (symbol == null) return null;
+    return this.findSymbolDeclaration(symbol);
+  }
+
   private maybeTsDeclarationForTsName(
     node: ts.EntityName,
   ): ts.Declaration | null {
