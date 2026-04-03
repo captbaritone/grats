@@ -4,10 +4,10 @@
   },
   "compilerOptions": {
     "skipLibCheck": true,
+    "types": ["node"],
     "lib": ["es2020"],
     "experimentalDecorators": true,
     "outDir": "dist",
-    "downlevelIteration": true,
     "strictNullChecks": true,
     "declaration": true,
     "resolveJsonModule": true,

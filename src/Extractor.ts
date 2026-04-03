@@ -3046,7 +3046,7 @@ function graphQLNameValidationMessage(name: string): string | null {
   try {
     assertName(name);
     return null;
-  } catch (e) {
+  } catch (e: any) {
     return e.message;
   }
 }

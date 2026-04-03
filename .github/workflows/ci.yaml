@@ -56,6 +56,11 @@ jobs:
     strategy:
       matrix:
         node-version: *node-versions
+        typescript-version:
+          - "5.5.4"
+          - "5.7.3"
+          - "5.9.3"
+          - "6.0.2"
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
@@ -68,6 +73,8 @@ jobs:
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install
+      - name: Install TypeScript ${{ matrix.typescript-version }}
+        run: pnpm add -wD typescript@${{ matrix.typescript-version }}
       - name: Build # Integration tests depend upon having .js versions created by tsc
         run: pnpm run build
       - name: Unit Tests
