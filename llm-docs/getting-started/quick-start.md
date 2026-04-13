@@ -14,6 +14,13 @@ npm init --yes && npm pkg set type="module"
 
 ## Install dependencies
 
+> **TIP:**
+> If you use an AI coding agent, install the Grats skill to make it a Grats expert:
+> 
+> ```bash
+> npx skills add captbaritone/grats
+> ```
+
 Grats can be used with many different GraphQL servers, but this example uses `graphql-yoga`.
 
 ```bash
