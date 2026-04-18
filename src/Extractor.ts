@@ -17,7 +17,7 @@ import {
   DefinitionNode,
   version as graphqlJSVersion,
   TokenKind,
-  GraphQLError,
+  DirectiveLocation,
 } from "graphql";
 import { gte as semverGte } from "semver";
 import {
@@ -536,12 +536,20 @@ class Extractor {
       }
 
       const locations = parser
-        .delimitedMany(TokenKind.PIPE, () => parser.parseDirectiveLocation())
+        .delimitedMany(TokenKind.PIPE, () => parser.parseName())
         .map((location) => ({ ...location, loc: loc(tag) }));
       return { name, repeatable, locations };
     });
 
     if (tagData == null) return;
+
+    const validLocations = Object.values(DirectiveLocation) as string[];
+    for (const location of tagData.locations) {
+      if (!validLocations.includes(location.value)) {
+        this.report(tag, E.invalidDirectiveLocation(location.value));
+        return;
+      }
+    }
 
     let name = tagData.name;
 
@@ -909,7 +917,11 @@ class Extractor {
       parser.expectToken(TokenKind.EOF);
       return result;
     } catch (err) {
-      if (err instanceof GraphQLError) {
+      if (err instanceof Error && err.name === "GraphQLError") {
+        // Note: We use a name check instead of `instanceof GraphQLError`
+        // because in bundled environments (e.g. the playground), the
+        // GraphQLError class from the parser may be a different instance
+        // than the one we imported, causing `instanceof` to fail.
         this.report(node, err.message);
       } else {
         throw err;

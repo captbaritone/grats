@@ -14,6 +14,7 @@ import {
   INFO_TAG,
   DIRECTIVE_TAG,
 } from "./Extractor.js";
+import { DirectiveLocation } from "graphql";
 
 export const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
 
@@ -652,6 +653,10 @@ export function specifiedByDeprecated() {
 
 export function directiveTagNoComment() {
   return "Expected `@gqlDirective` tag to specify at least one location.";
+}
+
+export function invalidDirectiveLocation(name: string) {
+  return `"${name}" is not a valid directive location. Valid locations are: ${Object.values(DirectiveLocation).join(", ")}.`;
 }
 
 export function directiveFunctionNotNamed() {
