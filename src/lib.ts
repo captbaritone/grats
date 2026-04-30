@@ -37,6 +37,7 @@ import { Metadata } from "./metadata.js";
 import { validateDirectiveArguments } from "./validations/validateDirectiveArguments.js";
 import { coerceDefaultEnumValues } from "./transforms/coerceDefaultEnumValues.js";
 import { validateSomeTypesAreDefined } from "./validations/validateSomeTypesAreDefined.js";
+import { resolveFieldDirectives } from "./transforms/resolveFieldDirectives.js";
 
 // Export the TypeScript plugin implementation used by
 // grats-ts-plugin
@@ -108,6 +109,10 @@ export function extractSchemaAndDoc(
         validateMergedInterfaces(checker, snapshot.interfaceDeclarations),
         validateDuplicateContextOrInfo(snapshot.nameDefinitions.values()),
       );
+
+      // Resolve which directive definitions return `FieldDirective` and
+      // record their export information for codegen.
+      resolveFieldDirectives(ctx, snapshot.definitions);
 
       const docResult = new ResultPipe(validationResult)
         // Filter out any `implements` clauses that are not GraphQL interfaces.

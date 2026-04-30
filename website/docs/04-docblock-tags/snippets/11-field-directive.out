@@ -1,0 +1,36 @@
+// trim-start
+import { Int, FieldDirective } from "grats";
+import { GraphQLFieldResolver } from "graphql";
+// trim-end
+/**
+ * Limits the rate of field resolution.
+ * @gqlDirective on FIELD_DEFINITION
+ */
+export function rateLimit(args: { max: Int }): FieldDirective {
+  return (next: GraphQLFieldResolver<unknown, unknown>) =>
+    (source, args, context, info) => {
+      // Custom logic runs before the resolver
+      return next(source, args, context, info);
+    };
+}
+
+=== SNIP ===
+"""Limits the rate of field resolution."""
+directive @rateLimit(max: Int!) on FIELD_DEFINITION
+=== SNIP ===
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives } from "graphql";
+export function getSchema(): GraphQLSchema {
+    return new GraphQLSchema({
+        directives: [...specifiedDirectives, new GraphQLDirective({
+                name: "rateLimit",
+                locations: [DirectiveLocation.FIELD_DEFINITION],
+                description: "Limits the rate of field resolution.",
+                args: {
+                    max: {
+                        type: new GraphQLNonNull(GraphQLInt)
+                    }
+                }
+            })],
+        types: []
+    });
+}

@@ -43,7 +43,13 @@ While the GraphQL Spec does not actually specify that arguments passed to direct
 
 Directive annotations added to your schema will be included in Grats' generated `.graphql` file. For directives meant to be consumed by clients or other infrastructure, this should be sufficient.
 
-For directives which are intended to be used during execution, they must be included in the `graphql-js` class `GraphQLSchema` which Grats generates. Unfortunately `GraphQLSchema` does not support a first-class mechanism for including directive annotations. To work around this, **Grats includes directives under as part of the relevant GraphQL class' `extensions` object namespaced under a `grats` key.**
+For field directives that need to run logic at runtime (auth, rate limiting, logging, etc.), the recommended approach is to have your directive function return [`FieldDirective`](./directive-definitions.md#field-directive-wrappers). Grats will automatically wrap the field resolver with your directive function — no manual wiring needed.
+
+You can find an example of this in action in the [`production-app`](../examples/production-app.md) example where we define a field directive `@cost` which implements API rate limiting.
+
+### Manual directive access via extensions
+
+For directives on non-field locations, or when you need more control, Grats also includes directive annotations as part of the relevant GraphQL class' `extensions` object namespaced under a `grats` key:
 
 ```ts
 const foo = {
@@ -60,4 +66,4 @@ const foo = {
 };
 ```
 
-You can find an example of this in action in the [`production-app`](../examples/production-app.md) example where we define a field directive `@cost` which implements API rate limiting.
+This can be consumed using tools like `@graphql-tools/utils` with `mapSchema` and `getDirective`.
