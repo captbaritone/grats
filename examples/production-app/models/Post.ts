@@ -12,8 +12,6 @@ import { connectionFromSelectOrCount } from "../graphql/gqlUtils.js";
  * A blog post.
  * @gqlType */
 export class Post extends Model<DB.PostRow> implements GraphQLNode {
-  __typename = "Post" as const;
-
   static async fetchById(vc: VC, id: string): Promise<Post> {
     return vc.getPostById(id);
   }

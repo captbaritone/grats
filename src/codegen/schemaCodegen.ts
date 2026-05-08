@@ -975,6 +975,22 @@ class Codegen {
         );
       }
       this.ts.addStatement(this.resolveTypeFunctionDeclaration());
+      this.ts.addStatement(
+        F.createVariableStatement(
+          [F.createModifier(ts.SyntaxKind.ExportKeyword)],
+          F.createVariableDeclarationList(
+            [
+              F.createVariableDeclaration(
+                "getTypeName",
+                undefined,
+                undefined,
+                F.createIdentifier("resolveType"),
+              ),
+            ],
+            ts.NodeFlags.Const,
+          ),
+        ),
+      );
     }
 
     this.interfaceClassMaps();

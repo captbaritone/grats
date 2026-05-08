@@ -9,8 +9,6 @@ import { connectionFromSelectOrCount } from "../graphql/gqlUtils.js";
 
 /** @gqlType */
 export class User extends Model<DB.UserRow> implements GraphQLNode {
-  __typename = "User" as const;
-
   static async fetchById(vc: VC, id: string): Promise<User> {
     return vc.getUserById(id);
   }

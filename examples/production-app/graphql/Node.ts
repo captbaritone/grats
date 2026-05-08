@@ -1,7 +1,7 @@
 import { fromGlobalId, toGlobalId } from "graphql-relay";
 import { ID } from "grats";
 import { VC } from "../ViewerContext.js";
-import { nodeClassMap } from "../schema.js";
+import { nodeClassMap, getTypeName } from "../schema.js";
 
 /**
  * Converts a globally unique ID into a local ID asserting
@@ -19,7 +19,6 @@ export function getLocalTypeAssert(id: ID, typename: string): string {
  * Indicates a stable refetchable object in the system.
  * @gqlInterface Node */
 export interface GraphQLNode {
-  __typename: string;
   localID(): string;
 }
 
@@ -32,7 +31,7 @@ export interface GraphQLNode {
  * @gqlField
  * @killsParentOnException */
 export function id(node: GraphQLNode): ID {
-  return toGlobalId(node.__typename, node.localID());
+  return toGlobalId(getTypeName(node), node.localID());
 }
 
 /**
