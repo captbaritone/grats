@@ -48,6 +48,7 @@ type User implements Node & Person {
 ### TypeScript
 
 ```ts
+import UserClass from "./TypeFromClassDefinitionImplementsMultipleInterfaces";
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
@@ -94,4 +95,10 @@ export function getSchema(): GraphQLSchema {
         types: [NodeType, PersonType, UserType]
     });
 }
+export const nodeClassMap = {
+    User: UserClass
+};
+export const personClassMap = {
+    User: UserClass
+};
 ```

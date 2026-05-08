@@ -12,9 +12,9 @@ import { nodes as likeConnectionNodesResolver, likes as queryLikesResolver, post
 import { getVc } from "./ViewerContext.js";
 import { nodes as userConnectionNodesResolver, users as queryUsersResolver } from "./models/UserConnection.js";
 import { Viewer as queryViewerResolver } from "./models/Viewer.js";
-import { createLike as mutationCreateLikeResolver } from "./models/Like.js";
-import { createPost as mutationCreatePostResolver } from "./models/Post.js";
-import { createUser as mutationCreateUserResolver } from "./models/User.js";
+import { createLike as mutationCreateLikeResolver, Like as LikeClass } from "./models/Like.js";
+import { createPost as mutationCreatePostResolver, Post as PostClass } from "./models/Post.js";
+import { createUser as mutationCreateUserResolver, User as UserClass } from "./models/User.js";
 export type SchemaConfig = {
     scalars: {
         Date: GqlScalar<DateInternal>;
@@ -687,3 +687,8 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
         types: [DateType, NodeType, CreateLikeInputType, CreatePostInputType, CreateUserInputType, MarkdownNodeType, PostContentInputType, CreateLikePayloadType, CreatePostPayloadType, CreateUserPayloadType, LikeType, LikeConnectionType, LikeEdgeType, MutationType, PageInfoType, PostType, PostConnectionType, PostEdgeType, QueryType, SubscriptionType, UserType, UserConnectionType, UserEdgeType, ViewerType]
     });
 }
+export const nodeClassMap = {
+    Like: LikeClass,
+    Post: PostClass,
+    User: UserClass
+};

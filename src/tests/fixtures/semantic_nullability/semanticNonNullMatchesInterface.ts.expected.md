@@ -75,6 +75,7 @@ type User implements IPerson {
 
 ```ts
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLList, GraphQLInt, specifiedDirectives, GraphQLInterfaceType, GraphQLString, GraphQLObjectType, defaultFieldResolver } from "graphql";
+import { User as UserClass } from "./semanticNonNullMatchesInterface";
 async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
     const awaited = await value;
     if (awaited == null)
@@ -125,4 +126,7 @@ export function getSchema(): GraphQLSchema {
         types: [IPersonType, UserType]
     });
 }
+export const iPersonClassMap = {
+    User: UserClass
+};
 ```

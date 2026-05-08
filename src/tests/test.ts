@@ -17,7 +17,7 @@ import {
 import { Command } from "commander";
 import { locate } from "../Locate.js";
 import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError.js";
-import { readFileSync, writeFileSync } from "fs";
+import { readdirSync, readFileSync, writeFileSync } from "fs";
 import { codegen } from "../codegen/schemaCodegen.js";
 import { printEnumsModule } from "../printSchema.js";
 import { diff } from "jest-diff";
@@ -277,7 +277,7 @@ const testDirs: TestDir[] = [
   {
     fixturesDir: integrationFixturesDir,
     testFilePattern: /index.ts$/,
-    ignoreFilePattern: /(schema)|(enums).ts$/,
+    ignoreFilePattern: /(?<!index)\.ts$/,
     transformer: async (
       code: string,
       fileName: string,
@@ -293,9 +293,14 @@ const testDirs: TestDir[] = [
         config = { ...config, ...testOptions };
       }
       const filePath = `${integrationFixturesDir}/${fileName}`;
-      const schemaPath = path.join(path.dirname(filePath), "schema.ts");
+      const fixtureDir = path.dirname(filePath);
+      const schemaPath = path.join(fixtureDir, "schema.ts");
 
-      const files = [filePath, path.join(__dirname, `../Types.ts`)];
+      const siblingFiles = readdirSync(fixtureDir)
+        .filter((f) => f.endsWith(".ts") && f !== "schema.ts" && f !== "enums.ts")
+        .map((f) => path.join(fixtureDir, f));
+
+      const files = [...siblingFiles, path.join(__dirname, `../Types.ts`)];
       const parsedOptionsResult = validateGratsOptions({
         options: {
           // Required to enable ts-node to locate function exports

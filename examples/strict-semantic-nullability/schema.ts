@@ -183,3 +183,6 @@ function resolveType(obj: any): string {
     }
     throw new Error("Cannot find type name.");
 }
+export const iPersonClassMap = {
+    User: UserClass
+};

@@ -1,6 +1,7 @@
 import { fromGlobalId, toGlobalId } from "graphql-relay";
 import { ID } from "grats";
 import { VC } from "../ViewerContext.js";
+import { nodeClassMap } from "../schema.js";
 
 /**
  * Converts a globally unique ID into a local ID asserting
@@ -42,20 +43,11 @@ export async function node(
   vc: VC,
 ): Promise<GraphQLNode | null> {
   const { type, id } = fromGlobalId(args.id);
-
-  // Note: Every type which implements `Node` must be represented here, and
-  // there's not currently any static way to enforce that. This is a potential
-  // source of bugs.
-  switch (type) {
-    case "User":
-      return vc.getUserById(id);
-    case "Post":
-      return vc.getPostById(id);
-    case "Like":
-      return vc.getLikeById(id);
-    default:
-      throw new Error(`Unknown typename: ${type}`);
+  const cls = nodeClassMap[type as keyof typeof nodeClassMap];
+  if (cls == null) {
+    throw new Error(`Type "${type}" does not implement Node`);
   }
+  return cls.fetchById(vc, id);
 }
 
 /**
