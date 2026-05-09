@@ -427,7 +427,10 @@ class Codegen {
     return F.createIdentifier(varName);
   }
 
-  ensureClassImported(t: GraphQLObjectType, exported: ExportDefinition): string {
+  ensureClassImported(
+    t: GraphQLObjectType,
+    exported: ExportDefinition,
+  ): string {
     let localName = this._typeNameMappings.get(t.name);
     if (localName == null) {
       localName = `${t.name}Class`;

@@ -297,7 +297,9 @@ const testDirs: TestDir[] = [
       const schemaPath = path.join(fixtureDir, "schema.ts");
 
       const siblingFiles = readdirSync(fixtureDir)
-        .filter((f) => f.endsWith(".ts") && f !== "schema.ts" && f !== "enums.ts")
+        .filter(
+          (f) => f.endsWith(".ts") && f !== "schema.ts" && f !== "enums.ts",
+        )
         .map((f) => path.join(fixtureDir, f));
 
       const files = [...siblingFiles, path.join(__dirname, `../Types.ts`)];
