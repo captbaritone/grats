@@ -4,9 +4,9 @@ The [Global Object Identification](https://graphql.org/learn/global-object-ident
 
 The spec requires:
 
-- A `Node` interface with a single `id: ID!` field
-- A root `node(id: ID!): Node` query field that can fetch any `Node` by its global ID
-- A root `nodes(ids: [ID!]!): [Node]!` query field for batch fetching
+-   A `Node` interface with a single `id: ID!` field
+-   A root `node(id: ID!): Node` query field that can fetch any `Node` by its global ID
+-   A root `nodes(ids: [ID!]!): [Node]!` query field for batch fetching
 
 Grats provides several features that make implementing this spec straightforward, with full static type safety.
 
@@ -94,5 +94,5 @@ This eliminates the common bug of adding a `Node` implementor but forgetting to 
 
 Grats generates two exports in `schema.ts` that power this pattern:
 
-- **`nodeClassMap`** — An object mapping GraphQL typenames to their class constructors for every type that implements the `Node` interface. Grats generates one of these maps per interface in your schema.
-- **`getTypeName`** — A function that returns the GraphQL typename for any class instance, using the same prototype-chain resolution that GraphQL uses internally. This lets you encode global IDs without defining `__typename` on your classes.
+-   **`nodeClassMap`** — An object mapping GraphQL typenames to their class constructors for every type that implements the `Node` interface. Grats generates one of these maps per interface in your schema.
+-   **`getTypeName`** — A function that returns the GraphQL typename for any class instance, using the same prototype-chain resolution that GraphQL uses internally. This lets you encode global IDs without defining `__typename` on your classes.
