@@ -427,6 +427,24 @@ class Codegen {
     return F.createIdentifier(varName);
   }
 
+  ensureClassImported(
+    t: GraphQLObjectType,
+    exported: ExportDefinition,
+  ): string {
+    let localName = this._typeNameMappings.get(t.name);
+    if (localName == null) {
+      localName = `${t.name}Class`;
+      this.ts.importUserConstruct(
+        exported.tsModulePath,
+        exported.exportName,
+        localName,
+        false,
+      );
+      this._typeNameMappings.set(t.name, localName);
+    }
+    return localName;
+  }
+
   resolveType(obj: GraphQLAbstractType): ts.ShorthandPropertyAssignment | null {
     let needsResolveType = false;
     for (const t of this._schema.getPossibleTypes(obj)) {
@@ -434,20 +452,8 @@ class Codegen {
       if (ast.hasTypeNameField) {
         continue;
       }
-
-      const exportedMetadata = ast.exported;
-      if (exportedMetadata != null) {
-        if (!this._typeNameMappings.has(t.name)) {
-          const localName = `${t.name}Class`;
-          this.ts.importUserConstruct(
-            exportedMetadata.tsModulePath,
-            exportedMetadata.exportName,
-            localName,
-            false,
-          );
-
-          this._typeNameMappings.set(t.name, localName);
-        }
+      if (ast.exported != null) {
+        this.ensureClassImported(t, ast.exported);
         needsResolveType = true;
       }
     }
@@ -972,8 +978,75 @@ class Codegen {
         );
       }
       this.ts.addStatement(this.resolveTypeFunctionDeclaration());
+      this.ts.addStatement(
+        F.createVariableStatement(
+          [F.createModifier(ts.SyntaxKind.ExportKeyword)],
+          F.createVariableDeclarationList(
+            [
+              F.createVariableDeclaration(
+                "getTypeName",
+                undefined,
+                undefined,
+                F.createIdentifier("resolveType"),
+              ),
+            ],
+            ts.NodeFlags.Const,
+          ),
+        ),
+      );
     }
+
+    this.interfaceClassMaps();
 
     return this.ts.print();
   }
+
+  interfaceClassMaps(): void {
+    const interfaceTypes = Object.values(this._schema.getTypeMap())
+      .filter(isInterfaceType)
+      .sort((a, b) => naturalCompare(a.name, b.name));
+
+    for (const interfaceType of interfaceTypes) {
+      const possibleTypes = this._schema.getPossibleTypes(interfaceType);
+      const classEntries: Array<[string, string]> = [];
+
+      for (const t of possibleTypes) {
+        const exported = nullThrows(t.astNode).exported;
+        if (exported == null) continue;
+        const localName = this.ensureClassImported(t, exported);
+        classEntries.push([t.name, localName]);
+      }
+
+      if (classEntries.length === 0) continue;
+
+      classEntries.sort(([a], [b]) => naturalCompare(a, b));
+
+      const mapName = `${lowercaseFirst(interfaceType.name)}ClassMap`;
+
+      const properties = classEntries.map(([typeName, localName]) =>
+        F.createPropertyAssignment(typeName, F.createIdentifier(localName)),
+      );
+
+      this.ts.addStatement(
+        F.createVariableStatement(
+          [F.createModifier(ts.SyntaxKind.ExportKeyword)],
+          F.createVariableDeclarationList(
+            [
+              F.createVariableDeclaration(
+                F.createIdentifier(mapName),
+                undefined,
+                undefined,
+                this.ts.objectLiteral(properties),
+              ),
+            ],
+            ts.NodeFlags.Const,
+          ),
+        ),
+      );
+    }
+  }
+}
+
+function lowercaseFirst(str: string): string {
+  return str.charAt(0).toLowerCase() + str.slice(1);
 }

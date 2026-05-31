@@ -7,14 +7,14 @@ import type { GqlScalar } from "grats";
 import type { GqlDate as DateInternal } from "./graphql/CustomScalars.js";
 import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLList, GraphQLString, GraphQLScalarType, GraphQLID, GraphQLInterfaceType, GraphQLBoolean, GraphQLInputObjectType } from "graphql";
 import { id as likeIdResolver, id as userIdResolver, id as postIdResolver, node as queryNodeResolver, nodes as queryNodesResolver } from "./graphql/Node.js";
+import { Like as LikeClass, createLike as mutationCreateLikeResolver } from "./models/Like.js";
+import { Post as PostClass, createPost as mutationCreatePostResolver } from "./models/Post.js";
+import { User as UserClass, createUser as mutationCreateUserResolver } from "./models/User.js";
 import { nodes as postConnectionNodesResolver, posts as queryPostsResolver } from "./models/PostConnection.js";
 import { nodes as likeConnectionNodesResolver, likes as queryLikesResolver, postLikes as subscriptionPostLikesResolver } from "./models/LikeConnection.js";
 import { getVc } from "./ViewerContext.js";
 import { nodes as userConnectionNodesResolver, users as queryUsersResolver } from "./models/UserConnection.js";
 import { Viewer as queryViewerResolver } from "./models/Viewer.js";
-import { createLike as mutationCreateLikeResolver } from "./models/Like.js";
-import { createPost as mutationCreatePostResolver } from "./models/Post.js";
-import { createUser as mutationCreateUserResolver } from "./models/User.js";
 export type SchemaConfig = {
     scalars: {
         Date: GqlScalar<DateInternal>;
@@ -38,7 +38,8 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
                     type: new GraphQLNonNull(GraphQLID)
                 }
             };
-        }
+        },
+        resolveType
     });
     const PostType: GraphQLObjectType = new GraphQLObjectType({
         name: "Post",
@@ -687,3 +688,27 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
         types: [DateType, NodeType, CreateLikeInputType, CreatePostInputType, CreateUserInputType, MarkdownNodeType, PostContentInputType, CreateLikePayloadType, CreatePostPayloadType, CreateUserPayloadType, LikeType, LikeConnectionType, LikeEdgeType, MutationType, PageInfoType, PostType, PostConnectionType, PostEdgeType, QueryType, SubscriptionType, UserType, UserConnectionType, UserEdgeType, ViewerType]
     });
 }
+const typeNameMap = new Map();
+typeNameMap.set(LikeClass, "Like");
+typeNameMap.set(PostClass, "Post");
+typeNameMap.set(UserClass, "User");
+function resolveType(obj: any): string {
+    if (typeof obj.__typename === "string") {
+        return obj.__typename;
+    }
+    let prototype = Object.getPrototypeOf(obj);
+    while (prototype) {
+        const name = typeNameMap.get(prototype.constructor);
+        if (name != null) {
+            return name;
+        }
+        prototype = Object.getPrototypeOf(prototype);
+    }
+    throw new Error("Cannot find type name.");
+}
+export const getTypeName = resolveType;
+export const nodeClassMap = {
+    Like: LikeClass,
+    Post: PostClass,
+    User: UserClass
+};

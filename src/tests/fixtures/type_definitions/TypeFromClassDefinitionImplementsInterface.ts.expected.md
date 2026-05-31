@@ -34,6 +34,7 @@ type User implements Person {
 ### TypeScript
 
 ```ts
+import UserClass from "./TypeFromClassDefinitionImplementsInterface";
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
     const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
@@ -65,4 +66,7 @@ export function getSchema(): GraphQLSchema {
         types: [PersonType, UserType]
     });
 }
+export const personClassMap = {
+    User: UserClass
+};
 ```

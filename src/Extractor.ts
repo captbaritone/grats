@@ -1351,19 +1351,17 @@ class Extractor {
 
     let exported: { tsModulePath: string; exportName: string | null } | null =
       null;
-    if (!hasTypeName) {
-      const isExported = node.modifiers?.find(
-        (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
-      );
-      const isDefault = node.modifiers?.find(
-        (modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword,
-      );
-      if (isExported) {
-        exported = {
-          tsModulePath: relativePath(node.getSourceFile().fileName),
-          exportName: isDefault ? null : node.name.text,
-        };
-      }
+    const isExported = node.modifiers?.find(
+      (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
+    );
+    const isDefault = node.modifiers?.find(
+      (modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword,
+    );
+    if (isExported) {
+      exported = {
+        tsModulePath: relativePath(node.getSourceFile().fileName),
+        exportName: isDefault ? null : node.name.text,
+      };
     }
 
     const directives = this.collectDirectives(node);

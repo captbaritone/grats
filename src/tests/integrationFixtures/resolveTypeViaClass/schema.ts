@@ -1,6 +1,7 @@
-import DefaultNodeClass from "./index.js";
+import DefaultNodeClass from "./models.js";
 import { GraphQLSchema, GraphQLObjectType, GraphQLInterfaceType, GraphQLID, GraphQLNonNull } from "graphql";
-import { Guest as GuestClass, ThisNameGetsIgnored as RenamedNodeClass, User as UserClass, node as queryNodeResolver } from "./index.js";
+import { Guest as GuestClass, ThisNameGetsIgnored as RenamedNodeClass, User as UserClass, id as defaultNodeIdResolver, id as guestIdResolver, id as renamedNodeIdResolver, id as userIdResolver } from "./models.js";
+import { node as queryNodeResolver } from "./index.js";
 export function getSchema(): GraphQLSchema {
     const GqlNodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "GqlNode",
@@ -39,7 +40,10 @@ export function getSchema(): GraphQLSchema {
             return {
                 id: {
                     name: "id",
-                    type: GraphQLID
+                    type: GraphQLID,
+                    resolve(source) {
+                        return defaultNodeIdResolver(source);
+                    }
                 }
             };
         },
@@ -53,7 +57,10 @@ export function getSchema(): GraphQLSchema {
             return {
                 id: {
                     name: "id",
-                    type: GraphQLID
+                    type: GraphQLID,
+                    resolve(source) {
+                        return guestIdResolver(source);
+                    }
                 }
             };
         },
@@ -67,7 +74,10 @@ export function getSchema(): GraphQLSchema {
             return {
                 id: {
                     name: "id",
-                    type: GraphQLID
+                    type: GraphQLID,
+                    resolve(source) {
+                        return renamedNodeIdResolver(source);
+                    }
                 }
             };
         },
@@ -81,7 +91,10 @@ export function getSchema(): GraphQLSchema {
             return {
                 id: {
                     name: "id",
-                    type: GraphQLID
+                    type: GraphQLID,
+                    resolve(source) {
+                        return userIdResolver(source);
+                    }
                 }
             };
         },
@@ -113,3 +126,10 @@ function resolveType(obj: any): string {
     }
     throw new Error("Cannot find type name.");
 }
+export const getTypeName = resolveType;
+export const gqlNodeClassMap = {
+    DefaultNode: DefaultNodeClass,
+    Guest: GuestClass,
+    RenamedNode: RenamedNodeClass,
+    User: UserClass
+};

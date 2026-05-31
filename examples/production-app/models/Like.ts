@@ -11,7 +11,9 @@ import { Post } from "./Post.js";
  * A reaction from a user indicating that they like a post.
  * @gqlType */
 export class Like extends Model<DB.LikeRow> implements GraphQLNode {
-  __typename = "Like" as const;
+  static async fetchById(vc: VC, id: string): Promise<Like> {
+    return vc.getLikeById(id);
+  }
 
   /**
    * The date and time at which the post was liked.

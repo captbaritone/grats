@@ -35,6 +35,7 @@ type User implements IPerson {
 
 ```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+import { User as UserClass } from "./PropertySignatureTypename";
 export function getSchema(): GraphQLSchema {
     const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IPerson",
@@ -65,4 +66,7 @@ export function getSchema(): GraphQLSchema {
         types: [IPersonType, UserType]
     });
 }
+export const iPersonClassMap = {
+    User: UserClass
+};
 ```

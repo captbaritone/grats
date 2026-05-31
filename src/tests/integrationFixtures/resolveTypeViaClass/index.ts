@@ -1,83 +1,34 @@
 import { ID } from "../../../Types.js";
-
-/** @gqlInterface */
-interface GqlNode {
-  /** @gqlField */
-  id: ID;
-}
-
-/** @gqlType */
-export default class DefaultNode implements GqlNode {
-  constructor(
-    /** @gqlField */
-    public id: ID,
-  ) {}
-}
-
-/** @gqlType */
-export class User implements GqlNode {
-  constructor(
-    /** @gqlField */
-    public id: ID,
-  ) {}
-}
-
-/** @gqlType RenamedNode */
-export class ThisNameGetsIgnored implements GqlNode {
-  constructor(
-    /** @gqlField */
-    public id: ID,
-  ) {}
-}
-
-/** @gqlType */
-export class Guest implements GqlNode {
-  constructor(
-    /** @gqlField */
-    public id: ID,
-  ) {}
-}
-
-class AlsoUser extends User {
-  constructor(id: ID) {
-    super(id);
-  }
-}
+import { gqlNodeClassMap } from "./schema.js";
+import type { GqlNode } from "./models.js";
 
 /** @gqlQueryField */
 export function node(args: { id: ID }): GqlNode {
-  const { id } = args;
-  if (id.startsWith("User:")) {
-    return new User(id);
-  } else if (id.startsWith("Guest:")) {
-    return new Guest(id);
-  } else if (id.startsWith("DefaultNode:")) {
-    return new DefaultNode(id);
-  } else if (id.startsWith("RenamedNode:")) {
-    return new ThisNameGetsIgnored(id);
-  } else if (id.startsWith("AlsoUser:")) {
-    return new AlsoUser(id);
-  } else {
-    return new Guest(id);
+  const [type, localId] = (args.id as string).split(":");
+  const cls = gqlNodeClassMap[type as keyof typeof gqlNodeClassMap];
+  if (cls == null) {
+    throw new Error(`Type "${type}" does not implement GqlNode`);
   }
+  return cls.fromId(localId);
 }
 
 export const query = /* GraphQL */ `
   query {
     user: node(id: "User:1") {
       __typename
+      id
     }
-    alsoUser: node(id: "AlsoUser:1") {
+    guest: node(id: "Guest:2") {
       __typename
+      id
     }
-    guest: node(id: "Guest:1") {
+    defaultNode: node(id: "DefaultNode:3") {
       __typename
+      id
     }
-    defaultNode: node(id: "DefaultNode:1") {
+    renamedNode: node(id: "RenamedNode:4") {
       __typename
-    }
-    renamedNode: node(id: "RenamedNode:1") {
-      __typename
+      id
     }
   }
 `;
