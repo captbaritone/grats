@@ -20,7 +20,7 @@
     "profile": "tsx scripts/profile.ts"
   },
   "dependencies": {
-    "commander": "^14.0.1",
+    "commander": "^15.0.0",
     "graphql": "^16.11.0",
     "semver": "^7.7.2"
   },
@@ -49,7 +49,7 @@
   },
   "packageManager": "pnpm@10.15.1",
   "engines": {
-    "node": ">=20 <=24"
+    "node": ">=22.12 <=24"
   },
   "bugs": {
     "url": "https://github.com/captbaritone/grats/issues"

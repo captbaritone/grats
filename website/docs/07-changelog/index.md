@@ -4,9 +4,12 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
+- **Breaking Changes**
+  - Grats now requires Node.js `>=22.12.0` (previously `>=20`). This is a result of upgrading `commander` to `v15`, which dropped support for older Node.js versions.
 - **Features**
   - Added support for deriving `@gqlEnum` from const arrays (`(typeof X)[number]`) and const objects (`(typeof X)[keyof typeof X]`). This allows defining enums with runtime-accessible values without using TypeScript's `enum` syntax. The const declaration must immediately precede the type alias. See [enum docs](../04-docblock-tags/07-enums.mdx#runtime-accessible-enums) for details.
 - **Improvements**
+  - Upgraded `commander` from `v14` to `v15`.
   - `typescript` is now a peer dependency (`>=5.5`) instead of a direct dependency, allowing you to use your own TypeScript version. ([PR](https://github.com/captbaritone/grats/pull/228))
   - Added support for TypeScript 6.0. ([PR](https://github.com/captbaritone/grats/pull/228))
   - CI now tests against TypeScript 5.5, 5.7, 5.9, and 6.0.
