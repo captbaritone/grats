@@ -12,24 +12,30 @@ import {
   UnionTypeDefinitionNode,
   visit,
 } from "graphql";
-import { loc } from "../GraphQLConstructor.js";
 import { TypeContext } from "../TypeContext.js";
 import * as ts from "typescript";
 import { err, ok } from "../utils/Result.js";
 import {
   DiagnosticResult,
   DiagnosticsResult,
-  TsLocatableNode,
   gqlErr,
-  tsErr,
 } from "../utils/DiagnosticError.js";
 import { extend, invariant, nullThrows } from "../utils/helpers.js";
 import * as E from "../Errors.js";
+import { DeclLoc, EntityNameRef, TypeParameterRef } from "../snapshotRefs.js";
 
 type Template = {
   declarationTemplate: TypeDefinitionNode;
-  typeParameters: ts.NodeArray<ts.TypeParameterDeclaration>;
-  genericNodes: Map<ts.EntityName, number>;
+  typeParameters: TypeParameterRef[];
+  // References to the template's type parameters in GraphQL positions, keyed
+  // by `locKey`.
+  genericNodes: Map<string, GenericReference>;
+};
+
+type GenericReference = {
+  name: Location;
+  // Index of the referenced type parameter
+  index: number;
 };
 
 /**
@@ -71,7 +77,7 @@ export function resolveTypes(
  * which refer to generic types resolve to the correct type.
  */
 class TemplateExtractor {
-  _templates: Map<ts.Node, Template> = new Map();
+  _templates: Map<DeclLoc, Template> = new Map();
   _definitions: Array<DefinitionNode> = [];
   _definedTemplates: Set<string> = new Set();
   _errors: ts.DiagnosticWithLocation[] = [];
@@ -118,30 +124,28 @@ class TemplateExtractor {
   }
 
   resolveTypeReferenceOrReport(
-    node: EntityNameWithTypeArguments,
-    generics?: Map<ts.Node, string>,
+    node: EntityNameRef,
+    generics?: Map<DeclLoc, string>,
   ): string | null {
-    const declaration = this.asNullable(
-      this.ctx.tsDeclarationForTsName(node.typeName),
-    );
+    const declaration = this.asNullable(this.ctx.resolveEntityName(node.name));
     if (declaration == null) return null;
 
     if (generics != null) {
       // Maybe this node references a generic!
-      const genericName = generics.get(declaration);
+      const genericName = generics.get(declaration.declLoc);
       if (genericName != null) {
         return genericName;
       }
     }
 
-    const template = this._templates.get(declaration);
+    const template = this._templates.get(declaration.declLoc);
     if (template != null) {
       const templateName = template.declarationTemplate.name.value;
       const typeArguments = node.typeArguments ?? [];
 
-      const genericIndexes = new Map<number, ts.EntityName>();
-      for (const [node, index] of template.genericNodes) {
-        genericIndexes.set(index, node);
+      const genericIndexes = new Map<number, Location>();
+      for (const { name, index } of template.genericNodes.values()) {
+        genericIndexes.set(index, name);
       }
 
       const names: Array<string | null> = [];
@@ -154,29 +158,29 @@ class TemplateExtractor {
           continue;
         }
         const param = template.typeParameters[i];
-        const paramName = param.name.text;
+        const paramName = param.name;
         const arg = typeArguments[i];
         if (arg == null) {
           return this.report(
-            node,
+            node.loc,
             E.missingGenericType(templateName, paramName),
             [
-              tsErr(param, `Type parameter \`${paramName}\` is defined here`),
-              tsErr(
-                exampleGenericNode,
+              gqlErr(param, `Type parameter \`${paramName}\` is defined here`),
+              gqlErr(
+                { loc: exampleGenericNode },
                 `and expects a GraphQL type because it was used in a GraphQL position here.`,
               ),
             ],
           );
         }
-        if (!ts.isTypeReferenceNode(arg)) {
+        if (arg.kind !== "ENTITY_NAME") {
           return this.report(
-            arg,
+            arg.loc,
             E.nonGraphQLGenericType(templateName, paramName),
             [
-              tsErr(param, `Type parameter \`${paramName}\` is defined here`),
-              tsErr(
-                exampleGenericNode,
+              gqlErr(param, `Type parameter \`${paramName}\` is defined here`),
+              gqlErr(
+                { loc: exampleGenericNode },
                 `and expects a GraphQL type because it was used in a GraphQL position here.`,
               ),
             ],
@@ -188,9 +192,9 @@ class TemplateExtractor {
         names.push(name);
       }
 
-      return this.materializeTemplate(node, names, template);
+      return this.materializeTemplate(node.loc, names, template);
     }
-    const nameResult = this.ctx.gqlNameForTsName(node.typeName);
+    const nameResult = this.ctx.gqlNameForTsName(node.name);
 
     return this.asNullable(nameResult);
   }
@@ -206,7 +210,7 @@ class TemplateExtractor {
   }
 
   materializeTemplate(
-    referenceLoc: TsLocatableNode,
+    referenceLoc: Location,
     typeParams: Array<string | null>,
     template: Template,
   ): string {
@@ -218,10 +222,14 @@ class TemplateExtractor {
     }
     this._definedTemplates.add(derivedName);
 
-    // Mapping from the template's type param declaration AST node to the
-    // GraphQL name passed in for this particular use.
-    const genericsContext = new Map<ts.TypeParameterDeclaration, string>();
-    for (const i of new Set(template.genericNodes.values())) {
+    // Mapping from the template's type param declaration to the GraphQL name
+    // passed in for this particular use.
+    const genericsContext = new Map<DeclLoc, string>();
+    const genericIndexes = Array.from(
+      template.genericNodes.values(),
+      (generic) => generic.index,
+    );
+    for (const i of new Set(genericIndexes)) {
       const name = typeParams[i];
       invariant(name !== undefined, "typeParams[i] should not be undefined");
       if (name == null) {
@@ -230,12 +238,15 @@ class TemplateExtractor {
         continue;
       }
       const param = nullThrows(template.typeParameters[i]);
-      genericsContext.set(param, name);
+      genericsContext.set(param.declLoc, name);
     }
 
-    const gqlLoc = loc(referenceLoc);
     const original = template.declarationTemplate;
-    const renamedDefinition = renameDefinition(original, derivedName, gqlLoc);
+    const renamedDefinition = renameDefinition(
+      original,
+      derivedName,
+      referenceLoc,
+    );
 
     const definition = visit(renamedDefinition, {
       [Kind.NAMED_TYPE]: (node): NamedTypeNode | undefined => {
@@ -261,14 +272,14 @@ class TemplateExtractor {
     if (!mayReferenceGenerics(definition)) {
       return false;
     }
-    const declaration = this.ctx.tsDeclarationForGqlDefinition(definition);
-    const typeParams = getTypeParameters(declaration);
+    const declaration = this.ctx.declarationForGqlDefinition(definition);
+    const typeParams = declaration.typeParameters;
 
-    if (typeParams == null || typeParams.length === 0) {
+    if (typeParams.length === 0) {
       return false;
     }
 
-    const genericNodes = new Map<ts.EntityName, number>();
+    const genericNodes = new Map<string, GenericReference>();
 
     visit(definition, {
       [Kind.NAMED_TYPE]: (node) => {
@@ -276,9 +287,7 @@ class TemplateExtractor {
         if (referenceNode == null) return;
         const references = findAllReferences(referenceNode);
         for (const reference of references) {
-          const declarationResult = this.ctx.tsDeclarationForTsName(
-            reference.typeName,
-          );
+          const declarationResult = this.ctx.resolveEntityName(reference.name);
           if (declarationResult.kind === "ERROR") {
             this._errors.push(declarationResult.err);
             return;
@@ -286,13 +295,18 @@ class TemplateExtractor {
           const declaration = declarationResult.value;
 
           // If the type points to a type param...
-          if (!ts.isTypeParameterDeclaration(declaration)) {
+          if (declaration.kind !== "TYPE_PARAMETER") {
             return;
           }
           // And it's one of our parent type's type params...
-          const genericIndex = typeParams.indexOf(declaration);
+          const genericIndex = typeParams.findIndex(
+            (param) => param.declLoc === declaration.declLoc,
+          );
           if (genericIndex !== -1) {
-            genericNodes.set(reference.typeName, genericIndex);
+            genericNodes.set(locKey(reference.name), {
+              name: reference.name,
+              index: genericIndex,
+            });
           }
         }
       },
@@ -306,7 +320,7 @@ class TemplateExtractor {
         this._errors.push(gqlErr(item, E.genericTypeImplementsInterface()));
       }
     }
-    this._templates.set(declaration, {
+    this._templates.set(declaration.declLoc, {
       declarationTemplate: definition,
       genericNodes,
       typeParameters: typeParams,
@@ -330,29 +344,11 @@ class TemplateExtractor {
    * }
    * ```
    *
-   * Given the `Person` NameNode, this will return the TypeScript TypeReferenceNode
-   * which represents the `Person` TypeScript AST node.
+   * Given the `Person` NameNode, this will return the reference to the
+   * `Person` TypeScript type recorded during extraction.
    */
-  getReferenceNode(name: NameNode): EntityNameWithTypeArguments | null {
-    const node = this.ctx.getEntityName(name);
-    if (node == null) {
-      return null;
-    }
-    if (ts.isTypeReferenceNode(node.parent)) {
-      return node.parent;
-    }
-    // Heritage clauses are not actually type references since they have
-    // runtime semantics. Instead they are an "ExpressionWithTypeArguments"
-    if (
-      ts.isExpressionWithTypeArguments(node.parent) &&
-      ts.isIdentifier(node.parent.expression)
-    ) {
-      return new EntityNameWithTypeArguments(
-        node.parent.expression,
-        node.parent.typeArguments,
-      );
-    }
-    return null;
+  getReferenceNode(name: NameNode): EntityNameRef | null {
+    return this.ctx.getEntityName(name);
   }
 
   asNullable<T>(result: DiagnosticResult<T>): T | null {
@@ -364,11 +360,11 @@ class TemplateExtractor {
   }
 
   report(
-    node: TsLocatableNode,
+    loc: Location,
     message: string,
     relatedInformation?: ts.DiagnosticRelatedInformation[],
   ): null {
-    this._errors.push(tsErr(node, message, relatedInformation));
+    this._errors.push(gqlErr({ loc }, message, relatedInformation));
     return null;
   }
 }
@@ -388,57 +384,20 @@ function mayReferenceGenerics(
   );
 }
 
-function getTypeParameters(
-  declaration: ts.Declaration,
-): ts.NodeArray<ts.TypeParameterDeclaration> | null {
-  if (ts.isTypeAliasDeclaration(declaration)) {
-    return declaration.typeParameters ?? null;
-  }
-  if (ts.isInterfaceDeclaration(declaration)) {
-    return declaration.typeParameters ?? null;
-  }
-  if (ts.isClassDeclaration(declaration)) {
-    return declaration.typeParameters ?? null;
-  }
-  // TODO: Handle other types of declarations which have generics.
-  return null;
-}
-
-/**
- * Abstraction that can be derived from a typeReference or an expression with
- * type arguments. Gives us a common shape which can model both a
- * `ts.TypeReferenceNode` and a `ts.ExpressionWithTypeArguments` while also
- * being able to use it to report diagnostics
- */
-class EntityNameWithTypeArguments implements TsLocatableNode {
-  constructor(
-    public typeName: ts.EntityName,
-    public typeArguments?: ts.NodeArray<ts.TypeNode>,
-  ) {}
-
-  getStart() {
-    return this.typeName.getStart();
-  }
-  getEnd() {
-    if (this.typeArguments == null || this.typeArguments.length === 0) {
-      return this.typeName.getEnd();
-    }
-    return this.typeArguments[this.typeArguments.length - 1].getEnd();
-  }
-  getSourceFile() {
-    return this.typeName.getSourceFile();
-  }
+// Identifies a location by its file and start offset. Unlike `Location`
+// objects, which may be created more than once for the same node, keys for the
+// same node are equal.
+function locKey(loc: Location): string {
+  return `${loc.source.name}:${loc.start}`;
 }
 
 // Given a type reference, recursively walk its type arguments and return all
 // type references in the current scope.
-function findAllReferences(
-  node: EntityNameWithTypeArguments,
-): EntityNameWithTypeArguments[] {
-  const references: EntityNameWithTypeArguments[] = [];
+function findAllReferences(node: EntityNameRef): EntityNameRef[] {
+  const references: EntityNameRef[] = [];
   if (node.typeArguments != null) {
     for (const arg of node.typeArguments) {
-      if (ts.isTypeReferenceNode(arg)) {
+      if (arg.kind === "ENTITY_NAME") {
         extend(references, findAllReferences(arg));
       }
     }

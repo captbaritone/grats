@@ -15,6 +15,7 @@ import { ok, err } from "./utils/Result.js";
 import * as ts from "typescript";
 import { ExtractionSnapshot } from "./Extractor.js";
 import { TypeContext } from "./TypeContext.js";
+import { NodeLocator } from "./utils/NodeLocator.js";
 import { validateSDL } from "graphql/validation/validate.js";
 import { ParsedCommandLineGrats } from "./gratsConfig.js";
 import { validateTypenames } from "./validations/validateTypenames.js";
@@ -93,7 +94,8 @@ export function extractSchemaAndDoc(
       const { typesWithTypename } = snapshot;
       const config = options.raw.grats;
       const checker = program.getTypeChecker();
-      const ctxResult = TypeContext.fromSnapshot(checker, snapshot);
+      const locator = new NodeLocator(program);
+      const ctxResult = TypeContext.fromSnapshot(checker, locator, snapshot);
       if (ctxResult.kind === "ERROR") {
         return ctxResult;
       }
@@ -101,8 +103,14 @@ export function extractSchemaAndDoc(
 
       // Collect validation errors
       const validationResult = concatResults(
-        validateMergedInterfaces(checker, snapshot.interfaceDeclarations),
-        validateDuplicateContextOrInfo(snapshot.nameDefinitions.values()),
+        validateMergedInterfaces(
+          checker,
+          locator,
+          snapshot.interfaceDeclarations,
+        ),
+        validateDuplicateContextOrInfo(
+          Array.from(snapshot.nameDefinitions.values(), (n) => n.definition),
+        ),
       );
 
       const docResult = new ResultPipe(validationResult)
@@ -228,16 +236,16 @@ function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
       result.definitions.push(definition);
     }
 
-    for (const [node, definition] of snapshot.nameDefinitions) {
-      result.nameDefinitions.set(node, definition);
+    for (const [declLoc, entry] of snapshot.nameDefinitions) {
+      result.nameDefinitions.set(declLoc, entry);
     }
 
-    for (const [node, typeName] of snapshot.unresolvedNames) {
-      result.unresolvedNames.set(node, typeName);
+    for (const [id, reference] of snapshot.unresolvedNames) {
+      result.unresolvedNames.set(id, reference);
     }
 
-    for (const [node, definition] of snapshot.implicitNameDefinitions) {
-      result.implicitNameDefinitions.set(node, definition);
+    for (const [definition, reference] of snapshot.implicitNameDefinitions) {
+      result.implicitNameDefinitions.set(definition, reference);
     }
 
     for (const typeName of snapshot.typesWithTypename) {

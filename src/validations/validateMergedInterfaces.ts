@@ -2,10 +2,12 @@ import * as ts from "typescript";
 import * as E from "../Errors.js";
 import {
   DiagnosticsWithoutLocationResult,
-  tsErr,
+  gqlErr,
   tsRelated,
 } from "../utils/DiagnosticError.js";
 import { err, ok } from "../utils/Result.js";
+import { DeclRef, declLoc } from "../snapshotRefs.js";
+import { NodeLocator } from "../utils/NodeLocator.js";
 
 /**
  * Prevent using merged interfaces as GraphQL interfaces.
@@ -13,12 +15,15 @@ import { err, ok } from "../utils/Result.js";
  */
 export function validateMergedInterfaces(
   checker: ts.TypeChecker,
-  interfaces: ts.InterfaceDeclaration[],
+  locator: NodeLocator,
+  interfaces: DeclRef[],
 ): DiagnosticsWithoutLocationResult<void> {
   const errors: ts.DiagnosticWithLocation[] = [];
 
-  for (const node of interfaces) {
-    const symbol = checker.getSymbolAtLocation(node.name);
+  for (const declaration of interfaces) {
+    const symbol = checker.getSymbolAtLocation(
+      locator.nodeAt(declaration.name),
+    );
     if (symbol == null) {
       continue;
     }
@@ -34,7 +39,7 @@ export function validateMergedInterfaces(
     const otherLocations = mergedSymbol.declarations
       .filter(
         (d) =>
-          d !== node &&
+          declLoc(d) !== declaration.declLoc &&
           (ts.isInterfaceDeclaration(d) || ts.isClassDeclaration(d)),
       )
       .map((d) => {
@@ -43,7 +48,9 @@ export function validateMergedInterfaces(
       });
 
     if (otherLocations.length > 0) {
-      errors.push(tsErr(node.name, E.mergedInterfaces(), otherLocations));
+      errors.push(
+        gqlErr({ loc: declaration.name }, E.mergedInterfaces(), otherLocations),
+      );
     }
   }
 

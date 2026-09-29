@@ -38,6 +38,13 @@ import { traverseJSDocTags } from "./utils/JSDoc.js";
 import { GraphQLConstructor, loc } from "./GraphQLConstructor.js";
 import { relativePath } from "./gratsRoot.js";
 import { ISSUE_URL } from "./Errors.js";
+import {
+  DeclLoc,
+  DeclRef,
+  EntityNameRef,
+  declRef,
+  entityNameRef,
+} from "./snapshotRefs.js";
 import { detectInvalidComments } from "./comments.js";
 import {
   bestMatch,
@@ -115,27 +122,27 @@ export type ExtractionSnapshot = {
   readonly definitions: DefinitionNode[];
 
   /**
-   * Map from a TypeScript AST node that may reference a GraphQL type to a
-   * GraphQL NameNode. Note that at extraction time we don't actually know the
+   * Map from a GraphQL NameNode to the TypeScript type reference it was
+   * extracted from. Note that at extraction time we don't actually know the
    * GraphQL name that this references, or if it even references a valid Grats
-   * type. So, the `NameNode` passed here will generally have a placeholder
-   * name. This will be resolved in a later pass since it may reference a type
-   * defined in another file and extraction is done on a per-file basis.
+   * type. So, the `NameNode` will generally have a placeholder name. This will
+   * be resolved in a later pass since it may reference a type defined in
+   * another file and extraction is done on a per-file basis.
    */
-  readonly unresolvedNames: Map<TsIdentifier, ts.EntityName>;
+  readonly unresolvedNames: Map<TsIdentifier, EntityNameRef>;
 
   /** Map from a TypeScript declaration to the extracted GraphQL name and kind. */
-  readonly nameDefinitions: Map<ts.DeclarationStatement, NameDefinition>;
+  readonly nameDefinitions: Map<
+    DeclLoc,
+    { declaration: DeclRef; definition: NameDefinition }
+  >;
 
   /**
    * Some declarations (notably derived context functions) are not actually the
    * declaration that will become a special GraphQL value, but rather they
    * _reference_ a type which will implicitly become a special type to Grats.
    */
-  readonly implicitNameDefinitions: Map<
-    DeclarationDefinition,
-    ts.TypeReferenceNode
-  >;
+  readonly implicitNameDefinitions: Map<DeclarationDefinition, EntityNameRef>;
 
   /**
    * Records which named GraphQL types define a `__typename` field.
@@ -150,7 +157,7 @@ export type ExtractionSnapshot = {
    * used in a later validation pass to ensure we never use merged interfaces,
    * since merged interfaces have surprising behaviors which can lead to bugs.
    */
-  readonly interfaceDeclarations: Array<ts.InterfaceDeclaration>;
+  readonly interfaceDeclarations: Array<DeclRef>;
 };
 
 type FieldTypeContext = {
@@ -178,12 +185,15 @@ export function extract(
 class Extractor {
   // Snapshot data. See comments on fields on ExtractionSnapshot for details.
   definitions: DefinitionNode[] = [];
-  unresolvedNames: Map<TsIdentifier, ts.EntityName> = new Map();
-  nameDefinitions: Map<ts.DeclarationStatement, NameDefinition> = new Map();
-  implicitNameDefinitions: Map<DeclarationDefinition, ts.TypeReferenceNode> =
+  unresolvedNames: Map<TsIdentifier, EntityNameRef> = new Map();
+  nameDefinitions: Map<
+    DeclLoc,
+    { declaration: DeclRef; definition: NameDefinition }
+  > = new Map();
+  implicitNameDefinitions: Map<DeclarationDefinition, EntityNameRef> =
     new Map();
   typesWithTypename: Set<string> = new Set();
-  interfaceDeclarations: Array<ts.InterfaceDeclaration> = [];
+  interfaceDeclarations: Array<DeclRef> = [];
 
   errors: ts.DiagnosticWithLocation[] = [];
   gql: GraphQLConstructor;
@@ -195,7 +205,7 @@ class Extractor {
   }
 
   markUnresolvedType(node: ts.EntityName, name: NameNode) {
-    this.unresolvedNames.set(name.tsIdentifier, node);
+    this.unresolvedNames.set(name.tsIdentifier, entityNameRef(node));
   }
 
   recordTypeName(
@@ -203,7 +213,11 @@ class Extractor {
     name: NameNode,
     kind: NameDefinition["kind"],
   ): void {
-    this.nameDefinitions.set(node, { name, kind });
+    const declaration = declRef(node);
+    this.nameDefinitions.set(declaration.declLoc, {
+      declaration,
+      definition: { name, kind },
+    });
   }
 
   // Traverse all nodes, checking each one for its JSDoc tags.
@@ -472,7 +486,7 @@ class Extractor {
         args: paramResults.resolverParams,
         async: isAsync,
       },
-      innerType,
+      entityNameRef(innerType.typeName),
     );
   }
 
@@ -1200,7 +1214,7 @@ class Extractor {
       if (field != null) fields.push(field);
     }
 
-    this.interfaceDeclarations.push(node);
+    this.interfaceDeclarations.push(declRef(node));
 
     const directives = this.collectDirectives(node);
 
@@ -1721,7 +1735,7 @@ class Extractor {
       return;
     }
 
-    this.interfaceDeclarations.push(node);
+    this.interfaceDeclarations.push(declRef(node));
 
     const description = this.collectDescription(node);
     const interfaces = this.collectInterfaces(node);
