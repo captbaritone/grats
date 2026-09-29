@@ -36,33 +36,39 @@ type SomeType {
 ### TypeScript
 
 ```ts
-import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";
+import {
+  GraphQLSchema,
+  GraphQLInputObjectType,
+  GraphQLNonNull,
+  GraphQLString,
+  GraphQLObjectType,
+} from "graphql";
 export function getSchema(): GraphQLSchema {
-    const MyInputTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({
-        description: "Check out this great input!",
-        name: "MyInputType",
-        fields() {
-            return {
-                someField: {
-                    name: "someField",
-                    type: new GraphQLNonNull(GraphQLString)
-                }
-            };
-        }
-    });
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-        name: "SomeType",
-        fields() {
-            return {
-                hello: {
-                    name: "hello",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        types: [MyInputTypeType, SomeTypeType]
-    });
+  const MyInputTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({
+    description: "Check out this great input!",
+    name: "MyInputType",
+    fields() {
+      return {
+        someField: {
+          name: "someField",
+          type: new GraphQLNonNull(GraphQLString),
+        },
+      };
+    },
+  });
+  const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "SomeType",
+    fields() {
+      return {
+        hello: {
+          name: "hello",
+          type: GraphQLString,
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    types: [MyInputTypeType, SomeTypeType],
+  });
 }
 ```

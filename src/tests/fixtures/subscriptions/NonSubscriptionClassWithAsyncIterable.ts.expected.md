@@ -44,33 +44,41 @@ type User {
 ### TypeScript
 
 ```ts
-import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLString } from "graphql";
+import {
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLNonNull,
+  GraphQLList,
+  GraphQLString,
+} from "graphql";
 export function getSchema(): GraphQLSchema {
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
-        name: "User",
-        fields() {
-            return {
-                greetings: {
-                    name: "greetings",
-                    type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLString)))
-                },
-                greetingsMaybe: {
-                    name: "greetingsMaybe",
-                    type: new GraphQLNonNull(new GraphQLList(GraphQLString))
-                },
-                maybeGreetings: {
-                    name: "maybeGreetings",
-                    type: new GraphQLList(new GraphQLNonNull(GraphQLString))
-                },
-                maybeGreetingsMaybe: {
-                    name: "maybeGreetingsMaybe",
-                    type: new GraphQLList(GraphQLString)
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        types: [UserType]
-    });
+  const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+      return {
+        greetings: {
+          name: "greetings",
+          type: new GraphQLNonNull(
+            new GraphQLList(new GraphQLNonNull(GraphQLString)),
+          ),
+        },
+        greetingsMaybe: {
+          name: "greetingsMaybe",
+          type: new GraphQLNonNull(new GraphQLList(GraphQLString)),
+        },
+        maybeGreetings: {
+          name: "maybeGreetings",
+          type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
+        },
+        maybeGreetingsMaybe: {
+          name: "maybeGreetingsMaybe",
+          type: new GraphQLList(GraphQLString),
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    types: [UserType],
+  });
 }
 ```

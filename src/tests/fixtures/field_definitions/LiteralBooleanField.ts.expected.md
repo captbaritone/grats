@@ -27,19 +27,19 @@ type SomeType {
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLBoolean } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-        name: "SomeType",
-        fields() {
-            return {
-                hello: {
-                    name: "hello",
-                    type: GraphQLBoolean
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        types: [SomeTypeType]
-    });
+  const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "SomeType",
+    fields() {
+      return {
+        hello: {
+          name: "hello",
+          type: GraphQLBoolean,
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    types: [SomeTypeType],
+  });
 }
 ```

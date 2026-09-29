@@ -68,74 +68,81 @@ type PageInfo {
 ### TypeScript
 
 ```ts
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull, GraphQLBoolean } from "graphql";
+import {
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLString,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLBoolean,
+} from "graphql";
 export function getSchema(): GraphQLSchema {
-    const PageType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Page",
-        fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const PageEdgeType: GraphQLObjectType = new GraphQLObjectType({
-        name: "PageEdge",
-        fields() {
-            return {
-                cursor: {
-                    name: "cursor",
-                    type: GraphQLString
-                },
-                node: {
-                    name: "node",
-                    type: PageType
-                }
-            };
-        }
-    });
-    const PageInfoType: GraphQLObjectType = new GraphQLObjectType({
-        name: "PageInfo",
-        fields() {
-            return {
-                endCursor: {
-                    name: "endCursor",
-                    type: GraphQLString
-                },
-                hasNextPage: {
-                    name: "hasNextPage",
-                    type: GraphQLBoolean
-                },
-                hasPreviousPage: {
-                    name: "hasPreviousPage",
-                    type: GraphQLBoolean
-                },
-                startCursor: {
-                    name: "startCursor",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const PageConnectionType: GraphQLObjectType = new GraphQLObjectType({
-        name: "PageConnection",
-        fields() {
-            return {
-                edges: {
-                    name: "edges",
-                    type: new GraphQLList(new GraphQLNonNull(PageEdgeType))
-                },
-                pageInfo: {
-                    name: "pageInfo",
-                    type: PageInfoType
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        types: [PageType, PageConnectionType, PageEdgeType, PageInfoType]
-    });
+  const PageType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Page",
+    fields() {
+      return {
+        name: {
+          name: "name",
+          type: GraphQLString,
+        },
+      };
+    },
+  });
+  const PageEdgeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "PageEdge",
+    fields() {
+      return {
+        cursor: {
+          name: "cursor",
+          type: GraphQLString,
+        },
+        node: {
+          name: "node",
+          type: PageType,
+        },
+      };
+    },
+  });
+  const PageInfoType: GraphQLObjectType = new GraphQLObjectType({
+    name: "PageInfo",
+    fields() {
+      return {
+        endCursor: {
+          name: "endCursor",
+          type: GraphQLString,
+        },
+        hasNextPage: {
+          name: "hasNextPage",
+          type: GraphQLBoolean,
+        },
+        hasPreviousPage: {
+          name: "hasPreviousPage",
+          type: GraphQLBoolean,
+        },
+        startCursor: {
+          name: "startCursor",
+          type: GraphQLString,
+        },
+      };
+    },
+  });
+  const PageConnectionType: GraphQLObjectType = new GraphQLObjectType({
+    name: "PageConnection",
+    fields() {
+      return {
+        edges: {
+          name: "edges",
+          type: new GraphQLList(new GraphQLNonNull(PageEdgeType)),
+        },
+        pageInfo: {
+          name: "pageInfo",
+          type: PageInfoType,
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    types: [PageType, PageConnectionType, PageEdgeType, PageInfoType],
+  });
 }
 ```

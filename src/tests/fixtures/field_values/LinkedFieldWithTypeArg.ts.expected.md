@@ -44,36 +44,42 @@ type User {
 ### TypeScript
 
 ```ts
-import { GraphQLSchema, GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLString } from "graphql";
+import {
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLString,
+} from "graphql";
 export function getSchema(): GraphQLSchema {
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
-        name: "User",
-        fields() {
-            return {
-                friends: {
-                    name: "friends",
-                    type: new GraphQLList(new GraphQLNonNull(UserType))
-                },
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-        name: "SomeType",
-        fields() {
-            return {
-                me: {
-                    name: "me",
-                    type: UserType
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        types: [SomeTypeType, UserType]
-    });
+  const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+      return {
+        friends: {
+          name: "friends",
+          type: new GraphQLList(new GraphQLNonNull(UserType)),
+        },
+        name: {
+          name: "name",
+          type: GraphQLString,
+        },
+      };
+    },
+  });
+  const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "SomeType",
+    fields() {
+      return {
+        me: {
+          name: "me",
+          type: UserType,
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    types: [SomeTypeType, UserType],
+  });
 }
 ```

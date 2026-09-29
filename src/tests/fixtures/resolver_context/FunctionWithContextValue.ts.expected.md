@@ -33,22 +33,22 @@ type User {
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { greeting as userGreetingResolver } from "./FunctionWithContextValue";
 export function getSchema(): GraphQLSchema {
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
-        name: "User",
-        fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString,
-                    resolve(source, _args, context) {
-                        return userGreetingResolver(source, context);
-                    }
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        types: [UserType]
-    });
+  const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+      return {
+        greeting: {
+          name: "greeting",
+          type: GraphQLString,
+          resolve(source, _args, context) {
+            return userGreetingResolver(source, context);
+          },
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    types: [UserType],
+  });
 }
 ```

@@ -34,24 +34,25 @@ type Query {
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { greeting as queryGreetingResolver } from "./queryFieldWithExplicitlyDefinedQuery";
 export function getSchema(): GraphQLSchema {
-    const QueryType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Query",
-        description: "I might want to explicitly define a type here to provide a description.",
-        fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString,
-                    resolve() {
-                        return queryGreetingResolver();
-                    }
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        query: QueryType,
-        types: [QueryType]
-    });
+  const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    description:
+      "I might want to explicitly define a type here to provide a description.",
+    fields() {
+      return {
+        greeting: {
+          name: "greeting",
+          type: GraphQLString,
+          resolve() {
+            return queryGreetingResolver();
+          },
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    query: QueryType,
+    types: [QueryType],
+  });
 }
 ```

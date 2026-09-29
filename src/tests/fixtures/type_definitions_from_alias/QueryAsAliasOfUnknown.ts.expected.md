@@ -28,23 +28,23 @@ type Query {
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { foo as queryFooResolver } from "./QueryAsAliasOfUnknown";
 export function getSchema(): GraphQLSchema {
-    const QueryType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Query",
-        fields() {
-            return {
-                foo: {
-                    name: "foo",
-                    type: GraphQLString,
-                    resolve(source) {
-                        return queryFooResolver(source);
-                    }
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        query: QueryType,
-        types: [QueryType]
-    });
+  const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+      return {
+        foo: {
+          name: "foo",
+          type: GraphQLString,
+          resolve(source) {
+            return queryFooResolver(source);
+          },
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    query: QueryType,
+    types: [QueryType],
+  });
 }
 ```

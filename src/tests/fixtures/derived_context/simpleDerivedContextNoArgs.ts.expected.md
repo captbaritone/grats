@@ -40,25 +40,28 @@ type Query {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import { greeting as queryGreetingResolver, createDerivedContext } from "./simpleDerivedContextNoArgs";
+import {
+  greeting as queryGreetingResolver,
+  createDerivedContext,
+} from "./simpleDerivedContextNoArgs";
 export function getSchema(): GraphQLSchema {
-    const QueryType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Query",
-        fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString,
-                    resolve(source) {
-                        return queryGreetingResolver(source, createDerivedContext());
-                    }
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        query: QueryType,
-        types: [QueryType]
-    });
+  const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+      return {
+        greeting: {
+          name: "greeting",
+          type: GraphQLString,
+          resolve(source) {
+            return queryGreetingResolver(source, createDerivedContext());
+          },
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    query: QueryType,
+    types: [QueryType],
+  });
 }
 ```

@@ -89,91 +89,97 @@ type User {
 ### TypeScript
 
 ```ts
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull } from "graphql";
+import {
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLString,
+  GraphQLList,
+  GraphQLNonNull,
+} from "graphql";
 export function getSchema(): GraphQLSchema {
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
-        name: "User",
-        fields() {
-            return {
-                groups: {
-                    name: "groups",
-                    type: new GraphQLList(new GraphQLNonNull(GroupType))
-                },
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const GroupType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Group",
-        fields() {
-            return {
-                description: {
-                    name: "description",
-                    type: GraphQLString
-                },
-                members: {
-                    name: "members",
-                    type: new GraphQLList(new GraphQLNonNull(UserType))
-                },
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-        name: "SomeType",
-        fields() {
-            return {
-                greetings: {
-                    name: "greetings",
-                    type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
-                    args: {
-                        greeting: {
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    }
-                },
-                greetings1: {
-                    name: "greetings1",
-                    type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
-                    args: {
-                        greeting: {
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    }
-                },
-                greetings2: {
-                    name: "greetings2",
-                    type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
-                    args: {
-                        greeting: {
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    }
-                },
-                hello: {
-                    name: "hello",
-                    type: GraphQLString,
-                    args: {
-                        greeting: {
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    }
-                },
-                me: {
-                    name: "me",
-                    type: UserType
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        types: [GroupType, SomeTypeType, UserType]
-    });
+  const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+      return {
+        groups: {
+          name: "groups",
+          type: new GraphQLList(new GraphQLNonNull(GroupType)),
+        },
+        name: {
+          name: "name",
+          type: GraphQLString,
+        },
+      };
+    },
+  });
+  const GroupType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Group",
+    fields() {
+      return {
+        description: {
+          name: "description",
+          type: GraphQLString,
+        },
+        members: {
+          name: "members",
+          type: new GraphQLList(new GraphQLNonNull(UserType)),
+        },
+        name: {
+          name: "name",
+          type: GraphQLString,
+        },
+      };
+    },
+  });
+  const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "SomeType",
+    fields() {
+      return {
+        greetings: {
+          name: "greetings",
+          type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
+          args: {
+            greeting: {
+              type: new GraphQLNonNull(GraphQLString),
+            },
+          },
+        },
+        greetings1: {
+          name: "greetings1",
+          type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
+          args: {
+            greeting: {
+              type: new GraphQLNonNull(GraphQLString),
+            },
+          },
+        },
+        greetings2: {
+          name: "greetings2",
+          type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
+          args: {
+            greeting: {
+              type: new GraphQLNonNull(GraphQLString),
+            },
+          },
+        },
+        hello: {
+          name: "hello",
+          type: GraphQLString,
+          args: {
+            greeting: {
+              type: new GraphQLNonNull(GraphQLString),
+            },
+          },
+        },
+        me: {
+          name: "me",
+          type: UserType,
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    types: [GroupType, SomeTypeType, UserType],
+  });
 }
 ```

@@ -38,19 +38,19 @@ type Dog {
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const DogType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Dog",
-        fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        types: [DogType]
-    });
+  const DogType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Dog",
+    fields() {
+      return {
+        name: {
+          name: "name",
+          type: GraphQLString,
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    types: [DogType],
+  });
 }
 ```

@@ -59,56 +59,56 @@ type Query {
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { connection as queryConnectionResolver } from "./skippedTypeParam";
 export function getSchema(): GraphQLSchema {
-    const BType: GraphQLObjectType = new GraphQLObjectType({
-        name: "B",
-        fields() {
-            return {
-                b: {
-                    name: "b",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const BEdgeType: GraphQLObjectType = new GraphQLObjectType({
-        name: "BEdge",
-        fields() {
-            return {
-                node: {
-                    name: "node",
-                    type: BType
-                }
-            };
-        }
-    });
-    const QueryType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Query",
-        fields() {
-            return {
-                connection: {
-                    name: "connection",
-                    type: BEdgeType,
-                    resolve() {
-                        return queryConnectionResolver();
-                    }
-                }
-            };
-        }
-    });
-    const AType: GraphQLObjectType = new GraphQLObjectType({
-        name: "A",
-        fields() {
-            return {
-                a: {
-                    name: "a",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        query: QueryType,
-        types: [AType, BType, BEdgeType, QueryType]
-    });
+  const BType: GraphQLObjectType = new GraphQLObjectType({
+    name: "B",
+    fields() {
+      return {
+        b: {
+          name: "b",
+          type: GraphQLString,
+        },
+      };
+    },
+  });
+  const BEdgeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "BEdge",
+    fields() {
+      return {
+        node: {
+          name: "node",
+          type: BType,
+        },
+      };
+    },
+  });
+  const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+      return {
+        connection: {
+          name: "connection",
+          type: BEdgeType,
+          resolve() {
+            return queryConnectionResolver();
+          },
+        },
+      };
+    },
+  });
+  const AType: GraphQLObjectType = new GraphQLObjectType({
+    name: "A",
+    fields() {
+      return {
+        a: {
+          name: "a",
+          type: GraphQLString,
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    query: QueryType,
+    types: [AType, BType, BEdgeType, QueryType],
+  });
 }
 ```

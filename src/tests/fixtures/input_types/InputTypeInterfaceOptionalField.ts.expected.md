@@ -24,19 +24,19 @@ input MyInputType {
 ```ts
 import { GraphQLSchema, GraphQLInputObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const MyInputTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({
-        name: "MyInputType",
-        fields() {
-            return {
-                someField: {
-                    name: "someField",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        types: [MyInputTypeType]
-    });
+  const MyInputTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({
+    name: "MyInputType",
+    fields() {
+      return {
+        someField: {
+          name: "someField",
+          type: GraphQLString,
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    types: [MyInputTypeType],
+  });
 }
 ```

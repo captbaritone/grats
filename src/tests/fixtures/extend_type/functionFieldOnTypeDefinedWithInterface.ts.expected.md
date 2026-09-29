@@ -30,22 +30,22 @@ type Cat {
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { catSound as catCatSoundResolver } from "./functionFieldOnTypeDefinedWithInterface";
 export function getSchema(): GraphQLSchema {
-    const CatType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Cat",
-        fields() {
-            return {
-                catSound: {
-                    name: "catSound",
-                    type: GraphQLString,
-                    resolve(source) {
-                        return catCatSoundResolver(source);
-                    }
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        types: [CatType]
-    });
+  const CatType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Cat",
+    fields() {
+      return {
+        catSound: {
+          name: "catSound",
+          type: GraphQLString,
+          resolve(source) {
+            return catCatSoundResolver(source);
+          },
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    types: [CatType],
+  });
 }
 ```

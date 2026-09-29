@@ -31,31 +31,42 @@ input SomeInput {
 ### TypeScript
 
 ```ts
-import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInputObjectType, GraphQLString, specifiedDirectives } from "graphql";
+import {
+  GraphQLSchema,
+  GraphQLDirective,
+  DirectiveLocation,
+  GraphQLNonNull,
+  GraphQLInputObjectType,
+  GraphQLString,
+  specifiedDirectives,
+} from "graphql";
 export function getSchema(): GraphQLSchema {
-    const SomeInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
-        name: "SomeInput",
-        fields() {
-            return {
-                someField: {
-                    name: "someField",
-                    type: new GraphQLNonNull(GraphQLString)
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "customDirective",
-                locations: [DirectiveLocation.FIELD_DEFINITION],
-                description: "This is my custom directive.",
-                args: {
-                    someArg: {
-                        type: new GraphQLNonNull(SomeInputType)
-                    }
-                }
-            })],
-        types: [SomeInputType]
-    });
+  const SomeInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
+    name: "SomeInput",
+    fields() {
+      return {
+        someField: {
+          name: "someField",
+          type: new GraphQLNonNull(GraphQLString),
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    directives: [
+      ...specifiedDirectives,
+      new GraphQLDirective({
+        name: "customDirective",
+        locations: [DirectiveLocation.FIELD_DEFINITION],
+        description: "This is my custom directive.",
+        args: {
+          someArg: {
+            type: new GraphQLNonNull(SomeInputType),
+          },
+        },
+      }),
+    ],
+    types: [SomeInputType],
+  });
 }
 ```

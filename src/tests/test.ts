@@ -21,6 +21,7 @@ import { readFileSync, writeFileSync } from "fs";
 import { codegen } from "../codegen/schemaCodegen.js";
 import { printEnumsModule } from "../printSchema.js";
 import { diff } from "jest-diff";
+import * as prettier from "prettier";
 import * as semver from "semver";
 import {
   GratsConfig,
@@ -146,7 +147,10 @@ const testDirs: TestDir[] = [
     fixturesDir,
     testFilePattern: /\.ts$/,
     ignoreFilePattern: null,
-    transformer: (code: string, fileName: string): TransformerResult => {
+    transformer: async (
+      code: string,
+      fileName: string,
+    ): Promise<TransformerResult> => {
       const firstLine = code.split("\n")[0];
       let config: Partial<GratsConfig> = {
         nullableByDefault: true,
@@ -268,7 +272,13 @@ const testDirs: TestDir[] = [
         markdown.addHeader(3, "SDL");
         markdown.addCodeBlock(sdl, "graphql");
         markdown.addHeader(3, "TypeScript");
-        markdown.addCodeBlock(executableSchema, "ts");
+        // Goldens record the generated TypeScript after prettier formatting so
+        // that they assert on the code's structure rather than on the exact
+        // whitespace choices of the printer that emitted it.
+        markdown.addCodeBlock(
+          await prettier.format(executableSchema, { parser: "typescript" }),
+          "ts",
+        );
 
         return ok(markdown);
       }

@@ -52,54 +52,59 @@ type Query {
 ### TypeScript
 
 ```ts
-import { GraphQLSchema, GraphQLObjectType, GraphQLUnionType, GraphQLString } from "graphql";
+import {
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLUnionType,
+  GraphQLString,
+} from "graphql";
 import { pageResult as queryPageResultResolver } from "./multiparamGeneric";
 export function getSchema(): GraphQLSchema {
-    const ErrType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Err",
-        fields() {
-            return {
-                error: {
-                    name: "error",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const PageType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Page",
-        fields() {
-            return {
-                title: {
-                    name: "title",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const PageErrResultType: GraphQLUnionType = new GraphQLUnionType({
-        name: "PageErrResult",
-        types() {
-            return [ErrType, PageType];
-        }
-    });
-    const QueryType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Query",
-        fields() {
-            return {
-                pageResult: {
-                    name: "pageResult",
-                    type: PageErrResultType,
-                    resolve(source) {
-                        return queryPageResultResolver(source);
-                    }
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        query: QueryType,
-        types: [PageErrResultType, ErrType, PageType, QueryType]
-    });
+  const ErrType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Err",
+    fields() {
+      return {
+        error: {
+          name: "error",
+          type: GraphQLString,
+        },
+      };
+    },
+  });
+  const PageType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Page",
+    fields() {
+      return {
+        title: {
+          name: "title",
+          type: GraphQLString,
+        },
+      };
+    },
+  });
+  const PageErrResultType: GraphQLUnionType = new GraphQLUnionType({
+    name: "PageErrResult",
+    types() {
+      return [ErrType, PageType];
+    },
+  });
+  const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+      return {
+        pageResult: {
+          name: "pageResult",
+          type: PageErrResultType,
+          resolve(source) {
+            return queryPageResultResolver(source);
+          },
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    query: QueryType,
+    types: [PageErrResultType, ErrType, PageType, QueryType],
+  });
 }
 ```

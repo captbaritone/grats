@@ -30,23 +30,23 @@ type Query {
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { SomeClass as queryGreetResolver } from "./FieldAsStaticClassMethodOnNonGqlClass";
 export function getSchema(): GraphQLSchema {
-    const QueryType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Query",
-        fields() {
-            return {
-                greet: {
-                    name: "greet",
-                    type: GraphQLString,
-                    resolve(source) {
-                        return queryGreetResolver.greet(source);
-                    }
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        query: QueryType,
-        types: [QueryType]
-    });
+  const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+      return {
+        greet: {
+          name: "greet",
+          type: GraphQLString,
+          resolve(source) {
+            return queryGreetResolver.greet(source);
+          },
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    query: QueryType,
+    types: [QueryType],
+  });
 }
 ```

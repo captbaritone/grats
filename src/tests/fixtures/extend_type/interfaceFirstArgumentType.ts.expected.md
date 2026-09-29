@@ -39,36 +39,41 @@ type SomeType {
 ### TypeScript
 
 ```ts
-import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+import {
+  GraphQLSchema,
+  GraphQLInterfaceType,
+  GraphQLString,
+  GraphQLObjectType,
+} from "graphql";
 export function getSchema(): GraphQLSchema {
-    const IFooType: GraphQLInterfaceType = new GraphQLInterfaceType({
-        name: "IFoo",
-        fields() {
-            return {
-                bar: {
-                    name: "bar",
-                    type: GraphQLString
-                },
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-        name: "SomeType",
-        fields() {
-            return {
-                foo: {
-                    name: "foo",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        types: [IFooType, SomeTypeType]
-    });
+  const IFooType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    name: "IFoo",
+    fields() {
+      return {
+        bar: {
+          name: "bar",
+          type: GraphQLString,
+        },
+        greeting: {
+          name: "greeting",
+          type: GraphQLString,
+        },
+      };
+    },
+  });
+  const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "SomeType",
+    fields() {
+      return {
+        foo: {
+          name: "foo",
+          type: GraphQLString,
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    types: [IFooType, SomeTypeType],
+  });
 }
 ```

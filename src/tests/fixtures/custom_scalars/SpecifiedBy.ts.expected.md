@@ -25,18 +25,18 @@ import type { GqlScalar } from "grats";
 import type { UUID as UUIDInternal } from "./SpecifiedBy";
 import { GraphQLSchema, GraphQLScalarType } from "graphql";
 export type SchemaConfig = {
-    scalars: {
-        UUID: GqlScalar<UUIDInternal>;
-    };
+  scalars: {
+    UUID: GqlScalar<UUIDInternal>;
+  };
 };
 export function getSchema(config: SchemaConfig): GraphQLSchema {
-    const UUIDType: GraphQLScalarType = new GraphQLScalarType({
-        specifiedByURL: "https://tools.ietf.org/html/rfc4122",
-        name: "UUID",
-        ...config.scalars.UUID
-    });
-    return new GraphQLSchema({
-        types: [UUIDType]
-    });
+  const UUIDType: GraphQLScalarType = new GraphQLScalarType({
+    specifiedByURL: "https://tools.ietf.org/html/rfc4122",
+    name: "UUID",
+    ...config.scalars.UUID,
+  });
+  return new GraphQLSchema({
+    types: [UUIDType],
+  });
 }
 ```

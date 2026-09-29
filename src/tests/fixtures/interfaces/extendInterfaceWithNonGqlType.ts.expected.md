@@ -31,19 +31,19 @@ interface IPerson {
 ```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
-        name: "IPerson",
-        fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        types: [IPersonType]
-    });
+  const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    name: "IPerson",
+    fields() {
+      return {
+        name: {
+          name: "name",
+          type: GraphQLString,
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    types: [IPersonType],
+  });
 }
 ```

@@ -41,35 +41,40 @@ type SomeType {
 ### TypeScript
 
 ```ts
-import { GraphQLSchema, GraphQLEnumType, GraphQLObjectType, GraphQLString } from "graphql";
+import {
+  GraphQLSchema,
+  GraphQLEnumType,
+  GraphQLObjectType,
+  GraphQLString,
+} from "graphql";
 export function getSchema(): GraphQLSchema {
-    const EnumType: GraphQLEnumType = new GraphQLEnumType({
-        name: "Enum",
-        values: {
-            INVALID: {
-                description: "Invalid enum value.",
-                value: "INVALID"
-            },
-            VALID: {
-                description: "Valid enum value.",
-                deprecationReason: "Use something else.",
-                value: "VALID"
-            }
-        }
-    });
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-        name: "SomeType",
-        fields() {
-            return {
-                hello: {
-                    name: "hello",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        types: [EnumType, SomeTypeType]
-    });
+  const EnumType: GraphQLEnumType = new GraphQLEnumType({
+    name: "Enum",
+    values: {
+      INVALID: {
+        description: "Invalid enum value.",
+        value: "INVALID",
+      },
+      VALID: {
+        description: "Valid enum value.",
+        deprecationReason: "Use something else.",
+        value: "VALID",
+      },
+    },
+  });
+  const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "SomeType",
+    fields() {
+      return {
+        hello: {
+          name: "hello",
+          type: GraphQLString,
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    types: [EnumType, SomeTypeType],
+  });
 }
 ```

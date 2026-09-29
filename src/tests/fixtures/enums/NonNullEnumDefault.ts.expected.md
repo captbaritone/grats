@@ -33,46 +33,52 @@ type Query {
 ### TypeScript
 
 ```ts
-import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLEnumType } from "graphql";
+import {
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLString,
+  GraphQLNonNull,
+  GraphQLEnumType,
+} from "graphql";
 import { hello as queryHelloResolver } from "./NonNullEnumDefault";
 export function getSchema(): GraphQLSchema {
-    const GreetingOptionsType: GraphQLEnumType = new GraphQLEnumType({
-        name: "GreetingOptions",
-        values: {
-            Greetings: {
-                value: "Greetings"
+  const GreetingOptionsType: GraphQLEnumType = new GraphQLEnumType({
+    name: "GreetingOptions",
+    values: {
+      Greetings: {
+        value: "Greetings",
+      },
+      Hello: {
+        value: "Hello",
+      },
+      Sup: {
+        value: "Sup",
+      },
+    },
+  });
+  const QueryType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Query",
+    fields() {
+      return {
+        hello: {
+          name: "hello",
+          type: GraphQLString,
+          args: {
+            greeting: {
+              type: new GraphQLNonNull(GreetingOptionsType),
+              defaultValue: "Greetings",
             },
-            Hello: {
-                value: "Hello"
-            },
-            Sup: {
-                value: "Sup"
-            }
-        }
-    });
-    const QueryType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Query",
-        fields() {
-            return {
-                hello: {
-                    name: "hello",
-                    type: GraphQLString,
-                    args: {
-                        greeting: {
-                            type: new GraphQLNonNull(GreetingOptionsType),
-                            defaultValue: "Greetings"
-                        }
-                    },
-                    resolve(_source, args) {
-                        return queryHelloResolver(args.greeting);
-                    }
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        query: QueryType,
-        types: [GreetingOptionsType, QueryType]
-    });
+          },
+          resolve(_source, args) {
+            return queryHelloResolver(args.greeting);
+          },
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    query: QueryType,
+    types: [GreetingOptionsType, QueryType],
+  });
 }
 ```

@@ -56,57 +56,62 @@ type User implements Actor & Person {
 ### TypeScript
 
 ```ts
-import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+import {
+  GraphQLSchema,
+  GraphQLInterfaceType,
+  GraphQLString,
+  GraphQLObjectType,
+} from "graphql";
 export function getSchema(): GraphQLSchema {
-    const ActorType: GraphQLInterfaceType = new GraphQLInterfaceType({
-        name: "Actor",
-        fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
-        name: "Person",
-        fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
-        }
-    });
-    const UserType: GraphQLObjectType = new GraphQLObjectType({
-        name: "User",
-        fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
+  const ActorType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    name: "Actor",
+    fields() {
+      return {
+        name: {
+          name: "name",
+          type: GraphQLString,
         },
-        interfaces() {
-            return [ActorType, PersonType];
-        }
-    });
-    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-        name: "SomeType",
-        fields() {
-            return {
-                me: {
-                    name: "me",
-                    type: UserType
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        types: [ActorType, PersonType, SomeTypeType, UserType]
-    });
+      };
+    },
+  });
+  const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+    name: "Person",
+    fields() {
+      return {
+        name: {
+          name: "name",
+          type: GraphQLString,
+        },
+      };
+    },
+  });
+  const UserType: GraphQLObjectType = new GraphQLObjectType({
+    name: "User",
+    fields() {
+      return {
+        name: {
+          name: "name",
+          type: GraphQLString,
+        },
+      };
+    },
+    interfaces() {
+      return [ActorType, PersonType];
+    },
+  });
+  const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+    name: "SomeType",
+    fields() {
+      return {
+        me: {
+          name: "me",
+          type: UserType,
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    types: [ActorType, PersonType, SomeTypeType, UserType],
+  });
 }
 ```

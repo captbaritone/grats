@@ -42,32 +42,32 @@ type Show {
 ```ts
 import { GraphQLSchema, GraphQLEnumType, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const StatusType: GraphQLEnumType = new GraphQLEnumType({
-        name: "Status",
-        values: {
-            DRAFT: {
-                description: "Currently being edited",
-                value: "DRAFT"
-            },
-            PUBLISHED: {
-                description: "Available to readers",
-                value: "PUBLISHED"
-            }
-        }
-    });
-    const ShowType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Show",
-        fields() {
-            return {
-                status: {
-                    name: "status",
-                    type: StatusType
-                }
-            };
-        }
-    });
-    return new GraphQLSchema({
-        types: [StatusType, ShowType]
-    });
+  const StatusType: GraphQLEnumType = new GraphQLEnumType({
+    name: "Status",
+    values: {
+      DRAFT: {
+        description: "Currently being edited",
+        value: "DRAFT",
+      },
+      PUBLISHED: {
+        description: "Available to readers",
+        value: "PUBLISHED",
+      },
+    },
+  });
+  const ShowType: GraphQLObjectType = new GraphQLObjectType({
+    name: "Show",
+    fields() {
+      return {
+        status: {
+          name: "status",
+          type: StatusType,
+        },
+      };
+    },
+  });
+  return new GraphQLSchema({
+    types: [StatusType, ShowType],
+  });
 }
 ```
