@@ -25,6 +25,7 @@
     "src/tests/fixtures",
     "docs",
     "examples",
-    "website"
+    "website",
+    "grats-rs"
   ]
 }
