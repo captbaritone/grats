@@ -1,4 +1,3 @@
-import * as ts from "typescript";
 import {
   ConstDirectiveNode,
   ConstValueNode,
@@ -16,25 +15,27 @@ import { DiagnosticResult } from "./utils/DiagnosticError.js";
  * shape that is part of the public API of Grats, but also includes location
  * information as well as information about resolver with types which have not
  * yet been resolved.
+ *
+ * Locations are only used for reporting diagnostics.
  */
 export type ResolverSignature =
   | {
       kind: "property";
       name: string | null;
-      node: ts.Node;
+      loc: Location;
     }
   | {
       kind: "method";
       name: string | null;
       arguments: ResolverArgument[] | null;
-      node: ts.Node;
+      loc: Location;
     }
   | {
       kind: "function";
       path: string;
       exportName: string | null;
       arguments: ResolverArgument[] | null;
-      node: ts.Node;
+      loc: Location;
     }
   | {
       kind: "staticMethod";
@@ -42,22 +43,22 @@ export type ResolverSignature =
       exportName: string | null;
       name: string;
       arguments: ResolverArgument[] | null;
-      node: ts.Node;
+      loc: Location;
     };
 
 export type SourceResolverArgument = {
   kind: "source";
-  node: ts.Node;
+  loc: Location;
 };
 
 export type ArgumentsObjectResolverArgument = {
   kind: "argumentsObject";
-  node: ts.Node;
+  loc: Location;
 };
 
 export type ContextResolverArgument = {
   kind: "context";
-  node: ts.Node;
+  loc: Location;
 };
 
 export type DerivedContextResolverArgument = {
@@ -65,26 +66,26 @@ export type DerivedContextResolverArgument = {
   path: string;
   exportName: string | null;
   args: Array<DerivedContextResolverArgument | ContextResolverArgument>;
-  node: ts.Node;
+  loc: Location;
   async: boolean;
 };
 
 export type InformationResolverArgument = {
   kind: "information";
-  node: ts.Node;
+  loc: Location;
 };
 
 export type NamedResolverArgument = {
   kind: "named";
   name: string;
-  node: ts.Node;
+  loc: Location;
   inputDefinition: InputValueDefinitionNode;
 };
 
 export type UnresolvedResolverArgument = {
   kind: "unresolved";
   inputDefinition: InputValueDefinitionNodeOrResolverArg;
-  node: ts.Node;
+  loc: Location;
 };
 
 export type ResolverArgument =

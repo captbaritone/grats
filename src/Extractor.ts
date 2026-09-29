@@ -1008,7 +1008,7 @@ class Extractor {
             path: tsModulePath,
             exportName: exportName == null ? null : exportName.text,
             arguments: args.resolverParams,
-            node,
+            loc: loc(node),
           }
         : {
             kind: "staticMethod",
@@ -1016,7 +1016,7 @@ class Extractor {
             exportName: exportName == null ? null : exportName.text,
             arguments: args.resolverParams,
             name: methodName.text,
-            node,
+            loc: loc(node),
           },
     );
     this.definitions.push(
@@ -1061,7 +1061,7 @@ class Extractor {
     if (paramResults == null) return null;
 
     const resolverParams: ResolverArgument[] = [
-      { kind: "source", node: typeParam },
+      { kind: "source", loc: loc(typeParam) },
       ...paramResults.resolverParams,
     ];
     return { typeName, args: paramResults.args, resolverParams };
@@ -1856,7 +1856,7 @@ class Extractor {
       {
         kind: "property",
         name: id.text,
-        node,
+        loc: loc(node),
       },
     );
   }
@@ -2618,12 +2618,12 @@ class Extractor {
             kind: "method",
             name: id.text === name.value ? null : id.text,
             arguments: resolverParams,
-            node,
+            loc: loc(node),
           }
         : {
             kind: "property",
             name: id.text === name.value ? null : id.text,
-            node,
+            loc: loc(node),
           },
     );
   }
@@ -2658,7 +2658,7 @@ class Extractor {
             tsRelated(args.param, "Previous type literal"),
           ]);
         }
-        resolverParams.push({ kind: "argumentsObject", node: param });
+        resolverParams.push({ kind: "argumentsObject", loc: loc(param) });
         args = { param, inputs: [] };
 
         let defaults: ArgDefaults | null = null;
@@ -2677,7 +2677,11 @@ class Extractor {
 
       const inputDefinition = this.collectParamArg(param);
       if (inputDefinition == null) return null;
-      resolverParams.push({ kind: "unresolved", inputDefinition, node: param });
+      resolverParams.push({
+        kind: "unresolved",
+        inputDefinition,
+        loc: loc(param),
+      });
     }
     return { resolverParams, args: args ? args.inputs : null };
   }
@@ -2817,7 +2821,7 @@ class Extractor {
       {
         kind: "property",
         name: id.text === name.value ? null : id.text,
-        node,
+        loc: loc(node),
       },
     );
   }

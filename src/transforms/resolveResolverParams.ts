@@ -1,9 +1,9 @@
-import * as ts from "typescript";
 import {
   DefinitionNode,
   FieldDefinitionNode,
   InputValueDefinitionNode,
   Kind,
+  Location,
   visit,
 } from "graphql";
 import {
@@ -16,8 +16,7 @@ import {
   DiagnosticsResult,
   FixableDiagnosticWithLocation,
   gqlErr,
-  tsErr,
-  tsRelated,
+  gqlRelated,
 } from "../utils/DiagnosticError.js";
 import { invariant, nullThrows } from "../utils/helpers.js";
 import {
@@ -94,9 +93,9 @@ class ResolverParamsResolver {
 
     if (args != null && positionalArgs.length > 0) {
       this.errors.push(
-        tsErr(nullThrows(args.node), E.positionalArgAndArgsObject(), [
-          tsRelated(
-            positionalArgs[0].node,
+        gqlErr(args, E.positionalArgAndArgsObject(), [
+          gqlRelated(
+            positionalArgs[0],
             "Positional GraphQL argument defined here",
           ),
         ]),
@@ -122,7 +121,7 @@ class ResolverParamsResolver {
 
   transformParam(
     param: ResolverArgument,
-    seenDerivedContextValues?: Map<string, ts.Node>,
+    seenDerivedContextValues?: Map<string, Location>,
   ): ResolverArgument | null {
     switch (param.kind) {
       case "named":
@@ -148,7 +147,7 @@ class ResolverParamsResolver {
           switch (resolved.value.kind) {
             case "DERIVED_CONTEXT": {
               const derivedContextArg = this.resolveDerivedContext(
-                param.node,
+                param.loc,
                 resolved.value,
                 seenDerivedContextValues,
               );
@@ -156,9 +155,9 @@ class ResolverParamsResolver {
               return derivedContextArg;
             }
             case "CONTEXT":
-              return { kind: "context", node: param.node };
+              return { kind: "context", loc: param.loc };
             case "INFO":
-              return { kind: "information", node: param.node };
+              return { kind: "information", loc: param.loc };
             default: {
               // We'll assume it's supposed to be a positional arg.
               return this.resolveToPositionalArg(param) ?? param;
@@ -177,9 +176,9 @@ class ResolverParamsResolver {
   }
 
   private resolveDerivedContext(
-    node: ts.Node, // Argument
+    loc: Location, // Argument
     definition: DerivedResolverDefinition,
-    seenDerivedContextValues?: Map<string, ts.Node>,
+    seenDerivedContextValues?: Map<string, Location>,
   ): ResolverArgument | null {
     const { path, exportName, args, async } = definition;
     const key = `${path}:${exportName}`;
@@ -189,12 +188,12 @@ class ResolverParamsResolver {
     } else {
       if (seenDerivedContextValues.has(key)) {
         this.errors.push(
-          this.cycleError(node, definition, seenDerivedContextValues),
+          this.cycleError(loc, definition, seenDerivedContextValues),
         );
         return null;
       }
     }
-    seenDerivedContextValues.set(key, node);
+    seenDerivedContextValues.set(key, loc);
 
     const newArgs: Array<
       DerivedContextResolverArgument | ContextResolverArgument
@@ -216,13 +215,13 @@ class ResolverParamsResolver {
           break;
         default:
           this.errors.push(
-            tsErr(resolvedArg.node, E.invalidDerivedContextArgType()),
+            gqlErr(resolvedArg, E.invalidDerivedContextArgType()),
           );
       }
     }
     return {
       kind: "derivedContext",
-      node,
+      loc,
       path,
       exportName,
       args: newArgs,
@@ -244,7 +243,7 @@ class ResolverParamsResolver {
         ...unresolved.inputDefinition,
         name: unresolved.inputDefinition.name.value,
       },
-      node: unresolved.node,
+      loc: unresolved.loc,
     };
   }
 
@@ -260,31 +259,34 @@ class ResolverParamsResolver {
    * node in the cycle.
    */
   cycleError(
-    node: ts.Node,
+    loc: Location,
     definition: DerivedResolverDefinition,
-    seenDerivedContextValues: Map<string, ts.Node>,
-  ): ts.DiagnosticWithLocation {
+    seenDerivedContextValues: Map<string, Location>,
+  ): FixableDiagnosticWithLocation {
     // We trim off the first node because that points to a resolver argument.
-    const nodes = Array.from(seenDerivedContextValues.values()).slice(1);
+    const locs = Array.from(seenDerivedContextValues.values()).slice(1);
     // The cycle completes with this node, so we include it in the list.
-    nodes.push(node);
-    const related = nodes.map((def, i) => {
-      if (nodes.length === 1) {
-        return tsRelated(def, "This derived context depends on itself");
+    locs.push(loc);
+    const related = locs.map((def, i) => {
+      if (locs.length === 1) {
+        return gqlRelated(
+          { loc: def },
+          "This derived context depends on itself",
+        );
       }
 
       const isFirst = i === 0;
-      const isLast = i === nodes.length - 1;
+      const isLast = i === locs.length - 1;
 
       invariant(!(isFirst && isLast), "Should not be both first and last");
 
       if (isFirst) {
-        return tsRelated(def, "This derived context depends on");
+        return gqlRelated({ loc: def }, "This derived context depends on");
       } else if (!isLast) {
-        return tsRelated(def, "Which in turn depends on");
+        return gqlRelated({ loc: def }, "Which in turn depends on");
       }
-      return tsRelated(
-        def,
+      return gqlRelated(
+        { loc: def },
         "Which ultimately creates a cycle back to the initial derived context",
       );
     });
