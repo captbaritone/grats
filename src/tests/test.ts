@@ -35,6 +35,7 @@ import { Result, ok, err } from "../utils/Result.js";
 import { applyFixes } from "../fixFixable.js";
 import { writeTypeScriptTypeToDisk } from "../../scripts/buildConfigTypes.js";
 import { Markdown } from "./Markdown.js";
+import { assertDocumentRoundTrips } from "./codecRoundTrip.js";
 
 writeTypeScriptTypeToDisk();
 
@@ -220,6 +221,8 @@ const testDirs: TestDir[] = [
       }
 
       const { schema, doc, resolvers } = schemaResult.value;
+
+      assertDocumentRoundTrips(doc);
 
       // We run codegen here just ensure that it doesn't throw.
       const executableSchema = applyTypeScriptHeader(
