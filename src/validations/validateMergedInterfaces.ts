@@ -3,48 +3,36 @@ import * as E from "../Errors.js";
 import {
   DiagnosticsWithoutLocationResult,
   gqlErr,
-  tsRelated,
+  gqlRelated,
 } from "../utils/DiagnosticError.js";
 import { err, ok } from "../utils/Result.js";
-import { DeclRef, declLoc } from "../snapshotRefs.js";
-import { NodeLocator } from "../utils/NodeLocator.js";
+import { DeclRef } from "../snapshotRefs.js";
+import { NameResolver } from "../NameResolver.js";
 
 /**
  * Prevent using merged interfaces as GraphQL interfaces.
  * https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces
  */
 export function validateMergedInterfaces(
-  checker: ts.TypeChecker,
-  locator: NodeLocator,
+  resolver: NameResolver,
   interfaces: DeclRef[],
 ): DiagnosticsWithoutLocationResult<void> {
   const errors: ts.DiagnosticWithLocation[] = [];
 
   for (const declaration of interfaces) {
-    const symbol = checker.getSymbolAtLocation(
-      locator.nodeAt(declaration.name),
-    );
-    if (symbol == null) {
-      continue;
-    }
-    // @ts-ignore Exposed as public in https://github.com/microsoft/TypeScript/pull/56193
-    const mergedSymbol: ts.Symbol = checker.getMergedSymbol(symbol);
-    if (
-      mergedSymbol.declarations == null ||
-      mergedSymbol.declarations.length < 2
-    ) {
+    const mergedDeclarations = resolver.mergedDeclarations(declaration);
+    if (mergedDeclarations.length < 2) {
       continue;
     }
 
-    const otherLocations = mergedSymbol.declarations
+    const otherLocations = mergedDeclarations
       .filter(
         (d) =>
-          declLoc(d) !== declaration.declLoc &&
-          (ts.isInterfaceDeclaration(d) || ts.isClassDeclaration(d)),
+          d.declLoc !== declaration.declLoc &&
+          (d.kind === "INTERFACE" || d.kind === "CLASS"),
       )
       .map((d) => {
-        const locNode = ts.getNameOfDeclaration(d) ?? d;
-        return tsRelated(locNode, "Other declaration");
+        return gqlRelated({ loc: d.name }, "Other declaration");
       });
 
     if (otherLocations.length > 0) {

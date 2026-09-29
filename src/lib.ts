@@ -15,7 +15,7 @@ import { ok, err } from "./utils/Result.js";
 import * as ts from "typescript";
 import { ExtractionSnapshot } from "./Extractor.js";
 import { TypeContext } from "./TypeContext.js";
-import { NodeLocator } from "./utils/NodeLocator.js";
+import { CheckerNameResolver } from "./CheckerNameResolver.js";
 import { validateSDL } from "graphql/validation/validate.js";
 import { ParsedCommandLineGrats } from "./gratsConfig.js";
 import { validateTypenames } from "./validations/validateTypenames.js";
@@ -93,9 +93,8 @@ export function extractSchemaAndDoc(
     .andThen((snapshot) => {
       const { typesWithTypename } = snapshot;
       const config = options.raw.grats;
-      const checker = program.getTypeChecker();
-      const locator = new NodeLocator(program);
-      const ctxResult = TypeContext.fromSnapshot(checker, locator, snapshot);
+      const resolver = new CheckerNameResolver(program);
+      const ctxResult = TypeContext.fromSnapshot(resolver, snapshot);
       if (ctxResult.kind === "ERROR") {
         return ctxResult;
       }
@@ -103,11 +102,7 @@ export function extractSchemaAndDoc(
 
       // Collect validation errors
       const validationResult = concatResults(
-        validateMergedInterfaces(
-          checker,
-          locator,
-          snapshot.interfaceDeclarations,
-        ),
+        validateMergedInterfaces(resolver, snapshot.interfaceDeclarations),
         validateDuplicateContextOrInfo(
           Array.from(snapshot.nameDefinitions.values(), (n) => n.definition),
         ),
