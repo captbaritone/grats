@@ -239,12 +239,6 @@ importers:
         specifier: workspace:*
         version: link:../..
 
-  grats-ts-plugin:
-    dependencies:
-      grats:
-        specifier: '>=0.0.19'
-        version: 0.0.26
-
   website:
     dependencies:
       '@algolia/client-search':
@@ -4817,11 +4811,6 @@ packages:
   graphql@16.8.1:
     resolution: {integrity: sha512-59LZHPdGZVh695Ud9lRzPBVTtlX9ZCV150Er2W43ro37wVof0ctenSaskPPjN7lVTIN8mSZt8PHUNKZuNQUuxw==}
     engines: {node: ^12.22.0 || ^14.16.0 || ^16.0.0 || >=17.0.0}
-
-  grats@0.0.26:
-    resolution: {integrity: sha512-9JVF3kvOB42+PDZhmxcbv5Co7vMUSfdUN417mubFleALZ9tTBlzlKQ2HkkkUghZp1/OE2VHk1cT3QyjvQzyE+w==}
-    engines: {node: '>=16 <=21', pnpm: ^8}
-    hasBin: true
 
   gray-matter@4.0.3:
     resolution: {integrity: sha512-5v6yZd4JK3eMI3FqqCouswVqwugaA9r4dNZB1wwcmrD02QkV5H0y7XBQW8QwQqEaZY1pM9aqORSORhJRdNK44Q==}
@@ -13483,12 +13472,6 @@ snapshots:
   graphql@16.11.0: {}
 
   graphql@16.8.1: {}
-
-  grats@0.0.26:
-    dependencies:
-      commander: 10.0.1
-      graphql: 16.11.0
-      typescript: 5.5.4
 
   gray-matter@4.0.3:
     dependencies:

@@ -38,10 +38,6 @@ import { validateDirectiveArguments } from "./validations/validateDirectiveArgum
 import { coerceDefaultEnumValues } from "./transforms/coerceDefaultEnumValues.js";
 import { validateSomeTypesAreDefined } from "./validations/validateSomeTypesAreDefined.js";
 
-// Export the TypeScript plugin implementation used by
-// grats-ts-plugin
-export { initTsPlugin } from "./tsPlugin/initTsPlugin.js";
-
 export type { GratsConfig } from "./gratsConfig.js";
 
 export type SchemaAndDoc = {

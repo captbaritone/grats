@@ -25,7 +25,6 @@
     "src/tests/fixtures",
     "docs",
     "examples",
-    "website",
-    "grats-ts-plugin"
+    "website"
   ]
 }
