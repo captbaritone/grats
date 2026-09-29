@@ -10,7 +10,7 @@ import {
 } from "../utils/DiagnosticError.js";
 import { err, ok } from "../utils/Result.js";
 import { InterfaceMap, computeInterfaceMap } from "../InterfaceGraph.js";
-import { extend, nullThrows, uniqueId } from "../utils/helpers.js";
+import { extend, nullThrows, UNTRACKED_ID } from "../utils/helpers.js";
 import { FIELD_TAG } from "../Extractor.js";
 
 /**
@@ -94,7 +94,7 @@ function addAbstractFieldDefinition(
           kind: Kind.NAME,
           value: implementor.name,
           loc: doc.loc, // Bit of a lie, but I don't see a better option.
-          tsIdentifier: uniqueId(),
+          tsIdentifier: UNTRACKED_ID,
         } as const;
         switch (implementor.kind) {
           case "TYPE":

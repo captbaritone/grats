@@ -6,7 +6,7 @@ import {
   Location,
   parse,
 } from "graphql";
-import { uniqueId } from "./utils/helpers.js";
+import { UNTRACKED_ID } from "./utils/helpers.js";
 
 /**
  * Grats supports some additional, non-spec server directives in order to
@@ -68,7 +68,7 @@ export function makeSemanticNonNullDirective(
       kind: Kind.NAME,
       loc,
       value: SEMANTIC_NON_NULL_DIRECTIVE,
-      tsIdentifier: uniqueId(),
+      tsIdentifier: UNTRACKED_ID,
     },
   };
 }

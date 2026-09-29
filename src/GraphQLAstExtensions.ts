@@ -29,6 +29,9 @@ declare module "graphql" {
     /**
      * Grats metadata: A unique identifier for the node. Used to track
      * data about nodes in lookup data structures.
+     *
+     * Only meaningful from extraction through type resolution. Names created
+     * after that use `UNTRACKED_ID`.
      */
     tsIdentifier: TsIdentifier;
   }

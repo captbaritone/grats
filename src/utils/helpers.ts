@@ -35,6 +35,12 @@ export function uniqueId(): TsIdentifier {
   return i++ as TsIdentifier;
 }
 
+/**
+ * Identifier for NameNodes created after type resolution. Nothing looks these
+ * up, so they don't need to be unique.
+ */
+export const UNTRACKED_ID = -1 as TsIdentifier;
+
 export function invariant(
   condition: unknown,
   message: string,
