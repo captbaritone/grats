@@ -2,7 +2,7 @@ name: Node.js CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, grats-rs-port]
     tags: ["v*"]
   pull_request:
     branches: [main]
@@ -124,11 +124,14 @@ jobs:
   publish:
     name: Publish to NPM
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && github.repository == 'captbaritone/grats'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/grats-rs-port' || startsWith(github.ref, 'refs/tags/v')) && github.repository == 'captbaritone/grats'
     needs: [build, test, lint, rust]
     permissions:
       contents: read
       id-token: write
+    env:
+      # npm dist-tag for prerelease builds published from branches.
+      NPM_TAG: ${{ github.ref == 'refs/heads/grats-rs-port' && 'rust' || 'main' }}
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
@@ -149,14 +152,14 @@ jobs:
         run: pnpm install
       - name: Build
         run: pnpm run build
-      - name: Set dev version (main branch)
-        if: github.ref == 'refs/heads/main'
-        run: pnpm version --no-git-tag-version 0.0.0-main-${RELEASE_COMMIT_SHA:0:8}
+      - name: Set dev version (branch)
+        if: github.ref_type == 'branch'
+        run: pnpm version --no-git-tag-version 0.0.0-${NPM_TAG}-${RELEASE_COMMIT_SHA:0:8}
         env:
           RELEASE_COMMIT_SHA: ${{ github.sha }}
-      - name: Publish dev version (main branch)
-        if: github.ref == 'refs/heads/main'
-        run: pnpm publish --tag main --access=public --no-git-checks
+      - name: Publish dev version (branch)
+        if: github.ref_type == 'branch'
+        run: pnpm publish --tag ${NPM_TAG} --access=public --no-git-checks
       - name: Publish release (tag)
         if: startsWith(github.ref, 'refs/tags/v')
         run: pnpm publish --access=public --no-git-checks
