@@ -1,15 +1,10 @@
-import { DocumentNode, GraphQLError, Kind } from "graphql";
-import {
-  DiagnosticsWithoutLocationResult,
-  graphQlErrorToDiagnostic,
-} from "./utils/DiagnosticError.js";
+import { DocumentNode, Kind } from "graphql";
+import { DiagnosticsWithoutLocationResult } from "./utils/DiagnosticError.js";
 import { concatResults, ResultPipe } from "./utils/Result.js";
-import { ok, err } from "./utils/Result.js";
 import * as ts from "typescript";
 import { ExtractionSnapshot } from "./Extractor.js";
 import { TypeContext } from "./TypeContext.js";
 import { CheckerNameResolver } from "./CheckerNameResolver.js";
-import { validateSDL } from "graphql/validation/validate.js";
 import { ParsedCommandLineGrats } from "./gratsConfig.js";
 import { extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram.js";
 import { validateMergedInterfaces } from "./validations/validateMergedInterfaces.js";
@@ -127,7 +122,6 @@ export function extractSchemaAndDoc(
         .andThen((doc) => customSpecValidations(doc))
         // Sort the definitions in the document to ensure a stable output.
         .map((doc) => sortSchemaAst(doc))
-        .andThen((doc) => specValidateSDL(doc))
         .result();
 
       if (docResult.kind === "ERROR") {
@@ -135,38 +129,14 @@ export function extractSchemaAndDoc(
       }
       const doc = docResult.value;
 
-      // Build and validate the schema with regards to the GraphQL spec, and
-      // run the other validations that have been ported to Rust.
+      // Validate the document and the schema built from it with regards to
+      // the GraphQL spec, and run the other validations that have been ported
+      // to Rust.
       return new ResultPipe(validateDocument(doc, config, typesWithTypename))
         .map(() => ({ doc }))
         .result();
     })
     .result();
-}
-
-function specValidateSDL(
-  doc: DocumentNode,
-): DiagnosticsWithoutLocationResult<DocumentNode> {
-  // TODO: Currently this does not detect definitions that shadow builtins
-  // (`String`, `Int`, etc). However, if we pass a second param (extending an
-  // existing schema) we do! So, we should find a way to validate that we don't
-  // shadow builtins.
-  return asDiagnostics(doc, validateSDL);
-}
-
-// Utility to map GraphQL validation errors to a Result of
-function asDiagnostics<T>(
-  value: T,
-  validate: (value: T) => ReadonlyArray<GraphQLError>,
-): DiagnosticsWithoutLocationResult<T> {
-  const validationErrors = validate(value).filter(
-    // FIXME: Handle case where query is not defined (no location)
-    (e) => e.source && e.locations && e.positions,
-  );
-  if (validationErrors.length > 0) {
-    return err(validationErrors.map(graphQlErrorToDiagnostic));
-  }
-  return ok(value);
 }
 
 // Given a list of snapshots, merge them into a single snapshot.

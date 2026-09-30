@@ -1,4 +1,4 @@
-import { GraphQLError, Location, Source } from "graphql";
+import { Location, Source } from "graphql";
 import * as ts from "typescript";
 import { Result } from "./Result.js";
 
@@ -61,55 +61,6 @@ export const FAKE_ERROR_CODE = 1038;
 function stripColor(str: string): string {
   // eslint-disable-next-line no-control-regex
   return str.replace(/\x1B[[(?);]{0,2}(;?\d)*./g, "");
-}
-
-// TODO: This is just a hack. Improve handling of multiple locations.
-// TODO: Turn this back on
-export function graphQlErrorToDiagnostic(error: GraphQLError): ts.Diagnostic {
-  const position = error.positions![0];
-  if (position == null) {
-    throw new Error("Expected error to have a position");
-  }
-
-  // Start with baseline location information
-  let start = position;
-  let length = 1;
-  let relatedInformation: ts.DiagnosticRelatedInformation[] | undefined;
-
-  // Nodes have actual ranges (not just a single position), so we we have one
-  // (or more!) use that instead.
-  if (error.nodes != null && error.nodes.length > 0) {
-    const [node, ...rest] = error.nodes;
-    if (node.loc != null) {
-      start = node.loc.start;
-      length = node.loc.end - node.loc.start;
-      if (rest.length > 0) {
-        relatedInformation = [];
-        for (const relatedNode of rest) {
-          if (relatedNode.loc == null) {
-            continue;
-          }
-          relatedInformation.push(gqlRelated(relatedNode, "Related location"));
-        }
-      }
-    }
-  }
-
-  let sourceFile: ts.SourceFile | undefined;
-  if (error.source != null) {
-    sourceFile = graphqlSourceToSourceFile(error.source);
-  }
-
-  return {
-    messageText: error.message,
-    file: sourceFile,
-    code: FAKE_ERROR_CODE,
-    category: ts.DiagnosticCategory.Error,
-    start,
-    length,
-    relatedInformation,
-    source: "Grats",
-  };
 }
 
 export function locationlessErr(message: string): ts.Diagnostic {

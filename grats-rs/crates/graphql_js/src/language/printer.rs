@@ -102,7 +102,9 @@ fn print_directive(node: &ConstDirectiveNode) -> String {
 
 // Type
 
-fn print_type(node: &TypeNode) -> String {
+/// PORT: graphql-js's `print` accepts any node. Types are printed on their own
+/// by `ProvidedRequiredArgumentsOnDirectivesRule`.
+pub fn print_type(node: &TypeNode) -> String {
     match node {
         TypeNode::NamedType(node) => print_named_type(node),
         TypeNode::ListType(node) => print_list_type(node),

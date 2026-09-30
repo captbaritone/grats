@@ -11,6 +11,7 @@ use graphql_js::language::ast::DocumentNode;
 use graphql_js::r#type::schema::GraphQLSchema;
 use graphql_js::r#type::validate::validate_schema;
 use graphql_js::utilities::build_ast_schema::build_ast_schema;
+use graphql_js::validation::validate::validate_sdl;
 use serde::Deserialize;
 
 use crate::grats_config::GratsConfig;
@@ -31,14 +32,15 @@ pub struct ValidateRequest {
     pub types_with_typename: HashSet<String>,
 }
 
-/// PORT: The validations which follow `buildSchema` in `extractSchemaAndDoc`,
-/// which build their own schema from the document.
+/// PORT: The validations which follow `sortSchemaAst` in `extractSchemaAndDoc`.
+/// After validating the document, they build their own schema from it.
 pub fn validate(
     doc: &DocumentNode,
     request: ValidateRequest,
 ) -> DiagnosticsWithoutLocationResult<()> {
     let config = &request.config;
-    Ok(build_ast_schema(doc))
+    spec_validate_sdl(doc)
+        .map(build_ast_schema)
         // Apply the "Type Validation" sub-sections of the specification's
         // "Type System" section.
         .and_then(spec_schema_validation)
@@ -56,6 +58,14 @@ pub fn validate(
         // with type nullability.
         .and_then(|schema| validate_semantic_nullability(schema, config))
         .map(|_schema| ())
+}
+
+fn spec_validate_sdl(doc: &DocumentNode) -> DiagnosticsWithoutLocationResult<&DocumentNode> {
+    // TODO: Currently this does not detect definitions that shadow builtins
+    // (`String`, `Int`, etc). However, if we pass a second param (extending an
+    // existing schema) we do! So, we should find a way to validate that we don't
+    // shadow builtins.
+    as_diagnostics(doc, |doc| validate_sdl(doc))
 }
 
 fn spec_schema_validation(

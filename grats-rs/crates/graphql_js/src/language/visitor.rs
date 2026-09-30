@@ -95,6 +95,32 @@ impl<'n> From<&'n TypeNode> for ASTNode<'n> {
     }
 }
 
+impl<'n> From<&'n DefinitionNode> for ASTNode<'n> {
+    fn from(node: &'n DefinitionNode) -> Self {
+        match node {
+            DefinitionNode::SchemaDefinition(node) => ASTNode::SchemaDefinition(node),
+            DefinitionNode::ScalarTypeDefinition(node) => ASTNode::ScalarTypeDefinition(node),
+            DefinitionNode::ObjectTypeDefinition(node) => ASTNode::ObjectTypeDefinition(node),
+            DefinitionNode::InterfaceTypeDefinition(node) => ASTNode::InterfaceTypeDefinition(node),
+            DefinitionNode::UnionTypeDefinition(node) => ASTNode::UnionTypeDefinition(node),
+            DefinitionNode::EnumTypeDefinition(node) => ASTNode::EnumTypeDefinition(node),
+            DefinitionNode::InputObjectTypeDefinition(node) => {
+                ASTNode::InputObjectTypeDefinition(node)
+            }
+            DefinitionNode::DirectiveDefinition(node) => ASTNode::DirectiveDefinition(node),
+            DefinitionNode::SchemaExtension(node) => ASTNode::SchemaExtension(node),
+            DefinitionNode::ScalarTypeExtension(node) => ASTNode::ScalarTypeExtension(node),
+            DefinitionNode::ObjectTypeExtension(node) => ASTNode::ObjectTypeExtension(node),
+            DefinitionNode::InterfaceTypeExtension(node) => ASTNode::InterfaceTypeExtension(node),
+            DefinitionNode::UnionTypeExtension(node) => ASTNode::UnionTypeExtension(node),
+            DefinitionNode::EnumTypeExtension(node) => ASTNode::EnumTypeExtension(node),
+            DefinitionNode::InputObjectTypeExtension(node) => {
+                ASTNode::InputObjectTypeExtension(node)
+            }
+        }
+    }
+}
+
 /// PORT: What a visitor's `enter` returns. graphql-js visitors return
 /// `undefined` to continue and `false` to skip the node's children.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -166,7 +192,7 @@ fn visit_children<'n>(node: ASTNode<'n>, f: &mut dyn FnMut(ASTNode<'n>)) {
         ASTNode::Name(_) => {}
         ASTNode::Document(node) => {
             for definition in &node.definitions {
-                f(definition_node(definition));
+                f(definition.into());
             }
         }
         ASTNode::Argument(node) => {
@@ -313,22 +339,55 @@ fn visit_children<'n>(node: ASTNode<'n>, f: &mut dyn FnMut(ASTNode<'n>)) {
     }
 }
 
-fn definition_node(node: &DefinitionNode) -> ASTNode<'_> {
-    match node {
-        DefinitionNode::SchemaDefinition(node) => ASTNode::SchemaDefinition(node),
-        DefinitionNode::ScalarTypeDefinition(node) => ASTNode::ScalarTypeDefinition(node),
-        DefinitionNode::ObjectTypeDefinition(node) => ASTNode::ObjectTypeDefinition(node),
-        DefinitionNode::InterfaceTypeDefinition(node) => ASTNode::InterfaceTypeDefinition(node),
-        DefinitionNode::UnionTypeDefinition(node) => ASTNode::UnionTypeDefinition(node),
-        DefinitionNode::EnumTypeDefinition(node) => ASTNode::EnumTypeDefinition(node),
-        DefinitionNode::InputObjectTypeDefinition(node) => ASTNode::InputObjectTypeDefinition(node),
-        DefinitionNode::DirectiveDefinition(node) => ASTNode::DirectiveDefinition(node),
-        DefinitionNode::SchemaExtension(node) => ASTNode::SchemaExtension(node),
-        DefinitionNode::ScalarTypeExtension(node) => ASTNode::ScalarTypeExtension(node),
-        DefinitionNode::ObjectTypeExtension(node) => ASTNode::ObjectTypeExtension(node),
-        DefinitionNode::InterfaceTypeExtension(node) => ASTNode::InterfaceTypeExtension(node),
-        DefinitionNode::UnionTypeExtension(node) => ASTNode::UnionTypeExtension(node),
-        DefinitionNode::EnumTypeExtension(node) => ASTNode::EnumTypeExtension(node),
-        DefinitionNode::InputObjectTypeExtension(node) => ASTNode::InputObjectTypeExtension(node),
+/// Creates a new visitor instance which delegates to many visitors to run in
+/// parallel. Each visitor will be visited for each node before moving on.
+///
+/// If a prior visitor edits a node, no following visitors will see that node.
+///
+/// PORT: graphql-js remembers which node each visitor skipped, to resume
+/// calling it when leaving that node. Here it remembers the node's depth,
+/// which identifies it just as well, since the visitor isn't called for any
+/// node until then.
+pub fn visit_in_parallel<'n, 'v>(
+    visitors: Vec<Box<dyn ASTVisitor<'n> + 'v>>,
+) -> ParallelVisitor<'n, 'v> {
+    let skipping = vec![None; visitors.len()];
+    ParallelVisitor {
+        visitors,
+        skipping,
+        depth: 0,
+    }
+}
+
+pub struct ParallelVisitor<'n, 'v> {
+    visitors: Vec<Box<dyn ASTVisitor<'n> + 'v>>,
+    skipping: Vec<Option<usize>>,
+    depth: usize,
+}
+
+impl<'n> ASTVisitor<'n> for ParallelVisitor<'n, '_> {
+    fn enter(&mut self, node: ASTNode<'n>) -> VisitAction {
+        self.depth += 1;
+        for i in 0..self.visitors.len() {
+            if self.skipping[i].is_none() {
+                let result = self.visitors[i].enter(node);
+
+                if result == VisitAction::Skip {
+                    self.skipping[i] = Some(self.depth);
+                }
+            }
+        }
+        VisitAction::Continue
+    }
+
+    fn leave(&mut self, node: ASTNode<'n>) {
+        for i in 0..self.visitors.len() {
+            if self.skipping[i].is_none() {
+                self.visitors[i].leave(node);
+            } else if self.skipping[i] == Some(self.depth) {
+                self.skipping[i] = None;
+            }
+        }
+        self.depth -= 1;
     }
 }
