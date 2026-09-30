@@ -20,6 +20,7 @@ pub mod name_resolver;
 pub mod oxc_name_resolver;
 pub mod pipeline;
 pub mod print_schema;
+pub mod program;
 pub mod public_directives;
 pub mod snapshot_refs;
 pub mod transforms;

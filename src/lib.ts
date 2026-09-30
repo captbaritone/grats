@@ -1,8 +1,6 @@
 import { DiagnosticsWithoutLocationResult } from "./utils/DiagnosticError.js";
 import { ResultPipe } from "./utils/Result.js";
-import * as ts from "typescript";
 import { ParsedCommandLineGrats } from "./gratsConfig.js";
-import { gratsSourceFilesFromProgram } from "./gratsSourceFiles.js";
 import { RustDocument, runRustPipeline } from "./rs/document.js";
 
 export type { GratsConfig } from "./gratsConfig.js";
@@ -15,33 +13,6 @@ export type SchemaAndDoc = {
   doc: RustDocument;
 };
 
-// Construct a schema, using GraphQL schema language
-// Exported for tests that want to intercept diagnostic errors.
-export function buildSchemaAndDocResult(
-  options: ParsedCommandLineGrats,
-): DiagnosticsWithoutLocationResult<SchemaAndDoc> {
-  // https://stackoverflow.com/a/66604532/1263117
-  const compilerHost = ts.createCompilerHost(
-    options.options,
-    /* setParentNodes this is needed for finding jsDocs */
-    true,
-  );
-
-  return buildSchemaAndDocResultWithHost(options, compilerHost);
-}
-
-export function buildSchemaAndDocResultWithHost(
-  options: ParsedCommandLineGrats,
-  compilerHost: ts.CompilerHost,
-): DiagnosticsWithoutLocationResult<SchemaAndDoc> {
-  const program = ts.createProgram(
-    options.fileNames,
-    options.options,
-    compilerHost,
-  );
-  return extractSchemaAndDoc(options, program);
-}
-
 /**
  * The core transformation pipeline of Grats.
  *
@@ -52,21 +23,19 @@ export function buildSchemaAndDocResultWithHost(
  * This function orchestrates the transformations and, as such, gives a good
  * high-level overview of how Grats works.
  */
-export function extractSchemaAndDoc(
+// Exported for tests that want to intercept diagnostic errors.
+export function buildSchemaAndDocResult(
   options: ParsedCommandLineGrats,
-  program: ts.Program,
 ): DiagnosticsWithoutLocationResult<SchemaAndDoc> {
-  const sourceFiles = gratsSourceFilesFromProgram(program);
-  const config = options.raw.grats;
-
-  // Run the rest of the pipeline, which has been ported to Rust: checking
-  // each file for syntax errors, extracting a snapshot from each file and
+  // Run the pipeline, which has been ported to Rust: finding the files of the
+  // program and those which contain GraphQL definitions, checking each of
+  // those files for syntax errors, extracting a snapshot from each file and
   // combining them, building the `TypeContext` and validating the snapshot,
   // filtering interfaces, resolving resolver params and types, and the
   // document transforms and validations, which end by validating the document
   // and the schema built from it with regards to the GraphQL spec. Rust keeps
   // the resulting document for printing.
-  return new ResultPipe(runRustPipeline(sourceFiles, config, program))
+  return new ResultPipe(runRustPipeline(options))
     .map((doc) => ({ doc }))
     .result();
 }

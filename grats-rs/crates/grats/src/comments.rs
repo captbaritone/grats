@@ -165,7 +165,7 @@ fn is_grats_docblock_tag(tag: &str) -> bool {
 /// which oxc collects while parsing.
 pub fn for_each_comment(source_file: &ParsedFile, mut callback: impl FnMut(&str, &CommentRange)) {
     let full_text = source_file.text;
-    for comment in source_file.semantic.comments() {
+    for comment in source_file.semantic().comments() {
         let kind = if comment.is_line() {
             CommentKind::SingleLineCommentTrivia
         } else {

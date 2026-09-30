@@ -1,28 +1,31 @@
 //! PORT: No TypeScript counterpart. What the Rust port of Grats asks of its
-//! host about the program's files. Until Rust owns the file set (plan Steps 8
-//! and 9), the TypeScript side answers from its `ts.Program`. See
-//! `src/rs/host.ts`.
+//! host: access to the file system, and the `SourceTable` which locations in
+//! its output refer to. See `src/rs/host.ts`.
+//!
+//! Paths are absolute and use `/` as their separator. On Windows, a path like
+//! `C:\project` is given as `/C:/project` (see `crate::utils::path`).
 
 use serde::{Deserialize, Serialize};
 
-pub trait Host {
-    /// The file of a source in the TypeScript side's `SourceTable`, which
-    /// locations refer to.
-    fn source_file(&self, source: u32) -> File;
+/// Hosts are `Send` and `Sync` so that module resolution (see
+/// `crate::program`) can read files through them.
+pub trait Host: Send + Sync {
+    /// The text of the file at `path`, or `None` if it can't be read.
+    fn read_file(&self, path: &str) -> Option<String>;
 
-    /// A file in the program, whose source is added to the `SourceTable` if
-    /// it's not already there. `None` if the file isn't in the program.
-    fn read_file(&self, path: &str) -> Option<File>;
+    /// A file of the program, whose source is added to the `SourceTable` if
+    /// it's not already there. `None` if it can't be read.
+    fn read_source_file(&self, path: &str) -> Option<SourceFile>;
 
-    /// The path of the file in the program which `specifier` resolves to when
-    /// imported by the file at `from`, as TypeScript resolves it.
-    fn resolve_module(&self, from: &str, specifier: &str) -> Option<String>;
+    /// What kind of entry is at `path`, if any. Symbolic links are followed
+    /// if `follow_links`.
+    fn stat(&self, path: &str, follow_links: bool) -> Option<FileKind>;
 
-    /// The files which may declare `name` in the global scope, in the order
-    /// in which TypeScript merges their declarations: files which aren't
-    /// modules (including lib files), followed by modules with
-    /// `declare global` blocks.
-    fn global_files(&self, name: &str) -> Vec<String>;
+    /// The target of the symbolic link at `path`, as an absolute path.
+    fn read_link(&self, path: &str) -> Option<String>;
+
+    /// `path` with every symbolic link in it resolved.
+    fn realpath(&self, path: &str) -> Option<String>;
 
     /// The id of a GraphQL source in the `SourceTable`, which is added to the
     /// table if it's not already there. Sources must be added before they're
@@ -31,15 +34,18 @@ pub trait Host {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct File {
+pub struct SourceFile {
     /// The id of the file's source in the `SourceTable`.
     pub source: u32,
-    pub path: String,
     pub text: String,
-    /// Whether TypeScript considers the file a module, rather than a script
-    /// whose declarations are global.
-    pub is_module: bool,
+}
+
+#[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum FileKind {
+    File,
+    Directory,
+    Symlink,
 }
 
 /// A `Host` which calls a host that exchanges JSON: it's given a
@@ -51,11 +57,27 @@ pub struct JsonHost<F: Fn(String) -> String> {
 #[derive(Serialize)]
 #[serde(tag = "kind", rename_all = "camelCase")]
 enum HostRequest<'r> {
-    SourceFile { source: u32 },
-    ReadFile { path: &'r str },
-    ResolveModule { from: &'r str, specifier: &'r str },
-    GlobalFiles { name: &'r str },
-    AddSource { name: &'r str, body: &'r str },
+    ReadFile {
+        path: &'r str,
+    },
+    ReadSourceFile {
+        path: &'r str,
+    },
+    #[serde(rename_all = "camelCase")]
+    Stat {
+        path: &'r str,
+        follow_links: bool,
+    },
+    ReadLink {
+        path: &'r str,
+    },
+    Realpath {
+        path: &'r str,
+    },
+    AddSource {
+        name: &'r str,
+        body: &'r str,
+    },
 }
 
 impl<F: Fn(String) -> String> JsonHost<F> {
@@ -70,21 +92,25 @@ impl<F: Fn(String) -> String> JsonHost<F> {
     }
 }
 
-impl<F: Fn(String) -> String> Host for JsonHost<F> {
-    fn source_file(&self, source: u32) -> File {
-        self.request(HostRequest::SourceFile { source })
-    }
-
-    fn read_file(&self, path: &str) -> Option<File> {
+impl<F: Fn(String) -> String + Send + Sync> Host for JsonHost<F> {
+    fn read_file(&self, path: &str) -> Option<String> {
         self.request(HostRequest::ReadFile { path })
     }
 
-    fn resolve_module(&self, from: &str, specifier: &str) -> Option<String> {
-        self.request(HostRequest::ResolveModule { from, specifier })
+    fn read_source_file(&self, path: &str) -> Option<SourceFile> {
+        self.request(HostRequest::ReadSourceFile { path })
     }
 
-    fn global_files(&self, name: &str) -> Vec<String> {
-        self.request(HostRequest::GlobalFiles { name })
+    fn stat(&self, path: &str, follow_links: bool) -> Option<FileKind> {
+        self.request(HostRequest::Stat { path, follow_links })
+    }
+
+    fn read_link(&self, path: &str) -> Option<String> {
+        self.request(HostRequest::ReadLink { path })
+    }
+
+    fn realpath(&self, path: &str) -> Option<String> {
+        self.request(HostRequest::Realpath { path })
     }
 
     fn add_source(&self, name: &str, body: &str) -> u32 {

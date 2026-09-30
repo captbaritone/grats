@@ -6,11 +6,7 @@
 import * as E from "./Errors.js";
 import { Location } from "graphql";
 import { getParsedTsConfig } from "./index.js";
-import {
-  SchemaAndDoc,
-  buildSchemaAndDocResult,
-  extractSchemaAndDoc,
-} from "./lib.js";
+import { SchemaAndDoc, buildSchemaAndDocResult } from "./lib.js";
 import { Command } from "commander";
 import { writeFileSync, readFileSync } from "fs";
 import { resolve, dirname } from "path";
@@ -162,7 +158,7 @@ function startWatchMode(tsconfig: string, options: BuildOptions) {
     }
     config = configResult.value.config;
     // For now we just rebuild the schema on every change.
-    const schemaResult = extractSchemaAndDoc(config, program);
+    const schemaResult = buildSchemaAndDocResult(config);
     if (schemaResult.kind === "ERROR") {
       fixOrReport(schemaResult.err);
       return;

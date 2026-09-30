@@ -1,10 +1,7 @@
 import * as path from "path";
 import { fileURLToPath } from "url";
 import TestRunner, { Transformer, TransformerResult } from "./TestRunner.js";
-import {
-  buildSchemaAndDocResult,
-  buildSchemaAndDocResultWithHost,
-} from "../lib.js";
+import { buildSchemaAndDocResult } from "../lib.js";
 import * as ts from "typescript";
 import { buildSchema, graphql, GraphQLSchema, printSchema } from "graphql";
 import { Command } from "commander";
@@ -190,17 +187,7 @@ const testDirs: TestDir[] = [
         return err(e.message);
       }
 
-      // https://stackoverflow.com/a/66604532/1263117
-      const compilerHost = ts.createCompilerHost(
-        parsedOptions.options,
-        /* setParentNodes this is needed for finding jsDocs */
-        true,
-      );
-
-      const schemaResult = buildSchemaAndDocResultWithHost(
-        parsedOptions,
-        compilerHost,
-      );
+      const schemaResult = buildSchemaAndDocResult(parsedOptions);
       if (schemaResult.kind === "ERROR") {
         return err(
           formatDiagnosticsWithContext(
@@ -244,7 +231,7 @@ const testDirs: TestDir[] = [
         return err(
           formatDiagnosticsWithContext(
             code,
-            new ReportableDiagnostics(compilerHost, [
+            ReportableDiagnostics.fromDiagnostics([
               gqlErr({ loc: locResult.value }, "Located here"),
             ]),
           ),

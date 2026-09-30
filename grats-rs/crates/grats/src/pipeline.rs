@@ -1,11 +1,12 @@
 //! Port of the pipeline in `extractSchemaAndDoc` in `src/lib.ts`.
 //!
-//! PORT: The TypeScript side finds the files which contain GraphQL
-//! definitions (see `src/gratsSourceFiles.ts`), then calls `run` with their
-//! paths. (A crate's `lib.rs` is its root, so this module can't share the
-//! TypeScript file's name.)
+//! PORT: The TypeScript side parses `tsconfig.json`, then calls `run` with
+//! the options which decide the files of the program (see `crate::program`).
+//! (A crate's `lib.rs` is its root, so this module can't share the TypeScript
+//! file's name.)
 
 use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
 
 use graphql_js::error::graphql_error::GraphQLError;
 use graphql_js::language::ast::DocumentNode;
@@ -20,6 +21,7 @@ use crate::files::Files;
 use crate::grats_config::GratsConfig;
 use crate::host::Host;
 use crate::oxc_name_resolver::OxcNameResolver;
+use crate::program::{Program, ProgramOptions};
 use crate::transforms::add_implicit_root_types::add_implicit_root_types;
 use crate::transforms::add_interface_fields::add_interface_fields;
 use crate::transforms::apply_default_nullability::apply_default_nullability;
@@ -34,7 +36,6 @@ use crate::utils::diagnostic_error::{
     Diagnostic, DiagnosticsWithoutLocationResult, TsLocatableNode, graphql_error_to_diagnostic,
     ts_err,
 };
-use crate::utils::helpers::null_throws;
 use crate::utils::result::{collect_results, concat_results};
 use crate::validations::custom_spec_validations::custom_spec_validations;
 use crate::validations::validate_async_iterable::validate_async_iterable;
@@ -52,31 +53,32 @@ pub struct PipelineRequest {
     pub config: GratsConfig,
     /// The absolute path of `src/gratsRoot.ts`'s root. See `src/grats_root.rs`.
     pub grats_root: String,
-    /// The files to extract GraphQL definitions from.
-    pub files: Vec<String>,
+    /// The options which decide the files of the program.
+    pub program: ProgramOptions,
 }
 
-/// PORT: The part of `extractSchemaAndDoc` which starts with checking each
-/// file for syntax errors (the end of `gratsSourceFilesFromProgram`). After
-/// validating the transformed document, it builds its own schema from it.
-/// Returns the transformed document.
+/// PORT: `extractSchemaAndDoc`, starting from the files of the program
+/// (`ts.createProgram`). After validating the transformed document, it builds
+/// its own schema from it. Returns the transformed document.
 pub fn run(
     request: PipelineRequest,
-    host: &dyn Host,
+    host: Arc<dyn Host>,
 ) -> DiagnosticsWithoutLocationResult<DocumentNode> {
     let PipelineRequest {
         config,
         grats_root,
-        files: paths,
+        program: program_options,
     } = request;
     let allocator = oxc_allocator::Allocator::default();
-    let files = Files::new(&allocator, host);
-    let resolver = &OxcNameResolver::new(&files);
+    let files = Files::new(
+        &allocator,
+        &*host,
+        program_options.use_case_sensitive_file_names,
+    );
+    let program = Program::new(&files, Arc::clone(&host), program_options);
+    let resolver = &OxcNameResolver::new(&files, &program);
 
-    let source_files: Vec<_> = paths
-        .iter()
-        .map(|path| null_throws(files.file(path)))
-        .collect();
+    let source_files = program.grats_source_files();
     // Syntax errors will prevent us from extracting any GraphQL definitions.
     // PORT: The TypeScript side reported the first of TypeScript's syntax
     // errors in each file. oxc's wording differs, and its parser also reports
@@ -102,7 +104,7 @@ pub fn run(
     let snapshots = collect_results(
         source_files
             .iter()
-            .map(|source_file| extract(source_file, &config, &grats_root, host)),
+            .map(|source_file| extract(source_file, &config, &grats_root, &*host)),
     )?;
     let mut snapshot = combine_snapshots(snapshots);
     let definitions = std::mem::take(&mut snapshot.definitions);
@@ -150,7 +152,7 @@ pub fn run(
         .and_then(validate_async_iterable)
         // Apply default nullability to fields and arguments, and detect any misuse of
         // `@killsParentOnException`.
-        .and_then(|doc| apply_default_nullability(doc, &config, host))
+        .and_then(|doc| apply_default_nullability(doc, &config, &*host))
         // Ensure we have Query/Mutation/Subscription types if they've been extended with
         // `@gqlQueryField` and friends.
         .map(add_implicit_root_types)

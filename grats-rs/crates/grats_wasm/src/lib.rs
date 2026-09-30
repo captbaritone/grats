@@ -21,6 +21,7 @@
 //! as the output so that JS can report it.
 
 use std::cell::RefCell;
+use std::sync::Arc;
 
 use graphql_js::language::ast::DocumentNode;
 use grats::host::JsonHost;
@@ -142,9 +143,10 @@ pub unsafe extern "C" fn run_pipeline(ptr: *mut u8, len: usize) {
         call(ptr, len, |input| {
             PIPELINE_DOC.with(|kept| *kept.borrow_mut() = None);
             let request = serde_json::from_str(&input).expect("Input should be a PipelineRequest");
-            let result = grats::pipeline::run(request, &JsonHost::new(call_host)).map(|doc| {
-                PIPELINE_DOC.with(|kept| *kept.borrow_mut() = Some(doc));
-            });
+            let result =
+                grats::pipeline::run(request, Arc::new(JsonHost::new(call_host))).map(|doc| {
+                    PIPELINE_DOC.with(|kept| *kept.borrow_mut() = Some(doc));
+                });
             result_json(result)
         })
     }

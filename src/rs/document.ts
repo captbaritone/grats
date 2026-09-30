@@ -1,4 +1,4 @@
-import type { GratsConfig } from "../gratsConfig.js";
+import type { ParsedCommandLineGrats } from "../gratsConfig.js";
 import { resolveRelativePath } from "../gratsRoot.js";
 import { DiagnosticsWithoutLocationResult } from "../utils/DiagnosticError.js";
 import { err, ok, Result } from "../utils/Result.js";
@@ -10,8 +10,7 @@ import {
   SourceTable,
 } from "./codec.js";
 import { callRust, instanceId } from "./load.js";
-import * as ts from "typescript";
-import { hostPath, programHost } from "./host.js";
+import { host, rustProgramOptions } from "./host.js";
 
 /**
  * Calls the Rust entry points which use the document the pipeline produced.
@@ -33,30 +32,25 @@ export type RustDocument = {
 let kept: RustDocument | null = null;
 
 /**
- * Runs the pipeline, which has been ported to Rust, on the files which
- * contain GraphQL definitions: extraction, then the transforms and
- * validations. See `run` in `grats-rs/crates/grats/src/pipeline.rs`.
+ * Runs the pipeline, which has been ported to Rust: finding the files of the
+ * program and those which contain GraphQL definitions, extraction, then the
+ * transforms and validations. See `run` in
+ * `grats-rs/crates/grats/src/pipeline.rs`.
  */
 export function runRustPipeline(
-  sourceFiles: readonly ts.SourceFile[],
-  config: GratsConfig,
-  program: ts.Program,
+  options: ParsedCommandLineGrats,
 ): DiagnosticsWithoutLocationResult<RustDocument> {
   kept = null;
   const sources = new SourceTable();
   const request: RustPipelineRequest = {
-    config,
+    config: options.raw.grats,
     // Rust has no module location to resolve paths against, so it's given
     // an absolute path.
     gratsRoot: resolveRelativePath("."),
-    files: sourceFiles.map((sourceFile) => hostPath(sourceFile.fileName)),
+    program: rustProgramOptions(options),
   };
   const result: Result<null, EncodedDiagnostic[]> = JSON.parse(
-    callRust(
-      "run_pipeline",
-      JSON.stringify(request),
-      programHost(program, sources),
-    ),
+    callRust("run_pipeline", JSON.stringify(request), host(sources)),
   );
   if (result.kind === "ERROR") {
     return err(result.err.map((d) => decodeDiagnostic(d, sources)));

@@ -1,6 +1,7 @@
 import { Location, Source, Token, TokenKind } from "graphql";
 import * as ts from "typescript";
 import type { GratsConfig } from "../gratsConfig.js";
+import type { RustProgramOptions } from "./host.js";
 import {
   FixableDiagnostic,
   gqlErr,
@@ -27,8 +28,8 @@ export type EncodedLocation = {
 
 /**
  * The sources referenced by encoded locations. Rust asks the table for the
- * id of each source (see `programHost`), so decode its output with the table
- * which answered it.
+ * id of each source (see `host` in `src/rs/host.ts`), so decode its output
+ * with the table which answered it.
  *
  * Sources are identified by name and text rather than by name alone, since
  * GraphQL parsed from docblocks (e.g. `@gqlAnnotate`) gets its own
@@ -98,7 +99,7 @@ export class SourceTable {
 export type RustPipelineRequest = {
   config: GratsConfig;
   gratsRoot: string;
-  files: string[];
+  program: RustProgramOptions;
 };
 
 /**

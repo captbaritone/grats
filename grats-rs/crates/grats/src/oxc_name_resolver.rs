@@ -12,8 +12,8 @@
 //! - As in TypeScript, the declarations of files which aren't modules, and
 //!   those in `declare global` blocks, are merged into one global scope.
 //!
-//! Until Rust owns the file set (plan Steps 8 and 9), the host answers which
-//! files are in the program and how imports resolve. See `crate::host`.
+//! Which files are in the program, and how imports resolve, is decided by
+//! `crate::program`.
 //!
 //! Not supported, since Grats hasn't needed them: ambient module declarations
 //! (`declare module "x"`), module augmentation, and anything which requires
@@ -27,7 +27,7 @@ use graphql_js::language::ast::Location;
 use oxc_ast::AstKind;
 use oxc_ast::ast::{
     Declaration, ExportDefaultDeclarationKind, Expression, IdentifierReference, ModuleExportName,
-    Program, Statement, TSModuleReference, TSNamespaceDeclaration, TSNamespaceDeclarationBody,
+    Statement, TSModuleReference, TSNamespaceDeclaration, TSNamespaceDeclarationBody,
     TSQualifiedName, TSTypeName,
 };
 use oxc_semantic::NodeId;
@@ -41,10 +41,12 @@ use crate::name_resolver::{
     MergedDeclaration, MergedDeclarationKind, NameResolver, ResolvedDeclaration,
     ResolvedDeclarationKind,
 };
+use crate::program::Program as FileProgram;
 use crate::snapshot_refs::DeclRef;
 
 pub struct OxcNameResolver<'a> {
     files: &'a Files<'a>,
+    program: &'a FileProgram<'a>,
     /// The exports being looked up, which guards against cycles of
     /// re-exports.
     resolving_exports: RefCell<HashSet<(String, String)>>,
@@ -81,18 +83,20 @@ impl Meaning {
 }
 
 impl<'a> OxcNameResolver<'a> {
-    pub fn new(files: &'a Files<'a>) -> Self {
+    pub fn new(files: &'a Files<'a>, program: &'a FileProgram<'a>) -> Self {
         OxcNameResolver {
             files,
+            program,
             resolving_exports: RefCell::new(HashSet::new()),
         }
     }
 
     /// The module which `specifier` resolves to when imported by `file`.
     fn module(&self, file: &ParsedFile<'a>, specifier: &str) -> Option<Rc<ParsedFile<'a>>> {
-        let path = self.files.host.resolve_module(&file.path, specifier)?;
         // The checker only treats files which are modules as modules.
-        self.files.file(&path).filter(|module| module.is_module)
+        self.program
+            .resolve_module(file, specifier)
+            .filter(|module| module.is_module)
     }
 
     /// Resolves the names in a type reference or heritage clause.
@@ -125,7 +129,7 @@ impl<'a> OxcNameResolver<'a> {
         ident: &IdentifierReference<'a>,
         meaning: Meaning,
     ) -> Vec<Target<'a>> {
-        let scoping = file.semantic.scoping();
+        let scoping = file.semantic().scoping();
         let symbol = ident
             .reference_id
             .get()
@@ -142,17 +146,14 @@ impl<'a> OxcNameResolver<'a> {
     /// every file which isn't a module and those in `declare global` blocks.
     fn resolve_global(&self, name: &str, meaning: Meaning) -> Vec<Target<'a>> {
         let mut targets = Vec::new();
-        for path in self.files.host.global_files(name) {
-            let Some(file) = self.files.file(&path) else {
-                continue;
-            };
+        for file in self.program.global_files(name) {
             for scope in file.global_scopes() {
                 if let Some(symbol) = file
-                    .semantic
+                    .semantic()
                     .scoping()
                     .get_binding(scope, Ident::from(name))
                 {
-                    targets.extend(self.symbol_targets(&file, symbol));
+                    targets.extend(self.symbol_targets(file, symbol));
                 }
             }
         }
@@ -182,7 +183,7 @@ impl<'a> OxcNameResolver<'a> {
         file: &Rc<ParsedFile<'a>>,
         declaration: NodeId,
     ) -> Option<Vec<Target<'a>>> {
-        let nodes = file.semantic.nodes();
+        let nodes = file.semantic().nodes();
         let import_source = || match nodes.parent_kind(declaration) {
             AstKind::ImportDeclaration(import) => self.module(file, &import.source.value),
             _ => None,
@@ -229,7 +230,7 @@ impl<'a> OxcNameResolver<'a> {
     /// What a module exports with `export =`, if it has it.
     fn export_equals(&self, module: &Rc<ParsedFile<'a>>) -> Option<Vec<Target<'a>>> {
         module
-            .program()
+            .program
             .body
             .iter()
             .find_map(|statement| match statement {
@@ -263,11 +264,11 @@ impl<'a> OxcNameResolver<'a> {
         if let Some(exported) = self.export_equals(module) {
             return self.members(&exported, name, Meaning::All);
         }
-        let statements = &module.program().body;
+        let statements = &module.program.body;
         // A declaration file without export declarations exports all of its
         // declarations.
         let export_context = module.is_declaration_file && !has_export_declarations(statements);
-        let root = module.semantic.scoping().root_scope_id();
+        let root = module.semantic().scoping().root_scope_id();
         let targets = self.container_export(module, statements, root, export_context, name);
         if !targets.is_empty() || name == "default" {
             return targets;
@@ -297,7 +298,7 @@ impl<'a> OxcNameResolver<'a> {
         export_context: bool,
         name: &str,
     ) -> Vec<Target<'a>> {
-        let scoping = file.semantic.scoping();
+        let scoping = file.semantic().scoping();
         // Declarations exported under their own name.
         if let Some(symbol) = scoping.get_binding(scope, Ident::from(name)) {
             let exported = scoping
@@ -384,7 +385,7 @@ impl<'a> OxcNameResolver<'a> {
                 Target::Module(module) => return self.export_of(module, name, meaning),
                 Target::Declaration(file, declaration) => (file, *declaration),
             };
-            match file.semantic.nodes().kind(declaration) {
+            match file.semantic().nodes().kind(declaration) {
                 AstKind::TSNamespaceDeclaration(namespace) => {
                     members.extend(self.namespace_export(file, namespace, name));
                 }
@@ -443,7 +444,7 @@ impl<'a> OxcNameResolver<'a> {
             }
             Target::Declaration(file, declaration) => (file, *declaration),
         };
-        let kind = match file.semantic.nodes().kind(declaration) {
+        let kind = match file.semantic().nodes().kind(declaration) {
             AstKind::TSTypeParameter(_) => ResolvedDeclarationKind::TypeParameter,
             _ => ResolvedDeclarationKind::Declaration,
         };
@@ -457,7 +458,7 @@ impl<'a> OxcNameResolver<'a> {
     }
 
     fn merged_declaration(&self, file: &ParsedFile<'a>, declaration: NodeId) -> MergedDeclaration {
-        let kind = match file.semantic.nodes().kind(declaration) {
+        let kind = match file.semantic().nodes().kind(declaration) {
             AstKind::TSInterfaceDeclaration(_) => MergedDeclarationKind::Interface,
             AstKind::Class(_) => MergedDeclarationKind::Class,
             _ => MergedDeclarationKind::Other,
@@ -477,7 +478,7 @@ impl NameResolver for OxcNameResolver<'_> {
     fn resolve_entity_name(&self, name: Location) -> Vec<ResolvedDeclaration> {
         let file = self.files.source_file(name.source);
         let node = file.name_at(name);
-        let nodes = file.semantic.nodes();
+        let nodes = file.semantic().nodes();
         // Heritage clauses of classes (`extends`) name values. Other entity
         // names Grats resolves name types.
         let meaning = match nodes.parent_kind(node) {
@@ -497,15 +498,15 @@ impl NameResolver for OxcNameResolver<'_> {
 
     fn merged_declarations(&self, declaration: &DeclRef) -> Vec<MergedDeclaration> {
         let file = self.files.source_file(declaration.name.source);
-        let Some(&node) = file.names.get(&file.span_key(declaration.name)) else {
+        let Some(&node) = file.names().get(&file.span_key(declaration.name)) else {
             return vec![];
         };
-        let AstKind::BindingIdentifier(ident) = file.semantic.nodes().kind(node) else {
+        let AstKind::BindingIdentifier(ident) = file.semantic().nodes().kind(node) else {
             return vec![];
         };
-        let scoping = file.semantic.scoping();
+        let scoping = file.semantic().scoping();
         let symbol = ident.symbol_id();
-        let own = file.semantic.nodes().parent_id(node);
+        let own = file.semantic().nodes().parent_id(node);
         let merged: Vec<(Rc<ParsedFile>, NodeId)> =
             if file.is_global_scope(scoping.symbol_scope_id(symbol)) {
                 self.resolve_global(&ident.name, Meaning::All)
@@ -537,10 +538,6 @@ impl NameResolver for OxcNameResolver<'_> {
 }
 
 impl<'a> ParsedFile<'a> {
-    fn program(&self) -> &'a Program<'a> {
-        self.semantic.nodes().program()
-    }
-
     fn span_key(&self, loc: Location) -> (u32, u32) {
         (
             self.offsets.to_utf8(loc.start),
@@ -550,7 +547,7 @@ impl<'a> ParsedFile<'a> {
 
     /// The entity name at `loc`.
     fn name_at(&self, loc: Location) -> NodeId {
-        let Some(&node) = self.names.get(&self.span_key(loc)) else {
+        let Some(&node) = self.names().get(&self.span_key(loc)) else {
             panic!(
                 "Could not find node at {}:{}-{}.",
                 self.path, loc.start, loc.end
@@ -575,12 +572,12 @@ impl<'a> ParsedFile<'a> {
 
     /// Whether names declared in `scope` are global.
     fn is_global_scope(&self, scope: ScopeId) -> bool {
-        let scoping = self.semantic.scoping();
+        let scoping = self.semantic().scoping();
         if scope == scoping.root_scope_id() {
             return !self.is_module;
         }
         matches!(
-            self.semantic.nodes().kind(scoping.get_node_id(scope)),
+            self.semantic().nodes().kind(scoping.get_node_id(scope)),
             AstKind::TSGlobalDeclaration(_)
         )
     }
@@ -588,9 +585,9 @@ impl<'a> ParsedFile<'a> {
     /// The scopes whose declarations are merged into the global scope.
     fn global_scopes(&self) -> Vec<ScopeId> {
         if !self.is_module {
-            return vec![self.semantic.scoping().root_scope_id()];
+            return vec![self.semantic().scoping().root_scope_id()];
         }
-        self.program()
+        self.program
             .body
             .iter()
             .filter_map(|statement| match statement {
@@ -605,7 +602,7 @@ impl<'a> ParsedFile<'a> {
     /// can't merge with those before it (a duplicate identifier) a symbol of
     /// its own.
     fn merged_declarations(&self, symbol: SymbolId) -> Vec<NodeId> {
-        let scoping = self.semantic.scoping();
+        let scoping = self.semantic().scoping();
         let export_context = self.export_context(scoping.symbol_scope_id(symbol));
         merge(scoping.symbol_declarations(symbol), |&declaration| {
             let (includes, excludes) = self.binder_flags(declaration);
@@ -626,15 +623,15 @@ impl<'a> ParsedFile<'a> {
     /// If `scope` is a module or namespace, whether it's an export context,
     /// in which every declaration which isn't an import is exported.
     fn export_context(&self, scope: ScopeId) -> Option<bool> {
-        let scoping = self.semantic.scoping();
+        let scoping = self.semantic().scoping();
         if scope == scoping.root_scope_id() {
-            let statements = &self.program().body;
+            let statements = &self.program.body;
             return self
                 .is_module
                 .then(|| self.is_declaration_file && !has_export_declarations(statements));
         }
         let node = scoping.get_node_id(scope);
-        match self.semantic.nodes().kind(node) {
+        match self.semantic().nodes().kind(node) {
             AstKind::TSNamespaceDeclaration(TSNamespaceDeclaration {
                 body: TSNamespaceDeclarationBody::TSModuleBlock(block),
                 ..
@@ -647,7 +644,7 @@ impl<'a> ParsedFile<'a> {
     /// its own name.
     fn is_exported(&self, declaration: NodeId, export_context: bool) -> bool {
         !matches!(
-            self.semantic
+            self.semantic()
                 .nodes()
                 .parent_kind(self.statement(declaration)),
             AstKind::ExportDefaultDeclaration(_)
@@ -657,7 +654,7 @@ impl<'a> ParsedFile<'a> {
     /// Whether a declaration is exported from its module or namespace, as
     /// the default export or under its own name.
     fn has_export_modifier(&self, declaration: NodeId, export_context: bool) -> bool {
-        let nodes = self.semantic.nodes();
+        let nodes = self.semantic().nodes();
         if let AstKind::ExportDeclaration(_) | AstKind::ExportDefaultDeclaration(_) =
             nodes.parent_kind(self.statement(declaration))
         {
@@ -676,7 +673,7 @@ impl<'a> ParsedFile<'a> {
 
     /// The statement of a declaration, which `export` may wrap.
     fn statement(&self, declaration: NodeId) -> NodeId {
-        let nodes = self.semantic.nodes();
+        let nodes = self.semantic().nodes();
         match nodes.kind(declaration) {
             AstKind::VariableDeclarator(_) => nodes.parent_id(declaration),
             _ => declaration,
@@ -686,7 +683,7 @@ impl<'a> ParsedFile<'a> {
     /// The flags which a declaration gives its symbol, and the flags of the
     /// declarations it can't merge with, as TypeScript's binder has them.
     fn binder_flags(&self, declaration: NodeId) -> (SymbolFlags, SymbolFlags) {
-        let nodes = self.semantic.nodes();
+        let nodes = self.semantic().nodes();
         let is_var = || {
             matches!(
                 nodes.parent_kind(declaration),
@@ -748,7 +745,7 @@ impl<'a> ParsedFile<'a> {
         if self.is_declaration_file {
             return true;
         }
-        let nodes = self.semantic.nodes();
+        let nodes = self.semantic().nodes();
         std::iter::once(node)
             .chain(nodes.ancestor_ids(node))
             .any(|id| match nodes.kind(id) {
@@ -761,7 +758,7 @@ impl<'a> ParsedFile<'a> {
 
     /// The span of a declaration's name, if it has one.
     fn declaration_name(&self, declaration: NodeId) -> Option<Span> {
-        match self.semantic.nodes().kind(declaration) {
+        match self.semantic().nodes().kind(declaration) {
             AstKind::Class(class) => class.id.as_ref().map(|id| id.span),
             AstKind::Function(function) => function.id.as_ref().map(|id| id.span),
             AstKind::VariableDeclarator(declarator) => Some(declarator.id.span()),
@@ -781,7 +778,7 @@ impl<'a> ParsedFile<'a> {
     /// `getEnd()` give it: including any modifiers and decorators, which
     /// oxc puts in an `export` statement around it.
     fn declaration_span(&self, declaration: NodeId) -> Span {
-        let nodes = self.semantic.nodes();
+        let nodes = self.semantic().nodes();
         let kind = nodes.kind(declaration);
         let mut span = kind.span();
         if !matches!(kind, AstKind::VariableDeclarator(_)) {
@@ -800,7 +797,7 @@ impl<'a> ParsedFile<'a> {
 
     /// The span of a module as a declaration, from its first token.
     fn module_span(&self) -> Span {
-        let program = self.program();
+        let program = self.program;
         let start = program
             .directives
             .first()

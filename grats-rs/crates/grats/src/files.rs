@@ -1,7 +1,8 @@
 //! PORT: No TypeScript counterpart. The files of the program, which are
-//! parsed with oxc as they're needed. Like the `SourceFile`s of a
-//! `ts.Program`, each file is parsed once and shared by everything which
-//! reads it: the extractor and the name resolver.
+//! parsed with oxc as they're loaded (see `crate::program`). Like the
+//! `SourceFile`s of a `ts.Program`, each file is parsed once and shared by
+//! everything which reads it: the program's file walk, the extractor and the
+//! name resolver. Semantic analysis only runs on the files that need it.
 
 use std::cell::{OnceCell, RefCell};
 use std::collections::HashMap;
@@ -9,19 +10,23 @@ use std::rc::Rc;
 
 use oxc_allocator::Allocator;
 use oxc_ast::AstKind;
+use oxc_ast::ast::Program;
 use oxc_parser::Parser;
 use oxc_semantic::{NodeId, Semantic, SemanticBuilder};
 use oxc_span::{GetSpan, SourceType, Span};
 
-use crate::host::{File, Host};
+use crate::host::Host;
 use crate::jsdoc::JSDocIndex;
 
 pub struct Files<'a> {
     allocator: &'a Allocator,
     pub host: &'a dyn Host,
-    /// Parsed files by path, or `None` if the path isn't in the program.
+    /// Whether paths which differ only in case name different files.
+    use_case_sensitive_file_names: bool,
+    /// The files loaded so far, by their key (see `key`), or `None` if a
+    /// path couldn't be read.
     files: RefCell<HashMap<String, Option<Rc<ParsedFile<'a>>>>>,
-    /// The paths of the sources locations have referred to.
+    /// The paths of the sources of the files loaded so far.
     source_paths: RefCell<HashMap<u32, String>>,
 }
 
@@ -29,15 +34,18 @@ pub struct ParsedFile<'a> {
     pub source: u32,
     pub path: String,
     pub text: &'a str,
+    pub source_type: SourceType,
     pub is_module: bool,
     pub is_declaration_file: bool,
-    pub semantic: Semantic<'a>,
+    pub program: &'a Program<'a>,
     pub offsets: Utf16Offsets,
     /// The syntax errors oxc encountered while parsing the file.
     pub syntax_errors: Vec<SyntaxError>,
+    /// Built the first time it's needed.
+    semantic: OnceCell<Semantic<'a>>,
     /// The names which a location may refer to, by their span. Used by the
-    /// name resolver.
-    pub names: HashMap<(u32, u32), NodeId>,
+    /// name resolver. Built the first time it's needed.
+    names: OnceCell<HashMap<(u32, u32), NodeId>>,
     /// The file's JSDoc, by the node it's attached to. Built the first time
     /// it's needed.
     jsdoc: OnceCell<JSDocIndex>,
@@ -49,49 +57,83 @@ pub struct SyntaxError {
 }
 
 impl<'a> Files<'a> {
-    pub fn new(allocator: &'a Allocator, host: &'a dyn Host) -> Self {
+    pub fn new(
+        allocator: &'a Allocator,
+        host: &'a dyn Host,
+        use_case_sensitive_file_names: bool,
+    ) -> Self {
         Files {
             allocator,
             host,
+            use_case_sensitive_file_names,
             files: RefCell::new(HashMap::new()),
             source_paths: RefCell::new(HashMap::new()),
+        }
+    }
+
+    /// Like TypeScript's `toPath`: the key which identifies the file at
+    /// `path`.
+    pub fn key(&self, path: &str) -> String {
+        if self.use_case_sensitive_file_names {
+            path.to_string()
+        } else {
+            path.to_lowercase()
         }
     }
 
     /// The file of a source which a location refers to.
     pub fn source_file(&self, source: u32) -> Rc<ParsedFile<'a>> {
         let path = self.source_paths.borrow().get(&source).cloned();
-        if let Some(file) = path.and_then(|path| self.file(&path)) {
-            return file;
-        }
-        let file = self.host.source_file(source);
-        let path = file.path.clone();
-        self.source_paths.borrow_mut().insert(source, path.clone());
-        let parsed = Rc::new(self.parse(file));
-        self.files
-            .borrow_mut()
-            .insert(path, Some(Rc::clone(&parsed)));
-        parsed
+        path.and_then(|path| self.file(&path))
+            .unwrap_or_else(|| panic!("Expected source {source} to be a loaded file."))
     }
 
-    /// The file at `path`, or `None` if it isn't in the program.
+    /// The file at `path`, or `None` if it hasn't been loaded (it isn't in
+    /// the program) or couldn't be read.
     pub fn file(&self, path: &str) -> Option<Rc<ParsedFile<'a>>> {
-        if let Some(file) = self.files.borrow().get(path) {
+        self.files.borrow().get(&self.key(path)).cloned().flatten()
+    }
+
+    /// Whether `load` has been called with `path`.
+    pub fn is_loaded(&self, path: &str) -> bool {
+        self.files.borrow().contains_key(&self.key(path))
+    }
+
+    /// Reads and parses the file at `path`, unless it has already been
+    /// loaded. `is_module` decides whether the file is a module from its
+    /// syntax.
+    pub fn load(
+        &self,
+        path: &str,
+        is_module: impl FnOnce(&Program<'a>, SourceType) -> bool,
+    ) -> Option<Rc<ParsedFile<'a>>> {
+        let key = self.key(path);
+        if let Some(file) = self.files.borrow().get(&key) {
             return file.clone();
         }
-        let file = self
-            .host
-            .read_file(path)
-            .map(|file| Rc::new(self.parse(file)));
-        self.files
-            .borrow_mut()
-            .insert(path.to_string(), file.clone());
+        let file = self.host.read_source_file(path).map(|file| {
+            self.source_paths
+                .borrow_mut()
+                .insert(file.source, path.to_string());
+            Rc::new(self.parse(file.source, path, &file.text, is_module))
+        });
+        self.files.borrow_mut().insert(key, file.clone());
         file
     }
 
-    fn parse(&self, file: File) -> ParsedFile<'a> {
-        let text = self.allocator.alloc_str(&file.text);
-        let source_type = SourceType::from_path(&file.path).unwrap_or_else(|_| SourceType::ts());
+    fn parse(
+        &self,
+        source: u32,
+        path: &str,
+        text: &str,
+        is_module: impl FnOnce(&Program<'a>, SourceType) -> bool,
+    ) -> ParsedFile<'a> {
+        let text = self.allocator.alloc_str(text);
+        let mut source_type = SourceType::from_path(path).unwrap_or_else(|_| SourceType::ts());
+        // Like `getLanguageVariant`, JavaScript files may contain JSX.
+        if source_type.is_javascript() {
+            source_type = source_type.with_jsx(true);
+        }
         let parsed = Parser::new(self.allocator, text, source_type).parse();
         let syntax_errors = parsed
             .diagnostics
@@ -111,46 +153,60 @@ impl<'a> Files<'a> {
             })
             .collect();
         let program = self.allocator.alloc(parsed.program);
-        let semantic = SemanticBuilder::new()
-            .with_build_nodes(true)
-            .build(program)
-            .semantic;
-        let names = semantic
-            .nodes()
-            .iter()
-            .filter(|node| {
-                matches!(
-                    node.kind(),
-                    AstKind::IdentifierReference(_)
-                        | AstKind::TSQualifiedName(_)
-                        | AstKind::BindingIdentifier(_)
-                )
-            })
-            .map(|node| {
-                let span = node.kind().span();
-                ((span.start, span.end), node.id())
-            })
-            .collect();
         ParsedFile {
-            source: file.source,
-            path: file.path,
+            source,
+            path: path.to_string(),
             text,
-            is_module: file.is_module,
+            source_type,
+            is_module: is_module(program, source_type),
             is_declaration_file: source_type.is_typescript_definition(),
+            program,
             offsets: Utf16Offsets::new(text),
-            semantic,
             syntax_errors,
-            names,
+            semantic: OnceCell::new(),
+            names: OnceCell::new(),
             jsdoc: OnceCell::new(),
         }
     }
 }
 
-impl ParsedFile<'_> {
+impl<'a> ParsedFile<'a> {
+    /// The file's scopes, symbols and nodes.
+    pub fn semantic(&self) -> &Semantic<'a> {
+        self.semantic.get_or_init(|| {
+            SemanticBuilder::new()
+                .with_build_nodes(true)
+                .build(self.program)
+                .semantic
+        })
+    }
+
+    /// The names which a location may refer to, by their span.
+    pub fn names(&self) -> &HashMap<(u32, u32), NodeId> {
+        self.names.get_or_init(|| {
+            self.semantic()
+                .nodes()
+                .iter()
+                .filter(|node| {
+                    matches!(
+                        node.kind(),
+                        AstKind::IdentifierReference(_)
+                            | AstKind::TSQualifiedName(_)
+                            | AstKind::BindingIdentifier(_)
+                    )
+                })
+                .map(|node| {
+                    let span = node.kind().span();
+                    ((span.start, span.end), node.id())
+                })
+                .collect()
+        })
+    }
+
     /// The file's JSDoc, by the node it's attached to.
     pub fn jsdoc(&self) -> &JSDocIndex {
         self.jsdoc
-            .get_or_init(|| JSDocIndex::new(self.text, &self.semantic))
+            .get_or_init(|| JSDocIndex::new(self.text, self.semantic()))
     }
 }
 

@@ -2956,7 +2956,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         // namespace body, etc.)
         //
         // PORT: An exported declaration is its oxc parent's declaration.
-        let nodes = self.file.semantic.nodes();
+        let nodes = self.file.semantic().nodes();
         let mut statement = decl.node_id();
         if let AstKind::ExportDeclaration(export) = nodes.parent_kind(statement) {
             statement = export.node_id();
@@ -3874,7 +3874,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
     /// PORT: The oxc node a JSDoc index node was built from.
     fn kind(&self, node: TsNodeId) -> Option<AstKind<'a>> {
         let id = self.jsdoc.node(node).ast?;
-        Some(self.file.semantic.nodes().kind(id))
+        Some(self.file.semantic().nodes().kind(id))
     }
 
     fn ast(&self, node: TsNodeId) -> AstKind<'a> {
@@ -3903,7 +3903,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
     /// default export. TypeScript reads its modifiers.
     fn export_kind(&self, node: TsNodeId) -> Option<bool> {
         let id = self.jsdoc.node(node).ast?;
-        match self.file.semantic.nodes().parent_kind(id) {
+        match self.file.semantic().nodes().parent_kind(id) {
             AstKind::ExportDeclaration(_) => Some(false),
             AstKind::ExportDefaultDeclaration(_) => Some(true),
             _ => None,
@@ -3914,7 +3914,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
     /// records as flags (if at all), without their spans.
     fn modifiers(&self, from: u32, to: u32) -> Vec<(&'a str, Span)> {
         let text = self.file.text;
-        let comments = self.file.semantic.comments();
+        let comments = self.file.semantic().comments();
         let mut modifiers = Vec::new();
         let mut pos = skip_trivia(text, from, comments);
         while pos < to {
@@ -3958,7 +3958,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
     /// PORT: The span of the `?` after `after`.
     fn question_token(&self, after: u32) -> Span {
-        let pos = skip_trivia(self.file.text, after, self.file.semantic.comments());
+        let pos = skip_trivia(self.file.text, after, self.file.semantic().comments());
         Span::new(pos, pos + 1)
     }
 
@@ -4309,19 +4309,17 @@ fn key_name<'a>(file: &ParsedFile, key: &PropertyKey<'a>, computed: bool) -> Nam
 /// PORT: The span of a computed name's brackets, around `expression`.
 fn bracket_span(file: &ParsedFile, expression: Span) -> Span {
     let start = full_start_of(file, expression.start) - 1;
-    let end = skip_trivia(file.text, expression.end, file.semantic.comments()) + 1;
+    let end = skip_trivia(file.text, expression.end, file.semantic().comments()) + 1;
     Span::new(start, end)
 }
 
 fn full_start_of(file: &ParsedFile, start: u32) -> u32 {
     let hashbang_end = file
-        .semantic
-        .nodes()
-        .program()
+        .program
         .hashbang
         .as_ref()
         .map(|hashbang| hashbang.span.end);
-    full_start(file.text, start, file.semantic.comments(), hashbang_end)
+    full_start(file.text, start, file.semantic().comments(), hashbang_end)
 }
 
 fn is_static_method(node: &ClassElement) -> bool {

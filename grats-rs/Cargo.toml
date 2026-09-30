@@ -13,8 +13,10 @@ grats = { path = "crates/grats" }
 indexmap = { version = "2", features = ["serde"] }
 oxc_allocator = "0.152"
 oxc_ast = "0.152"
+oxc_ast_visit = "0.152"
 oxc_codegen = "0.152"
 oxc_parser = "0.152"
+oxc_resolver = "11.24.3"
 oxc_semantic = "0.152"
 oxc_span = "0.152"
 oxc_str = "0.152"
