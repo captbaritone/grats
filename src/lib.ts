@@ -34,7 +34,6 @@ import { makeResolverSignature } from "./transforms/makeResolverSignature.js";
 import { addImplicitRootTypes } from "./transforms/addImplicitRootTypes.js";
 import { Metadata } from "./metadata.js";
 import { coerceDefaultEnumValues } from "./transforms/coerceDefaultEnumValues.js";
-import { validateSomeTypesAreDefined } from "./validations/validateSomeTypesAreDefined.js";
 import { validateDocument } from "./rs/document.js";
 
 export type { GratsConfig } from "./gratsConfig.js";
@@ -154,8 +153,6 @@ export function extractSchemaAndDoc(
           // Apply the "Type Validation" sub-sections of the specification's
           // "Type System" section.
           .andThen((schema) => specSchemaValidation(schema))
-          // Provide a helpful getting started error if no types are detected.
-          .andThen((schema) => validateSomeTypesAreDefined(schema))
           // Run the validations that have been ported to Rust.
           .andThen((schema) =>
             new ResultPipe(validateDocument(doc, config, typesWithTypename))

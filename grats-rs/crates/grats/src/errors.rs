@@ -31,3 +31,9 @@ pub fn concrete_typename_in_union_cannot_be_resolved(
         "Cannot resolve typename. The type `{implementor}` is a member of `{union_name}`, so it must either have a `__typename` property or be an exported class."
     )
 }
+
+pub fn no_types_defined() -> String {
+    format!(
+        "Grats could not find any GraphQL types defined in this project.\n\nDeclare a type by adding a `/** @{TYPE_TAG} */` docblock above a class, interface, or type alias declaration.\nGrats looks for docblock tags in any TypeScript file included in your TypeScript project."
+    )
+}

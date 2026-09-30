@@ -6,14 +6,14 @@ use graphql_js::language::ast::Location;
 use serde::Serialize;
 
 /// PORT: A `ts.Diagnostic` in the TypeScript implementation. Rust has no
-/// source files to reference, so diagnostics carry GraphQL locations, and the
-/// TypeScript side builds the `ts.Diagnostic`. See `decodeDiagnostic` in
-/// `src/rs/codec.ts`.
+/// source files to reference, so diagnostics carry GraphQL locations (or none,
+/// for `locationless_err`), and the TypeScript side builds the
+/// `ts.Diagnostic`. See `decodeDiagnostic` in `src/rs/codec.ts`.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Diagnostic {
     pub message_text: String,
-    pub loc: Location,
+    pub loc: Option<Location>,
     pub related_information: Option<Vec<DiagnosticRelatedInformation>>,
 }
 
@@ -25,9 +25,15 @@ pub struct DiagnosticRelatedInformation {
     pub loc: Location,
 }
 
-/// PORT: The diagnostics have locations, but Rust doesn't distinguish
-/// diagnostics without them yet.
 pub type DiagnosticsWithoutLocationResult<T> = Result<T, Vec<Diagnostic>>;
+
+pub fn locationless_err(message: String) -> Diagnostic {
+    Diagnostic {
+        message_text: message,
+        loc: None,
+        related_information: None,
+    }
+}
 
 /// PORT: Takes the item's location, rather than an item with a `loc`.
 pub fn gql_err(
@@ -40,7 +46,7 @@ pub fn gql_err(
     };
     Diagnostic {
         message_text: message,
-        loc,
+        loc: Some(loc),
         related_information,
     }
 }

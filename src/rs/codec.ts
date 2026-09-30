@@ -2,7 +2,11 @@ import { DocumentNode, Location, Source, Token, TokenKind } from "graphql";
 import * as ts from "typescript";
 import type { GratsConfig } from "../gratsConfig.js";
 import type { Metadata } from "../metadata.js";
-import { gqlErr, gqlRelated } from "../utils/DiagnosticError.js";
+import {
+  gqlErr,
+  gqlRelated,
+  locationlessErr,
+} from "../utils/DiagnosticError.js";
 
 /**
  * Encodes values passed between TypeScript and the Rust port of Grats
@@ -162,7 +166,7 @@ export function encodeDocumentRequest(
  */
 export type EncodedDiagnostic = {
   messageText: string;
-  loc: EncodedLocation;
+  loc: EncodedLocation | null;
   relatedInformation: Array<{
     messageText: string;
     loc: EncodedLocation;
@@ -172,7 +176,10 @@ export type EncodedDiagnostic = {
 export function decodeDiagnostic(
   diagnostic: EncodedDiagnostic,
   sources: SourceTable,
-): ts.DiagnosticWithLocation {
+): ts.Diagnostic {
+  if (diagnostic.loc == null) {
+    return locationlessErr(diagnostic.messageText);
+  }
   return gqlErr(
     { loc: sources.decodeLocation(diagnostic.loc) },
     diagnostic.messageText,

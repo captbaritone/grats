@@ -14,6 +14,7 @@ use crate::grats_config::GratsConfig;
 use crate::utils::diagnostic_error::DiagnosticsWithoutLocationResult;
 use crate::validations::validate_directive_arguments::validate_directive_arguments;
 use crate::validations::validate_semantic_nullability::validate_semantic_nullability;
+use crate::validations::validate_some_types_are_defined::validate_some_types_are_defined;
 use crate::validations::validate_typenames::validate_typenames;
 
 /// PORT: The input to `validate` from TypeScript, besides the document.
@@ -25,7 +26,7 @@ pub struct ValidateRequest {
     pub types_with_typename: HashSet<String>,
 }
 
-/// PORT: The validations which follow `validateSomeTypesAreDefined` in
+/// PORT: The validations which follow `specSchemaValidation` in
 /// `extractSchemaAndDoc`, which build their own schema from the document.
 pub fn validate(
     doc: &DocumentNode,
@@ -33,6 +34,8 @@ pub fn validate(
 ) -> DiagnosticsWithoutLocationResult<()> {
     let config = &request.config;
     Ok(build_ast_schema(doc))
+        // Provide a helpful getting started error if no types are detected.
+        .and_then(validate_some_types_are_defined)
         // Ensure that any custom validations that are not part of the spec
         // are also applied.
         // The above spec validation fails to catch type errors in directive
