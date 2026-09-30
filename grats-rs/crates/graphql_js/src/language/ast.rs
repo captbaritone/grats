@@ -451,11 +451,14 @@ pub struct EnumTypeDefinitionNode {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct EnumValueDefinitionNode {
     pub loc: Option<Location>,
     pub description: Option<StringValueNode>,
     pub name: NameNode,
     pub directives: Option<Vec<ConstDirectiveNode>>,
+    /// Grats metadata: The TypeScript name of the enum value.
+    pub ts_name: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

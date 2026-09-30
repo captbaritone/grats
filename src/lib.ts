@@ -12,7 +12,6 @@ import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces.js";
 import { validateDuplicateContextOrInfo } from "./validations/validateDuplicateContextOrInfo.js";
 import { resolveTypes } from "./transforms/resolveTypes.js";
 import { resolveResolverParams } from "./transforms/resolveResolverParams.js";
-import { coerceDefaultEnumValues } from "./transforms/coerceDefaultEnumValues.js";
 import { runRustPipeline } from "./rs/document.js";
 
 export type { GratsConfig } from "./gratsConfig.js";
@@ -96,9 +95,6 @@ export function extractSchemaAndDoc(
         // Follow TypeScript type references to determine the GraphQL types
         // being referenced.
         .andThen((definitions) => resolveTypes(ctx, definitions))
-        // Convert string literals used as default values for enums into GraphQL
-        // enums where appropriate.
-        .map((definitions) => coerceDefaultEnumValues(definitions))
         // Convert the definitions into a DocumentNode
         .map((definitions) => ({ kind: Kind.DOCUMENT, definitions }) as const)
         .result();

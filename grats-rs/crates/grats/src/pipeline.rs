@@ -18,6 +18,7 @@ use crate::grats_config::GratsConfig;
 use crate::transforms::add_implicit_root_types::add_implicit_root_types;
 use crate::transforms::add_interface_fields::add_interface_fields;
 use crate::transforms::apply_default_nullability::apply_default_nullability;
+use crate::transforms::coerce_default_enum_values::coerce_default_enum_values;
 use crate::transforms::merge_extensions::merge_extensions;
 use crate::transforms::sort_schema_ast::sort_schema_ast;
 use crate::type_context::{TypeContext, TypeContextState};
@@ -47,9 +48,9 @@ pub struct PipelineRequest {
     pub type_context: TypeContextState,
 }
 
-/// PORT: The part of `extractSchemaAndDoc` which starts after
-/// `coerceDefaultEnumValues`, with the definitions converted into a
-/// `DocumentNode` to cross into Rust. After validating the transformed document, it builds its own schema from
+/// PORT: The part of `extractSchemaAndDoc` which starts after `resolveTypes`,
+/// with the definitions converted into a `DocumentNode` to cross into Rust.
+/// After validating the transformed document, it builds its own schema from
 /// it. Returns the transformed document.
 pub fn run(
     doc: DocumentNode,
@@ -62,10 +63,13 @@ pub fn run(
         type_context,
     } = request;
     let ctx = TypeContext::from_state(type_context);
+    // Convert string literals used as default values for enums into GraphQL
+    // enums where appropriate.
+    let definitions = coerce_default_enum_values(doc.definitions);
     // If you define a field on an interface using the functional style, we
     // need to add that field to each concrete type as well. This must be
     // done after all types are created, but before we validate the schema.
-    let doc = add_interface_fields(&ctx, doc.definitions)
+    let doc = add_interface_fields(&ctx, definitions)
         // Convert the definitions into a DocumentNode
         .map(|definitions| DocumentNode {
             loc: None,
