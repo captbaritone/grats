@@ -200,6 +200,7 @@ mod tests {
             "schemaHeader": null,
             "tsClientEnumsHeader": null,
             "importModuleSpecifierEnding": ".js",
+            "nullableByDefault": true,
             "strictSemanticNullability": false,
         }))
         .unwrap();

@@ -10,14 +10,9 @@ import { extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram.j
 import { validateMergedInterfaces } from "./validations/validateMergedInterfaces.js";
 import { addInterfaceFields } from "./transforms/addInterfaceFields.js";
 import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces.js";
-import { validateAsyncIterable } from "./validations/validateAsyncIterable.js";
-import { applyDefaultNullability } from "./transforms/applyDefaultNullability.js";
-import { mergeExtensions } from "./transforms/mergeExtensions.js";
 import { validateDuplicateContextOrInfo } from "./validations/validateDuplicateContextOrInfo.js";
 import { resolveTypes } from "./transforms/resolveTypes.js";
 import { resolveResolverParams } from "./transforms/resolveResolverParams.js";
-import { customSpecValidations } from "./validations/customSpecValidations.js";
-import { addImplicitRootTypes } from "./transforms/addImplicitRootTypes.js";
 import { coerceDefaultEnumValues } from "./transforms/coerceDefaultEnumValues.js";
 import { runRustPipeline } from "./rs/document.js";
 
@@ -111,19 +106,6 @@ export function extractSchemaAndDoc(
         .andThen((definitions) => addInterfaceFields(ctx, definitions))
         // Convert the definitions into a DocumentNode
         .map((definitions) => ({ kind: Kind.DOCUMENT, definitions }) as const)
-        // Ensure all subscription fields return an AsyncIterable.
-        .andThen((doc) => validateAsyncIterable(doc))
-        // Apply default nullability to fields and arguments, and detect any misuse of
-        // `@killsParentOnException`.
-        .andThen((doc) => applyDefaultNullability(doc, config))
-        // Ensure we have Query/Mutation/Subscription types if they've been extended with
-        // `@gqlQueryField` and friends.
-        .map((doc) => addImplicitRootTypes(doc))
-        // Merge any `extend` definitions into their base definitions.
-        .map((doc) => mergeExtensions(doc))
-        // Perform custom validations that reimplement spec validation rules
-        // with more tailored error messages.
-        .andThen((doc) => customSpecValidations(doc))
         .result();
 
       if (docResult.kind === "ERROR") {
@@ -131,10 +113,10 @@ export function extractSchemaAndDoc(
       }
       const doc = docResult.value;
 
-      // Sort the definitions in the document to ensure a stable output, then
-      // validate the document and the schema built from it with regards to
-      // the GraphQL spec, and run the other validations that have been ported
-      // to Rust. Rust keeps the resulting document for printing.
+      // Run the rest of the pipeline, which has been ported to Rust: the
+      // document transforms and validations, which end by validating the
+      // document and the schema built from it with regards to the GraphQL
+      // spec. Rust keeps the resulting document for printing.
       return new ResultPipe(runRustPipeline(doc, config, typesWithTypename))
         .map(() => ({ doc }))
         .result();

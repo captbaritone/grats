@@ -11,6 +11,7 @@ import {
   SourceTable,
 } from "./codec.js";
 import { callRust, instanceId } from "./load.js";
+import { DIRECTIVES_AST } from "../publicDirectives.js";
 
 /**
  * Calls the Rust entry points which take a document.
@@ -44,6 +45,7 @@ export function runRustPipeline(
   const request: RustPipelineRequest = {
     config,
     typesWithTypename: Array.from(typesWithTypename),
+    directivesAst: DIRECTIVES_AST,
   };
   const result: Result<null, EncodedDiagnostic[]> = JSON.parse(
     callRust("run_pipeline", encodeDocumentRequest(doc, request, sources)),

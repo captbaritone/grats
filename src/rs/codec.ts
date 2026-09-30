@@ -93,7 +93,12 @@ export function encodeDocument(
   doc: DocumentNode,
   sources: SourceTable,
 ): string {
-  return JSON.stringify(doc, function (key, value) {
+  return encodeWithLocations(doc, sources);
+}
+
+// Encodes a value which may contain AST nodes.
+function encodeWithLocations(value: unknown, sources: SourceTable): string {
+  return JSON.stringify(value, function (key, value) {
     // Location defines `toJSON`, so read the original value from the holder.
     // Unlike a reviver in `decodeDocument`, a replacer is about as fast as
     // walking the value ourselves.
@@ -112,6 +117,8 @@ export function encodeDocument(
 export type RustPipelineRequest = {
   config: GratsConfig;
   typesWithTypename: string[];
+  /** Until Rust can parse GraphQL. */
+  directivesAst: DocumentNode;
 };
 
 /**
@@ -153,9 +160,11 @@ export function encodeDocumentRequest(
   request: object,
   sources: SourceTable,
 ): string {
-  // Splice in the encoded document rather than encoding it again.
+  // Splice in the encoded document rather than encoding it again. The
+  // request may contain AST nodes too.
   const encodedDoc = encodeDocument(doc, sources);
-  return `{"doc":${encodedDoc},"request":${JSON.stringify(request)}}`;
+  const encodedRequest = encodeWithLocations(request, sources);
+  return `{"doc":${encodedDoc},"request":${encodedRequest}}`;
 }
 
 /**

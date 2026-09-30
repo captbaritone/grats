@@ -15,10 +15,15 @@ use graphql_js::validation::validate::validate_sdl;
 use serde::Deserialize;
 
 use crate::grats_config::GratsConfig;
+use crate::transforms::add_implicit_root_types::add_implicit_root_types;
+use crate::transforms::apply_default_nullability::apply_default_nullability;
+use crate::transforms::merge_extensions::merge_extensions;
 use crate::transforms::sort_schema_ast::sort_schema_ast;
 use crate::utils::diagnostic_error::{
     DiagnosticsWithoutLocationResult, graphql_error_to_diagnostic,
 };
+use crate::validations::custom_spec_validations::custom_spec_validations;
+use crate::validations::validate_async_iterable::validate_async_iterable;
 use crate::validations::validate_directive_arguments::validate_directive_arguments;
 use crate::validations::validate_semantic_nullability::validate_semantic_nullability;
 use crate::validations::validate_some_types_are_defined::validate_some_types_are_defined;
@@ -31,17 +36,41 @@ pub struct PipelineRequest {
     pub config: GratsConfig,
     /// `snapshot.typesWithTypename`.
     pub types_with_typename: HashSet<String>,
+    /// `DIRECTIVES_AST` from `src/publicDirectives.ts`. PORT: It's parsed from
+    /// GraphQL text, so it's parsed on the TypeScript side until Rust can parse
+    /// GraphQL.
+    pub directives_ast: DocumentNode,
 }
 
-/// PORT: The part of `extractSchemaAndDoc` which starts at `sortSchemaAst`.
-/// After validating the sorted document, it builds its own schema from it.
-/// Returns the sorted document.
+/// PORT: The part of `extractSchemaAndDoc` which starts once the definitions
+/// have been converted into a `DocumentNode`, after `addInterfaceFields`.
+/// After validating the transformed document, it builds its own schema from
+/// it. Returns the transformed document.
 pub fn run(
     doc: DocumentNode,
     request: PipelineRequest,
 ) -> DiagnosticsWithoutLocationResult<DocumentNode> {
-    let config = &request.config;
-    let doc = sort_schema_ast(doc);
+    let PipelineRequest {
+        config,
+        types_with_typename,
+        directives_ast,
+    } = request;
+    // Ensure all subscription fields return an AsyncIterable.
+    let doc = validate_async_iterable(doc)
+        // Apply default nullability to fields and arguments, and detect any misuse of
+        // `@killsParentOnException`.
+        .and_then(|doc| apply_default_nullability(doc, &config, directives_ast))
+        // Ensure we have Query/Mutation/Subscription types if they've been extended with
+        // `@gqlQueryField` and friends.
+        .map(add_implicit_root_types)
+        // Merge any `extend` definitions into their base definitions.
+        .map(merge_extensions)
+        // Perform custom validations that reimplement spec validation rules
+        // with more tailored error messages.
+        .and_then(custom_spec_validations)
+        // Sort the definitions in the document to ensure a stable output.
+        .map(sort_schema_ast)?;
+
     spec_validate_sdl(&doc)
         .map(build_ast_schema)
         // Apply the "Type Validation" sub-sections of the specification's
@@ -56,10 +85,10 @@ pub fn run(
         .and_then(|schema| validate_directive_arguments(schema, &doc))
         // Ensure that every type which implements an interface or is a member of a
         // union has a __typename field.
-        .and_then(|schema| validate_typenames(schema, &request.types_with_typename))
+        .and_then(|schema| validate_typenames(schema, &types_with_typename))
         // Validate that semantic nullability directives are not in conflict
         // with type nullability.
-        .and_then(|schema| validate_semantic_nullability(schema, config))?;
+        .and_then(|schema| validate_semantic_nullability(schema, &config))?;
     Ok(doc)
 }
 

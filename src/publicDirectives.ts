@@ -1,12 +1,4 @@
-import {
-  ConstDirectiveNode,
-  DefinitionNode,
-  DocumentNode,
-  Kind,
-  Location,
-  parse,
-} from "graphql";
-import { UNTRACKED_ID } from "./utils/helpers.js";
+import { DocumentNode, parse } from "graphql";
 
 /**
  * Grats supports some additional, non-spec server directives in order to
@@ -51,24 +43,3 @@ Passing a negative level or a level greater than the list dimension is an error.
 """
 directive @semanticNonNull(levels: [Int] = [0]) on FIELD_DEFINITION
 `);
-
-export function addSemanticNonNullDirective(
-  definitions: readonly DefinitionNode[],
-): Array<DefinitionNode> {
-  return [...DIRECTIVES_AST.definitions, ...definitions];
-}
-
-export function makeSemanticNonNullDirective(
-  loc: Location,
-): ConstDirectiveNode {
-  return {
-    kind: Kind.DIRECTIVE,
-    loc,
-    name: {
-      kind: Kind.NAME,
-      loc,
-      value: SEMANTIC_NON_NULL_DIRECTIVE,
-      tsIdentifier: UNTRACKED_ID,
-    },
-  };
-}

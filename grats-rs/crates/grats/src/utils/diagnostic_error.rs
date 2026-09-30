@@ -28,6 +28,10 @@ pub struct DiagnosticRelatedInformation {
 
 pub type DiagnosticsWithoutLocationResult<T> = Result<T, Vec<Diagnostic>>;
 
+/// PORT: Diagnostics made by `gql_err` always have a location, but share a
+/// type with those which may not.
+pub type DiagnosticsResult<T> = Result<T, Vec<Diagnostic>>;
+
 /// PORT: graphql-js derives the error's `positions` and `source` from its
 /// nodes' locations, so its first position and its source are those of the
 /// first node which has a location.

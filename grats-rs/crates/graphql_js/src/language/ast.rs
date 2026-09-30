@@ -276,9 +276,14 @@ pub struct NamedTypeNode {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ListTypeNode {
     pub loc: Option<Location>,
     pub r#type: Box<TypeNode>,
+    /// Grats metadata: Whether the list type was defined as an AsyncIterable.
+    /// Used to ensure that all fields on `Subscription` return an AsyncIterable.
+    #[serde(default)]
+    pub is_async_iterable: bool,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -293,6 +298,17 @@ pub struct NonNullTypeNode {
 pub enum NullableTypeNode {
     NamedType(NamedTypeNode),
     ListType(ListTypeNode),
+}
+
+/// PORT: graphql-js's node types are structural, so a `NullableTypeNode` is
+/// already a `TypeNode`.
+impl From<NullableTypeNode> for TypeNode {
+    fn from(node: NullableTypeNode) -> Self {
+        match node {
+            NullableTypeNode::NamedType(t) => TypeNode::NamedType(t),
+            NullableTypeNode::ListType(t) => TypeNode::ListType(t),
+        }
+    }
 }
 
 // Type System Definition
@@ -349,6 +365,7 @@ pub struct ObjectTypeDefinitionNode {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct FieldDefinitionNode {
     pub loc: Option<Location>,
     pub description: Option<StringValueNode>,
@@ -361,6 +378,8 @@ pub struct FieldDefinitionNode {
     /// that to avoid repeated parsing, and to allow for unresolved types early
     /// on during compilation.
     pub resolver: Option<ResolverSignature>,
+    /// Grats metadata.
+    pub kills_parent_on_exception: Option<NameNode>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

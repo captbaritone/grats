@@ -5,6 +5,15 @@ use graphql_js::language::ast::{DefinitionNode, DocumentNode};
 /// Simplified, more performant, version of graphql-js's visit function that only
 /// visits the top-level definitions in a DocumentNode.
 ///
+/// PORT: The TypeScript version takes a visitor per definition kind. Here a
+/// single function receives every definition and matches on its kind.
+pub fn visit_definitions(doc: &DocumentNode, visitor: impl FnMut(&DefinitionNode)) {
+    doc.definitions.iter().for_each(visitor);
+}
+
+/// Simplified, more performant, version of graphql-js's visit function that only
+/// visits the top-level definitions in a DocumentNode.
+///
 /// PORT: The TypeScript version takes a mapper per definition kind. Here a
 /// single function receives every definition and matches on its kind. Returning
 /// `None` removes the definition.

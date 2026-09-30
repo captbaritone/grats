@@ -6,4 +6,33 @@
 //!
 //! PORT: Only the parts used by ported code are ported so far.
 
+use graphql_js::language::ast::{
+    ConstDirectiveNode, DefinitionNode, DocumentNode, Location, NameNode,
+};
+
 pub const SEMANTIC_NON_NULL_DIRECTIVE: &str = "semanticNonNull";
+
+/// PORT: `DIRECTIVES_AST` is parsed from GraphQL text on the TypeScript side,
+/// which passes it in with the document (see `PipelineRequest`) until Rust can
+/// parse GraphQL.
+pub fn add_semantic_non_null_directive(
+    directives_ast: DocumentNode,
+    definitions: Vec<DefinitionNode>,
+) -> Vec<DefinitionNode> {
+    directives_ast
+        .definitions
+        .into_iter()
+        .chain(definitions)
+        .collect()
+}
+
+pub fn make_semantic_non_null_directive(loc: Location) -> ConstDirectiveNode {
+    ConstDirectiveNode {
+        loc: Some(loc),
+        name: NameNode {
+            loc: Some(loc),
+            value: SEMANTIC_NON_NULL_DIRECTIVE.to_string(),
+        },
+        arguments: None,
+    }
+}

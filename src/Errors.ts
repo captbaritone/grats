@@ -337,16 +337,6 @@ export function expectedNameIdentifier() {
 }
 
 // TODO: Add code action
-export function killsParentOnExceptionWithWrongConfig() {
-  return `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` tag. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` is only supported when the Grats config option \`nullableByDefault\` is enabled in your \`tsconfig.json\`.`;
-}
-
-// TODO: Add code action
-export function killsParentOnExceptionOnNullable() {
-  return `Unexpected \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` tag on field typed as nullable. \`@${KILLS_PARENT_ON_EXCEPTION_TAG}\` will force a field to appear as non-nullable in the schema, so its implementation must also be non-nullable. .`;
-}
-
-// TODO: Add code action
 export function nonNullTypeCannotBeOptional() {
   return `Unexpected optional argument that does not also accept \`null\`. Optional arguments in GraphQL may get passed an explicit \`null\` value by the GraphQL executor. This means optional arguments must be typed to also accept \`null\`. Consider adding \`| null\` to the end of the argument type.`;
 }
@@ -459,10 +449,6 @@ export function graphQLNameHasLeadingNewlines(
 
 export function graphQLTagNameHasWhitespace(tagName: string): string {
   return `Expected text following a \`@${tagName}\` tag to be a GraphQL name. If you intended this text to be a description, place it at the top of the docblock before any \`@tags\`.`;
-}
-
-export function subscriptionFieldNotAsyncIterable() {
-  return "Expected fields on `Subscription` to return an `AsyncIterable`. Fields on `Subscription` model a subscription, which is a stream of events. Grats expects fields on `Subscription` to return an `AsyncIterable` which can be used to model this stream.";
 }
 
 export function operationTypeNotUnknown() {
@@ -591,10 +577,6 @@ export function positionalArgAndArgsObject(): string {
 export function contextOrInfoUsedInGraphQLPosition(kind: "CONTEXT" | "INFO") {
   const tag = kind === "CONTEXT" ? CONTEXT_TAG : INFO_TAG;
   return `Cannot use \`${tag}\` as a type in GraphQL type position.`;
-}
-
-export function typeWithNoFields(kind: string, typeName: string) {
-  return `${kind} \`${typeName}\` must define one or more fields.\n\nDefine a field by adding \`/** @${FIELD_TAG} */\` above a field, property, attribute or method of this type, or above a function that has \`${typeName}\` as its first argument.`;
 }
 
 export function tsConfigNotFound(cwd: string) {
