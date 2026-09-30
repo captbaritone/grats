@@ -27,6 +27,10 @@ pub trait Host: Send + Sync {
     /// `path` with every symbolic link in it resolved.
     fn realpath(&self, path: &str) -> Option<String>;
 
+    /// The names of the entries of the directory at `path`, following
+    /// symbolic links, or `None` if it can't be read.
+    fn read_dir(&self, path: &str) -> Option<DirEntries>;
+
     /// The id of a GraphQL source in the `SourceTable`, which is added to the
     /// table if it's not already there. Sources must be added before they're
     /// parsed, so that locations in the parsed document can refer to them.
@@ -38,6 +42,13 @@ pub struct SourceFile {
     /// The id of the file's source in the `SourceTable`.
     pub source: u32,
     pub text: String,
+}
+
+/// The entries of a directory, by name, each sorted.
+#[derive(Debug, Deserialize)]
+pub struct DirEntries {
+    pub files: Vec<String>,
+    pub directories: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]
@@ -72,6 +83,9 @@ enum HostRequest<'r> {
         path: &'r str,
     },
     Realpath {
+        path: &'r str,
+    },
+    ReadDir {
         path: &'r str,
     },
     AddSource {
@@ -111,6 +125,10 @@ impl<F: Fn(String) -> String + Send + Sync> Host for JsonHost<F> {
 
     fn realpath(&self, path: &str) -> Option<String> {
         self.request(HostRequest::Realpath { path })
+    }
+
+    fn read_dir(&self, path: &str) -> Option<DirEntries> {
+        self.request(HostRequest::ReadDir { path })
     }
 
     fn add_source(&self, name: &str, body: &str) -> u32 {

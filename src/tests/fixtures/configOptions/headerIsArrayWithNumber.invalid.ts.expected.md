@@ -16,5 +16,5 @@ export default class SomeType {
 ### Error Report
 
 ```text
-error: Expected property `schemaHeader` to be a string or array of strings, but got ["Hello",1].
+error: Invalid Grats config: schemaHeader: expected a string or an array of strings
 ```

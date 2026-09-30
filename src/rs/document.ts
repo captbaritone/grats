@@ -1,4 +1,3 @@
-import type { ParsedCommandLineGrats } from "../gratsConfig.js";
 import { resolveRelativePath } from "../gratsRoot.js";
 import { DiagnosticsWithoutLocationResult } from "../utils/DiagnosticError.js";
 import { err, ok, Result } from "../utils/Result.js";
@@ -10,7 +9,8 @@ import {
   SourceTable,
 } from "./codec.js";
 import { callRust, instanceId } from "./load.js";
-import { host, rustProgramOptions } from "./host.js";
+import { host } from "./host.js";
+import type { GratsProject } from "./project.js";
 
 /**
  * Calls the Rust entry points which use the document the pipeline produced.
@@ -38,16 +38,16 @@ let kept: RustDocument | null = null;
  * `grats-rs/crates/grats/src/pipeline.rs`.
  */
 export function runRustPipeline(
-  options: ParsedCommandLineGrats,
+  project: GratsProject,
 ): DiagnosticsWithoutLocationResult<RustDocument> {
   kept = null;
   const sources = new SourceTable();
   const request: RustPipelineRequest = {
-    config: options.raw.grats,
+    config: project.config,
     // Rust has no module location to resolve paths against, so it's given
     // an absolute path.
     gratsRoot: resolveRelativePath("."),
-    program: rustProgramOptions(options),
+    program: project.program,
   };
   const result: Result<null, EncodedDiagnostic[]> = JSON.parse(
     callRust("run_pipeline", JSON.stringify(request), host(sources)),

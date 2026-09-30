@@ -1,6 +1,6 @@
 import { DiagnosticsWithoutLocationResult } from "./utils/DiagnosticError.js";
 import { ResultPipe } from "./utils/Result.js";
-import { ParsedCommandLineGrats } from "./gratsConfig.js";
+import type { GratsProject } from "./rs/project.js";
 import { RustDocument, runRustPipeline } from "./rs/document.js";
 
 export type { GratsConfig } from "./gratsConfig.js";
@@ -25,7 +25,7 @@ export type SchemaAndDoc = {
  */
 // Exported for tests that want to intercept diagnostic errors.
 export function buildSchemaAndDocResult(
-  options: ParsedCommandLineGrats,
+  project: GratsProject,
 ): DiagnosticsWithoutLocationResult<SchemaAndDoc> {
   // Run the pipeline, which has been ported to Rust: finding the files of the
   // program and those which contain GraphQL definitions, checking each of
@@ -35,7 +35,7 @@ export function buildSchemaAndDocResult(
   // document transforms and validations, which end by validating the document
   // and the schema built from it with regards to the GraphQL spec. Rust keeps
   // the resulting document for printing.
-  return new ResultPipe(runRustPipeline(options))
+  return new ResultPipe(runRustPipeline(project))
     .map((doc) => ({ doc }))
     .result();
 }

@@ -1,8 +1,3 @@
-import * as ts from "typescript";
-import { err, ok, Result } from "./utils/Result.js";
-import { invariant } from "./utils/helpers.js";
-import { locationlessErr } from "./utils/DiagnosticError.js";
-import { GratsConfigSpec } from "./configSpec.js";
 import type { GratsConfig } from "./TGratsConfig.js";
 
 /**
@@ -16,31 +11,11 @@ import type { GratsConfig } from "./TGratsConfig.js";
  * And we need to ensure all four stay in sync. To that end, we define the
  * config spec in JSON, which is used to generate the TypeScript type,
  * runtime validation, documentation, and the interactive config editor in
- * the playground.
+ * the playground. Validation happens in Rust (see
+ * `grats-rs/crates/grats/src/grats_config.rs`).
  */
 
 export { GratsConfig };
-
-export type ParsedCommandLineGrats = Omit<ts.ParsedCommandLine, "raw"> & {
-  raw: {
-    grats: GratsConfig;
-  };
-};
-
-export function validateGratsOptions(
-  options: ts.ParsedCommandLine,
-): Result<ParsedCommandLineGrats, ts.Diagnostic[]> {
-  const gratsOptions = { ...(options.raw?.grats ?? {}) };
-  const parsed = parseConfig<GratsConfig>(GratsConfigSpec, gratsOptions);
-  if (parsed.kind === "ERROR") {
-    return err([locationlessErr(parsed.err)]);
-  }
-
-  return ok({
-    ...options,
-    raw: { ...options.raw, grats: parsed.value },
-  });
-}
 
 export type ConfigSpec = {
   description: string;
@@ -118,103 +93,4 @@ function simpleWordWrap(
     }
   }
   return lines.join("\n");
-}
-
-function typeName(typeKind: PropertySpec["type"]["kind"]): string {
-  switch (typeKind) {
-    case "string":
-      return "string";
-    case "longString":
-      return "string | string[]";
-    case "boolean":
-      return "boolean";
-    default: {
-      const _foo: never = typeKind;
-      invariant(false, `Unknown type kind ${(typeKind as any).kind}`);
-    }
-  }
-}
-
-// Options which Grats no longer supports, and how to migrate away from each.
-const REMOVED_OPTIONS: { [key: string]: string | undefined } = {
-  reportTypeScriptTypeErrors:
-    "Grats no longer type checks your code. Run `tsc` to report TypeScript type errors.",
-};
-
-function parseConfig<T>(spec: ConfigSpec, config: any): Result<T, string> {
-  const result: any = {};
-  for (const [key, property] of Object.entries(spec.properties)) {
-    if (config[key] === undefined) {
-      result[key] = property.default;
-      continue;
-    }
-    if (config[key] === null) {
-      if (!property.nullable) {
-        return err(
-          `The Grats config option \`${key}\` must be a \`${typeName(property.type.kind)}\` if provided.`,
-        );
-      } else {
-        result[key] = null;
-        continue;
-      }
-    }
-    const value = config[key];
-    switch (property.type.kind) {
-      case "string":
-        if (typeof value !== "string") {
-          return err(
-            `Expected property \`${key}\` to be a string, but got ${JSON.stringify(
-              value,
-            )}.`,
-          );
-        }
-        result[key] = value;
-        break;
-      case "longString":
-        if (typeof value === "string") {
-          result[key] = value;
-        } else if (
-          Array.isArray(value) &&
-          value.every((v) => typeof v === "string")
-        ) {
-          result[key] = value.join("\n");
-        } else {
-          return err(
-            `Expected property \`${key}\` to be a string or array of strings, but got ${JSON.stringify(
-              value,
-            )}.`,
-          );
-        }
-        break;
-      case "boolean":
-        if (typeof value !== "boolean") {
-          return err(
-            `Expected property \`${key}\` to be a boolean, but got ${JSON.stringify(
-              value,
-            )}.`,
-          );
-        }
-        result[key] = value;
-        break;
-      default:
-        invariant(false, `Unknown property type ${(property as any).type}`);
-    }
-    if (property.experimental) {
-      console.warn(
-        `Grats: The \`${key}\` option is experimental and will be renamed or removed in a future release.`,
-      );
-    }
-  }
-  for (const key of Object.keys(config)) {
-    const removed = REMOVED_OPTIONS[key];
-    if (removed != null) {
-      return err(
-        `The Grats config option \`${key}\` has been removed. ${removed}`,
-      );
-    }
-    if (!(key in spec.properties)) {
-      return err(`Unknown Grats config option \`${key}\`.`);
-    }
-  }
-  return ok(result);
 }

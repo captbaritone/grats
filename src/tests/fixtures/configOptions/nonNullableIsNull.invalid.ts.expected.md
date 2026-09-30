@@ -16,5 +16,5 @@ export default class SomeType {
 ### Error Report
 
 ```text
-error: The Grats config option `tsSchema` must be a `string` if provided.
+error: Invalid Grats config: tsSchema: invalid type: null, expected a string
 ```

@@ -178,6 +178,8 @@ impl<'s, 'd, 'a> EnumCodegen<'s, 'd, 'a> {
 #[cfg(test)]
 mod tests {
     use graphql_js::language::ast::DocumentNode;
+
+    use crate::grats_config::validate_grats_options;
     use graphql_js::utilities::build_ast_schema::build_ast_schema;
     use serde_json::{Value, json};
 
@@ -196,14 +198,12 @@ mod tests {
         let doc: DocumentNode =
             serde_json::from_value(json!({ "definitions": definitions })).unwrap();
         let schema = build_ast_schema(&doc);
-        let config: GratsConfig = serde_json::from_value(json!({
-            "schemaHeader": null,
+        let config: GratsConfig = validate_grats_options(Some(&json!({
             "tsClientEnumsHeader": null,
             "importModuleSpecifierEnding": ".js",
-            "nullableByDefault": true,
-            "strictSemanticNullability": false,
-        }))
-        .unwrap();
+        })))
+        .unwrap()
+        .config;
         codegen_enums(&schema, &config, destination, "/root/grats")
     }
 

@@ -13,5 +13,5 @@
 ### Error Report
 
 ```text
-error: The Grats config option `importModuleSpecifierEnding` must be a `string` if provided.
+error: Invalid Grats config: importModuleSpecifierEnding: invalid type: null, expected a string
 ```

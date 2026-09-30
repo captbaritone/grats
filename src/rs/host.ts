@@ -2,7 +2,6 @@ import { Source } from "graphql";
 import * as fs from "fs";
 import * as path from "path";
 import * as ts from "typescript";
-import type { ParsedCommandLineGrats } from "../gratsConfig.js";
 import type { SourceTable } from "./codec.js";
 
 /**
@@ -16,6 +15,7 @@ export type HostRequest =
   | { kind: "stat"; path: string; followLinks: boolean }
   | { kind: "readLink"; path: string }
   | { kind: "realpath"; path: string }
+  | { kind: "readDir"; path: string }
   | { kind: "addSource"; name: string; body: string };
 
 /** A response to a `HostRequest`, as JSON. */
@@ -25,7 +25,7 @@ export type Host = (request: HostRequest) => unknown;
  * A path as Rust is given it: absolute, with `/` as its separator. On
  * Windows, `C:\project` is given as `/C:/project`.
  */
-function toRustPath(fileName: string): string {
+export function toRustPath(fileName: string): string {
   const slashed = path.resolve(fileName).replace(/\\/g, "/");
   return /^[A-Za-z]:/.test(slashed) ? `/${slashed}` : slashed;
 }
@@ -84,6 +84,31 @@ export function host(sources: SourceTable): Host {
         } catch {
           return null;
         }
+      case "readDir": {
+        const fileName = fromRustPath(request.path);
+        let entries: fs.Dirent[];
+        try {
+          entries = fs.readdirSync(fileName, { withFileTypes: true });
+        } catch {
+          return null;
+        }
+        const files: string[] = [];
+        const directories: string[] = [];
+        for (const entry of entries) {
+          let stats: fs.Stats | fs.Dirent | undefined = entry;
+          if (entry.isSymbolicLink()) {
+            stats = fs.statSync(path.join(fileName, entry.name), {
+              throwIfNoEntry: false,
+            });
+          }
+          if (stats?.isFile()) {
+            files.push(entry.name);
+          } else if (stats?.isDirectory()) {
+            directories.push(entry.name);
+          }
+        }
+        return { files: files.sort(), directories: directories.sort() };
+      }
       case "addSource":
         return sources.sourceId(new Source(request.body, request.name));
     }
@@ -91,50 +116,12 @@ export function host(sources: SourceTable): Host {
 }
 
 /**
- * The options which decide the files of the program, as TypeScript computes
- * them. See `ProgramOptions` in `grats-rs/crates/grats/src/program.rs`.
+ * What decides the files of the program. See `ProgramOptions` in
+ * `grats-rs/crates/grats/src/program.rs`.
  */
 export type RustProgramOptions = {
   rootNames: string[];
-  moduleResolution: number;
-  moduleDetection: number;
   allowJs: boolean;
-  customConditions: string[];
-  paths: Array<[string, string[]]> | null;
-  pathsBasePath: string | null;
-  baseUrl: string | null;
-  preserveSymlinks: boolean;
+  tsconfig: string | null;
   useCaseSensitiveFileNames: boolean;
 };
-
-// TypeScript's internal helpers for reading compiler options, which
-// `createProgram` uses.
-const tsInternal = ts as unknown as {
-  getEmitModuleResolutionKind(options: ts.CompilerOptions): number;
-  getEmitModuleDetectionKind(options: ts.CompilerOptions): number;
-  getAllowJSCompilerOption(options: ts.CompilerOptions): boolean;
-};
-
-export function rustProgramOptions(
-  parsed: ParsedCommandLineGrats,
-): RustProgramOptions {
-  const options = parsed.options;
-  const pathsBasePath =
-    options.paths == null
-      ? null
-      : (options.baseUrl ??
-        (options.pathsBasePath as string | undefined) ??
-        ts.sys.getCurrentDirectory());
-  return {
-    rootNames: parsed.fileNames.map(toRustPath),
-    moduleResolution: tsInternal.getEmitModuleResolutionKind(options),
-    moduleDetection: tsInternal.getEmitModuleDetectionKind(options),
-    allowJs: tsInternal.getAllowJSCompilerOption(options),
-    customConditions: options.customConditions ?? [],
-    paths: options.paths == null ? null : Object.entries(options.paths),
-    pathsBasePath: pathsBasePath == null ? null : toRustPath(pathsBasePath),
-    baseUrl: options.baseUrl == null ? null : toRustPath(options.baseUrl),
-    preserveSymlinks: !!options.preserveSymlinks,
-    useCaseSensitiveFileNames: ts.sys.useCaseSensitiveFileNames,
-  };
-}

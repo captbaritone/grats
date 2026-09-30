@@ -6,8 +6,10 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
+fast-glob = "1"
 graphql_js.workspace = true
 indexmap.workspace = true
+json-strip-comments = "3"
 oxc_allocator.workspace = true
 oxc_ast.workspace = true
 oxc_ast_visit.workspace = true
@@ -20,3 +22,4 @@ oxc_str.workspace = true
 oxc_syntax.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+serde_path_to_error = "0.1.20"

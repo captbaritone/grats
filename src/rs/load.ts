@@ -9,6 +9,8 @@ import type { Host, HostRequest } from "./host.js";
 /** Functions exported by `grats_wasm`. Each takes a string and returns one. */
 type EntryPoint =
   | "print_sdl_without_metadata"
+  | "load_project"
+  | "validate_grats_options"
   | "run_pipeline"
   | "print_outputs"
   | "locate";

@@ -11,11 +11,12 @@ import { readFileSync, writeFileSync } from "fs";
 import { diff } from "jest-diff";
 import * as prettier from "prettier";
 import * as semver from "semver";
+import { GratsConfig } from "../gratsConfig.js";
 import {
-  GratsConfig,
-  ParsedCommandLineGrats,
+  GratsProject,
+  projectFromFiles,
   validateGratsOptions,
-} from "../gratsConfig.js";
+} from "../rs/project.js";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives.js";
 import { printOutputs } from "../printSchema.js";
 import { extend, nullThrows } from "../utils/helpers.js";
@@ -69,7 +70,6 @@ program
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const gratsDir = path.join(__dirname, "../..");
 const fixturesDir = path.join(__dirname, "fixtures");
 const configFixturesDir = path.join(__dirname, "configParserFixtures");
 const integrationFixturesDir = path.join(__dirname, "integrationFixtures");
@@ -91,21 +91,14 @@ const testDirs: TestDir[] = [
       _fileName: string,
     ): Result<Markdown, Markdown> => {
       const config = JSON.parse(code);
-      let parsed: ParsedCommandLineGrats;
+      let parsed: GratsConfig;
       const warnings: string[] = [];
       const consoleWarn = console.warn;
       console.warn = (msg: string) => {
         warnings.push(msg);
       };
       try {
-        const parsedResult = validateGratsOptions({
-          options: {},
-          raw: {
-            grats: config,
-          },
-          errors: [],
-          fileNames: [],
-        });
+        const parsedResult = validateGratsOptions(config);
         if (parsedResult.kind === "ERROR") {
           return err(
             formatDiagnosticsWithContext(
@@ -123,7 +116,7 @@ const testDirs: TestDir[] = [
       const markdown = new Markdown();
 
       markdown.addHeader(3, "Parsed Config");
-      markdown.addCodeBlock(JSON.stringify(parsed.raw.grats, null, 2), "json");
+      markdown.addCodeBlock(JSON.stringify(parsed, null, 2), "json");
       if (warnings.length > 0) {
         markdown.addHeader(3, "Warnings");
         markdown.addCodeBlock(warnings.join("\n"), "text");
@@ -164,16 +157,9 @@ const testDirs: TestDir[] = [
         `${fixturesDir}/${fileName}`,
         path.join(__dirname, `../Types.ts`),
       ];
-      let parsedOptions: ParsedCommandLineGrats;
+      let project: GratsProject;
       try {
-        const parsedOptionsResult = validateGratsOptions({
-          options: {},
-          raw: {
-            grats: config,
-          },
-          errors: [],
-          fileNames: files,
-        });
+        const parsedOptionsResult = validateGratsOptions(config);
         if (parsedOptionsResult.kind === "ERROR") {
           return err(
             formatDiagnosticsWithContext(
@@ -182,12 +168,12 @@ const testDirs: TestDir[] = [
             ),
           );
         }
-        parsedOptions = parsedOptionsResult.value;
+        project = projectFromFiles(files, parsedOptionsResult.value);
       } catch (e: any) {
         return err(e.message);
       }
 
-      const schemaResult = buildSchemaAndDocResult(parsedOptions);
+      const schemaResult = buildSchemaAndDocResult(project);
       if (schemaResult.kind === "ERROR") {
         return err(
           formatDiagnosticsWithContext(
@@ -200,22 +186,18 @@ const testDirs: TestDir[] = [
       const { doc } = schemaResult.value;
 
       const fixturePath = `${fixturesDir}/${fileName}`;
-      const { tsClientEnums } = parsedOptions.raw.grats;
+      const { tsClientEnums } = project.config;
       // We print every output here, even for `// Locate:` fixtures, to ensure
       // that printing doesn't throw.
-      const outputs = printOutputs(
-        schemaResult.value,
-        parsedOptions.raw.grats,
-        {
-          graphqlSchema: true,
-          tsSchema: fixturePath,
-          tsClientEnums:
-            tsClientEnums == null
-              ? undefined
-              : path.join(path.dirname(fixturePath), tsClientEnums),
-          metadata: parsedOptions.raw.grats.EXPERIMENTAL__emitMetadata,
-        },
-      );
+      const outputs = printOutputs(schemaResult.value, project.config, {
+        graphqlSchema: true,
+        tsSchema: fixturePath,
+        tsClientEnums:
+          tsClientEnums == null
+            ? undefined
+            : path.join(path.dirname(fixturePath), tsClientEnums),
+        metadata: project.config.EXPERIMENTAL__emitMetadata,
+      });
 
       const LOCATION_REGEX = /^\/\/ Locate: (.*)/;
       const locationMatch = code.match(LOCATION_REGEX);
@@ -295,19 +277,7 @@ const testDirs: TestDir[] = [
       const schemaPath = path.join(path.dirname(filePath), "schema.ts");
 
       const files = [filePath, path.join(__dirname, `../Types.ts`)];
-      const parsedOptionsResult = validateGratsOptions({
-        options: {
-          // Required to enable ts-node to locate function exports
-          rootDir: gratsDir,
-          outDir: "dist",
-          configFilePath: "tsconfig.json",
-        },
-        raw: {
-          grats: config,
-        },
-        errors: [],
-        fileNames: files,
-      });
+      const parsedOptionsResult = validateGratsOptions(config);
       if (parsedOptionsResult.kind === "ERROR") {
         // We don't expect integration tests to error during config parsing
         // so we throw here instead of returning a Markdown result.
@@ -317,8 +287,8 @@ const testDirs: TestDir[] = [
           ).formatDiagnosticsWithContext(),
         );
       }
-      const parsedOptions = parsedOptionsResult.value;
-      const schemaResult = buildSchemaAndDocResult(parsedOptions);
+      const project = projectFromFiles(files, parsedOptionsResult.value);
+      const schemaResult = buildSchemaAndDocResult(project);
       if (schemaResult.kind === "ERROR") {
         // We don't expect integration tests to error GraphQL schema building
         // so we throw here instead of returning a Markdown result.
@@ -329,22 +299,18 @@ const testDirs: TestDir[] = [
         );
       }
 
-      const { tsClientEnums } = parsedOptions.raw.grats;
+      const { tsClientEnums } = project.config;
       // Generate enums file if tsClientEnums is configured
       const enumsPath =
         tsClientEnums == null
           ? undefined
           : path.join(path.dirname(filePath), tsClientEnums);
 
-      const outputs = printOutputs(
-        schemaResult.value,
-        parsedOptions.raw.grats,
-        {
-          graphqlSchema: true,
-          tsSchema: schemaPath,
-          tsClientEnums: enumsPath,
-        },
-      );
+      const outputs = printOutputs(schemaResult.value, project.config, {
+        graphqlSchema: true,
+        tsSchema: schemaPath,
+        tsClientEnums: enumsPath,
+      });
 
       writeFileSync(schemaPath, nullThrows(outputs.tsSchema));
       if (enumsPath != null) {

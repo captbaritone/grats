@@ -25,7 +25,7 @@ use std::sync::Arc;
 
 use graphql_js::language::ast::DocumentNode;
 use grats::host::JsonHost;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 thread_local! {
     static OUTPUT: RefCell<String> = const { RefCell::new(String::new()) };
@@ -127,6 +127,53 @@ unsafe fn call(ptr: *mut u8, len: usize, f: impl FnOnce(String) -> String) {
 /// ~20% faster than reserving just the input's size.
 fn reserve_heap(bytes: usize) {
     drop(std::hint::black_box(Vec::<u8>::with_capacity(bytes)));
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct LoadProjectRequest {
+    config_path: String,
+    use_case_sensitive_file_names: bool,
+}
+
+/// Input: a `LoadProjectRequest`, as JSON. Output: the `Project` (see
+/// `grats::project`) its `tsconfig.json` describes, or the diagnostics, as a
+/// JSON `Result` (see `src/utils/Result.ts`).
+///
+/// # Safety
+///
+/// See `call`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn load_project(ptr: *mut u8, len: usize) {
+    unsafe {
+        call(ptr, len, |input| {
+            let request: LoadProjectRequest =
+                serde_json::from_str(&input).expect("Input should be a LoadProjectRequest");
+            result_json(grats::project::load_project(
+                &request.config_path,
+                request.use_case_sensitive_file_names,
+                Arc::new(JsonHost::new(call_host)),
+            ))
+        })
+    }
+}
+
+/// Input: the `grats` key of a `tsconfig.json`, as JSON. Output: the
+/// `ValidatedConfig` (see `grats::grats_config`), or an error message, as a
+/// JSON `Result` (see `src/utils/Result.ts`).
+///
+/// # Safety
+///
+/// See `call`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn validate_grats_options(ptr: *mut u8, len: usize) {
+    unsafe {
+        call(ptr, len, |input| {
+            let options: serde_json::Value =
+                serde_json::from_str(&input).expect("Input should be JSON");
+            result_json(grats::grats_config::validate_grats_options(Some(&options)))
+        })
+    }
 }
 
 /// Input: a `PipelineRequest` (see `grats::pipeline`), as JSON. Output: the

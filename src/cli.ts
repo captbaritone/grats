@@ -5,7 +5,6 @@
 
 import * as E from "./Errors.js";
 import { Location } from "graphql";
-import { getParsedTsConfig } from "./index.js";
 import { SchemaAndDoc, buildSchemaAndDocResult } from "./lib.js";
 import { Command } from "commander";
 import { writeFileSync, readFileSync } from "fs";
@@ -21,7 +20,8 @@ import {
   ReportableDiagnostics,
   DiagnosticsWithoutLocationResult,
 } from "./utils/DiagnosticError.js";
-import { GratsConfig, ParsedCommandLineGrats } from "./gratsConfig.js";
+import { GratsConfig } from "./gratsConfig.js";
+import { GratsProject, loadProject } from "./rs/project.js";
 import { err, ok } from "./utils/Result.js";
 import { cacheFromProgram, cachesAreEqual, RunCache } from "./runCache.js";
 import { withFixesFixed, FixOptions, applyFixes } from "./fixFixable.js";
@@ -77,9 +77,9 @@ program
     "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",
   )
   .action((entity, { tsconfig }) => {
-    const { config } = handleDiagnostics(getTsConfig(tsconfig));
+    const { project } = handleDiagnostics(getTsConfig(tsconfig));
 
-    const { doc } = handleDiagnostics(buildSchemaAndDocResult(config));
+    const { doc } = handleDiagnostics(buildSchemaAndDocResult(project));
 
     const loc = locate(doc, entity);
     if (loc.kind === "ERROR") {
@@ -99,7 +99,7 @@ function startWatchMode(tsconfig: string, options: BuildOptions) {
     withFixesFixed(() => getTsConfig(tsconfig), options),
   );
   const { configPath } = configInfo;
-  let config = configInfo.config;
+  let project = configInfo.project;
   const watchHost = ts.createWatchCompilerHost(
     configPath,
     {},
@@ -127,7 +127,7 @@ function startWatchMode(tsconfig: string, options: BuildOptions) {
     if (lastRunCache != null) {
       const tsSchemaPath = resolve(
         dirname(configPath),
-        config.raw.grats.tsSchema,
+        project.config.tsSchema,
       );
       const ignorePaths = new Set([tsSchemaPath]);
       if (cachesAreEqual(lastRunCache, runCache, ignorePaths)) {
@@ -156,14 +156,14 @@ function startWatchMode(tsconfig: string, options: BuildOptions) {
       fixOrReport(configResult.err);
       return;
     }
-    config = configResult.value.config;
+    project = configResult.value.project;
     // For now we just rebuild the schema on every change.
-    const schemaResult = buildSchemaAndDocResult(config);
+    const schemaResult = buildSchemaAndDocResult(project);
     if (schemaResult.kind === "ERROR") {
       fixOrReport(schemaResult.err);
       return;
     }
-    writeSchemaFilesAndReport(schemaResult.value, config, configPath);
+    writeSchemaFilesAndReport(schemaResult.value, project, configPath);
   };
   reportDiagnostics([
     diagnosticsMessage("Starting compilation in watch mode..."),
@@ -175,13 +175,13 @@ function startWatchMode(tsconfig: string, options: BuildOptions) {
  * Run the compiler performing a single build.
  */
 function runBuild(tsconfig: string, options: BuildOptions) {
-  const { config, configPath } = handleDiagnostics(
+  const { project, configPath } = handleDiagnostics(
     withFixesFixed(() => getTsConfig(tsconfig), options),
   );
   const schemaAndDoc = handleDiagnostics(
-    withFixesFixed(() => buildSchemaAndDocResult(config), options),
+    withFixesFixed(() => buildSchemaAndDocResult(project), options),
   );
-  writeSchemaFilesAndReport(schemaAndDoc, config, configPath);
+  writeSchemaFilesAndReport(schemaAndDoc, project, configPath);
 }
 
 /**
@@ -189,10 +189,10 @@ function runBuild(tsconfig: string, options: BuildOptions) {
  */
 function writeSchemaFilesAndReport(
   schemaAndDoc: SchemaAndDoc,
-  config: ParsedCommandLineGrats,
+  project: GratsProject,
   configPath: string,
 ) {
-  const gratsConfig: GratsConfig = config.raw.grats;
+  const gratsConfig: GratsConfig = project.config;
 
   const dest = resolve(dirname(configPath), gratsConfig.tsSchema);
   const enumsDest =
@@ -213,7 +213,7 @@ function writeSchemaFilesAndReport(
   writeFileSync(absOutput, nullThrows(outputs.graphqlSchema));
   console.error(`Grats: Wrote schema to \`${absOutput}\`.`);
 
-  if (config.raw.grats.EXPERIMENTAL__emitMetadata) {
+  if (gratsConfig.EXPERIMENTAL__emitMetadata) {
     const absOutput = resolve(
       dirname(configPath),
       gratsConfig.graphqlSchema.replace(/\.graphql$/, ".json"),
@@ -255,18 +255,18 @@ function handleDiagnostics<T>(result: DiagnosticsWithoutLocationResult<T>): T {
 // Locate and read the tsconfig.json file
 function getTsConfig(tsconfig?: string): DiagnosticsWithoutLocationResult<{
   configPath: string;
-  config: ParsedCommandLineGrats;
+  project: GratsProject;
 }> {
   const cwd = process.cwd();
   const configPath = tsconfig || ts.findConfigFile(cwd, ts.sys.fileExists);
   if (configPath == null) {
     return err([locationlessErr(E.tsConfigNotFound(cwd))]);
   }
-  const optionsResult = getParsedTsConfig(configPath);
-  if (optionsResult.kind === "ERROR") {
-    return err(optionsResult.err);
+  const projectResult = loadProject(configPath);
+  if (projectResult.kind === "ERROR") {
+    return err(projectResult.err);
   }
-  return ok({ configPath, config: optionsResult.value });
+  return ok({ configPath, project: projectResult.value });
 }
 
 // Format a location for printing to the console. Tools like VS Code and iTerm
