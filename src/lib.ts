@@ -33,7 +33,6 @@ import { customSpecValidations } from "./validations/customSpecValidations.js";
 import { makeResolverSignature } from "./transforms/makeResolverSignature.js";
 import { addImplicitRootTypes } from "./transforms/addImplicitRootTypes.js";
 import { Metadata } from "./metadata.js";
-import { validateDirectiveArguments } from "./validations/validateDirectiveArguments.js";
 import { coerceDefaultEnumValues } from "./transforms/coerceDefaultEnumValues.js";
 import { validateSomeTypesAreDefined } from "./validations/validateSomeTypesAreDefined.js";
 import { validateDocument } from "./rs/document.js";
@@ -157,11 +156,6 @@ export function extractSchemaAndDoc(
           .andThen((schema) => specSchemaValidation(schema))
           // Provide a helpful getting started error if no types are detected.
           .andThen((schema) => validateSomeTypesAreDefined(schema))
-          // Ensure that any custom validations that are not part of the spec
-          // are also applied.
-          // The above spec validation fails to catch type errors in directive
-          // arguments, so Grats checks these manually.
-          .andThen((schema) => validateDirectiveArguments(schema, doc))
           // Run the validations that have been ported to Rust.
           .andThen((schema) =>
             new ResultPipe(validateDocument(doc, config, typesWithTypename))

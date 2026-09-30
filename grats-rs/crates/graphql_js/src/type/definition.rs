@@ -14,7 +14,10 @@ use std::ops::{Index, IndexMut};
 
 use indexmap::IndexMap;
 
+use crate::error::graphql_error::GraphQLError;
 use crate::js_value::Value;
+use crate::jsutils::did_you_mean::did_you_mean;
+use crate::jsutils::suggestion_list::suggestion_list;
 use crate::language::ast::{
     ConstValueNode, EnumTypeDefinitionNode, EnumTypeExtensionNode, EnumValueDefinitionNode,
     FieldDefinitionNode, InputObjectTypeDefinitionNode, InputObjectTypeExtensionNode,
@@ -22,6 +25,7 @@ use crate::language::ast::{
     ObjectTypeDefinitionNode, ObjectTypeExtensionNode, ScalarTypeDefinitionNode,
     ScalarTypeExtensionNode, UnionTypeDefinitionNode, UnionTypeExtensionNode,
 };
+use crate::language::printer::print_value;
 use crate::r#type::introspection::introspection_types;
 use crate::r#type::scalars::specified_scalar_types;
 
@@ -102,6 +106,11 @@ impl GraphQLType {
         }
     }
 
+    /// PORT: Takes the arena which holds the type's named type.
+    pub fn is_input_type(&self, arena: &TypeArena) -> bool {
+        arena[self.get_named_type()].is_input_type()
+    }
+
     /// PORT: graphql-js `inspect(type)`, which calls the type's `toString()`.
     pub fn inspect(&self, arena: &TypeArena) -> String {
         match self {
@@ -135,6 +144,23 @@ impl<'a> GraphQLNamedType<'a> {
         }
     }
 
+    /// PORT: `isInputType` for a named type.
+    pub fn is_input_type(&self) -> bool {
+        matches!(
+            self,
+            GraphQLNamedType::Scalar(_)
+                | GraphQLNamedType::Enum(_)
+                | GraphQLNamedType::InputObject(_)
+        )
+    }
+
+    pub fn is_leaf_type(&self) -> bool {
+        matches!(
+            self,
+            GraphQLNamedType::Scalar(_) | GraphQLNamedType::Enum(_)
+        )
+    }
+
     pub fn description(&self) -> Option<&'a str> {
         match self {
             GraphQLNamedType::Scalar(t) => t.description,
@@ -150,20 +176,19 @@ impl<'a> GraphQLNamedType<'a> {
 /// Scalar Type Definition
 ///
 /// PORT: Only `parseLiteral` is modeled, since Grats never executes queries.
-/// It returns `None` where graphql-js throws, since its only caller,
-/// `valueFromAST`, discards the error.
+/// It returns an error where graphql-js throws one.
 #[derive(Debug, Clone)]
 pub struct GraphQLScalarType<'a> {
     pub name: &'a str,
     pub description: Option<&'a str>,
     pub specified_by_url: Option<String>,
-    pub(crate) parse_literal: fn(&ConstValueNode) -> Option<Value>,
+    pub(crate) parse_literal: fn(&ConstValueNode) -> Result<Value, GraphQLError>,
     pub ast_node: Option<&'a ScalarTypeDefinitionNode>,
     pub extension_ast_nodes: Vec<&'a ScalarTypeExtensionNode>,
 }
 
 impl GraphQLScalarType<'_> {
-    pub fn parse_literal(&self, value_node: &ConstValueNode) -> Option<Value> {
+    pub fn parse_literal(&self, value_node: &ConstValueNode) -> Result<Value, GraphQLError> {
         (self.parse_literal)(value_node)
     }
 }
@@ -272,14 +297,41 @@ impl<'a> GraphQLEnumType<'a> {
         self.values.iter().find(|value| value.name == name)
     }
 
-    /// PORT: Returns `None` where graphql-js throws (see `GraphQLScalarType`).
-    pub fn parse_literal(&self, value_node: &ConstValueNode) -> Option<Value> {
-        let ConstValueNode::EnumValue(value_node) = value_node else {
-            return None;
+    /// PORT: Returns an error where graphql-js throws one.
+    pub fn parse_literal(&self, value_node: &ConstValueNode) -> Result<Value, GraphQLError> {
+        // Note: variables will be resolved to a value before calling this function.
+        let ConstValueNode::EnumValue(enum_value_node) = value_node else {
+            let value_str = print_value(value_node);
+            return Err(GraphQLError::new(
+                format!(
+                    "Enum \"{}\" cannot represent non-enum value: {value_str}.{}",
+                    self.name,
+                    did_you_mean_enum_value(self, &value_str)
+                ),
+                vec![value_node.loc()],
+            ));
         };
-        let enum_value = self.get_value(&value_node.value)?;
-        Some(Value::String(enum_value.name.to_string()))
+
+        let Some(enum_value) = self.get_value(&enum_value_node.value) else {
+            let value_str = print_value(value_node);
+            return Err(GraphQLError::new(
+                format!(
+                    "Value \"{value_str}\" does not exist in \"{}\" enum.{}",
+                    self.name,
+                    did_you_mean_enum_value(self, &value_str)
+                ),
+                vec![value_node.loc()],
+            ));
+        };
+
+        Ok(Value::String(enum_value.name.to_string()))
     }
+}
+
+fn did_you_mean_enum_value(enum_type: &GraphQLEnumType, unknown_value_str: &str) -> String {
+    let all_names = enum_type.get_values().iter().map(|value| value.name);
+    let suggested_values = suggestion_list(unknown_value_str, all_names);
+    did_you_mean(Some("the enum value"), &suggested_values)
 }
 
 /// PORT: graphql-js builds enum values from an object map, `valueMap`, keyed by

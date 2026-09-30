@@ -2,8 +2,10 @@
 //!
 //! PORT: Only `parseLiteral` is ported (see `GraphQLScalarType`).
 
+use crate::error::graphql_error::GraphQLError;
 use crate::js_value::{Value, parse_float, parse_int};
 use crate::language::ast::ConstValueNode;
+use crate::language::printer::print_value;
 use crate::r#type::definition::{GraphQLScalarType, TypeId};
 
 /// Maximum possible Int value as per GraphQL Spec (32-bit signed integer).
@@ -32,14 +34,26 @@ fn graphql_int() -> GraphQLScalarType<'static> {
         ),
         specified_by_url: None,
         parse_literal: |value_node| {
-            let ConstValueNode::IntValue(value_node) = value_node else {
-                return None;
+            let ConstValueNode::IntValue(int_value_node) = value_node else {
+                return Err(GraphQLError::new(
+                    format!(
+                        "Int cannot represent non-integer value: {}",
+                        print_value(value_node)
+                    ),
+                    vec![value_node.loc()],
+                ));
             };
-            let num = parse_int(&value_node.value);
+            let num = parse_int(&int_value_node.value);
             if num > GRAPHQL_MAX_INT || num < GRAPHQL_MIN_INT {
-                return None;
+                return Err(GraphQLError::new(
+                    format!(
+                        "Int cannot represent non 32-bit signed integer value: {}",
+                        int_value_node.value
+                    ),
+                    vec![value_node.loc()],
+                ));
             }
-            Some(Value::Number(num))
+            Ok(Value::Number(num))
         },
         ast_node: None,
         extension_ast_nodes: Vec::new(),
@@ -55,12 +69,18 @@ fn graphql_float() -> GraphQLScalarType<'static> {
         specified_by_url: None,
         parse_literal: |value_node| match value_node {
             ConstValueNode::FloatValue(value_node) => {
-                Some(Value::Number(parse_float(&value_node.value)))
+                Ok(Value::Number(parse_float(&value_node.value)))
             }
             ConstValueNode::IntValue(value_node) => {
-                Some(Value::Number(parse_float(&value_node.value)))
+                Ok(Value::Number(parse_float(&value_node.value)))
             }
-            _ => None,
+            _ => Err(GraphQLError::new(
+                format!(
+                    "Float cannot represent non numeric value: {}",
+                    print_value(value_node)
+                ),
+                vec![value_node.loc()],
+            )),
         },
         ast_node: None,
         extension_ast_nodes: Vec::new(),
@@ -75,10 +95,14 @@ fn graphql_string() -> GraphQLScalarType<'static> {
         ),
         specified_by_url: None,
         parse_literal: |value_node| match value_node {
-            ConstValueNode::StringValue(value_node) => {
-                Some(Value::String(value_node.value.clone()))
-            }
-            _ => None,
+            ConstValueNode::StringValue(value_node) => Ok(Value::String(value_node.value.clone())),
+            _ => Err(GraphQLError::new(
+                format!(
+                    "String cannot represent a non string value: {}",
+                    print_value(value_node)
+                ),
+                vec![value_node.loc()],
+            )),
         },
         ast_node: None,
         extension_ast_nodes: Vec::new(),
@@ -91,8 +115,14 @@ fn graphql_boolean() -> GraphQLScalarType<'static> {
         description: Some("The `Boolean` scalar type represents `true` or `false`."),
         specified_by_url: None,
         parse_literal: |value_node| match value_node {
-            ConstValueNode::BooleanValue(value_node) => Some(Value::Boolean(value_node.value)),
-            _ => None,
+            ConstValueNode::BooleanValue(value_node) => Ok(Value::Boolean(value_node.value)),
+            _ => Err(GraphQLError::new(
+                format!(
+                    "Boolean cannot represent a non boolean value: {}",
+                    print_value(value_node)
+                ),
+                vec![value_node.loc()],
+            )),
         },
         ast_node: None,
         extension_ast_nodes: Vec::new(),
@@ -107,11 +137,13 @@ fn graphql_id() -> GraphQLScalarType<'static> {
         ),
         specified_by_url: None,
         parse_literal: |value_node| match value_node {
-            ConstValueNode::StringValue(value_node) => {
-                Some(Value::String(value_node.value.clone()))
-            }
-            ConstValueNode::IntValue(value_node) => Some(Value::String(value_node.value.clone())),
-            _ => None,
+            ConstValueNode::StringValue(value_node) => Ok(Value::String(value_node.value.clone())),
+            ConstValueNode::IntValue(value_node) => Ok(Value::String(value_node.value.clone())),
+            _ => Err(GraphQLError::new(
+                "ID cannot represent a non-string and non-integer value: ".to_string()
+                    + &print_value(value_node),
+                vec![value_node.loc()],
+            )),
         },
         ast_node: None,
         extension_ast_nodes: Vec::new(),

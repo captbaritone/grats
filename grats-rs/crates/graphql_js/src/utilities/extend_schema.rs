@@ -505,7 +505,7 @@ impl<'a> Builder<'a> {
                     description: ast_node.description.as_ref().map(|d| d.value.as_str()),
                     specified_by_url: self.get_specified_by_url(&ast_node.directives),
                     // graphql-js's default `parseLiteral` for custom scalars.
-                    parse_literal: |value_node| Some(value_from_ast_untyped(value_node)),
+                    parse_literal: |value_node| Ok(value_from_ast_untyped(value_node)),
                     ast_node: Some(ast_node),
                     extension_ast_nodes: extensions_of_kind!(ScalarTypeExtension),
                 })

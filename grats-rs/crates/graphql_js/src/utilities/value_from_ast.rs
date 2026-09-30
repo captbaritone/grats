@@ -112,8 +112,8 @@ pub fn value_from_ast(
         // Scalars and Enums fulfill parsing a literal value via parseLiteral().
         // Invalid values represent a failure to parse correctly, in which case
         // no value is returned.
-        GraphQLNamedType::Scalar(r#type) => r#type.parse_literal(value_node),
-        GraphQLNamedType::Enum(r#type) => r#type.parse_literal(value_node),
+        GraphQLNamedType::Scalar(r#type) => r#type.parse_literal(value_node).ok(),
+        GraphQLNamedType::Enum(r#type) => r#type.parse_literal(value_node).ok(),
         // Not reachable, all possible input types have been considered.
         GraphQLNamedType::Object(_)
         | GraphQLNamedType::Interface(_)

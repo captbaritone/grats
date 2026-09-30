@@ -111,6 +111,22 @@ pub enum ConstValueNode {
     ObjectValue(ConstObjectValueNode),
 }
 
+impl ConstValueNode {
+    /// PORT: `valueNode.loc`, which every variant has.
+    pub fn loc(&self) -> Option<Location> {
+        match self {
+            ConstValueNode::IntValue(v) => v.loc,
+            ConstValueNode::FloatValue(v) => v.loc,
+            ConstValueNode::StringValue(v) => v.loc,
+            ConstValueNode::BooleanValue(v) => v.loc,
+            ConstValueNode::NullValue(v) => v.loc,
+            ConstValueNode::EnumValue(v) => v.loc,
+            ConstValueNode::ListValue(v) => v.loc,
+            ConstValueNode::ObjectValue(v) => v.loc,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct IntValueNode {
     pub loc: Option<Location>,

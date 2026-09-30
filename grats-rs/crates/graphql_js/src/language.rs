@@ -4,3 +4,4 @@ pub mod character_classes;
 pub mod directive_location;
 pub mod print_string;
 pub mod printer;
+pub mod visitor;
