@@ -3,6 +3,8 @@
 
 pub mod codegen;
 pub mod codegen_helpers;
+pub mod errors;
+pub mod extractor;
 pub mod grats_config;
 pub mod grats_root;
 pub mod locate;

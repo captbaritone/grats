@@ -35,10 +35,14 @@ let validated: {
 export function validateDocument(
   doc: DocumentNode,
   config: GratsConfig,
+  typesWithTypename: Set<string>,
 ): DiagnosticsWithoutLocationResult<DocumentNode> {
   validated = null;
   const sources = new SourceTable();
-  const request: RustValidateRequest = { config };
+  const request: RustValidateRequest = {
+    config,
+    typesWithTypename: Array.from(typesWithTypename),
+  };
   const result: Result<null, EncodedDiagnostic[]> = JSON.parse(
     callRust("validate", encodeDocumentRequest(doc, request, sources)),
   );

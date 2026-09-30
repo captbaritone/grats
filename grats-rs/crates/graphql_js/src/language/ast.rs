@@ -264,6 +264,10 @@ pub struct ObjectTypeDefinitionNode {
     pub interfaces: Option<Vec<NamedTypeNode>>,
     pub directives: Option<Vec<ConstDirectiveNode>>,
     pub fields: Option<Vec<FieldDefinitionNode>>,
+    /// Grats metadata: Indicates that the type was materialized as part of
+    /// generic type resolution.
+    #[serde(default)]
+    pub was_synthesized: bool,
     /// Grats metadata. PORT: Missing on types Grats synthesizes, where
     /// TypeScript reads it as `undefined`.
     #[serde(default)]

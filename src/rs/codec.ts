@@ -108,6 +108,7 @@ export function encodeDocument(
  */
 export type RustValidateRequest = {
   config: GratsConfig;
+  typesWithTypename: string[];
 };
 
 /**

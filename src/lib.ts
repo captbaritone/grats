@@ -18,7 +18,6 @@ import { TypeContext } from "./TypeContext.js";
 import { CheckerNameResolver } from "./CheckerNameResolver.js";
 import { validateSDL } from "graphql/validation/validate.js";
 import { ParsedCommandLineGrats } from "./gratsConfig.js";
-import { validateTypenames } from "./validations/validateTypenames.js";
 import { extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram.js";
 import { validateMergedInterfaces } from "./validations/validateMergedInterfaces.js";
 import { addInterfaceFields } from "./transforms/addInterfaceFields.js";
@@ -163,12 +162,9 @@ export function extractSchemaAndDoc(
           // The above spec validation fails to catch type errors in directive
           // arguments, so Grats checks these manually.
           .andThen((schema) => validateDirectiveArguments(schema, doc))
-          // Ensure that every type which implements an interface or is a member of a
-          // union has a __typename field.
-          .andThen((schema) => validateTypenames(schema, typesWithTypename))
           // Run the validations that have been ported to Rust.
           .andThen((schema) =>
-            new ResultPipe(validateDocument(doc, config))
+            new ResultPipe(validateDocument(doc, config, typesWithTypename))
               .map(() => schema)
               .result(),
           )
