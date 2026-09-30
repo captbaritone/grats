@@ -51,7 +51,9 @@ fn print_argument(node: &ConstArgumentNode) -> String {
 
 // Value
 
-fn print_value(node: &ConstValueNode) -> String {
+/// PORT: graphql-js's `print` accepts any node. Values are printed on their own
+/// in error messages.
+pub fn print_value(node: &ConstValueNode) -> String {
     match node {
         ConstValueNode::IntValue(node) => node.value.clone(),
         ConstValueNode::FloatValue(node) => node.value.clone(),
