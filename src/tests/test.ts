@@ -6,20 +6,12 @@ import {
   buildSchemaAndDocResultWithHost,
 } from "../lib.js";
 import * as ts from "typescript";
-import {
-  buildASTSchema,
-  graphql,
-  GraphQLSchema,
-  print,
-  printSchema,
-  specifiedScalarTypes,
-} from "graphql";
+import { buildASTSchema, graphql, GraphQLSchema, printSchema } from "graphql";
 import { Command } from "commander";
 import { locate } from "../Locate.js";
 import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError.js";
 import { readFileSync, writeFileSync } from "fs";
 import { codegen } from "../codegen/schemaCodegen.js";
-import { printEnumsModule } from "../printSchema.js";
 import { diff } from "jest-diff";
 import * as prettier from "prettier";
 import * as semver from "semver";
@@ -29,7 +21,12 @@ import {
   validateGratsOptions,
 } from "../gratsConfig.js";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives.js";
-import { applySDLHeader, applyTypeScriptHeader } from "../printSchema.js";
+import {
+  applySDLHeader,
+  applyTypeScriptHeader,
+  printEnumsModule,
+  printSDLWithoutMetadata,
+} from "../printSchema.js";
 import { extend } from "../utils/helpers.js";
 import { Result, ok, err } from "../utils/Result.js";
 import { applyFixes } from "../fixFixable.js";
@@ -255,20 +252,9 @@ const testDirs: TestDir[] = [
           ),
         );
       } else {
-        const docSansDirectives = {
-          ...doc,
-          definitions: doc.definitions.filter((def) => {
-            if (def.kind === "ScalarTypeDefinition") {
-              return !specifiedScalarTypes.some(
-                (scalar) => scalar.name === def.name.value,
-              );
-            }
-            return true;
-          }),
-        };
         const sdl = applySDLHeader(
           parsedOptions.raw.grats,
-          print(docSansDirectives),
+          printSDLWithoutMetadata(doc),
         );
 
         const markdown = new Markdown();

@@ -4,6 +4,8 @@ dist/
 .vercel
 .claude
 performance.cpuprofile
+grats-rs/target/
+src/rs/wasm.generated.ts
 
 # Local Netlify folder
 .netlify

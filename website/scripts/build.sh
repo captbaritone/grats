@@ -6,6 +6,15 @@ set -e
 # Ensure we are in the website directory
 cd "$(dirname "$0")/.."
 
+# Building grats compiles grats-rs/ to WebAssembly, which needs the Rust
+# toolchain pinned in grats-rs/rust-toolchain.toml. Install rustup on Netlify
+# if its build image doesn't provide it.
+if [ -n "$NETLIFY" ] && ! command -v rustup > /dev/null; then
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none --profile minimal
+  . "$HOME/.cargo/env"
+fi
+(cd ../grats-rs && rustup toolchain install)
+
 # Build grats in the parent directory, using pnpm 
 cd ..
 pnpm run build

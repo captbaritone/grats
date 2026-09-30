@@ -27,6 +27,9 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
+      - name: Install Rust # Builds the Rust port of Grats (grats-rs/) to WebAssembly
+        working-directory: ./grats-rs
+        run: rustup toolchain install
       - name: Install dependencies
         run: pnpm install
       - name: Build
@@ -71,6 +74,9 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
+      - name: Install Rust # Builds the Rust port of Grats (grats-rs/) to WebAssembly
+        working-directory: ./grats-rs
+        run: rustup toolchain install
       - name: Install dependencies
         run: pnpm install
       - name: Install TypeScript ${{ matrix.typescript-version }}
@@ -99,11 +105,27 @@ jobs:
         run: pnpm install
       - name: Lint
         run: pnpm run lint
+  rust:
+    name: "Rust"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./grats-rs
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust
+        run: rustup toolchain install
+      - name: Format
+        run: cargo fmt --check
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Test
+        run: cargo test
   publish:
     name: Publish to NPM
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && github.repository == 'captbaritone/grats'
-    needs: [build, test, lint]
+    needs: [build, test, lint, rust]
     permissions:
       contents: read
       id-token: write
@@ -120,6 +142,9 @@ jobs:
           cache: "pnpm"
       - name: Ensure npm 11.5.1 or later for trusted publishing
         run: npm install -g npm@11.7.0
+      - name: Install Rust # Builds the Rust port of Grats (grats-rs/) to WebAssembly
+        working-directory: ./grats-rs
+        run: rustup toolchain install
       - name: Install dependencies
         run: pnpm install
       - name: Build

@@ -1,15 +1,11 @@
-import {
-  DocumentNode,
-  GraphQLSchema,
-  print,
-  specifiedScalarTypes,
-} from "graphql";
+import { DocumentNode, GraphQLSchema } from "graphql";
 import { GratsConfig } from "./gratsConfig.js";
 import { codegen } from "./codegen/schemaCodegen.js";
 import { Metadata } from "./metadata.js";
 import { resolverMapCodegen } from "./codegen/resolverMapCodegen.js";
 import { codegenEnums } from "./codegen/enumCodegen.js";
-import { mapDefinitions } from "./utils/visitor.js";
+import { encodeDocument, SourceTable } from "./rs/codec.js";
+import { callRust } from "./rs/load.js";
 
 /**
  * Prints code for a TypeScript module that exports a GraphQLSchema.
@@ -68,14 +64,10 @@ export function printEnumsModule(
 }
 
 export function printSDLWithoutMetadata(doc: DocumentNode): string {
-  const trimmed = mapDefinitions(doc, {
-    ScalarTypeDefinition(t) {
-      return specifiedScalarTypes.some((scalar) => scalar.name === t.name.value)
-        ? null
-        : t;
-    },
-  });
-  return print(trimmed);
+  return callRust(
+    "print_sdl_without_metadata",
+    encodeDocument(doc, new SourceTable()),
+  );
 }
 
 function formatHeader(header: string | null, code: string): string {

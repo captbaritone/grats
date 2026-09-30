@@ -19,3 +19,4 @@ website/src/workers/ts.worker.mjs
 *.expected.md
 llm-docs/
 grats-rs/
+src/rs/wasm.generated.ts
