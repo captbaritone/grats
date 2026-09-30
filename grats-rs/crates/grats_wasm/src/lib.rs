@@ -16,8 +16,31 @@
 
 use std::cell::RefCell;
 
+use graphql_js::language::ast::DocumentNode;
+use serde::{Deserialize, Serialize};
+
 thread_local! {
     static OUTPUT: RefCell<String> = const { RefCell::new(String::new()) };
+
+    /// The document from the last `validate` call, if it was valid. Every
+    /// caller prints the document (or locates an entity in it) after
+    /// validating it, so keeping it means that it only crosses once. It's
+    /// given up to the next call which uses it.
+    static VALIDATED_DOC: RefCell<Option<DocumentNode>> = const { RefCell::new(None) };
+}
+
+/// The input to an entry point which takes a document.
+#[derive(Deserialize)]
+struct DocumentRequest<T> {
+    /// The document, or `null` to use the one kept by `validate`.
+    doc: Option<DocumentNode>,
+    request: T,
+}
+
+fn take_validated_doc() -> DocumentNode {
+    VALIDATED_DOC
+        .with(|validated| validated.borrow_mut().take())
+        .expect("Expected a document kept by `validate`")
 }
 
 #[unsafe(no_mangle)]
@@ -98,9 +121,34 @@ pub unsafe extern "C" fn print_sdl_without_metadata(ptr: *mut u8, len: usize) {
     }
 }
 
-/// Input: an `OutputRequest` (see `grats::print_schema`) encoded by
-/// `encodeOutputRequest` in `src/rs/codec.ts`. Output: the printed `Outputs`,
-/// as JSON.
+/// Input: a `DocumentRequest<ValidateRequest>` (see `grats::pipeline`),
+/// encoded by `validateDocument` in `src/rs/document.ts`. Output: the
+/// diagnostics, as a JSON `Result` (see `src/utils/Result.ts`).
+///
+/// If the document is valid, it's kept for the next call which takes one.
+///
+/// # Safety
+///
+/// See `call`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn validate(ptr: *mut u8, len: usize) {
+    unsafe {
+        call(ptr, len, |input| {
+            let DocumentRequest { doc, request } = serde_json::from_str(&input)
+                .expect("Input should be an encoded DocumentRequest<ValidateRequest>");
+            drop(input);
+            let doc = doc.expect("validate should be given a document");
+            let result = grats::pipeline::validate(&doc, request);
+            let valid = result.is_ok();
+            VALIDATED_DOC.with(|validated| *validated.borrow_mut() = valid.then_some(doc));
+            result_json(result)
+        })
+    }
+}
+
+/// Input: a `DocumentRequest<OutputRequest>` (see `grats::print_schema`),
+/// encoded by `encodeDocumentRequest` in `src/rs/codec.ts`. Output: the
+/// printed `Outputs`, as JSON.
 ///
 /// # Safety
 ///
@@ -109,17 +157,18 @@ pub unsafe extern "C" fn print_sdl_without_metadata(ptr: *mut u8, len: usize) {
 pub unsafe extern "C" fn print_outputs(ptr: *mut u8, len: usize) {
     unsafe {
         call(ptr, len, |input| {
-            let request =
-                serde_json::from_str(&input).expect("Input should be an encoded OutputRequest");
+            let DocumentRequest { doc, request } = serde_json::from_str(&input)
+                .expect("Input should be an encoded DocumentRequest<OutputRequest>");
             drop(input);
-            let outputs = grats::print_schema::print_outputs(request);
+            let doc = doc.unwrap_or_else(take_validated_doc);
+            let outputs = grats::print_schema::print_outputs(doc, request);
             serde_json::to_string(&outputs).expect("Outputs should serialize")
         })
     }
 }
 
-/// Input: a `LocateRequest` (see `grats::locate`) encoded by
-/// `encodeLocateRequest` in `src/rs/codec.ts`. Output: the location, or an
+/// Input: a `DocumentRequest<LocateRequest>` (see `grats::locate`), encoded by
+/// `encodeDocumentRequest` in `src/rs/codec.ts`. Output: the location, or an
 /// error message, as a JSON `Result` (see `src/utils/Result.ts`).
 ///
 /// # Safety
@@ -129,14 +178,19 @@ pub unsafe extern "C" fn print_outputs(ptr: *mut u8, len: usize) {
 pub unsafe extern "C" fn locate(ptr: *mut u8, len: usize) {
     unsafe {
         call(ptr, len, |input| {
-            let request =
-                serde_json::from_str(&input).expect("Input should be an encoded LocateRequest");
+            let DocumentRequest { doc, request } = serde_json::from_str(&input)
+                .expect("Input should be an encoded DocumentRequest<LocateRequest>");
             drop(input);
-            let result = match grats::locate::locate_in_document(request) {
-                Ok(value) => serde_json::json!({ "kind": "OK", "value": value }),
-                Err(err) => serde_json::json!({ "kind": "ERROR", "err": err }),
-            };
-            result.to_string()
+            let doc = doc.unwrap_or_else(take_validated_doc);
+            result_json(grats::locate::locate_in_document(&doc, request))
         })
     }
+}
+
+fn result_json<T: Serialize, E: Serialize>(result: Result<T, E>) -> String {
+    let json = match result {
+        Ok(value) => serde_json::json!({ "kind": "OK", "value": value }),
+        Err(err) => serde_json::json!({ "kind": "ERROR", "err": err }),
+    };
+    json.to_string()
 }

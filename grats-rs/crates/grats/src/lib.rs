@@ -7,6 +7,8 @@ pub mod grats_config;
 pub mod grats_root;
 pub mod locate;
 pub mod metadata;
+pub mod pipeline;
 pub mod print_schema;
 pub mod public_directives;
 pub mod utils;
+pub mod validations;

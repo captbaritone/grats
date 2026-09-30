@@ -12,6 +12,7 @@ pub struct GratsConfig {
     pub ts_schema_header: Option<String>,
     pub ts_client_enums_header: Option<String>,
     pub import_module_specifier_ending: String,
+    pub strict_semantic_nullability: bool,
     #[serde(rename = "EXPERIMENTAL__emitResolverMap", default)]
     pub experimental_emit_resolver_map: bool,
 }

@@ -186,6 +186,17 @@ pub enum TypeNode {
     NonNullType(NonNullTypeNode),
 }
 
+impl TypeNode {
+    /// PORT: `typeNode.loc`, which every variant has.
+    pub fn loc(&self) -> Option<Location> {
+        match self {
+            TypeNode::NamedType(t) => t.loc,
+            TypeNode::ListType(t) => t.loc,
+            TypeNode::NonNullType(t) => t.loc,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct NamedTypeNode {
     pub loc: Option<Location>,

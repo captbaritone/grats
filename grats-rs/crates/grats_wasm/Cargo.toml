@@ -11,4 +11,5 @@ crate-type = ["cdylib"]
 [dependencies]
 graphql_js.workspace = true
 grats.workspace = true
+serde.workspace = true
 serde_json.workspace = true

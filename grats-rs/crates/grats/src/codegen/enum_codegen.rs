@@ -200,6 +200,7 @@ mod tests {
             "schemaHeader": null,
             "tsClientEnumsHeader": null,
             "importModuleSpecifierEnding": ".js",
+            "strictSemanticNullability": false,
         }))
         .unwrap();
         codegen_enums(&schema, &config, destination, "/root/grats")

@@ -28,7 +28,6 @@ import { applyDefaultNullability } from "./transforms/applyDefaultNullability.js
 import { mergeExtensions } from "./transforms/mergeExtensions.js";
 import { sortSchemaAst } from "./transforms/sortSchemaAst.js";
 import { validateDuplicateContextOrInfo } from "./validations/validateDuplicateContextOrInfo.js";
-import { validateSemanticNullability } from "./validations/validateSemanticNullability.js";
 import { resolveTypes } from "./transforms/resolveTypes.js";
 import { resolveResolverParams } from "./transforms/resolveResolverParams.js";
 import { customSpecValidations } from "./validations/customSpecValidations.js";
@@ -38,6 +37,7 @@ import { Metadata } from "./metadata.js";
 import { validateDirectiveArguments } from "./validations/validateDirectiveArguments.js";
 import { coerceDefaultEnumValues } from "./transforms/coerceDefaultEnumValues.js";
 import { validateSomeTypesAreDefined } from "./validations/validateSomeTypesAreDefined.js";
+import { validateDocument } from "./rs/document.js";
 
 export type { GratsConfig } from "./gratsConfig.js";
 
@@ -166,9 +166,12 @@ export function extractSchemaAndDoc(
           // Ensure that every type which implements an interface or is a member of a
           // union has a __typename field.
           .andThen((schema) => validateTypenames(schema, typesWithTypename))
-          // Validate that semantic nullability directives are not in conflict
-          // with type nullability.
-          .andThen((schema) => validateSemanticNullability(schema, config))
+          // Run the validations that have been ported to Rust.
+          .andThen((schema) =>
+            new ResultPipe(validateDocument(doc, config))
+              .map(() => schema)
+              .result(),
+          )
           // Combine the schema, document and resolver metadata into a single
           // result.
           .map((schema) => ({ schema, doc, resolvers }))

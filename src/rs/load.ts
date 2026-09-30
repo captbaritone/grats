@@ -6,7 +6,11 @@ import { wasmBase64 } from "./wasm.generated.js";
  */
 
 /** Functions exported by `grats_wasm`. Each takes a string and returns one. */
-type EntryPoint = "print_sdl_without_metadata" | "print_outputs" | "locate";
+type EntryPoint =
+  | "print_sdl_without_metadata"
+  | "validate"
+  | "print_outputs"
+  | "locate";
 
 type Exports = {
   memory: WebAssembly.Memory;
@@ -36,6 +40,7 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
 let instance: Exports | null = null;
+let instanceCount = 0;
 
 // The module is compiled synchronously, since Grats' API is synchronous.
 // Browsers only allow this off the main thread, which is where the playground
@@ -46,8 +51,17 @@ function getInstance(): Exports {
     const exports = new WebAssembly.Instance(module, {}).exports;
     instance = exports as unknown as Exports;
     instance.init();
+    instanceCount++;
   }
   return instance;
+}
+
+/**
+ * Identifies the current instance. State that Rust keeps between calls is lost
+ * when the instance is replaced.
+ */
+export function instanceId(): number {
+  return instanceCount;
 }
 
 export function callRust(entryPoint: EntryPoint, input: string): string {

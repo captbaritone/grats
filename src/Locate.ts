@@ -1,11 +1,7 @@
 import { DocumentNode, Location } from "graphql";
 import { Result, ok } from "./utils/Result.js";
-import {
-  EncodedLocation,
-  encodeLocateRequest,
-  SourceTable,
-} from "./rs/codec.js";
-import { callRust } from "./rs/load.js";
+import { EncodedLocation } from "./rs/codec.js";
+import { callRustWithDocument } from "./rs/document.js";
 
 /**
  * Given an entity name of the format `ParentType` or `ParentType.fieldName`,
@@ -15,10 +11,10 @@ export function locate(
   doc: DocumentNode,
   entityName: string,
 ): Result<Location, string> {
-  const sources = new SourceTable();
-  const result: Result<EncodedLocation, string> = JSON.parse(
-    callRust("locate", encodeLocateRequest({ doc, entityName }, sources)),
-  );
+  const { output, sources } = callRustWithDocument("locate", doc, {
+    entityName,
+  });
+  const result: Result<EncodedLocation, string> = JSON.parse(output);
   if (result.kind === "ERROR") {
     return result;
   }

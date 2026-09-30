@@ -8,18 +8,17 @@ use serde::Deserialize;
 
 use crate::utils::helpers::null_throws;
 
-/// PORT: The input to `locate` from TypeScript, which has the document
-/// rather than a schema.
+/// PORT: The input to `locate` from TypeScript, besides the document.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LocateRequest {
-    pub doc: DocumentNode,
     pub entity_name: String,
 }
 
-/// PORT: Builds the schema to locate the entity in. See `LocateRequest`.
-pub fn locate_in_document(request: LocateRequest) -> Result<Location, String> {
-    let schema = build_ast_schema(&request.doc);
+/// PORT: TypeScript passes the document rather than a schema, so this builds
+/// the schema to locate the entity in.
+pub fn locate_in_document(doc: &DocumentNode, request: LocateRequest) -> Result<Location, String> {
+    let schema = build_ast_schema(doc);
     locate(&schema, &request.entity_name)
 }
 

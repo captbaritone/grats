@@ -8,12 +8,9 @@ import {
 import * as path from "path";
 import { GratsConfig } from "./gratsConfig.js";
 import { Metadata } from "./metadata.js";
-import {
-  encodeDocument,
-  encodeOutputRequest,
-  SourceTable,
-} from "./rs/codec.js";
+import { encodeDocument, SourceTable } from "./rs/codec.js";
 import { callRust } from "./rs/load.js";
+import { callRustWithDocument } from "./rs/document.js";
 import { resolveRelativePath } from "./gratsRoot.js";
 import type { SchemaAndDoc } from "./lib.js";
 
@@ -39,7 +36,8 @@ export type Outputs = {
  * header comment if provided.
  *
  * Everything Grats prints goes through here, so that the document crosses
- * into the Rust port of Grats once for all outputs.
+ * into the Rust port of Grats once for all outputs. (A document that was
+ * validated by `validateDocument` doesn't need to cross again.)
  */
 export function printOutputs(
   schemaAndDoc: SchemaAndDoc,
@@ -54,26 +52,20 @@ export function printOutputs(
   ) {
     return {};
   }
-  return JSON.parse(
-    callRust(
-      "print_outputs",
-      encodeOutputRequest({
-        doc,
-        resolvers,
-        config,
-        // Rust has no module location or working directory to resolve
-        // paths against, so it's given absolute paths.
-        gratsRoot: resolveRelativePath("."),
-        graphqlSchema: request.graphqlSchema ?? false,
-        tsSchema:
-          request.tsSchema == null ? null : path.resolve(request.tsSchema),
-        tsClientEnums:
-          request.tsClientEnums == null
-            ? null
-            : path.resolve(request.tsClientEnums),
-      }),
-    ),
-  );
+  const { output } = callRustWithDocument("print_outputs", doc, {
+    resolvers,
+    config,
+    // Rust has no module location or working directory to resolve paths
+    // against, so it's given absolute paths.
+    gratsRoot: resolveRelativePath("."),
+    graphqlSchema: request.graphqlSchema ?? false,
+    tsSchema: request.tsSchema == null ? null : path.resolve(request.tsSchema),
+    tsClientEnums:
+      request.tsClientEnums == null
+        ? null
+        : path.resolve(request.tsClientEnums),
+  });
+  return JSON.parse(output);
 }
 
 /**

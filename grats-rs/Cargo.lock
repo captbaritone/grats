@@ -141,6 +141,7 @@ version = "0.0.0"
 dependencies = [
  "graphql_js",
  "grats",
+ "serde",
  "serde_json",
 ]
 

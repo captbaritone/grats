@@ -14,12 +14,11 @@ use crate::grats_config::GratsConfig;
 use crate::metadata::Metadata;
 use crate::utils::visitor::map_definitions;
 
-/// PORT: The input to `printOutputs` from TypeScript: the document, config and
-/// the outputs to print.
+/// PORT: The input to `printOutputs` from TypeScript, besides the document:
+/// the config and the outputs to print.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputRequest {
-    pub doc: DocumentNode,
     pub resolvers: Metadata,
     pub config: GratsConfig,
     /// The absolute path of `src/gratsRoot.ts`'s root. See `src/grats_root.rs`.
@@ -46,9 +45,8 @@ pub struct Outputs {
 }
 
 /// Prints each requested output.
-pub fn print_outputs(request: OutputRequest) -> Outputs {
+pub fn print_outputs(doc: DocumentNode, request: OutputRequest) -> Outputs {
     let OutputRequest {
-        doc,
         resolvers,
         config,
         grats_root,

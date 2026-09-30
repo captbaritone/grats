@@ -2,6 +2,7 @@ import { DocumentNode, Location, Source, Token, TokenKind } from "graphql";
 import * as ts from "typescript";
 import type { GratsConfig } from "../gratsConfig.js";
 import type { Metadata } from "../metadata.js";
+import { gqlErr, gqlRelated } from "../utils/DiagnosticError.js";
 
 /**
  * Encodes values passed between TypeScript and the Rust port of Grats
@@ -102,11 +103,18 @@ export function encodeDocument(
 }
 
 /**
- * The input to the `print_outputs` entry point. See `OutputRequest` in
- * `grats-rs/crates/grats/src/print_schema.rs`.
+ * The input to the `validate` entry point, besides the document. See
+ * `ValidateRequest` in `grats-rs/crates/grats/src/pipeline.rs`.
+ */
+export type RustValidateRequest = {
+  config: GratsConfig;
+};
+
+/**
+ * The input to the `print_outputs` entry point, besides the document. See
+ * `OutputRequest` in `grats-rs/crates/grats/src/print_schema.rs`.
  */
 export type RustOutputRequest = {
-  doc: DocumentNode;
   resolvers: Metadata;
   config: GratsConfig;
   gratsRoot: string;
@@ -115,29 +123,65 @@ export type RustOutputRequest = {
   tsClientEnums: string | null;
 };
 
-export function encodeOutputRequest({
-  doc,
-  ...rest
-}: RustOutputRequest): string {
-  // Splice in the encoded document rather than encoding it again.
-  const json = JSON.stringify(rest);
-  return `{"doc":${encodeDocument(doc, new SourceTable())},${json.slice(1)}`;
-}
-
 /**
- * The input to the `locate` entry point. See `LocateRequest` in
- * `grats-rs/crates/grats/src/locate.rs`.
+ * The input to the `locate` entry point, besides the document. See
+ * `LocateRequest` in `grats-rs/crates/grats/src/locate.rs`.
  */
 export type RustLocateRequest = {
-  doc: DocumentNode;
   entityName: string;
 };
 
-export function encodeLocateRequest(
-  { doc, entityName }: RustLocateRequest,
+/**
+ * The requests of the entry points which take a document, or use the one kept
+ * by `validate`.
+ */
+export type RustDocumentRequests = {
+  print_outputs: RustOutputRequest;
+  locate: RustLocateRequest;
+};
+
+/**
+ * Encodes the input to an entry point which takes a document. A `null`
+ * document tells Rust to use the one kept by `validate`. See `DocumentRequest`
+ * in `grats-rs/crates/grats_wasm/src/lib.rs`.
+ */
+export function encodeDocumentRequest(
+  doc: DocumentNode | null,
+  request: object,
   sources: SourceTable,
 ): string {
-  return `{"doc":${encodeDocument(doc, sources)},"entityName":${JSON.stringify(entityName)}}`;
+  // Splice in the encoded document rather than encoding it again.
+  const encodedDoc = doc == null ? "null" : encodeDocument(doc, sources);
+  return `{"doc":${encodedDoc},"request":${JSON.stringify(request)}}`;
+}
+
+/**
+ * A diagnostic reported by Rust. See `Diagnostic` in
+ * `grats-rs/crates/grats/src/utils/diagnostic_error.rs`.
+ */
+export type EncodedDiagnostic = {
+  messageText: string;
+  loc: EncodedLocation;
+  relatedInformation: Array<{
+    messageText: string;
+    loc: EncodedLocation;
+  }> | null;
+};
+
+export function decodeDiagnostic(
+  diagnostic: EncodedDiagnostic,
+  sources: SourceTable,
+): ts.DiagnosticWithLocation {
+  return gqlErr(
+    { loc: sources.decodeLocation(diagnostic.loc) },
+    diagnostic.messageText,
+    diagnostic.relatedInformation?.map((related) =>
+      gqlRelated(
+        { loc: sources.decodeLocation(related.loc) },
+        related.messageText,
+      ),
+    ),
+  );
 }
 
 export function decodeDocument(
