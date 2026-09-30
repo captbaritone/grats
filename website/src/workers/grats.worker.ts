@@ -9,7 +9,7 @@ import {
   TypeScriptWorker,
   // @ts-ignore
 } from "./ts.worker.mjs";
-import { extractSchemaAndDoc, GratsConfig } from "grats";
+import { extractSchemaAndDoc, GratsConfig } from "../../../src/lib";
 import prettier from "prettier/standalone";
 import parserTypeScript from "prettier/parser-typescript";
 import { ReportableDiagnostics } from "../../../src/utils/DiagnosticError";

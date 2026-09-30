@@ -6,7 +6,7 @@ import {
   buildSchemaAndDocResultWithHost,
 } from "../lib.js";
 import * as ts from "typescript";
-import { buildASTSchema, graphql, GraphQLSchema, printSchema } from "graphql";
+import { buildSchema, graphql, GraphQLSchema, printSchema } from "graphql";
 import { Command } from "commander";
 import { locate } from "../Locate.js";
 import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError.js";
@@ -345,7 +345,6 @@ const testDirs: TestDir[] = [
         );
       }
 
-      const { doc } = schemaResult.value;
       const { tsClientEnums } = parsedOptions.raw.grats;
       // Generate enums file if tsClientEnums is configured
       const enumsPath =
@@ -357,6 +356,7 @@ const testDirs: TestDir[] = [
         schemaResult.value,
         parsedOptions.raw.grats,
         {
+          graphqlSchema: true,
           tsSchema: schemaPath,
           tsClientEnums: enumsPath,
         },
@@ -379,7 +379,10 @@ const testDirs: TestDir[] = [
 
       const actualSchema = schemaModule.getSchema(server.schemaConfig);
 
-      const schemaDiff = compareSchemas(actualSchema, buildASTSchema(doc));
+      const schemaDiff = compareSchemas(
+        actualSchema,
+        buildSchema(nullThrows(outputs.graphqlSchema)),
+      );
 
       if (schemaDiff) {
         console.log(schemaDiff);

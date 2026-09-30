@@ -106,10 +106,10 @@ export function encodeDocument(
 }
 
 /**
- * The input to the `validate` entry point, besides the document. See
- * `ValidateRequest` in `grats-rs/crates/grats/src/pipeline.rs`.
+ * The input to the `run_pipeline` entry point, besides the document. See
+ * `PipelineRequest` in `grats-rs/crates/grats/src/pipeline.rs`.
  */
-export type RustValidateRequest = {
+export type RustPipelineRequest = {
   config: GratsConfig;
   typesWithTypename: string[];
 };
@@ -136,26 +136,25 @@ export type RustLocateRequest = {
 };
 
 /**
- * The requests of the entry points which take a document, or use the one kept
- * by `validate`.
+ * The requests of the entry points which use the document kept by `run_pipeline`.
  */
 export type RustDocumentRequests = {
   print_outputs: RustOutputRequest;
+  print_sdl_without_metadata: null;
   locate: RustLocateRequest;
 };
 
 /**
- * Encodes the input to an entry point which takes a document. A `null`
- * document tells Rust to use the one kept by `validate`. See `DocumentRequest`
- * in `grats-rs/crates/grats_wasm/src/lib.rs`.
+ * Encodes the input to the `run_pipeline` entry point. See `DocumentRequest` in
+ * `grats-rs/crates/grats_wasm/src/lib.rs`.
  */
 export function encodeDocumentRequest(
-  doc: DocumentNode | null,
+  doc: DocumentNode,
   request: object,
   sources: SourceTable,
 ): string {
   // Splice in the encoded document rather than encoding it again.
-  const encodedDoc = doc == null ? "null" : encodeDocument(doc, sources);
+  const encodedDoc = encodeDocument(doc, sources);
   return `{"doc":${encodedDoc},"request":${JSON.stringify(request)}}`;
 }
 

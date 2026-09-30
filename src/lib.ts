@@ -13,18 +13,22 @@ import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces.js";
 import { validateAsyncIterable } from "./validations/validateAsyncIterable.js";
 import { applyDefaultNullability } from "./transforms/applyDefaultNullability.js";
 import { mergeExtensions } from "./transforms/mergeExtensions.js";
-import { sortSchemaAst } from "./transforms/sortSchemaAst.js";
 import { validateDuplicateContextOrInfo } from "./validations/validateDuplicateContextOrInfo.js";
 import { resolveTypes } from "./transforms/resolveTypes.js";
 import { resolveResolverParams } from "./transforms/resolveResolverParams.js";
 import { customSpecValidations } from "./validations/customSpecValidations.js";
 import { addImplicitRootTypes } from "./transforms/addImplicitRootTypes.js";
 import { coerceDefaultEnumValues } from "./transforms/coerceDefaultEnumValues.js";
-import { validateDocument } from "./rs/document.js";
+import { runRustPipeline } from "./rs/document.js";
 
 export type { GratsConfig } from "./gratsConfig.js";
 
 export type SchemaAndDoc = {
+  /**
+   * The document before the transforms which have been ported to Rust. It
+   * stands for the transformed document which Rust keeps (see
+   * `src/rs/document.ts`), so it's what is printed or located in.
+   */
   doc: DocumentNode;
 };
 
@@ -120,8 +124,6 @@ export function extractSchemaAndDoc(
         // Perform custom validations that reimplement spec validation rules
         // with more tailored error messages.
         .andThen((doc) => customSpecValidations(doc))
-        // Sort the definitions in the document to ensure a stable output.
-        .map((doc) => sortSchemaAst(doc))
         .result();
 
       if (docResult.kind === "ERROR") {
@@ -129,10 +131,11 @@ export function extractSchemaAndDoc(
       }
       const doc = docResult.value;
 
-      // Validate the document and the schema built from it with regards to
+      // Sort the definitions in the document to ensure a stable output, then
+      // validate the document and the schema built from it with regards to
       // the GraphQL spec, and run the other validations that have been ported
-      // to Rust.
-      return new ResultPipe(validateDocument(doc, config, typesWithTypename))
+      // to Rust. Rust keeps the resulting document for printing.
+      return new ResultPipe(runRustPipeline(doc, config, typesWithTypename))
         .map(() => ({ doc }))
         .result();
     })

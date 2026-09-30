@@ -1,7 +1,7 @@
 //! Port of the pipeline in `extractSchemaAndDoc` in `src/lib.ts`.
 //!
 //! PORT: Only the end of the pipeline has been ported. The TypeScript side runs
-//! the rest, then calls `validate` with the document. (A crate's `lib.rs` is
+//! the rest, then calls `run` with the document. (A crate's `lib.rs` is
 //! its root, so this module can't share the TypeScript file's name.)
 
 use std::collections::HashSet;
@@ -15,6 +15,7 @@ use graphql_js::validation::validate::validate_sdl;
 use serde::Deserialize;
 
 use crate::grats_config::GratsConfig;
+use crate::transforms::sort_schema_ast::sort_schema_ast;
 use crate::utils::diagnostic_error::{
     DiagnosticsWithoutLocationResult, graphql_error_to_diagnostic,
 };
@@ -23,23 +24,25 @@ use crate::validations::validate_semantic_nullability::validate_semantic_nullabi
 use crate::validations::validate_some_types_are_defined::validate_some_types_are_defined;
 use crate::validations::validate_typenames::validate_typenames;
 
-/// PORT: The input to `validate` from TypeScript, besides the document.
+/// PORT: The input to `run` from TypeScript, besides the document.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ValidateRequest {
+pub struct PipelineRequest {
     pub config: GratsConfig,
     /// `snapshot.typesWithTypename`.
     pub types_with_typename: HashSet<String>,
 }
 
-/// PORT: The validations which follow `sortSchemaAst` in `extractSchemaAndDoc`.
-/// After validating the document, they build their own schema from it.
-pub fn validate(
-    doc: &DocumentNode,
-    request: ValidateRequest,
-) -> DiagnosticsWithoutLocationResult<()> {
+/// PORT: The part of `extractSchemaAndDoc` which starts at `sortSchemaAst`.
+/// After validating the sorted document, it builds its own schema from it.
+/// Returns the sorted document.
+pub fn run(
+    doc: DocumentNode,
+    request: PipelineRequest,
+) -> DiagnosticsWithoutLocationResult<DocumentNode> {
     let config = &request.config;
-    spec_validate_sdl(doc)
+    let doc = sort_schema_ast(doc);
+    spec_validate_sdl(&doc)
         .map(build_ast_schema)
         // Apply the "Type Validation" sub-sections of the specification's
         // "Type System" section.
@@ -50,14 +53,14 @@ pub fn validate(
         // are also applied.
         // The above spec validation fails to catch type errors in directive
         // arguments, so Grats checks these manually.
-        .and_then(|schema| validate_directive_arguments(schema, doc))
+        .and_then(|schema| validate_directive_arguments(schema, &doc))
         // Ensure that every type which implements an interface or is a member of a
         // union has a __typename field.
         .and_then(|schema| validate_typenames(schema, &request.types_with_typename))
         // Validate that semantic nullability directives are not in conflict
         // with type nullability.
-        .and_then(|schema| validate_semantic_nullability(schema, config))
-        .map(|_schema| ())
+        .and_then(|schema| validate_semantic_nullability(schema, config))?;
+    Ok(doc)
 }
 
 fn spec_validate_sdl(doc: &DocumentNode) -> DiagnosticsWithoutLocationResult<&DocumentNode> {

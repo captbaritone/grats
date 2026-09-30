@@ -49,7 +49,7 @@ pub struct Outputs {
 }
 
 /// Prints each requested output.
-pub fn print_outputs(doc: DocumentNode, request: OutputRequest) -> Outputs {
+pub fn print_outputs(doc: &DocumentNode, request: OutputRequest) -> Outputs {
     let OutputRequest {
         config,
         grats_root,
@@ -61,15 +61,14 @@ pub fn print_outputs(doc: DocumentNode, request: OutputRequest) -> Outputs {
     let mut outputs = Outputs::default();
     // PORT: TypeScript made the resolver metadata alongside validating the
     // document, and passed it to each consumer.
-    let resolvers = make_resolver_signature(&doc);
+    let resolvers = make_resolver_signature(doc);
     if metadata {
         // Matches `JSON.stringify(resolvers, null, 2)`.
         outputs.metadata =
             Some(serde_json::to_string_pretty(&resolvers).expect("Metadata serializes to JSON"));
     }
-    // Printing the SDL consumes the document, so it goes last.
     if ts_schema.is_some() || ts_client_enums.is_some() {
-        let schema = build_ast_schema(&doc);
+        let schema = build_ast_schema(doc);
         if let Some(destination) = ts_schema {
             outputs.ts_schema = Some(print_executable_schema(
                 &schema,
@@ -124,7 +123,7 @@ pub fn apply_type_script_enum_header(config: &GratsConfig, code: &str) -> String
 
 /// Prints SDL, potentially omitting directives depending upon the config.
 /// Includes the user-defined (or default) header comment if provided.
-pub fn print_grats_sdl(doc: DocumentNode, config: &GratsConfig) -> String {
+pub fn print_grats_sdl(doc: &DocumentNode, config: &GratsConfig) -> String {
     let sdl = print_sdl_without_metadata(doc);
     apply_sdl_header(config, &sdl) + "\n"
 }
@@ -148,8 +147,10 @@ pub fn print_enums_module(
     apply_type_script_enum_header(config, &code)
 }
 
-pub fn print_sdl_without_metadata(doc: DocumentNode) -> String {
-    let trimmed = map_definitions(doc, |def| match def {
+/// PORT: Takes the document by reference, since the WebAssembly bindings keep it
+/// for later calls, so the definitions to print are copied.
+pub fn print_sdl_without_metadata(doc: &DocumentNode) -> String {
+    let trimmed = map_definitions(doc.clone(), |def| match def {
         DefinitionNode::ScalarTypeDefinition(t)
             if specified_scalar_types()
                 .iter()

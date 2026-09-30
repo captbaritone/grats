@@ -22,25 +22,27 @@ use serde::{Deserialize, Serialize};
 thread_local! {
     static OUTPUT: RefCell<String> = const { RefCell::new(String::new()) };
 
-    /// The document from the last `validate` call, if it was valid. Every
-    /// caller prints the document (or locates an entity in it) after
-    /// validating it, so keeping it means that it only crosses once. It's
-    /// given up to the next call which uses it.
-    static VALIDATED_DOC: RefCell<Option<DocumentNode>> = const { RefCell::new(None) };
+    /// The document from the last `run_pipeline` call, as transformed by it, if
+    /// it was valid. The other entry points print it (or locate an entity in
+    /// it), so the document only crosses once. It's kept until the next
+    /// `run_pipeline` call, since a caller may print it more than once.
+    static PIPELINE_DOC: RefCell<Option<DocumentNode>> = const { RefCell::new(None) };
 }
 
-/// The input to an entry point which takes a document.
+/// The input to `run_pipeline`.
 #[derive(Deserialize)]
 struct DocumentRequest<T> {
-    /// The document, or `null` to use the one kept by `validate`.
-    doc: Option<DocumentNode>,
+    doc: DocumentNode,
     request: T,
 }
 
-fn take_validated_doc() -> DocumentNode {
-    VALIDATED_DOC
-        .with(|validated| validated.borrow_mut().take())
-        .expect("Expected a document kept by `validate`")
+fn with_pipeline_doc<R>(f: impl FnOnce(&DocumentNode) -> R) -> R {
+    PIPELINE_DOC.with(|kept| {
+        let kept = kept.borrow();
+        f(kept
+            .as_ref()
+            .expect("Expected a document kept by `run_pipeline`"))
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -104,51 +106,33 @@ fn reserve_heap(bytes: usize) {
     drop(std::hint::black_box(Vec::<u8>::with_capacity(bytes)));
 }
 
-/// Input: a `DocumentNode` encoded by `encodeDocument` in `src/rs/codec.ts`.
-///
-/// # Safety
-///
-/// See `call`.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn print_sdl_without_metadata(ptr: *mut u8, len: usize) {
-    unsafe {
-        call(ptr, len, |input| {
-            let doc =
-                serde_json::from_str(&input).expect("Input should be an encoded DocumentNode");
-            drop(input);
-            grats::print_schema::print_sdl_without_metadata(doc)
-        })
-    }
-}
-
-/// Input: a `DocumentRequest<ValidateRequest>` (see `grats::pipeline`),
-/// encoded by `validateDocument` in `src/rs/document.ts`. Output: the
+/// Input: a `DocumentRequest<PipelineRequest>` (see `grats::pipeline`),
+/// encoded by `runRustPipeline` in `src/rs/document.ts`. Output: the
 /// diagnostics, as a JSON `Result` (see `src/utils/Result.ts`).
 ///
-/// If the document is valid, it's kept for the next call which takes one.
+/// If the document is valid, it's kept for the entry points which follow.
 ///
 /// # Safety
 ///
 /// See `call`.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn validate(ptr: *mut u8, len: usize) {
+pub unsafe extern "C" fn run_pipeline(ptr: *mut u8, len: usize) {
     unsafe {
         call(ptr, len, |input| {
+            PIPELINE_DOC.with(|kept| *kept.borrow_mut() = None);
             let DocumentRequest { doc, request } = serde_json::from_str(&input)
-                .expect("Input should be an encoded DocumentRequest<ValidateRequest>");
+                .expect("Input should be an encoded DocumentRequest<PipelineRequest>");
             drop(input);
-            let doc = doc.expect("validate should be given a document");
-            let result = grats::pipeline::validate(&doc, request);
-            let valid = result.is_ok();
-            VALIDATED_DOC.with(|validated| *validated.borrow_mut() = valid.then_some(doc));
+            let result = grats::pipeline::run(doc, request).map(|doc| {
+                PIPELINE_DOC.with(|kept| *kept.borrow_mut() = Some(doc));
+            });
             result_json(result)
         })
     }
 }
 
-/// Input: a `DocumentRequest<OutputRequest>` (see `grats::print_schema`),
-/// encoded by `encodeDocumentRequest` in `src/rs/codec.ts`. Output: the
-/// printed `Outputs`, as JSON.
+/// Input: an `OutputRequest` (see `grats::print_schema`), as JSON. Output:
+/// the printed `Outputs` for the document kept by `run_pipeline`, as JSON.
 ///
 /// # Safety
 ///
@@ -157,19 +141,31 @@ pub unsafe extern "C" fn validate(ptr: *mut u8, len: usize) {
 pub unsafe extern "C" fn print_outputs(ptr: *mut u8, len: usize) {
     unsafe {
         call(ptr, len, |input| {
-            let DocumentRequest { doc, request } = serde_json::from_str(&input)
-                .expect("Input should be an encoded DocumentRequest<OutputRequest>");
-            drop(input);
-            let doc = doc.unwrap_or_else(take_validated_doc);
-            let outputs = grats::print_schema::print_outputs(doc, request);
+            let request = serde_json::from_str(&input).expect("Input should be an OutputRequest");
+            let outputs = with_pipeline_doc(|doc| grats::print_schema::print_outputs(doc, request));
             serde_json::to_string(&outputs).expect("Outputs should serialize")
         })
     }
 }
 
-/// Input: a `DocumentRequest<LocateRequest>` (see `grats::locate`), encoded by
-/// `encodeDocumentRequest` in `src/rs/codec.ts`. Output: the location, or an
-/// error message, as a JSON `Result` (see `src/utils/Result.ts`).
+/// Input: `null`. Output: the SDL for the document kept by `run_pipeline`,
+/// without Grats' metadata.
+///
+/// # Safety
+///
+/// See `call`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn print_sdl_without_metadata(ptr: *mut u8, len: usize) {
+    unsafe {
+        call(ptr, len, |_input| {
+            with_pipeline_doc(grats::print_schema::print_sdl_without_metadata)
+        })
+    }
+}
+
+/// Input: a `LocateRequest` (see `grats::locate`), as JSON. Output: the
+/// location in the document kept by `run_pipeline`, or an error message, as a
+/// JSON `Result` (see `src/utils/Result.ts`).
 ///
 /// # Safety
 ///
@@ -178,11 +174,8 @@ pub unsafe extern "C" fn print_outputs(ptr: *mut u8, len: usize) {
 pub unsafe extern "C" fn locate(ptr: *mut u8, len: usize) {
     unsafe {
         call(ptr, len, |input| {
-            let DocumentRequest { doc, request } = serde_json::from_str(&input)
-                .expect("Input should be an encoded DocumentRequest<LocateRequest>");
-            drop(input);
-            let doc = doc.unwrap_or_else(take_validated_doc);
-            result_json(grats::locate::locate_in_document(&doc, request))
+            let request = serde_json::from_str(&input).expect("Input should be a LocateRequest");
+            with_pipeline_doc(|doc| result_json(grats::locate::locate_in_document(doc, request)))
         })
     }
 }

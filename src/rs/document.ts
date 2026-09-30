@@ -7,7 +7,7 @@ import {
   EncodedDiagnostic,
   encodeDocumentRequest,
   RustDocumentRequests,
-  RustValidateRequest,
+  RustPipelineRequest,
   SourceTable,
 } from "./codec.js";
 import { callRust, instanceId } from "./load.js";
@@ -15,66 +15,64 @@ import { callRust, instanceId } from "./load.js";
 /**
  * Calls the Rust entry points which take a document.
  *
- * Every caller validates a document and then prints it (or locates an entity
- * in it), so `validate` keeps a valid document for the next call which uses
- * it. That way the document is only encoded and sent to Rust once.
+ * Every caller runs the part of the pipeline which has been ported to Rust on
+ * a document, and then prints the result (or locates an entity in it). So if
+ * the document is valid, `run_pipeline` keeps the document it transformed for
+ * the calls which follow. That way the document is only encoded and sent to
+ * Rust once. The TypeScript document stands for the one Rust keeps.
  */
 
 // The document Rust is keeping, if any, and the sources its locations were
 // encoded against.
-let validated: {
+let kept: {
   doc: DocumentNode;
   sources: SourceTable;
   instance: number;
 } | null = null;
 
 /**
- * Runs the validations that have been ported to Rust. See `validate` in
- * `grats-rs/crates/grats/src/pipeline.rs`.
+ * Runs the part of the pipeline which has been ported to Rust: transforms and
+ * validations. See `run` in `grats-rs/crates/grats/src/pipeline.rs`.
  */
-export function validateDocument(
+export function runRustPipeline(
   doc: DocumentNode,
   config: GratsConfig,
   typesWithTypename: Set<string>,
 ): DiagnosticsWithoutLocationResult<DocumentNode> {
-  validated = null;
+  kept = null;
   const sources = new SourceTable();
-  const request: RustValidateRequest = {
+  const request: RustPipelineRequest = {
     config,
     typesWithTypename: Array.from(typesWithTypename),
   };
   const result: Result<null, EncodedDiagnostic[]> = JSON.parse(
-    callRust("validate", encodeDocumentRequest(doc, request, sources)),
+    callRust("run_pipeline", encodeDocumentRequest(doc, request, sources)),
   );
   if (result.kind === "ERROR") {
     return err(result.err.map((d) => decodeDiagnostic(d, sources)));
   }
-  validated = { doc, sources, instance: instanceId() };
+  kept = { doc, sources, instance: instanceId() };
   return ok(doc);
 }
 
 /**
- * Calls an entry point with a document. Returns its output along with the
- * sources to decode locations in the output with.
+ * Calls an entry point with the document Rust kept when `runRustPipeline`
+ * was given `doc`. Returns its output along with the sources to decode
+ * locations in the output with.
  */
 export function callRustWithDocument<E extends keyof RustDocumentRequests>(
   entryPoint: E,
   doc: DocumentNode,
   request: RustDocumentRequests[E],
 ): { output: string; sources: SourceTable } {
-  if (validated?.doc === doc && validated.instance === instanceId()) {
-    const { sources } = validated;
-    validated = null;
-    const output = callRust(
-      entryPoint,
-      encodeDocumentRequest(null, request, sources),
+  // Rust only keeps the document from the last `run_pipeline` call, and loses
+  // it if its instance is replaced.
+  if (kept?.doc !== doc || kept.instance !== instanceId()) {
+    throw new Error(
+      "Expected the document from the last call to `runRustPipeline`.",
     );
-    return { output, sources };
   }
-  const sources = new SourceTable();
-  const output = callRust(
-    entryPoint,
-    encodeDocumentRequest(doc, request, sources),
-  );
+  const { sources } = kept;
+  const output = callRust(entryPoint, JSON.stringify(request));
   return { output, sources };
 }

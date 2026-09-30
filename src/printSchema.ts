@@ -1,8 +1,6 @@
 import { DocumentNode } from "graphql";
 import * as path from "path";
 import { GratsConfig } from "./gratsConfig.js";
-import { encodeDocument, SourceTable } from "./rs/codec.js";
-import { callRust } from "./rs/load.js";
 import { callRustWithDocument } from "./rs/document.js";
 import { resolveRelativePath } from "./gratsRoot.js";
 import type { SchemaAndDoc } from "./lib.js";
@@ -31,9 +29,8 @@ export type Outputs = {
  * Prints the requested outputs, each including the user-defined (or default)
  * header comment if provided.
  *
- * Everything Grats prints goes through here, so that the document crosses
- * into the Rust port of Grats once for all outputs. (A document that was
- * validated by `validateDocument` doesn't need to cross again.)
+ * Rust prints them from the document it kept when `runRustPipeline` was
+ * given it, so the document only crosses into the Rust port of Grats once.
  */
 export function printOutputs(
   schemaAndDoc: SchemaAndDoc,
@@ -66,8 +63,5 @@ export function printOutputs(
 }
 
 export function printSDLWithoutMetadata(doc: DocumentNode): string {
-  return callRust(
-    "print_sdl_without_metadata",
-    encodeDocument(doc, new SourceTable()),
-  );
+  return callRustWithDocument("print_sdl_without_metadata", doc, null).output;
 }
