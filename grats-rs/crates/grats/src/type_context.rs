@@ -1,7 +1,6 @@
 //! Port of `src/TypeContext.ts`.
 
 use std::collections::HashMap;
-use std::rc::Rc;
 
 use graphql_js::language::ast::{Location, NameNode, ResolverArgument};
 use serde::Deserialize;
@@ -62,19 +61,19 @@ pub struct DerivedResolverDefinition {
 /// we model it as a dummy type reference in the GraphQL AST. Then, after we've
 /// parsed all the files, we traverse the GraphQL schema, resolving all the dummy
 /// type references.
-pub struct TypeContext {
-    resolver: Rc<dyn NameResolver>,
+pub struct TypeContext<'r> {
+    resolver: &'r dyn NameResolver,
 
     declaration_to_definition: HashMap<DeclLoc, DeclarationDefinition>,
     unresolved_nodes: HashMap<TsIdentifier, EntityNameRef>,
     id_to_declaration: HashMap<TsIdentifier, DeclRef>,
 }
 
-impl TypeContext {
+impl<'r> TypeContext<'r> {
     pub fn from_snapshot(
-        resolver: Rc<dyn NameResolver>,
+        resolver: &'r dyn NameResolver,
         snapshot: ExtractionSnapshot,
-    ) -> DiagnosticsResult<TypeContext> {
+    ) -> DiagnosticsResult<Self> {
         let mut errors: Vec<Diagnostic> = Vec::new();
         let mut self_ = TypeContext::new(resolver);
         self_.unresolved_nodes = snapshot.unresolved_names.into_iter().collect();
@@ -103,7 +102,7 @@ impl TypeContext {
             };
             if let Some(existing) = self_.declaration_to_definition.get(&declaration.decl_loc) {
                 errors.push(gql_err(
-                    declaration.loc,
+                    Some(declaration.loc),
                     "Multiple derived contexts defined for given type".to_string(),
                     Some(vec![
                         gql_related(definition.name.loc, "One was defined here"),
@@ -123,7 +122,7 @@ impl TypeContext {
         Ok(self_)
     }
 
-    fn new(resolver: Rc<dyn NameResolver>) -> Self {
+    fn new(resolver: &'r dyn NameResolver) -> Self {
         TypeContext {
             resolver,
             declaration_to_definition: HashMap::new(),
@@ -236,7 +235,7 @@ impl TypeContext {
             return Err(gql_err(
                 Some(name),
                 "Type parameter not valid".to_string(),
-                Some(vec![gql_related(declaration.loc, "Defined here")]),
+                Some(vec![gql_related(Some(declaration.loc), "Defined here")]),
             ));
         }
 

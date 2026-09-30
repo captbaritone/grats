@@ -11,12 +11,19 @@
 //!    buffer and stores its result as the output.
 //! 4. JS reads the output via `output_ptr()` and `output_len()`.
 //!
+//! While an entry point runs, Rust may call the host through the imported
+//! `grats.host_call(ptr, len, out_ptr)`, with a request as JSON (see
+//! `grats::host`). JS writes the response into a buffer from `alloc`, stores
+//! its address at `out_ptr` and returns its length. Rust takes ownership of
+//! the buffer.
+//!
 //! Panics abort, which traps. The panic hook first stores the panic message
 //! as the output so that JS can report it.
 
 use std::cell::RefCell;
 
 use graphql_js::language::ast::DocumentNode;
+use grats::host::JsonHost;
 use serde::{Deserialize, Serialize};
 
 thread_local! {
@@ -34,6 +41,28 @@ thread_local! {
 struct DocumentRequest<T> {
     doc: DocumentNode,
     request: T,
+}
+
+#[cfg(target_arch = "wasm32")]
+#[link(wasm_import_module = "grats")]
+unsafe extern "C" {
+    fn host_call(ptr: *const u8, len: usize, out_ptr: *mut *mut u8) -> usize;
+}
+
+/// Sends a request to the host and returns its response.
+#[cfg(target_arch = "wasm32")]
+fn call_host(request: String) -> String {
+    let mut out_ptr: *mut u8 = std::ptr::null_mut();
+    let len = unsafe { host_call(request.as_ptr(), request.len(), &mut out_ptr) };
+    let bytes = unsafe { Vec::from_raw_parts(out_ptr, len, len) };
+    String::from_utf8(bytes).expect("Host responses should be UTF-8")
+}
+
+/// There's only a host when the module is loaded by `src/rs/load.ts`. This
+/// lets the crate build for other targets, like `cargo test`.
+#[cfg(not(target_arch = "wasm32"))]
+fn call_host(_request: String) -> String {
+    unimplemented!("The host is only available in WebAssembly")
 }
 
 fn with_pipeline_doc<R>(f: impl FnOnce(&DocumentNode) -> R) -> R {
@@ -123,7 +152,7 @@ pub unsafe extern "C" fn run_pipeline(ptr: *mut u8, len: usize) {
             let DocumentRequest { doc, request } = serde_json::from_str(&input)
                 .expect("Input should be an encoded DocumentRequest<PipelineRequest>");
             drop(input);
-            let result = grats::pipeline::run(doc, request).map(|doc| {
+            let result = grats::pipeline::run(doc, request, &JsonHost::new(call_host)).map(|doc| {
                 PIPELINE_DOC.with(|kept| *kept.borrow_mut() = Some(doc));
             });
             result_json(result)

@@ -3,7 +3,6 @@ import { DiagnosticsWithoutLocationResult } from "./utils/DiagnosticError.js";
 import { ResultPipe } from "./utils/Result.js";
 import * as ts from "typescript";
 import { ExtractionSnapshot } from "./Extractor.js";
-import { CheckerNameResolver } from "./CheckerNameResolver.js";
 import { ParsedCommandLineGrats } from "./gratsConfig.js";
 import { extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram.js";
 import { runRustPipeline } from "./rs/document.js";
@@ -64,7 +63,6 @@ export function extractSchemaAndDoc(
     .map((snapshots) => combineSnapshots(snapshots))
     .andThen((snapshot) => {
       const config = options.raw.grats;
-      const resolver = new CheckerNameResolver(program);
 
       // Convert the definitions into a DocumentNode
       const doc: DocumentNode = {
@@ -78,7 +76,7 @@ export function extractSchemaAndDoc(
       // validations, which end by validating the document and the schema
       // built from it with regards to the GraphQL spec. Rust keeps the
       // resulting document for printing.
-      return new ResultPipe(runRustPipeline(doc, config, snapshot, resolver))
+      return new ResultPipe(runRustPipeline(doc, config, snapshot, program))
         .map(() => ({ doc }))
         .result();
     })

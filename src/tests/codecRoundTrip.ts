@@ -19,6 +19,10 @@ function assertSame(expected: unknown, actual: unknown, path: string): void {
   const fail = (reason: string) => {
     throw new Error(`Codec round trip: ${reason} at \`${path}\`.`);
   };
+  // Diagnostics decode to the objects which were encoded.
+  if (actual === expected) {
+    return;
+  }
   if (expected instanceof Location) {
     if (!(actual instanceof Location)) {
       return fail("expected a Location");

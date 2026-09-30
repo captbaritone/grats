@@ -1,4 +1,5 @@
 import { wasmBase64 } from "./wasm.generated.js";
+import type { Host, HostRequest } from "./host.js";
 
 /**
  * Calls into the Rust port of Grats, compiled to WebAssembly. See
@@ -42,13 +43,18 @@ const decoder = new TextDecoder();
 let instance: Exports | null = null;
 let instanceCount = 0;
 
+// The host of the entry point being called, if it was given one.
+let currentHost: Host | null = null;
+
 // The module is compiled synchronously, since Grats' API is synchronous.
 // Browsers only allow this off the main thread, which is where the playground
 // runs Grats.
 function getInstance(): Exports {
   if (instance == null) {
     const module = new WebAssembly.Module(decodeBase64(wasmBase64));
-    const exports = new WebAssembly.Instance(module, {}).exports;
+    const exports = new WebAssembly.Instance(module, {
+      grats: { host_call: hostCall },
+    }).exports;
     instance = exports as unknown as Exports;
     instance.init();
     instanceCount++;
@@ -64,8 +70,16 @@ export function instanceId(): number {
   return instanceCount;
 }
 
-export function callRust(entryPoint: EntryPoint, input: string): string {
+/**
+ * Calls an entry point. Rust may call `host` while the entry point runs.
+ */
+export function callRust(
+  entryPoint: EntryPoint,
+  input: string,
+  host: Host | null = null,
+): string {
   const wasm = getInstance();
+  currentHost = host;
   try {
     const bytes = encoder.encode(input);
     const ptr = wasm.alloc(bytes.length);
@@ -76,8 +90,30 @@ export function callRust(entryPoint: EntryPoint, input: string): string {
     instance = null;
     const message = readOutput(wasm) || String(e);
     throw new Error(`Grats internal error in \`${entryPoint}\`: ${message}`);
+  } finally {
+    currentHost = null;
   }
   return readOutput(wasm);
+}
+
+// Imported by the module as `grats.host_call`: answers a request from Rust
+// with a buffer allocated in its memory, whose address is stored at `outPtr`.
+function hostCall(ptr: number, len: number, outPtr: number): number {
+  const wasm = instance;
+  if (wasm == null || currentHost == null) {
+    throw new Error("Expected a host for the entry point being called.");
+  }
+  const request: HostRequest = JSON.parse(
+    decoder.decode(new Uint8Array(wasm.memory.buffer, ptr, len)),
+  );
+  const response = encoder.encode(JSON.stringify(currentHost(request)));
+  const responsePtr = wasm.alloc(response.length);
+  // Allocating may grow memory, which replaces its buffer.
+  new Uint8Array(wasm.memory.buffer, responsePtr, response.length).set(
+    response,
+  );
+  new DataView(wasm.memory.buffer).setUint32(outPtr, responsePtr, true);
+  return response.length;
 }
 
 function readOutput(wasm: Exports): string {

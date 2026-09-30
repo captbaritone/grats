@@ -1,7 +1,6 @@
 //! Port of `src/NameResolver.ts`.
 
 use graphql_js::language::ast::Location;
-use serde::Deserialize;
 
 use crate::snapshot_refs::{DeclLoc, DeclRef};
 
@@ -21,37 +20,28 @@ pub trait NameResolver {
     fn merged_declarations(&self, declaration: &DeclRef) -> Vec<MergedDeclaration>;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ResolvedDeclarationKind {
     TypeParameter,
     Declaration,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone)]
 pub struct ResolvedDeclaration {
     pub kind: ResolvedDeclarationKind,
     pub decl_loc: DeclLoc,
     /// The whole declaration, for diagnostics.
-    ///
-    /// PORT: Computed lazily in TypeScript, since it's only needed for
-    /// diagnostics. Diagnostics only read it for type parameters and for the
-    /// references of implicit name definitions, so the checker only answers
-    /// with it for those.
-    pub loc: Option<Location>,
+    pub loc: Location,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MergedDeclarationKind {
     Interface,
     Class,
     Other,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone)]
 pub struct MergedDeclaration {
     pub kind: MergedDeclarationKind,
     pub decl_loc: DeclLoc,

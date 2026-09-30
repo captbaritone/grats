@@ -75,11 +75,11 @@ struct TemplateExtractor<'a> {
     definitions: Vec<DefinitionNode>,
     defined_templates: HashSet<String>,
     errors: Vec<Diagnostic>,
-    ctx: &'a TypeContext,
+    ctx: &'a TypeContext<'a>,
 }
 
 impl<'a> TemplateExtractor<'a> {
-    fn new(ctx: &'a TypeContext) -> Self {
+    fn new(ctx: &'a TypeContext<'a>) -> Self {
         TemplateExtractor {
             templates: HashMap::new(),
             definitions: Vec::new(),

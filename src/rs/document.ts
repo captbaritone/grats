@@ -13,8 +13,8 @@ import {
 import { callRust, instanceId } from "./load.js";
 import { DIRECTIVES_AST } from "../publicDirectives.js";
 import type { ExtractionSnapshot } from "../Extractor.js";
-import type { NameResolver } from "../NameResolver.js";
-import { resolveNamesForRust } from "./nameResolution.js";
+import * as ts from "typescript";
+import { programHost } from "./host.js";
 
 /**
  * Calls the Rust entry points which take a document.
@@ -43,7 +43,7 @@ export function runRustPipeline(
   doc: DocumentNode,
   config: GratsConfig,
   snapshot: ExtractionSnapshot,
-  resolver: NameResolver,
+  program: ts.Program,
 ): DiagnosticsWithoutLocationResult<DocumentNode> {
   kept = null;
   const sources = new SourceTable();
@@ -56,11 +56,14 @@ export function runRustPipeline(
       typesWithTypename: Array.from(snapshot.typesWithTypename),
       interfaceDeclarations: snapshot.interfaceDeclarations,
     },
-    nameResolution: resolveNamesForRust(resolver, snapshot),
     directivesAst: DIRECTIVES_AST,
   };
   const result: Result<null, EncodedDiagnostic[]> = JSON.parse(
-    callRust("run_pipeline", encodeDocumentRequest(doc, request, sources)),
+    callRust(
+      "run_pipeline",
+      encodeDocumentRequest(doc, request, sources),
+      programHost(program, sources),
+    ),
   );
   if (result.kind === "ERROR") {
     return err(result.err.map((d) => decodeDiagnostic(d, sources)));

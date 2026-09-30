@@ -26,12 +26,12 @@ pub fn resolve_resolver_params(
 }
 
 struct ResolverParamsResolver<'a> {
-    ctx: &'a TypeContext,
+    ctx: &'a TypeContext<'a>,
     errors: Vec<Diagnostic>,
 }
 
 impl<'a> ResolverParamsResolver<'a> {
-    fn new(ctx: &'a TypeContext) -> Self {
+    fn new(ctx: &'a TypeContext<'a>) -> Self {
         ResolverParamsResolver {
             ctx,
             errors: Vec::new(),

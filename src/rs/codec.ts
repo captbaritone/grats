@@ -9,10 +9,6 @@ import {
 } from "../utils/DiagnosticError.js";
 import type { DeclarationDefinition, NameDefinition } from "../TypeContext.js";
 import type { DeclLoc, DeclRef, EntityNameRef } from "../snapshotRefs.js";
-import type {
-  MergedDeclaration,
-  ResolvedDeclaration,
-} from "../NameResolver.js";
 import type { TsIdentifier } from "../utils/helpers.js";
 
 /**
@@ -54,12 +50,19 @@ export class SourceTable {
   private _sources: Array<{ source: Source; lines: ts.SourceFileLike }> = [];
   private _idsByName: Map<string, number[]> = new Map();
   private _diagnostics: FixableDiagnosticWithLocation[] = [];
+  private _diagnosticIds: Map<FixableDiagnosticWithLocation, number> =
+    new Map();
 
   encodeDiagnostic(
     diagnostic: FixableDiagnosticWithLocation,
   ): EncodedTsDiagnostic {
-    this._diagnostics.push(diagnostic);
-    return { tsDiagnostic: this._diagnostics.length - 1 };
+    let id = this._diagnosticIds.get(diagnostic);
+    if (id == null) {
+      id = this._diagnostics.length;
+      this._diagnostics.push(diagnostic);
+      this._diagnosticIds.set(diagnostic, id);
+    }
+    return { tsDiagnostic: id };
   }
 
   decodeDiagnostic(
@@ -74,7 +77,7 @@ export class SourceTable {
 
   encodeLocation(loc: Location): EncodedLocation {
     return {
-      source: this._sourceId(loc.source),
+      source: this.sourceId(loc.source),
       start: loc.start,
       end: loc.end,
     };
@@ -97,7 +100,17 @@ export class SourceTable {
     return new Location(token(encoded.start), token(encoded.end), entry.source);
   }
 
-  private _sourceId(source: Source): number {
+  /** The source with id `id`. */
+  source(id: number): Source {
+    const entry = this._sources[id];
+    if (entry == null) {
+      throw new Error(`Unknown source id ${id}.`);
+    }
+    return entry.source;
+  }
+
+  /** The id of `source`, which is added to the table if it's not there. */
+  sourceId(source: Source): number {
     let ids = this._idsByName.get(source.name);
     if (ids == null) {
       ids = [];
@@ -158,8 +171,6 @@ export type RustPipelineRequest = {
   config: GratsConfig;
   /** The combined snapshot, besides its definitions. */
   snapshot: RustExtractionSnapshot;
-  /** Until name resolution is ported. */
-  nameResolution: RustNameResolution;
   /** Until Rust can parse GraphQL. */
   directivesAst: DocumentNode;
 };
@@ -177,29 +188,6 @@ export type RustExtractionSnapshot = {
   implicitNameDefinitions: Array<[DeclarationDefinition, EntityNameRef]>;
   typesWithTypename: string[];
   interfaceDeclarations: DeclRef[];
-};
-
-/**
- * The checker's answers, from `resolveNamesForRust` in
- * `src/rs/nameResolution.ts`. See `CheckerNameResolution` in
- * `grats-rs/crates/grats/src/checker_name_resolver.rs`.
- */
-export type RustNameResolution = {
-  /**
-   * For each entity name in the snapshot, and those in their type arguments.
-   */
-  resolvedEntityNames: Array<
-    [
-      Location,
-      Array<{
-        kind: ResolvedDeclaration["kind"];
-        declLoc: DeclLoc;
-        loc: Location | null;
-      }>,
-    ]
-  >;
-  /** For each of the snapshot's interface declarations. */
-  mergedDeclarations: Array<[DeclLoc, MergedDeclaration[]]>;
 };
 
 /**
@@ -294,8 +282,9 @@ export function decodeDocument(
   return doc;
 }
 
-// Replaces encoded locations in place. We walk the parsed value ourselves
-// since passing a reviver to `JSON.parse` is several times slower.
+// Replaces encoded locations and diagnostics in place. We walk the parsed
+// value ourselves since passing a reviver to `JSON.parse` is several times
+// slower.
 function decodeLocations(value: unknown, sources: SourceTable): void {
   if (typeof value !== "object" || value === null) {
     return;
@@ -313,6 +302,8 @@ function decodeLocations(value: unknown, sources: SourceTable): void {
       if (child != null) {
         object[key] = sources.decodeLocation(child as EncodedLocation);
       }
+    } else if (key === "err" && object.kind === "ERROR") {
+      object[key] = sources.decodeDiagnostic(child as EncodedTsDiagnostic);
     } else {
       decodeLocations(child, sources);
     }
