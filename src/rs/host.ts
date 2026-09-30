@@ -11,7 +11,8 @@ export type HostRequest =
   | { kind: "sourceFile"; source: number }
   | { kind: "readFile"; path: string }
   | { kind: "resolveModule"; from: string; specifier: string }
-  | { kind: "globalFiles"; name: string };
+  | { kind: "globalFiles"; name: string }
+  | { kind: "addSource"; name: string; body: string };
 
 /** A response to a `HostRequest`, as JSON. */
 export type Host = (request: HostRequest) => unknown;
@@ -48,6 +49,8 @@ export function programHost(program: ts.Program, sources: SourceTable): Host {
       case "globalFiles":
         globalFiles ??= indexGlobalFiles(program);
         return globalFiles.get(request.name) ?? [];
+      case "addSource":
+        return sources.sourceId(new Source(request.body, request.name));
     }
   };
 }

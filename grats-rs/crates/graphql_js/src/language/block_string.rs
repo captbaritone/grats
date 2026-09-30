@@ -1,9 +1,64 @@
 //! Port of graphql-js `language/blockString.ts`.
 //!
-//! PORT: Only `printBlockString` is ported, since Grats never parses GraphQL
-//! in Rust yet.
+//! PORT: `isPrintableAsBlockString` isn't ported, since Grats never calls it.
 
 use super::character_classes::is_white_space;
+
+/// Produces the value of a block string from its parsed raw value, similar to
+/// CoffeeScript's block string, Python's docstring trim or Ruby's strip_heredoc.
+///
+/// This implements the GraphQL spec's BlockStringValue() static algorithm.
+pub fn dedent_block_string_lines(lines: Vec<String>) -> Vec<String> {
+    let mut common_indent = usize::MAX;
+    let mut first_non_empty_line = None;
+    let mut last_non_empty_line = None;
+
+    for (i, line) in lines.iter().enumerate() {
+        let indent = leading_whitespace(line);
+
+        // PORT: Whitespace is ASCII, so the indent is the same in bytes as in
+        // UTF-16 code units.
+        if indent == line.len() {
+            continue; // skip empty lines
+        }
+
+        first_non_empty_line = first_non_empty_line.or(Some(i));
+        last_non_empty_line = Some(i);
+
+        if i != 0 && indent < common_indent {
+            common_indent = indent;
+        }
+    }
+
+    let (Some(first_non_empty_line), Some(last_non_empty_line)) =
+        (first_non_empty_line, last_non_empty_line)
+    else {
+        // PORT: `lines.slice(0, 0)`.
+        return Vec::new();
+    };
+
+    lines
+        .into_iter()
+        .enumerate()
+        // Remove common indentation from all lines but first.
+        .map(|(i, line)| {
+            if i == 0 {
+                line
+            } else {
+                line.get(common_indent..).unwrap_or_default().to_string()
+            }
+        })
+        // Remove leading and trailing blank lines.
+        .take(last_non_empty_line + 1)
+        .skip(first_non_empty_line)
+        .collect()
+}
+
+fn leading_whitespace(str: &str) -> usize {
+    str.bytes()
+        .take_while(|&code| is_white_space(Some(u16::from(code))))
+        .count()
+}
 
 /// Print a block string in the indented block form by adding a leading and
 /// trailing blank line. However, if a block string starts with whitespace and is

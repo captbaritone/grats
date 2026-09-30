@@ -171,8 +171,6 @@ export type RustPipelineRequest = {
   config: GratsConfig;
   /** The combined snapshot, besides its definitions. */
   snapshot: RustExtractionSnapshot;
-  /** Until Rust can parse GraphQL. */
-  directivesAst: DocumentNode;
 };
 
 /**

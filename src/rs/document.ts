@@ -11,7 +11,6 @@ import {
   SourceTable,
 } from "./codec.js";
 import { callRust, instanceId } from "./load.js";
-import { DIRECTIVES_AST } from "../publicDirectives.js";
 import type { ExtractionSnapshot } from "../Extractor.js";
 import * as ts from "typescript";
 import { programHost } from "./host.js";
@@ -56,7 +55,6 @@ export function runRustPipeline(
       typesWithTypename: Array.from(snapshot.typesWithTypename),
       interfaceDeclarations: snapshot.interfaceDeclarations,
     },
-    directivesAst: DIRECTIVES_AST,
   };
   const result: Result<null, EncodedDiagnostic[]> = JSON.parse(
     callRust(

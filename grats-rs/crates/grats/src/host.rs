@@ -23,6 +23,11 @@ pub trait Host {
     /// modules (including lib files), followed by modules with
     /// `declare global` blocks.
     fn global_files(&self, name: &str) -> Vec<String>;
+
+    /// The id of a GraphQL source in the `SourceTable`, which is added to the
+    /// table if it's not already there. Sources must be added before they're
+    /// parsed, so that locations in the parsed document can refer to them.
+    fn add_source(&self, name: &str, body: &str) -> u32;
 }
 
 #[derive(Debug, Deserialize)]
@@ -50,6 +55,7 @@ enum HostRequest<'r> {
     ReadFile { path: &'r str },
     ResolveModule { from: &'r str, specifier: &'r str },
     GlobalFiles { name: &'r str },
+    AddSource { name: &'r str, body: &'r str },
 }
 
 impl<F: Fn(String) -> String> JsonHost<F> {
@@ -79,5 +85,9 @@ impl<F: Fn(String) -> String> Host for JsonHost<F> {
 
     fn global_files(&self, name: &str) -> Vec<String> {
         self.request(HostRequest::GlobalFiles { name })
+    }
+
+    fn add_source(&self, name: &str, body: &str) -> u32 {
+        self.request(HostRequest::AddSource { name, body })
     }
 }

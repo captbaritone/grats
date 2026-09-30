@@ -26,3 +26,30 @@ pub const ENUM: &str = "ENUM";
 pub const ENUM_VALUE: &str = "ENUM_VALUE";
 pub const INPUT_OBJECT: &str = "INPUT_OBJECT";
 pub const INPUT_FIELD_DEFINITION: &str = "INPUT_FIELD_DEFINITION";
+
+/// PORT: Whether `value` is the name of a member of the graphql-js enum,
+/// `Object.prototype.hasOwnProperty.call(DirectiveLocation, value)`.
+pub fn is_directive_location(value: &str) -> bool {
+    matches!(
+        value,
+        QUERY
+            | MUTATION
+            | SUBSCRIPTION
+            | FIELD
+            | FRAGMENT_DEFINITION
+            | FRAGMENT_SPREAD
+            | INLINE_FRAGMENT
+            | VARIABLE_DEFINITION
+            | SCHEMA
+            | SCALAR
+            | OBJECT
+            | FIELD_DEFINITION
+            | ARGUMENT_DEFINITION
+            | INTERFACE
+            | UNION
+            | ENUM
+            | ENUM_VALUE
+            | INPUT_OBJECT
+            | INPUT_FIELD_DEFINITION
+    )
+}

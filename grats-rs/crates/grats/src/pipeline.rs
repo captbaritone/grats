@@ -46,10 +46,6 @@ pub struct PipelineRequest {
     pub config: GratsConfig,
     /// The combined snapshot, besides its definitions.
     pub snapshot: ExtractionSnapshot,
-    /// `DIRECTIVES_AST` from `src/publicDirectives.ts`. PORT: It's parsed from
-    /// GraphQL text, so it's parsed on the TypeScript side until Rust can parse
-    /// GraphQL.
-    pub directives_ast: DocumentNode,
 }
 
 /// PORT: The part of `extractSchemaAndDoc` which starts after
@@ -65,7 +61,6 @@ pub fn run(
     let PipelineRequest {
         config,
         mut snapshot,
-        directives_ast,
     } = request;
     let types_with_typename = std::mem::take(&mut snapshot.types_with_typename);
     let allocator = oxc_allocator::Allocator::default();
@@ -112,7 +107,7 @@ pub fn run(
         .and_then(validate_async_iterable)
         // Apply default nullability to fields and arguments, and detect any misuse of
         // `@killsParentOnException`.
-        .and_then(|doc| apply_default_nullability(doc, &config, directives_ast))
+        .and_then(|doc| apply_default_nullability(doc, &config, host))
         // Ensure we have Query/Mutation/Subscription types if they've been extended with
         // `@gqlQueryField` and friends.
         .map(add_implicit_root_types)

@@ -9,6 +9,8 @@
 
 use serde::{Deserialize, Serialize};
 
+use super::token_kind::TokenKind;
+
 /// PORT: graphql-js locations reference their `Source` and tokens. Here a
 /// location is an offset range into a source in the `SourceTable` held by the
 /// TypeScript side (see `EncodedLocation` in `src/rs/codec.ts`).
@@ -20,6 +22,47 @@ pub struct Location {
     pub start: u32,
     /// The character offset at which this Node ends.
     pub end: u32,
+}
+
+/// Represents a range of characters represented by a lexical token
+/// within a Source.
+///
+/// PORT: graphql-js links tokens into a list with `prev` and `next`. Here the
+/// `Lexer` keeps its tokens in a list.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Token {
+    /// The kind of Token.
+    pub kind: TokenKind,
+    /// The character offset at which this Node begins.
+    pub start: usize,
+    /// The character offset at which this Node ends.
+    pub end: usize,
+    /// The 1-indexed line number on which this Token appears.
+    pub line: usize,
+    /// The 1-indexed column number at which this Token begins.
+    pub column: usize,
+    /// For non-punctuation tokens, represents the interpreted value of the token.
+    pub value: Option<String>,
+}
+
+impl Token {
+    pub fn new(
+        kind: TokenKind,
+        start: usize,
+        end: usize,
+        line: usize,
+        column: usize,
+        value: Option<String>,
+    ) -> Self {
+        Token {
+            kind,
+            start,
+            end,
+            line,
+            column,
+            value,
+        }
+    }
 }
 
 // Grats metadata (see `src/GraphQLAstExtensions.ts`)

@@ -5,6 +5,7 @@ use graphql_js::language::ast::{DefinitionNode, DocumentNode, FieldDefinitionNod
 use crate::errors as E;
 use crate::graphql_constructor::nullable_type;
 use crate::grats_config::GratsConfig;
+use crate::host::Host;
 use crate::public_directives::{add_semantic_non_null_directive, make_semantic_non_null_directive};
 use crate::utils::diagnostic_error::{Diagnostic, DiagnosticsResult, gql_err};
 use crate::utils::helpers::null_throws;
@@ -14,12 +15,12 @@ use crate::utils::helpers::null_throws;
 ///
 /// PORT: TypeScript uses graphql-js's `visit` to replace fields. The Rust
 /// visitor can't edit the AST, so this edits in place, walking to every node
-/// that the TypeScript visitor has a function for. `directives_ast` is
+/// that the TypeScript visitor has a function for. `host` is used to parse
 /// `DIRECTIVES_AST` (see `add_semantic_non_null_directive`).
 pub fn apply_default_nullability(
     mut doc: DocumentNode,
     config: &GratsConfig,
-    directives_ast: DocumentNode,
+    host: &dyn Host,
 ) -> DiagnosticsResult<DocumentNode> {
     let mut errors: Vec<Diagnostic> = Vec::new();
     for definition in &mut doc.definitions {
@@ -38,7 +39,7 @@ pub fn apply_default_nullability(
         return Err(errors);
     }
     if config.strict_semantic_nullability {
-        doc.definitions = add_semantic_non_null_directive(directives_ast, doc.definitions);
+        doc.definitions = add_semantic_non_null_directive(host, doc.definitions);
         return Ok(doc);
     }
     Ok(doc)
