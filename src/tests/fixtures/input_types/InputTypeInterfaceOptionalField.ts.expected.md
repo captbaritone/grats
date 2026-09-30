@@ -27,16 +27,9 @@ export function getSchema(): GraphQLSchema {
   const MyInputTypeType: GraphQLInputObjectType = new GraphQLInputObjectType({
     name: "MyInputType",
     fields() {
-      return {
-        someField: {
-          name: "someField",
-          type: GraphQLString,
-        },
-      };
+      return { someField: { name: "someField", type: GraphQLString } };
     },
   });
-  return new GraphQLSchema({
-    types: [MyInputTypeType],
-  });
+  return new GraphQLSchema({ types: [MyInputTypeType] });
 }
 ```

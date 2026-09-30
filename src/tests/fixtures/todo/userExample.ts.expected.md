@@ -54,10 +54,7 @@ export function getSchema(): GraphQLSchema {
     name: "User",
     fields() {
       return {
-        firstName: {
-          name: "firstName",
-          type: GraphQLString,
-        },
+        firstName: { name: "firstName", type: GraphQLString },
         fullName: {
           name: "fullName",
           type: GraphQLString,
@@ -65,10 +62,7 @@ export function getSchema(): GraphQLSchema {
             return userFullNameResolver(source);
           },
         },
-        lastName: {
-          name: "lastName",
-          type: GraphQLString,
-        },
+        lastName: { name: "lastName", type: GraphQLString },
       };
     },
   });
@@ -86,8 +80,6 @@ export function getSchema(): GraphQLSchema {
       };
     },
   });
-  return new GraphQLSchema({
-    types: [SomeTypeType, UserType],
-  });
+  return new GraphQLSchema({ types: [SomeTypeType, UserType] });
 }
 ```

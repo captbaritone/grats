@@ -28,15 +28,13 @@ export function getSchema(): GraphQLSchema {
         name: "Query",
         description: "# Welcome to GenericCorp's GraphQL Schema!\n\nThis is root type of our system. Everything you need can be access from here.",
         fields() {
-            return {
-                greet: {
-                    name: "greet",
-                    type: GraphQLString,
-                    resolve() {
-                        return queryGreetResolver();
-                    }
+            return { greet: {
+                name: "greet",
+                type: GraphQLString,
+                resolve() {
+                    return queryGreetResolver();
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({

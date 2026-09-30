@@ -32,16 +32,9 @@ export function getSchema(): GraphQLSchema {
   const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
     name: "SomeType",
     fields() {
-      return {
-        ratio: {
-          name: "ratio",
-          type: GraphQLFloat,
-        },
-      };
+      return { ratio: { name: "ratio", type: GraphQLFloat } };
     },
   });
-  return new GraphQLSchema({
-    types: [SomeTypeType],
-  });
+  return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

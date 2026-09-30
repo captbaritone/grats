@@ -48,29 +48,16 @@ export function getSchema(): GraphQLSchema {
   const EnumType: GraphQLEnumType = new GraphQLEnumType({
     name: "Enum",
     values: {
-      INVALID: {
-        description: "Invalid enum value.",
-        value: "INVALID",
-      },
-      VALID: {
-        description: "Valid enum value.",
-        value: "VALID",
-      },
+      INVALID: { description: "Invalid enum value.", value: "INVALID" },
+      VALID: { description: "Valid enum value.", value: "VALID" },
     },
   });
   const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
     name: "SomeType",
     fields() {
-      return {
-        hello: {
-          name: "hello",
-          type: GraphQLString,
-        },
-      };
+      return { hello: { name: "hello", type: GraphQLString } };
     },
   });
-  return new GraphQLSchema({
-    types: [EnumType, SomeTypeType],
-  });
+  return new GraphQLSchema({ types: [EnumType, SomeTypeType] });
 }
 ```

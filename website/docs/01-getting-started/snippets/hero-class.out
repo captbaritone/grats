@@ -38,11 +38,7 @@ export function getSchema(): GraphQLSchema {
                 greeting: {
                     name: "greeting",
                     type: GraphQLString,
-                    args: {
-                        salutation: {
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    },
+                    args: { salutation: { type: new GraphQLNonNull(GraphQLString) } },
                     resolve(source, args) {
                         return source.greeting(args.salutation);
                     }
@@ -57,15 +53,13 @@ export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                me: {
-                    name: "me",
-                    type: UserType,
-                    resolve() {
-                        return queryMeResolver.me();
-                    }
+            return { me: {
+                name: "me",
+                type: UserType,
+                resolve() {
+                    return queryMeResolver.me();
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({

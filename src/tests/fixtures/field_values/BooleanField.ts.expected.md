@@ -31,15 +31,10 @@ export function getSchema(): GraphQLSchema {
     name: "SomeType",
     fields() {
       return {
-        haveBeenGreeted: {
-          name: "haveBeenGreeted",
-          type: GraphQLBoolean,
-        },
+        haveBeenGreeted: { name: "haveBeenGreeted", type: GraphQLBoolean },
       };
     },
   });
-  return new GraphQLSchema({
-    types: [SomeTypeType],
-  });
+  return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

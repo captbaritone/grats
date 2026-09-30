@@ -226,16 +226,17 @@ mod tests {
         );
         assert_eq!(
             code,
-            "import SizeEnum from \"./src/size.js\";\n\
-             import { Color as ColorEnum, Priority as PriorityEnum } from \"./src/index.js\";\n\
-             export const enums = {\n\
-             \tColor: ColorEnum,\n\
-             \tPriority: PriorityEnum,\n\
-             \tSize: SizeEnum\n\
-             };\n\
-             export { ColorEnum as Color };\n\
-             export { PriorityEnum as Priority };\n\
-             export { SizeEnum as Size };\n"
+            r#"import SizeEnum from "./src/size.js";
+import { Color as ColorEnum, Priority as PriorityEnum } from "./src/index.js";
+export const enums = {
+    Color: ColorEnum,
+    Priority: PriorityEnum,
+    Size: SizeEnum
+};
+export { ColorEnum as Color };
+export { PriorityEnum as Priority };
+export { SizeEnum as Size };
+"#
         );
     }
 

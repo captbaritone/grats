@@ -32,12 +32,10 @@ export function getSchema(): GraphQLSchema {
     const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IPerson",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: new GraphQLNonNull(GraphQLString)
-                }
-            };
+            return { name: {
+                name: "name",
+                type: new GraphQLNonNull(GraphQLString)
+            } };
         },
         resolveType
     });
@@ -90,29 +88,29 @@ export function getSchema(): GraphQLSchema {
     const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
         name: "Subscription",
         fields() {
-            return {
-                countdown: {
-                    name: "countdown",
-                    type: new GraphQLNonNull(GraphQLInt),
-                    args: {
-                        from: {
-                            type: new GraphQLNonNull(GraphQLInt)
-                        }
-                    },
-                    subscribe(_source, args) {
-                        return subscriptionCountdownResolver(args);
-                    },
-                    resolve(payload) {
-                        return payload;
-                    }
+            return { countdown: {
+                name: "countdown",
+                type: new GraphQLNonNull(GraphQLInt),
+                args: { from: { type: new GraphQLNonNull(GraphQLInt) } },
+                subscribe(_source, args) {
+                    return subscriptionCountdownResolver(args);
+                },
+                resolve(payload) {
+                    return payload;
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({
         query: QueryType,
         subscription: SubscriptionType,
-        types: [IPersonType, GroupType, QueryType, SubscriptionType, UserType]
+        types: [
+            IPersonType,
+            GroupType,
+            QueryType,
+            SubscriptionType,
+            UserType
+        ]
     });
 }
 const typeNameMap = new Map();

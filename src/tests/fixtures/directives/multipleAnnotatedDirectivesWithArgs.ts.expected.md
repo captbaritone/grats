@@ -67,16 +67,7 @@ export function getSchema(): GraphQLSchema {
           name: "likes",
           type: GraphQLString,
           extensions: {
-            grats: {
-              directives: [
-                {
-                  name: "max",
-                  args: {
-                    foo: 10,
-                  },
-                },
-              ],
-            },
+            grats: { directives: [{ name: "max", args: { foo: 10 } }] },
           },
           resolve() {
             return queryLikesResolver();
@@ -86,16 +77,7 @@ export function getSchema(): GraphQLSchema {
           name: "shares",
           type: GraphQLString,
           extensions: {
-            grats: {
-              directives: [
-                {
-                  name: "max",
-                  args: {
-                    foo: 20,
-                  },
-                },
-              ],
-            },
+            grats: { directives: [{ name: "max", args: { foo: 20 } }] },
           },
           resolve() {
             return querySharesResolver();
@@ -111,11 +93,7 @@ export function getSchema(): GraphQLSchema {
         name: "max",
         locations: [DirectiveLocation.FIELD_DEFINITION],
         description: "This is my custom directive.",
-        args: {
-          foo: {
-            type: new GraphQLNonNull(GraphQLInt),
-          },
-        },
+        args: { foo: { type: new GraphQLNonNull(GraphQLInt) } },
       }),
     ],
     query: QueryType,

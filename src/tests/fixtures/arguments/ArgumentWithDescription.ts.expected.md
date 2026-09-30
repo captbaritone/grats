@@ -55,8 +55,6 @@ export function getSchema(): GraphQLSchema {
       };
     },
   });
-  return new GraphQLSchema({
-    types: [SomeTypeType],
-  });
+  return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

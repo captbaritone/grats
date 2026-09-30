@@ -60,23 +60,13 @@ export function getSchema(): GraphQLSchema {
   const ActorType: GraphQLInterfaceType = new GraphQLInterfaceType({
     name: "Actor",
     fields() {
-      return {
-        name: {
-          name: "name",
-          type: GraphQLString,
-        },
-      };
+      return { name: { name: "name", type: GraphQLString } };
     },
   });
   const UserType: GraphQLObjectType = new GraphQLObjectType({
     name: "User",
     fields() {
-      return {
-        name: {
-          name: "name",
-          type: GraphQLString,
-        },
-      };
+      return { name: { name: "name", type: GraphQLString } };
     },
     interfaces() {
       return [ActorType];
@@ -85,16 +75,9 @@ export function getSchema(): GraphQLSchema {
   const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
     name: "SomeType",
     fields() {
-      return {
-        me: {
-          name: "me",
-          type: UserType,
-        },
-      };
+      return { me: { name: "me", type: UserType } };
     },
   });
-  return new GraphQLSchema({
-    types: [ActorType, SomeTypeType, UserType],
-  });
+  return new GraphQLSchema({ types: [ActorType, SomeTypeType, UserType] });
 }
 ```

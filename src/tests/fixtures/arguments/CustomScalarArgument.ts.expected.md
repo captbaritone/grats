@@ -40,9 +40,7 @@ import {
   GraphQLNonNull,
 } from "graphql";
 export type SchemaConfig = {
-  scalars: {
-    MyString: GqlScalar<MyStringInternal>;
-  };
+  scalars: { MyString: GqlScalar<MyStringInternal> };
 };
 export function getSchema(config: SchemaConfig): GraphQLSchema {
   const MyStringType: GraphQLScalarType = new GraphQLScalarType({
@@ -56,17 +54,11 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
         hello: {
           name: "hello",
           type: GraphQLString,
-          args: {
-            greeting: {
-              type: new GraphQLNonNull(MyStringType),
-            },
-          },
+          args: { greeting: { type: new GraphQLNonNull(MyStringType) } },
         },
       };
     },
   });
-  return new GraphQLSchema({
-    types: [MyStringType, SomeTypeType],
-  });
+  return new GraphQLSchema({ types: [MyStringType, SomeTypeType] });
 }
 ```

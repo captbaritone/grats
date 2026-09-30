@@ -31,13 +31,11 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
         description: "Indicates a stable refetchable object in the system.",
         name: "Node",
         fields() {
-            return {
-                id: {
-                    description: "A globally unique opaque identifier for a node. Can be used to fetch the the\nnode with the `node` or `nodes` fields.\n\nSee: https://graphql.org/learn/global-object-identification/",
-                    name: "id",
-                    type: new GraphQLNonNull(GraphQLID)
-                }
-            };
+            return { id: {
+                description: "A globally unique opaque identifier for a node. Can be used to fetch the the\nnode with the `node` or `nodes` fields.\n\nSee: https://graphql.org/learn/global-object-identification/",
+                name: "id",
+                type: new GraphQLNonNull(GraphQLID)
+            } };
         }
     });
     const PostType: GraphQLObjectType = new GraphQLObjectType({
@@ -68,29 +66,15 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
                     name: "likes",
                     type: LikeConnectionType,
                     args: {
-                        after: {
-                            type: GraphQLString
-                        },
-                        before: {
-                            type: GraphQLString
-                        },
-                        first: {
-                            type: GraphQLInt
-                        },
-                        last: {
-                            type: GraphQLInt
-                        }
+                        after: { type: GraphQLString },
+                        before: { type: GraphQLString },
+                        first: { type: GraphQLInt },
+                        last: { type: GraphQLInt }
                     },
-                    extensions: {
-                        grats: {
-                            directives: [{
-                                    name: "cost",
-                                    args: {
-                                        credits: 10
-                                    }
-                                }]
-                        }
-                    },
+                    extensions: { grats: { directives: [{
+                        name: "cost",
+                        args: { credits: 10 }
+                    }] } },
                     resolve(source, args, _context, info) {
                         return source.likes(args, info);
                     }
@@ -194,18 +178,10 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
                     name: "posts",
                     type: PostConnectionType,
                     args: {
-                        after: {
-                            type: GraphQLString
-                        },
-                        before: {
-                            type: GraphQLString
-                        },
-                        first: {
-                            type: GraphQLInt
-                        },
-                        last: {
-                            type: GraphQLInt
-                        }
+                        after: { type: GraphQLString },
+                        before: { type: GraphQLString },
+                        first: { type: GraphQLInt },
+                        last: { type: GraphQLInt }
                     },
                     resolve(source, args, _context, info) {
                         return source.posts(args, info);
@@ -365,29 +341,15 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
                     name: "likes",
                     type: LikeConnectionType,
                     args: {
-                        after: {
-                            type: GraphQLString
-                        },
-                        before: {
-                            type: GraphQLString
-                        },
-                        first: {
-                            type: GraphQLInt
-                        },
-                        last: {
-                            type: GraphQLInt
-                        }
+                        after: { type: GraphQLString },
+                        before: { type: GraphQLString },
+                        first: { type: GraphQLInt },
+                        last: { type: GraphQLInt }
                     },
-                    extensions: {
-                        grats: {
-                            directives: [{
-                                    name: "cost",
-                                    args: {
-                                        credits: 10
-                                    }
-                                }]
-                        }
-                    },
+                    extensions: { grats: { directives: [{
+                        name: "cost",
+                        args: { credits: 10 }
+                    }] } },
                     resolve(_source, args, context, info) {
                         return queryLikesResolver(args, getVc(context), info);
                     }
@@ -396,11 +358,7 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
                     description: "Fetch a single `Node` by its globally unique ID.",
                     name: "node",
                     type: NodeType,
-                    args: {
-                        id: {
-                            type: new GraphQLNonNull(GraphQLID)
-                        }
-                    },
+                    args: { id: { type: new GraphQLNonNull(GraphQLID) } },
                     resolve(_source, args, context) {
                         return queryNodeResolver(args, getVc(context));
                     }
@@ -409,11 +367,7 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
                     description: "Fetch a list of `Node`s by their globally unique IDs.",
                     name: "nodes",
                     type: new GraphQLList(NodeType),
-                    args: {
-                        ids: {
-                            type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLID)))
-                        }
-                    },
+                    args: { ids: { type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLID))) } },
                     resolve(_source, args, context) {
                         return queryNodesResolver(args.ids, getVc(context));
                     }
@@ -423,18 +377,10 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
                     name: "posts",
                     type: PostConnectionType,
                     args: {
-                        after: {
-                            type: GraphQLString
-                        },
-                        before: {
-                            type: GraphQLString
-                        },
-                        first: {
-                            type: GraphQLInt
-                        },
-                        last: {
-                            type: GraphQLInt
-                        }
+                        after: { type: GraphQLString },
+                        before: { type: GraphQLString },
+                        first: { type: GraphQLInt },
+                        last: { type: GraphQLInt }
                     },
                     resolve(_source, args, context, info) {
                         return queryPostsResolver(args, getVc(context), info);
@@ -445,18 +391,10 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
                     name: "users",
                     type: UserConnectionType,
                     args: {
-                        after: {
-                            type: GraphQLString
-                        },
-                        before: {
-                            type: GraphQLString
-                        },
-                        first: {
-                            type: GraphQLInt
-                        },
-                        last: {
-                            type: GraphQLInt
-                        }
+                        after: { type: GraphQLString },
+                        before: { type: GraphQLString },
+                        first: { type: GraphQLInt },
+                        last: { type: GraphQLInt }
                     },
                     resolve(_source, args, context, info) {
                         return queryUsersResolver(args, getVc(context), info);
@@ -476,34 +414,28 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
     const CreateLikePayloadType: GraphQLObjectType = new GraphQLObjectType({
         name: "CreateLikePayload",
         fields() {
-            return {
-                post: {
-                    name: "post",
-                    type: PostType
-                }
-            };
+            return { post: {
+                name: "post",
+                type: PostType
+            } };
         }
     });
     const CreateLikeInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
         name: "CreateLikeInput",
         fields() {
-            return {
-                postId: {
-                    name: "postId",
-                    type: new GraphQLNonNull(GraphQLID)
-                }
-            };
+            return { postId: {
+                name: "postId",
+                type: new GraphQLNonNull(GraphQLID)
+            } };
         }
     });
     const CreatePostPayloadType: GraphQLObjectType = new GraphQLObjectType({
         name: "CreatePostPayload",
         fields() {
-            return {
-                post: {
-                    name: "post",
-                    type: PostType
-                }
-            };
+            return { post: {
+                name: "post",
+                type: PostType
+            } };
         }
     });
     const MarkdownNodeType: GraphQLInputObjectType = new GraphQLInputObjectType({
@@ -582,23 +514,19 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
     const CreateUserPayloadType: GraphQLObjectType = new GraphQLObjectType({
         name: "CreateUserPayload",
         fields() {
-            return {
-                user: {
-                    name: "user",
-                    type: UserType
-                }
-            };
+            return { user: {
+                name: "user",
+                type: UserType
+            } };
         }
     });
     const CreateUserInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
         name: "CreateUserInput",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: new GraphQLNonNull(GraphQLString)
-                }
-            };
+            return { name: {
+                name: "name",
+                type: new GraphQLNonNull(GraphQLString)
+            } };
         }
     });
     const MutationType: GraphQLObjectType = new GraphQLObjectType({
@@ -609,11 +537,7 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
                     description: "Like a post. This action is taken as the currently logged in user.",
                     name: "createLike",
                     type: CreateLikePayloadType,
-                    args: {
-                        input: {
-                            type: new GraphQLNonNull(CreateLikeInputType)
-                        }
-                    },
+                    args: { input: { type: new GraphQLNonNull(CreateLikeInputType) } },
                     resolve(_source, args, context) {
                         return mutationCreateLikeResolver(args.input, getVc(context));
                     }
@@ -622,11 +546,7 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
                     description: "Create a new post.",
                     name: "createPost",
                     type: CreatePostPayloadType,
-                    args: {
-                        input: {
-                            type: new GraphQLNonNull(CreatePostInputType)
-                        }
-                    },
+                    args: { input: { type: new GraphQLNonNull(CreatePostInputType) } },
                     resolve(_source, args, context) {
                         return mutationCreatePostResolver(args.input, getVc(context));
                     }
@@ -635,11 +555,7 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
                     description: "Create a new user.",
                     name: "createUser",
                     type: CreateUserPayloadType,
-                    args: {
-                        input: {
-                            type: new GraphQLNonNull(CreateUserInputType)
-                        }
-                    },
+                    args: { input: { type: new GraphQLNonNull(CreateUserInputType) } },
                     resolve(_source, args, context) {
                         return mutationCreateUserResolver(args.input, getVc(context));
                     }
@@ -650,40 +566,55 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
     const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
         name: "Subscription",
         fields() {
-            return {
-                postLikes: {
-                    description: "Subscribe to likes on a post.\n**Note:** Does not immediately return likes, but rather updates as likes are applied.",
-                    name: "postLikes",
-                    type: LikeConnectionType,
-                    args: {
-                        postID: {
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    },
-                    subscribe(_source, args, context, info) {
-                        return subscriptionPostLikesResolver(args.postID, getVc(context), info);
-                    },
-                    resolve(payload) {
-                        return payload;
-                    }
+            return { postLikes: {
+                description: "Subscribe to likes on a post.\n**Note:** Does not immediately return likes, but rather updates as likes are applied.",
+                name: "postLikes",
+                type: LikeConnectionType,
+                args: { postID: { type: new GraphQLNonNull(GraphQLString) } },
+                subscribe(_source, args, context, info) {
+                    return subscriptionPostLikesResolver(args.postID, getVc(context), info);
+                },
+                resolve(payload) {
+                    return payload;
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "cost",
-                locations: [DirectiveLocation.FIELD_DEFINITION],
-                description: "Some fields cost credits to access. This directive specifies how many credits\na given field costs.",
-                args: {
-                    credits: {
-                        type: new GraphQLNonNull(GraphQLInt)
-                    }
-                }
-            })],
+            name: "cost",
+            locations: [DirectiveLocation.FIELD_DEFINITION],
+            description: "Some fields cost credits to access. This directive specifies how many credits\na given field costs.",
+            args: { credits: { type: new GraphQLNonNull(GraphQLInt) } }
+        })],
         query: QueryType,
         mutation: MutationType,
         subscription: SubscriptionType,
-        types: [DateType, NodeType, CreateLikeInputType, CreatePostInputType, CreateUserInputType, MarkdownNodeType, PostContentInputType, CreateLikePayloadType, CreatePostPayloadType, CreateUserPayloadType, LikeType, LikeConnectionType, LikeEdgeType, MutationType, PageInfoType, PostType, PostConnectionType, PostEdgeType, QueryType, SubscriptionType, UserType, UserConnectionType, UserEdgeType, ViewerType]
+        types: [
+            DateType,
+            NodeType,
+            CreateLikeInputType,
+            CreatePostInputType,
+            CreateUserInputType,
+            MarkdownNodeType,
+            PostContentInputType,
+            CreateLikePayloadType,
+            CreatePostPayloadType,
+            CreateUserPayloadType,
+            LikeType,
+            LikeConnectionType,
+            LikeEdgeType,
+            MutationType,
+            PageInfoType,
+            PostType,
+            PostConnectionType,
+            PostEdgeType,
+            QueryType,
+            SubscriptionType,
+            UserType,
+            UserConnectionType,
+            UserEdgeType,
+            ViewerType
+        ]
     });
 }

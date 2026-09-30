@@ -41,16 +41,9 @@ export function getSchema(): GraphQLSchema {
   const DogType: GraphQLObjectType = new GraphQLObjectType({
     name: "Dog",
     fields() {
-      return {
-        name: {
-          name: "name",
-          type: GraphQLString,
-        },
-      };
+      return { name: { name: "name", type: GraphQLString } };
     },
   });
-  return new GraphQLSchema({
-    types: [DogType],
-  });
+  return new GraphQLSchema({ types: [DogType] });
 }
 ```

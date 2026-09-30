@@ -50,16 +50,9 @@ export function getSchema(): GraphQLSchema {
     name: "SomeType",
     description: "Sup",
     fields() {
-      return {
-        name: {
-          name: "name",
-          type: GraphQLString,
-        },
-      };
+      return { name: { name: "name", type: GraphQLString } };
     },
   });
-  return new GraphQLSchema({
-    types: [SomeTypeType],
-  });
+  return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

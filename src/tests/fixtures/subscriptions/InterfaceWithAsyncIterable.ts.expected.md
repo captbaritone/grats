@@ -42,8 +42,6 @@ export function getSchema(): GraphQLSchema {
       };
     },
   });
-  return new GraphQLSchema({
-    types: [NotSubscriptionType],
-  });
+  return new GraphQLSchema({ types: [NotSubscriptionType] });
 }
 ```

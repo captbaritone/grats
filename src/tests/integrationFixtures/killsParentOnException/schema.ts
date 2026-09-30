@@ -4,26 +4,22 @@ export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
-            return {
-                alwaysThrowsKillsParentOnException: {
-                    name: "alwaysThrowsKillsParentOnException",
-                    type: new GraphQLNonNull(GraphQLString)
-                }
-            };
+            return { alwaysThrowsKillsParentOnException: {
+                name: "alwaysThrowsKillsParentOnException",
+                type: new GraphQLNonNull(GraphQLString)
+            } };
         }
     });
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                me: {
-                    name: "me",
-                    type: UserType,
-                    resolve() {
-                        return queryMeResolver();
-                    }
+            return { me: {
+                name: "me",
+                type: UserType,
+                resolve() {
+                    return queryMeResolver();
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({

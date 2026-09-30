@@ -58,22 +58,9 @@ export function getSchema(): GraphQLSchema {
             "All likes in the system. Note that there is no guarantee of order.",
           name: "likes",
           type: GraphQLString,
-          args: {
-            first: {
-              type: GraphQLInt,
-            },
-          },
+          args: { first: { type: GraphQLInt } },
           extensions: {
-            grats: {
-              directives: [
-                {
-                  name: "max",
-                  args: {
-                    foo: 10,
-                  },
-                },
-              ],
-            },
+            grats: { directives: [{ name: "max", args: { foo: 10 } }] },
           },
           resolve(_source, args) {
             return queryLikesResolver(args);
@@ -89,11 +76,7 @@ export function getSchema(): GraphQLSchema {
         name: "max",
         locations: [DirectiveLocation.FIELD_DEFINITION],
         description: "This is my custom directive.",
-        args: {
-          foo: {
-            type: new GraphQLNonNull(GraphQLInt),
-          },
-        },
+        args: { foo: { type: new GraphQLNonNull(GraphQLInt) } },
       }),
     ],
     query: QueryType,

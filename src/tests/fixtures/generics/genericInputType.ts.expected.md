@@ -82,9 +82,7 @@ export function getSchema(): GraphQLSchema {
           name: "someField",
           type: GraphQLString,
           args: {
-            someArg: {
-              type: new GraphQLNonNull(AnotherInputSomeInputType),
-            },
+            someArg: { type: new GraphQLNonNull(AnotherInputSomeInputType) },
           },
         },
       };

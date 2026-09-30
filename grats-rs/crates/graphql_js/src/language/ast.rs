@@ -238,9 +238,14 @@ pub struct ScalarTypeDefinitionNode {
     pub description: Option<StringValueNode>,
     pub name: NameNode,
     pub directives: Option<Vec<ConstDirectiveNode>>,
+    /// Grats metadata: The module path and export name of the scalar
+    /// implementation. If null, the scalar is either a built-in scalar or a
+    /// custom scalar that is not exported from a module.
+    pub exported: Option<ExportDefinition>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ObjectTypeDefinitionNode {
     pub loc: Option<Location>,
     pub description: Option<StringValueNode>,
@@ -248,6 +253,12 @@ pub struct ObjectTypeDefinitionNode {
     pub interfaces: Option<Vec<NamedTypeNode>>,
     pub directives: Option<Vec<ConstDirectiveNode>>,
     pub fields: Option<Vec<FieldDefinitionNode>>,
+    /// Grats metadata. PORT: Missing on types Grats synthesizes, where
+    /// TypeScript reads it as `undefined`.
+    #[serde(default)]
+    pub has_type_name_field: bool,
+    /// Grats metadata.
+    pub exported: Option<ExportDefinition>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

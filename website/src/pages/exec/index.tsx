@@ -9,7 +9,7 @@ import GRATS_TYPE_DECLARATIONS from "!!raw-loader!grats/src/Types.ts";
 
 import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 import { buildSchemaAndDocResultWithHost, GratsConfig } from "grats/src/lib";
-import { codegen } from "grats/src/codegen/schemaCodegen";
+import { codegen } from "grats/src/printSchema";
 import { useState } from "react";
 
 if (ExecutionEnvironment.canUseDOM) {

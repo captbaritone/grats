@@ -34,9 +34,7 @@ import type { GqlScalar } from "grats";
 import type { MyString as MyStringInternal } from "./CustomScalar";
 import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType } from "graphql";
 export type SchemaConfig = {
-  scalars: {
-    MyString: GqlScalar<MyStringInternal>;
-  };
+  scalars: { MyString: GqlScalar<MyStringInternal> };
 };
 export function getSchema(config: SchemaConfig): GraphQLSchema {
   const MyStringType: GraphQLScalarType = new GraphQLScalarType({
@@ -46,16 +44,9 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
   const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
     name: "SomeType",
     fields() {
-      return {
-        hello: {
-          name: "hello",
-          type: MyStringType,
-        },
-      };
+      return { hello: { name: "hello", type: MyStringType } };
     },
   });
-  return new GraphQLSchema({
-    types: [MyStringType, SomeTypeType],
-  });
+  return new GraphQLSchema({ types: [MyStringType, SomeTypeType] });
 }
 ```

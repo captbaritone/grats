@@ -1,7 +1,4 @@
 //! Port of `src/printSchema.ts`.
-//!
-//! PORT: `printExecutableSchema` is not ported yet, so `printOutputs` only
-//! produces the outputs that are.
 
 use graphql_js::language::ast::{DefinitionNode, DocumentNode};
 use graphql_js::language::printer::print;
@@ -11,7 +8,10 @@ use graphql_js::utilities::build_ast_schema::build_ast_schema;
 use serde::{Deserialize, Serialize};
 
 use crate::codegen::enum_codegen::codegen_enums;
+use crate::codegen::resolver_map_codegen::resolver_map_codegen;
+use crate::codegen::schema_codegen::codegen;
 use crate::grats_config::GratsConfig;
+use crate::metadata::Metadata;
 use crate::utils::visitor::map_definitions;
 
 /// PORT: The input to `printOutputs` from TypeScript: the document, config and
@@ -20,11 +20,15 @@ use crate::utils::visitor::map_definitions;
 #[serde(rename_all = "camelCase")]
 pub struct OutputRequest {
     pub doc: DocumentNode,
+    pub resolvers: Metadata,
     pub config: GratsConfig,
     /// The absolute path of `src/gratsRoot.ts`'s root. See `src/grats_root.rs`.
     pub grats_root: String,
     /// Whether to print the SDL.
     pub graphql_schema: bool,
+    /// The absolute path the executable schema module will be written to, if
+    /// it should be printed.
+    pub ts_schema: Option<String>,
     /// The absolute path the enums module will be written to, if it should be
     /// printed.
     pub ts_client_enums: Option<String>,
@@ -36,6 +40,8 @@ pub struct Outputs {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub graphql_schema: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub ts_schema: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub ts_client_enums: Option<String>,
 }
 
@@ -43,26 +49,63 @@ pub struct Outputs {
 pub fn print_outputs(request: OutputRequest) -> Outputs {
     let OutputRequest {
         doc,
+        resolvers,
         config,
         grats_root,
         graphql_schema,
+        ts_schema,
         ts_client_enums,
     } = request;
     let mut outputs = Outputs::default();
     // Printing the SDL consumes the document, so it goes last.
-    if let Some(destination) = ts_client_enums {
+    if ts_schema.is_some() || ts_client_enums.is_some() {
         let schema = build_ast_schema(&doc);
-        outputs.ts_client_enums = Some(print_enums_module(
-            &schema,
-            &config,
-            &destination,
-            &grats_root,
-        ));
+        if let Some(destination) = ts_schema {
+            outputs.ts_schema = Some(print_executable_schema(
+                &schema,
+                &resolvers,
+                &config,
+                &destination,
+                &grats_root,
+            ));
+        }
+        if let Some(destination) = ts_client_enums {
+            outputs.ts_client_enums = Some(print_enums_module(
+                &schema,
+                &config,
+                &destination,
+                &grats_root,
+            ));
+        }
     }
     if graphql_schema {
         outputs.graphql_schema = Some(print_grats_sdl(doc, &config));
     }
     outputs
+}
+
+/// Prints code for a TypeScript module that exports a GraphQLSchema.
+/// Includes the user-defined (or default) header comment if provided.
+///
+/// PORT: Also takes the root that module paths are relative to. See
+/// `src/grats_root.rs`.
+pub fn print_executable_schema(
+    schema: &GraphQLSchema,
+    resolvers: &Metadata,
+    config: &GratsConfig,
+    destination: &str,
+    grats_root: &str,
+) -> String {
+    let code = if config.experimental_emit_resolver_map {
+        resolver_map_codegen(schema, resolvers, config, destination, grats_root)
+    } else {
+        codegen(schema, resolvers, config, destination, grats_root)
+    };
+    apply_type_script_header(config, &code)
+}
+
+pub fn apply_type_script_header(config: &GratsConfig, code: &str) -> String {
+    format_header(config.ts_schema_header.as_deref(), code)
 }
 
 pub fn apply_type_script_enum_header(config: &GratsConfig, code: &str) -> String {

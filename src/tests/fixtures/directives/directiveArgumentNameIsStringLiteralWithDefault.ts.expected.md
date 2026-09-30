@@ -48,13 +48,8 @@ export function getSchema(): GraphQLSchema {
           DirectiveLocation.INLINE_FRAGMENT,
         ],
         args: {
-          label: {
-            type: new GraphQLNonNull(GraphQLString),
-          },
-          if: {
-            type: GraphQLBoolean,
-            defaultValue: true,
-          },
+          label: { type: new GraphQLNonNull(GraphQLString) },
+          if: { type: GraphQLBoolean, defaultValue: true },
         },
       }),
     ],

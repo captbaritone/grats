@@ -52,15 +52,9 @@ export function getSchema(): GraphQLSchema {
   const GreetingOptionsType: GraphQLEnumType = new GraphQLEnumType({
     name: "GreetingOptions",
     values: {
-      GREETING: {
-        value: "GREETING",
-      },
-      HELLO: {
-        value: "HELLO",
-      },
-      SUP: {
-        value: "SUP",
-      },
+      GREETING: { value: "GREETING" },
+      HELLO: { value: "HELLO" },
+      SUP: { value: "SUP" },
     },
   });
   const QueryType: GraphQLObjectType = new GraphQLObjectType({

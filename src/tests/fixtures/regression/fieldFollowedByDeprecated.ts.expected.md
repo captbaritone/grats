@@ -45,8 +45,6 @@ export function getSchema(): GraphQLSchema {
       };
     },
   });
-  return new GraphQLSchema({
-    types: [UserType],
-  });
+  return new GraphQLSchema({ types: [UserType] });
 }
 ```

@@ -28,31 +28,23 @@ export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
         }
     });
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                userById: {
-                    name: "userById",
-                    type: UserType,
-                    args: {
-                        id: {
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    },
-                    resolve(_source, args) {
-                        return queryUserByIdResolver(args.id);
-                    }
+            return { userById: {
+                name: "userById",
+                type: UserType,
+                args: { id: { type: new GraphQLNonNull(GraphQLString) } },
+                resolve(_source, args) {
+                    return queryUserByIdResolver(args.id);
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({

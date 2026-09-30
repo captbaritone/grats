@@ -1,6 +1,7 @@
 import { DocumentNode, Location, Source, Token, TokenKind } from "graphql";
 import * as ts from "typescript";
 import type { GratsConfig } from "../gratsConfig.js";
+import type { Metadata } from "../metadata.js";
 
 /**
  * Encodes values passed between TypeScript and the Rust port of Grats
@@ -106,9 +107,11 @@ export function encodeDocument(
  */
 export type RustOutputRequest = {
   doc: DocumentNode;
+  resolvers: Metadata;
   config: GratsConfig;
   gratsRoot: string;
   graphqlSchema: boolean;
+  tsSchema: string | null;
   tsClientEnums: string | null;
 };
 

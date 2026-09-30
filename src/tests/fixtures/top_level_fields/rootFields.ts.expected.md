@@ -92,11 +92,7 @@ export function getSchema(): GraphQLSchema {
         range: {
           name: "range",
           type: GraphQLInt,
-          args: {
-            from: {
-              type: new GraphQLNonNull(GraphQLInt),
-            },
-          },
+          args: { from: { type: new GraphQLNonNull(GraphQLInt) } },
           subscribe(_source, args) {
             return subscriptionRangeResolver(args.from);
           },

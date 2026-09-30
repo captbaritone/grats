@@ -23,18 +23,16 @@ export function getSchema(): GraphQLSchema {
     const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
         name: "Subscription",
         fields() {
-            return {
-                countdown: {
-                    name: "countdown",
-                    type: GraphQLInt,
-                    subscribe() {
-                        return subscriptionCountdownResolver();
-                    },
-                    resolve(payload) {
-                        return payload;
-                    }
+            return { countdown: {
+                name: "countdown",
+                type: GraphQLInt,
+                subscribe() {
+                    return subscriptionCountdownResolver();
+                },
+                resolve(payload) {
+                    return payload;
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({

@@ -61,48 +61,29 @@ export function getSchema(): GraphQLSchema {
     name: "Dog",
     fields() {
       return {
-        bestFriend: {
-          name: "bestFriend",
-          type: DogFriendlyType,
-        },
-        name: {
-          name: "name",
-          type: GraphQLString,
-        },
+        bestFriend: { name: "bestFriend", type: DogFriendlyType },
+        name: { name: "name", type: GraphQLString },
       };
     },
   });
   const DogFriendlyType: GraphQLInterfaceType = new GraphQLInterfaceType({
     name: "DogFriendly",
     fields() {
-      return {
-        to: {
-          name: "to",
-          type: DogType,
-        },
-      };
+      return { to: { name: "to", type: DogType } };
     },
   });
   const UserType: GraphQLObjectType = new GraphQLObjectType({
     name: "User",
     fields() {
       return {
-        name: {
-          name: "name",
-          type: GraphQLString,
-        },
-        to: {
-          name: "to",
-          type: DogType,
-        },
+        name: { name: "name", type: GraphQLString },
+        to: { name: "to", type: DogType },
       };
     },
     interfaces() {
       return [DogFriendlyType];
     },
   });
-  return new GraphQLSchema({
-    types: [DogFriendlyType, DogType, UserType],
-  });
+  return new GraphQLSchema({ types: [DogFriendlyType, DogType, UserType] });
 }
 ```

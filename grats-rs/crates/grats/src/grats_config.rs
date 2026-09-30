@@ -9,6 +9,9 @@ use serde::Deserialize;
 #[serde(rename_all = "camelCase")]
 pub struct GratsConfig {
     pub schema_header: Option<String>,
+    pub ts_schema_header: Option<String>,
     pub ts_client_enums_header: Option<String>,
     pub import_module_specifier_ending: String,
+    #[serde(rename = "EXPERIMENTAL__emitResolverMap", default)]
+    pub experimental_emit_resolver_map: bool,
 }

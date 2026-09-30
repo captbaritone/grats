@@ -33,7 +33,5 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
-    return new GraphQLSchema({
-        types: [MyInputType]
-    });
+    return new GraphQLSchema({ types: [MyInputType] });
 }

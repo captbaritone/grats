@@ -45,29 +45,16 @@ export function getSchema(): GraphQLSchema {
   const StatusType: GraphQLEnumType = new GraphQLEnumType({
     name: "Status",
     values: {
-      DRAFT: {
-        description: "Currently being edited",
-        value: "DRAFT",
-      },
-      PUBLISHED: {
-        description: "Available to readers",
-        value: "PUBLISHED",
-      },
+      DRAFT: { description: "Currently being edited", value: "DRAFT" },
+      PUBLISHED: { description: "Available to readers", value: "PUBLISHED" },
     },
   });
   const ShowType: GraphQLObjectType = new GraphQLObjectType({
     name: "Show",
     fields() {
-      return {
-        status: {
-          name: "status",
-          type: StatusType,
-        },
-      };
+      return { status: { name: "status", type: StatusType } };
     },
   });
-  return new GraphQLSchema({
-    types: [StatusType, ShowType],
-  });
+  return new GraphQLSchema({ types: [StatusType, ShowType] });
 }
 ```

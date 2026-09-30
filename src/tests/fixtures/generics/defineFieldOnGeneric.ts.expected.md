@@ -51,26 +51,15 @@ export function getSchema(): GraphQLSchema {
   const PageType: GraphQLObjectType = new GraphQLObjectType({
     name: "Page",
     fields() {
-      return {
-        title: {
-          name: "title",
-          type: GraphQLString,
-        },
-      };
+      return { title: { name: "title", type: GraphQLString } };
     },
   });
   const PageEdgeType: GraphQLObjectType = new GraphQLObjectType({
     name: "PageEdge",
     fields() {
       return {
-        cursor: {
-          name: "cursor",
-          type: GraphQLString,
-        },
-        node: {
-          name: "node",
-          type: PageType,
-        },
+        cursor: { name: "cursor", type: GraphQLString },
+        node: { name: "node", type: PageType },
         title: {
           description: "Re-expose title directly on the edge",
           name: "title",
@@ -82,8 +71,6 @@ export function getSchema(): GraphQLSchema {
       };
     },
   });
-  return new GraphQLSchema({
-    types: [PageType, PageEdgeType],
-  });
+  return new GraphQLSchema({ types: [PageType, PageEdgeType] });
 }
 ```

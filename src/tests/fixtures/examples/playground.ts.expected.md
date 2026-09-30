@@ -75,16 +75,9 @@ export function getSchema(): GraphQLSchema {
         greeting: {
           name: "greeting",
           type: GraphQLString,
-          args: {
-            salutation: {
-              type: new GraphQLNonNull(GraphQLString),
-            },
-          },
+          args: { salutation: { type: new GraphQLNonNull(GraphQLString) } },
         },
-        name: {
-          name: "name",
-          type: GraphQLString,
-        },
+        name: { name: "name", type: GraphQLString },
       };
     },
   });
@@ -99,10 +92,7 @@ export function getSchema(): GraphQLSchema {
             return someTypeGetUserResolver(source);
           },
         },
-        me: {
-          name: "me",
-          type: UserType,
-        },
+        me: { name: "me", type: UserType },
         viewer: {
           deprecationReason: "Please use `me` instead.",
           name: "viewer",
@@ -111,8 +101,6 @@ export function getSchema(): GraphQLSchema {
       };
     },
   });
-  return new GraphQLSchema({
-    types: [SomeTypeType, UserType],
-  });
+  return new GraphQLSchema({ types: [SomeTypeType, UserType] });
 }
 ```

@@ -41,28 +41,16 @@ export function getSchema(): GraphQLSchema {
         someField1: {
           name: "someField1",
           type: GraphQLString,
-          args: {
-            hello: {
-              type: GraphQLString,
-              defaultValue: null,
-            },
-          },
+          args: { hello: { type: GraphQLString, defaultValue: null } },
         },
         someField2: {
           name: "someField2",
           type: GraphQLString,
-          args: {
-            hello: {
-              type: GraphQLString,
-              defaultValue: null,
-            },
-          },
+          args: { hello: { type: GraphQLString, defaultValue: null } },
         },
       };
     },
   });
-  return new GraphQLSchema({
-    types: [SomeTypeType],
-  });
+  return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

@@ -35,25 +35,19 @@ export function getSchema(): GraphQLSchema {
         name: "User",
         description: "A registered user of the system.",
         fields() {
-            return {
-                hello: {
-                    description: "A friendly greeting for the user, intended for\ntheir first visit.",
-                    name: "hello",
-                    type: GraphQLString,
-                    args: {
-                        greeting: {
-                            description: "The salutation to use",
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    },
-                    resolve(source, args) {
-                        return source.hello(args.greeting);
-                    }
+            return { hello: {
+                description: "A friendly greeting for the user, intended for\ntheir first visit.",
+                name: "hello",
+                type: GraphQLString,
+                args: { greeting: {
+                    description: "The salutation to use",
+                    type: new GraphQLNonNull(GraphQLString)
+                } },
+                resolve(source, args) {
+                    return source.hello(args.greeting);
                 }
-            };
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [UserType]
-    });
+    return new GraphQLSchema({ types: [UserType] });
 }

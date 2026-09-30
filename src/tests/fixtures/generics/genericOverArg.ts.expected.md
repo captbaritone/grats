@@ -73,11 +73,7 @@ export function getSchema(): GraphQLSchema {
         someField: {
           name: "someField",
           type: GraphQLString,
-          args: {
-            someArg: {
-              type: SomeInputType,
-            },
-          },
+          args: { someArg: { type: SomeInputType } },
         },
       };
     },

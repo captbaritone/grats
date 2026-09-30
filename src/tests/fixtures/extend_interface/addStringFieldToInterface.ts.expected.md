@@ -71,14 +71,8 @@ export function getSchema(): GraphQLSchema {
     name: "IPerson",
     fields() {
       return {
-        greeting: {
-          name: "greeting",
-          type: GraphQLString,
-        },
-        hello: {
-          name: "hello",
-          type: GraphQLString,
-        },
+        greeting: { name: "greeting", type: GraphQLString },
+        hello: { name: "hello", type: GraphQLString },
       };
     },
   });
@@ -93,10 +87,7 @@ export function getSchema(): GraphQLSchema {
             return adminGreetingResolver(source);
           },
         },
-        hello: {
-          name: "hello",
-          type: GraphQLString,
-        },
+        hello: { name: "hello", type: GraphQLString },
       };
     },
     interfaces() {
@@ -114,18 +105,13 @@ export function getSchema(): GraphQLSchema {
             return userGreetingResolver(source);
           },
         },
-        hello: {
-          name: "hello",
-          type: GraphQLString,
-        },
+        hello: { name: "hello", type: GraphQLString },
       };
     },
     interfaces() {
       return [IPersonType];
     },
   });
-  return new GraphQLSchema({
-    types: [IPersonType, AdminType, UserType],
-  });
+  return new GraphQLSchema({ types: [IPersonType, AdminType, UserType] });
 }
 ```

@@ -37,15 +37,10 @@ export function getSchema(): GraphQLSchema {
     name: "SomeType",
     fields() {
       return {
-        hello: {
-          name: "hello",
-          type: new GraphQLNonNull(GraphQLString),
-        },
+        hello: { name: "hello", type: new GraphQLNonNull(GraphQLString) },
       };
     },
   });
-  return new GraphQLSchema({
-    types: [SomeTypeType],
-  });
+  return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

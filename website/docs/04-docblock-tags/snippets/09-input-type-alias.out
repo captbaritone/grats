@@ -18,15 +18,11 @@ export function getSchema(): GraphQLSchema {
         description: "Description of my input type",
         name: "MyInput",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: new GraphQLNonNull(GraphQLString)
-                }
-            };
+            return { name: {
+                name: "name",
+                type: new GraphQLNonNull(GraphQLString)
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [MyInputType]
-    });
+    return new GraphQLSchema({ types: [MyInputType] });
 }

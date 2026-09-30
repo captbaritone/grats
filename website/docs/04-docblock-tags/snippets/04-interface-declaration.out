@@ -19,15 +19,11 @@ export function getSchema(): GraphQLSchema {
         description: "A description of my interface.",
         name: "MyInterfaceName",
         fields() {
-            return {
-                someField: {
-                    name: "someField",
-                    type: GraphQLString
-                }
-            };
+            return { someField: {
+                name: "someField",
+                type: GraphQLString
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [MyInterfaceNameType]
-    });
+    return new GraphQLSchema({ types: [MyInterfaceNameType] });
 }

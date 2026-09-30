@@ -56,14 +56,8 @@ export function getSchema(): GraphQLSchema {
       name: "ConnectionInput",
       fields() {
         return {
-          first: {
-            name: "first",
-            type: new GraphQLNonNull(GraphQLInt),
-          },
-          offset: {
-            name: "offset",
-            type: new GraphQLNonNull(GraphQLInt),
-          },
+          first: { name: "first", type: new GraphQLNonNull(GraphQLInt) },
+          offset: { name: "offset", type: new GraphQLNonNull(GraphQLInt) },
         };
       },
     });
@@ -77,18 +71,13 @@ export function getSchema(): GraphQLSchema {
           args: {
             input: {
               type: ConnectionInputType,
-              defaultValue: {
-                first: 10,
-                offset: 100,
-              },
+              defaultValue: { first: 10, offset: 100 },
             },
           },
         },
       };
     },
   });
-  return new GraphQLSchema({
-    types: [ConnectionInputType, SomeTypeType],
-  });
+  return new GraphQLSchema({ types: [ConnectionInputType, SomeTypeType] });
 }
 ```

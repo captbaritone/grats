@@ -28,15 +28,11 @@ export function getSchema(): GraphQLSchema {
     const GqlErrorType: GraphQLObjectType = new GraphQLObjectType({
         name: "GqlError",
         fields() {
-            return {
-                message: {
-                    name: "message",
-                    type: GraphQLString
-                }
-            };
+            return { message: {
+                name: "message",
+                type: GraphQLString
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [GqlErrorType]
-    });
+    return new GraphQLSchema({ types: [GqlErrorType] });
 }

@@ -44,8 +44,6 @@ export function getSchema(): GraphQLSchema {
       };
     },
   });
-  return new GraphQLSchema({
-    types: [CatType],
-  });
+  return new GraphQLSchema({ types: [CatType] });
 }
 ```

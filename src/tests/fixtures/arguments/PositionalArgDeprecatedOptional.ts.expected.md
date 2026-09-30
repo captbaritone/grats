@@ -51,10 +51,7 @@ export function getSchema(): GraphQLSchema {
     name: "Greeting",
     fields() {
       return {
-        name: {
-          name: "name",
-          type: new GraphQLNonNull(GraphQLString),
-        },
+        name: { name: "name", type: new GraphQLNonNull(GraphQLString) },
         salutation: {
           name: "salutation",
           type: new GraphQLNonNull(GraphQLString),
@@ -70,10 +67,7 @@ export function getSchema(): GraphQLSchema {
           name: "hello",
           type: GraphQLString,
           args: {
-            greeting: {
-              deprecationReason: "Unused!",
-              type: GreetingType,
-            },
+            greeting: { deprecationReason: "Unused!", type: GreetingType },
           },
           resolve(source, args) {
             return source.hello(args.greeting);
@@ -82,8 +76,6 @@ export function getSchema(): GraphQLSchema {
       };
     },
   });
-  return new GraphQLSchema({
-    types: [GreetingType, SomeTypeType],
-  });
+  return new GraphQLSchema({ types: [GreetingType, SomeTypeType] });
 }
 ```

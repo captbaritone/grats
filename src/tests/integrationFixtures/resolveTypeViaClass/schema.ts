@@ -5,43 +5,33 @@ export function getSchema(): GraphQLSchema {
     const GqlNodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "GqlNode",
         fields() {
-            return {
-                id: {
-                    name: "id",
-                    type: GraphQLID
-                }
-            };
+            return { id: {
+                name: "id",
+                type: GraphQLID
+            } };
         },
         resolveType
     });
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                node: {
-                    name: "node",
-                    type: GqlNodeType,
-                    args: {
-                        id: {
-                            type: new GraphQLNonNull(GraphQLID)
-                        }
-                    },
-                    resolve(_source, args) {
-                        return queryNodeResolver(args);
-                    }
+            return { node: {
+                name: "node",
+                type: GqlNodeType,
+                args: { id: { type: new GraphQLNonNull(GraphQLID) } },
+                resolve(_source, args) {
+                    return queryNodeResolver(args);
                 }
-            };
+            } };
         }
     });
     const DefaultNodeType: GraphQLObjectType = new GraphQLObjectType({
         name: "DefaultNode",
         fields() {
-            return {
-                id: {
-                    name: "id",
-                    type: GraphQLID
-                }
-            };
+            return { id: {
+                name: "id",
+                type: GraphQLID
+            } };
         },
         interfaces() {
             return [GqlNodeType];
@@ -50,12 +40,10 @@ export function getSchema(): GraphQLSchema {
     const GuestType: GraphQLObjectType = new GraphQLObjectType({
         name: "Guest",
         fields() {
-            return {
-                id: {
-                    name: "id",
-                    type: GraphQLID
-                }
-            };
+            return { id: {
+                name: "id",
+                type: GraphQLID
+            } };
         },
         interfaces() {
             return [GqlNodeType];
@@ -64,12 +52,10 @@ export function getSchema(): GraphQLSchema {
     const RenamedNodeType: GraphQLObjectType = new GraphQLObjectType({
         name: "RenamedNode",
         fields() {
-            return {
-                id: {
-                    name: "id",
-                    type: GraphQLID
-                }
-            };
+            return { id: {
+                name: "id",
+                type: GraphQLID
+            } };
         },
         interfaces() {
             return [GqlNodeType];
@@ -78,12 +64,10 @@ export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
-            return {
-                id: {
-                    name: "id",
-                    type: GraphQLID
-                }
-            };
+            return { id: {
+                name: "id",
+                type: GraphQLID
+            } };
         },
         interfaces() {
             return [GqlNodeType];
@@ -91,7 +75,14 @@ export function getSchema(): GraphQLSchema {
     });
     return new GraphQLSchema({
         query: QueryType,
-        types: [GqlNodeType, DefaultNodeType, GuestType, QueryType, RenamedNodeType, UserType]
+        types: [
+            GqlNodeType,
+            DefaultNodeType,
+            GuestType,
+            QueryType,
+            RenamedNodeType,
+            UserType
+        ]
     });
 }
 const typeNameMap = new Map();

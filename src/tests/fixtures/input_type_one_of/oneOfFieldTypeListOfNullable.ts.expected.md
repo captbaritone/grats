@@ -36,20 +36,12 @@ export function getSchema(): GraphQLSchema {
     name: "Greeting",
     fields() {
       return {
-        firstName: {
-          name: "firstName",
-          type: GraphQLString,
-        },
-        lastName: {
-          name: "lastName",
-          type: new GraphQLList(GraphQLString),
-        },
+        firstName: { name: "firstName", type: GraphQLString },
+        lastName: { name: "lastName", type: new GraphQLList(GraphQLString) },
       };
     },
     isOneOf: true,
   });
-  return new GraphQLSchema({
-    types: [GreetingType],
-  });
+  return new GraphQLSchema({ types: [GreetingType] });
 }
 ```

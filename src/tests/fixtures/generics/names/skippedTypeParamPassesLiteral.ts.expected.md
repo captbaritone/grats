@@ -67,23 +67,13 @@ export function getSchema(): GraphQLSchema {
   const BType: GraphQLObjectType = new GraphQLObjectType({
     name: "B",
     fields() {
-      return {
-        b: {
-          name: "b",
-          type: GraphQLString,
-        },
-      };
+      return { b: { name: "b", type: GraphQLString } };
     },
   });
   const BEdgeType: GraphQLObjectType = new GraphQLObjectType({
     name: "BEdge",
     fields() {
-      return {
-        node: {
-          name: "node",
-          type: BType,
-        },
-      };
+      return { node: { name: "node", type: BType } };
     },
   });
   const QueryType: GraphQLObjectType = new GraphQLObjectType({
@@ -103,12 +93,7 @@ export function getSchema(): GraphQLSchema {
   const AType: GraphQLObjectType = new GraphQLObjectType({
     name: "A",
     fields() {
-      return {
-        a: {
-          name: "a",
-          type: GraphQLString,
-        },
-      };
+      return { a: { name: "a", type: GraphQLString } };
     },
   });
   return new GraphQLSchema({

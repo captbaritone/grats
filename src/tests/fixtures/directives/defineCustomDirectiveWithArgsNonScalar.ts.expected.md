@@ -59,11 +59,7 @@ export function getSchema(): GraphQLSchema {
         name: "customDirective",
         locations: [DirectiveLocation.FIELD_DEFINITION],
         description: "This is my custom directive.",
-        args: {
-          someArg: {
-            type: new GraphQLNonNull(SomeInputType),
-          },
-        },
+        args: { someArg: { type: new GraphQLNonNull(SomeInputType) } },
       }),
     ],
     types: [SomeInputType],

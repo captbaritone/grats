@@ -56,25 +56,11 @@ import { priority as queryPriorityResolver } from "./TsClientEnums";
 export function getSchema(): GraphQLSchema {
   const PriorityType: GraphQLEnumType = new GraphQLEnumType({
     name: "Priority",
-    values: {
-      high: {
-        value: "high",
-      },
-      low: {
-        value: "low",
-      },
-    },
+    values: { high: { value: "high" }, low: { value: "low" } },
   });
   const ColourType: GraphQLEnumType = new GraphQLEnumType({
     name: "Colour",
-    values: {
-      green: {
-        value: "green",
-      },
-      red: {
-        value: "red",
-      },
-    },
+    values: { green: { value: "green" }, red: { value: "red" } },
   });
   const QueryType: GraphQLObjectType = new GraphQLObjectType({
     name: "Query",
@@ -83,11 +69,7 @@ export function getSchema(): GraphQLSchema {
         priority: {
           name: "priority",
           type: PriorityType,
-          args: {
-            colour: {
-              type: new GraphQLNonNull(ColourType),
-            },
-          },
+          args: { colour: { type: new GraphQLNonNull(ColourType) } },
           resolve(_source, args) {
             return queryPriorityResolver(args.colour);
           },
@@ -111,10 +93,7 @@ export function getSchema(): GraphQLSchema {
  */
 
 import { Color as ColourEnum, Priority as PriorityEnum } from "./TsClientEnums";
-export const enums = {
-  Colour: ColourEnum,
-  Priority: PriorityEnum,
-};
+export const enums = { Colour: ColourEnum, Priority: PriorityEnum };
 export { ColourEnum as Colour };
 export { PriorityEnum as Priority };
 ```

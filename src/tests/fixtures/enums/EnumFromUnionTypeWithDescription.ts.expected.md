@@ -40,28 +40,14 @@ export function getSchema(): GraphQLSchema {
   const MyEnumType: GraphQLEnumType = new GraphQLEnumType({
     description: "Hello!",
     name: "MyEnum",
-    values: {
-      INVALID: {
-        value: "INVALID",
-      },
-      VALID: {
-        value: "VALID",
-      },
-    },
+    values: { INVALID: { value: "INVALID" }, VALID: { value: "VALID" } },
   });
   const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
     name: "SomeType",
     fields() {
-      return {
-        hello: {
-          name: "hello",
-          type: MyEnumType,
-        },
-      };
+      return { hello: { name: "hello", type: MyEnumType } };
     },
   });
-  return new GraphQLSchema({
-    types: [MyEnumType, SomeTypeType],
-  });
+  return new GraphQLSchema({ types: [MyEnumType, SomeTypeType] });
 }
 ```

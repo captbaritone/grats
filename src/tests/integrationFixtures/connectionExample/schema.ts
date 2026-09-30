@@ -57,27 +57,26 @@ export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                firstHundredIntegers: {
-                    name: "firstHundredIntegers",
-                    type: FirstHundredIntegersConnectionType,
-                    args: {
-                        after: {
-                            type: GraphQLString
-                        },
-                        first: {
-                            type: GraphQLInt
-                        }
-                    },
-                    resolve(_source, args) {
-                        return queryFirstHundredIntegersResolver(args);
-                    }
+            return { firstHundredIntegers: {
+                name: "firstHundredIntegers",
+                type: FirstHundredIntegersConnectionType,
+                args: {
+                    after: { type: GraphQLString },
+                    first: { type: GraphQLInt }
+                },
+                resolve(_source, args) {
+                    return queryFirstHundredIntegersResolver(args);
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({
         query: QueryType,
-        types: [FirstHundredIntegersConnectionType, FirstHundredIntegersEdgeType, FirstHundredIntegersPageInfoType, QueryType]
+        types: [
+            FirstHundredIntegersConnectionType,
+            FirstHundredIntegersEdgeType,
+            FirstHundredIntegersPageInfoType,
+            QueryType
+        ]
     });
 }

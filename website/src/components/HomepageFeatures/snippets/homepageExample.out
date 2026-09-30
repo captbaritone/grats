@@ -28,11 +28,7 @@ export function getSchema(): GraphQLSchema {
                 greet: {
                     name: "greet",
                     type: GraphQLString,
-                    args: {
-                        greeting: {
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    },
+                    args: { greeting: { type: new GraphQLNonNull(GraphQLString) } },
                     resolve(source, args) {
                         return source.greet(args.greeting);
                     }
@@ -44,7 +40,5 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
-    return new GraphQLSchema({
-        types: [UserType]
-    });
+    return new GraphQLSchema({ types: [UserType] });
 }

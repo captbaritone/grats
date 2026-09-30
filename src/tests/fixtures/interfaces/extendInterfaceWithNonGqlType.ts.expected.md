@@ -34,16 +34,9 @@ export function getSchema(): GraphQLSchema {
   const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
     name: "IPerson",
     fields() {
-      return {
-        name: {
-          name: "name",
-          type: GraphQLString,
-        },
-      };
+      return { name: { name: "name", type: GraphQLString } };
     },
   });
-  return new GraphQLSchema({
-    types: [IPersonType],
-  });
+  return new GraphQLSchema({ types: [IPersonType] });
 }
 ```

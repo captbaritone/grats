@@ -54,26 +54,15 @@ export function getSchema(): GraphQLSchema {
   const PageType: GraphQLObjectType = new GraphQLObjectType({
     name: "Page",
     fields() {
-      return {
-        name: {
-          name: "name",
-          type: GraphQLString,
-        },
-      };
+      return { name: { name: "name", type: GraphQLString } };
     },
   });
   const PageEdgeType: GraphQLObjectType = new GraphQLObjectType({
     name: "PageEdge",
     fields() {
       return {
-        cursor: {
-          name: "cursor",
-          type: GraphQLString,
-        },
-        node: {
-          name: "node",
-          type: PageType,
-        },
+        cursor: { name: "cursor", type: GraphQLString },
+        node: { name: "node", type: PageType },
       };
     },
   });

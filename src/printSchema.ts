@@ -1,9 +1,13 @@
-import { DocumentNode, GraphQLSchema } from "graphql";
+import {
+  DefinitionNode,
+  DocumentNode,
+  GraphQLSchema,
+  isSpecifiedScalarType,
+  Kind,
+} from "graphql";
 import * as path from "path";
 import { GratsConfig } from "./gratsConfig.js";
-import { codegen } from "./codegen/schemaCodegen.js";
 import { Metadata } from "./metadata.js";
-import { resolverMapCodegen } from "./codegen/resolverMapCodegen.js";
 import {
   encodeDocument,
   encodeOutputRequest,
@@ -42,57 +46,75 @@ export function printOutputs(
   config: GratsConfig,
   request: OutputRequest,
 ): Outputs {
-  const { schema, doc, resolvers } = schemaAndDoc;
-  const outputs: Outputs = {};
-  if (request.tsSchema != null) {
-    outputs.tsSchema = printExecutableSchema(
-      schema,
-      resolvers,
-      config,
-      request.tsSchema,
-    );
+  const { doc, resolvers } = schemaAndDoc;
+  if (
+    !request.graphqlSchema &&
+    request.tsSchema == null &&
+    request.tsClientEnums == null
+  ) {
+    return {};
   }
-  if (request.graphqlSchema || request.tsClientEnums != null) {
-    const printed: Outputs = JSON.parse(
-      callRust(
-        "print_outputs",
-        encodeOutputRequest({
-          doc,
-          config,
-          // Rust has no module location or working directory to resolve
-          // paths against, so it's given absolute paths.
-          gratsRoot: resolveRelativePath("."),
-          graphqlSchema: request.graphqlSchema ?? false,
-          tsClientEnums:
-            request.tsClientEnums == null
-              ? null
-              : path.resolve(request.tsClientEnums),
-        }),
-      ),
-    );
-    Object.assign(outputs, printed);
-  }
-  return outputs;
+  return JSON.parse(
+    callRust(
+      "print_outputs",
+      encodeOutputRequest({
+        doc,
+        resolvers,
+        config,
+        // Rust has no module location or working directory to resolve
+        // paths against, so it's given absolute paths.
+        gratsRoot: resolveRelativePath("."),
+        graphqlSchema: request.graphqlSchema ?? false,
+        tsSchema:
+          request.tsSchema == null ? null : path.resolve(request.tsSchema),
+        tsClientEnums:
+          request.tsClientEnums == null
+            ? null
+            : path.resolve(request.tsClientEnums),
+      }),
+    ),
+  );
 }
 
 /**
- * Prints code for a TypeScript module that exports a GraphQLSchema.
- * Includes the user-defined (or default) header comment if provided.
+ * Given a GraphQL schema built by Grats, returns a string of TypeScript code
+ * that generates a GraphQLSchema implementing that schema. Unlike
+ * `printOutputs`, the header comment is not included.
  */
-function printExecutableSchema(
+export function codegen(
   schema: GraphQLSchema,
   resolvers: Metadata,
   config: GratsConfig,
   destination: string,
 ): string {
-  const code = config.EXPERIMENTAL__emitResolverMap
-    ? resolverMapCodegen(schema, resolvers, config, destination)
-    : codegen(schema, resolvers, config, destination);
-  return applyTypeScriptHeader(config, code);
+  const { tsSchema } = printOutputs(
+    { schema, doc: schemaDocument(schema), resolvers },
+    { ...config, tsSchemaHeader: null, EXPERIMENTAL__emitResolverMap: false },
+    { tsSchema: destination },
+  );
+  return tsSchema!;
 }
 
-function applyTypeScriptHeader(config: GratsConfig, code: string): string {
-  return formatHeader(config.tsSchemaHeader, code);
+// Recovers the document a schema was built from, including the metadata
+// Grats adds to its AST nodes.
+function schemaDocument(schema: GraphQLSchema): DocumentNode {
+  const definitions: DefinitionNode[] = [];
+  if (schema.astNode != null) {
+    definitions.push(schema.astNode);
+  }
+  definitions.push(...schema.extensionASTNodes);
+  for (const type of Object.values(schema.getTypeMap())) {
+    if (isSpecifiedScalarType(type) || type.astNode == null) {
+      continue;
+    }
+    definitions.push(type.astNode, ...type.extensionASTNodes);
+  }
+  for (const directive of schema.getDirectives()) {
+    if (directive.astNode != null) {
+      definitions.push(directive.astNode);
+    }
+  }
+  return { kind: Kind.DOCUMENT, definitions };
 }
 
 export function printSDLWithoutMetadata(doc: DocumentNode): string {
@@ -100,11 +122,4 @@ export function printSDLWithoutMetadata(doc: DocumentNode): string {
     "print_sdl_without_metadata",
     encodeDocument(doc, new SourceTable()),
   );
-}
-
-function formatHeader(header: string | null, code: string): string {
-  if (header !== null) {
-    return `${header}\n\n${code}`;
-  }
-  return code;
 }

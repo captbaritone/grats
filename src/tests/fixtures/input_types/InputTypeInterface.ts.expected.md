@@ -60,17 +60,11 @@ export function getSchema(): GraphQLSchema {
         myField: {
           name: "myField",
           type: GraphQLString,
-          args: {
-            input: {
-              type: new GraphQLNonNull(MyInputTypeType),
-            },
-          },
+          args: { input: { type: new GraphQLNonNull(MyInputTypeType) } },
         },
       };
     },
   });
-  return new GraphQLSchema({
-    types: [MyInputTypeType, UserType],
-  });
+  return new GraphQLSchema({ types: [MyInputTypeType, UserType] });
 }
 ```

@@ -37,9 +37,7 @@ import {
   GraphQLString,
 } from "graphql";
 export type SchemaConfig = {
-  scalars: {
-    CustomName: GqlScalar<CustomNameInternal>;
-  };
+  scalars: { CustomName: GqlScalar<CustomNameInternal> };
 };
 export function getSchema(config: SchemaConfig): GraphQLSchema {
   const CustomNameType: GraphQLScalarType = new GraphQLScalarType({
@@ -49,16 +47,9 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
   const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
     name: "SomeType",
     fields() {
-      return {
-        hello: {
-          name: "hello",
-          type: GraphQLString,
-        },
-      };
+      return { hello: { name: "hello", type: GraphQLString } };
     },
   });
-  return new GraphQLSchema({
-    types: [CustomNameType, SomeTypeType],
-  });
+  return new GraphQLSchema({ types: [CustomNameType, SomeTypeType] });
 }
 ```

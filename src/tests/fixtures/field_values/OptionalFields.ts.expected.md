@@ -46,27 +46,13 @@ export function getSchema(): GraphQLSchema {
     name: "SomeType",
     fields() {
       return {
-        adieu: {
-          name: "adieu",
-          type: GraphQLString,
-        },
-        farewell: {
-          name: "farewell",
-          type: GraphQLString,
-        },
-        goodbye: {
-          name: "goodbye",
-          type: GraphQLString,
-        },
-        hello: {
-          name: "hello",
-          type: GraphQLString,
-        },
+        adieu: { name: "adieu", type: GraphQLString },
+        farewell: { name: "farewell", type: GraphQLString },
+        goodbye: { name: "goodbye", type: GraphQLString },
+        hello: { name: "hello", type: GraphQLString },
       };
     },
   });
-  return new GraphQLSchema({
-    types: [SomeTypeType],
-  });
+  return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

@@ -34,7 +34,5 @@ export function getSchema(): GraphQLSchema {
             }
         }
     });
-    return new GraphQLSchema({
-        types: [MyEnumType]
-    });
+    return new GraphQLSchema({ types: [MyEnumType] });
 }

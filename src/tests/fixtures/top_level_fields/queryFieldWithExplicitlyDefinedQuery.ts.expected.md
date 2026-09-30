@@ -50,9 +50,6 @@ export function getSchema(): GraphQLSchema {
       };
     },
   });
-  return new GraphQLSchema({
-    query: QueryType,
-    types: [QueryType],
-  });
+  return new GraphQLSchema({ query: QueryType, types: [QueryType] });
 }
 ```

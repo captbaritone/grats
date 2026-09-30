@@ -38,7 +38,5 @@ export function getSchema(): GraphQLSchema {
             }
         }
     });
-    return new GraphQLSchema({
-        types: [StatusType]
-    });
+    return new GraphQLSchema({ types: [StatusType] });
 }

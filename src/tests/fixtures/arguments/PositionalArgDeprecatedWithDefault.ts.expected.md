@@ -51,10 +51,7 @@ export function getSchema(): GraphQLSchema {
     name: "Greeting",
     fields() {
       return {
-        name: {
-          name: "name",
-          type: new GraphQLNonNull(GraphQLString),
-        },
+        name: { name: "name", type: new GraphQLNonNull(GraphQLString) },
         salutation: {
           name: "salutation",
           type: new GraphQLNonNull(GraphQLString),
@@ -73,10 +70,7 @@ export function getSchema(): GraphQLSchema {
             greeting: {
               deprecationReason: "Unused!",
               type: new GraphQLNonNull(GreetingType),
-              defaultValue: {
-                name: "Alice",
-                salutation: "Hullo",
-              },
+              defaultValue: { name: "Alice", salutation: "Hullo" },
             },
           },
           resolve(source, args) {
@@ -86,8 +80,6 @@ export function getSchema(): GraphQLSchema {
       };
     },
   });
-  return new GraphQLSchema({
-    types: [GreetingType, SomeTypeType],
-  });
+  return new GraphQLSchema({ types: [GreetingType, SomeTypeType] });
 }
 ```

@@ -63,16 +63,7 @@ export function getSchema(): GraphQLSchema {
             first: {
               type: GraphQLInt,
               extensions: {
-                grats: {
-                  directives: [
-                    {
-                      name: "max",
-                      args: {
-                        foo: 10,
-                      },
-                    },
-                  ],
-                },
+                grats: { directives: [{ name: "max", args: { foo: 10 } }] },
               },
             },
           },
@@ -90,11 +81,7 @@ export function getSchema(): GraphQLSchema {
         name: "max",
         locations: [DirectiveLocation.ARGUMENT_DEFINITION],
         description: "This is my custom directive.",
-        args: {
-          foo: {
-            type: new GraphQLNonNull(GraphQLInt),
-          },
-        },
+        args: { foo: { type: new GraphQLNonNull(GraphQLInt) } },
       }),
     ],
     query: QueryType,

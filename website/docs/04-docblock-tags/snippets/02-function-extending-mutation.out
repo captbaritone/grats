@@ -28,31 +28,23 @@ export function getSchema(): GraphQLSchema {
     const MutationType: GraphQLObjectType = new GraphQLObjectType({
         name: "Mutation",
         fields() {
-            return {
-                deleteUser: {
-                    name: "deleteUser",
-                    type: GraphQLBoolean,
-                    args: {
-                        id: {
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    },
-                    resolve(_source, args) {
-                        return mutationDeleteUserResolver(args.id);
-                    }
+            return { deleteUser: {
+                name: "deleteUser",
+                type: GraphQLBoolean,
+                args: { id: { type: new GraphQLNonNull(GraphQLString) } },
+                resolve(_source, args) {
+                    return mutationDeleteUserResolver(args.id);
                 }
-            };
+            } };
         }
     });
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
         }
     });
     return new GraphQLSchema({

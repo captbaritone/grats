@@ -4,29 +4,25 @@ export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
-            return {
-                hello: {
-                    name: "hello",
-                    type: GraphQLString,
-                    resolve(source) {
-                        return source.NOT_THIS;
-                    }
+            return { hello: {
+                name: "hello",
+                type: GraphQLString,
+                resolve(source) {
+                    return source.NOT_THIS;
                 }
-            };
+            } };
         }
     });
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                me: {
-                    name: "me",
-                    type: UserType,
-                    resolve() {
-                        return queryMeResolver();
-                    }
+            return { me: {
+                name: "me",
+                type: UserType,
+                resolve() {
+                    return queryMeResolver();
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({

@@ -76,23 +76,13 @@ export function getSchema(): GraphQLSchema {
   const IThingType: GraphQLInterfaceType = new GraphQLInterfaceType({
     name: "IThing",
     fields() {
-      return {
-        greeting: {
-          name: "greeting",
-          type: GraphQLString,
-        },
-      };
+      return { greeting: { name: "greeting", type: GraphQLString } };
     },
   });
   const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
     name: "IPerson",
     fields() {
-      return {
-        greeting: {
-          name: "greeting",
-          type: GraphQLString,
-        },
-      };
+      return { greeting: { name: "greeting", type: GraphQLString } };
     },
     interfaces() {
       return [IThingType];

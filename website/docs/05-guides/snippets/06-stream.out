@@ -59,30 +59,24 @@ export function getSchema(): GraphQLSchema {
     const PostType: GraphQLObjectType = new GraphQLObjectType({
         name: "Post",
         fields() {
-            return {
-                id: {
-                    name: "id",
-                    type: GraphQLString
-                }
-            };
+            return { id: {
+                name: "id",
+                type: GraphQLString
+            } };
         }
     });
     const ViewerType: GraphQLObjectType = new GraphQLObjectType({
         name: "Viewer",
         fields() {
-            return {
-                feed: {
-                    description: "An \"algorithmically generated\" feed of posts.\n\n**Note:** Due to the extreme complexity of this algorithm, it can be slow.\nIt is recommended to use `@stream` to avoid blocking the client.",
-                    name: "feed",
-                    type: new GraphQLList(new GraphQLNonNull(PostType)),
-                    resolve(source, _args, context) {
-                        return source.feed(context);
-                    }
+            return { feed: {
+                description: "An \"algorithmically generated\" feed of posts.\n\n**Note:** Due to the extreme complexity of this algorithm, it can be slow.\nIt is recommended to use `@stream` to avoid blocking the client.",
+                name: "feed",
+                type: new GraphQLList(new GraphQLNonNull(PostType)),
+                resolve(source, _args, context) {
+                    return source.feed(context);
                 }
-            };
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [PostType, ViewerType]
-    });
+    return new GraphQLSchema({ types: [PostType, ViewerType] });
 }

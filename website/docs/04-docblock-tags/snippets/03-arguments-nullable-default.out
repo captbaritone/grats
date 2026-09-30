@@ -14,21 +14,17 @@ export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString,
-                    args: {
-                        name: {
-                            type: new GraphQLNonNull(GraphQLString),
-                            defaultValue: "Max"
-                        }
-                    },
-                    resolve(_source, args) {
-                        return queryGreetingResolver(args.name);
-                    }
+            return { greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                args: { name: {
+                    type: new GraphQLNonNull(GraphQLString),
+                    defaultValue: "Max"
+                } },
+                resolve(_source, args) {
+                    return queryGreetingResolver(args.name);
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({

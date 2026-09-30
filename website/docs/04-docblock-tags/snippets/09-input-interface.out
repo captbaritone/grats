@@ -13,15 +13,11 @@ export function getSchema(): GraphQLSchema {
     const MyInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
         name: "MyInput",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: new GraphQLNonNull(GraphQLString)
-                }
-            };
+            return { name: {
+                name: "name",
+                type: new GraphQLNonNull(GraphQLString)
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [MyInputType]
-    });
+    return new GraphQLSchema({ types: [MyInputType] });
 }

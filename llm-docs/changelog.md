@@ -12,6 +12,7 @@ Changes in this section are not yet released. If you need access to these change
     -   `typescript` is now a peer dependency (`>=5.5`) instead of a direct dependency, allowing you to use your own TypeScript version. ([PR](https://github.com/captbaritone/grats/pull/228))
     -   Added support for TypeScript 6.0. ([PR](https://github.com/captbaritone/grats/pull/228))
     -   CI now tests against TypeScript 5.5, 5.7, 5.9, and 6.0.
+    -   Grats' output is now printed by a Rust port of Grats, compiled to WebAssembly. The generated TypeScript is formatted differently, for example small objects are printed on one line, so regenerating will produce a formatting-only diff in your generated files. The generated code is otherwise unchanged.
 
 ## 0.0.36
 

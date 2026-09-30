@@ -46,26 +46,8 @@ import {
 export function getSchema(): GraphQLSchema {
   const MyEnumType: GraphQLEnumType = new GraphQLEnumType({
     name: "MyEnum",
-    values: {
-      A: {
-        value: "A",
-      },
-      B: {
-        value: "B",
-      },
-    },
-    extensions: {
-      grats: {
-        directives: [
-          {
-            name: "max",
-            args: {
-              foo: 10,
-            },
-          },
-        ],
-      },
-    },
+    values: { A: { value: "A" }, B: { value: "B" } },
+    extensions: { grats: { directives: [{ name: "max", args: { foo: 10 } }] } },
   });
   return new GraphQLSchema({
     directives: [
@@ -74,11 +56,7 @@ export function getSchema(): GraphQLSchema {
         name: "max",
         locations: [DirectiveLocation.ENUM],
         description: "This is my custom directive.",
-        args: {
-          foo: {
-            type: new GraphQLNonNull(GraphQLInt),
-          },
-        },
+        args: { foo: { type: new GraphQLNonNull(GraphQLInt) } },
       }),
     ],
     types: [MyEnumType],

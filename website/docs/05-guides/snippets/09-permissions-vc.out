@@ -59,46 +59,38 @@ export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
         }
     });
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                getUserById: {
-                    name: "getUserById",
-                    type: UserType,
-                    args: {
-                        userId: {
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    },
-                    resolve(_source, args, context) {
-                        return queryGetUserByIdResolver(context, args.userId);
-                    }
+            return { getUserById: {
+                name: "getUserById",
+                type: UserType,
+                args: { userId: { type: new GraphQLNonNull(GraphQLString) } },
+                resolve(_source, args, context) {
+                    return queryGetUserByIdResolver(context, args.userId);
                 }
-            };
+            } };
         }
     });
     const RoleType: GraphQLEnumType = new GraphQLEnumType({
         name: "Role",
         values: {
-            ADMIN: {
-                value: "ADMIN"
-            },
-            USER: {
-                value: "USER"
-            }
+            ADMIN: { value: "ADMIN" },
+            USER: { value: "USER" }
         }
     });
     return new GraphQLSchema({
         query: QueryType,
-        types: [RoleType, QueryType, UserType]
+        types: [
+            RoleType,
+            QueryType,
+            UserType
+        ]
     });
 }

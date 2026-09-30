@@ -58,26 +58,16 @@ export function getSchema(): GraphQLSchema {
           name: "friends",
           type: new GraphQLList(new GraphQLNonNull(UserType)),
         },
-        name: {
-          name: "name",
-          type: GraphQLString,
-        },
+        name: { name: "name", type: GraphQLString },
       };
     },
   });
   const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
     name: "SomeType",
     fields() {
-      return {
-        me: {
-          name: "me",
-          type: UserType,
-        },
-      };
+      return { me: { name: "me", type: UserType } };
     },
   });
-  return new GraphQLSchema({
-    types: [SomeTypeType, UserType],
-  });
+  return new GraphQLSchema({ types: [SomeTypeType, UserType] });
 }
 ```

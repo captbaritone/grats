@@ -30,12 +30,10 @@ export function getSchema(): GraphQLSchema {
     const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IPerson",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: new GraphQLNonNull(GraphQLString)
-                }
-            };
+            return { name: {
+                name: "name",
+                type: new GraphQLNonNull(GraphQLString)
+            } };
         },
         resolveType
     });
@@ -87,7 +85,12 @@ export function getSchema(): GraphQLSchema {
     });
     return new GraphQLSchema({
         query: QueryType,
-        types: [IPersonType, GroupType, QueryType, UserType]
+        types: [
+            IPersonType,
+            GroupType,
+            QueryType,
+            UserType
+        ]
     });
 }
 const typeNameMap = new Map();

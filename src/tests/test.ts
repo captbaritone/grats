@@ -262,6 +262,9 @@ const testDirs: TestDir[] = [
         markdown.addCodeBlock(
           await prettier.format(nullThrows(outputs.tsSchema), {
             parser: "typescript",
+            // The printers differ in when they put an object's properties on
+            // separate lines, which prettier would otherwise preserve.
+            objectWrap: "collapse",
           }),
           "ts",
         );
@@ -270,6 +273,7 @@ const testDirs: TestDir[] = [
           markdown.addCodeBlock(
             await prettier.format(outputs.tsClientEnums, {
               parser: "typescript",
+              objectWrap: "collapse",
             }),
             "ts",
           );

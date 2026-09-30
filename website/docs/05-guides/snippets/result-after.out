@@ -84,23 +84,19 @@ export function getSchema(): GraphQLSchema {
     const MyErrorType: GraphQLObjectType = new GraphQLObjectType({
         name: "MyError",
         fields() {
-            return {
-                message: {
-                    name: "message",
-                    type: GraphQLString
-                }
-            };
+            return { message: {
+                name: "message",
+                type: GraphQLString
+            } };
         }
     });
     const MyOtherValueType: GraphQLObjectType = new GraphQLObjectType({
         name: "MyOtherValue",
         fields() {
-            return {
-                value: {
-                    name: "value",
-                    type: GraphQLString
-                }
-            };
+            return { value: {
+                name: "value",
+                type: GraphQLString
+            } };
         }
     });
     const MyOtherValueResultType: GraphQLUnionType = new GraphQLUnionType({
@@ -112,12 +108,10 @@ export function getSchema(): GraphQLSchema {
     const MyValueType: GraphQLObjectType = new GraphQLObjectType({
         name: "MyValue",
         fields() {
-            return {
-                value: {
-                    name: "value",
-                    type: GraphQLString
-                }
-            };
+            return { value: {
+                name: "value",
+                type: GraphQLString
+            } };
         }
     });
     const MyValueResultType: GraphQLUnionType = new GraphQLUnionType({
@@ -149,6 +143,13 @@ export function getSchema(): GraphQLSchema {
     });
     return new GraphQLSchema({
         query: QueryType,
-        types: [MyOtherValueResultType, MyValueResultType, MyErrorType, MyOtherValueType, MyValueType, QueryType]
+        types: [
+            MyOtherValueResultType,
+            MyValueResultType,
+            MyErrorType,
+            MyOtherValueType,
+            MyValueType,
+            QueryType
+        ]
     });
 }

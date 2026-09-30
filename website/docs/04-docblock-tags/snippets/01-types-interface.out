@@ -14,15 +14,11 @@ export function getSchema(): GraphQLSchema {
     const MyTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "MyType",
         fields() {
-            return {
-                someField: {
-                    name: "someField",
-                    type: GraphQLString
-                }
-            };
+            return { someField: {
+                name: "someField",
+                type: GraphQLString
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [MyTypeType]
-    });
+    return new GraphQLSchema({ types: [MyTypeType] });
 }

@@ -46,11 +46,7 @@ export function getSchema(): GraphQLSchema {
                 greeting: {
                     name: "greeting",
                     type: GraphQLString,
-                    args: {
-                        salutation: {
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    },
+                    args: { salutation: { type: new GraphQLNonNull(GraphQLString) } },
                     resolve(source, args) {
                         return source.greeting(args.salutation);
                     }

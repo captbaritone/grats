@@ -57,15 +57,9 @@ export function getSchema(): GraphQLSchema {
   const GreetingOptionsType: GraphQLEnumType = new GraphQLEnumType({
     name: "GreetingOptions",
     values: {
-      Greetings: {
-        value: "Greetings",
-      },
-      Hello: {
-        value: "Hello",
-      },
-      Sup: {
-        value: "Sup",
-      },
+      Greetings: { value: "Greetings" },
+      Hello: { value: "Hello" },
+      Sup: { value: "Sup" },
     },
   });
   const GreetingInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
@@ -89,9 +83,7 @@ export function getSchema(): GraphQLSchema {
           args: {
             input: {
               type: new GraphQLNonNull(GreetingInputType),
-              defaultValue: {
-                greeting: "Greetings",
-              },
+              defaultValue: { greeting: "Greetings" },
             },
           },
           resolve(_source, args) {

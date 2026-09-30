@@ -45,15 +45,10 @@ export function getSchema(): GraphQLSchema {
             return someTypeGreetingResolver(source);
           },
         },
-        hello: {
-          name: "hello",
-          type: GraphQLString,
-        },
+        hello: { name: "hello", type: GraphQLString },
       };
     },
   });
-  return new GraphQLSchema({
-    types: [SomeTypeType],
-  });
+  return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

@@ -14,20 +14,14 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                hello: {
-                    name: "hello",
-                    type: CustomScalarType,
-                    args: {
-                        custom: {
-                            type: new GraphQLNonNull(CustomScalarType)
-                        }
-                    },
-                    resolve(_source, args) {
-                        return queryHelloResolver(args.custom);
-                    }
+            return { hello: {
+                name: "hello",
+                type: CustomScalarType,
+                args: { custom: { type: new GraphQLNonNull(CustomScalarType) } },
+                resolve(_source, args) {
+                    return queryHelloResolver(args.custom);
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({
