@@ -1,6 +1,5 @@
 import type * as ts from "typescript";
 import { printOutputs } from "../../../src/printSchema";
-import { TagName, TAGS } from "../../../src/Extractor";
 // See https://github.com/microsoft/monaco-editor/pull/3488
 import {
   // @ts-ignore
@@ -14,6 +13,26 @@ import prettier from "prettier/standalone";
 import parserTypeScript from "prettier/parser-typescript";
 import { ReportableDiagnostics } from "../../../src/utils/DiagnosticError";
 import type { monaco } from "react-monaco-editor";
+
+// The docblock tags offered as completions. See `documentationForTag`.
+const TAGS = [
+  "gqlType",
+  "gqlField",
+  "gqlScalar",
+  "gqlInterface",
+  "gqlEnum",
+  "gqlUnion",
+  "gqlInput",
+  "gqlDirective",
+  "gqlAnnotate",
+  "gqlQueryField",
+  "gqlMutationField",
+  "gqlSubscriptionField",
+  "killsParentOnException",
+  "oneOf",
+] as const;
+
+type TagName = (typeof TAGS)[number];
 
 // @ts-ignore
 global.process = {
