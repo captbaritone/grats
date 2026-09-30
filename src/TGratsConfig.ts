@@ -46,12 +46,6 @@ export type GratsConfig = {
    */
   strictSemanticNullability: boolean;
   /**
-   * Should Grats error if it encounters a TypeScript type error?
-   * Note that Grats will always error if it encounters a TypeScript syntax
-   * error.
-   */
-  reportTypeScriptTypeErrors: boolean;
-  /**
    * A string to prepend to the generated schema text. Useful for copyright
    * headers or other information to the generated file. Set to `null` to
    * omit the default header.

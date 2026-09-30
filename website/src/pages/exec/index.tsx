@@ -311,7 +311,6 @@ async function exec(gratsCode: string, queryText: string): Promise<any> {
     tsSchema: "schema.ts",
     nullableByDefault: true,
     strictSemanticNullability: false,
-    reportTypeScriptTypeErrors: true,
     schemaHeader: null,
     tsSchemaHeader: null,
     importModuleSpecifierEnding: ".js",

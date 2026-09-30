@@ -135,6 +135,12 @@ function typeName(typeKind: PropertySpec["type"]["kind"]): string {
   }
 }
 
+// Options which Grats no longer supports, and how to migrate away from each.
+const REMOVED_OPTIONS: { [key: string]: string | undefined } = {
+  reportTypeScriptTypeErrors:
+    "Grats no longer type checks your code. Run `tsc` to report TypeScript type errors.",
+};
+
 function parseConfig<T>(spec: ConfigSpec, config: any): Result<T, string> {
   const result: any = {};
   for (const [key, property] of Object.entries(spec.properties)) {
@@ -200,6 +206,12 @@ function parseConfig<T>(spec: ConfigSpec, config: any): Result<T, string> {
     }
   }
   for (const key of Object.keys(config)) {
+    const removed = REMOVED_OPTIONS[key];
+    if (removed != null) {
+      return err(
+        `The Grats config option \`${key}\` has been removed. ${removed}`,
+      );
+    }
     if (!(key in spec.properties)) {
       return err(`Unknown Grats config option \`${key}\`.`);
     }

@@ -6,6 +6,7 @@ Changes in this section are not yet released. If you need access to these change
 
 -   **Breaking Changes**
     -   Removed the experimental TypeScript language service plugin (`grats-ts-plugin` and the `initTsPlugin` export). It was never production-ready, and removing it frees Grats' internals to move away from the TypeScript compiler API.
+    -   Removed the `reportTypeScriptTypeErrors` config option. Grats no longer type checks your code, so run `tsc` to report TypeScript type errors. Grats still reports TypeScript syntax errors, since they prevent it from extracting your schema.
 -   **Features**
     -   Added support for deriving `@gqlEnum` from const arrays (`(typeof X)[number]`) and const objects (`(typeof X)[keyof typeof X]`). This allows defining enums with runtime-accessible values without using TypeScript's `enum` syntax. The const declaration must immediately precede the type alias. See [enum docs](./docblock-tags/enums.md#runtime-accessible-enums) for details.
 -   **Improvements**

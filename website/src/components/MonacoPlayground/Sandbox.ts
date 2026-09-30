@@ -32,7 +32,6 @@ export const DEFAULT_STATE: SerializableState = {
   doc: CONTENT,
   config: {
     nullableByDefault: true,
-    reportTypeScriptTypeErrors: true,
   },
   view: {
     outputOption: "sdl",
@@ -119,10 +118,6 @@ export default class Sandbox {
   ): Promise<void> {
     if (config.nullableByDefault !== undefined) {
       this._serializedState.config.nullableByDefault = config.nullableByDefault;
-    }
-    if (config.reportTypeScriptTypeErrors !== undefined) {
-      this._serializedState.config.reportTypeScriptTypeErrors =
-        config.reportTypeScriptTypeErrors;
     }
     // TODO: Update serialized state
     const worker = await this.getWorker();

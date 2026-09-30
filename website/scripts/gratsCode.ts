@@ -24,7 +24,6 @@ function processFile(file: string) {
   const files = [file /*, `src/Types.ts`*/];
   const config: GratsConfig = {
     nullableByDefault: true,
-    reportTypeScriptTypeErrors: true,
     importModuleSpecifierEnding: "",
     graphqlSchema: "schema.graphql",
     tsSchema: "schema.ts",

@@ -59,7 +59,6 @@ export class GratsWorker extends TypeScriptWorker {
       tsClientEnums: null,
       nullableByDefault: true,
       strictSemanticNullability: false,
-      reportTypeScriptTypeErrors: false,
       importModuleSpecifierEnding: "",
       EXPERIMENTAL__emitMetadata: false,
       EXPERIMENTAL__emitResolverMap: false,

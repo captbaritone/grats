@@ -56,7 +56,7 @@ export function extractSchemaAndDoc(
   options: ParsedCommandLineGrats,
   program: ts.Program,
 ): DiagnosticsWithoutLocationResult<SchemaAndDoc> {
-  return new ResultPipe(gratsSourceFilesFromProgram(program, options))
+  return new ResultPipe(gratsSourceFilesFromProgram(program))
     .andThen((sourceFiles) => {
       const config = options.raw.grats;
 

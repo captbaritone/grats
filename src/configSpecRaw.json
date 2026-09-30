@@ -31,12 +31,6 @@
       "nullable": false,
       "default": false
     },
-    "reportTypeScriptTypeErrors": {
-      "description": "Should Grats error if it encounters a TypeScript type error?\nNote that Grats will always error if it encounters a TypeScript syntax error.",
-      "type": { "kind": "boolean" },
-      "nullable": false,
-      "default": false
-    },
     "schemaHeader": {
       "description": "A string to prepend to the generated schema text. Useful for copyright headers or instructions for how to regenerate the file. Set to `null` to omit the default header.",
       "type": { "kind": "longString" },

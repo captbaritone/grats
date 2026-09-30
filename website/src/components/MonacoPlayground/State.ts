@@ -43,7 +43,6 @@ export function getDefaultPlaygroundConfig(): GratsConfig {
     tsClientEnums: null,
     nullableByDefault: true,
     strictSemanticNullability: false,
-    reportTypeScriptTypeErrors: false,
     schemaHeader: "",
     tsSchemaHeader: "",
     tsClientEnumsHeader: "",
