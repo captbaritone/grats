@@ -22,6 +22,7 @@ use crate::grats_config::GratsConfig;
 use crate::host::Host;
 use crate::oxc_name_resolver::OxcNameResolver;
 use crate::program::{Program, ProgramOptions};
+use crate::source_table::SourceTable;
 use crate::transforms::add_implicit_root_types::add_implicit_root_types;
 use crate::transforms::add_interface_fields::add_interface_fields;
 use crate::transforms::apply_default_nullability::apply_default_nullability;
@@ -63,6 +64,7 @@ pub struct PipelineRequest {
 pub fn run(
     request: PipelineRequest,
     host: Arc<dyn Host>,
+    sources: &SourceTable,
 ) -> DiagnosticsWithoutLocationResult<DocumentNode> {
     let PipelineRequest {
         config,
@@ -73,6 +75,7 @@ pub fn run(
     let files = Files::new(
         &allocator,
         &*host,
+        sources,
         program_options.use_case_sensitive_file_names,
     );
     let program = Program::new(&files, Arc::clone(&host), program_options);
@@ -104,7 +107,7 @@ pub fn run(
     let snapshots = collect_results(
         source_files
             .iter()
-            .map(|source_file| extract(source_file, &config, &grats_root, &*host)),
+            .map(|source_file| extract(source_file, &config, &grats_root, sources)),
     )?;
     let mut snapshot = combine_snapshots(snapshots);
     let definitions = std::mem::take(&mut snapshot.definitions);
@@ -152,7 +155,7 @@ pub fn run(
         .and_then(validate_async_iterable)
         // Apply default nullability to fields and arguments, and detect any misuse of
         // `@killsParentOnException`.
-        .and_then(|doc| apply_default_nullability(doc, &config, &*host))
+        .and_then(|doc| apply_default_nullability(doc, &config, sources))
         // Ensure we have Query/Mutation/Subscription types if they've been extended with
         // `@gqlQueryField` and friends.
         .map(add_implicit_root_types)

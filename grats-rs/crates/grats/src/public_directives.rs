@@ -12,7 +12,7 @@ use graphql_js::language::ast::{
 use graphql_js::language::parser::parse;
 use graphql_js::language::source::{DEFAULT_SOURCE_NAME, Source};
 
-use crate::host::Host;
+use crate::source_table::SourceTable;
 use crate::utils::helpers::UNTRACKED_ID;
 
 pub const SEMANTIC_NON_NULL_DIRECTIVE: &str = "semanticNonNull";
@@ -56,23 +56,22 @@ directive @semanticNonNull(levels: [Int] = [0]) on FIELD_DEFINITION
 "#;
 
 /// PORT: `DIRECTIVES_AST`, which TypeScript parses when the module loads. Its
-/// source is added to the host's `SourceTable` so that its locations can be
-/// decoded.
-pub fn directives_ast(host: &dyn Host) -> DocumentNode {
+/// source is added to the `SourceTable` so that locations can refer to it.
+pub fn directives_ast(sources: &SourceTable) -> DocumentNode {
     let source = Source::new(
         DIRECTIVES_SDL.to_string(),
         DEFAULT_SOURCE_NAME.to_string(),
-        host.add_source(DEFAULT_SOURCE_NAME, DIRECTIVES_SDL),
+        sources.add(DEFAULT_SOURCE_NAME, DIRECTIVES_SDL),
     );
     parse(&source).expect("Grats' directives should parse")
 }
 
 /// PORT: `DIRECTIVES_AST` is parsed on demand (see `directives_ast`).
 pub fn add_semantic_non_null_directive(
-    host: &dyn Host,
+    sources: &SourceTable,
     definitions: Vec<DefinitionNode>,
 ) -> Vec<DefinitionNode> {
-    directives_ast(host)
+    directives_ast(sources)
         .definitions
         .into_iter()
         .chain(definitions)

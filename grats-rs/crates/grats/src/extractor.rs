@@ -41,7 +41,6 @@ use crate::files::ParsedFile;
 use crate::graphql_constructor::{GraphQLConstructor, loc};
 use crate::grats_config::GratsConfig;
 use crate::grats_root::relative_path;
-use crate::host::Host;
 use crate::jsdoc::{
     JSDocComment, JSDocCommentPart, JSDocIndex, JSDocOrTag, SyntaxKind, TagId, TsNodeId,
     full_start, get_text_of_js_doc_comment, is_js_white_space, js_trim, skip_trivia,
@@ -49,6 +48,7 @@ use crate::jsdoc::{
 use crate::snapshot_refs::{
     DeclLoc, DeclRef, EntityName, EntityNameRef, decl_ref, entity_name_ref,
 };
+use crate::source_table::SourceTable;
 use crate::type_context::{
     DeclarationDefinition, DeclarationDefinitionKind, DerivedResolverDefinition,
     UNRESOLVED_REFERENCE_NAME,
@@ -175,16 +175,16 @@ pub struct NameDefinitionEntry {
 /// errors will point to the correct location in the TypeScript source code.
 ///
 /// PORT: Takes the config's `tsClientEnums`, as TypeScript does, with the
-/// rest of it. `grats_root` and `host` are the context which TypeScript's
+/// rest of it. `grats_root` and `sources` are the context which TypeScript's
 /// module-level state provides: the root which exported paths are relative
 /// to, and the `SourceTable` of the `@gqlAnnotate` tags' GraphQL sources.
 pub fn extract(
     source_file: &ParsedFile,
     config: &GratsConfig,
     grats_root: &str,
-    host: &dyn Host,
+    sources: &SourceTable,
 ) -> DiagnosticsResult<ExtractionSnapshot> {
-    let extractor = Extractor::new(source_file, config, grats_root, host);
+    let extractor = Extractor::new(source_file, config, grats_root, sources);
     extractor.extract()
 }
 
@@ -206,7 +206,7 @@ struct Extractor<'f, 'a> {
     /// PORT: The JSDoc of `file`.
     jsdoc: &'f JSDocIndex,
     grats_root: &'f str,
-    host: &'f dyn Host,
+    sources: &'f SourceTable,
     /// PORT: See `ExtractionSnapshot::diagnostics_by_handle`.
     diagnostics_by_handle: HashMap<DiagnosticHandle, Diagnostic>,
 }
@@ -216,7 +216,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         file: &'f ParsedFile<'a>,
         config: &'f GratsConfig,
         grats_root: &'f str,
-        host: &'f dyn Host,
+        sources: &'f SourceTable,
     ) -> Self {
         Extractor {
             definitions: Vec::new(),
@@ -231,7 +231,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             file,
             jsdoc: file.jsdoc(),
             grats_root,
-            host,
+            sources,
             diagnostics_by_handle: HashMap::new(),
         }
     }
@@ -1265,15 +1265,15 @@ impl<'f, 'a> Extractor<'f, 'a> {
     /// simple as providing an offset since the lines in the source text might be
     /// prefixed with indentation and `*`s.
     ///
-    /// PORT: The source is added to the host's `SourceTable`, where the
-    /// TypeScript side adds it when its locations are encoded.
+    /// PORT: The source is added to the `SourceTable`, so that locations can
+    /// refer to it.
     fn parse_gql<T>(
         &mut self,
         node: Span,
         source: String,
         cb: impl FnOnce(&mut Parser) -> ParseResult<T>,
     ) -> Option<T> {
-        let id = self.host.add_source(DEFAULT_SOURCE_NAME, &source);
+        let id = self.sources.add(DEFAULT_SOURCE_NAME, &source);
         let source = Source::new(source, DEFAULT_SOURCE_NAME.to_string(), id);
         let mut parser = Parser::new(&source);
         let result: ParseResult<T> = (|| {

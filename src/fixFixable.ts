@@ -1,7 +1,7 @@
-import * as ts from "typescript";
 import {
   DiagnosticsWithoutLocationResult,
-  FixableDiagnostic,
+  GratsDiagnostic,
+  TextChange,
 } from "./utils/DiagnosticError.js";
 import { writeFileSync, readFileSync } from "fs";
 import { relativePath } from "./gratsRoot.js";
@@ -44,9 +44,7 @@ export function withFixesFixed<T>(
     }
 
     // Extract fixable diagnostics
-    const fixableDiagnostics = result.err.filter(
-      (d) => "fix" in d && d.fix != null,
-    );
+    const fixableDiagnostics = result.err.filter((d) => d.fix != null);
 
     if (fixableDiagnostics.length === 0) {
       // No fixable diagnostics, return the error result
@@ -76,13 +74,13 @@ export function withFixesFixed<T>(
  * Returns true if any files were changed, false otherwise.
  */
 export function applyFixes(
-  fixableDiagnostics: FixableDiagnostic[],
+  fixableDiagnostics: GratsDiagnostic[],
   options: FixOptions,
 ): boolean {
   let appliedAnyFixes = false;
 
   // Group diagnostics by file to batch changes
-  const diagnosticsByFile = new Map<string, FixableDiagnostic[]>();
+  const diagnosticsByFile = new Map<string, GratsDiagnostic[]>();
 
   for (const diagnostic of fixableDiagnostics) {
     if (!diagnostic.fix) continue;
@@ -103,7 +101,7 @@ export function applyFixes(
       let newContent = content;
 
       // Collect all text changes for this file and sort by position in reverse order
-      const allTextChanges: ts.TextChange[] = [];
+      const allTextChanges: TextChange[] = [];
 
       for (const diagnostic of fileDiagnostics) {
         if (!diagnostic.fix) continue;

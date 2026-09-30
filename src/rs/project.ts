@@ -2,11 +2,10 @@ import * as ts from "typescript";
 import type { GratsConfig } from "../gratsConfig.js";
 import {
   DiagnosticsWithoutLocationResult,
-  locationlessErr,
+  GratsDiagnostic,
 } from "../utils/DiagnosticError.js";
 import { err, ok, Result } from "../utils/Result.js";
-import { decodeDiagnostic, EncodedDiagnostic, SourceTable } from "./codec.js";
-import { host, RustProgramOptions, toRustPath } from "./host.js";
+import { fromRustPath, host, RustProgramOptions, toRustPath } from "./host.js";
 import { callRust } from "./load.js";
 
 /**
@@ -22,28 +21,29 @@ type ValidatedConfig = { config: GratsConfig; warnings: string[] };
 
 /**
  * Reads the project a `tsconfig.json` describes, and prints any warnings
- * about its Grats config.
+ * about its Grats config. Without a `configPath`, the `tsconfig.json` is
+ * found in the current directory or the closest directory above it.
  */
 export function loadProject(
-  configPath: string,
-): DiagnosticsWithoutLocationResult<GratsProject> {
-  const sources = new SourceTable();
+  configPath: string | undefined,
+): DiagnosticsWithoutLocationResult<{
+  configPath: string;
+  project: GratsProject;
+}> {
   const request = {
-    configPath: toRustPath(configPath),
+    configPath: configPath == null ? null : toRustPath(configPath),
     useCaseSensitiveFileNames: ts.sys.useCaseSensitiveFileNames,
   };
   const result: Result<
-    GratsProject & { warnings: string[] },
-    EncodedDiagnostic[]
-  > = JSON.parse(
-    callRust("load_project", JSON.stringify(request), host(sources)),
-  );
+    GratsProject & { configPath: string; warnings: string[] },
+    GratsDiagnostic[]
+  > = JSON.parse(callRust("load_project", JSON.stringify(request), host()));
   if (result.kind === "ERROR") {
-    return err(result.err.map((d) => decodeDiagnostic(d, sources)));
+    return err(result.err);
   }
-  const { warnings, ...project } = result.value;
+  const { warnings, configPath: rustConfigPath, ...project } = result.value;
   warnings.forEach((warning) => console.warn(warning));
-  return ok(project);
+  return ok({ configPath: fromRustPath(rustConfigPath), project });
 }
 
 /**
@@ -52,12 +52,12 @@ export function loadProject(
  */
 export function validateGratsOptions(
   options: unknown,
-): Result<GratsConfig, ts.Diagnostic[]> {
-  const result: Result<ValidatedConfig, string> = JSON.parse(
+): DiagnosticsWithoutLocationResult<GratsConfig> {
+  const result: Result<ValidatedConfig, GratsDiagnostic[]> = JSON.parse(
     callRust("validate_grats_options", JSON.stringify(options ?? null)),
   );
   if (result.kind === "ERROR") {
-    return err([locationlessErr(result.err)]);
+    return err(result.err);
   }
   result.value.warnings.forEach((warning) => console.warn(warning));
   return ok(result.value.config);

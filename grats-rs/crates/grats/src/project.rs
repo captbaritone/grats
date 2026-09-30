@@ -1,5 +1,6 @@
 //! PORT: Replaces `getParsedTsConfig` in `src/index.ts`, which read
-//! `tsconfig.json` with `ts.getParsedCommandLineOfConfigFile`.
+//! `tsconfig.json` with `ts.getParsedCommandLineOfConfigFile`, and
+//! `getTsConfig` in `src/cli.ts`, which found it with `ts.findConfigFile`.
 //! `oxc_resolver` reads the config, following `extends`, and we list the
 //! files it includes like TypeScript's `matchFiles`.
 //!
@@ -27,14 +28,19 @@ use oxc_resolver::{ResolveError, ResolveOptions, ResolverGeneric, TsConfig};
 use serde::Serialize;
 use serde_json::Value;
 
+use crate::errors::ts_config_not_found;
 use crate::grats_config::{GratsConfig, validate_grats_options};
-use crate::host::Host;
+use crate::host::{FileKind, Host};
 use crate::program::{HostFileSystem, ProgramOptions};
 use crate::utils::diagnostic_error::{DiagnosticsWithoutLocationResult, locationless_err};
+use crate::utils::path;
 
 /// A project, as its `tsconfig.json` describes it.
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Project {
+    /// The path of the `tsconfig.json`.
+    pub config_path: String,
     /// The validated Grats config.
     pub config: GratsConfig,
     /// Warnings about the Grats config.
@@ -52,11 +58,22 @@ const EXTENSION_GROUPS: [&[&str]; 3] = [
     &[".mts", ".d.mts", ".mjs"],
 ];
 
+/// Reads the project described by the `tsconfig.json` at `config_path`, or
+/// if it's `None`, the one found in the current directory or the closest
+/// directory above it.
 pub fn load_project(
-    config_path: &str,
+    config_path: Option<&str>,
     use_case_sensitive_file_names: bool,
     host: Arc<dyn Host>,
 ) -> DiagnosticsWithoutLocationResult<Project> {
+    let config_path = match config_path {
+        Some(config_path) => config_path.to_string(),
+        None => find_config_file(&*host).ok_or_else(|| {
+            let cwd = host.current_directory();
+            vec![locationless_err(ts_config_not_found(path::to_native(&cwd)))]
+        })?,
+    };
+    let config_path = config_path.as_str();
     let resolver = ResolverGeneric::new_with_file_system(
         HostFileSystem {
             host: Arc::clone(&host),
@@ -91,6 +108,7 @@ pub fn load_project(
     let options = &tsconfig.compiler_options;
     let allow_js = options.allow_js.or(options.check_js).unwrap_or(false);
     Ok(Project {
+        config_path: config_path.to_string(),
         config: validated.config,
         warnings: validated.warnings,
         program: ProgramOptions {
@@ -100,6 +118,23 @@ pub fn load_project(
             use_case_sensitive_file_names,
         },
     })
+}
+
+/// Like `ts.findConfigFile`: the first `tsconfig.json` in the current
+/// directory or a directory above it.
+fn find_config_file(host: &dyn Host) -> Option<String> {
+    let mut directory = host.current_directory();
+    loop {
+        let candidate = path::resolve(&directory, "tsconfig.json");
+        if host.stat(&candidate, true) == Some(FileKind::File) {
+            return Some(candidate);
+        }
+        let parent = path::dirname(&directory).to_string();
+        if parent == directory {
+            return None;
+        }
+        directory = parent;
+    }
 }
 
 /// Like `getFileNamesFromConfigSpecs`: the files named by `files`, followed

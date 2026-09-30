@@ -1,7 +1,14 @@
-import { Location } from "graphql";
-import { Result, ok } from "./utils/Result.js";
-import { EncodedLocation } from "./rs/codec.js";
+import { Result } from "./utils/Result.js";
+import { GratsDiagnostic } from "./utils/DiagnosticError.js";
 import { callRustWithDocument, RustDocument } from "./rs/document.js";
+
+/** Where `locate` found an entity. */
+export type Located = {
+  /** As `path:line:column`, with an absolute path. */
+  location: string;
+  /** A "Located here" diagnostic at the entity. */
+  diagnostic: GratsDiagnostic;
+};
 
 /**
  * Given an entity name of the format `ParentType` or `ParentType.fieldName`,
@@ -10,13 +17,6 @@ import { callRustWithDocument, RustDocument } from "./rs/document.js";
 export function locate(
   doc: RustDocument,
   entityName: string,
-): Result<Location, string> {
-  const { output, sources } = callRustWithDocument("locate", doc, {
-    entityName,
-  });
-  const result: Result<EncodedLocation, string> = JSON.parse(output);
-  if (result.kind === "ERROR") {
-    return result;
-  }
-  return ok(sources.decodeLocation(result.value));
+): Result<Located, string> {
+  return JSON.parse(callRustWithDocument("locate", doc, { entityName }));
 }

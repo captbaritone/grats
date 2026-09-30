@@ -1,13 +1,10 @@
 import { resolveRelativePath } from "../gratsRoot.js";
-import { DiagnosticsWithoutLocationResult } from "../utils/DiagnosticError.js";
-import { err, ok, Result } from "../utils/Result.js";
 import {
-  decodeDiagnostic,
-  EncodedDiagnostic,
-  RustDocumentRequests,
-  RustPipelineRequest,
-  SourceTable,
-} from "./codec.js";
+  DiagnosticsWithoutLocationResult,
+  GratsDiagnostic,
+} from "../utils/DiagnosticError.js";
+import { err, ok, Result } from "../utils/Result.js";
+import { RustDocumentRequests, RustPipelineRequest } from "./codec.js";
 import { callRust, instanceId } from "./load.js";
 import { host } from "./host.js";
 import type { GratsProject } from "./project.js";
@@ -22,8 +19,6 @@ import type { GratsProject } from "./project.js";
  * Rust keeps.
  */
 export type RustDocument = {
-  /** The sources that locations in Rust's output are encoded against. */
-  readonly sources: SourceTable;
   /** Rust loses the document if its instance is replaced. */
   readonly instance: number;
 };
@@ -41,7 +36,6 @@ export function runRustPipeline(
   project: GratsProject,
 ): DiagnosticsWithoutLocationResult<RustDocument> {
   kept = null;
-  const sources = new SourceTable();
   const request: RustPipelineRequest = {
     config: project.config,
     // Rust has no module location to resolve paths against, so it's given
@@ -49,26 +43,25 @@ export function runRustPipeline(
     gratsRoot: resolveRelativePath("."),
     program: project.program,
   };
-  const result: Result<null, EncodedDiagnostic[]> = JSON.parse(
-    callRust("run_pipeline", JSON.stringify(request), host(sources)),
+  const result: Result<null, GratsDiagnostic[]> = JSON.parse(
+    callRust("run_pipeline", JSON.stringify(request), host()),
   );
   if (result.kind === "ERROR") {
-    return err(result.err.map((d) => decodeDiagnostic(d, sources)));
+    return err(result.err);
   }
-  kept = { sources, instance: instanceId() };
+  kept = { instance: instanceId() };
   return ok(kept);
 }
 
 /**
  * Calls an entry point with the document Rust kept when `runRustPipeline`
- * returned `doc`. Returns its output along with the sources to decode
- * locations in the output with.
+ * returned `doc`, and returns its output.
  */
 export function callRustWithDocument<E extends keyof RustDocumentRequests>(
   entryPoint: E,
   doc: RustDocument,
   request: RustDocumentRequests[E],
-): { output: string; sources: SourceTable } {
+): string {
   // Rust only keeps the document from the last `run_pipeline` call, and loses
   // it if its instance is replaced.
   if (kept !== doc || doc.instance !== instanceId()) {
@@ -76,6 +69,5 @@ export function callRustWithDocument<E extends keyof RustDocumentRequests>(
       "Expected the document from the last call to `runRustPipeline`.",
     );
   }
-  const output = callRust(entryPoint, JSON.stringify(request));
-  return { output, sources: doc.sources };
+  return callRust(entryPoint, JSON.stringify(request));
 }

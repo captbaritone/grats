@@ -7,7 +7,7 @@
 /// The `line` and `column` properties in `locationOffset` are 1-indexed.
 ///
 /// PORT: Grats never passes a `locationOffset`. Locations reference their
-/// source by `id`, its index in the TypeScript side's `SourceTable` (see
+/// source by `id`, its index in a `SourceTable` (see
 /// `Location`), so a source must be added to the table before it's parsed.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Source {

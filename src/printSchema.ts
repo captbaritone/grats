@@ -46,7 +46,7 @@ export function printOutputs(
   ) {
     return {};
   }
-  const { output } = callRustWithDocument("print_outputs", doc, {
+  const output = callRustWithDocument("print_outputs", doc, {
     config,
     // Rust has no module location or working directory to resolve paths
     // against, so it's given absolute paths.
@@ -63,5 +63,5 @@ export function printOutputs(
 }
 
 export function printSDLWithoutMetadata(doc: RustDocument): string {
-  return callRustWithDocument("print_sdl_without_metadata", doc, null).output;
+  return callRustWithDocument("print_sdl_without_metadata", doc, null);
 }

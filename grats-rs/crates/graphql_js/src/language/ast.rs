@@ -12,11 +12,11 @@ use serde::{Deserialize, Serialize};
 use super::token_kind::TokenKind;
 
 /// PORT: graphql-js locations reference their `Source` and tokens. Here a
-/// location is an offset range into a source in the `SourceTable` held by the
-/// TypeScript side (see `EncodedLocation` in `src/rs/codec.ts`).
+/// location is a range of UTF-16 offsets into a source in a `SourceTable`
+/// (see `grats::source_table`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub struct Location {
-    /// Index into the TypeScript side's `SourceTable`.
+    /// The source's id in its `SourceTable`.
     pub source: u32,
     /// The character offset at which this Node begins.
     pub start: u32,

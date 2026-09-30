@@ -3,8 +3,6 @@
 // LLM agent docs: See the llm-docs/ directory in the package root for
 // Markdown documentation covering all Grats features and configuration.
 
-import * as E from "./Errors.js";
-import { Location } from "graphql";
 import { SchemaAndDoc, buildSchemaAndDocResult } from "./lib.js";
 import { Command } from "commander";
 import { writeFileSync, readFileSync } from "fs";
@@ -15,18 +13,20 @@ import { printOutputs } from "./printSchema.js";
 import { nullThrows } from "./utils/helpers.js";
 import * as ts from "typescript";
 import {
-  diagnosticsMessage,
-  locationlessErr,
+  GratsDiagnostic,
   ReportableDiagnostics,
   DiagnosticsWithoutLocationResult,
 } from "./utils/DiagnosticError.js";
 import { GratsConfig } from "./gratsConfig.js";
 import { GratsProject, loadProject } from "./rs/project.js";
-import { err, ok } from "./utils/Result.js";
 import { cacheFromProgram, cachesAreEqual, RunCache } from "./runCache.js";
 import { withFixesFixed, FixOptions, applyFixes } from "./fixFixable.js";
 
 type BuildOptions = FixOptions;
+
+// A made-up error code that we use to fake a TypeScript error code.
+// We pick a very random number to avoid collisions with real error messages.
+const FAKE_ERROR_CODE = 1038;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -77,7 +77,7 @@ program
     "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",
   )
   .action((entity, { tsconfig }) => {
-    const { project } = handleDiagnostics(getTsConfig(tsconfig));
+    const { project } = handleDiagnostics(loadProject(tsconfig));
 
     const { doc } = handleDiagnostics(buildSchemaAndDocResult(project));
 
@@ -86,7 +86,9 @@ program
       console.error(loc.err);
       process.exit(1);
     }
-    console.log(formatLoc(loc.value));
+    // Tools like VS Code and iTerm will automatically turn this into a
+    // clickable link.
+    console.log(loc.value.location);
   });
 
 program.parse();
@@ -96,7 +98,7 @@ program.parse();
  */
 function startWatchMode(tsconfig: string, options: BuildOptions) {
   const configInfo = handleDiagnostics(
-    withFixesFixed(() => getTsConfig(tsconfig), options),
+    withFixesFixed(() => loadProject(tsconfig), options),
   );
   const { configPath } = configInfo;
   let project = configInfo.project;
@@ -105,7 +107,7 @@ function startWatchMode(tsconfig: string, options: BuildOptions) {
     {},
     ts.sys,
     ts.createSemanticDiagnosticsBuilderProgram,
-    (diagnostic) => reportDiagnostics([diagnostic]),
+    (diagnostic) => reportTsDiagnostics([diagnostic]),
     (diagnostic) => {
       // Some messages we handle ourselves since we ignore some updates. e.g.
       // when we observe a change we ourselves created.
@@ -114,7 +116,7 @@ function startWatchMode(tsconfig: string, options: BuildOptions) {
         case 6032: // File change detected. Starting incremental compilation...
           return;
         default:
-          reportDiagnostics([diagnostic]);
+          reportTsDiagnostics([diagnostic]);
       }
     },
   );
@@ -133,7 +135,7 @@ function startWatchMode(tsconfig: string, options: BuildOptions) {
       if (cachesAreEqual(lastRunCache, runCache, ignorePaths)) {
         return;
       }
-      reportDiagnostics([
+      reportTsDiagnostics([
         diagnosticsMessage(
           "File change detected. Starting incremental compilation...",
         ),
@@ -142,7 +144,7 @@ function startWatchMode(tsconfig: string, options: BuildOptions) {
 
     lastRunCache = runCache;
 
-    function fixOrReport(diagnostics: ts.Diagnostic[]) {
+    function fixOrReport(diagnostics: GratsDiagnostic[]) {
       if (options.fix && applyFixes(diagnostics, options)) {
         // Watch mode should re-run after applying fixes
         return;
@@ -151,7 +153,7 @@ function startWatchMode(tsconfig: string, options: BuildOptions) {
     }
 
     // It's possible our config was updated, so re-read it.
-    const configResult = getTsConfig(tsconfig);
+    const configResult = loadProject(tsconfig);
     if (configResult.kind === "ERROR") {
       fixOrReport(configResult.err);
       return;
@@ -165,7 +167,7 @@ function startWatchMode(tsconfig: string, options: BuildOptions) {
     }
     writeSchemaFilesAndReport(schemaResult.value, project, configPath);
   };
-  reportDiagnostics([
+  reportTsDiagnostics([
     diagnosticsMessage("Starting compilation in watch mode..."),
   ]);
   ts.createWatchProgram(watchHost);
@@ -176,7 +178,7 @@ function startWatchMode(tsconfig: string, options: BuildOptions) {
  */
 function runBuild(tsconfig: string, options: BuildOptions) {
   const { project, configPath } = handleDiagnostics(
-    withFixesFixed(() => getTsConfig(tsconfig), options),
+    withFixesFixed(() => loadProject(tsconfig), options),
   );
   const schemaAndDoc = handleDiagnostics(
     withFixesFixed(() => buildSchemaAndDocResult(project), options),
@@ -231,12 +233,8 @@ function writeSchemaFilesAndReport(
 /**
  * Utility function to report diagnostics to the console.
  */
-function reportDiagnostics(diagnostics: ts.Diagnostic[]) {
+function reportDiagnostics(diagnostics: GratsDiagnostic[]) {
   const reportable = ReportableDiagnostics.fromDiagnostics(diagnostics);
-  reportReportableDiagnostics(reportable);
-}
-
-function reportReportableDiagnostics(reportable: ReportableDiagnostics) {
   console.error(reportable.formatDiagnosticsWithColorAndContext());
 }
 
@@ -245,34 +243,37 @@ function reportReportableDiagnostics(reportable: ReportableDiagnostics) {
  */
 function handleDiagnostics<T>(result: DiagnosticsWithoutLocationResult<T>): T {
   if (result.kind === "ERROR") {
-    const reportable = ReportableDiagnostics.fromDiagnostics(result.err);
-    console.error(reportable.formatDiagnosticsWithColorAndContext());
+    reportDiagnostics(result.err);
     process.exit(1);
   }
   return result.value;
 }
 
-// Locate and read the tsconfig.json file
-function getTsConfig(tsconfig?: string): DiagnosticsWithoutLocationResult<{
-  configPath: string;
-  project: GratsProject;
-}> {
-  const cwd = process.cwd();
-  const configPath = tsconfig || ts.findConfigFile(cwd, ts.sys.fileExists);
-  if (configPath == null) {
-    return err([locationlessErr(E.tsConfigNotFound(cwd))]);
-  }
-  const projectResult = loadProject(configPath);
-  if (projectResult.kind === "ERROR") {
-    return err(projectResult.err);
-  }
-  return ok({ configPath, project: projectResult.value });
+function diagnosticsMessage(messageText: string): ts.Diagnostic {
+  return {
+    file: undefined,
+    start: undefined,
+    length: undefined,
+    messageText,
+    category: ts.DiagnosticCategory.Message,
+    source: "Grats",
+    code: FAKE_ERROR_CODE,
+  };
 }
 
-// Format a location for printing to the console. Tools like VS Code and iTerm
-// will automatically turn this into a clickable link.
-export function formatLoc(loc: Location) {
-  return `${loc.source.name}:${loc.startToken.line + 1}:${
-    loc.startToken.column + 1
-  }`;
+/**
+ * Reports watch mode's messages, and those of TypeScript's watch program.
+ */
+function reportTsDiagnostics(diagnostics: ts.Diagnostic[]) {
+  const formatted = ts.formatDiagnosticsWithColorAndContext(diagnostics, {
+    getCanonicalFileName: (path) => path,
+    getCurrentDirectory: ts.sys.getCurrentDirectory,
+    getNewLine: () => ts.sys.newLine,
+  });
+  // TypeScript requires having an error code, but we are not a real TS error,
+  // so we don't have an error code. This little hack here is a sin, but it
+  // lets us leverage all of TypeScript's error reporting logic.
+  console.error(
+    formatted.replace(new RegExp(` TS${FAKE_ERROR_CODE}: `, "g"), ": "),
+  );
 }

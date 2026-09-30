@@ -17,10 +17,12 @@ use oxc_span::{GetSpan, SourceType, Span};
 
 use crate::host::Host;
 use crate::jsdoc::JSDocIndex;
+use crate::source_table::SourceTable;
 
 pub struct Files<'a> {
     allocator: &'a Allocator,
     pub host: &'a dyn Host,
+    pub sources: &'a SourceTable,
     /// Whether paths which differ only in case name different files.
     use_case_sensitive_file_names: bool,
     /// The files loaded so far, by their key (see `key`), or `None` if a
@@ -60,11 +62,13 @@ impl<'a> Files<'a> {
     pub fn new(
         allocator: &'a Allocator,
         host: &'a dyn Host,
+        sources: &'a SourceTable,
         use_case_sensitive_file_names: bool,
     ) -> Self {
         Files {
             allocator,
             host,
+            sources,
             use_case_sensitive_file_names,
             files: RefCell::new(HashMap::new()),
             source_paths: RefCell::new(HashMap::new()),
@@ -111,11 +115,12 @@ impl<'a> Files<'a> {
         if let Some(file) = self.files.borrow().get(&key) {
             return file.clone();
         }
-        let file = self.host.read_source_file(path).map(|file| {
+        let file = self.host.read_file(path).map(|text| {
+            let source = self.sources.add(path, &text);
             self.source_paths
                 .borrow_mut()
-                .insert(file.source, path.to_string());
-            Rc::new(self.parse(file.source, path, &file.text, is_module))
+                .insert(source, path.to_string());
+            Rc::new(self.parse(source, path, &text, is_module))
         });
         self.files.borrow_mut().insert(key, file.clone());
         file

@@ -6,7 +6,7 @@ import * as ts from "typescript";
 import { buildSchema, graphql, GraphQLSchema, printSchema } from "graphql";
 import { Command } from "commander";
 import { locate } from "../Locate.js";
-import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError.js";
+import { ReportableDiagnostics, TextChange } from "../utils/DiagnosticError.js";
 import { readFileSync, writeFileSync } from "fs";
 import { diff } from "jest-diff";
 import * as prettier from "prettier";
@@ -213,9 +213,7 @@ const testDirs: TestDir[] = [
         return err(
           formatDiagnosticsWithContext(
             code,
-            ReportableDiagnostics.fromDiagnostics([
-              gqlErr({ loc: locResult.value }, "Located here"),
-            ]),
+            ReportableDiagnostics.fromDiagnostics([locResult.value.diagnostic]),
           ),
         );
       } else {
@@ -397,7 +395,7 @@ function formatDiagnosticsWithContext(
     if (diagnostic.fix == null) {
       continue;
     }
-    const textChanges: ts.TextChange[] = [];
+    const textChanges: TextChange[] = [];
     for (const change of diagnostic.fix.changes) {
       extend(textChanges, change.textChanges);
     }
@@ -457,9 +455,9 @@ function formatDiagnosticsWithContext(
   }
 
   if (fixable.length > 0) {
-    const fileName = fixable[0].file?.fileName;
+    const fileName = fixable[0].fix?.changes[0]?.fileName;
     if (fileName == null) {
-      throw new Error("Cannot apply fixes to diagnostic with no file");
+      throw new Error("Cannot apply fixes to diagnostic with no changes");
     }
 
     const current = readFileSync(fileName, "utf8");

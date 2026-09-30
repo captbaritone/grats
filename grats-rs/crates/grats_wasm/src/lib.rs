@@ -24,7 +24,12 @@ use std::cell::RefCell;
 use std::sync::Arc;
 
 use graphql_js::language::ast::DocumentNode;
-use grats::host::JsonHost;
+use grats::host::{Host, JsonHost};
+use grats::source_table::SourceTable;
+use grats::utils::diagnostic_error::{Diagnostic, gql_err, locationless_err};
+use grats::utils::format_diagnostics::{
+    ReportableDiagnostic, format_location_without_color, reportable_diagnostics,
+};
 use serde::{Deserialize, Serialize};
 
 thread_local! {
@@ -35,6 +40,10 @@ thread_local! {
     /// it), so the document never crosses. It's kept until the next
     /// `run_pipeline` call, since a caller may print it more than once.
     static PIPELINE_DOC: RefCell<Option<DocumentNode>> = const { RefCell::new(None) };
+
+    /// The sources which locations in `PIPELINE_DOC` refer to, and the
+    /// current directory `locate` formats its diagnostic against.
+    static PIPELINE_SOURCES: RefCell<Option<(SourceTable, String)>> = const { RefCell::new(None) };
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -129,16 +138,32 @@ fn reserve_heap(bytes: usize) {
     drop(std::hint::black_box(Vec::<u8>::with_capacity(bytes)));
 }
 
+fn json_host() -> Arc<dyn Host> {
+    Arc::new(JsonHost::new(call_host))
+}
+
+/// Formats diagnostics whose locations refer to `sources`, relative to the
+/// host's current directory.
+fn report(
+    diagnostics: Vec<Diagnostic>,
+    sources: &SourceTable,
+    host: &dyn Host,
+) -> Vec<ReportableDiagnostic> {
+    reportable_diagnostics(diagnostics, sources, &host.current_directory())
+}
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct LoadProjectRequest {
-    config_path: String,
+    /// If there's none, the `tsconfig.json` is found from the current
+    /// directory.
+    config_path: Option<String>,
     use_case_sensitive_file_names: bool,
 }
 
 /// Input: a `LoadProjectRequest`, as JSON. Output: the `Project` (see
-/// `grats::project`) its `tsconfig.json` describes, or the diagnostics, as a
-/// JSON `Result` (see `src/utils/Result.ts`).
+/// `grats::project`) its `tsconfig.json` describes, or the diagnostics (see
+/// `ReportableDiagnostic`), as a JSON `Result` (see `src/utils/Result.ts`).
 ///
 /// # Safety
 ///
@@ -149,18 +174,20 @@ pub unsafe extern "C" fn load_project(ptr: *mut u8, len: usize) {
         call(ptr, len, |input| {
             let request: LoadProjectRequest =
                 serde_json::from_str(&input).expect("Input should be a LoadProjectRequest");
-            result_json(grats::project::load_project(
-                &request.config_path,
+            let host = json_host();
+            let result = grats::project::load_project(
+                request.config_path.as_deref(),
                 request.use_case_sensitive_file_names,
-                Arc::new(JsonHost::new(call_host)),
-            ))
+                Arc::clone(&host),
+            );
+            result_json(result.map_err(|errors| report(errors, &SourceTable::default(), &*host)))
         })
     }
 }
 
 /// Input: the `grats` key of a `tsconfig.json`, as JSON. Output: the
-/// `ValidatedConfig` (see `grats::grats_config`), or an error message, as a
-/// JSON `Result` (see `src/utils/Result.ts`).
+/// `ValidatedConfig` (see `grats::grats_config`), or the diagnostics (see
+/// `ReportableDiagnostic`), as a JSON `Result` (see `src/utils/Result.ts`).
 ///
 /// # Safety
 ///
@@ -171,13 +198,19 @@ pub unsafe extern "C" fn validate_grats_options(ptr: *mut u8, len: usize) {
         call(ptr, len, |input| {
             let options: serde_json::Value =
                 serde_json::from_str(&input).expect("Input should be JSON");
-            result_json(grats::grats_config::validate_grats_options(Some(&options)))
+            let result = grats::grats_config::validate_grats_options(Some(&options));
+            // The error has no location, so there's no need to ask the host
+            // for the directory its path would be relative to.
+            result_json(result.map_err(|message| {
+                reportable_diagnostics(vec![locationless_err(message)], &SourceTable::default(), "")
+            }))
         })
     }
 }
 
 /// Input: a `PipelineRequest` (see `grats::pipeline`), as JSON. Output: the
-/// diagnostics, as a JSON `Result` (see `src/utils/Result.ts`).
+/// diagnostics (see `ReportableDiagnostic`), as a JSON `Result` (see
+/// `src/utils/Result.ts`).
 ///
 /// If the document is valid, it's kept for the entry points which follow.
 ///
@@ -189,11 +222,19 @@ pub unsafe extern "C" fn run_pipeline(ptr: *mut u8, len: usize) {
     unsafe {
         call(ptr, len, |input| {
             PIPELINE_DOC.with(|kept| *kept.borrow_mut() = None);
+            PIPELINE_SOURCES.with(|kept| *kept.borrow_mut() = None);
             let request = serde_json::from_str(&input).expect("Input should be a PipelineRequest");
-            let result =
-                grats::pipeline::run(request, Arc::new(JsonHost::new(call_host))).map(|doc| {
+            let host = json_host();
+            let sources = SourceTable::default();
+            let result = match grats::pipeline::run(request, Arc::clone(&host), &sources) {
+                Ok(doc) => {
                     PIPELINE_DOC.with(|kept| *kept.borrow_mut() = Some(doc));
-                });
+                    let cwd = host.current_directory();
+                    PIPELINE_SOURCES.with(|kept| *kept.borrow_mut() = Some((sources, cwd)));
+                    Ok(())
+                }
+                Err(errors) => Err(report(errors, &sources, &*host)),
+            };
             result_json(result)
         })
     }
@@ -231,9 +272,18 @@ pub unsafe extern "C" fn print_sdl_without_metadata(ptr: *mut u8, len: usize) {
     }
 }
 
-/// Input: a `LocateRequest` (see `grats::locate`), as JSON. Output: the
-/// location in the document kept by `run_pipeline`, or an error message, as a
-/// JSON `Result` (see `src/utils/Result.ts`).
+/// Where `locate` found an entity.
+#[derive(Serialize)]
+struct Located {
+    /// As `path:line:column`, with an absolute path.
+    location: String,
+    /// A "Located here" diagnostic at the entity.
+    diagnostic: ReportableDiagnostic,
+}
+
+/// Input: a `LocateRequest` (see `grats::locate`), as JSON. Output: where the
+/// entity is in the document kept by `run_pipeline` (see `Located`), or an
+/// error message, as a JSON `Result` (see `src/utils/Result.ts`).
 ///
 /// # Safety
 ///
@@ -243,7 +293,22 @@ pub unsafe extern "C" fn locate(ptr: *mut u8, len: usize) {
     unsafe {
         call(ptr, len, |input| {
             let request = serde_json::from_str(&input).expect("Input should be a LocateRequest");
-            with_pipeline_doc(|doc| result_json(grats::locate::locate_in_document(doc, request)))
+            let result = with_pipeline_doc(|doc| grats::locate::locate_in_document(doc, request));
+            let located = result.map(|loc| {
+                PIPELINE_SOURCES.with(|kept| {
+                    let kept = kept.borrow();
+                    let (sources, cwd) = kept
+                        .as_ref()
+                        .expect("Expected sources kept by `run_pipeline`");
+                    let diagnostic = gql_err(Some(loc), "Located here".to_string(), None);
+                    let mut diagnostics = reportable_diagnostics(vec![diagnostic], sources, cwd);
+                    Located {
+                        location: format_location_without_color(sources, &loc),
+                        diagnostic: diagnostics.remove(0),
+                    }
+                })
+            });
+            result_json(located)
         })
     }
 }

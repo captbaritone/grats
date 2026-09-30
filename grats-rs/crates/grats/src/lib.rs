@@ -24,6 +24,7 @@ pub mod program;
 pub mod project;
 pub mod public_directives;
 pub mod snapshot_refs;
+pub mod source_table;
 pub mod transforms;
 pub mod type_context;
 pub mod utils;

@@ -134,6 +134,17 @@ pub fn relative(from: &str, to: &str) -> String {
     out + &slice(to, to_rest)
 }
 
+/// A path as the platform writes it, for showing to users: on Windows,
+/// `/C:/project` is `C:/project`. Like `fromRustPath` in `src/rs/host.ts`.
+pub fn to_native(path: &str) -> &str {
+    let bytes = path.as_bytes();
+    if bytes.len() >= 3 && bytes[0] == b'/' && bytes[1].is_ascii_alphabetic() && bytes[2] == b':' {
+        &path[1..]
+    } else {
+        path
+    }
+}
+
 /// Like `path.dirname(path)`.
 ///
 /// Ported from Node's `lib/path.js` (`posix.dirname`), with backslashes

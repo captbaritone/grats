@@ -10,23 +10,20 @@ use serde::Serialize;
 use crate::files::ParsedFile;
 use crate::jsdoc::CommentRange;
 
-/// PORT: A `ts.Diagnostic` in the TypeScript implementation. Rust has no
-/// source files to reference, so diagnostics carry GraphQL locations (or none,
-/// for `locationless_err`), and the TypeScript side builds the
-/// `ts.Diagnostic`. See `decodeDiagnostic` in `src/rs/codec.ts`.
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
+/// PORT: A `ts.Diagnostic` in the TypeScript implementation. Diagnostics
+/// carry GraphQL locations (or none, for `locationless_err`), which refer to
+/// a `SourceTable`, and they're formatted before they cross to the TypeScript
+/// side (see `crate::utils::format_diagnostics`).
+#[derive(Debug, Clone)]
 pub struct Diagnostic {
     pub message_text: String,
     pub loc: Option<Location>,
     pub related_information: Option<Vec<DiagnosticRelatedInformation>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub fix: Option<Box<CodeFixAction>>,
 }
 
 /// PORT: A `ts.DiagnosticRelatedInformation`. See `Diagnostic`.
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone)]
 pub struct DiagnosticRelatedInformation {
     pub message_text: String,
     pub loc: Location,

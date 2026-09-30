@@ -1,22 +1,19 @@
-import { Source } from "graphql";
 import * as fs from "fs";
 import * as path from "path";
 import * as ts from "typescript";
-import type { SourceTable } from "./codec.js";
 
 /**
  * What the Rust port of Grats asks of its host: access to the file system,
- * and the `SourceTable` which locations in its output refer to. See `Host` in
+ * and the current directory. See `Host` in
  * `grats-rs/crates/grats/src/host.rs`.
  */
 export type HostRequest =
   | { kind: "readFile"; path: string }
-  | { kind: "readSourceFile"; path: string }
   | { kind: "stat"; path: string; followLinks: boolean }
   | { kind: "readLink"; path: string }
   | { kind: "realpath"; path: string }
   | { kind: "readDir"; path: string }
-  | { kind: "addSource"; name: string; body: string };
+  | { kind: "currentDirectory" };
 
 /** A response to a `HostRequest`, as JSON. */
 export type Host = (request: HostRequest) => unknown;
@@ -30,29 +27,16 @@ export function toRustPath(fileName: string): string {
   return /^[A-Za-z]:/.test(slashed) ? `/${slashed}` : slashed;
 }
 
-/**
- * A path from Rust as TypeScript writes file names, so that sources are named
- * as they were when TypeScript read the files.
- */
-function fromRustPath(rustPath: string): string {
+/** A path from Rust as the platform writes it. */
+export function fromRustPath(rustPath: string): string {
   return rustPath.replace(/^\/(?=[A-Za-z]:)/, "");
 }
 
-export function host(sources: SourceTable): Host {
+export function host(): Host {
   return (request) => {
     switch (request.kind) {
       case "readFile":
         return ts.sys.readFile(fromRustPath(request.path)) ?? null;
-      case "readSourceFile": {
-        const fileName = fromRustPath(request.path);
-        const text = ts.sys.readFile(fileName);
-        if (text == null) {
-          return null;
-        }
-        // Locations in diagnostics refer to the file by its name.
-        const source = sources.sourceId(new Source(text, fileName));
-        return { source, text };
-      }
       case "stat": {
         const fileName = fromRustPath(request.path);
         const stats = request.followLinks
@@ -109,8 +93,8 @@ export function host(sources: SourceTable): Host {
         }
         return { files: files.sort(), directories: directories.sort() };
       }
-      case "addSource":
-        return sources.sourceId(new Source(request.body, request.name));
+      case "currentDirectory":
+        return toRustPath(process.cwd());
     }
   };
 }
