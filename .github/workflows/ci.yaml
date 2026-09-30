@@ -51,6 +51,8 @@ jobs:
       - name: Test Example Projects
         run: pnpm run test-example-projects
       - name: Build Docs Website
+        # The website isn't expected to work on the Rust port's branch yet.
+        if: github.ref != 'refs/heads/grats-rs-port'
         working-directory: ./website
         run: ./scripts/build.sh
   test:
