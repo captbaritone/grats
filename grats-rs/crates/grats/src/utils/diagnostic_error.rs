@@ -3,7 +3,7 @@
 //! PORT: Only the helpers used by ported code.
 
 use graphql_js::error::graphql_error::GraphQLError;
-use graphql_js::language::ast::Location;
+use graphql_js::language::ast::{Location, TsDiagnosticHandle};
 use serde::Serialize;
 
 /// PORT: A `ts.Diagnostic` in the TypeScript implementation. Rust has no
@@ -11,11 +11,17 @@ use serde::Serialize;
 /// for `locationless_err`), and the TypeScript side builds the
 /// `ts.Diagnostic`. See `decodeDiagnostic` in `src/rs/codec.ts`.
 #[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Diagnostic {
-    pub message_text: String,
-    pub loc: Option<Location>,
-    pub related_information: Option<Vec<DiagnosticRelatedInformation>>,
+#[serde(untagged)]
+pub enum Diagnostic {
+    #[serde(rename_all = "camelCase")]
+    Gql {
+        message_text: String,
+        loc: Option<Location>,
+        related_information: Option<Vec<DiagnosticRelatedInformation>>,
+    },
+    /// A diagnostic the TypeScript extractor made, which the TypeScript side
+    /// still holds.
+    Ts(TsDiagnosticHandle),
 }
 
 /// PORT: A `ts.DiagnosticRelatedInformation`. See `Diagnostic`.
@@ -68,7 +74,7 @@ pub fn graphql_error_to_diagnostic(error: &GraphQLError) -> Diagnostic {
         }
     }
 
-    Diagnostic {
+    Diagnostic::Gql {
         message_text: error.message.clone(),
         loc: Some(loc),
         related_information,
@@ -76,7 +82,7 @@ pub fn graphql_error_to_diagnostic(error: &GraphQLError) -> Diagnostic {
 }
 
 pub fn locationless_err(message: String) -> Diagnostic {
-    Diagnostic {
+    Diagnostic::Gql {
         message_text: message,
         loc: None,
         related_information: None,
@@ -92,7 +98,7 @@ pub fn gql_err(
     let Some(loc) = loc else {
         panic!("Expected item to have loc");
     };
-    Diagnostic {
+    Diagnostic::Gql {
         message_text: message,
         loc: Some(loc),
         related_information,

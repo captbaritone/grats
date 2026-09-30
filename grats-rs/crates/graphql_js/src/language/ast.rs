@@ -52,8 +52,8 @@ pub struct ExportDefinition {
 /// information as well as information about resolver with types which have not
 /// yet been resolved.
 ///
-/// PORT: Declared in `src/resolverSignature.ts`. Locations are only used for
-/// reporting diagnostics, so they aren't modeled.
+/// PORT: Declared in `src/resolverSignature.ts`. Its location isn't read by
+/// ported code, so it isn't modeled.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub enum ResolverSignature {
@@ -79,28 +79,94 @@ pub enum ResolverSignature {
     },
 }
 
-/// PORT: Declared in `src/resolverSignature.ts`. Locations and input
-/// definitions are only used for reporting diagnostics, so they aren't
-/// modeled.
+/// PORT: Declared in `src/resolverSignature.ts`.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub enum ResolverArgument {
-    Source,
-    ArgumentsObject,
-    Context,
+    Source {
+        loc: Option<Location>,
+    },
+    ArgumentsObject {
+        loc: Option<Location>,
+    },
+    Context {
+        loc: Option<Location>,
+    },
     /// PORT: `args` only contains context and derived context arguments.
     #[serde(rename_all = "camelCase")]
     DerivedContext {
         path: String,
         export_name: Option<String>,
         args: Vec<ResolverArgument>,
+        loc: Option<Location>,
         r#async: bool,
     },
-    Information,
+    Information {
+        loc: Option<Location>,
+    },
+    #[serde(rename_all = "camelCase")]
     Named {
         name: String,
+        loc: Option<Location>,
+        input_definition: InputValueDefinitionNode,
     },
-    Unresolved,
+    #[serde(rename_all = "camelCase")]
+    Unresolved {
+        input_definition: InputValueDefinitionNodeOrResolverArg,
+        loc: Option<Location>,
+    },
+}
+
+impl ResolverArgument {
+    pub fn loc(&self) -> Option<Location> {
+        match self {
+            ResolverArgument::Source { loc }
+            | ResolverArgument::ArgumentsObject { loc }
+            | ResolverArgument::Context { loc }
+            | ResolverArgument::DerivedContext { loc, .. }
+            | ResolverArgument::Information { loc }
+            | ResolverArgument::Named { loc, .. }
+            | ResolverArgument::Unresolved { loc, .. } => *loc,
+        }
+    }
+}
+
+/// At extraction time we don't know if a resolver arg is context, info, or a
+/// positional GraphQL argument. If it's a positional argument, we need to ensure
+/// it has a valid name. If it's just info or context, it's fine if it doesn't
+/// have a name e.g. (destructured).
+///
+/// PORT: Declared in `src/resolverSignature.ts`.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InputValueDefinitionNodeOrResolverArg {
+    pub loc: Option<Location>,
+    pub description: Option<StringValueNode>,
+    // This is the only property that is different.
+    pub name: TsDiagnosticResult<NameNode>,
+    pub r#type: TypeNode,
+    pub default_value: Option<ConstValueNode>,
+    pub directives: Option<Vec<ConstDirectiveNode>>,
+}
+
+/// PORT: A `DiagnosticResult<T>` (see `src/utils/DiagnosticError.ts`) made by
+/// the TypeScript extractor, whose error is a `TsDiagnosticHandle`.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(tag = "kind", rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum TsDiagnosticResult<T> {
+    Ok { value: T },
+    Error { err: TsDiagnosticHandle },
+}
+
+/// PORT: A `ts.Diagnostic` reported by the TypeScript extractor, but only
+/// reported to the user if a later stage decides it applies. It may have a fix
+/// which edits TypeScript source, so it stays on the TypeScript side and
+/// crosses as a handle. See `SourceTable` in `src/rs/codec.ts`.
+#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TsDiagnosticHandle {
+    /// Index into the diagnostics of the TypeScript side's `SourceTable`.
+    pub ts_diagnostic: u32,
 }
 
 // Name

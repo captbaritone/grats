@@ -2,6 +2,7 @@ import { DocumentNode, Location, Source, Token, TokenKind } from "graphql";
 import * as ts from "typescript";
 import type { GratsConfig } from "../gratsConfig.js";
 import {
+  FixableDiagnosticWithLocation,
   gqlErr,
   gqlRelated,
   locationlessErr,
@@ -15,9 +16,15 @@ import type { TsIdentifier } from "../utils/helpers.js";
  * Encodes values passed between TypeScript and the Rust port of Grats
  * (compiled to wasm) as JSON strings.
  *
- * Most of what crosses is already plain data. The exception is graphql-js
- * `Location`, which references its entire `Source` text, so locations are
- * encoded as offsets into a `SourceTable` which stays on the TypeScript side.
+ * Most of what crosses is already plain data. The exceptions stay on the
+ * TypeScript side in a `SourceTable`:
+ *
+ * - graphql-js `Location`, which references its entire `Source` text, is
+ *   encoded as offsets into one of the table's sources.
+ * - Diagnostics made by the extractor which a later stage decides whether to
+ *   report (the errors of a `DiagnosticResult`), which reference their
+ *   `ts.SourceFile` and may have a fix, are encoded as an index into the
+ *   table's diagnostics.
  */
 
 export type EncodedLocation = {
@@ -25,6 +32,11 @@ export type EncodedLocation = {
   source: number;
   start: number;
   end: number;
+};
+
+export type EncodedTsDiagnostic = {
+  /** Index into the `SourceTable` used to encode the diagnostic. */
+  tsDiagnostic: number;
 };
 
 /**
@@ -38,6 +50,24 @@ export type EncodedLocation = {
 export class SourceTable {
   private _sources: Array<{ source: Source; lines: ts.SourceFileLike }> = [];
   private _idsByName: Map<string, number[]> = new Map();
+  private _diagnostics: FixableDiagnosticWithLocation[] = [];
+
+  encodeDiagnostic(
+    diagnostic: FixableDiagnosticWithLocation,
+  ): EncodedTsDiagnostic {
+    this._diagnostics.push(diagnostic);
+    return { tsDiagnostic: this._diagnostics.length - 1 };
+  }
+
+  decodeDiagnostic(
+    encoded: EncodedTsDiagnostic,
+  ): FixableDiagnosticWithLocation {
+    const diagnostic = this._diagnostics[encoded.tsDiagnostic];
+    if (diagnostic == null) {
+      throw new Error(`Unknown diagnostic id ${encoded.tsDiagnostic}.`);
+    }
+    return diagnostic;
+  }
 
   encodeLocation(loc: Location): EncodedLocation {
     return {
@@ -109,6 +139,9 @@ function encodeWithLocations(value: unknown, sources: SourceTable): string {
     const original = this[key];
     if (original instanceof Location) {
       return sources.encodeLocation(original);
+    }
+    if (key === "err" && this.kind === "ERROR") {
+      return sources.encodeDiagnostic(original);
     }
     return value;
   });
@@ -201,19 +234,24 @@ export function encodeDocumentRequest(
  * A diagnostic reported by Rust. See `Diagnostic` in
  * `grats-rs/crates/grats/src/utils/diagnostic_error.rs`.
  */
-export type EncodedDiagnostic = {
-  messageText: string;
-  loc: EncodedLocation | null;
-  relatedInformation: Array<{
-    messageText: string;
-    loc: EncodedLocation;
-  }> | null;
-};
+export type EncodedDiagnostic =
+  | {
+      messageText: string;
+      loc: EncodedLocation | null;
+      relatedInformation: Array<{
+        messageText: string;
+        loc: EncodedLocation;
+      }> | null;
+    }
+  | EncodedTsDiagnostic;
 
 export function decodeDiagnostic(
   diagnostic: EncodedDiagnostic,
   sources: SourceTable,
 ): ts.Diagnostic {
+  if ("tsDiagnostic" in diagnostic) {
+    return sources.decodeDiagnostic(diagnostic);
+  }
   if (diagnostic.loc == null) {
     return locationlessErr(diagnostic.messageText);
   }

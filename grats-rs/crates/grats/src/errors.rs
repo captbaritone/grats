@@ -99,3 +99,16 @@ pub fn context_or_info_used_in_graphql_position(kind: ContextOrInfo) -> String {
     };
     format!("Cannot use `{tag}` as a type in GraphQL type position.")
 }
+
+pub fn positional_arg_and_args_object() -> String {
+    "Unexpected arguments object in resolver that is also using positional GraphQL arguments. Grats expects that either all GraphQL arguments will be defined in a single object, or that all GraphQL arguments will be defined using positional arguments. The two strategies may not be combined.".to_string()
+}
+
+pub fn cyclic_derived_context() -> String {
+    "Cyclic dependency detected in derived context. This derived context value depends upon itself."
+        .to_string()
+}
+
+pub fn invalid_derived_context_arg_type() -> String {
+    "Invalid type for derived context function argument. Derived context functions may only accept other `@gqlContext` types as arguments.".to_string()
+}

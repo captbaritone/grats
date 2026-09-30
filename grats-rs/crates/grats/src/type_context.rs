@@ -6,7 +6,7 @@
 
 use std::collections::HashMap;
 
-use graphql_js::language::ast::{Location, NameNode};
+use graphql_js::language::ast::{Location, NameNode, ResolverArgument};
 use serde::Deserialize;
 
 use crate::checker_name_resolver::CheckerNameResolver;
@@ -33,12 +33,24 @@ pub enum DeclarationDefinitionKind {
 }
 
 /// PORT: `NameDefinition | DerivedResolverDefinition`, which share `name` and
-/// `kind`. The other fields of `DerivedResolverDefinition` are modeled once
-/// ported code reads them.
+/// `kind`. The rest of a `DerivedResolverDefinition` is in `derived_context`.
 #[derive(Debug, Deserialize)]
 pub struct DeclarationDefinition {
     pub name: NameNode,
     pub kind: DeclarationDefinitionKind,
+    /// Present if `kind` is `DerivedContext`.
+    #[serde(flatten)]
+    pub derived_context: Option<DerivedResolverDefinition>,
+}
+
+/// PORT: The fields of `DerivedResolverDefinition` besides `name` and `kind`.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DerivedResolverDefinition {
+    pub path: String,
+    pub export_name: Option<String>,
+    pub args: Vec<ResolverArgument>,
+    pub r#async: bool,
 }
 
 /// PORT: The state of the TypeScript side's `TypeContext`, which this one is

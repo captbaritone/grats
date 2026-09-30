@@ -74,16 +74,17 @@ fn transform_args(args: Option<&[DirectiveResolverArgument]>) -> Option<Vec<Reso
 
 fn transform_arg(arg: &DirectiveResolverArgument) -> ResolverArgument {
     match arg {
-        DirectiveResolverArgument::ArgumentsObject => ResolverArgument::ArgumentsObject,
-        DirectiveResolverArgument::Named { name } => ResolverArgument::Named { name: name.clone() },
-        DirectiveResolverArgument::Source => ResolverArgument::Source,
-        DirectiveResolverArgument::Information => ResolverArgument::Information,
-        DirectiveResolverArgument::Context => ResolverArgument::Context,
+        DirectiveResolverArgument::ArgumentsObject { .. } => ResolverArgument::ArgumentsObject,
+        DirectiveResolverArgument::Named { name, .. } => ResolverArgument::Named { name: name.clone() },
+        DirectiveResolverArgument::Source { .. } => ResolverArgument::Source,
+        DirectiveResolverArgument::Information { .. } => ResolverArgument::Information,
+        DirectiveResolverArgument::Context { .. } => ResolverArgument::Context,
         DirectiveResolverArgument::DerivedContext {
             path,
             export_name,
             r#async,
             args,
+            ..
         } => ResolverArgument::DerivedContext {
             path: path.clone(),
             export_name: export_name.clone(),
@@ -103,6 +104,6 @@ fn transform_arg(arg: &DirectiveResolverArgument) -> ResolverArgument {
                 })
                 .collect(),
         },
-        DirectiveResolverArgument::Unresolved => panic!("Unresolved argument in resolver"),
+        DirectiveResolverArgument::Unresolved { .. } => panic!("Unresolved argument in resolver"),
     }
 }

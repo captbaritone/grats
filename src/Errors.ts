@@ -548,25 +548,8 @@ export function positionalResolverArgDoesNotHaveName(): string {
   return "Expected resolver argument to have a name. Grats needs to be able to see the name of the argument in order to derive a GraphQL argument name.";
 }
 
-export function positionalArgAndArgsObject(): string {
-  return "Unexpected arguments object in resolver that is also using positional GraphQL arguments. Grats expects that either all GraphQL arguments will be defined in a single object, or that all GraphQL arguments will be defined using positional arguments. The two strategies may not be combined.";
-}
-
-export function contextOrInfoUsedInGraphQLPosition(kind: "CONTEXT" | "INFO") {
-  const tag = kind === "CONTEXT" ? CONTEXT_TAG : INFO_TAG;
-  return `Cannot use \`${tag}\` as a type in GraphQL type position.`;
-}
-
 export function tsConfigNotFound(cwd: string) {
   return `Grats: Could not find \`tsconfig.json\` searching in ${cwd}.\n\nSee https://www.typescriptlang.org/download/ for instructors on how to add TypeScript to your project. Then run \`npx tsc --init\` to create a \`tsconfig.json\` file.`;
-}
-
-export function cyclicDerivedContext() {
-  return `Cyclic dependency detected in derived context. This derived context value depends upon itself.`;
-}
-
-export function invalidDerivedContextArgType() {
-  return "Invalid type for derived context function argument. Derived context functions may only accept other `@gqlContext` types as arguments.";
 }
 
 export function missingReturnTypeForDerivedResolver() {

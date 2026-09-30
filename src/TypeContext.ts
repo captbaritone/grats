@@ -1,7 +1,6 @@
 import { Location, NameNode } from "graphql";
 import {
   gqlErr,
-  DiagnosticResult,
   gqlRelated,
   DiagnosticsResult,
   FixableDiagnosticWithLocation,
@@ -51,11 +50,6 @@ import type { TsIdentifier } from "./utils/helpers.js";
 export interface ITypeContext {
   /** Checks if an unresolved NameNode refers to a GraphQL type */
   unresolvedNameIsGraphQL(unresolved: NameNode): boolean;
-
-  /** Gets the declaration definition for a GraphQL NameNode */
-  gqlNameDefinitionForGqlName(
-    nameNode: NameNode,
-  ): DiagnosticResult<DeclarationDefinition>;
 }
 
 /**
@@ -151,25 +145,6 @@ export class TypeContext implements ITypeContext {
     const declaration = this.maybeDeclarationForTsName(referenceNode.name);
     if (declaration == null) return false;
     return this._declarationToDefinition.has(declaration.declLoc);
-  }
-
-  gqlNameDefinitionForGqlName(
-    nameNode: NameNode,
-  ): DiagnosticResult<DeclarationDefinition> {
-    const referenceNode = this.getEntityName(nameNode);
-    if (referenceNode == null) {
-      throw new Error("Expected to find reference node for name node.");
-    }
-
-    const declaration = this.maybeDeclarationForTsName(referenceNode.name);
-    if (declaration == null) {
-      return err(gqlErr(nameNode, E.unresolvedTypeReference()));
-    }
-    const definition = this._declarationToDefinition.get(declaration.declLoc);
-    if (definition == null) {
-      return err(gqlErr(nameNode, E.unresolvedTypeReference()));
-    }
-    return ok(definition);
   }
 
   private maybeDeclarationForTsName(
