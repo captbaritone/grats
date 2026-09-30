@@ -8,22 +8,24 @@
 //! are EXPERIMENTING with exposing the result of Grats' analysis as JSON. This
 //! file contains the TypeScript types describing that shape.
 //!
-//! PORT: These types deserialize from that JSON. Objects are `IndexMap`s since
-//! codegen iterates them in insertion order, as JavaScript does for keys which
-//! aren't array indices, which GraphQL names can't be.
+//! PORT: These types serialize to that JSON. Objects are `IndexMap`s since
+//! codegen and serialization iterate them in insertion order, as JavaScript
+//! does for keys which aren't array indices, which GraphQL names can't be.
+//! Fields are declared in the order `makeResolverSignature` sets them, which
+//! is the order they are serialized in.
 
 use indexmap::IndexMap;
-use serde::Deserialize;
+use serde::Serialize;
 
 /// Metadata for the full schema
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize)]
 pub struct Metadata {
     /// Types in the schema
     pub types: IndexMap<String, IndexMap<String, FieldDefinition>>,
 }
 
 /// A GraphQL field
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize)]
 pub struct FieldDefinition {
     pub resolver: ResolverDefinition,
 }
@@ -31,7 +33,7 @@ pub struct FieldDefinition {
 /// Information about the resolver for this field. Should be sufficient to either
 /// dynamically invoke the resolver at runtime (inefficiently) or codegen JavaScript
 /// to define the resolver function.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize)]
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub enum ResolverDefinition {
     /// A field which is simply backed by a property (or getter) on the source object
@@ -69,7 +71,7 @@ pub enum ResolverDefinition {
 }
 
 /// An argument expected by a resolver function or method
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize)]
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub enum ResolverArgument {
     /// The source or parent object
@@ -85,10 +87,10 @@ pub enum ResolverArgument {
         path: String,
         /// Export name. If omitted, the class is the default export
         export_name: Option<String>,
+        r#async: bool,
         /// PORT: `ContextArgs` in TypeScript, which only allows context and
         /// derived context arguments.
         args: Vec<ResolverArgument>,
-        r#async: bool,
     },
     /// The GraphQL info object
     Information,

@@ -12,6 +12,7 @@ use crate::codegen::resolver_map_codegen::resolver_map_codegen;
 use crate::codegen::schema_codegen::codegen;
 use crate::grats_config::GratsConfig;
 use crate::metadata::Metadata;
+use crate::transforms::make_resolver_signature::make_resolver_signature;
 use crate::utils::visitor::map_definitions;
 
 /// PORT: The input to `printOutputs` from TypeScript, besides the document:
@@ -19,7 +20,6 @@ use crate::utils::visitor::map_definitions;
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputRequest {
-    pub resolvers: Metadata,
     pub config: GratsConfig,
     /// The absolute path of `src/gratsRoot.ts`'s root. See `src/grats_root.rs`.
     pub grats_root: String,
@@ -31,6 +31,8 @@ pub struct OutputRequest {
     /// The absolute path the enums module will be written to, if it should be
     /// printed.
     pub ts_client_enums: Option<String>,
+    /// Whether to print the resolver metadata as JSON.
+    pub metadata: bool,
 }
 
 #[derive(Debug, Default, Serialize)]
@@ -42,19 +44,29 @@ pub struct Outputs {
     pub ts_schema: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ts_client_enums: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<String>,
 }
 
 /// Prints each requested output.
 pub fn print_outputs(doc: DocumentNode, request: OutputRequest) -> Outputs {
     let OutputRequest {
-        resolvers,
         config,
         grats_root,
         graphql_schema,
         ts_schema,
         ts_client_enums,
+        metadata,
     } = request;
     let mut outputs = Outputs::default();
+    // PORT: TypeScript made the resolver metadata alongside validating the
+    // document, and passed it to each consumer.
+    let resolvers = make_resolver_signature(&doc);
+    if metadata {
+        // Matches `JSON.stringify(resolvers, null, 2)`.
+        outputs.metadata =
+            Some(serde_json::to_string_pretty(&resolvers).expect("Metadata serializes to JSON"));
+    }
     // Printing the SDL consumes the document, so it goes last.
     if ts_schema.is_some() || ts_client_enums.is_some() {
         let schema = build_ast_schema(&doc);

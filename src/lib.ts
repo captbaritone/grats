@@ -23,9 +23,7 @@ import { validateDuplicateContextOrInfo } from "./validations/validateDuplicateC
 import { resolveTypes } from "./transforms/resolveTypes.js";
 import { resolveResolverParams } from "./transforms/resolveResolverParams.js";
 import { customSpecValidations } from "./validations/customSpecValidations.js";
-import { makeResolverSignature } from "./transforms/makeResolverSignature.js";
 import { addImplicitRootTypes } from "./transforms/addImplicitRootTypes.js";
-import { Metadata } from "./metadata.js";
 import { coerceDefaultEnumValues } from "./transforms/coerceDefaultEnumValues.js";
 import { validateDocument } from "./rs/document.js";
 
@@ -33,7 +31,6 @@ export type { GratsConfig } from "./gratsConfig.js";
 
 export type SchemaAndDoc = {
   doc: DocumentNode;
-  resolvers: Metadata;
 };
 
 // Construct a schema, using GraphQL schema language
@@ -137,16 +134,12 @@ export function extractSchemaAndDoc(
         return docResult;
       }
       const doc = docResult.value;
-      const resolvers = makeResolverSignature(doc);
 
       // Build and validate the schema with regards to the GraphQL spec, and
       // run the other validations that have been ported to Rust.
-      return (
-        new ResultPipe(validateDocument(doc, config, typesWithTypename))
-          // Combine the document and resolver metadata into a single result.
-          .map(() => ({ doc, resolvers }))
-          .result()
-      );
+      return new ResultPipe(validateDocument(doc, config, typesWithTypename))
+        .map(() => ({ doc }))
+        .result();
     })
     .result();
 }

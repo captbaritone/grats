@@ -12,5 +12,6 @@ pub mod metadata;
 pub mod pipeline;
 pub mod print_schema;
 pub mod public_directives;
+pub mod transforms;
 pub mod utils;
 pub mod validations;

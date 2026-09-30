@@ -15,6 +15,8 @@ export type OutputRequest = {
   tsSchema?: string;
   /** Print the enums module, to be written to this path. */
   tsClientEnums?: string;
+  /** Print the resolver metadata as JSON. See `src/metadata.ts`. */
+  metadata?: boolean;
 };
 
 /** The printed outputs, for each output that was requested. */
@@ -22,6 +24,7 @@ export type Outputs = {
   graphqlSchema?: string;
   tsSchema?: string;
   tsClientEnums?: string;
+  metadata?: string;
 };
 
 /**
@@ -37,16 +40,16 @@ export function printOutputs(
   config: GratsConfig,
   request: OutputRequest,
 ): Outputs {
-  const { doc, resolvers } = schemaAndDoc;
+  const { doc } = schemaAndDoc;
   if (
     !request.graphqlSchema &&
     request.tsSchema == null &&
-    request.tsClientEnums == null
+    request.tsClientEnums == null &&
+    !request.metadata
   ) {
     return {};
   }
   const { output } = callRustWithDocument("print_outputs", doc, {
-    resolvers,
     config,
     // Rust has no module location or working directory to resolve paths
     // against, so it's given absolute paths.
@@ -57,6 +60,7 @@ export function printOutputs(
       request.tsClientEnums == null
         ? null
         : path.resolve(request.tsClientEnums),
+    metadata: request.metadata ?? false,
   });
   return JSON.parse(output);
 }

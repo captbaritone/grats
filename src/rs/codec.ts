@@ -1,7 +1,6 @@
 import { DocumentNode, Location, Source, Token, TokenKind } from "graphql";
 import * as ts from "typescript";
 import type { GratsConfig } from "../gratsConfig.js";
-import type { Metadata } from "../metadata.js";
 import {
   gqlErr,
   gqlRelated,
@@ -120,12 +119,12 @@ export type RustValidateRequest = {
  * `OutputRequest` in `grats-rs/crates/grats/src/print_schema.rs`.
  */
 export type RustOutputRequest = {
-  resolvers: Metadata;
   config: GratsConfig;
   gratsRoot: string;
   graphqlSchema: boolean;
   tsSchema: string | null;
   tsClientEnums: string | null;
+  metadata: boolean;
 };
 
 /**

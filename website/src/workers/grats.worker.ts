@@ -169,8 +169,10 @@ export class GratsWorker extends TypeScriptWorker {
     if (result.kind === "ERROR") {
       return this.formatErrors(result.err, "// ");
     }
-    const { resolvers } = result.value;
-    return JSON.stringify(resolvers, null, 2);
+    const { metadata } = printOutputs(result.value, this._gratsConfig, {
+      metadata: true,
+    });
+    return metadata!;
   }
 
   async getTsSchema(): Promise<string> {

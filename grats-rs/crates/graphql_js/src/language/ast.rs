@@ -31,6 +31,62 @@ pub struct ExportDefinition {
     pub export_name: Option<String>,
 }
 
+/// Describes the backing resolver for a field. This broadly matches the metadata
+/// shape that is part of the public API of Grats, but also includes location
+/// information as well as information about resolver with types which have not
+/// yet been resolved.
+///
+/// PORT: Declared in `src/resolverSignature.ts`. Locations are only used for
+/// reporting diagnostics, so they aren't modeled.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(tag = "kind", rename_all = "camelCase")]
+pub enum ResolverSignature {
+    Property {
+        name: Option<String>,
+    },
+    Method {
+        name: Option<String>,
+        arguments: Option<Vec<ResolverArgument>>,
+    },
+    #[serde(rename_all = "camelCase")]
+    Function {
+        path: String,
+        export_name: Option<String>,
+        arguments: Option<Vec<ResolverArgument>>,
+    },
+    #[serde(rename_all = "camelCase")]
+    StaticMethod {
+        path: String,
+        export_name: Option<String>,
+        name: String,
+        arguments: Option<Vec<ResolverArgument>>,
+    },
+}
+
+/// PORT: Declared in `src/resolverSignature.ts`. Locations and input
+/// definitions are only used for reporting diagnostics, so they aren't
+/// modeled.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(tag = "kind", rename_all = "camelCase")]
+pub enum ResolverArgument {
+    Source,
+    ArgumentsObject,
+    Context,
+    /// PORT: `args` only contains context and derived context arguments.
+    #[serde(rename_all = "camelCase")]
+    DerivedContext {
+        path: String,
+        export_name: Option<String>,
+        args: Vec<ResolverArgument>,
+        r#async: bool,
+    },
+    Information,
+    Named {
+        name: String,
+    },
+    Unresolved,
+}
+
 // Name
 
 #[derive(Debug, Clone, Deserialize)]
@@ -300,6 +356,11 @@ pub struct FieldDefinitionNode {
     pub arguments: Option<Vec<InputValueDefinitionNode>>,
     pub r#type: TypeNode,
     pub directives: Option<Vec<ConstDirectiveNode>>,
+    /// Grats metadata: Describes the backing resolver for a field. Eventually
+    /// this gets transformed into a @resolver directive. However, we delay doing
+    /// that to avoid repeated parsing, and to allow for unresolved types early
+    /// on during compilation.
+    pub resolver: Option<ResolverSignature>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

@@ -229,6 +229,7 @@ const testDirs: TestDir[] = [
             tsClientEnums == null
               ? undefined
               : path.join(path.dirname(fixturePath), tsClientEnums),
+          metadata: parsedOptions.raw.grats.EXPERIMENTAL__emitMetadata,
         },
       );
 
@@ -268,6 +269,10 @@ const testDirs: TestDir[] = [
           }),
           "ts",
         );
+        if (outputs.metadata != null) {
+          markdown.addHeader(3, "Metadata");
+          markdown.addCodeBlock(outputs.metadata, "json");
+        }
         if (outputs.tsClientEnums != null) {
           markdown.addHeader(3, "TypeScript Enums");
           markdown.addCodeBlock(
