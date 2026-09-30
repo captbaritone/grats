@@ -20,25 +20,23 @@
 //! type information, such as members of a variable exported with `export =`.
 
 use std::cell::RefCell;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::rc::Rc;
 
 use graphql_js::language::ast::Location;
-use oxc_allocator::Allocator;
 use oxc_ast::AstKind;
 use oxc_ast::ast::{
     Declaration, ExportDefaultDeclarationKind, Expression, IdentifierReference, ModuleExportName,
     Program, Statement, TSModuleReference, TSNamespaceDeclaration, TSNamespaceDeclarationBody,
     TSQualifiedName, TSTypeName,
 };
-use oxc_parser::Parser;
-use oxc_semantic::{NodeId, Semantic, SemanticBuilder};
-use oxc_span::{GetSpan, SourceType, Span};
+use oxc_semantic::NodeId;
+use oxc_span::{GetSpan, Span};
 use oxc_str::Ident;
 use oxc_syntax::scope::ScopeId;
 use oxc_syntax::symbol::{SymbolFlags, SymbolId};
 
-use crate::host::{File, Host};
+use crate::files::{Files, ParsedFile};
 use crate::name_resolver::{
     MergedDeclaration, MergedDeclarationKind, NameResolver, ResolvedDeclaration,
     ResolvedDeclarationKind,
@@ -46,26 +44,10 @@ use crate::name_resolver::{
 use crate::snapshot_refs::DeclRef;
 
 pub struct OxcNameResolver<'a> {
-    allocator: &'a Allocator,
-    host: &'a dyn Host,
-    /// Parsed files by path, or `None` if the path isn't in the program.
-    files: RefCell<HashMap<String, Option<Rc<ParsedFile<'a>>>>>,
-    /// The paths of the sources locations have referred to.
-    source_paths: RefCell<HashMap<u32, String>>,
+    files: &'a Files<'a>,
     /// The exports being looked up, which guards against cycles of
     /// re-exports.
     resolving_exports: RefCell<HashSet<(String, String)>>,
-}
-
-struct ParsedFile<'a> {
-    source: u32,
-    path: String,
-    is_module: bool,
-    is_declaration_file: bool,
-    semantic: Semantic<'a>,
-    offsets: Utf16Offsets,
-    /// The names which a location may refer to, by their span.
-    names: HashMap<(u32, u32), NodeId>,
 }
 
 /// What a name resolves to.
@@ -99,90 +81,18 @@ impl Meaning {
 }
 
 impl<'a> OxcNameResolver<'a> {
-    pub fn new(allocator: &'a Allocator, host: &'a dyn Host) -> Self {
+    pub fn new(files: &'a Files<'a>) -> Self {
         OxcNameResolver {
-            allocator,
-            host,
-            files: RefCell::new(HashMap::new()),
-            source_paths: RefCell::new(HashMap::new()),
+            files,
             resolving_exports: RefCell::new(HashSet::new()),
-        }
-    }
-
-    /// The file of a source which a location refers to.
-    fn source_file(&self, source: u32) -> Rc<ParsedFile<'a>> {
-        let path = self.source_paths.borrow().get(&source).cloned();
-        if let Some(file) = path.and_then(|path| self.file(&path)) {
-            return file;
-        }
-        let file = self.host.source_file(source);
-        let path = file.path.clone();
-        self.source_paths.borrow_mut().insert(source, path.clone());
-        let parsed = Rc::new(self.parse(file));
-        self.files
-            .borrow_mut()
-            .insert(path, Some(Rc::clone(&parsed)));
-        parsed
-    }
-
-    fn file(&self, path: &str) -> Option<Rc<ParsedFile<'a>>> {
-        if let Some(file) = self.files.borrow().get(path) {
-            return file.clone();
-        }
-        let file = self
-            .host
-            .read_file(path)
-            .map(|file| Rc::new(self.parse(file)));
-        self.files
-            .borrow_mut()
-            .insert(path.to_string(), file.clone());
-        file
-    }
-
-    fn parse(&self, file: File) -> ParsedFile<'a> {
-        let text = self.allocator.alloc_str(&file.text);
-        let source_type = SourceType::from_path(&file.path).unwrap_or_else(|_| SourceType::ts());
-        let program = self.allocator.alloc(
-            Parser::new(self.allocator, text, source_type)
-                .parse()
-                .program,
-        );
-        let semantic = SemanticBuilder::new()
-            .with_build_nodes(true)
-            .build(program)
-            .semantic;
-        let names = semantic
-            .nodes()
-            .iter()
-            .filter(|node| {
-                matches!(
-                    node.kind(),
-                    AstKind::IdentifierReference(_)
-                        | AstKind::TSQualifiedName(_)
-                        | AstKind::BindingIdentifier(_)
-                )
-            })
-            .map(|node| {
-                let span = node.kind().span();
-                ((span.start, span.end), node.id())
-            })
-            .collect();
-        ParsedFile {
-            source: file.source,
-            path: file.path,
-            is_module: file.is_module,
-            is_declaration_file: source_type.is_typescript_definition(),
-            offsets: Utf16Offsets::new(text),
-            semantic,
-            names,
         }
     }
 
     /// The module which `specifier` resolves to when imported by `file`.
     fn module(&self, file: &ParsedFile<'a>, specifier: &str) -> Option<Rc<ParsedFile<'a>>> {
-        let path = self.host.resolve_module(&file.path, specifier)?;
+        let path = self.files.host.resolve_module(&file.path, specifier)?;
         // The checker only treats files which are modules as modules.
-        self.file(&path).filter(|module| module.is_module)
+        self.files.file(&path).filter(|module| module.is_module)
     }
 
     /// Resolves the names in a type reference or heritage clause.
@@ -232,8 +142,8 @@ impl<'a> OxcNameResolver<'a> {
     /// every file which isn't a module and those in `declare global` blocks.
     fn resolve_global(&self, name: &str, meaning: Meaning) -> Vec<Target<'a>> {
         let mut targets = Vec::new();
-        for path in self.host.global_files(name) {
-            let Some(file) = self.file(&path) else {
+        for path in self.files.host.global_files(name) {
+            let Some(file) = self.files.file(&path) else {
                 continue;
             };
             for scope in file.global_scopes() {
@@ -565,7 +475,7 @@ impl<'a> OxcNameResolver<'a> {
 
 impl NameResolver for OxcNameResolver<'_> {
     fn resolve_entity_name(&self, name: Location) -> Vec<ResolvedDeclaration> {
-        let file = self.source_file(name.source);
+        let file = self.files.source_file(name.source);
         let node = file.name_at(name);
         let nodes = file.semantic.nodes();
         // Heritage clauses of classes (`extends`) name values. Other entity
@@ -586,7 +496,7 @@ impl NameResolver for OxcNameResolver<'_> {
     }
 
     fn merged_declarations(&self, declaration: &DeclRef) -> Vec<MergedDeclaration> {
-        let file = self.source_file(declaration.name.source);
+        let file = self.files.source_file(declaration.name.source);
         let Some(&node) = file.names.get(&file.span_key(declaration.name)) else {
             return vec![];
         };
@@ -990,63 +900,6 @@ fn is_instantiated(body: &TSNamespaceDeclarationBody) -> bool {
                 },
                 _ => true,
             })
-        }
-    }
-}
-
-/// Converts between oxc's UTF-8 offsets and the UTF-16 offsets of
-/// locations.
-struct Utf16Offsets {
-    /// The offsets after each character which isn't ASCII, between which
-    /// offsets differ by the same amount.
-    checkpoints: Vec<(u32, u32)>,
-}
-
-impl Utf16Offsets {
-    fn new(text: &str) -> Self {
-        let mut checkpoints = Vec::new();
-        let mut utf16 = 0;
-        for (utf8, c) in text.char_indices() {
-            utf16 += c.len_utf16();
-            if !c.is_ascii() {
-                checkpoints.push(((utf8 + c.len_utf8()) as u32, utf16 as u32));
-            }
-        }
-        Utf16Offsets { checkpoints }
-    }
-
-    fn to_utf16(&self, utf8: u32) -> u32 {
-        match self.checkpoints.partition_point(|&(b, _)| b <= utf8) {
-            0 => utf8,
-            i => {
-                let (b, u) = self.checkpoints[i - 1];
-                u + (utf8 - b)
-            }
-        }
-    }
-
-    fn to_utf8(&self, utf16: u32) -> u32 {
-        match self.checkpoints.partition_point(|&(_, u)| u <= utf16) {
-            0 => utf16,
-            i => {
-                let (b, u) = self.checkpoints[i - 1];
-                b + (utf16 - u)
-            }
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::Utf16Offsets;
-
-    #[test]
-    fn converts_offsets() {
-        // "é" is 2 bytes and 1 UTF-16 unit, "😀" 4 bytes and 2 units.
-        let offsets = Utf16Offsets::new("aé b😀c");
-        for (utf8, utf16) in [(0, 0), (1, 1), (3, 2), (5, 4), (9, 6), (10, 7)] {
-            assert_eq!(offsets.to_utf16(utf8), utf16);
-            assert_eq!(offsets.to_utf8(utf16), utf8);
         }
     }
 }

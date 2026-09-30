@@ -1,20 +1,18 @@
 import * as ts from "typescript";
-import { ParsedCommandLineGrats } from "../gratsConfig.js";
-import { ExtractionSnapshot, extract } from "../Extractor.js";
-import { DiagnosticsWithoutLocationResult } from "../utils/DiagnosticError.js";
-import { collectResults } from "../utils/Result.js";
-import { err } from "../utils/Result.js";
-import { extend } from "../utils/helpers.js";
+import { ParsedCommandLineGrats } from "./gratsConfig.js";
+import { DiagnosticsWithoutLocationResult } from "./utils/DiagnosticError.js";
+import { err, ok } from "./utils/Result.js";
+import { extend } from "./utils/helpers.js";
 
 const TAG_REGEX = /@(gql)|(killsParentOnException)/i;
 
-// Given a ts.Program, extract a set of ExtractionSnapshots from it.
+// Given a ts.Program, find the files to extract GraphQL definitions from.
 // In the future this part might be able to be incremental, were we only run extraction
 // on changed files.
-export function extractSnapshotsFromProgram(
+export function gratsSourceFilesFromProgram(
   program: ts.Program,
   options: ParsedCommandLineGrats,
-): DiagnosticsWithoutLocationResult<ExtractionSnapshot[]> {
+): DiagnosticsWithoutLocationResult<ts.SourceFile[]> {
   const errors: ts.DiagnosticWithLocation[] = [];
   const gratsSourceFiles = program.getSourceFiles().filter((sourceFile) => {
     // If the file doesn't contain any GraphQL definitions, skip it.
@@ -47,9 +45,5 @@ export function extractSnapshotsFromProgram(
     return err(errors);
   }
 
-  const extractResults = gratsSourceFiles.map((sourceFile) => {
-    return extract(sourceFile, options.raw.grats);
-  });
-
-  return collectResults(extractResults);
+  return ok(gratsSourceFiles);
 }

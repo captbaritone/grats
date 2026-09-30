@@ -1,4 +1,5 @@
 import { Source } from "graphql";
+import * as path from "path";
 import * as ts from "typescript";
 import type { SourceTable } from "./codec.js";
 
@@ -24,11 +25,20 @@ type HostFile = {
   isModule: boolean;
 };
 
+/**
+ * The path of a file in the program, as Rust is given it. Rust has no working
+ * directory to resolve paths against, so it's given absolute paths, but a
+ * program's root file names may be relative.
+ */
+export function hostPath(fileName: string): string {
+  return path.isAbsolute(fileName) ? fileName : path.resolve(fileName);
+}
+
 export function programHost(program: ts.Program, sources: SourceTable): Host {
   const hostFile = (sourceFile: ts.SourceFile): HostFile => ({
-    // The same source as locations made during extraction reference.
+    // Locations in diagnostics refer to the file by its name in the program.
     source: sources.sourceId(new Source(sourceFile.text, sourceFile.fileName)),
-    path: sourceFile.fileName,
+    path: hostPath(sourceFile.fileName),
     text: sourceFile.text,
     isModule: ts.isExternalModule(sourceFile),
   });
@@ -86,7 +96,8 @@ function resolveModule(
   if (fileName == null) {
     return null;
   }
-  return program.getSourceFile(fileName)?.fileName ?? null;
+  const resolvedFile = program.getSourceFile(fileName);
+  return resolvedFile == null ? null : hostPath(resolvedFile.fileName);
 }
 
 /**
@@ -107,7 +118,7 @@ function indexGlobalFiles(program: ts.Program): Map<string, string[]> {
         files = [];
         index.set(name, files);
       }
-      files.push(sourceFile.fileName);
+      files.push(hostPath(sourceFile.fileName));
     }
   };
   const sourceFiles = program.getSourceFiles();

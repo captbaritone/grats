@@ -1,6 +1,24 @@
 //! Port of `src/utils/Result.ts`.
 //!
-//! PORT: Only `concatResults`. Rust's `Result` covers the rest.
+//! PORT: Only `collectResults` and `concatResults`. Rust's `Result` covers the
+//! rest.
+
+pub fn collect_results<T, E>(
+    results: impl IntoIterator<Item = Result<T, Vec<E>>>,
+) -> Result<Vec<T>, Vec<E>> {
+    let mut errors: Vec<E> = Vec::new();
+    let mut values: Vec<T> = Vec::new();
+    for result in results {
+        match result {
+            Err(err) => errors.extend(err),
+            Ok(value) => values.push(value),
+        }
+    }
+    if !errors.is_empty() {
+        return Err(errors);
+    }
+    Ok(values)
+}
 
 pub fn concat_results<T, U, E>(
     result1: Result<T, Vec<E>>,

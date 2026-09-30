@@ -10,6 +10,7 @@ use serde::Deserialize;
 pub struct GratsConfig {
     pub schema_header: Option<String>,
     pub ts_schema_header: Option<String>,
+    pub ts_client_enums: Option<String>,
     pub ts_client_enums_header: Option<String>,
     pub import_module_specifier_ending: String,
     pub nullable_by_default: bool,

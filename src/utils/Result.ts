@@ -1,6 +1,3 @@
-import * as ts from "typescript";
-import { DiagnosticsResult } from "./DiagnosticError.js";
-
 export type Result<T, E> = Ok<T> | Err<E>;
 
 type Ok<T> = { kind: "OK"; value: T };
@@ -47,38 +44,4 @@ export class ResultPipe<T, E> {
   result(): Result<T, E> {
     return this._result;
   }
-}
-
-export function collectResults<T>(
-  results: DiagnosticsResult<T>[],
-): DiagnosticsResult<T[]> {
-  const errors: ts.DiagnosticWithLocation[] = [];
-  const values: T[] = [];
-  for (const result of results) {
-    if (result.kind === "ERROR") {
-      errors.push(...result.err);
-    } else {
-      values.push(result.value);
-    }
-  }
-  if (errors.length > 0) {
-    return err(errors);
-  }
-  return ok(values);
-}
-
-export function concatResults<T, U, E>(
-  result1: Result<T, E[]>,
-  result2: Result<U, E[]>,
-): Result<[T, U], E[]> {
-  if (result1.kind === "ERROR" && result2.kind === "ERROR") {
-    return err([...result1.err, ...result2.err]);
-  }
-  if (result1.kind === "ERROR") {
-    return result1;
-  }
-  if (result2.kind === "ERROR") {
-    return result2;
-  }
-  return ok([result1.value, result2.value]);
 }

@@ -1,8 +1,12 @@
 //! Port of the pipeline in `extractSchemaAndDoc` in `src/lib.ts`.
 //!
-//! PORT: Only the end of the pipeline has been ported. The TypeScript side runs
-//! the rest, then calls `run` with the document. (A crate's `lib.rs` is
-//! its root, so this module can't share the TypeScript file's name.)
+//! PORT: The TypeScript side finds the files which contain GraphQL
+//! definitions and checks them for syntax errors (see
+//! `src/transforms/snapshotsFromProgram.ts`), then calls `run` with their
+//! paths. (A crate's `lib.rs` is its root, so this module can't share the
+//! TypeScript file's name.)
+
+use std::collections::{HashMap, HashSet};
 
 use graphql_js::error::graphql_error::GraphQLError;
 use graphql_js::language::ast::DocumentNode;
@@ -12,7 +16,8 @@ use graphql_js::utilities::build_ast_schema::build_ast_schema;
 use graphql_js::validation::validate::validate_sdl;
 use serde::Deserialize;
 
-use crate::extractor::ExtractionSnapshot;
+use crate::extractor::{ExtractionSnapshot, extract};
+use crate::files::Files;
 use crate::grats_config::GratsConfig;
 use crate::host::Host;
 use crate::oxc_name_resolver::OxcNameResolver;
@@ -29,7 +34,8 @@ use crate::type_context::TypeContext;
 use crate::utils::diagnostic_error::{
     DiagnosticsWithoutLocationResult, graphql_error_to_diagnostic,
 };
-use crate::utils::result::concat_results;
+use crate::utils::helpers::null_throws;
+use crate::utils::result::{collect_results, concat_results};
 use crate::validations::custom_spec_validations::custom_spec_validations;
 use crate::validations::validate_async_iterable::validate_async_iterable;
 use crate::validations::validate_directive_arguments::validate_directive_arguments;
@@ -39,32 +45,42 @@ use crate::validations::validate_semantic_nullability::validate_semantic_nullabi
 use crate::validations::validate_some_types_are_defined::validate_some_types_are_defined;
 use crate::validations::validate_typenames::validate_typenames;
 
-/// PORT: The input to `run` from TypeScript, besides the document.
+/// PORT: The input to `run` from TypeScript.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PipelineRequest {
     pub config: GratsConfig,
-    /// The combined snapshot, besides its definitions.
-    pub snapshot: ExtractionSnapshot,
+    /// The absolute path of `src/gratsRoot.ts`'s root. See `src/grats_root.rs`.
+    pub grats_root: String,
+    /// The files to extract GraphQL definitions from.
+    pub files: Vec<String>,
 }
 
-/// PORT: The part of `extractSchemaAndDoc` which starts after
-/// `combineSnapshots`, with the snapshot's definitions converted into a
-/// `DocumentNode` to cross into Rust. After validating the transformed
-/// document, it builds its own schema from it. Returns the transformed
-/// document.
+/// PORT: The part of `extractSchemaAndDoc` which starts with extracting each
+/// file's snapshot (the end of `extractSnapshotsFromProgram`). After
+/// validating the transformed document, it builds its own schema from it.
+/// Returns the transformed document.
 pub fn run(
-    doc: DocumentNode,
     request: PipelineRequest,
     host: &dyn Host,
 ) -> DiagnosticsWithoutLocationResult<DocumentNode> {
     let PipelineRequest {
         config,
-        mut snapshot,
+        grats_root,
+        files: paths,
     } = request;
-    let types_with_typename = std::mem::take(&mut snapshot.types_with_typename);
     let allocator = oxc_allocator::Allocator::default();
-    let resolver = &OxcNameResolver::new(&allocator, host);
+    let files = Files::new(&allocator, host);
+    let resolver = &OxcNameResolver::new(&files);
+
+    let snapshots = collect_results(paths.iter().map(|path| {
+        let source_file = null_throws(files.file(path));
+        extract(&source_file, &config, &grats_root, host)
+    }))?;
+    let mut snapshot = combine_snapshots(snapshots);
+    let definitions = std::mem::take(&mut snapshot.definitions);
+    let diagnostics_by_handle = std::mem::take(&mut snapshot.diagnostics_by_handle);
+    let types_with_typename = std::mem::take(&mut snapshot.types_with_typename);
 
     // PORT: These validations run before `TypeContext.fromSnapshot`, which
     // takes the snapshot, but its errors are still reported first.
@@ -83,10 +99,10 @@ pub fn run(
     validation_result?;
 
     // Filter out any `implements` clauses that are not GraphQL interfaces.
-    let definitions = filter_non_gql_interfaces(&ctx, doc.definitions);
+    let definitions = filter_non_gql_interfaces(&ctx, definitions);
     // Determine which positional resolver arguments: GraphQL arguments,
     // context, derived context, or info.
-    let doc = resolve_resolver_params(&ctx, definitions)
+    let doc = resolve_resolver_params(&ctx, &diagnostics_by_handle, definitions)
         // Follow TypeScript type references to determine the GraphQL types
         // being referenced.
         .and_then(|definitions| resolve_types(&ctx, definitions))
@@ -138,6 +154,41 @@ pub fn run(
         // with type nullability.
         .and_then(|schema| validate_semantic_nullability(schema, &config))?;
     Ok(doc)
+}
+
+// Given a list of snapshots, merge them into a single snapshot.
+//
+// PORT: TypeScript merges the maps, but no two snapshots share a key.
+fn combine_snapshots(snapshots: Vec<ExtractionSnapshot>) -> ExtractionSnapshot {
+    let mut result = ExtractionSnapshot {
+        definitions: Vec::new(),
+        name_definitions: Vec::new(),
+        implicit_name_definitions: Vec::new(),
+        unresolved_names: Vec::new(),
+        types_with_typename: HashSet::new(),
+        interface_declarations: Vec::new(),
+        diagnostics_by_handle: HashMap::new(),
+    };
+
+    for snapshot in snapshots {
+        result.definitions.extend(snapshot.definitions);
+        result.name_definitions.extend(snapshot.name_definitions);
+        result.unresolved_names.extend(snapshot.unresolved_names);
+        result
+            .implicit_name_definitions
+            .extend(snapshot.implicit_name_definitions);
+        result
+            .types_with_typename
+            .extend(snapshot.types_with_typename);
+        result
+            .interface_declarations
+            .extend(snapshot.interface_declarations);
+        result
+            .diagnostics_by_handle
+            .extend(snapshot.diagnostics_by_handle);
+    }
+
+    result
 }
 
 fn spec_validate_sdl(doc: &DocumentNode) -> DiagnosticsWithoutLocationResult<&DocumentNode> {

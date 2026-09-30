@@ -1,7 +1,6 @@
-import { DocumentNode } from "graphql";
 import * as path from "path";
 import { GratsConfig } from "./gratsConfig.js";
-import { callRustWithDocument } from "./rs/document.js";
+import { callRustWithDocument, RustDocument } from "./rs/document.js";
 import { resolveRelativePath } from "./gratsRoot.js";
 import type { SchemaAndDoc } from "./lib.js";
 
@@ -29,8 +28,9 @@ export type Outputs = {
  * Prints the requested outputs, each including the user-defined (or default)
  * header comment if provided.
  *
- * Rust prints them from the document it kept when `runRustPipeline` was
- * given it, so the document only crosses into the Rust port of Grats once.
+ * Rust prints them from the document it kept when `runRustPipeline`
+ * returned `schemaAndDoc.doc`, so the document never crosses into
+ * TypeScript.
  */
 export function printOutputs(
   schemaAndDoc: SchemaAndDoc,
@@ -62,6 +62,6 @@ export function printOutputs(
   return JSON.parse(output);
 }
 
-export function printSDLWithoutMetadata(doc: DocumentNode): string {
+export function printSDLWithoutMetadata(doc: RustDocument): string {
   return callRustWithDocument("print_sdl_without_metadata", doc, null).output;
 }

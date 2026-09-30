@@ -5,12 +5,6 @@ import { Result } from "./Result.js";
 export type FixableDiagnostic = ts.Diagnostic & {
   fix?: ts.CodeFixAction;
 };
-export type FixableDiagnosticWithLocation = ts.DiagnosticWithLocation & {
-  fix?: ts.CodeFixAction;
-};
-
-export type DiagnosticResult<T> = Result<T, FixableDiagnosticWithLocation>;
-export type DiagnosticsResult<T> = Result<T, FixableDiagnosticWithLocation[]>;
 
 // GraphQL errors might not have a location, so we have to handle that case
 export type DiagnosticsWithoutLocationResult<T> = Result<T, ts.Diagnostic[]>;
@@ -111,77 +105,6 @@ export function gqlRelated(
     file: graphqlSourceToSourceFile(loc.source),
     start: loc.start,
     length: loc.end - loc.start,
-  };
-}
-
-export function rangeErr(
-  file: ts.SourceFile,
-  commentRange: ts.CommentRange,
-  message: string,
-  relatedInformation?: ts.DiagnosticRelatedInformation[],
-  fix?: ts.CodeFixAction,
-): FixableDiagnosticWithLocation {
-  const start = commentRange.pos;
-  const length = commentRange.end - commentRange.pos;
-  return {
-    messageText: message,
-    file,
-    code: FAKE_ERROR_CODE,
-    category: ts.DiagnosticCategory.Error,
-    start,
-    length,
-    relatedInformation,
-    source: "Grats",
-    fix,
-  };
-}
-
-/**
- * A generic version of the methods on ts.Node that we need
- * to create diagnostics.
- *
- * This interface allows us to create diagnostics from our
- * own classes.
- */
-export interface TsLocatableNode {
-  getStart(): number;
-  getEnd(): number;
-  getSourceFile(): ts.SourceFile;
-}
-
-export function tsErr(
-  node: TsLocatableNode,
-  message: string,
-  relatedInformation?: ts.DiagnosticRelatedInformation[],
-  fix?: ts.CodeFixAction,
-): FixableDiagnosticWithLocation {
-  const start = node.getStart();
-  const length = node.getEnd() - start;
-  const sourceFile = node.getSourceFile();
-  return {
-    messageText: message,
-    file: sourceFile,
-    code: FAKE_ERROR_CODE,
-    category: ts.DiagnosticCategory.Error,
-    start,
-    length,
-    relatedInformation,
-    source: "Grats",
-    fix,
-  };
-}
-
-export function tsRelated(
-  node: ts.Node,
-  message: string,
-): ts.DiagnosticRelatedInformation {
-  return {
-    category: ts.DiagnosticCategory.Message,
-    code: 0,
-    file: node.getSourceFile(),
-    start: node.getStart(),
-    length: node.getWidth(),
-    messageText: message,
   };
 }
 

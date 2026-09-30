@@ -1,21 +1,18 @@
-import { DocumentNode, Kind } from "graphql";
 import { DiagnosticsWithoutLocationResult } from "./utils/DiagnosticError.js";
 import { ResultPipe } from "./utils/Result.js";
 import * as ts from "typescript";
-import { ExtractionSnapshot } from "./Extractor.js";
 import { ParsedCommandLineGrats } from "./gratsConfig.js";
-import { extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram.js";
-import { runRustPipeline } from "./rs/document.js";
+import { gratsSourceFilesFromProgram } from "./gratsSourceFiles.js";
+import { RustDocument, runRustPipeline } from "./rs/document.js";
 
 export type { GratsConfig } from "./gratsConfig.js";
 
 export type SchemaAndDoc = {
   /**
-   * The document before the transforms which have been ported to Rust. It
-   * stands for the transformed document which Rust keeps (see
-   * `src/rs/document.ts`), so it's what is printed or located in.
+   * Stands for the document which Rust keeps (see `src/rs/document.ts`), so
+   * it's what is printed or located in.
    */
-  doc: DocumentNode;
+  doc: RustDocument;
 };
 
 // Construct a schema, using GraphQL schema language
@@ -59,66 +56,19 @@ export function extractSchemaAndDoc(
   options: ParsedCommandLineGrats,
   program: ts.Program,
 ): DiagnosticsWithoutLocationResult<SchemaAndDoc> {
-  return new ResultPipe(extractSnapshotsFromProgram(program, options))
-    .map((snapshots) => combineSnapshots(snapshots))
-    .andThen((snapshot) => {
+  return new ResultPipe(gratsSourceFilesFromProgram(program, options))
+    .andThen((sourceFiles) => {
       const config = options.raw.grats;
 
-      // Convert the definitions into a DocumentNode
-      const doc: DocumentNode = {
-        kind: Kind.DOCUMENT,
-        definitions: snapshot.definitions,
-      };
-
-      // Run the rest of the pipeline, which has been ported to Rust: building
-      // the `TypeContext` and validating the snapshot, filtering interfaces,
+      // Run the rest of the pipeline, which has been ported to Rust:
+      // extracting a snapshot from each file and combining them, building the
+      // `TypeContext` and validating the snapshot, filtering interfaces,
       // resolving resolver params and types, and the document transforms and
       // validations, which end by validating the document and the schema
       // built from it with regards to the GraphQL spec. Rust keeps the
       // resulting document for printing.
-      return new ResultPipe(runRustPipeline(doc, config, snapshot, program))
-        .map(() => ({ doc }))
-        .result();
+      return runRustPipeline(sourceFiles, config, program);
     })
+    .map((doc) => ({ doc }))
     .result();
-}
-
-// Given a list of snapshots, merge them into a single snapshot.
-function combineSnapshots(snapshots: ExtractionSnapshot[]): ExtractionSnapshot {
-  const result: ExtractionSnapshot = {
-    definitions: [],
-    nameDefinitions: new Map(),
-    implicitNameDefinitions: new Map(),
-    unresolvedNames: new Map(),
-    typesWithTypename: new Set(),
-    interfaceDeclarations: [],
-  };
-
-  for (const snapshot of snapshots) {
-    for (const definition of snapshot.definitions) {
-      result.definitions.push(definition);
-    }
-
-    for (const [declLoc, entry] of snapshot.nameDefinitions) {
-      result.nameDefinitions.set(declLoc, entry);
-    }
-
-    for (const [id, reference] of snapshot.unresolvedNames) {
-      result.unresolvedNames.set(id, reference);
-    }
-
-    for (const [definition, reference] of snapshot.implicitNameDefinitions) {
-      result.implicitNameDefinitions.set(definition, reference);
-    }
-
-    for (const typeName of snapshot.typesWithTypename) {
-      result.typesWithTypename.add(typeName);
-    }
-
-    for (const interfaceDeclaration of snapshot.interfaceDeclarations) {
-      result.interfaceDeclarations.push(interfaceDeclaration);
-    }
-  }
-
-  return result;
 }

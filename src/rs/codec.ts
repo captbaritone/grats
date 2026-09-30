@@ -1,29 +1,21 @@
-import { DocumentNode, Location, Source, Token, TokenKind } from "graphql";
+import { Location, Source, Token, TokenKind } from "graphql";
 import * as ts from "typescript";
 import type { GratsConfig } from "../gratsConfig.js";
 import {
-  FixableDiagnosticWithLocation,
+  FixableDiagnostic,
   gqlErr,
   gqlRelated,
   locationlessErr,
 } from "../utils/DiagnosticError.js";
-import type { DeclarationDefinition, NameDefinition } from "../TypeContext.js";
-import type { DeclLoc, DeclRef, EntityNameRef } from "../snapshotRefs.js";
-import type { TsIdentifier } from "../utils/helpers.js";
 
 /**
  * Encodes values passed between TypeScript and the Rust port of Grats
  * (compiled to wasm) as JSON strings.
  *
- * Most of what crosses is already plain data. The exceptions stay on the
- * TypeScript side in a `SourceTable`:
- *
- * - graphql-js `Location`, which references its entire `Source` text, is
- *   encoded as offsets into one of the table's sources.
- * - Diagnostics made by the extractor which a later stage decides whether to
- *   report (the errors of a `DiagnosticResult`), which reference their
- *   `ts.SourceFile` and may have a fix, are encoded as an index into the
- *   table's diagnostics.
+ * Most of what crosses is already plain data. The exception is graphql-js
+ * `Location`, which references its entire `Source` text. Rust encodes
+ * locations as offsets into a source in a `SourceTable`, which stays on the
+ * TypeScript side.
  */
 
 export type EncodedLocation = {
@@ -33,14 +25,10 @@ export type EncodedLocation = {
   end: number;
 };
 
-export type EncodedTsDiagnostic = {
-  /** Index into the `SourceTable` used to encode the diagnostic. */
-  tsDiagnostic: number;
-};
-
 /**
- * The sources referenced by encoded locations. Use the same table to decode
- * a value as was used to encode it.
+ * The sources referenced by encoded locations. Rust asks the table for the
+ * id of each source (see `programHost`), so decode its output with the table
+ * which answered it.
  *
  * Sources are identified by name and text rather than by name alone, since
  * GraphQL parsed from docblocks (e.g. `@gqlAnnotate`) gets its own
@@ -49,43 +37,11 @@ export type EncodedTsDiagnostic = {
 export class SourceTable {
   private _sources: Array<{ source: Source; lines: ts.SourceFileLike }> = [];
   private _idsByName: Map<string, number[]> = new Map();
-  private _diagnostics: FixableDiagnosticWithLocation[] = [];
-  private _diagnosticIds: Map<FixableDiagnosticWithLocation, number> =
-    new Map();
-
-  encodeDiagnostic(
-    diagnostic: FixableDiagnosticWithLocation,
-  ): EncodedTsDiagnostic {
-    let id = this._diagnosticIds.get(diagnostic);
-    if (id == null) {
-      id = this._diagnostics.length;
-      this._diagnostics.push(diagnostic);
-      this._diagnosticIds.set(diagnostic, id);
-    }
-    return { tsDiagnostic: id };
-  }
-
-  decodeDiagnostic(
-    encoded: EncodedTsDiagnostic,
-  ): FixableDiagnosticWithLocation {
-    const diagnostic = this._diagnostics[encoded.tsDiagnostic];
-    if (diagnostic == null) {
-      throw new Error(`Unknown diagnostic id ${encoded.tsDiagnostic}.`);
-    }
-    return diagnostic;
-  }
-
-  encodeLocation(loc: Location): EncodedLocation {
-    return {
-      source: this.sourceId(loc.source),
-      start: loc.start,
-      end: loc.end,
-    };
-  }
 
   /**
    * Rebuilds a location with the same shape as those created during
-   * extraction by `loc()` in `GraphQLConstructor.ts`.
+   * extraction by `loc()` in `graphql_constructor.rs`: its tokens carry the
+   * line and character of its offsets, which `grats locate` reports.
    */
   decodeLocation(encoded: EncodedLocation): Location {
     const entry = this._sources[encoded.source];
@@ -136,56 +92,13 @@ export class SourceTable {
 }
 
 /**
- * Encodes a document, including Grats' metadata fields (see
- * `GraphQLAstExtensions.ts`).
- */
-export function encodeDocument(
-  doc: DocumentNode,
-  sources: SourceTable,
-): string {
-  return encodeWithLocations(doc, sources);
-}
-
-// Encodes a value which may contain AST nodes.
-function encodeWithLocations(value: unknown, sources: SourceTable): string {
-  return JSON.stringify(value, function (key, value) {
-    // Location defines `toJSON`, so read the original value from the holder.
-    // Unlike a reviver in `decodeDocument`, a replacer is about as fast as
-    // walking the value ourselves.
-    const original = this[key];
-    if (original instanceof Location) {
-      return sources.encodeLocation(original);
-    }
-    if (key === "err" && this.kind === "ERROR") {
-      return sources.encodeDiagnostic(original);
-    }
-    return value;
-  });
-}
-
-/**
- * The input to the `run_pipeline` entry point, besides the document. See
- * `PipelineRequest` in `grats-rs/crates/grats/src/pipeline.rs`.
+ * The input to the `run_pipeline` entry point. See `PipelineRequest` in
+ * `grats-rs/crates/grats/src/pipeline.rs`.
  */
 export type RustPipelineRequest = {
   config: GratsConfig;
-  /** The combined snapshot, besides its definitions. */
-  snapshot: RustExtractionSnapshot;
-};
-
-/**
- * An `ExtractionSnapshot` without its definitions, which cross as the
- * document. See `ExtractionSnapshot` in
- * `grats-rs/crates/grats/src/extractor.rs`.
- */
-export type RustExtractionSnapshot = {
-  unresolvedNames: Array<[TsIdentifier, EntityNameRef]>;
-  nameDefinitions: Array<
-    [DeclLoc, { declaration: DeclRef; definition: NameDefinition }]
-  >;
-  implicitNameDefinitions: Array<[DeclarationDefinition, EntityNameRef]>;
-  typesWithTypename: string[];
-  interfaceDeclarations: DeclRef[];
+  gratsRoot: string;
+  files: string[];
 };
 
 /**
@@ -219,47 +132,28 @@ export type RustDocumentRequests = {
 };
 
 /**
- * Encodes the input to the `run_pipeline` entry point. See `DocumentRequest` in
- * `grats-rs/crates/grats_wasm/src/lib.rs`.
- */
-export function encodeDocumentRequest(
-  doc: DocumentNode,
-  request: object,
-  sources: SourceTable,
-): string {
-  // Splice in the encoded document rather than encoding it again. The
-  // request may contain AST nodes too.
-  const encodedDoc = encodeDocument(doc, sources);
-  const encodedRequest = encodeWithLocations(request, sources);
-  return `{"doc":${encodedDoc},"request":${encodedRequest}}`;
-}
-
-/**
  * A diagnostic reported by Rust. See `Diagnostic` in
  * `grats-rs/crates/grats/src/utils/diagnostic_error.rs`.
  */
-export type EncodedDiagnostic =
-  | {
-      messageText: string;
-      loc: EncodedLocation | null;
-      relatedInformation: Array<{
-        messageText: string;
-        loc: EncodedLocation;
-      }> | null;
-    }
-  | EncodedTsDiagnostic;
+export type EncodedDiagnostic = {
+  messageText: string;
+  loc: EncodedLocation | null;
+  relatedInformation: Array<{
+    messageText: string;
+    loc: EncodedLocation;
+  }> | null;
+  // Offsets are UTF-16, like those of a `ts.CodeFixAction`.
+  fix?: ts.CodeFixAction;
+};
 
 export function decodeDiagnostic(
   diagnostic: EncodedDiagnostic,
   sources: SourceTable,
-): ts.Diagnostic {
-  if ("tsDiagnostic" in diagnostic) {
-    return sources.decodeDiagnostic(diagnostic);
-  }
+): FixableDiagnostic {
   if (diagnostic.loc == null) {
     return locationlessErr(diagnostic.messageText);
   }
-  return gqlErr(
+  const decoded: FixableDiagnostic = gqlErr(
     { loc: sources.decodeLocation(diagnostic.loc) },
     diagnostic.messageText,
     diagnostic.relatedInformation?.map((related) =>
@@ -269,41 +163,8 @@ export function decodeDiagnostic(
       ),
     ),
   );
-}
-
-export function decodeDocument(
-  json: string,
-  sources: SourceTable,
-): DocumentNode {
-  const doc = JSON.parse(json);
-  decodeLocations(doc, sources);
-  return doc;
-}
-
-// Replaces encoded locations and diagnostics in place. We walk the parsed
-// value ourselves since passing a reviver to `JSON.parse` is several times
-// slower.
-function decodeLocations(value: unknown, sources: SourceTable): void {
-  if (typeof value !== "object" || value === null) {
-    return;
+  if (diagnostic.fix != null) {
+    decoded.fix = diagnostic.fix;
   }
-  if (Array.isArray(value)) {
-    for (const item of value) {
-      decodeLocations(item, sources);
-    }
-    return;
-  }
-  const object = value as Record<string, unknown>;
-  for (const key in object) {
-    const child = object[key];
-    if (key === "loc") {
-      if (child != null) {
-        object[key] = sources.decodeLocation(child as EncodedLocation);
-      }
-    } else if (key === "err" && object.kind === "ERROR") {
-      object[key] = sources.decodeDiagnostic(child as EncodedTsDiagnostic);
-    } else {
-      decodeLocations(child, sources);
-    }
-  }
+  return decoded;
 }

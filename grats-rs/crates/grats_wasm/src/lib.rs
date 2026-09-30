@@ -24,23 +24,16 @@ use std::cell::RefCell;
 
 use graphql_js::language::ast::DocumentNode;
 use grats::host::JsonHost;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 thread_local! {
     static OUTPUT: RefCell<String> = const { RefCell::new(String::new()) };
 
     /// The document from the last `run_pipeline` call, as transformed by it, if
     /// it was valid. The other entry points print it (or locate an entity in
-    /// it), so the document only crosses once. It's kept until the next
+    /// it), so the document never crosses. It's kept until the next
     /// `run_pipeline` call, since a caller may print it more than once.
     static PIPELINE_DOC: RefCell<Option<DocumentNode>> = const { RefCell::new(None) };
-}
-
-/// The input to `run_pipeline`.
-#[derive(Deserialize)]
-struct DocumentRequest<T> {
-    doc: DocumentNode,
-    request: T,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -135,8 +128,7 @@ fn reserve_heap(bytes: usize) {
     drop(std::hint::black_box(Vec::<u8>::with_capacity(bytes)));
 }
 
-/// Input: a `DocumentRequest<PipelineRequest>` (see `grats::pipeline`),
-/// encoded by `runRustPipeline` in `src/rs/document.ts`. Output: the
+/// Input: a `PipelineRequest` (see `grats::pipeline`), as JSON. Output: the
 /// diagnostics, as a JSON `Result` (see `src/utils/Result.ts`).
 ///
 /// If the document is valid, it's kept for the entry points which follow.
@@ -149,10 +141,8 @@ pub unsafe extern "C" fn run_pipeline(ptr: *mut u8, len: usize) {
     unsafe {
         call(ptr, len, |input| {
             PIPELINE_DOC.with(|kept| *kept.borrow_mut() = None);
-            let DocumentRequest { doc, request } = serde_json::from_str(&input)
-                .expect("Input should be an encoded DocumentRequest<PipelineRequest>");
-            drop(input);
-            let result = grats::pipeline::run(doc, request, &JsonHost::new(call_host)).map(|doc| {
+            let request = serde_json::from_str(&input).expect("Input should be a PipelineRequest");
+            let result = grats::pipeline::run(request, &JsonHost::new(call_host)).map(|doc| {
                 PIPELINE_DOC.with(|kept| *kept.borrow_mut() = Some(doc));
             });
             result_json(result)

@@ -26,7 +26,6 @@ import { Result, ok, err } from "../utils/Result.js";
 import { applyFixes } from "../fixFixable.js";
 import { writeTypeScriptTypeToDisk } from "../../scripts/buildConfigTypes.js";
 import { Markdown } from "./Markdown.js";
-import { assertDocumentRoundTrips } from "./codecRoundTrip.js";
 
 writeTypeScriptTypeToDisk();
 
@@ -212,8 +211,6 @@ const testDirs: TestDir[] = [
       }
 
       const { doc } = schemaResult.value;
-
-      assertDocumentRoundTrips(doc);
 
       const fixturePath = `${fixturesDir}/${fileName}`;
       const { tsClientEnums } = parsedOptions.raw.grats;

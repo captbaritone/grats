@@ -186,30 +186,30 @@ pub struct InputValueDefinitionNodeOrResolverArg {
     pub loc: Option<Location>,
     pub description: Option<StringValueNode>,
     // This is the only property that is different.
-    pub name: TsDiagnosticResult<NameNode>,
+    pub name: DiagnosticHandleResult<NameNode>,
     pub r#type: TypeNode,
     pub default_value: Option<ConstValueNode>,
     pub directives: Option<Vec<ConstDirectiveNode>>,
 }
 
 /// PORT: A `DiagnosticResult<T>` (see `src/utils/DiagnosticError.ts`) made by
-/// the TypeScript extractor, whose error is a `TsDiagnosticHandle`.
+/// the extractor, whose error is a `DiagnosticHandle`.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "kind", rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum TsDiagnosticResult<T> {
+pub enum DiagnosticHandleResult<T> {
     Ok { value: T },
-    Error { err: TsDiagnosticHandle },
+    Error { err: DiagnosticHandle },
 }
 
-/// PORT: A `ts.Diagnostic` reported by the TypeScript extractor, but only
-/// reported to the user if a later stage decides it applies. It may have a fix
-/// which edits TypeScript source, so it stays on the TypeScript side and
-/// crosses as a handle. See `SourceTable` in `src/rs/codec.ts`.
-#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+/// PORT: A diagnostic made by the extractor, but only reported to the user if
+/// a later stage decides it applies. TypeScript keeps the diagnostic itself in
+/// the AST. Here the AST refers to it by a handle, which is unique like a
+/// `TsIdentifier`, so that the crate doesn't depend on Grats' diagnostics.
+/// See `ExtractionSnapshot::diagnostics_by_handle`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct TsDiagnosticHandle {
-    /// Index into the diagnostics of the TypeScript side's `SourceTable`.
-    pub ts_diagnostic: u32,
+pub struct DiagnosticHandle {
+    pub id: TsIdentifier,
 }
 
 // Name

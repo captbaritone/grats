@@ -1,3 +1,4 @@
+pub mod assert_name;
 pub mod definition;
 pub mod directives;
 pub mod introspection;

@@ -1,8 +1,10 @@
 //! Port of `src/transforms/resolveResolverParams.ts`.
 
+use std::collections::HashMap;
+
 use graphql_js::language::ast::{
-    DefinitionNode, FieldDefinitionNode, InputValueDefinitionNode, Location, NullableTypeNode,
-    ResolverArgument, ResolverSignature, TsDiagnosticResult,
+    DefinitionNode, DiagnosticHandle, DiagnosticHandleResult, FieldDefinitionNode,
+    InputValueDefinitionNode, Location, NullableTypeNode, ResolverArgument, ResolverSignature,
 };
 use indexmap::IndexMap;
 
@@ -16,24 +18,32 @@ use crate::utils::helpers::{invariant, null_throws};
 
 /// PORT: TypeScript uses graphql-js's `visit` to replace field definitions with
 /// transformed copies. The Rust visitor can't edit the AST, so this transforms
-/// field definitions in place, walking to every field definition.
+/// field definitions in place, walking to every field definition. Takes the
+/// diagnostics which the definitions' `DiagnosticHandle`s refer to (see
+/// `ExtractionSnapshot::diagnostics_by_handle`).
 pub fn resolve_resolver_params(
     ctx: &TypeContext,
+    diagnostics_by_handle: &HashMap<DiagnosticHandle, Diagnostic>,
     definitions: Vec<DefinitionNode>,
 ) -> DiagnosticsResult<Vec<DefinitionNode>> {
-    let resolver = ResolverParamsResolver::new(ctx);
+    let resolver = ResolverParamsResolver::new(ctx, diagnostics_by_handle);
     resolver.resolve(definitions)
 }
 
 struct ResolverParamsResolver<'a> {
     ctx: &'a TypeContext<'a>,
+    diagnostics_by_handle: &'a HashMap<DiagnosticHandle, Diagnostic>,
     errors: Vec<Diagnostic>,
 }
 
 impl<'a> ResolverParamsResolver<'a> {
-    fn new(ctx: &'a TypeContext<'a>) -> Self {
+    fn new(
+        ctx: &'a TypeContext<'a>,
+        diagnostics_by_handle: &'a HashMap<DiagnosticHandle, Diagnostic>,
+    ) -> Self {
         ResolverParamsResolver {
             ctx,
+            diagnostics_by_handle,
             errors: Vec::new(),
         }
     }
@@ -249,11 +259,12 @@ impl<'a> ResolverParamsResolver<'a> {
             panic!("Expected an unresolved resolver argument");
         };
         let name = match &input_definition.name {
-            TsDiagnosticResult::Error { err } => {
-                self.errors.push(Diagnostic::Ts(*err));
+            DiagnosticHandleResult::Error { err } => {
+                self.errors
+                    .push(null_throws(self.diagnostics_by_handle.get(err)).clone());
                 return None;
             }
-            TsDiagnosticResult::Ok { value } => value,
+            DiagnosticHandleResult::Ok { value } => value,
         };
         Some(ResolverArgument::Named {
             name: name.value.clone(),
