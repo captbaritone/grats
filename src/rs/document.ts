@@ -12,6 +12,7 @@ import {
 } from "./codec.js";
 import { callRust, instanceId } from "./load.js";
 import { DIRECTIVES_AST } from "../publicDirectives.js";
+import type { TypeContext } from "../TypeContext.js";
 
 /**
  * Calls the Rust entry points which take a document.
@@ -39,6 +40,7 @@ export function runRustPipeline(
   doc: DocumentNode,
   config: GratsConfig,
   typesWithTypename: Set<string>,
+  ctx: TypeContext,
 ): DiagnosticsWithoutLocationResult<DocumentNode> {
   kept = null;
   const sources = new SourceTable();
@@ -46,6 +48,7 @@ export function runRustPipeline(
     config,
     typesWithTypename: Array.from(typesWithTypename),
     directivesAst: DIRECTIVES_AST,
+    typeContext: ctx.rustState(),
   };
   const result: Result<null, EncodedDiagnostic[]> = JSON.parse(
     callRust("run_pipeline", encodeDocumentRequest(doc, request, sources)),

@@ -1,15 +1,3 @@
-export class DefaultMap<K, V> {
-  _map: Map<K, V> = new Map();
-  constructor(private readonly getDefault: () => V) {}
-
-  get(key: K): V {
-    if (!this._map.has(key)) {
-      this._map.set(key, this.getDefault());
-    }
-    return this._map.get(key)!;
-  }
-}
-
 // Similar to a.push(...b), but avoids potential stack overflows.
 export function extend<T>(a: T[], b: readonly T[]) {
   for (const item of b) {
@@ -34,12 +22,6 @@ let i = 0;
 export function uniqueId(): TsIdentifier {
   return i++ as TsIdentifier;
 }
-
-/**
- * Identifier for NameNodes created after type resolution. Nothing looks these
- * up, so they don't need to be unique.
- */
-export const UNTRACKED_ID = -1 as TsIdentifier;
 
 export function invariant(
   condition: unknown,

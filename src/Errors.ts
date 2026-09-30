@@ -392,10 +392,6 @@ export function parameterPropertyMissingType() {
   return `Expected \`@${FIELD_TAG}\` parameter property to have an explicit type annotation. Grats needs to be able to see the type of the parameter property to generate a GraphQL schema.`;
 }
 
-export function invalidTypePassedToFieldFunction() {
-  return `Unexpected type passed to \`@${FIELD_TAG}\` function. \`@${FIELD_TAG}\` functions can only be used to extend \`@${TYPE_TAG}\` and \`@${INTERFACE_TAG}\` types.`;
-}
-
 export function unresolvedTypeReference() {
   return "Unable to resolve type reference. In order to generate a GraphQL schema, Grats needs to determine which GraphQL type is being referenced. This requires being able to resolve type references to their `@gql` annotated declaration. However this reference could not be resolved. Is it possible that this type is not defined in this file?";
 }

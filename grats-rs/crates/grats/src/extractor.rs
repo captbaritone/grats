@@ -4,6 +4,10 @@
 
 pub const FIELD_TAG: &str = "gqlField";
 pub const TYPE_TAG: &str = "gqlType";
+pub const INTERFACE_TAG: &str = "gqlInterface";
+
+pub const CONTEXT_TAG: &str = "gqlContext";
+pub const INFO_TAG: &str = "gqlInfo";
 
 pub const KILLS_PARENT_ON_EXCEPTION_TAG: &str = "killsParentOnException";
 

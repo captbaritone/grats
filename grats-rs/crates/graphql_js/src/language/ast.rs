@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 /// PORT: graphql-js locations reference their `Source` and tokens. Here a
 /// location is an offset range into a source in the `SourceTable` held by the
 /// TypeScript side (see `EncodedLocation` in `src/rs/codec.ts`).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub struct Location {
     /// Index into the TypeScript side's `SourceTable`.
     pub source: u32,
@@ -23,6 +23,22 @@ pub struct Location {
 }
 
 // Grats metadata (see `src/GraphQLAstExtensions.ts`)
+
+/// A unique identifier for TypeScript nodes. Used to track data about nodes in
+/// lookup data structures.
+///
+/// PORT: Declared in `src/utils/helpers.ts`.
+pub type TsIdentifier = i64;
+
+/// Identifier for NameNodes created after type resolution. Nothing looks these
+/// up, so they don't need to be unique.
+///
+/// PORT: Declared in `src/utils/helpers.ts`.
+pub const UNTRACKED_ID: TsIdentifier = -1;
+
+fn untracked_id() -> TsIdentifier {
+    UNTRACKED_ID
+}
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -90,9 +106,20 @@ pub enum ResolverArgument {
 // Name
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NameNode {
     pub loc: Option<Location>,
     pub value: String,
+    /// Grats metadata: A unique identifier for the node. Used to track
+    /// data about nodes in lookup data structures.
+    ///
+    /// Only meaningful from extraction through type resolution. Names created
+    /// after that use `UNTRACKED_ID`.
+    ///
+    /// PORT: Missing on names parsed from GraphQL text, where TypeScript reads
+    /// it as `undefined`. Neither finds anything when looked up.
+    #[serde(default = "untracked_id")]
+    pub ts_identifier: TsIdentifier,
 }
 
 // Document
@@ -473,12 +500,17 @@ pub struct ScalarTypeExtensionNode {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ObjectTypeExtensionNode {
     pub loc: Option<Location>,
     pub name: NameNode,
     pub interfaces: Option<Vec<NamedTypeNode>>,
     pub directives: Option<Vec<ConstDirectiveNode>>,
     pub fields: Option<Vec<FieldDefinitionNode>>,
+    /// Grats metadata: Indicates that we don't know yet if this is extending an interface
+    /// or a type.
+    #[serde(default)]
+    pub may_be_interface: bool,
 }
 
 #[derive(Debug, Clone, Deserialize)]

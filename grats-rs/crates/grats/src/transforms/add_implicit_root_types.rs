@@ -8,7 +8,7 @@ use graphql_js::language::ast::{
 use indexmap::IndexMap;
 
 use crate::extractor::OPERATION_TYPES;
-use crate::utils::helpers::null_throws;
+use crate::utils::helpers::{UNTRACKED_ID, null_throws};
 use crate::utils::visitor::visit_definitions;
 
 /// Ensure any root types which have been extended with `@gqlQueryField` and
@@ -42,6 +42,7 @@ pub fn add_implicit_root_types(mut doc: DocumentNode) -> DocumentNode {
         }
         let name = NameNode {
             value: type_name,
+            ts_identifier: UNTRACKED_ID,
             loc: Some(loc),
         };
         root_types.push(DefinitionNode::ObjectTypeDefinition(

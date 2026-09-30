@@ -10,6 +10,8 @@ use graphql_js::language::ast::{
     ConstDirectiveNode, DefinitionNode, DocumentNode, Location, NameNode,
 };
 
+use crate::utils::helpers::UNTRACKED_ID;
+
 pub const SEMANTIC_NON_NULL_DIRECTIVE: &str = "semanticNonNull";
 
 /// PORT: `DIRECTIVES_AST` is parsed from GraphQL text on the TypeScript side,
@@ -32,6 +34,7 @@ pub fn make_semantic_non_null_directive(loc: Location) -> ConstDirectiveNode {
         name: NameNode {
             loc: Some(loc),
             value: SEMANTIC_NON_NULL_DIRECTIVE.to_string(),
+            ts_identifier: UNTRACKED_ID,
         },
         arguments: None,
     }

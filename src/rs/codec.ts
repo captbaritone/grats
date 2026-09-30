@@ -6,6 +6,10 @@ import {
   gqlRelated,
   locationlessErr,
 } from "../utils/DiagnosticError.js";
+import type { DeclarationDefinition } from "../TypeContext.js";
+import type { DeclLoc, EntityNameRef } from "../snapshotRefs.js";
+import type { ResolvedDeclaration } from "../NameResolver.js";
+import type { TsIdentifier } from "../utils/helpers.js";
 
 /**
  * Encodes values passed between TypeScript and the Rust port of Grats
@@ -103,7 +107,7 @@ function encodeWithLocations(value: unknown, sources: SourceTable): string {
     // Unlike a reviver in `decodeDocument`, a replacer is about as fast as
     // walking the value ourselves.
     const original = this[key];
-    if (key === "loc" && original != null) {
+    if (original instanceof Location) {
       return sources.encodeLocation(original);
     }
     return value;
@@ -119,6 +123,21 @@ export type RustPipelineRequest = {
   typesWithTypename: string[];
   /** Until Rust can parse GraphQL. */
   directivesAst: DocumentNode;
+  /** Until `TypeContext.fromSnapshot` is ported. */
+  typeContext: RustTypeContextState;
+};
+
+/**
+ * The state of a `TypeContext`, from `TypeContext.rustState`. See
+ * `TypeContextState` in `grats-rs/crates/grats/src/type_context.rs`.
+ */
+export type RustTypeContextState = {
+  declarationToDefinition: Array<[DeclLoc, DeclarationDefinition]>;
+  unresolvedNodes: Array<[TsIdentifier, EntityNameRef]>;
+  /** The checker's answers for each entity name in `unresolvedNodes`. */
+  resolvedEntityNames: Array<
+    [Location, Array<Pick<ResolvedDeclaration, "kind" | "declLoc">>]
+  >;
 };
 
 /**

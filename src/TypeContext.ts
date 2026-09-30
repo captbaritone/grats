@@ -19,6 +19,7 @@ import { ExtractionSnapshot } from "./Extractor.js";
 import { ResolverArgument } from "./resolverSignature.js";
 import { DeclLoc, DeclRef, EntityNameRef } from "./snapshotRefs.js";
 import { NameResolver, ResolvedDeclaration } from "./NameResolver.js";
+import type { RustTypeContextState } from "./rs/codec.js";
 
 export const UNRESOLVED_REFERENCE_NAME = `__UNRESOLVED_REFERENCE__`;
 
@@ -55,9 +56,6 @@ import type { TsIdentifier } from "./utils/helpers.js";
  * TypeScript and GraphQL.
  */
 export interface ITypeContext {
-  /** Resolves an unresolved NameNode to its actual GraphQL name */
-  resolveUnresolvedNamedType(unresolved: NameNode): DiagnosticResult<NameNode>;
-
   /** Checks if an unresolved NameNode refers to a GraphQL type */
   unresolvedNameIsGraphQL(unresolved: NameNode): boolean;
 
@@ -184,46 +182,6 @@ export class TypeContext implements ITypeContext, ITypeContextForResolveTypes {
     return declarations[0];
   }
 
-  resolveUnresolvedNamedType(unresolved: NameNode): DiagnosticResult<NameNode> {
-    if (unresolved.value !== UNRESOLVED_REFERENCE_NAME) {
-      return ok(unresolved);
-    }
-    const typeReference = this.getEntityName(unresolved);
-    if (typeReference == null) {
-      throw new Error("Unexpected unresolved reference name.");
-    }
-
-    const declarationResult = this.resolveEntityName(typeReference.name);
-    if (declarationResult.kind === "ERROR") {
-      return err(declarationResult.err);
-    }
-    if (declarationResult.value.kind === "TYPE_PARAMETER") {
-      return err(
-        gqlErr(
-          unresolved,
-          "Type parameters are not supported in this context.",
-        ),
-      );
-    }
-
-    const nameDefinition = this._declarationToDefinition.get(
-      declarationResult.value.declLoc,
-    );
-    if (nameDefinition == null) {
-      return err(gqlErr(unresolved, E.unresolvedTypeReference()));
-    }
-    if (nameDefinition.kind === "CONTEXT" || nameDefinition.kind === "INFO") {
-      return err(
-        gqlErr(
-          unresolved,
-          E.contextOrInfoUsedInGraphQLPosition(nameDefinition.kind),
-          [gqlRelated(nameDefinition.name, "Defined here")],
-        ),
-      );
-    }
-    return ok({ ...unresolved, value: nameDefinition.name.value });
-  }
-
   unresolvedNameIsGraphQL(unresolved: NameNode): boolean {
     const referenceNode = this.getEntityName(unresolved);
     if (referenceNode == null) return false;
@@ -311,6 +269,27 @@ export class TypeContext implements ITypeContext, ITypeContextForResolveTypes {
       throw new Error(`Could not find declaration for ${name.value}`);
     }
     return declaration;
+  }
+
+  /**
+   * The state the Rust port of `TypeContext` is built from, until
+   * `fromSnapshot` is ported. See `TypeContextState` in
+   * `grats-rs/crates/grats/src/type_context.rs`.
+   *
+   * The checker only exists on the TypeScript side, so it resolves each entity
+   * name the Rust `TypeContext` may ask about ahead of time.
+   */
+  rustState(): RustTypeContextState {
+    return {
+      declarationToDefinition: Array.from(this._declarationToDefinition),
+      unresolvedNodes: Array.from(this._unresolvedNodes),
+      resolvedEntityNames: Array.from(this._unresolvedNodes.values(), (ref) => [
+        ref.name,
+        this.resolver
+          .resolveEntityName(ref.name)
+          .map(({ kind, declLoc }) => ({ kind, declLoc })),
+      ]),
+    };
   }
 
   getEntityName(name: NameNode): EntityNameRef | null {

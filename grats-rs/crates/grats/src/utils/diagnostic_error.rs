@@ -26,6 +26,8 @@ pub struct DiagnosticRelatedInformation {
     pub loc: Location,
 }
 
+pub type DiagnosticResult<T> = Result<T, Diagnostic>;
+
 pub type DiagnosticsWithoutLocationResult<T> = Result<T, Vec<Diagnostic>>;
 
 /// PORT: Diagnostics made by `gql_err` always have a location, but share a

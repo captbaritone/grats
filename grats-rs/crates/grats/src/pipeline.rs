@@ -16,9 +16,11 @@ use serde::Deserialize;
 
 use crate::grats_config::GratsConfig;
 use crate::transforms::add_implicit_root_types::add_implicit_root_types;
+use crate::transforms::add_interface_fields::add_interface_fields;
 use crate::transforms::apply_default_nullability::apply_default_nullability;
 use crate::transforms::merge_extensions::merge_extensions;
 use crate::transforms::sort_schema_ast::sort_schema_ast;
+use crate::type_context::{TypeContext, TypeContextState};
 use crate::utils::diagnostic_error::{
     DiagnosticsWithoutLocationResult, graphql_error_to_diagnostic,
 };
@@ -40,11 +42,14 @@ pub struct PipelineRequest {
     /// GraphQL text, so it's parsed on the TypeScript side until Rust can parse
     /// GraphQL.
     pub directives_ast: DocumentNode,
+    /// PORT: `ctx`, built on the TypeScript side until
+    /// `TypeContext.fromSnapshot` is ported.
+    pub type_context: TypeContextState,
 }
 
-/// PORT: The part of `extractSchemaAndDoc` which starts once the definitions
-/// have been converted into a `DocumentNode`, after `addInterfaceFields`.
-/// After validating the transformed document, it builds its own schema from
+/// PORT: The part of `extractSchemaAndDoc` which starts after
+/// `coerceDefaultEnumValues`, with the definitions converted into a
+/// `DocumentNode` to cross into Rust. After validating the transformed document, it builds its own schema from
 /// it. Returns the transformed document.
 pub fn run(
     doc: DocumentNode,
@@ -54,9 +59,21 @@ pub fn run(
         config,
         types_with_typename,
         directives_ast,
+        type_context,
     } = request;
-    // Ensure all subscription fields return an AsyncIterable.
-    let doc = validate_async_iterable(doc)
+    let ctx = TypeContext::from_state(type_context);
+    // If you define a field on an interface using the functional style, we
+    // need to add that field to each concrete type as well. This must be
+    // done after all types are created, but before we validate the schema.
+    let doc = add_interface_fields(&ctx, doc.definitions)
+        // Convert the definitions into a DocumentNode
+        .map(|definitions| DocumentNode {
+            loc: None,
+            definitions,
+            token_count: None,
+        })
+        // Ensure all subscription fields return an AsyncIterable.
+        .and_then(validate_async_iterable)
         // Apply default nullability to fields and arguments, and detect any misuse of
         // `@killsParentOnException`.
         .and_then(|doc| apply_default_nullability(doc, &config, directives_ast))

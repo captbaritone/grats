@@ -1,4 +1,5 @@
 pub mod add_implicit_root_types;
+pub mod add_interface_fields;
 pub mod apply_default_nullability;
 pub mod make_resolver_signature;
 pub mod merge_extensions;

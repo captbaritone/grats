@@ -31,7 +31,7 @@ declare module "graphql" {
      * data about nodes in lookup data structures.
      *
      * Only meaningful from extraction through type resolution. Names created
-     * after that use `UNTRACKED_ID`.
+     * after that (in Rust) use `UNTRACKED_ID`.
      */
     tsIdentifier: TsIdentifier;
   }

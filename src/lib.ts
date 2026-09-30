@@ -8,7 +8,6 @@ import { CheckerNameResolver } from "./CheckerNameResolver.js";
 import { ParsedCommandLineGrats } from "./gratsConfig.js";
 import { extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram.js";
 import { validateMergedInterfaces } from "./validations/validateMergedInterfaces.js";
-import { addInterfaceFields } from "./transforms/addInterfaceFields.js";
 import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces.js";
 import { validateDuplicateContextOrInfo } from "./validations/validateDuplicateContextOrInfo.js";
 import { resolveTypes } from "./transforms/resolveTypes.js";
@@ -100,10 +99,6 @@ export function extractSchemaAndDoc(
         // Convert string literals used as default values for enums into GraphQL
         // enums where appropriate.
         .map((definitions) => coerceDefaultEnumValues(definitions))
-        // If you define a field on an interface using the functional style, we
-        // need to add that field to each concrete type as well. This must be
-        // done after all types are created, but before we validate the schema.
-        .andThen((definitions) => addInterfaceFields(ctx, definitions))
         // Convert the definitions into a DocumentNode
         .map((definitions) => ({ kind: Kind.DOCUMENT, definitions }) as const)
         .result();
@@ -117,7 +112,9 @@ export function extractSchemaAndDoc(
       // document transforms and validations, which end by validating the
       // document and the schema built from it with regards to the GraphQL
       // spec. Rust keeps the resulting document for printing.
-      return new ResultPipe(runRustPipeline(doc, config, typesWithTypename))
+      return new ResultPipe(
+        runRustPipeline(doc, config, typesWithTypename, ctx),
+      )
         .map(() => ({ doc }))
         .result();
     })
