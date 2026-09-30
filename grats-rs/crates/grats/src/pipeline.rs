@@ -1,8 +1,7 @@
 //! Port of the pipeline in `extractSchemaAndDoc` in `src/lib.ts`.
 //!
 //! PORT: The TypeScript side finds the files which contain GraphQL
-//! definitions and checks them for syntax errors (see
-//! `src/transforms/snapshotsFromProgram.ts`), then calls `run` with their
+//! definitions (see `src/gratsSourceFiles.ts`), then calls `run` with their
 //! paths. (A crate's `lib.rs` is its root, so this module can't share the
 //! TypeScript file's name.)
 
@@ -32,7 +31,8 @@ use crate::transforms::resolve_types::resolve_types;
 use crate::transforms::sort_schema_ast::sort_schema_ast;
 use crate::type_context::TypeContext;
 use crate::utils::diagnostic_error::{
-    DiagnosticsWithoutLocationResult, graphql_error_to_diagnostic,
+    Diagnostic, DiagnosticsWithoutLocationResult, TsLocatableNode, graphql_error_to_diagnostic,
+    ts_err,
 };
 use crate::utils::helpers::null_throws;
 use crate::utils::result::{collect_results, concat_results};
@@ -56,8 +56,8 @@ pub struct PipelineRequest {
     pub files: Vec<String>,
 }
 
-/// PORT: The part of `extractSchemaAndDoc` which starts with extracting each
-/// file's snapshot (the end of `extractSnapshotsFromProgram`). After
+/// PORT: The part of `extractSchemaAndDoc` which starts with checking each
+/// file for syntax errors (the end of `gratsSourceFilesFromProgram`). After
 /// validating the transformed document, it builds its own schema from it.
 /// Returns the transformed document.
 pub fn run(
@@ -73,10 +73,37 @@ pub fn run(
     let files = Files::new(&allocator, host);
     let resolver = &OxcNameResolver::new(&files);
 
-    let snapshots = collect_results(paths.iter().map(|path| {
-        let source_file = null_throws(files.file(path));
-        extract(&source_file, &config, &grats_root, host)
-    }))?;
+    let source_files: Vec<_> = paths
+        .iter()
+        .map(|path| null_throws(files.file(path)))
+        .collect();
+    // Syntax errors will prevent us from extracting any GraphQL definitions.
+    // PORT: The TypeScript side reported the first of TypeScript's syntax
+    // errors in each file. oxc's wording differs, and its parser also reports
+    // some errors which TypeScript reports in its type checker. We report
+    // every error oxc collects.
+    let syntax_errors: Vec<Diagnostic> = source_files
+        .iter()
+        .flat_map(|source_file| {
+            source_file.syntax_errors.iter().map(|error| {
+                ts_err(
+                    TsLocatableNode::new(source_file, error.span),
+                    error.message.clone(),
+                    None,
+                    None,
+                )
+            })
+        })
+        .collect();
+    if !syntax_errors.is_empty() {
+        return Err(syntax_errors);
+    }
+
+    let snapshots = collect_results(
+        source_files
+            .iter()
+            .map(|source_file| extract(source_file, &config, &grats_root, host)),
+    )?;
     let mut snapshot = combine_snapshots(snapshots);
     let definitions = std::mem::take(&mut snapshot.definitions);
     let diagnostics_by_handle = std::mem::take(&mut snapshot.diagnostics_by_handle);

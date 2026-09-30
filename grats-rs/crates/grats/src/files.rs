@@ -11,7 +11,7 @@ use oxc_allocator::Allocator;
 use oxc_ast::AstKind;
 use oxc_parser::Parser;
 use oxc_semantic::{NodeId, Semantic, SemanticBuilder};
-use oxc_span::{GetSpan, SourceType};
+use oxc_span::{GetSpan, SourceType, Span};
 
 use crate::host::{File, Host};
 use crate::jsdoc::JSDocIndex;
@@ -33,12 +33,19 @@ pub struct ParsedFile<'a> {
     pub is_declaration_file: bool,
     pub semantic: Semantic<'a>,
     pub offsets: Utf16Offsets,
+    /// The syntax errors oxc encountered while parsing the file.
+    pub syntax_errors: Vec<SyntaxError>,
     /// The names which a location may refer to, by their span. Used by the
     /// name resolver.
     pub names: HashMap<(u32, u32), NodeId>,
     /// The file's JSDoc, by the node it's attached to. Built the first time
     /// it's needed.
     jsdoc: OnceCell<JSDocIndex>,
+}
+
+pub struct SyntaxError {
+    pub span: Span,
+    pub message: String,
 }
 
 impl<'a> Files<'a> {
@@ -85,11 +92,25 @@ impl<'a> Files<'a> {
     fn parse(&self, file: File) -> ParsedFile<'a> {
         let text = self.allocator.alloc_str(&file.text);
         let source_type = SourceType::from_path(&file.path).unwrap_or_else(|_| SourceType::ts());
-        let program = self.allocator.alloc(
-            Parser::new(self.allocator, text, source_type)
-                .parse()
-                .program,
-        );
+        let parsed = Parser::new(self.allocator, text, source_type).parse();
+        let syntax_errors = parsed
+            .diagnostics
+            .errors()
+            .map(|error| {
+                let label = error
+                    .labels
+                    .iter()
+                    .find(|label| label.primary())
+                    .or(error.labels.first());
+                SyntaxError {
+                    span: label.map_or(Span::empty(0), |label| {
+                        Span::sized(label.offset(), label.len())
+                    }),
+                    message: error.message.to_string(),
+                }
+            })
+            .collect();
+        let program = self.allocator.alloc(parsed.program);
         let semantic = SemanticBuilder::new()
             .with_build_nodes(true)
             .build(program)
@@ -118,6 +139,7 @@ impl<'a> Files<'a> {
             is_declaration_file: source_type.is_typescript_definition(),
             offsets: Utf16Offsets::new(text),
             semantic,
+            syntax_errors,
             names,
             jsdoc: OnceCell::new(),
         }

@@ -1,37 +1,18 @@
 import * as ts from "typescript";
-import { DiagnosticsWithoutLocationResult } from "./utils/DiagnosticError.js";
-import { err, ok } from "./utils/Result.js";
 
 const TAG_REGEX = /@(gql)|(killsParentOnException)/i;
 
 // Given a ts.Program, find the files to extract GraphQL definitions from.
 // In the future this part might be able to be incremental, were we only run extraction
 // on changed files.
+//
+// The Rust side checks these files for syntax errors. See `run` in
+// `grats-rs/crates/grats/src/pipeline.rs`.
 export function gratsSourceFilesFromProgram(
   program: ts.Program,
-): DiagnosticsWithoutLocationResult<ts.SourceFile[]> {
-  const errors: ts.DiagnosticWithLocation[] = [];
-  const gratsSourceFiles = program.getSourceFiles().filter((sourceFile) => {
-    // If the file doesn't contain any GraphQL definitions, skip it.
-    if (!TAG_REGEX.test(sourceFile.text)) {
-      return false;
-    }
-
-    // We only report syntax errors, since they will prevent us from
-    // extracting any GraphQL definitions.
-    const syntaxErrors = program.getSyntacticDiagnostics(sourceFile);
-    if (syntaxErrors.length > 0) {
-      // It's not very helpful to report multiple syntax errors, so just report
-      // the first one.
-      errors.push(syntaxErrors[0]);
-      return false;
-    }
-    return true;
-  });
-
-  if (errors.length > 0) {
-    return err(errors);
-  }
-
-  return ok(gratsSourceFiles);
+): ts.SourceFile[] {
+  // If the file doesn't contain any GraphQL definitions, skip it.
+  return program
+    .getSourceFiles()
+    .filter((sourceFile) => TAG_REGEX.test(sourceFile.text));
 }

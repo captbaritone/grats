@@ -7,6 +7,7 @@ dist/
 website/.docusaurus
 website/build
 src/tests/fixtures/user_error/InvalidSyntax.invalid.ts
+src/tests/fixtures/user_error/MultipleSyntaxErrors.invalid.ts
 **/schema.graphql
 **/schema.ts
 **/enums.ts

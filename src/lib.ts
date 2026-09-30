@@ -56,19 +56,17 @@ export function extractSchemaAndDoc(
   options: ParsedCommandLineGrats,
   program: ts.Program,
 ): DiagnosticsWithoutLocationResult<SchemaAndDoc> {
-  return new ResultPipe(gratsSourceFilesFromProgram(program))
-    .andThen((sourceFiles) => {
-      const config = options.raw.grats;
+  const sourceFiles = gratsSourceFilesFromProgram(program);
+  const config = options.raw.grats;
 
-      // Run the rest of the pipeline, which has been ported to Rust:
-      // extracting a snapshot from each file and combining them, building the
-      // `TypeContext` and validating the snapshot, filtering interfaces,
-      // resolving resolver params and types, and the document transforms and
-      // validations, which end by validating the document and the schema
-      // built from it with regards to the GraphQL spec. Rust keeps the
-      // resulting document for printing.
-      return runRustPipeline(sourceFiles, config, program);
-    })
+  // Run the rest of the pipeline, which has been ported to Rust: checking
+  // each file for syntax errors, extracting a snapshot from each file and
+  // combining them, building the `TypeContext` and validating the snapshot,
+  // filtering interfaces, resolving resolver params and types, and the
+  // document transforms and validations, which end by validating the document
+  // and the schema built from it with regards to the GraphQL spec. Rust keeps
+  // the resulting document for printing.
+  return new ResultPipe(runRustPipeline(sourceFiles, config, program))
     .map((doc) => ({ doc }))
     .result();
 }

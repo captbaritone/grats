@@ -14,7 +14,7 @@ class #Foo {
 ### Error Report
 
 ```text
-src/tests/fixtures/user_error/InvalidSyntax.invalid.ts:2:7 - error TS1005: '{' expected.
+src/tests/fixtures/user_error/InvalidSyntax.invalid.ts:2:7 - error: Expected `{` but found `#identifier`
 
 2 class #Foo {
         ~~~~

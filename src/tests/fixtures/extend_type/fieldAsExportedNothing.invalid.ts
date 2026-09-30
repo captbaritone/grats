@@ -4,4 +4,4 @@ class SomeType {
 }
 
 /** @gqlField */
-export const greeting;
+export declare const greeting: string;
