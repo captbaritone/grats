@@ -6,6 +6,13 @@ use crate::extractor::{
     CONTEXT_TAG, FIELD_TAG, INFO_TAG, INTERFACE_TAG, KILLS_PARENT_ON_EXCEPTION_TAG, TYPE_TAG,
 };
 
+// TODO: Move these to short URLS that are easier to keep from breaking.
+/// PORT: `DOC_URLS`, with only the URLs used by ported code.
+mod doc_urls {
+    pub const MERGED_INTERFACES: &str =
+        "https://grats.capt.dev/docs/docblock-tags/interfaces/#merged-interfaces";
+}
+
 pub fn generic_type_used_as_union_member() -> String {
     "Unexpected generic type used as union member. Generic type may not currently be used as members of a union. Grats requires that all union members define a `__typename` field typed as a string literal matching the type's name. Since generic types are synthesized into multiple types with different names, Grats cannot ensure they have a correct `__typename` property and thus cannot be used as members of a union.".to_string()
 }
@@ -111,4 +118,30 @@ pub fn cyclic_derived_context() -> String {
 
 pub fn invalid_derived_context_arg_type() -> String {
     "Invalid type for derived context function argument. Derived context functions may only accept other `@gqlContext` types as arguments.".to_string()
+}
+
+pub fn merged_interfaces() -> String {
+    [
+        "Unexpected merged interface.".to_string(),
+        "If an interface is declared multiple times in a scope, TypeScript merges them."
+            .to_string(),
+        "To avoid ambiguity Grats does not support using merged interfaces as GraphQL definitions."
+            .to_string(),
+        "Consider using a unique name for your TypeScript interface and renaming it.\n\n"
+            .to_string(),
+        format!("Learn more: {}", doc_urls::MERGED_INTERFACES),
+    ]
+    .join(" ")
+}
+
+pub fn duplicate_context_tag() -> String {
+    format!(
+        "Unexpected duplicate `@{CONTEXT_TAG}` tag. Only one type in a project may be annotated with the `@{CONTEXT_TAG}`."
+    )
+}
+
+pub fn user_defined_info_tag() -> String {
+    format!(
+        "Unexpected user-defined `@{INFO_TAG}` tag. Use the type `GqlInfo` exported from `grats`: `import type {{ GqlInfo }} from \"grats\";`."
+    )
 }

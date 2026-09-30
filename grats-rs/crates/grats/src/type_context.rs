@@ -1,19 +1,18 @@
 //! Port of `src/TypeContext.ts`.
-//!
-//! PORT: Only the parts used by ported code. Until `fromSnapshot` is ported,
-//! the TypeScript side builds its `TypeContext` and this one is built from its
-//! state (see `TypeContextState`).
 
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use graphql_js::language::ast::{Location, NameNode, ResolverArgument};
 use serde::Deserialize;
 
-use crate::checker_name_resolver::CheckerNameResolver;
 use crate::errors::{self as E, ContextOrInfo};
+use crate::extractor::{ExtractionSnapshot, NameDefinitionEntry};
 use crate::name_resolver::{NameResolver, ResolvedDeclaration, ResolvedDeclarationKind};
 use crate::snapshot_refs::{DeclLoc, DeclRef, EntityNameRef};
-use crate::utils::diagnostic_error::{DiagnosticResult, gql_err, gql_related};
+use crate::utils::diagnostic_error::{
+    Diagnostic, DiagnosticResult, DiagnosticsResult, gql_err, gql_related,
+};
 use crate::utils::helpers::TsIdentifier;
 
 pub const UNRESOLVED_REFERENCE_NAME: &str = "__UNRESOLVED_REFERENCE__";
@@ -53,18 +52,6 @@ pub struct DerivedResolverDefinition {
     pub r#async: bool,
 }
 
-/// PORT: The state of the TypeScript side's `TypeContext`, which this one is
-/// built from until `fromSnapshot` is ported.
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct TypeContextState {
-    pub declaration_to_definition: Vec<(DeclLoc, DeclarationDefinition)>,
-    pub unresolved_nodes: Vec<(TsIdentifier, EntityNameRef)>,
-    pub id_to_declaration: Vec<(TsIdentifier, DeclRef)>,
-    /// The checker's answers for `CheckerNameResolver`.
-    pub resolved_entity_names: Vec<(Location, Vec<ResolvedDeclaration>)>,
-}
-
 /// Used to track TypeScript references.
 ///
 /// If a TS method is typed as returning `MyType`, we need to look at that type's
@@ -76,7 +63,7 @@ pub struct TypeContextState {
 /// parsed all the files, we traverse the GraphQL schema, resolving all the dummy
 /// type references.
 pub struct TypeContext {
-    resolver: Box<dyn NameResolver>,
+    resolver: Rc<dyn NameResolver>,
 
     declaration_to_definition: HashMap<DeclLoc, DeclarationDefinition>,
     unresolved_nodes: HashMap<TsIdentifier, EntityNameRef>,
@@ -84,12 +71,64 @@ pub struct TypeContext {
 }
 
 impl TypeContext {
-    pub fn from_state(state: TypeContextState) -> Self {
+    pub fn from_snapshot(
+        resolver: Rc<dyn NameResolver>,
+        snapshot: ExtractionSnapshot,
+    ) -> DiagnosticsResult<TypeContext> {
+        let mut errors: Vec<Diagnostic> = Vec::new();
+        let mut self_ = TypeContext::new(resolver);
+        self_.unresolved_nodes = snapshot.unresolved_names.into_iter().collect();
+        for (
+            _,
+            NameDefinitionEntry {
+                declaration,
+                definition,
+            },
+        ) in snapshot.name_definitions
+        {
+            let decl_loc = declaration.decl_loc.clone();
+            self_
+                .id_to_declaration
+                .insert(definition.name.ts_identifier, declaration);
+            self_.declaration_to_definition.insert(decl_loc, definition);
+        }
+        for (definition, reference) in snapshot.implicit_name_definitions {
+            let Some(declaration) = self_.maybe_declaration_for_ts_name(reference.name) else {
+                errors.push(gql_err(
+                    Some(reference.name),
+                    E::unresolved_type_reference(),
+                    None,
+                ));
+                continue;
+            };
+            if let Some(existing) = self_.declaration_to_definition.get(&declaration.decl_loc) {
+                errors.push(gql_err(
+                    declaration.loc,
+                    "Multiple derived contexts defined for given type".to_string(),
+                    Some(vec![
+                        gql_related(definition.name.loc, "One was defined here"),
+                        gql_related(existing.name.loc, "Another here"),
+                    ]),
+                ));
+                continue;
+            }
+            self_
+                .declaration_to_definition
+                .insert(declaration.decl_loc, definition);
+        }
+
+        if !errors.is_empty() {
+            return Err(errors);
+        }
+        Ok(self_)
+    }
+
+    fn new(resolver: Rc<dyn NameResolver>) -> Self {
         TypeContext {
-            resolver: Box::new(CheckerNameResolver::new(state.resolved_entity_names)),
-            declaration_to_definition: state.declaration_to_definition.into_iter().collect(),
-            unresolved_nodes: state.unresolved_nodes.into_iter().collect(),
-            id_to_declaration: state.id_to_declaration.into_iter().collect(),
+            resolver,
+            declaration_to_definition: HashMap::new(),
+            unresolved_nodes: HashMap::new(),
+            id_to_declaration: HashMap::new(),
         }
     }
 

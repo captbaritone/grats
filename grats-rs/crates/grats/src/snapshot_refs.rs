@@ -24,6 +24,7 @@ pub type DeclLoc = String;
 #[serde(rename_all = "camelCase")]
 pub struct DeclRef {
     pub decl_loc: DeclLoc,
+    pub name: Location,
     /// Used to materialize generic types.
     pub type_parameters: Vec<TypeParameterRef>,
 }

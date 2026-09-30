@@ -12,7 +12,9 @@ import {
 } from "./codec.js";
 import { callRust, instanceId } from "./load.js";
 import { DIRECTIVES_AST } from "../publicDirectives.js";
-import type { TypeContext } from "../TypeContext.js";
+import type { ExtractionSnapshot } from "../Extractor.js";
+import type { NameResolver } from "../NameResolver.js";
+import { resolveNamesForRust } from "./nameResolution.js";
 
 /**
  * Calls the Rust entry points which take a document.
@@ -33,22 +35,29 @@ let kept: {
 } | null = null;
 
 /**
- * Runs the part of the pipeline which has been ported to Rust: transforms and
- * validations. See `run` in `grats-rs/crates/grats/src/pipeline.rs`.
+ * Runs the part of the pipeline which has been ported to Rust on the combined
+ * snapshot, whose definitions are `doc`: transforms and validations. See `run`
+ * in `grats-rs/crates/grats/src/pipeline.rs`.
  */
 export function runRustPipeline(
   doc: DocumentNode,
   config: GratsConfig,
-  typesWithTypename: Set<string>,
-  ctx: TypeContext,
+  snapshot: ExtractionSnapshot,
+  resolver: NameResolver,
 ): DiagnosticsWithoutLocationResult<DocumentNode> {
   kept = null;
   const sources = new SourceTable();
   const request: RustPipelineRequest = {
     config,
-    typesWithTypename: Array.from(typesWithTypename),
+    snapshot: {
+      unresolvedNames: Array.from(snapshot.unresolvedNames),
+      nameDefinitions: Array.from(snapshot.nameDefinitions),
+      implicitNameDefinitions: Array.from(snapshot.implicitNameDefinitions),
+      typesWithTypename: Array.from(snapshot.typesWithTypename),
+      interfaceDeclarations: snapshot.interfaceDeclarations,
+    },
+    nameResolution: resolveNamesForRust(resolver, snapshot),
     directivesAst: DIRECTIVES_AST,
-    typeContext: ctx.rustState(),
   };
   const result: Result<null, EncodedDiagnostic[]> = JSON.parse(
     callRust("run_pipeline", encodeDocumentRequest(doc, request, sources)),

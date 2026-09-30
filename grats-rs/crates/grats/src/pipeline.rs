@@ -4,7 +4,7 @@
 //! the rest, then calls `run` with the document. (A crate's `lib.rs` is
 //! its root, so this module can't share the TypeScript file's name.)
 
-use std::collections::HashSet;
+use std::rc::Rc;
 
 use graphql_js::error::graphql_error::GraphQLError;
 use graphql_js::language::ast::DocumentNode;
@@ -14,7 +14,10 @@ use graphql_js::utilities::build_ast_schema::build_ast_schema;
 use graphql_js::validation::validate::validate_sdl;
 use serde::Deserialize;
 
+use crate::checker_name_resolver::{CheckerNameResolution, CheckerNameResolver};
+use crate::extractor::ExtractionSnapshot;
 use crate::grats_config::GratsConfig;
+use crate::name_resolver::NameResolver;
 use crate::transforms::add_implicit_root_types::add_implicit_root_types;
 use crate::transforms::add_interface_fields::add_interface_fields;
 use crate::transforms::apply_default_nullability::apply_default_nullability;
@@ -24,13 +27,16 @@ use crate::transforms::merge_extensions::merge_extensions;
 use crate::transforms::resolve_resolver_params::resolve_resolver_params;
 use crate::transforms::resolve_types::resolve_types;
 use crate::transforms::sort_schema_ast::sort_schema_ast;
-use crate::type_context::{TypeContext, TypeContextState};
+use crate::type_context::TypeContext;
 use crate::utils::diagnostic_error::{
     DiagnosticsWithoutLocationResult, graphql_error_to_diagnostic,
 };
+use crate::utils::result::concat_results;
 use crate::validations::custom_spec_validations::custom_spec_validations;
 use crate::validations::validate_async_iterable::validate_async_iterable;
 use crate::validations::validate_directive_arguments::validate_directive_arguments;
+use crate::validations::validate_duplicate_context_or_info::validate_duplicate_context_or_info;
+use crate::validations::validate_merged_interfaces::validate_merged_interfaces;
 use crate::validations::validate_semantic_nullability::validate_semantic_nullability;
 use crate::validations::validate_some_types_are_defined::validate_some_types_are_defined;
 use crate::validations::validate_typenames::validate_typenames;
@@ -40,20 +46,20 @@ use crate::validations::validate_typenames::validate_typenames;
 #[serde(rename_all = "camelCase")]
 pub struct PipelineRequest {
     pub config: GratsConfig,
-    /// `snapshot.typesWithTypename`.
-    pub types_with_typename: HashSet<String>,
+    /// The combined snapshot, besides its definitions.
+    pub snapshot: ExtractionSnapshot,
+    /// PORT: The names in the snapshot, resolved by the TypeScript checker until
+    /// name resolution is ported.
+    pub name_resolution: CheckerNameResolution,
     /// `DIRECTIVES_AST` from `src/publicDirectives.ts`. PORT: It's parsed from
     /// GraphQL text, so it's parsed on the TypeScript side until Rust can parse
     /// GraphQL.
     pub directives_ast: DocumentNode,
-    /// PORT: `ctx`, built on the TypeScript side until
-    /// `TypeContext.fromSnapshot` is ported.
-    pub type_context: TypeContextState,
 }
 
 /// PORT: The part of `extractSchemaAndDoc` which starts after
-/// `validateMergedInterfaces` and `validateDuplicateContextOrInfo`, with the
-/// snapshot's definitions converted into a `DocumentNode` to cross into Rust. After validating the transformed
+/// `combineSnapshots`, with the snapshot's definitions converted into a
+/// `DocumentNode` to cross into Rust. After validating the transformed
 /// document, it builds its own schema from it. Returns the transformed
 /// document.
 pub fn run(
@@ -62,11 +68,29 @@ pub fn run(
 ) -> DiagnosticsWithoutLocationResult<DocumentNode> {
     let PipelineRequest {
         config,
-        types_with_typename,
+        mut snapshot,
+        name_resolution,
         directives_ast,
-        type_context,
     } = request;
-    let ctx = TypeContext::from_state(type_context);
+    let types_with_typename = std::mem::take(&mut snapshot.types_with_typename);
+    let resolver: Rc<dyn NameResolver> = Rc::new(CheckerNameResolver::new(name_resolution));
+
+    // PORT: These validations run before `TypeContext.fromSnapshot`, which
+    // takes the snapshot, but its errors are still reported first.
+    let validation_result = concat_results(
+        validate_merged_interfaces(&*resolver, &snapshot.interface_declarations),
+        validate_duplicate_context_or_info(
+            snapshot
+                .name_definitions
+                .iter()
+                .map(|(_, name_definition)| &name_definition.definition),
+        ),
+    );
+
+    let ctx = TypeContext::from_snapshot(resolver, snapshot)?;
+
+    validation_result?;
+
     // Filter out any `implements` clauses that are not GraphQL interfaces.
     let definitions = filter_non_gql_interfaces(&ctx, doc.definitions);
     // Determine which positional resolver arguments: GraphQL arguments,

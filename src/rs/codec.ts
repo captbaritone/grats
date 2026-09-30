@@ -7,9 +7,12 @@ import {
   gqlRelated,
   locationlessErr,
 } from "../utils/DiagnosticError.js";
-import type { DeclarationDefinition } from "../TypeContext.js";
+import type { DeclarationDefinition, NameDefinition } from "../TypeContext.js";
 import type { DeclLoc, DeclRef, EntityNameRef } from "../snapshotRefs.js";
-import type { ResolvedDeclaration } from "../NameResolver.js";
+import type {
+  MergedDeclaration,
+  ResolvedDeclaration,
+} from "../NameResolver.js";
 import type { TsIdentifier } from "../utils/helpers.js";
 
 /**
@@ -153,24 +156,37 @@ function encodeWithLocations(value: unknown, sources: SourceTable): string {
  */
 export type RustPipelineRequest = {
   config: GratsConfig;
-  typesWithTypename: string[];
+  /** The combined snapshot, besides its definitions. */
+  snapshot: RustExtractionSnapshot;
+  /** Until name resolution is ported. */
+  nameResolution: RustNameResolution;
   /** Until Rust can parse GraphQL. */
   directivesAst: DocumentNode;
-  /** Until `TypeContext.fromSnapshot` is ported. */
-  typeContext: RustTypeContextState;
 };
 
 /**
- * The state of a `TypeContext`, from `TypeContext.rustState`. See
- * `TypeContextState` in `grats-rs/crates/grats/src/type_context.rs`.
+ * An `ExtractionSnapshot` without its definitions, which cross as the
+ * document. See `ExtractionSnapshot` in
+ * `grats-rs/crates/grats/src/extractor.rs`.
  */
-export type RustTypeContextState = {
-  declarationToDefinition: Array<[DeclLoc, DeclarationDefinition]>;
-  unresolvedNodes: Array<[TsIdentifier, EntityNameRef]>;
-  idToDeclaration: Array<[TsIdentifier, DeclRef]>;
+export type RustExtractionSnapshot = {
+  unresolvedNames: Array<[TsIdentifier, EntityNameRef]>;
+  nameDefinitions: Array<
+    [DeclLoc, { declaration: DeclRef; definition: NameDefinition }]
+  >;
+  implicitNameDefinitions: Array<[DeclarationDefinition, EntityNameRef]>;
+  typesWithTypename: string[];
+  interfaceDeclarations: DeclRef[];
+};
+
+/**
+ * The checker's answers, from `resolveNamesForRust` in
+ * `src/rs/nameResolution.ts`. See `CheckerNameResolution` in
+ * `grats-rs/crates/grats/src/checker_name_resolver.rs`.
+ */
+export type RustNameResolution = {
   /**
-   * The checker's answers for each entity name in `unresolvedNodes`, and those
-   * in their type arguments.
+   * For each entity name in the snapshot, and those in their type arguments.
    */
   resolvedEntityNames: Array<
     [
@@ -182,6 +198,8 @@ export type RustTypeContextState = {
       }>,
     ]
   >;
+  /** For each of the snapshot's interface declarations. */
+  mergedDeclarations: Array<[DeclLoc, MergedDeclaration[]]>;
 };
 
 /**

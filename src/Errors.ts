@@ -19,8 +19,6 @@ export const ISSUE_URL = "https://github.com/captbaritone/grats/issues";
 
 // TODO: Move these to short URLS that are easier to keep from breaking.
 const DOC_URLS = {
-  mergedInterfaces:
-    "https://grats.capt.dev/docs/docblock-tags/interfaces/#merged-interfaces",
   parameterProperties:
     "https://grats.capt.dev/docs/docblock-tags/fields#class-based-fields",
   commentSyntax: "https://grats.capt.dev/docs/getting-started/comment-syntax",
@@ -341,16 +339,6 @@ export function nonNullTypeCannotBeOptional() {
   return `Unexpected optional argument that does not also accept \`null\`. Optional arguments in GraphQL may get passed an explicit \`null\` value by the GraphQL executor. This means optional arguments must be typed to also accept \`null\`. Consider adding \`| null\` to the end of the argument type.`;
 }
 
-export function mergedInterfaces() {
-  return [
-    `Unexpected merged interface.`,
-    `If an interface is declared multiple times in a scope, TypeScript merges them.`,
-    `To avoid ambiguity Grats does not support using merged interfaces as GraphQL definitions.`,
-    `Consider using a unique name for your TypeScript interface and renaming it.\n\n`,
-    `Learn more: ${DOC_URLS.mergedInterfaces}`,
-  ].join(" ");
-}
-
 export function implementsTagDeprecated() {
   return `\`@${IMPLEMENTS_TAG_DEPRECATED}\` has been deprecated. Instead use \`class MyType implements MyInterface\`.`;
 }
@@ -390,10 +378,6 @@ export function parameterPropertyNotPublic() {
 
 export function parameterPropertyMissingType() {
   return `Expected \`@${FIELD_TAG}\` parameter property to have an explicit type annotation. Grats needs to be able to see the type of the parameter property to generate a GraphQL schema.`;
-}
-
-export function unresolvedTypeReference() {
-  return "Unable to resolve type reference. In order to generate a GraphQL schema, Grats needs to determine which GraphQL type is being referenced. This requires being able to resolve type references to their `@gql` annotated declaration. However this reference could not be resolved. Is it possible that this type is not defined in this file?";
 }
 
 export function expectedTypeAnnotationOnContext() {
@@ -514,10 +498,6 @@ export function oneOfPropertyMissingTypeAnnotation(): string {
 
 export function contextTagOnNonDeclaration(): string {
   return `Invalid \`@${CONTEXT_TAG}\` tag annotation. Expected the \`@${CONTEXT_TAG}\` tag to be attached to a type, interface or class declaration.`;
-}
-
-export function duplicateContextTag(): string {
-  return `Unexpected duplicate \`@${CONTEXT_TAG}\` tag. Only one type in a project may be annotated with the \`@${CONTEXT_TAG}\`.`;
 }
 
 export function userDefinedInfoTag(): string {

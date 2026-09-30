@@ -1,14 +1,11 @@
 import { DocumentNode, Kind } from "graphql";
 import { DiagnosticsWithoutLocationResult } from "./utils/DiagnosticError.js";
-import { concatResults, ResultPipe } from "./utils/Result.js";
+import { ResultPipe } from "./utils/Result.js";
 import * as ts from "typescript";
 import { ExtractionSnapshot } from "./Extractor.js";
-import { TypeContext } from "./TypeContext.js";
 import { CheckerNameResolver } from "./CheckerNameResolver.js";
 import { ParsedCommandLineGrats } from "./gratsConfig.js";
 import { extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram.js";
-import { validateMergedInterfaces } from "./validations/validateMergedInterfaces.js";
-import { validateDuplicateContextOrInfo } from "./validations/validateDuplicateContextOrInfo.js";
 import { runRustPipeline } from "./rs/document.js";
 
 export type { GratsConfig } from "./gratsConfig.js";
@@ -66,47 +63,22 @@ export function extractSchemaAndDoc(
   return new ResultPipe(extractSnapshotsFromProgram(program, options))
     .map((snapshots) => combineSnapshots(snapshots))
     .andThen((snapshot) => {
-      const { typesWithTypename } = snapshot;
       const config = options.raw.grats;
       const resolver = new CheckerNameResolver(program);
-      const ctxResult = TypeContext.fromSnapshot(resolver, snapshot);
-      if (ctxResult.kind === "ERROR") {
-        return ctxResult;
-      }
-      const ctx = ctxResult.value;
 
-      // Collect validation errors
-      const validationResult = concatResults(
-        validateMergedInterfaces(resolver, snapshot.interfaceDeclarations),
-        validateDuplicateContextOrInfo(
-          Array.from(snapshot.nameDefinitions.values(), (n) => n.definition),
-        ),
-      );
+      // Convert the definitions into a DocumentNode
+      const doc: DocumentNode = {
+        kind: Kind.DOCUMENT,
+        definitions: snapshot.definitions,
+      };
 
-      const docResult = new ResultPipe(validationResult)
-        // Convert the definitions into a DocumentNode
-        .map(
-          () =>
-            ({
-              kind: Kind.DOCUMENT,
-              definitions: snapshot.definitions,
-            }) as const,
-        )
-        .result();
-
-      if (docResult.kind === "ERROR") {
-        return docResult;
-      }
-      const doc = docResult.value;
-
-      // Run the rest of the pipeline, which has been ported to Rust: filtering
-      // interfaces, resolving resolver params and types, and the document
-      // transforms and validations, which end by validating the document and the schema built
-      // from it with regards to the GraphQL spec. Rust keeps the resulting
-      // document for printing.
-      return new ResultPipe(
-        runRustPipeline(doc, config, typesWithTypename, ctx),
-      )
+      // Run the rest of the pipeline, which has been ported to Rust: building
+      // the `TypeContext` and validating the snapshot, filtering interfaces,
+      // resolving resolver params and types, and the document transforms and
+      // validations, which end by validating the document and the schema
+      // built from it with regards to the GraphQL spec. Rust keeps the
+      // resulting document for printing.
+      return new ResultPipe(runRustPipeline(doc, config, snapshot, resolver))
         .map(() => ({ doc }))
         .result();
     })
