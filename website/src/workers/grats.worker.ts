@@ -1,9 +1,5 @@
 import type * as ts from "typescript";
-import {
-  printExecutableSchema,
-  printEnumsModule,
-} from "../../../src/printSchema";
-import { resolverMapCodegen } from "../../../src/codegen/resolverMapCodegen";
+import { printOutputs } from "../../../src/printSchema";
 import { TagName, TAGS } from "../../../src/Extractor";
 // See https://github.com/microsoft/monaco-editor/pull/3488
 import {
@@ -13,11 +9,7 @@ import {
   TypeScriptWorker,
   // @ts-ignore
 } from "./ts.worker.mjs";
-import {
-  extractSchemaAndDoc,
-  GratsConfig,
-  printSDLWithoutMetadata,
-} from "grats";
+import { extractSchemaAndDoc, GratsConfig } from "grats";
 import prettier from "prettier/standalone";
 import parserTypeScript from "prettier/parser-typescript";
 import { ReportableDiagnostics } from "../../../src/utils/DiagnosticError";
@@ -166,7 +158,10 @@ export class GratsWorker extends TypeScriptWorker {
     if (result.kind === "ERROR") {
       return this.formatErrors(result.err, "# ");
     }
-    return printSDLWithoutMetadata(result.value.doc);
+    const { graphqlSchema } = printOutputs(result.value, this._gratsConfig, {
+      graphqlSchema: true,
+    });
+    return graphqlSchema!.trim();
   }
 
   async getResolverSignatures(): Promise<string> {
@@ -183,10 +178,10 @@ export class GratsWorker extends TypeScriptWorker {
     if (result.kind === "ERROR") {
       return this.formatErrors(result.err, "// ");
     }
-    const { schema, resolvers } = result.value;
-    const gratsConfig = this._gratsConfig;
-    const dest = "schema.ts";
-    return printExecutableSchema(schema, resolvers, gratsConfig, dest).trim();
+    const { tsSchema } = printOutputs(result.value, this._gratsConfig, {
+      tsSchema: "schema.ts",
+    });
+    return tsSchema!.trim();
   }
 
   async getTsClientEnums(): Promise<string> {
@@ -196,9 +191,11 @@ export class GratsWorker extends TypeScriptWorker {
     if (result.kind === "ERROR") {
       return this.formatErrors(result.err, "// ");
     }
-    const { schema } = result.value;
     const gratsConfig = { ...this._gratsConfig, tsClientEnums: dest };
-    return printEnumsModule(schema, gratsConfig, dest).trim();
+    const { tsClientEnums } = printOutputs(result.value, gratsConfig, {
+      tsClientEnums: dest,
+    });
+    return tsClientEnums!.trim();
   }
 
   async getResolverMap(): Promise<string> {
@@ -206,10 +203,14 @@ export class GratsWorker extends TypeScriptWorker {
     if (result.kind === "ERROR") {
       return this.formatErrors(result.err, "// ");
     }
-    const { schema, resolvers } = result.value;
-    const gratsConfig = this._gratsConfig;
-    const dest = "resolvers.ts";
-    return resolverMapCodegen(schema, resolvers, gratsConfig, dest).trim();
+    const gratsConfig = {
+      ...this._gratsConfig,
+      EXPERIMENTAL__emitResolverMap: true,
+    };
+    const { tsSchema } = printOutputs(result.value, gratsConfig, {
+      tsSchema: "resolvers.ts",
+    });
+    return tsSchema!.trim();
   }
 
   async getTagsAtPosition(

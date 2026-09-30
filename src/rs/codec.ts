@@ -1,5 +1,6 @@
 import { DocumentNode, Location, Source, Token, TokenKind } from "graphql";
 import * as ts from "typescript";
+import type { GratsConfig } from "../gratsConfig.js";
 
 /**
  * Encodes values passed between TypeScript and the Rust port of Grats
@@ -97,6 +98,27 @@ export function encodeDocument(
     }
     return value;
   });
+}
+
+/**
+ * The input to the `print_outputs` entry point. See `OutputRequest` in
+ * `grats-rs/crates/grats/src/print_schema.rs`.
+ */
+export type RustOutputRequest = {
+  doc: DocumentNode;
+  config: GratsConfig;
+  gratsRoot: string;
+  graphqlSchema: boolean;
+  tsClientEnums: string | null;
+};
+
+export function encodeOutputRequest({
+  doc,
+  ...rest
+}: RustOutputRequest): string {
+  // Splice in the encoded document rather than encoding it again.
+  const json = JSON.stringify(rest);
+  return `{"doc":${encodeDocument(doc, new SourceTable())},${json.slice(1)}`;
 }
 
 export function decodeDocument(

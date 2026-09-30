@@ -5,8 +5,8 @@
 
 import { Color as ColorEnum, Priority as PriorityEnum } from "./index.js";
 export const enums = {
-    Color: ColorEnum,
-    Priority: PriorityEnum
+	Color: ColorEnum,
+	Priority: PriorityEnum
 };
 export { ColorEnum as Color };
 export { PriorityEnum as Priority };

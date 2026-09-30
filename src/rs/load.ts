@@ -6,7 +6,7 @@ import { wasmBase64 } from "./wasm.generated.js";
  */
 
 /** Functions exported by `grats_wasm`. Each takes a string and returns one. */
-type EntryPoint = "print_sdl_without_metadata";
+type EntryPoint = "print_sdl_without_metadata" | "print_outputs";
 
 type Exports = {
   memory: WebAssembly.Memory;

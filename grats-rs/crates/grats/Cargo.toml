@@ -7,3 +7,12 @@ publish.workspace = true
 
 [dependencies]
 graphql_js.workspace = true
+indexmap.workspace = true
+oxc_allocator.workspace = true
+oxc_ast.workspace = true
+oxc_codegen.workspace = true
+oxc_span.workspace = true
+serde.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true

@@ -62,16 +62,21 @@ unsafe fn call(ptr: *mut u8, len: usize, f: impl FnOnce(String) -> String) {
     // Don't leave a previous result behind if this call traps without a panic
     // message.
     set_output(String::new());
-    reserve_heap(len);
+    reserve_heap(len * 4);
     let bytes = unsafe { Vec::from_raw_parts(ptr, len, len) };
     let input = String::from_utf8(bytes).expect("Input should be UTF-8");
     set_output(f(input));
 }
 
 /// Growing wasm memory is slow, and the allocator grows it in small steps as it
-/// needs more. A parsed input takes about as much memory as its JSON, so we
-/// grow memory by that much in one step: allocating and freeing a buffer of
-/// that size leaves it free for the allocations that follow.
+/// needs more. Under JS heap pressure, like in the CLI, each step can also
+/// trigger garbage collections. So we grow memory in one step: allocating and
+/// freeing a buffer leaves it free for the allocations that follow.
+///
+/// A parsed input takes about as much memory as its JSON, and what's built
+/// from it (like a schema) and the output take more. Four times the input
+/// covers it: on a 10k-file benchmark it made printing with the enums module
+/// ~20% faster than reserving just the input's size.
 fn reserve_heap(bytes: usize) {
     drop(std::hint::black_box(Vec::<u8>::with_capacity(bytes)));
 }
@@ -89,6 +94,26 @@ pub unsafe extern "C" fn print_sdl_without_metadata(ptr: *mut u8, len: usize) {
                 serde_json::from_str(&input).expect("Input should be an encoded DocumentNode");
             drop(input);
             grats::print_schema::print_sdl_without_metadata(doc)
+        })
+    }
+}
+
+/// Input: an `OutputRequest` (see `grats::print_schema`) encoded by
+/// `encodeOutputRequest` in `src/rs/codec.ts`. Output: the printed `Outputs`,
+/// as JSON.
+///
+/// # Safety
+///
+/// See `call`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn print_outputs(ptr: *mut u8, len: usize) {
+    unsafe {
+        call(ptr, len, |input| {
+            let request =
+                serde_json::from_str(&input).expect("Input should be an encoded OutputRequest");
+            drop(input);
+            let outputs = grats::print_schema::print_outputs(request);
+            serde_json::to_string(&outputs).expect("Outputs should serialize")
         })
     }
 }

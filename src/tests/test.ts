@@ -11,7 +11,6 @@ import { Command } from "commander";
 import { locate } from "../Locate.js";
 import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError.js";
 import { readFileSync, writeFileSync } from "fs";
-import { codegen } from "../codegen/schemaCodegen.js";
 import { diff } from "jest-diff";
 import * as prettier from "prettier";
 import * as semver from "semver";
@@ -21,13 +20,8 @@ import {
   validateGratsOptions,
 } from "../gratsConfig.js";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives.js";
-import {
-  applySDLHeader,
-  applyTypeScriptHeader,
-  printEnumsModule,
-  printSDLWithoutMetadata,
-} from "../printSchema.js";
-import { extend } from "../utils/helpers.js";
+import { printOutputs } from "../printSchema.js";
+import { extend, nullThrows } from "../utils/helpers.js";
 import { Result, ok, err } from "../utils/Result.js";
 import { applyFixes } from "../fixFixable.js";
 import { writeTypeScriptTypeToDisk } from "../../scripts/buildConfigTypes.js";
@@ -217,19 +211,25 @@ const testDirs: TestDir[] = [
         );
       }
 
-      const { schema, doc, resolvers } = schemaResult.value;
+      const { schema, doc } = schemaResult.value;
 
       assertDocumentRoundTrips(doc);
 
-      // We run codegen here just ensure that it doesn't throw.
-      const executableSchema = applyTypeScriptHeader(
+      const fixturePath = `${fixturesDir}/${fileName}`;
+      const { tsClientEnums } = parsedOptions.raw.grats;
+      // We print every output here, even for `// Locate:` fixtures, to ensure
+      // that printing doesn't throw.
+      const outputs = printOutputs(
+        schemaResult.value,
         parsedOptions.raw.grats,
-        codegen(
-          schema,
-          resolvers,
-          parsedOptions.raw.grats,
-          `${fixturesDir}/${fileName}`,
-        ),
+        {
+          graphqlSchema: true,
+          tsSchema: fixturePath,
+          tsClientEnums:
+            tsClientEnums == null
+              ? undefined
+              : path.join(path.dirname(fixturePath), tsClientEnums),
+        },
       );
 
       const LOCATION_REGEX = /^\/\/ Locate: (.*)/;
@@ -252,22 +252,28 @@ const testDirs: TestDir[] = [
           ),
         );
       } else {
-        const sdl = applySDLHeader(
-          parsedOptions.raw.grats,
-          printSDLWithoutMetadata(doc),
-        );
-
         const markdown = new Markdown();
         markdown.addHeader(3, "SDL");
-        markdown.addCodeBlock(sdl, "graphql");
+        markdown.addCodeBlock(nullThrows(outputs.graphqlSchema), "graphql");
         markdown.addHeader(3, "TypeScript");
         // Goldens record the generated TypeScript after prettier formatting so
         // that they assert on the code's structure rather than on the exact
         // whitespace choices of the printer that emitted it.
         markdown.addCodeBlock(
-          await prettier.format(executableSchema, { parser: "typescript" }),
+          await prettier.format(nullThrows(outputs.tsSchema), {
+            parser: "typescript",
+          }),
           "ts",
         );
+        if (outputs.tsClientEnums != null) {
+          markdown.addHeader(3, "TypeScript Enums");
+          markdown.addCodeBlock(
+            await prettier.format(outputs.tsClientEnums, {
+              parser: "typescript",
+            }),
+            "ts",
+          );
+        }
 
         return ok(markdown);
       }
@@ -285,6 +291,7 @@ const testDirs: TestDir[] = [
       let config: Partial<GratsConfig> = {
         nullableByDefault: true,
         importModuleSpecifierEnding: ".js",
+        tsSchemaHeader: null,
       };
       if (firstLine.startsWith("// {")) {
         const json = firstLine.slice(3);
@@ -329,29 +336,26 @@ const testDirs: TestDir[] = [
         );
       }
 
-      const { schema, doc, resolvers } = schemaResult.value;
+      const { doc } = schemaResult.value;
+      const { tsClientEnums } = parsedOptions.raw.grats;
+      // Generate enums file if tsClientEnums is configured
+      const enumsPath =
+        tsClientEnums == null
+          ? undefined
+          : path.join(path.dirname(filePath), tsClientEnums);
 
-      const tsSchema = codegen(
-        schema,
-        resolvers,
+      const outputs = printOutputs(
+        schemaResult.value,
         parsedOptions.raw.grats,
-        schemaPath,
+        {
+          tsSchema: schemaPath,
+          tsClientEnums: enumsPath,
+        },
       );
 
-      writeFileSync(schemaPath, tsSchema);
-
-      // Generate enums file if tsClientEnums is configured
-      if (parsedOptions.raw.grats.tsClientEnums) {
-        const enumsPath = path.join(
-          path.dirname(filePath),
-          parsedOptions.raw.grats.tsClientEnums,
-        );
-        const enumsCode = printEnumsModule(
-          schema,
-          parsedOptions.raw.grats,
-          enumsPath,
-        );
-        writeFileSync(enumsPath, enumsCode);
+      writeFileSync(schemaPath, nullThrows(outputs.tsSchema));
+      if (enumsPath != null) {
+        writeFileSync(enumsPath, nullThrows(outputs.tsClientEnums));
       }
 
       const server = await import(filePath);

@@ -16,11 +16,8 @@ import { writeFileSync, readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { locate } from "./Locate.js";
-import {
-  printGratsSDL,
-  printExecutableSchema,
-  printEnumsModule,
-} from "./printSchema.js";
+import { printOutputs } from "./printSchema.js";
+import { nullThrows } from "./utils/helpers.js";
 import * as ts from "typescript";
 import {
   diagnosticsMessage,
@@ -199,19 +196,26 @@ function writeSchemaFilesAndReport(
   config: ParsedCommandLineGrats,
   configPath: string,
 ) {
-  const { schema, doc, resolvers } = schemaAndDoc;
+  const { resolvers } = schemaAndDoc;
 
   const gratsConfig: GratsConfig = config.raw.grats;
 
   const dest = resolve(dirname(configPath), gratsConfig.tsSchema);
-  const code = printExecutableSchema(schema, resolvers, gratsConfig, dest);
-  writeFileSync(dest, code);
+  const enumsDest =
+    gratsConfig.tsClientEnums == null
+      ? undefined
+      : resolve(dirname(configPath), gratsConfig.tsClientEnums);
+  const outputs = printOutputs(schemaAndDoc, gratsConfig, {
+    graphqlSchema: true,
+    tsSchema: dest,
+    tsClientEnums: enumsDest,
+  });
+
+  writeFileSync(dest, nullThrows(outputs.tsSchema));
   console.error(`Grats: Wrote TypeScript schema to \`${dest}\`.`);
 
-  const schemaStr = printGratsSDL(doc, gratsConfig);
-
   const absOutput = resolve(dirname(configPath), gratsConfig.graphqlSchema);
-  writeFileSync(absOutput, schemaStr);
+  writeFileSync(absOutput, nullThrows(outputs.graphqlSchema));
   console.error(`Grats: Wrote schema to \`${absOutput}\`.`);
 
   if (config.raw.grats.EXPERIMENTAL__emitMetadata) {
@@ -223,14 +227,9 @@ function writeSchemaFilesAndReport(
     console.error(`Grats: Wrote resolver signatures to \`${absOutput}\`.`);
   }
 
-  if (config.raw.grats.tsClientEnums != null) {
-    const absOutput = resolve(
-      dirname(configPath),
-      config.raw.grats.tsClientEnums,
-    );
-    const enumCode = printEnumsModule(schema, gratsConfig, absOutput);
-    writeFileSync(absOutput, enumCode);
-    console.error(`Grats: Wrote enums module to \`${absOutput}\`.`);
+  if (enumsDest != null) {
+    writeFileSync(enumsDest, nullThrows(outputs.tsClientEnums));
+    console.error(`Grats: Wrote enums module to \`${enumsDest}\`.`);
   }
 }
 

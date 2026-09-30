@@ -4,7 +4,8 @@
 //! handles executable documents. Nodes deserialize from the JSON produced by
 //! `encodeDocument` in `src/rs/codec.ts`, which is graphql-js's AST plus
 //! Grats' metadata fields (see `src/GraphQLAstExtensions.ts`). Metadata fields
-//! are not modeled yet and are ignored when deserializing.
+//! are modeled once ported code reads them. The others are ignored when
+//! deserializing.
 
 use serde::Deserialize;
 
@@ -19,6 +20,15 @@ pub struct Location {
     pub start: u32,
     /// The character offset at which this Node ends.
     pub end: u32,
+}
+
+// Grats metadata (see `src/GraphQLAstExtensions.ts`)
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExportDefinition {
+    pub ts_module_path: String,
+    pub export_name: Option<String>,
 }
 
 // Name
@@ -287,6 +297,8 @@ pub struct EnumTypeDefinitionNode {
     pub name: NameNode,
     pub directives: Option<Vec<ConstDirectiveNode>>,
     pub values: Option<Vec<EnumValueDefinitionNode>>,
+    /// Grats metadata: Export information for the enum.
+    pub exported: Option<ExportDefinition>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
