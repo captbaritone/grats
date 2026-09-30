@@ -42,17 +42,6 @@ export type DeclarationDefinition = NameDefinition | DerivedResolverDefinition;
 import type { TsIdentifier } from "./utils/helpers.js";
 
 /**
- * Public interface for TypeContext.
- *
- * Used to track TypeScript references and resolve type names between
- * TypeScript and GraphQL.
- */
-export interface ITypeContext {
-  /** Checks if an unresolved NameNode refers to a GraphQL type */
-  unresolvedNameIsGraphQL(unresolved: NameNode): boolean;
-}
-
-/**
  * Used to track TypeScript references.
  *
  * If a TS method is typed as returning `MyType`, we need to look at that type's
@@ -64,7 +53,7 @@ export interface ITypeContext {
  * parsed all the files, we traverse the GraphQL schema, resolving all the dummy
  * type references.
  */
-export class TypeContext implements ITypeContext {
+export class TypeContext {
   private resolver: NameResolver;
 
   private _declarationToDefinition: Map<DeclLoc, DeclarationDefinition> =
@@ -139,14 +128,6 @@ export class TypeContext implements ITypeContext {
     return declarations[0];
   }
 
-  unresolvedNameIsGraphQL(unresolved: NameNode): boolean {
-    const referenceNode = this.getEntityName(unresolved);
-    if (referenceNode == null) return false;
-    const declaration = this.maybeDeclarationForTsName(referenceNode.name);
-    if (declaration == null) return false;
-    return this._declarationToDefinition.has(declaration.declLoc);
-  }
-
   private maybeDeclarationForTsName(
     name: Location,
   ): ResolvedDeclaration | null {
@@ -194,13 +175,5 @@ export class TypeContext implements ITypeContext {
       resolve(ref);
     }
     return resolved;
-  }
-
-  getEntityName(name: NameNode): EntityNameRef | null {
-    const entityName = this._unresolvedNodes.get(name.tsIdentifier) ?? null;
-    if (entityName == null && name.value === UNRESOLVED_REFERENCE_NAME) {
-      throw new Error("Expected unresolved reference to have a node.");
-    }
-    return entityName;
   }
 }

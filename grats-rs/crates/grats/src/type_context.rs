@@ -160,6 +160,18 @@ impl TypeContext {
         })
     }
 
+    /// Checks if an unresolved NameNode refers to a GraphQL type
+    pub fn unresolved_name_is_graphql(&self, unresolved: &NameNode) -> bool {
+        let Some(reference_node) = self.get_entity_name(unresolved) else {
+            return false;
+        };
+        let Some(declaration) = self.maybe_declaration_for_ts_name(reference_node.name) else {
+            return false;
+        };
+        self.declaration_to_definition
+            .contains_key(&declaration.decl_loc)
+    }
+
     /// Gets the declaration definition for a GraphQL NameNode
     pub fn gql_name_definition_for_gql_name(
         &self,

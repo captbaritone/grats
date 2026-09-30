@@ -8,7 +8,6 @@ import { CheckerNameResolver } from "./CheckerNameResolver.js";
 import { ParsedCommandLineGrats } from "./gratsConfig.js";
 import { extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram.js";
 import { validateMergedInterfaces } from "./validations/validateMergedInterfaces.js";
-import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces.js";
 import { validateDuplicateContextOrInfo } from "./validations/validateDuplicateContextOrInfo.js";
 import { runRustPipeline } from "./rs/document.js";
 
@@ -85,10 +84,14 @@ export function extractSchemaAndDoc(
       );
 
       const docResult = new ResultPipe(validationResult)
-        // Filter out any `implements` clauses that are not GraphQL interfaces.
-        .map(() => filterNonGqlInterfaces(ctx, snapshot.definitions))
         // Convert the definitions into a DocumentNode
-        .map((definitions) => ({ kind: Kind.DOCUMENT, definitions }) as const)
+        .map(
+          () =>
+            ({
+              kind: Kind.DOCUMENT,
+              definitions: snapshot.definitions,
+            }) as const,
+        )
         .result();
 
       if (docResult.kind === "ERROR") {
@@ -96,9 +99,9 @@ export function extractSchemaAndDoc(
       }
       const doc = docResult.value;
 
-      // Run the rest of the pipeline, which has been ported to Rust: resolving
-      // resolver params and types, and the document transforms and
-      // validations, which end by validating the document and the schema built
+      // Run the rest of the pipeline, which has been ported to Rust: filtering
+      // interfaces, resolving resolver params and types, and the document
+      // transforms and validations, which end by validating the document and the schema built
       // from it with regards to the GraphQL spec. Rust keeps the resulting
       // document for printing.
       return new ResultPipe(

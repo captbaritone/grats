@@ -19,6 +19,7 @@ use crate::transforms::add_implicit_root_types::add_implicit_root_types;
 use crate::transforms::add_interface_fields::add_interface_fields;
 use crate::transforms::apply_default_nullability::apply_default_nullability;
 use crate::transforms::coerce_default_enum_values::coerce_default_enum_values;
+use crate::transforms::filter_non_gql_interfaces::filter_non_gql_interfaces;
 use crate::transforms::merge_extensions::merge_extensions;
 use crate::transforms::resolve_resolver_params::resolve_resolver_params;
 use crate::transforms::resolve_types::resolve_types;
@@ -51,8 +52,8 @@ pub struct PipelineRequest {
 }
 
 /// PORT: The part of `extractSchemaAndDoc` which starts after
-/// `filterNonGqlInterfaces`, with the definitions converted into a
-/// `DocumentNode` to cross into Rust. After validating the transformed
+/// `validateMergedInterfaces` and `validateDuplicateContextOrInfo`, with the
+/// snapshot's definitions converted into a `DocumentNode` to cross into Rust. After validating the transformed
 /// document, it builds its own schema from it. Returns the transformed
 /// document.
 pub fn run(
@@ -66,9 +67,11 @@ pub fn run(
         type_context,
     } = request;
     let ctx = TypeContext::from_state(type_context);
+    // Filter out any `implements` clauses that are not GraphQL interfaces.
+    let definitions = filter_non_gql_interfaces(&ctx, doc.definitions);
     // Determine which positional resolver arguments: GraphQL arguments,
     // context, derived context, or info.
-    let doc = resolve_resolver_params(&ctx, doc.definitions)
+    let doc = resolve_resolver_params(&ctx, definitions)
         // Follow TypeScript type references to determine the GraphQL types
         // being referenced.
         .and_then(|definitions| resolve_types(&ctx, definitions))
