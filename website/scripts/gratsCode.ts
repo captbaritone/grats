@@ -1,11 +1,11 @@
 import fs from "fs";
 import {
   buildSchemaAndDocResult,
-  codegen,
   printSDLWithoutMetadata,
   ReportableDiagnostics,
   type GratsConfig,
 } from "grats";
+import { printOutputs } from "grats/dist/src/printSchema.js";
 import glob from "glob";
 
 async function main() {
@@ -54,8 +54,12 @@ function processFile(file: string) {
     throw new Error("Invalid grats code");
   }
 
-  const { doc, schema, resolvers } = schemaAndDocResult.value;
-  const typeScript = codegen(schema, resolvers, config, file);
+  const { doc } = schemaAndDocResult.value;
+  const { tsSchema: typeScript } = printOutputs(
+    schemaAndDocResult.value,
+    config,
+    { tsSchema: file },
+  );
   const graphql = printSDLWithoutMetadata(doc);
 
   const fileContent = fs.readFileSync(file, "utf8");

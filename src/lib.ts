@@ -1,10 +1,4 @@
-import {
-  buildASTSchema,
-  DocumentNode,
-  GraphQLError,
-  GraphQLSchema,
-  Kind,
-} from "graphql";
+import { DocumentNode, GraphQLError, Kind } from "graphql";
 import {
   DiagnosticsWithoutLocationResult,
   graphQlErrorToDiagnostic,
@@ -38,7 +32,6 @@ import { validateDocument } from "./rs/document.js";
 export type { GratsConfig } from "./gratsConfig.js";
 
 export type SchemaAndDoc = {
-  schema: GraphQLSchema;
   doc: DocumentNode;
   resolvers: Metadata;
 };
@@ -146,28 +139,16 @@ export function extractSchemaAndDoc(
       const doc = docResult.value;
       const resolvers = makeResolverSignature(doc);
 
-      // Build and validate the schema with regards to the GraphQL spec.
+      // Build and validate the schema with regards to the GraphQL spec, and
+      // run the other validations that have been ported to Rust.
       return (
-        new ResultPipe(buildSchema(doc))
-          // Run the validations that have been ported to Rust.
-          .andThen((schema) =>
-            new ResultPipe(validateDocument(doc, config, typesWithTypename))
-              .map(() => schema)
-              .result(),
-          )
-          // Combine the schema, document and resolver metadata into a single
-          // result.
-          .map((schema) => ({ schema, doc, resolvers }))
+        new ResultPipe(validateDocument(doc, config, typesWithTypename))
+          // Combine the document and resolver metadata into a single result.
+          .map(() => ({ doc, resolvers }))
           .result()
       );
     })
     .result();
-}
-
-function buildSchema(
-  doc: DocumentNode,
-): DiagnosticsWithoutLocationResult<GraphQLSchema> {
-  return ok(buildASTSchema(doc, { assumeValidSDL: true }));
 }
 
 function specValidateSDL(

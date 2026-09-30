@@ -11,7 +11,6 @@ export * from "./Types.js";
 export * from "./lib.js";
 // Used by the experimental TypeScript plugin
 export { extract } from "./Extractor.js";
-export { codegen } from "./printSchema.js";
 export { ReportableDiagnostics } from "./utils/DiagnosticError.js";
 
 // #FIXME: Report diagnostics instead of throwing!

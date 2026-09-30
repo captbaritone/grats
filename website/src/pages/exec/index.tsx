@@ -9,7 +9,7 @@ import GRATS_TYPE_DECLARATIONS from "!!raw-loader!grats/src/Types.ts";
 
 import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 import { buildSchemaAndDocResultWithHost, GratsConfig } from "grats/src/lib";
-import { codegen } from "grats/src/printSchema";
+import { printOutputs } from "grats/src/printSchema";
 import { useState } from "react";
 
 if (ExecutionEnvironment.canUseDOM) {
@@ -347,14 +347,11 @@ async function exec(gratsCode: string, queryText: string): Promise<any> {
 
   const result = schemaAndDoc;
 
-  const codegenOutput = codegen(
-    result.value.schema,
-    result.value.resolvers,
-    config,
-    "./schema.ts",
-  );
+  const { tsSchema: codegenOutput } = printOutputs(result.value, config, {
+    tsSchema: "./schema.ts",
+  });
 
-  fsMap.set("schema.ts", codegenOutput);
+  fsMap.set("schema.ts", codegenOutput!);
 
   const programComplete = ts.createProgram(
     ["index.ts", "schema.ts"],

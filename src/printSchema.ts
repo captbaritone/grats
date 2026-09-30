@@ -1,13 +1,6 @@
-import {
-  DefinitionNode,
-  DocumentNode,
-  GraphQLSchema,
-  isSpecifiedScalarType,
-  Kind,
-} from "graphql";
+import { DocumentNode } from "graphql";
 import * as path from "path";
 import { GratsConfig } from "./gratsConfig.js";
-import { Metadata } from "./metadata.js";
 import { encodeDocument, SourceTable } from "./rs/codec.js";
 import { callRust } from "./rs/load.js";
 import { callRustWithDocument } from "./rs/document.js";
@@ -66,47 +59,6 @@ export function printOutputs(
         : path.resolve(request.tsClientEnums),
   });
   return JSON.parse(output);
-}
-
-/**
- * Given a GraphQL schema built by Grats, returns a string of TypeScript code
- * that generates a GraphQLSchema implementing that schema. Unlike
- * `printOutputs`, the header comment is not included.
- */
-export function codegen(
-  schema: GraphQLSchema,
-  resolvers: Metadata,
-  config: GratsConfig,
-  destination: string,
-): string {
-  const { tsSchema } = printOutputs(
-    { schema, doc: schemaDocument(schema), resolvers },
-    { ...config, tsSchemaHeader: null, EXPERIMENTAL__emitResolverMap: false },
-    { tsSchema: destination },
-  );
-  return tsSchema!;
-}
-
-// Recovers the document a schema was built from, including the metadata
-// Grats adds to its AST nodes.
-function schemaDocument(schema: GraphQLSchema): DocumentNode {
-  const definitions: DefinitionNode[] = [];
-  if (schema.astNode != null) {
-    definitions.push(schema.astNode);
-  }
-  definitions.push(...schema.extensionASTNodes);
-  for (const type of Object.values(schema.getTypeMap())) {
-    if (isSpecifiedScalarType(type) || type.astNode == null) {
-      continue;
-    }
-    definitions.push(type.astNode, ...type.extensionASTNodes);
-  }
-  for (const directive of schema.getDirectives()) {
-    if (directive.astNode != null) {
-      definitions.push(directive.astNode);
-    }
-  }
-  return { kind: Kind.DOCUMENT, definitions };
 }
 
 export function printSDLWithoutMetadata(doc: DocumentNode): string {
