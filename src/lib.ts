@@ -10,7 +10,6 @@ import { extractSnapshotsFromProgram } from "./transforms/snapshotsFromProgram.j
 import { validateMergedInterfaces } from "./validations/validateMergedInterfaces.js";
 import { filterNonGqlInterfaces } from "./transforms/filterNonGqlInterfaces.js";
 import { validateDuplicateContextOrInfo } from "./validations/validateDuplicateContextOrInfo.js";
-import { resolveTypes } from "./transforms/resolveTypes.js";
 import { resolveResolverParams } from "./transforms/resolveResolverParams.js";
 import { runRustPipeline } from "./rs/document.js";
 
@@ -92,9 +91,6 @@ export function extractSchemaAndDoc(
         // Determine which positional resolver arguments: GraphQL arguments,
         // context, derived context, or info.
         .andThen((definitions) => resolveResolverParams(ctx, definitions))
-        // Follow TypeScript type references to determine the GraphQL types
-        // being referenced.
-        .andThen((definitions) => resolveTypes(ctx, definitions))
         // Convert the definitions into a DocumentNode
         .map((definitions) => ({ kind: Kind.DOCUMENT, definitions }) as const)
         .result();
@@ -104,8 +100,8 @@ export function extractSchemaAndDoc(
       }
       const doc = docResult.value;
 
-      // Run the rest of the pipeline, which has been ported to Rust: the
-      // document transforms and validations, which end by validating the
+      // Run the rest of the pipeline, which has been ported to Rust: type
+      // resolution, and the document transforms and validations, which end by validating the
       // document and the schema built from it with regards to the GraphQL
       // spec. Rust keeps the resulting document for printing.
       return new ResultPipe(

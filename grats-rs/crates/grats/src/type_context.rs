@@ -12,7 +12,7 @@ use serde::Deserialize;
 use crate::checker_name_resolver::CheckerNameResolver;
 use crate::errors::{self as E, ContextOrInfo};
 use crate::name_resolver::{NameResolver, ResolvedDeclaration, ResolvedDeclarationKind};
-use crate::snapshot_refs::{DeclLoc, EntityNameRef};
+use crate::snapshot_refs::{DeclLoc, DeclRef, EntityNameRef};
 use crate::utils::diagnostic_error::{DiagnosticResult, gql_err, gql_related};
 use crate::utils::helpers::TsIdentifier;
 
@@ -48,6 +48,7 @@ pub struct DeclarationDefinition {
 pub struct TypeContextState {
     pub declaration_to_definition: Vec<(DeclLoc, DeclarationDefinition)>,
     pub unresolved_nodes: Vec<(TsIdentifier, EntityNameRef)>,
+    pub id_to_declaration: Vec<(TsIdentifier, DeclRef)>,
     /// The checker's answers for `CheckerNameResolver`.
     pub resolved_entity_names: Vec<(Location, Vec<ResolvedDeclaration>)>,
 }
@@ -67,6 +68,7 @@ pub struct TypeContext {
 
     declaration_to_definition: HashMap<DeclLoc, DeclarationDefinition>,
     unresolved_nodes: HashMap<TsIdentifier, EntityNameRef>,
+    id_to_declaration: HashMap<TsIdentifier, DeclRef>,
 }
 
 impl TypeContext {
@@ -75,6 +77,7 @@ impl TypeContext {
             resolver: Box::new(CheckerNameResolver::new(state.resolved_entity_names)),
             declaration_to_definition: state.declaration_to_definition.into_iter().collect(),
             unresolved_nodes: state.unresolved_nodes.into_iter().collect(),
+            id_to_declaration: state.id_to_declaration.into_iter().collect(),
         }
     }
 
@@ -163,6 +166,36 @@ impl TypeContext {
         Ok(definition)
     }
 
+    // Note! This assumes you have already handled any type parameters.
+    pub fn gql_name_for_ts_name(&self, name: Location) -> DiagnosticResult<String> {
+        let declaration = self.resolve_entity_name(name)?;
+        if declaration.kind == ResolvedDeclarationKind::TypeParameter {
+            return Err(gql_err(
+                Some(name),
+                "Type parameter not valid".to_string(),
+                Some(vec![gql_related(declaration.loc, "Defined here")]),
+            ));
+        }
+
+        let Some(name_definition) = self.declaration_to_definition.get(&declaration.decl_loc)
+        else {
+            return Err(gql_err(Some(name), E::unresolved_type_reference(), None));
+        };
+        let context_or_info = match name_definition.kind {
+            DeclarationDefinitionKind::Context => Some(ContextOrInfo::Context),
+            DeclarationDefinitionKind::Info => Some(ContextOrInfo::Info),
+            _ => None,
+        };
+        if let Some(kind) = context_or_info {
+            return Err(gql_err(
+                Some(name),
+                E::context_or_info_used_in_graphql_position(kind),
+                Some(vec![gql_related(name_definition.name.loc, "Defined here")]),
+            ));
+        }
+        Ok(name_definition.name.value.clone())
+    }
+
     fn maybe_declaration_for_ts_name(&self, name: Location) -> Option<ResolvedDeclaration> {
         self.find_declaration(self.resolver.resolve_entity_name(name))
     }
@@ -173,6 +206,19 @@ impl TypeContext {
             return Err(gql_err(Some(name), E::unresolved_type_reference(), None));
         };
         Ok(declaration)
+    }
+
+    /// Gets the TypeScript declaration for a GraphQL definition node
+    /// Currently used exclusively for taking a GraphQL declaration and
+    /// finding its TypeScript declaration in order to find generic type
+    /// parameters.
+    ///
+    /// PORT: Takes the definition's name, which is all it reads.
+    pub fn declaration_for_gql_definition(&self, name: &NameNode) -> &DeclRef {
+        let Some(declaration) = self.id_to_declaration.get(&name.ts_identifier) else {
+            panic!("Could not find declaration for {}", name.value);
+        };
+        declaration
     }
 
     /// Gets the TypeScript entity name associated with a GraphQL NameNode

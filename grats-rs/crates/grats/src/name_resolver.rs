@@ -25,10 +25,15 @@ pub enum ResolvedDeclarationKind {
     Declaration,
 }
 
-/// PORT: `loc` is modeled once ported code reads it.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ResolvedDeclaration {
     pub kind: ResolvedDeclarationKind,
     pub decl_loc: DeclLoc,
+    /// The whole declaration, for diagnostics.
+    ///
+    /// PORT: Computed lazily in TypeScript, since it's only needed for
+    /// diagnostics. Diagnostics only read it for type parameters, so the
+    /// checker only answers with it for them.
+    pub loc: Option<Location>,
 }

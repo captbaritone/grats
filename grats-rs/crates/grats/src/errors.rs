@@ -64,6 +64,18 @@ pub fn type_with_no_fields(kind: &str, type_name: &str) -> String {
     )
 }
 
+pub fn missing_generic_type(template_name: &str, param_name: &str) -> String {
+    format!(
+        "Missing type argument for generic GraphQL type. Expected `{template_name}` to be passed a GraphQL type argument for type parameter `{param_name}`."
+    )
+}
+
+pub fn non_graphql_generic_type(template_name: &str, param_name: &str) -> String {
+    format!(
+        "Expected `{template_name}` to be passed a GraphQL type argument for type parameter `{param_name}`."
+    )
+}
+
 pub fn invalid_type_passed_to_field_function() -> String {
     format!(
         "Unexpected type passed to `@{FIELD_TAG}` function. `@{FIELD_TAG}` functions can only be used to extend `@{TYPE_TAG}` and `@{INTERFACE_TAG}` types."

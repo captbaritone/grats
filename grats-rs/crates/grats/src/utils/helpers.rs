@@ -13,3 +13,11 @@ pub fn null_throws<T>(value: Option<T>) -> T {
 pub fn ast_node<T>(ast_node: Option<T>) -> T {
     ast_node.expect("Expected item to have astNode")
 }
+
+pub fn invariant(condition: bool, message: &str) {
+    if !condition {
+        panic!(
+            "Grats Error. Invariant failed: {message}. This error represents an error in Grats. Please report it."
+        );
+    }
+}

@@ -16,12 +16,44 @@ use serde::Deserialize;
 /// declaration.
 pub type DeclLoc = String;
 
-/// A reference to a TypeScript type by name, such as `Foo`, `ns.Foo` or
-/// `Foo<Bar>`, which may reference a GraphQL type.
+/// A declaration which defines a GraphQL construct, or a TypeScript interface
+/// used to define one.
 ///
 /// PORT: Fields are modeled once ported code reads them.
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DeclRef {
+    pub decl_loc: DeclLoc,
+    /// Used to materialize generic types.
+    pub type_parameters: Vec<TypeParameterRef>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TypeParameterRef {
+    pub decl_loc: DeclLoc,
+    pub name: String,
+    /// The whole type parameter declaration, including any constraint.
+    pub loc: Location,
+}
+
+/// A reference to a TypeScript type by name, such as `Foo`, `ns.Foo` or
+/// `Foo<Bar>`, which may reference a GraphQL type.
+///
+/// PORT: `kind: "ENTITY_NAME"` is modeled by `TypeArgumentRef`.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct EntityNameRef {
     /// The name being referenced, e.g. `ns.Foo` in `ns.Foo<Bar>`.
     pub name: Location,
+    /// The whole reference, including any type arguments.
+    pub loc: Location,
+    pub type_arguments: Option<Vec<TypeArgumentRef>>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(tag = "kind", rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum TypeArgumentRef {
+    EntityName(EntityNameRef),
+    OtherType { loc: Location },
 }

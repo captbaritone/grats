@@ -7,7 +7,7 @@ import {
   locationlessErr,
 } from "../utils/DiagnosticError.js";
 import type { DeclarationDefinition } from "../TypeContext.js";
-import type { DeclLoc, EntityNameRef } from "../snapshotRefs.js";
+import type { DeclLoc, DeclRef, EntityNameRef } from "../snapshotRefs.js";
 import type { ResolvedDeclaration } from "../NameResolver.js";
 import type { TsIdentifier } from "../utils/helpers.js";
 
@@ -134,9 +134,20 @@ export type RustPipelineRequest = {
 export type RustTypeContextState = {
   declarationToDefinition: Array<[DeclLoc, DeclarationDefinition]>;
   unresolvedNodes: Array<[TsIdentifier, EntityNameRef]>;
-  /** The checker's answers for each entity name in `unresolvedNodes`. */
+  idToDeclaration: Array<[TsIdentifier, DeclRef]>;
+  /**
+   * The checker's answers for each entity name in `unresolvedNodes`, and those
+   * in their type arguments.
+   */
   resolvedEntityNames: Array<
-    [Location, Array<Pick<ResolvedDeclaration, "kind" | "declLoc">>]
+    [
+      Location,
+      Array<{
+        kind: ResolvedDeclaration["kind"];
+        declLoc: DeclLoc;
+        loc: Location | null;
+      }>,
+    ]
   >;
 };
 

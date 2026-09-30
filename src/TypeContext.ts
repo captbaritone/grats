@@ -1,11 +1,4 @@
-import {
-  InputObjectTypeDefinitionNode,
-  InterfaceTypeDefinitionNode,
-  Location,
-  NameNode,
-  ObjectTypeDefinitionNode,
-  UnionTypeDefinitionNode,
-} from "graphql";
+import { Location, NameNode } from "graphql";
 import {
   gqlErr,
   DiagnosticResult,
@@ -63,36 +56,6 @@ export interface ITypeContext {
   gqlNameDefinitionForGqlName(
     nameNode: NameNode,
   ): DiagnosticResult<DeclarationDefinition>;
-
-  /** Gets the GraphQL name for a TypeScript entity name */
-  gqlNameForTsName(name: Location): DiagnosticResult<string>;
-}
-
-/**
- * Additional methods implemented by TypeContext for use during type resolution.
- */
-export interface ITypeContextForResolveTypes extends ITypeContext {
-  /**
-   * Resolves a TypeScript entity name to the declaration it refers to.
-   */
-  resolveEntityName(name: Location): DiagnosticResult<ResolvedDeclaration>;
-
-  /**
-   * Gets the TypeScript declaration for a GraphQL definition node
-   * Currently used exclusively for taking a GraphQL declaration and
-   * finding its TypeScript declaration in order to find generic type
-   * parameters.
-   */
-  declarationForGqlDefinition(
-    definition:
-      | ObjectTypeDefinitionNode
-      | UnionTypeDefinitionNode
-      | InputObjectTypeDefinitionNode
-      | InterfaceTypeDefinitionNode,
-  ): DeclRef;
-
-  /** Gets the TypeScript entity name associated with a GraphQL NameNode */
-  getEntityName(name: NameNode): EntityNameRef | null;
 }
 
 /**
@@ -107,7 +70,7 @@ export interface ITypeContextForResolveTypes extends ITypeContext {
  * parsed all the files, we traverse the GraphQL schema, resolving all the dummy
  * type references.
  */
-export class TypeContext implements ITypeContext, ITypeContextForResolveTypes {
+export class TypeContext implements ITypeContext {
   private resolver: NameResolver;
 
   private _declarationToDefinition: Map<DeclLoc, DeclarationDefinition> =
@@ -209,66 +172,10 @@ export class TypeContext implements ITypeContext, ITypeContextForResolveTypes {
     return ok(definition);
   }
 
-  // Note! This assumes you have already handled any type parameters.
-  gqlNameForTsName(name: Location): DiagnosticResult<string> {
-    const declarationResult = this.resolveEntityName(name);
-    if (declarationResult.kind === "ERROR") {
-      return err(declarationResult.err);
-    }
-    if (declarationResult.value.kind === "TYPE_PARAMETER") {
-      return err(
-        gqlErr({ loc: name }, "Type parameter not valid", [
-          gqlErr(declarationResult.value, "Defined here"),
-        ]),
-      );
-    }
-
-    const nameDefinition = this._declarationToDefinition.get(
-      declarationResult.value.declLoc,
-    );
-    if (nameDefinition == null) {
-      return err(gqlErr({ loc: name }, E.unresolvedTypeReference()));
-    }
-    if (nameDefinition.kind === "CONTEXT" || nameDefinition.kind === "INFO") {
-      return err(
-        gqlErr(
-          { loc: name },
-          E.contextOrInfoUsedInGraphQLPosition(nameDefinition.kind),
-          [gqlRelated(nameDefinition.name, "Defined here")],
-        ),
-      );
-    }
-    return ok(nameDefinition.name.value);
-  }
-
   private maybeDeclarationForTsName(
     name: Location,
   ): ResolvedDeclaration | null {
     return this.findDeclaration(this.resolver.resolveEntityName(name));
-  }
-
-  resolveEntityName(name: Location): DiagnosticResult<ResolvedDeclaration> {
-    const declaration = this.maybeDeclarationForTsName(name);
-    if (!declaration) {
-      return err(gqlErr({ loc: name }, E.unresolvedTypeReference()));
-    }
-    return ok(declaration);
-  }
-
-  declarationForGqlDefinition(
-    definition:
-      | ObjectTypeDefinitionNode
-      | UnionTypeDefinitionNode
-      | InputObjectTypeDefinitionNode
-      | InterfaceTypeDefinitionNode,
-  ): DeclRef {
-    const name = definition.name;
-    const declaration = this._idToDeclaration.get(name.tsIdentifier);
-    if (!declaration) {
-      console.log(definition);
-      throw new Error(`Could not find declaration for ${name.value}`);
-    }
-    return declaration;
   }
 
   /**
@@ -277,19 +184,41 @@ export class TypeContext implements ITypeContext, ITypeContextForResolveTypes {
    * `grats-rs/crates/grats/src/type_context.rs`.
    *
    * The checker only exists on the TypeScript side, so it resolves each entity
-   * name the Rust `TypeContext` may ask about ahead of time.
+   * name the Rust `TypeContext` may be asked about ahead of time.
    */
   rustState(): RustTypeContextState {
     return {
       declarationToDefinition: Array.from(this._declarationToDefinition),
       unresolvedNodes: Array.from(this._unresolvedNodes),
-      resolvedEntityNames: Array.from(this._unresolvedNodes.values(), (ref) => [
-        ref.name,
-        this.resolver
-          .resolveEntityName(ref.name)
-          .map(({ kind, declLoc }) => ({ kind, declLoc })),
-      ]),
+      idToDeclaration: Array.from(this._idToDeclaration),
+      resolvedEntityNames: this.resolveEntityNamesForRust(),
     };
+  }
+
+  // Resolves each entity name in `_unresolvedNodes`, and those in their type
+  // arguments.
+  private resolveEntityNamesForRust(): RustTypeContextState["resolvedEntityNames"] {
+    const resolved: RustTypeContextState["resolvedEntityNames"] = [];
+    const resolve = (ref: EntityNameRef) => {
+      const declarations = this.resolver
+        .resolveEntityName(ref.name)
+        .map(({ kind, declLoc, loc }) => ({
+          kind,
+          declLoc,
+          // Only read for type parameters, and computed lazily.
+          loc: kind === "TYPE_PARAMETER" ? loc : null,
+        }));
+      resolved.push([ref.name, declarations]);
+      for (const arg of ref.typeArguments ?? []) {
+        if (arg.kind === "ENTITY_NAME") {
+          resolve(arg);
+        }
+      }
+    };
+    for (const ref of this._unresolvedNodes.values()) {
+      resolve(ref);
+    }
+    return resolved;
   }
 
   getEntityName(name: NameNode): EntityNameRef | null {
