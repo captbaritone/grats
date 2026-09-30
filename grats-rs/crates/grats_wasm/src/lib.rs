@@ -117,3 +117,26 @@ pub unsafe extern "C" fn print_outputs(ptr: *mut u8, len: usize) {
         })
     }
 }
+
+/// Input: a `LocateRequest` (see `grats::locate`) encoded by
+/// `encodeLocateRequest` in `src/rs/codec.ts`. Output: the location, or an
+/// error message, as a JSON `Result` (see `src/utils/Result.ts`).
+///
+/// # Safety
+///
+/// See `call`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn locate(ptr: *mut u8, len: usize) {
+    unsafe {
+        call(ptr, len, |input| {
+            let request =
+                serde_json::from_str(&input).expect("Input should be an encoded LocateRequest");
+            drop(input);
+            let result = match grats::locate::locate_in_document(request) {
+                Ok(value) => serde_json::json!({ "kind": "OK", "value": value }),
+                Err(err) => serde_json::json!({ "kind": "ERROR", "err": err }),
+            };
+            result.to_string()
+        })
+    }
+}

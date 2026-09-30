@@ -211,7 +211,7 @@ const testDirs: TestDir[] = [
         );
       }
 
-      const { schema, doc } = schemaResult.value;
+      const { doc } = schemaResult.value;
 
       assertDocumentRoundTrips(doc);
 
@@ -235,7 +235,7 @@ const testDirs: TestDir[] = [
       const LOCATION_REGEX = /^\/\/ Locate: (.*)/;
       const locationMatch = code.match(LOCATION_REGEX);
       if (locationMatch != null) {
-        const locResult = locate(schema, locationMatch[1].trim());
+        const locResult = locate(doc, locationMatch[1].trim());
         if (locResult.kind === "ERROR") {
           const markdown = new Markdown();
           markdown.addHeader(3, "Error Locating Type");

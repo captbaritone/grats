@@ -83,9 +83,9 @@ program
   .action((entity, { tsconfig }) => {
     const { config } = handleDiagnostics(getTsConfig(tsconfig));
 
-    const { schema } = handleDiagnostics(buildSchemaAndDocResult(config));
+    const { doc } = handleDiagnostics(buildSchemaAndDocResult(config));
 
-    const loc = locate(schema, entity);
+    const loc = locate(doc, entity);
     if (loc.kind === "ERROR") {
       console.error(loc.err);
       process.exit(1);

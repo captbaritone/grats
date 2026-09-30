@@ -124,6 +124,22 @@ export function encodeOutputRequest({
   return `{"doc":${encodeDocument(doc, new SourceTable())},${json.slice(1)}`;
 }
 
+/**
+ * The input to the `locate` entry point. See `LocateRequest` in
+ * `grats-rs/crates/grats/src/locate.rs`.
+ */
+export type RustLocateRequest = {
+  doc: DocumentNode;
+  entityName: string;
+};
+
+export function encodeLocateRequest(
+  { doc, entityName }: RustLocateRequest,
+  sources: SourceTable,
+): string {
+  return `{"doc":${encodeDocument(doc, sources)},"entityName":${JSON.stringify(entityName)}}`;
+}
+
 export function decodeDocument(
   json: string,
   sources: SourceTable,

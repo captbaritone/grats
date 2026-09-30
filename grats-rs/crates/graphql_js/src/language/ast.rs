@@ -7,12 +7,12 @@
 //! are modeled once ported code reads them. The others are ignored when
 //! deserializing.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// PORT: graphql-js locations reference their `Source` and tokens. Here a
 /// location is an offset range into a source in the `SourceTable` held by the
 /// TypeScript side (see `EncodedLocation` in `src/rs/codec.ts`).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Location {
     /// Index into the TypeScript side's `SourceTable`.
     pub source: u32,
