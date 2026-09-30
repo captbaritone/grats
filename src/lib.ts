@@ -4,7 +4,6 @@ import {
   GraphQLError,
   GraphQLSchema,
   Kind,
-  validateSchema,
 } from "graphql";
 import {
   DiagnosticsWithoutLocationResult,
@@ -150,9 +149,6 @@ export function extractSchemaAndDoc(
       // Build and validate the schema with regards to the GraphQL spec.
       return (
         new ResultPipe(buildSchema(doc))
-          // Apply the "Type Validation" sub-sections of the specification's
-          // "Type System" section.
-          .andThen((schema) => specSchemaValidation(schema))
           // Run the validations that have been ported to Rust.
           .andThen((schema) =>
             new ResultPipe(validateDocument(doc, config, typesWithTypename))
@@ -182,12 +178,6 @@ function specValidateSDL(
   // existing schema) we do! So, we should find a way to validate that we don't
   // shadow builtins.
   return asDiagnostics(doc, validateSDL);
-}
-
-function specSchemaValidation(
-  schema: GraphQLSchema,
-): DiagnosticsWithoutLocationResult<GraphQLSchema> {
-  return asDiagnostics(schema, validateSchema);
 }
 
 // Utility to map GraphQL validation errors to a Result of

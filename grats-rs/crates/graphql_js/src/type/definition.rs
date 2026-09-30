@@ -111,6 +111,11 @@ impl GraphQLType {
         arena[self.get_named_type()].is_input_type()
     }
 
+    /// PORT: Takes the arena which holds the type's named type.
+    pub fn is_output_type(&self, arena: &TypeArena) -> bool {
+        arena[self.get_named_type()].is_output_type()
+    }
+
     /// PORT: graphql-js `inspect(type)`, which calls the type's `toString()`.
     pub fn inspect(&self, arena: &TypeArena) -> String {
         match self {
@@ -154,10 +159,29 @@ impl<'a> GraphQLNamedType<'a> {
         )
     }
 
+    /// PORT: `isOutputType` for a named type.
+    pub fn is_output_type(&self) -> bool {
+        matches!(
+            self,
+            GraphQLNamedType::Scalar(_)
+                | GraphQLNamedType::Object(_)
+                | GraphQLNamedType::Interface(_)
+                | GraphQLNamedType::Union(_)
+                | GraphQLNamedType::Enum(_)
+        )
+    }
+
     pub fn is_leaf_type(&self) -> bool {
         matches!(
             self,
             GraphQLNamedType::Scalar(_) | GraphQLNamedType::Enum(_)
+        )
+    }
+
+    pub fn is_abstract_type(&self) -> bool {
+        matches!(
+            self,
+            GraphQLNamedType::Interface(_) | GraphQLNamedType::Union(_)
         )
     }
 

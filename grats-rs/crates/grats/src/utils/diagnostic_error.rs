@@ -2,6 +2,7 @@
 //!
 //! PORT: Only the helpers used by ported code.
 
+use graphql_js::error::graphql_error::GraphQLError;
 use graphql_js::language::ast::Location;
 use serde::Serialize;
 
@@ -26,6 +27,47 @@ pub struct DiagnosticRelatedInformation {
 }
 
 pub type DiagnosticsWithoutLocationResult<T> = Result<T, Vec<Diagnostic>>;
+
+/// PORT: graphql-js derives the error's `positions` and `source` from its
+/// nodes' locations, so its first position and its source are those of the
+/// first node which has a location.
+pub fn graphql_error_to_diagnostic(error: &GraphQLError) -> Diagnostic {
+    let Some(position) = error.nodes.iter().flatten().next() else {
+        panic!("Expected error to have a position");
+    };
+
+    // Start with baseline location information
+    let mut loc = Location {
+        source: position.source,
+        start: position.start,
+        end: position.start + 1,
+    };
+    let mut related_information = None;
+
+    // Nodes have actual ranges (not just a single position), so we we have one
+    // (or more!) use that instead.
+    if let Some((node, rest)) = error.nodes.split_first()
+        && let Some(node_loc) = node
+    {
+        loc = *node_loc;
+        if !rest.is_empty() {
+            let mut related = Vec::new();
+            for related_node in rest {
+                if related_node.is_none() {
+                    continue;
+                }
+                related.push(gql_related(*related_node, "Related location"));
+            }
+            related_information = Some(related);
+        }
+    }
+
+    Diagnostic {
+        message_text: error.message.clone(),
+        loc: Some(loc),
+        related_information,
+    }
+}
 
 pub fn locationless_err(message: String) -> Diagnostic {
     Diagnostic {

@@ -48,6 +48,53 @@ pub enum ASTNode<'n> {
     InputObjectTypeExtension(&'n InputObjectTypeExtensionNode),
 }
 
+impl ASTNode<'_> {
+    /// PORT: `node.loc`, which every kind of node has.
+    pub fn loc(&self) -> Option<Location> {
+        match self {
+            ASTNode::Name(node) => node.loc,
+            ASTNode::Document(node) => node.loc,
+            ASTNode::Argument(node) => node.loc,
+            ASTNode::ConstValue(node) => node.loc(),
+            ASTNode::Description(node) => node.loc,
+            ASTNode::ObjectField(node) => node.loc,
+            ASTNode::Directive(node) => node.loc,
+            ASTNode::NamedType(node) => node.loc,
+            ASTNode::ListType(node) => node.loc,
+            ASTNode::NonNullType(node) => node.loc,
+            ASTNode::SchemaDefinition(node) => node.loc,
+            ASTNode::OperationTypeDefinition(node) => node.loc,
+            ASTNode::ScalarTypeDefinition(node) => node.loc,
+            ASTNode::ObjectTypeDefinition(node) => node.loc,
+            ASTNode::FieldDefinition(node) => node.loc,
+            ASTNode::InputValueDefinition(node) => node.loc,
+            ASTNode::InterfaceTypeDefinition(node) => node.loc,
+            ASTNode::UnionTypeDefinition(node) => node.loc,
+            ASTNode::EnumTypeDefinition(node) => node.loc,
+            ASTNode::EnumValueDefinition(node) => node.loc,
+            ASTNode::InputObjectTypeDefinition(node) => node.loc,
+            ASTNode::DirectiveDefinition(node) => node.loc,
+            ASTNode::SchemaExtension(node) => node.loc,
+            ASTNode::ScalarTypeExtension(node) => node.loc,
+            ASTNode::ObjectTypeExtension(node) => node.loc,
+            ASTNode::InterfaceTypeExtension(node) => node.loc,
+            ASTNode::UnionTypeExtension(node) => node.loc,
+            ASTNode::EnumTypeExtension(node) => node.loc,
+            ASTNode::InputObjectTypeExtension(node) => node.loc,
+        }
+    }
+}
+
+impl<'n> From<&'n TypeNode> for ASTNode<'n> {
+    fn from(node: &'n TypeNode) -> Self {
+        match node {
+            TypeNode::NamedType(node) => ASTNode::NamedType(node),
+            TypeNode::ListType(node) => ASTNode::ListType(node),
+            TypeNode::NonNullType(node) => ASTNode::NonNullType(node),
+        }
+    }
+}
+
 /// PORT: What a visitor's `enter` returns. graphql-js visitors return
 /// `undefined` to continue and `false` to skip the node's children.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
