@@ -4,6 +4,8 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
+-   **Breaking Changes**
+    -   Removed the experimental TypeScript language service plugin (`grats-ts-plugin` and the `initTsPlugin` export). It was never production-ready, and removing it frees Grats' internals to move away from the TypeScript compiler API.
 -   **Features**
     -   Added support for deriving `@gqlEnum` from const arrays (`(typeof X)[number]`) and const objects (`(typeof X)[keyof typeof X]`). This allows defining enums with runtime-accessible values without using TypeScript's `enum` syntax. The const declaration must immediately precede the type alias. See [enum docs](./docblock-tags/enums.md#runtime-accessible-enums) for details.
 -   **Improvements**
