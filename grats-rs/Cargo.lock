@@ -250,6 +250,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "grats_cli"
+version = "0.0.0"
+dependencies = [
+ "grats",
+ "serde_json",
+]
+
+[[package]]
 name = "grats_wasm"
 version = "0.0.0"
 dependencies = [
