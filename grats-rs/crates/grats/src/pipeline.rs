@@ -2,7 +2,6 @@
 //! resolves the TypeScript types they reference, then transforms and validates
 //! the resulting document.
 
-use std::collections::HashSet;
 use std::rc::Rc;
 use std::sync::Arc;
 

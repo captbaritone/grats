@@ -206,6 +206,17 @@ fn print_code_point_at(lexer: &Lexer, location: usize) -> String {
     format!("U+{code:04X}")
 }
 
+/// PORT: The end of the source character at `position`, where a syntax
+/// error's location ends. At a line terminator or the end of the body, the
+/// location is empty.
+fn code_point_end(lexer: &Lexer, position: usize) -> usize {
+    match char_code_at(&lexer.body, position) {
+        None | Some(0x000a | 0x000d) => position,
+        Some(_) if is_supplementary_code_point(&lexer.body, position) => position + 2,
+        Some(_) => position + 1,
+    }
+}
+
 /// Create a token with line and column location information.
 fn create_token(
     lexer: &Lexer,
@@ -350,6 +361,7 @@ fn read_next_token(lexer: &mut Lexer, start: usize) -> Result<Token, GraphQLErro
         return Err(syntax_error(
             &lexer.source,
             position,
+            code_point_end(lexer, position),
             &if code == 0x0027 {
                 "Unexpected single quote character ('), did you mean to use a double quote (\")?"
                     .to_string()
@@ -482,6 +494,7 @@ fn read_number(lexer: &Lexer, start: usize, first_code: u16) -> Result<Token, Gr
             return Err(syntax_error(
                 &lexer.source,
                 position,
+                code_point_end(lexer, position),
                 &format!(
                     "Invalid number, unexpected digit after 0: {}.",
                     print_code_point_at(lexer, position)
@@ -523,6 +536,7 @@ fn read_number(lexer: &Lexer, start: usize, first_code: u16) -> Result<Token, Gr
         return Err(syntax_error(
             &lexer.source,
             position,
+            code_point_end(lexer, position),
             &format!(
                 "Invalid number, expected digit but got: {}.",
                 print_code_point_at(lexer, position)
@@ -553,6 +567,7 @@ fn read_digits(
         return Err(syntax_error(
             &lexer.source,
             start,
+            code_point_end(lexer, start),
             &format!(
                 "Invalid number, expected digit but got: {}.",
                 print_code_point_at(lexer, start)
@@ -644,6 +659,7 @@ fn read_string(lexer: &Lexer, start: usize) -> Result<Token, GraphQLError> {
             return Err(syntax_error(
                 &lexer.source,
                 position,
+                code_point_end(lexer, position),
                 &format!(
                     "Invalid character within String: {}.",
                     print_code_point_at(lexer, position)
@@ -654,6 +670,7 @@ fn read_string(lexer: &Lexer, start: usize) -> Result<Token, GraphQLError> {
 
     Err(syntax_error(
         &lexer.source,
+        start,
         position,
         "Unterminated string.",
     ))
@@ -697,6 +714,7 @@ fn read_escaped_unicode_variable_width(
     Err(syntax_error(
         &lexer.source,
         position,
+        (position + size).min(body.len()),
         &format!(
             "Invalid Unicode escape sequence: \"{}\".",
             slice(body, position, position + size)
@@ -744,6 +762,7 @@ fn read_escaped_unicode_fixed_width(
     Err(syntax_error(
         &lexer.source,
         position,
+        (position + 6).min(body.len()),
         &format!(
             "Invalid Unicode escape sequence: \"{}\".",
             slice(body, position, position + 6)
@@ -819,6 +838,7 @@ fn read_escaped_character(lexer: &Lexer, position: usize) -> Result<EscapeSequen
     Err(syntax_error(
         &lexer.source,
         position,
+        (position + 2).min(lexer.body.len()),
         &format!(
             "Invalid character escape sequence: \"{}\".",
             slice(body, position, position + 2)
@@ -911,6 +931,7 @@ fn read_block_string(lexer: &mut Lexer, start: usize) -> Result<Token, GraphQLEr
             return Err(syntax_error(
                 &lexer.source,
                 position,
+                code_point_end(lexer, position),
                 &format!(
                     "Invalid character within String: {}.",
                     print_code_point_at(lexer, position)
@@ -921,6 +942,7 @@ fn read_block_string(lexer: &mut Lexer, start: usize) -> Result<Token, GraphQLEr
 
     Err(syntax_error(
         &lexer.source,
+        start,
         position,
         "Unterminated string.",
     ))

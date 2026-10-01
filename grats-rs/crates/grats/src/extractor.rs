@@ -1255,7 +1255,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
     }
 
     /// Runs the parser code in `cb` over the text of `tag`, after its name, and
-    /// reports any errors at the tag.
+    /// reports any syntax error.
     ///
     /// The text is parsed where it is in the file, so that locations point into
     /// the docblock. The lexer ignores the `*`s which prefix its lines.
@@ -1271,7 +1271,16 @@ impl<'f, 'a> Extractor<'f, 'a> {
         match parse_only(source, cb) {
             Ok(result) => Some(result),
             Err(err) => {
-                self.report(self.tag_span(tag), err.message, None, None);
+                // Errors at the end of the text, like a missing name, have
+                // empty locations, so they're reported at the whole tag.
+                let span = match err.nodes.first() {
+                    Some(Some(loc)) if loc.start < loc.end => Span::new(
+                        self.file.offsets.to_utf8(loc.start),
+                        self.file.offsets.to_utf8(loc.end),
+                    ),
+                    _ => self.tag_span(tag),
+                };
+                self.report(span, err.message, None, None);
                 None
             }
         }

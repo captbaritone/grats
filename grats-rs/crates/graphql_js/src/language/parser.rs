@@ -147,6 +147,7 @@ impl<'s> Parser<'s> {
                     Err(syntax_error(
                         &self.lexer.source,
                         token.start,
+                        self.lexer.token().end,
                         &format!("Unexpected variable \"${var_name}\" in constant value."),
                     ))
                 } else {
@@ -451,6 +452,7 @@ impl<'s> Parser<'s> {
         Err(syntax_error(
             &self.lexer.source,
             token.start,
+            token.end,
             &format!(
                 "Expected {}, found {}.",
                 get_token_kind_desc(kind),
@@ -480,6 +482,7 @@ impl<'s> Parser<'s> {
             Err(syntax_error(
                 &self.lexer.source,
                 token.start,
+                token.end,
                 &format!("Expected \"{value}\", found {}.", get_token_desc(token)),
             ))
         }
@@ -502,6 +505,7 @@ impl<'s> Parser<'s> {
         syntax_error(
             &self.lexer.source,
             token.start,
+            token.end,
             &format!("Unexpected {}.", get_token_desc(token)),
         )
     }
@@ -604,6 +608,7 @@ fn get_token_kind_desc(kind: TokenKind) -> String {
 #[cfg(test)]
 mod tests {
     use super::{Parser, parse_only};
+    use crate::error::graphql_error::GraphQLError;
     use crate::language::ast::{
         ConstDirectiveNode, DefinitionNode, DirectiveDefinitionNode, DocumentNode, Location,
     };
@@ -730,6 +735,42 @@ mod tests {
         assert_eq!(
             parse_directive("@d(a:\n * 1)").unwrap_err(),
             "Syntax Error: Unexpected character: \"*\"."
+        );
+    }
+
+    #[test]
+    fn locates_syntax_errors_at_what_is_invalid() {
+        let location = |result: Result<ConstDirectiveNode, GraphQLError>| {
+            let loc = result.unwrap_err().nodes[0].unwrap();
+            (loc.start, loc.end)
+        };
+        let cases = [
+            ("@d(a: $x)", (6, 8)),
+            ("@d(a: \"unterminated)", (6, 20)),
+            ("@d(a: \"bad \\z esc\")", (11, 13)),
+            ("@d(a: 1.A)", (8, 9)),
+            ("@d \u{1f600}", (3, 5)),
+            ("@d(a: )", (6, 7)),
+            // The end of the source is empty.
+            ("@", (1, 1)),
+        ];
+        for (body, expected) in cases {
+            assert_eq!(
+                location(parse_only(
+                    Source::new(body, 3),
+                    Parser::parse_const_directive
+                )),
+                expected,
+                "{body:?}"
+            );
+        }
+        // Docblock errors are after `offset`.
+        assert_eq!(
+            location(parse_only(
+                Source::docblock(" d(a:\n * * 1)", 3, 100),
+                Parser::parse_const_directive_without_at,
+            )),
+            (109, 110)
         );
     }
 
