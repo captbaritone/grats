@@ -1,5 +1,4 @@
 import { spawn } from "child_process";
-import fetch from "node-fetch";
 import assert from "assert";
 import fs from "fs";
 import path from "path";
