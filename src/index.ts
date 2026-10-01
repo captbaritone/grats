@@ -1,9 +1,8 @@
 // LLM agent docs: See the llm-docs/ directory in the package root for
 // Markdown documentation covering all Grats features and configuration.
 
-export { printSDLWithoutMetadata } from "./printSchema.js";
+// Grats is a native binary (see `bin/grats.js`). This module only provides
+// the types which Grats projects import. It's empty at runtime, for setups
+// which don't elide `import { Int } from "grats"`.
+
 export * from "./Types.js";
-export * from "./lib.js";
-export { ReportableDiagnostics } from "./utils/DiagnosticError.js";
-export { loadProject } from "./rs/project.js";
-export type { GratsProject } from "./rs/project.js";

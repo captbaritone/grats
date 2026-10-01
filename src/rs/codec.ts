@@ -44,15 +44,4 @@ export type RustDocumentRequests = {
   print_outputs: RustOutputRequest;
   print_sdl_without_metadata: null;
   locate: RustLocateRequest;
-  write_schema_files: RustWriteSchemaFilesRequest;
-};
-
-/**
- * The input to the `write_schema_files` entry point, besides the document.
- * See `WriteSchemaFilesRequest` in `grats-rs/crates/grats_wasm/src/lib.rs`.
- */
-export type RustWriteSchemaFilesRequest = {
-  config: GratsConfig;
-  configPath: string;
-  gratsRoot: string;
 };

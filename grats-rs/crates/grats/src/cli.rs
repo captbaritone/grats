@@ -1,16 +1,13 @@
 //! Port of `src/cli.ts`.
 //!
 //! PORT: Output goes through the host, and `run` returns the exit code
-//! rather than exiting. For `--watch`, `run` returns, and the caller watches
-//! the files: the native `grats` binary with `WatchMode`, and the
-//! TypeScript CLI with its own watch program, which writes the outputs and
-//! applies fixes through the entry points of `grats_wasm`.
+//! rather than exiting. For `--watch`, `run` returns, and the caller (the
+//! native `grats` binary) watches the files and rebuilds with `WatchMode`.
 
 use std::sync::Arc;
 
 use clap::{CommandFactory, FromArgMatches, Parser, Subcommand};
 use graphql_js::language::ast::DocumentNode;
-use serde::{Deserialize, Serialize};
 
 use crate::fix_fixable::{FixOptions, apply_fixes, with_fixes_fixed};
 use crate::grats_config::GratsConfig;
@@ -29,8 +26,7 @@ use crate::utils::format_diagnostics::{
 };
 use crate::utils::path;
 
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug)]
 pub struct CliRequest {
     /// The arguments, after the program's name.
     pub args: Vec<String>,
@@ -42,8 +38,7 @@ pub struct CliRequest {
 }
 
 /// What to do once the command has run.
-#[derive(Debug, Serialize)]
-#[serde(tag = "kind", rename_all = "camelCase")]
+#[derive(Debug)]
 pub enum CliOutcome {
     /// Exit with this code.
     Exit { code: i32 },
@@ -352,7 +347,7 @@ impl Cli {
 ///
 /// PORT: Reports a file which can't be written, where the TypeScript
 /// implementation threw.
-pub fn write_schema_files_and_report(
+fn write_schema_files_and_report(
     doc: &DocumentNode,
     grats_config: &GratsConfig,
     config_path: &str,

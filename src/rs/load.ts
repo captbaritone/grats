@@ -14,8 +14,6 @@ type EntryPoint =
   | "run_pipeline"
   | "print_outputs"
   | "locate"
-  | "run_cli"
-  | "write_schema_files"
   | "apply_fixes";
 
 type Exports = {

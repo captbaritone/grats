@@ -7,6 +7,10 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  # npm dist-tag for prerelease builds published from branches.
+  NPM_TAG: ${{ github.ref == 'refs/heads/grats-rs-port' && 'rust' || 'main' }}
+
 jobs:
   build:
     name: "Build and run integration tests"
@@ -27,7 +31,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
-      - name: Install Rust # Builds the Rust port of Grats (grats-rs/) to WebAssembly
+      - name: Install Rust # Builds Grats (grats-rs/) natively and to WebAssembly
         working-directory: ./grats-rs
         run: rustup toolchain install
       - name: Install dependencies
@@ -42,24 +46,6 @@ jobs:
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             echo "Files were modified after running grats:"
-            git status --porcelain
-            git diff
-            exit 1
-          fi
-      - name: Build the native binary
-        working-directory: ./grats-rs
-        run: cargo build --release --package grats_cli
-      - name: Build Grats for each project with the native binary
-        run: |
-          for dir in examples/*/; do
-            if [ -f "$dir/package.json" ]; then
-              (cd "$dir" && "$GITHUB_WORKSPACE/grats-rs/target/release/grats")
-            fi
-          done
-      - name: Assert no files changed after native grats generation
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Files were modified after running the native binary:"
             git status --porcelain
             git diff
             exit 1
@@ -102,7 +88,7 @@ jobs:
       - name: Install TypeScript ${{ matrix.typescript-version }}
         run: pnpm add -wD typescript@${{ matrix.typescript-version }}
       - name: Build # Integration tests depend upon having .js versions created by tsc
-        run: pnpm run build
+        run: pnpm run build:wasm && pnpm run build:js
       - name: Unit Tests
         run: pnpm run test
   lint:
@@ -141,27 +127,56 @@ jobs:
         run: cargo clippy --all-targets -- -D warnings
       - name: Test
         run: cargo test
-  native:
-    name: "Native binary (${{ matrix.os }})"
+  build-binary:
+    name: "Native binary (${{ matrix.target }})"
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            platform: linux-x64
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-24.04-arm
+            platform: linux-arm64
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            platform: macos-x64
+            # Cross-compiled, so it's neither tested nor run.
+            cross: true
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            platform: macos-arm64
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            platform: win-x64
+            exe: .exe
     defaults:
       run:
+        shell: bash
         working-directory: ./grats-rs
     steps:
       - uses: actions/checkout@v3
       - name: Install Rust
-        run: rustup toolchain install
+        run: |
+          rustup toolchain install
+          rustup target add ${{ matrix.target }}
+      - name: Install musl
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - name: Set dev version (branch)
+        # Must match the version the publish job gives the package.
+        if: github.ref_type == 'branch'
+        run: echo "GRATS_VERSION=0.0.0-${NPM_TAG}-${GITHUB_SHA:0:8}" >> "$GITHUB_ENV"
       - name: Test
+        if: ${{ !matrix.cross }}
         run: cargo test
       - name: Build
-        run: cargo build --release --package grats_cli
+        run: cargo build --release --package grats_cli --target ${{ matrix.target }}
       - name: Smoke test
-        shell: bash
+        if: ${{ !matrix.cross }}
         run: |
-          grats="$PWD/target/release/grats"
+          grats="$PWD/target/${{ matrix.target }}/release/grats"
           project="$RUNNER_TEMP/smoke"
           mkdir -p "$project/src"
           cd "$project"
@@ -171,9 +186,9 @@ jobs:
           grep -q "hello: String" schema.graphql
           "$grats" locate Query.hello | grep -q "index.ts:2:17"
       - name: Smoke test watch mode
-        shell: bash
+        if: ${{ !matrix.cross }}
         run: |
-          grats="$PWD/target/release/grats"
+          grats="$PWD/target/${{ matrix.target }}/release/grats"
           cd "$RUNNER_TEMP/smoke"
           "$grats" --watch > watch.log 2>&1 &
           pid=$!
@@ -194,17 +209,21 @@ jobs:
           printf '/** @gqlQueryField */\nexport function hi(): string {\n  return "Hi";\n}\n' > src/index.ts
           wait_for schema.graphql "hi: String"
           kill $pid
+      - name: Upload the binary
+        uses: actions/upload-artifact@v4
+        with:
+          # The publish job puts it in `bin/<platform>/` (see `bin/binaryPath.js`).
+          name: ${{ matrix.platform }}
+          path: grats-rs/target/${{ matrix.target }}/release/grats${{ matrix.exe }}
+          if-no-files-found: error
   publish:
     name: Publish to NPM
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/grats-rs-port' || startsWith(github.ref, 'refs/tags/v')) && github.repository == 'captbaritone/grats'
-    needs: [build, test, lint, rust, native]
+    needs: [build, test, lint, rust, build-binary]
     permissions:
       contents: read
       id-token: write
-    env:
-      # npm dist-tag for prerelease builds published from branches.
-      NPM_TAG: ${{ github.ref == 'refs/heads/grats-rs-port' && 'rust' || 'main' }}
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
@@ -223,16 +242,45 @@ jobs:
         run: rustup toolchain install
       - name: Install dependencies
         run: pnpm install
-      - name: Build
-        run: pnpm run build
+      - name: Build # The types. The binaries were built by `build-binary`.
+        run: pnpm run build:wasm && pnpm run build:js
+      - name: Download the binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: bin
+      - name: Restore the binaries' executable bit
+        run: chmod +x bin/*/grats
       - name: Set dev version (branch)
         if: github.ref_type == 'branch'
         run: pnpm version --no-git-tag-version 0.0.0-${NPM_TAG}-${RELEASE_COMMIT_SHA:0:8}
         env:
           RELEASE_COMMIT_SHA: ${{ github.sha }}
+      - name: Check the binaries' version
+        run: |
+          expected="grats $(node -p 'require("./package.json").version')"
+          actual="$(bin/linux-x64/grats --version)"
+          if [ "$actual" != "$expected" ]; then
+            echo "Expected \"$expected\", but the binary reports \"$actual\""
+            exit 1
+          fi
+      - name: Pack
+        # With npm, which keeps the binaries' executable bit, unlike pnpm.
+        run: npm pack --pack-destination "$RUNNER_TEMP"
+      - name: Smoke test the package
+        run: |
+          project="$RUNNER_TEMP/consumer"
+          mkdir -p "$project/src"
+          cd "$project"
+          echo '{ "type": "module" }' > package.json
+          npm install "$RUNNER_TEMP"/grats-*.tgz
+          echo '{ "include": ["src"] }' > tsconfig.json
+          printf 'import { Int } from "grats";\n\n/** @gqlQueryField */\nexport function count(): Int {\n  return 1;\n}\n' > src/index.ts
+          npx grats
+          grep -q "count: Int" schema.graphql
+          node --input-type=module -e 'import "grats";'
       - name: Publish dev version (branch)
         if: github.ref_type == 'branch'
-        run: pnpm publish --tag ${NPM_TAG} --access=public --no-git-checks
+        run: npm publish "$RUNNER_TEMP"/grats-*.tgz --tag ${NPM_TAG} --access=public
       - name: Publish release (tag)
         if: startsWith(github.ref, 'refs/tags/v')
-        run: pnpm publish --access=public --no-git-checks
+        run: npm publish "$RUNNER_TEMP"/grats-*.tgz --access=public

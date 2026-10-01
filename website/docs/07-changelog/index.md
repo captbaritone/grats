@@ -14,13 +14,16 @@ Changes in this section are not yet released. If you need access to these change
   - `include` and `exclude` patterns are matched case sensitively, and patterns never match files or directories within `node_modules`, `bower_components` or `jspm_packages`, or whose names start with `.`, below the directory the pattern starts from.
   - The errors reported for invalid Grats config options have new wording. For example, an unknown option is now reported as ``Invalid Grats config: lol: unknown field `lol`, expected one of `graphqlSchema`, …``.
   - The CLI's `--help` output and its errors for invalid arguments have a new format, and invalid arguments now exit with code 2 rather than 1. `--version` now prints `grats <version>` rather than just the version.
+  - The `grats` CLI is now a native binary, built from a Rust port of Grats. The npm package includes binaries for macOS (x64 and arm64), Linux (x64 and arm64) and Windows (x64), and the CLI no longer runs on other platforms.
+  - Watch mode no longer reports errors in your `tsconfig.json` which Grats doesn't read (see above).
 - **Features**
   - Added support for deriving `@gqlEnum` from const arrays (`(typeof X)[number]`) and const objects (`(typeof X)[keyof typeof X]`). This allows defining enums with runtime-accessible values without using TypeScript's `enum` syntax. The const declaration must immediately precede the type alias. See [enum docs](../04-docblock-tags/07-enums.mdx#runtime-accessible-enums) for details.
 - **Improvements**
   - `typescript` is now a peer dependency (`>=5.5`) instead of a direct dependency, allowing you to use your own TypeScript version. ([PR](https://github.com/captbaritone/grats/pull/228))
   - Added support for TypeScript 6.0. ([PR](https://github.com/captbaritone/grats/pull/228))
   - CI now tests against TypeScript 5.5, 5.7, 5.9, and 6.0.
-  - Grats' output is now printed by a Rust port of Grats, compiled to WebAssembly. The generated TypeScript is formatted differently, for example small objects are printed on one line, so regenerating will produce a formatting-only diff in your generated files. The generated code is otherwise unchanged.
+  - Grats' output is now printed by a Rust port of Grats. The generated TypeScript is formatted differently, for example small objects are printed on one line, so regenerating will produce a formatting-only diff in your generated files. The generated code is otherwise unchanged.
+  - Output files which can't be written are now reported as errors, rather than crashing the CLI.
 
 ## 0.0.36
 

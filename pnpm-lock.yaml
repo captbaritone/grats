@@ -8,15 +8,9 @@ importers:
 
   .:
     dependencies:
-      commander:
-        specifier: ^14.0.1
-        version: 14.0.1
       graphql:
         specifier: ^16.11.0
         version: 16.11.0
-      semver:
-        specifier: ^7.7.2
-        version: 7.7.2
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.3.1
@@ -36,6 +30,9 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^8.44.0
         version: 8.44.0(eslint@9.36.0(jiti@1.21.6))(typescript@5.9.2)
+      commander:
+        specifier: ^14.0.1
+        version: 14.0.1
       eslint:
         specifier: ^9.36.0
         version: 9.36.0(jiti@1.21.6)
@@ -57,6 +54,9 @@ importers:
       process:
         specifier: ^0.11.10
         version: 0.11.10
+      semver:
+        specifier: ^7.7.2
+        version: 7.7.2
       tsx:
         specifier: ^4.19.0
         version: 4.21.0

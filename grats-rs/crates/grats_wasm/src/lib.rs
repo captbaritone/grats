@@ -25,7 +25,6 @@ use std::sync::Arc;
 
 use graphql_js::language::ast::DocumentNode;
 use grats::fix_fixable::FixOptions;
-use grats::grats_config::GratsConfig;
 use grats::host::{Host, JsonHost};
 use grats::source_table::SourceTable;
 use grats::utils::diagnostic_error::{CodeFixAction, Diagnostic, gql_err, locationless_err};
@@ -311,59 +310,6 @@ pub unsafe extern "C" fn locate(ptr: *mut u8, len: usize) {
                 })
             });
             result_json(located)
-        })
-    }
-}
-
-/// Input: a `CliRequest` (see `grats::cli`), as JSON. Output: a `CliOutcome`,
-/// as JSON.
-///
-/// # Safety
-///
-/// See `call`.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn run_cli(ptr: *mut u8, len: usize) {
-    unsafe {
-        call(ptr, len, |input| {
-            let request = serde_json::from_str(&input).expect("Input should be a CliRequest");
-            let outcome = grats::cli::run(request, json_host());
-            serde_json::to_string(&outcome).expect("CliOutcome should serialize")
-        })
-    }
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct WriteSchemaFilesRequest {
-    config: GratsConfig,
-    config_path: String,
-    grats_root: String,
-}
-
-/// Input: a `WriteSchemaFilesRequest`, as JSON. Writes the outputs for the
-/// document kept by `run_pipeline`. Output: the diagnostics (see
-/// `ReportableDiagnostic`), as a JSON `Result` (see `src/utils/Result.ts`).
-///
-/// # Safety
-///
-/// See `call`.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn write_schema_files(ptr: *mut u8, len: usize) {
-    unsafe {
-        call(ptr, len, |input| {
-            let request: WriteSchemaFilesRequest =
-                serde_json::from_str(&input).expect("Input should be a WriteSchemaFilesRequest");
-            let host = json_host();
-            let result = with_pipeline_doc(|doc| {
-                grats::cli::write_schema_files_and_report(
-                    doc,
-                    &request.config,
-                    &request.config_path,
-                    &request.grats_root,
-                    &*host,
-                )
-            });
-            result_json(result.map_err(|errors| report(errors, &SourceTable::default(), &*host)))
         })
     }
 }

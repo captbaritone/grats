@@ -98,11 +98,13 @@ impl Host for NativeHost {
 }
 
 /// The root which Grats' module paths are relative to (see
-/// `grats::grats_root`): the directory of this executable.
+/// `grats::grats_root`): the root of the `grats` package, like
+/// `src/gratsRoot.ts`, since this executable is `bin/<platform>/grats` (see
+/// `bin/binaryPath.js`).
 pub fn grats_root() -> String {
     let exe = std::env::current_exe().expect("Expected the executable's path to be known");
     let exe = fs::canonicalize(&exe).unwrap_or(exe);
-    path::dirname(&to_grats_path(&exe)).to_string()
+    path::resolve(path::dirname(&to_grats_path(&exe)), "../..")
 }
 
 /// Like TypeScript's `ts.sys.useCaseSensitiveFileNames`: whether this

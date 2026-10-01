@@ -6,6 +6,8 @@ dist/
 performance.cpuprofile
 grats-rs/target/
 src/rs/wasm.generated.ts
+# Native binaries, built by `pnpm build` or in CI.
+bin/*/
 
 # Local Netlify folder
 .netlify

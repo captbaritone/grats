@@ -1,11 +1,13 @@
 import fs from "fs";
 import {
   buildSchemaAndDocResult,
-  printSDLWithoutMetadata,
-  ReportableDiagnostics,
   type GratsConfig,
-} from "grats";
-import { printOutputs } from "grats/dist/src/printSchema.js";
+} from "grats/dist/src/lib.js";
+import {
+  printOutputs,
+  printSDLWithoutMetadata,
+} from "grats/dist/src/printSchema.js";
+import { ReportableDiagnostics } from "grats/dist/src/utils/DiagnosticError.js";
 import glob from "glob";
 
 async function main() {
