@@ -33,30 +33,31 @@ type SomeType {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLString,
-  GraphQLBoolean,
-} from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLBoolean } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-      return {
-        someField1: {
-          name: "someField1",
-          type: GraphQLString,
-          args: { greet: { type: GraphQLBoolean, defaultValue: false } },
-        },
-        someField2: {
-          name: "someField2",
-          type: GraphQLString,
-          args: { greet: { type: GraphQLBoolean, defaultValue: true } },
-        },
-      };
-    },
-  });
-  return new GraphQLSchema({ types: [SomeTypeType] });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                someField1: {
+                    name: "someField1",
+                    type: GraphQLString,
+                    args: { greet: {
+                        type: GraphQLBoolean,
+                        defaultValue: false
+                    } }
+                },
+                someField2: {
+                    name: "someField2",
+                    type: GraphQLString,
+                    args: { greet: {
+                        type: GraphQLBoolean,
+                        defaultValue: true
+                    } }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

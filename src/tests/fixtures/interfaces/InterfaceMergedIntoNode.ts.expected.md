@@ -26,12 +26,15 @@ interface Node {
 ```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "Node",
-    fields() {
-      return { id: { name: "id", type: GraphQLString } };
-    },
-  });
-  return new GraphQLSchema({ types: [NodeType] });
+    const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Node",
+        fields() {
+            return { id: {
+                name: "id",
+                type: GraphQLString
+            } };
+        }
+    });
+    return new GraphQLSchema({ types: [NodeType] });
 }
 ```

@@ -28,32 +28,21 @@ directive @defer(label: String!, if: Boolean = true) on FRAGMENT_SPREAD | INLINE
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLDirective,
-  DirectiveLocation,
-  GraphQLNonNull,
-  GraphQLString,
-  GraphQLBoolean,
-  specifiedDirectives,
-} from "graphql";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLString, GraphQLBoolean, specifiedDirectives } from "graphql";
 export function getSchema(): GraphQLSchema {
-  return new GraphQLSchema({
-    directives: [
-      ...specifiedDirectives,
-      new GraphQLDirective({
-        name: "defer",
-        locations: [
-          DirectiveLocation.FRAGMENT_SPREAD,
-          DirectiveLocation.INLINE_FRAGMENT,
-        ],
-        args: {
-          label: { type: new GraphQLNonNull(GraphQLString) },
-          if: { type: GraphQLBoolean, defaultValue: true },
-        },
-      }),
-    ],
-    types: [],
-  });
+    return new GraphQLSchema({
+        directives: [...specifiedDirectives, new GraphQLDirective({
+            name: "defer",
+            locations: [DirectiveLocation.FRAGMENT_SPREAD, DirectiveLocation.INLINE_FRAGMENT],
+            args: {
+                label: { type: new GraphQLNonNull(GraphQLString) },
+                if: {
+                    type: GraphQLBoolean,
+                    defaultValue: true
+                }
+            }
+        })],
+        types: []
+    });
 }
 ```

@@ -43,53 +43,40 @@ type SomeClass {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLInputObjectType,
-  GraphQLNonNull,
-  GraphQLString,
-  GraphQLObjectType,
-} from "graphql";
+import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const AnotherInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
-    name: "AnotherInput",
-    fields() {
-      return {
-        anotherField: {
-          name: "anotherField",
-          type: new GraphQLNonNull(GraphQLString),
-        },
-      };
-    },
-  });
-  const AnotherInputSomeInputType: GraphQLInputObjectType =
-    new GraphQLInputObjectType({
-      name: "AnotherInputSomeInput",
-      fields() {
-        return {
-          someField: {
-            name: "someField",
-            type: new GraphQLNonNull(AnotherInputType),
-          },
-        };
-      },
+    const AnotherInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        name: "AnotherInput",
+        fields() {
+            return { anotherField: {
+                name: "anotherField",
+                type: new GraphQLNonNull(GraphQLString)
+            } };
+        }
     });
-  const SomeClassType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeClass",
-    fields() {
-      return {
-        someField: {
-          name: "someField",
-          type: GraphQLString,
-          args: {
-            someArg: { type: new GraphQLNonNull(AnotherInputSomeInputType) },
-          },
-        },
-      };
-    },
-  });
-  return new GraphQLSchema({
-    types: [AnotherInputType, AnotherInputSomeInputType, SomeClassType],
-  });
+    const AnotherInputSomeInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        name: "AnotherInputSomeInput",
+        fields() {
+            return { someField: {
+                name: "someField",
+                type: new GraphQLNonNull(AnotherInputType)
+            } };
+        }
+    });
+    const SomeClassType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeClass",
+        fields() {
+            return { someField: {
+                name: "someField",
+                type: GraphQLString,
+                args: { someArg: { type: new GraphQLNonNull(AnotherInputSomeInputType) } }
+            } };
+        }
+    });
+    return new GraphQLSchema({ types: [
+        AnotherInputType,
+        AnotherInputSomeInputType,
+        SomeClassType
+    ] });
 }
 ```

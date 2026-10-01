@@ -34,28 +34,29 @@ type User implements IPerson {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLInterfaceType,
-  GraphQLString,
-  GraphQLObjectType,
-} from "graphql";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "IPerson",
-    fields() {
-      return { name: { name: "name", type: GraphQLString } };
-    },
-  });
-  const UserType: GraphQLObjectType = new GraphQLObjectType({
-    name: "User",
-    fields() {
-      return { name: { name: "name", type: GraphQLString } };
-    },
-    interfaces() {
-      return [IPersonType];
-    },
-  });
-  return new GraphQLSchema({ types: [IPersonType, UserType] });
+    const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "IPerson",
+        fields() {
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
+        }
+    });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
+        },
+        interfaces() {
+            return [IPersonType];
+        }
+    });
+    return new GraphQLSchema({ types: [IPersonType, UserType] });
 }
 ```

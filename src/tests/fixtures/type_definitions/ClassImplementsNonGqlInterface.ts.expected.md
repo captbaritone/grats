@@ -33,13 +33,16 @@ type User {
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const UserType: GraphQLObjectType = new GraphQLObjectType({
-    name: "User",
-    description: "The root of all evil.",
-    fields() {
-      return { hello: { name: "hello", type: GraphQLString } };
-    },
-  });
-  return new GraphQLSchema({ types: [UserType] });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        description: "The root of all evil.",
+        fields() {
+            return { hello: {
+                name: "hello",
+                type: GraphQLString
+            } };
+        }
+    });
+    return new GraphQLSchema({ types: [UserType] });
 }
 ```

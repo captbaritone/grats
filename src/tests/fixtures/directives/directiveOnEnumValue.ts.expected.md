@@ -37,39 +37,29 @@ enum MyEnum {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLDirective,
-  DirectiveLocation,
-  GraphQLNonNull,
-  GraphQLInt,
-  specifiedDirectives,
-  GraphQLEnumType,
-} from "graphql";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLEnumType } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const MyEnumType: GraphQLEnumType = new GraphQLEnumType({
-    name: "MyEnum",
-    values: {
-      A: {
-        value: "A",
-        extensions: {
-          grats: { directives: [{ name: "max", args: { foo: 10 } }] },
-        },
-      },
-      B: { value: "B" },
-    },
-  });
-  return new GraphQLSchema({
-    directives: [
-      ...specifiedDirectives,
-      new GraphQLDirective({
-        name: "max",
-        locations: [DirectiveLocation.ENUM_VALUE],
-        description: "This is my custom directive.",
-        args: { foo: { type: new GraphQLNonNull(GraphQLInt) } },
-      }),
-    ],
-    types: [MyEnumType],
-  });
+    const MyEnumType: GraphQLEnumType = new GraphQLEnumType({
+        name: "MyEnum",
+        values: {
+            A: {
+                value: "A",
+                extensions: { grats: { directives: [{
+                    name: "max",
+                    args: { foo: 10 }
+                }] } }
+            },
+            B: { value: "B" }
+        }
+    });
+    return new GraphQLSchema({
+        directives: [...specifiedDirectives, new GraphQLDirective({
+            name: "max",
+            locations: [DirectiveLocation.ENUM_VALUE],
+            description: "This is my custom directive.",
+            args: { foo: { type: new GraphQLNonNull(GraphQLInt) } }
+        })],
+        types: [MyEnumType]
+    });
 }
 ```

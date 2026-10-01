@@ -46,41 +46,44 @@ type Query {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLEnumType,
-  GraphQLNonNull,
-} from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLEnumType, GraphQLNonNull } from "graphql";
 import { priority as queryPriorityResolver } from "./TsClientEnums";
 export function getSchema(): GraphQLSchema {
-  const PriorityType: GraphQLEnumType = new GraphQLEnumType({
-    name: "Priority",
-    values: { high: { value: "high" }, low: { value: "low" } },
-  });
-  const ColourType: GraphQLEnumType = new GraphQLEnumType({
-    name: "Colour",
-    values: { green: { value: "green" }, red: { value: "red" } },
-  });
-  const QueryType: GraphQLObjectType = new GraphQLObjectType({
-    name: "Query",
-    fields() {
-      return {
-        priority: {
-          name: "priority",
-          type: PriorityType,
-          args: { colour: { type: new GraphQLNonNull(ColourType) } },
-          resolve(_source, args) {
-            return queryPriorityResolver(args.colour);
-          },
-        },
-      };
-    },
-  });
-  return new GraphQLSchema({
-    query: QueryType,
-    types: [ColourType, PriorityType, QueryType],
-  });
+    const PriorityType: GraphQLEnumType = new GraphQLEnumType({
+        name: "Priority",
+        values: {
+            high: { value: "high" },
+            low: { value: "low" }
+        }
+    });
+    const ColourType: GraphQLEnumType = new GraphQLEnumType({
+        name: "Colour",
+        values: {
+            green: { value: "green" },
+            red: { value: "red" }
+        }
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return { priority: {
+                name: "priority",
+                type: PriorityType,
+                args: { colour: { type: new GraphQLNonNull(ColourType) } },
+                resolve(_source, args) {
+                    return queryPriorityResolver(args.colour);
+                }
+            } };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [
+            ColourType,
+            PriorityType,
+            QueryType
+        ]
+    });
 }
 ```
 
@@ -93,7 +96,10 @@ export function getSchema(): GraphQLSchema {
  */
 
 import { Color as ColourEnum, Priority as PriorityEnum } from "./TsClientEnums";
-export const enums = { Colour: ColourEnum, Priority: PriorityEnum };
+export const enums = {
+    Colour: ColourEnum,
+    Priority: PriorityEnum
+};
 export { ColourEnum as Colour };
 export { PriorityEnum as Priority };
 ```

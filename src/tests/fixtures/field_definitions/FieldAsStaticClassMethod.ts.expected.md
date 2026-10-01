@@ -38,26 +38,30 @@ type User {
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { User as queryGetUserResolver } from "./FieldAsStaticClassMethod";
 export function getSchema(): GraphQLSchema {
-  const UserType: GraphQLObjectType = new GraphQLObjectType({
-    name: "User",
-    fields() {
-      return { name: { name: "name", type: GraphQLString } };
-    },
-  });
-  const QueryType: GraphQLObjectType = new GraphQLObjectType({
-    name: "Query",
-    fields() {
-      return {
-        getUser: {
-          name: "getUser",
-          type: UserType,
-          resolve(source) {
-            return queryGetUserResolver.getUser(source);
-          },
-        },
-      };
-    },
-  });
-  return new GraphQLSchema({ query: QueryType, types: [QueryType, UserType] });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
+        }
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return { getUser: {
+                name: "getUser",
+                type: UserType,
+                resolve(source) {
+                    return queryGetUserResolver.getUser(source);
+                }
+            } };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType, UserType]
+    });
 }
 ```

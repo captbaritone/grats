@@ -86,85 +86,75 @@ type User {
 
 ```ts
 import queryMeResolver from "./emitMetadata";
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLInt,
-  GraphQLString,
-} from "graphql";
-import {
-  age as userAgeResolver,
-  createDerivedContext,
-  User as queryAllUsersResolver,
-} from "./emitMetadata";
+import { GraphQLSchema, GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLInt, GraphQLString } from "graphql";
+import { age as userAgeResolver, createDerivedContext, User as queryAllUsersResolver } from "./emitMetadata";
 export function getSchema(): GraphQLSchema {
-  const UserType: GraphQLObjectType = new GraphQLObjectType({
-    name: "User",
-    fields() {
-      return {
-        age: {
-          name: "age",
-          type: GraphQLInt,
-          args: { offset: { type: new GraphQLNonNull(GraphQLInt) } },
-          async resolve(source, args, context) {
-            return userAgeResolver(
-              source,
-              args.offset,
-              await createDerivedContext(context),
-              context,
-            );
-          },
-        },
-        greet: {
-          name: "greet",
-          type: GraphQLString,
-          args: { greeting: { type: new GraphQLNonNull(GraphQLString) } },
-          resolve(source, args, context, info) {
-            return source.greet(args, context, info);
-          },
-        },
-        name: { name: "name", type: GraphQLString },
-        renamedMethod: {
-          name: "renamedMethod",
-          type: GraphQLString,
-          resolve(source) {
-            return source.someMethod();
-          },
-        },
-        renamedProperty: {
-          name: "renamedProperty",
-          type: GraphQLString,
-          resolve(source) {
-            return source.someProperty;
-          },
-        },
-      };
-    },
-  });
-  const QueryType: GraphQLObjectType = new GraphQLObjectType({
-    name: "Query",
-    fields() {
-      return {
-        allUsers: {
-          name: "allUsers",
-          type: new GraphQLList(new GraphQLNonNull(UserType)),
-          resolve() {
-            return queryAllUsersResolver.allUsers();
-          },
-        },
-        me: {
-          name: "me",
-          type: UserType,
-          resolve() {
-            return queryMeResolver();
-          },
-        },
-      };
-    },
-  });
-  return new GraphQLSchema({ query: QueryType, types: [QueryType, UserType] });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                age: {
+                    name: "age",
+                    type: GraphQLInt,
+                    args: { offset: { type: new GraphQLNonNull(GraphQLInt) } },
+                    async resolve(source, args, context) {
+                        return userAgeResolver(source, args.offset, await createDerivedContext(context), context);
+                    }
+                },
+                greet: {
+                    name: "greet",
+                    type: GraphQLString,
+                    args: { greeting: { type: new GraphQLNonNull(GraphQLString) } },
+                    resolve(source, args, context, info) {
+                        return source.greet(args, context, info);
+                    }
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                },
+                renamedMethod: {
+                    name: "renamedMethod",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return source.someMethod();
+                    }
+                },
+                renamedProperty: {
+                    name: "renamedProperty",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return source.someProperty;
+                    }
+                }
+            };
+        }
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                allUsers: {
+                    name: "allUsers",
+                    type: new GraphQLList(new GraphQLNonNull(UserType)),
+                    resolve() {
+                        return queryAllUsersResolver.allUsers();
+                    }
+                },
+                me: {
+                    name: "me",
+                    type: UserType,
+                    resolve() {
+                        return queryMeResolver();
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType, UserType]
+    });
 }
 ```
 

@@ -43,56 +43,40 @@ type Query {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLDirective,
-  DirectiveLocation,
-  GraphQLNonNull,
-  GraphQLString,
-  specifiedDirectives,
-  GraphQLObjectType,
-} from "graphql";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLString, specifiedDirectives, GraphQLObjectType } from "graphql";
 import { myQueryField as queryMyQueryFieldResolver } from "./multilineAnnotatedDirectiveWithBlockString";
 export function getSchema(): GraphQLSchema {
-  const QueryType: GraphQLObjectType = new GraphQLObjectType({
-    name: "Query",
-    fields() {
-      return {
-        myQueryField: {
-          name: "myQueryField",
-          type: GraphQLString,
-          extensions: {
-            grats: {
-              directives: [
-                {
-                  name: "customDirective",
-                  args: { bar: "bar", foo: "First line\n  Indented line" },
-                },
-              ],
-            },
-          },
-          resolve() {
-            return queryMyQueryFieldResolver();
-          },
-        },
-      };
-    },
-  });
-  return new GraphQLSchema({
-    directives: [
-      ...specifiedDirectives,
-      new GraphQLDirective({
-        name: "customDirective",
-        locations: [DirectiveLocation.FIELD_DEFINITION],
-        description: "This is my custom directive.",
-        args: {
-          foo: { type: new GraphQLNonNull(GraphQLString) },
-          bar: { type: new GraphQLNonNull(GraphQLString) },
-        },
-      }),
-    ],
-    query: QueryType,
-    types: [QueryType],
-  });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return { myQueryField: {
+                name: "myQueryField",
+                type: GraphQLString,
+                extensions: { grats: { directives: [{
+                    name: "customDirective",
+                    args: {
+                        bar: "bar",
+                        foo: "First line\n  Indented line"
+                    }
+                }] } },
+                resolve() {
+                    return queryMyQueryFieldResolver();
+                }
+            } };
+        }
+    });
+    return new GraphQLSchema({
+        directives: [...specifiedDirectives, new GraphQLDirective({
+            name: "customDirective",
+            locations: [DirectiveLocation.FIELD_DEFINITION],
+            description: "This is my custom directive.",
+            args: {
+                foo: { type: new GraphQLNonNull(GraphQLString) },
+                bar: { type: new GraphQLNonNull(GraphQLString) }
+            }
+        })],
+        query: QueryType,
+        types: [QueryType]
+    });
 }
 ```

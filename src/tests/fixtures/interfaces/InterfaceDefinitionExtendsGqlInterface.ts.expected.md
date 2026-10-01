@@ -55,43 +55,57 @@ interface User implements Mammal & Person {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLInterfaceType,
-  GraphQLInt,
-  GraphQLString,
-} from "graphql";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLInt, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const MammalType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "Mammal",
-    fields() {
-      return { legs: { name: "legs", type: GraphQLInt } };
-    },
-  });
-  const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "Person",
-    fields() {
-      return {
-        legs: { name: "legs", type: GraphQLInt },
-        name: { name: "name", type: GraphQLString },
-      };
-    },
-    interfaces() {
-      return [MammalType];
-    },
-  });
-  const UserType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "User",
-    fields() {
-      return {
-        legs: { name: "legs", type: GraphQLInt },
-        name: { name: "name", type: GraphQLString },
-      };
-    },
-    interfaces() {
-      return [MammalType, PersonType];
-    },
-  });
-  return new GraphQLSchema({ types: [MammalType, PersonType, UserType] });
+    const MammalType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Mammal",
+        fields() {
+            return { legs: {
+                name: "legs",
+                type: GraphQLInt
+            } };
+        }
+    });
+    const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Person",
+        fields() {
+            return {
+                legs: {
+                    name: "legs",
+                    type: GraphQLInt
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        },
+        interfaces() {
+            return [MammalType];
+        }
+    });
+    const UserType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "User",
+        fields() {
+            return {
+                legs: {
+                    name: "legs",
+                    type: GraphQLInt
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        },
+        interfaces() {
+            return [MammalType, PersonType];
+        }
+    });
+    return new GraphQLSchema({ types: [
+        MammalType,
+        PersonType,
+        UserType
+    ] });
 }
 ```

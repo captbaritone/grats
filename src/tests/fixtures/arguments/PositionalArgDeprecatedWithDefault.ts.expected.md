@@ -39,47 +39,43 @@ type SomeType {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLInputObjectType,
-  GraphQLNonNull,
-  GraphQLString,
-  GraphQLObjectType,
-} from "graphql";
+import { GraphQLSchema, GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const GreetingType: GraphQLInputObjectType = new GraphQLInputObjectType({
-    name: "Greeting",
-    fields() {
-      return {
-        name: { name: "name", type: new GraphQLNonNull(GraphQLString) },
-        salutation: {
-          name: "salutation",
-          type: new GraphQLNonNull(GraphQLString),
-        },
-      };
-    },
-  });
-  const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-      return {
-        hello: {
-          name: "hello",
-          type: GraphQLString,
-          args: {
-            greeting: {
-              deprecationReason: "Unused!",
-              type: new GraphQLNonNull(GreetingType),
-              defaultValue: { name: "Alice", salutation: "Hullo" },
-            },
-          },
-          resolve(source, args) {
-            return source.hello(args.greeting);
-          },
-        },
-      };
-    },
-  });
-  return new GraphQLSchema({ types: [GreetingType, SomeTypeType] });
+    const GreetingType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        name: "Greeting",
+        fields() {
+            return {
+                name: {
+                    name: "name",
+                    type: new GraphQLNonNull(GraphQLString)
+                },
+                salutation: {
+                    name: "salutation",
+                    type: new GraphQLNonNull(GraphQLString)
+                }
+            };
+        }
+    });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return { hello: {
+                name: "hello",
+                type: GraphQLString,
+                args: { greeting: {
+                    deprecationReason: "Unused!",
+                    type: new GraphQLNonNull(GreetingType),
+                    defaultValue: {
+                        name: "Alice",
+                        salutation: "Hullo"
+                    }
+                } },
+                resolve(source, args) {
+                    return source.hello(args.greeting);
+                }
+            } };
+        }
+    });
+    return new GraphQLSchema({ types: [GreetingType, SomeTypeType] });
 }
 ```

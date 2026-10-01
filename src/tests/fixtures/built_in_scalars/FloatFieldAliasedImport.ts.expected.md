@@ -29,12 +29,15 @@ type SomeType {
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLFloat } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-      return { ratio: { name: "ratio", type: GraphQLFloat } };
-    },
-  });
-  return new GraphQLSchema({ types: [SomeTypeType] });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return { ratio: {
+                name: "ratio",
+                type: GraphQLFloat
+            } };
+        }
+    });
+    return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

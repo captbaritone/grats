@@ -25,23 +25,24 @@ input Greeting @oneOf {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLInputObjectType,
-  GraphQLString,
-  GraphQLList,
-} from "graphql";
+import { GraphQLSchema, GraphQLInputObjectType, GraphQLString, GraphQLList } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const GreetingType: GraphQLInputObjectType = new GraphQLInputObjectType({
-    name: "Greeting",
-    fields() {
-      return {
-        firstName: { name: "firstName", type: GraphQLString },
-        lastName: { name: "lastName", type: new GraphQLList(GraphQLString) },
-      };
-    },
-    isOneOf: true,
-  });
-  return new GraphQLSchema({ types: [GreetingType] });
+    const GreetingType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        name: "Greeting",
+        fields() {
+            return {
+                firstName: {
+                    name: "firstName",
+                    type: GraphQLString
+                },
+                lastName: {
+                    name: "lastName",
+                    type: new GraphQLList(GraphQLString)
+                }
+            };
+        },
+        isOneOf: true
+    });
+    return new GraphQLSchema({ types: [GreetingType] });
 }
 ```

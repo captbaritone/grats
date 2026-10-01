@@ -36,35 +36,29 @@ type MyType @max(foo: 10) {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLDirective,
-  DirectiveLocation,
-  GraphQLNonNull,
-  GraphQLInt,
-  specifiedDirectives,
-  GraphQLObjectType,
-  GraphQLString,
-} from "graphql";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const MyTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "MyType",
-    fields() {
-      return { myField: { name: "myField", type: GraphQLString } };
-    },
-    extensions: { grats: { directives: [{ name: "max", args: { foo: 10 } }] } },
-  });
-  return new GraphQLSchema({
-    directives: [
-      ...specifiedDirectives,
-      new GraphQLDirective({
-        name: "max",
-        locations: [DirectiveLocation.OBJECT],
-        description: "This is my custom directive.",
-        args: { foo: { type: new GraphQLNonNull(GraphQLInt) } },
-      }),
-    ],
-    types: [MyTypeType],
-  });
+    const MyTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "MyType",
+        fields() {
+            return { myField: {
+                name: "myField",
+                type: GraphQLString
+            } };
+        },
+        extensions: { grats: { directives: [{
+            name: "max",
+            args: { foo: 10 }
+        }] } }
+    });
+    return new GraphQLSchema({
+        directives: [...specifiedDirectives, new GraphQLDirective({
+            name: "max",
+            locations: [DirectiveLocation.OBJECT],
+            description: "This is my custom directive.",
+            args: { foo: { type: new GraphQLNonNull(GraphQLInt) } }
+        })],
+        types: [MyTypeType]
+    });
 }
 ```

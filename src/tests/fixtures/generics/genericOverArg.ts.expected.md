@@ -46,55 +46,47 @@ type SomeInputSomeClass {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLString,
-  GraphQLInputObjectType,
-  GraphQLNonNull,
-} from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInputObjectType, GraphQLNonNull } from "graphql";
 import { someField as querySomeFieldResolver } from "./genericOverArg";
 export function getSchema(): GraphQLSchema {
-  const SomeInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
-    name: "SomeInput",
-    fields() {
-      return {
-        someField: {
-          name: "someField",
-          type: new GraphQLNonNull(GraphQLString),
-        },
-      };
-    },
-  });
-  const SomeInputSomeClassType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeInputSomeClass",
-    fields() {
-      return {
-        someField: {
-          name: "someField",
-          type: GraphQLString,
-          args: { someArg: { type: SomeInputType } },
-        },
-      };
-    },
-  });
-  const QueryType: GraphQLObjectType = new GraphQLObjectType({
-    name: "Query",
-    fields() {
-      return {
-        someField: {
-          name: "someField",
-          type: SomeInputSomeClassType,
-          resolve(source) {
-            return querySomeFieldResolver(source);
-          },
-        },
-      };
-    },
-  });
-  return new GraphQLSchema({
-    query: QueryType,
-    types: [SomeInputType, QueryType, SomeInputSomeClassType],
-  });
+    const SomeInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
+        name: "SomeInput",
+        fields() {
+            return { someField: {
+                name: "someField",
+                type: new GraphQLNonNull(GraphQLString)
+            } };
+        }
+    });
+    const SomeInputSomeClassType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeInputSomeClass",
+        fields() {
+            return { someField: {
+                name: "someField",
+                type: GraphQLString,
+                args: { someArg: { type: SomeInputType } }
+            } };
+        }
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return { someField: {
+                name: "someField",
+                type: SomeInputSomeClassType,
+                resolve(source) {
+                    return querySomeFieldResolver(source);
+                }
+            } };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [
+            SomeInputType,
+            QueryType,
+            SomeInputSomeClassType
+        ]
+    });
 }
 ```

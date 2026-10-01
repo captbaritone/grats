@@ -46,33 +46,32 @@ type Query {
 
 ```ts
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
-import {
-  farewell as queryFarewellResolver,
-  greetingContext,
-  greeting as queryGreetingResolver,
-} from "./derivedContextUsedMultipleTimes";
+import { farewell as queryFarewellResolver, greetingContext, greeting as queryGreetingResolver } from "./derivedContextUsedMultipleTimes";
 export function getSchema(): GraphQLSchema {
-  const QueryType: GraphQLObjectType = new GraphQLObjectType({
-    name: "Query",
-    fields() {
-      return {
-        farewell: {
-          name: "farewell",
-          type: GraphQLString,
-          resolve(source, _args, context) {
-            return queryFarewellResolver(source, greetingContext(context));
-          },
-        },
-        greeting: {
-          name: "greeting",
-          type: GraphQLString,
-          resolve(source, _args, context) {
-            return queryGreetingResolver(source, greetingContext(context));
-          },
-        },
-      };
-    },
-  });
-  return new GraphQLSchema({ query: QueryType, types: [QueryType] });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                farewell: {
+                    name: "farewell",
+                    type: GraphQLString,
+                    resolve(source, _args, context) {
+                        return queryFarewellResolver(source, greetingContext(context));
+                    }
+                },
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    resolve(source, _args, context) {
+                        return queryGreetingResolver(source, greetingContext(context));
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType]
+    });
 }
 ```

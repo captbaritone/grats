@@ -30,26 +30,26 @@ type SomeType {
 ```ts
 import type { GqlScalar } from "grats";
 import type { MyUrl as CustomNameInternal } from "./DefineRenamedCustomScalar";
-import {
-  GraphQLSchema,
-  GraphQLScalarType,
-  GraphQLObjectType,
-  GraphQLString,
-} from "graphql";
+import { GraphQLSchema, GraphQLScalarType, GraphQLObjectType, GraphQLString } from "graphql";
 export type SchemaConfig = {
-  scalars: { CustomName: GqlScalar<CustomNameInternal> };
+    scalars: {
+        CustomName: GqlScalar<CustomNameInternal>;
+    };
 };
 export function getSchema(config: SchemaConfig): GraphQLSchema {
-  const CustomNameType: GraphQLScalarType = new GraphQLScalarType({
-    name: "CustomName",
-    ...config.scalars.CustomName,
-  });
-  const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-      return { hello: { name: "hello", type: GraphQLString } };
-    },
-  });
-  return new GraphQLSchema({ types: [CustomNameType, SomeTypeType] });
+    const CustomNameType: GraphQLScalarType = new GraphQLScalarType({
+        name: "CustomName",
+        ...config.scalars.CustomName
+    });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return { hello: {
+                name: "hello",
+                type: GraphQLString
+            } };
+        }
+    });
+    return new GraphQLSchema({ types: [CustomNameType, SomeTypeType] });
 }
 ```

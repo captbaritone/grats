@@ -41,45 +41,42 @@ type User {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLString,
-  GraphQLList,
-  GraphQLNonNull,
-} from "graphql";
-import {
-  User as queryGetUserResolver,
-  User as queryGetUsersResolver,
-} from "./MultipleFieldsAsStaticClassMethods";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLNonNull } from "graphql";
+import { User as queryGetUserResolver, User as queryGetUsersResolver } from "./MultipleFieldsAsStaticClassMethods";
 export function getSchema(): GraphQLSchema {
-  const UserType: GraphQLObjectType = new GraphQLObjectType({
-    name: "User",
-    fields() {
-      return { name: { name: "name", type: GraphQLString } };
-    },
-  });
-  const QueryType: GraphQLObjectType = new GraphQLObjectType({
-    name: "Query",
-    fields() {
-      return {
-        getUser: {
-          name: "getUser",
-          type: UserType,
-          resolve(source) {
-            return queryGetUserResolver.getUser(source);
-          },
-        },
-        getUsers: {
-          name: "getUsers",
-          type: new GraphQLList(new GraphQLNonNull(UserType)),
-          resolve(source) {
-            return queryGetUsersResolver.getUsers(source);
-          },
-        },
-      };
-    },
-  });
-  return new GraphQLSchema({ query: QueryType, types: [QueryType, UserType] });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
+        }
+    });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                getUser: {
+                    name: "getUser",
+                    type: UserType,
+                    resolve(source) {
+                        return queryGetUserResolver.getUser(source);
+                    }
+                },
+                getUsers: {
+                    name: "getUsers",
+                    type: new GraphQLList(new GraphQLNonNull(UserType)),
+                    resolve(source) {
+                        return queryGetUsersResolver.getUsers(source);
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType, UserType]
+    });
 }
 ```

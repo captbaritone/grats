@@ -29,25 +29,23 @@ type User {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLUnionType,
-  GraphQLObjectType,
-  GraphQLString,
-} from "graphql";
+import { GraphQLSchema, GraphQLUnionType, GraphQLObjectType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const UserType: GraphQLObjectType = new GraphQLObjectType({
-    name: "User",
-    fields() {
-      return { name: { name: "name", type: GraphQLString } };
-    },
-  });
-  const ActorType: GraphQLUnionType = new GraphQLUnionType({
-    name: "Actor",
-    types() {
-      return [UserType];
-    },
-  });
-  return new GraphQLSchema({ types: [ActorType, UserType] });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
+        }
+    });
+    const ActorType: GraphQLUnionType = new GraphQLUnionType({
+        name: "Actor",
+        types() {
+            return [UserType];
+        }
+    });
+    return new GraphQLSchema({ types: [ActorType, UserType] });
 }
 ```

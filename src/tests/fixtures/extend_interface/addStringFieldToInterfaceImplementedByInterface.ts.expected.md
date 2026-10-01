@@ -62,68 +62,65 @@ type User implements IPerson & IThing {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLInterfaceType,
-  GraphQLString,
-  GraphQLObjectType,
-} from "graphql";
-import {
-  greeting as adminGreetingResolver,
-  greeting as userGreetingResolver,
-} from "./addStringFieldToInterfaceImplementedByInterface";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
+import { greeting as adminGreetingResolver, greeting as userGreetingResolver } from "./addStringFieldToInterfaceImplementedByInterface";
 export function getSchema(): GraphQLSchema {
-  const IThingType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "IThing",
-    fields() {
-      return { greeting: { name: "greeting", type: GraphQLString } };
-    },
-  });
-  const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "IPerson",
-    fields() {
-      return { greeting: { name: "greeting", type: GraphQLString } };
-    },
-    interfaces() {
-      return [IThingType];
-    },
-  });
-  const AdminType: GraphQLObjectType = new GraphQLObjectType({
-    name: "Admin",
-    fields() {
-      return {
-        greeting: {
-          name: "greeting",
-          type: GraphQLString,
-          resolve(source) {
-            return adminGreetingResolver(source);
-          },
+    const IThingType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "IThing",
+        fields() {
+            return { greeting: {
+                name: "greeting",
+                type: GraphQLString
+            } };
+        }
+    });
+    const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "IPerson",
+        fields() {
+            return { greeting: {
+                name: "greeting",
+                type: GraphQLString
+            } };
         },
-      };
-    },
-    interfaces() {
-      return [IPersonType, IThingType];
-    },
-  });
-  const UserType: GraphQLObjectType = new GraphQLObjectType({
-    name: "User",
-    fields() {
-      return {
-        greeting: {
-          name: "greeting",
-          type: GraphQLString,
-          resolve(source) {
-            return userGreetingResolver(source);
-          },
+        interfaces() {
+            return [IThingType];
+        }
+    });
+    const AdminType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Admin",
+        fields() {
+            return { greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                resolve(source) {
+                    return adminGreetingResolver(source);
+                }
+            } };
         },
-      };
-    },
-    interfaces() {
-      return [IPersonType, IThingType];
-    },
-  });
-  return new GraphQLSchema({
-    types: [IPersonType, IThingType, AdminType, UserType],
-  });
+        interfaces() {
+            return [IPersonType, IThingType];
+        }
+    });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return { greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                resolve(source) {
+                    return userGreetingResolver(source);
+                }
+            } };
+        },
+        interfaces() {
+            return [IPersonType, IThingType];
+        }
+    });
+    return new GraphQLSchema({ types: [
+        IPersonType,
+        IThingType,
+        AdminType,
+        UserType
+    ] });
 }
 ```

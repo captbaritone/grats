@@ -48,37 +48,48 @@ type User implements Node & Person {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLInterfaceType,
-  GraphQLString,
-  GraphQLObjectType,
-} from "graphql";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "Node",
-    fields() {
-      return { id: { name: "id", type: GraphQLString } };
-    },
-  });
-  const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "Person",
-    fields() {
-      return { hello: { name: "hello", type: GraphQLString } };
-    },
-  });
-  const UserType: GraphQLObjectType = new GraphQLObjectType({
-    name: "User",
-    fields() {
-      return {
-        hello: { name: "hello", type: GraphQLString },
-        id: { name: "id", type: GraphQLString },
-      };
-    },
-    interfaces() {
-      return [NodeType, PersonType];
-    },
-  });
-  return new GraphQLSchema({ types: [NodeType, PersonType, UserType] });
+    const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Node",
+        fields() {
+            return { id: {
+                name: "id",
+                type: GraphQLString
+            } };
+        }
+    });
+    const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Person",
+        fields() {
+            return { hello: {
+                name: "hello",
+                type: GraphQLString
+            } };
+        }
+    });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                hello: {
+                    name: "hello",
+                    type: GraphQLString
+                },
+                id: {
+                    name: "id",
+                    type: GraphQLString
+                }
+            };
+        },
+        interfaces() {
+            return [NodeType, PersonType];
+        }
+    });
+    return new GraphQLSchema({ types: [
+        NodeType,
+        PersonType,
+        UserType
+    ] });
 }
 ```

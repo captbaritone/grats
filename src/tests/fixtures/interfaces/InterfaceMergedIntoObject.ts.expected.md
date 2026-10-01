@@ -30,12 +30,15 @@ interface Foo {
 ```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const FooType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "Foo",
-    fields() {
-      return { id: { name: "id", type: GraphQLString } };
-    },
-  });
-  return new GraphQLSchema({ types: [FooType] });
+    const FooType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "Foo",
+        fields() {
+            return { id: {
+                name: "id",
+                type: GraphQLString
+            } };
+        }
+    });
+    return new GraphQLSchema({ types: [FooType] });
 }
 ```

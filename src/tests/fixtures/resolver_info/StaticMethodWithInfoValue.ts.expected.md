@@ -40,29 +40,30 @@ type SomeType {
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { SomeType as queryGreetingResolver } from "./StaticMethodWithInfoValue";
 export function getSchema(): GraphQLSchema {
-  const QueryType: GraphQLObjectType = new GraphQLObjectType({
-    name: "Query",
-    fields() {
-      return {
-        greeting: {
-          name: "greeting",
-          type: GraphQLString,
-          resolve(source, _args, _context, info) {
-            return queryGreetingResolver.greetz(source, info);
-          },
-        },
-      };
-    },
-  });
-  const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-      return { someField: { name: "someField", type: GraphQLString } };
-    },
-  });
-  return new GraphQLSchema({
-    query: QueryType,
-    types: [QueryType, SomeTypeType],
-  });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return { greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                resolve(source, _args, _context, info) {
+                    return queryGreetingResolver.greetz(source, info);
+                }
+            } };
+        }
+    });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return { someField: {
+                name: "someField",
+                type: GraphQLString
+            } };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType, SomeTypeType]
+    });
 }
 ```

@@ -25,12 +25,15 @@ interface ICarly {
 ```ts
 import { GraphQLSchema, GraphQLInterfaceType, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const ICarlyType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "ICarly",
-    fields() {
-      return { name: { name: "name", type: GraphQLString } };
-    },
-  });
-  return new GraphQLSchema({ types: [ICarlyType] });
+    const ICarlyType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "ICarly",
+        fields() {
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
+        }
+    });
+    return new GraphQLSchema({ types: [ICarlyType] });
 }
 ```

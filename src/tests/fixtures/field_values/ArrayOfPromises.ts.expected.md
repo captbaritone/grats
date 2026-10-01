@@ -26,29 +26,23 @@ type SomeType {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLString,
-} from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLString } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-      return {
-        b: {
-          name: "b",
-          type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
-        },
-        c: {
-          name: "c",
-          type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
-        },
-      };
-    },
-  });
-  return new GraphQLSchema({ types: [SomeTypeType] });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                b: {
+                    name: "b",
+                    type: new GraphQLList(new GraphQLNonNull(GraphQLString))
+                },
+                c: {
+                    name: "c",
+                    type: new GraphQLList(new GraphQLNonNull(GraphQLString))
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

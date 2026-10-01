@@ -38,31 +38,35 @@ type User implements HasName {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLInterfaceType,
-  GraphQLString,
-  GraphQLObjectType,
-} from "graphql";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const HasNameType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    name: "HasName",
-    fields() {
-      return { name: { name: "name", type: GraphQLString } };
-    },
-  });
-  const UserType: GraphQLObjectType = new GraphQLObjectType({
-    name: "User",
-    fields() {
-      return {
-        hello: { name: "hello", type: GraphQLString },
-        name: { name: "name", type: GraphQLString },
-      };
-    },
-    interfaces() {
-      return [HasNameType];
-    },
-  });
-  return new GraphQLSchema({ types: [HasNameType, UserType] });
+    const HasNameType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        name: "HasName",
+        fields() {
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
+        }
+    });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return {
+                hello: {
+                    name: "hello",
+                    type: GraphQLString
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        },
+        interfaces() {
+            return [HasNameType];
+        }
+    });
+    return new GraphQLSchema({ types: [HasNameType, UserType] });
 }
 ```

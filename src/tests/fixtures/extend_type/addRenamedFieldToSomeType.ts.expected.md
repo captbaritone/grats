@@ -30,20 +30,18 @@ type SomeType {
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { greeting as someTypeHelloResolver } from "./addRenamedFieldToSomeType";
 export function getSchema(): GraphQLSchema {
-  const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-      return {
-        hello: {
-          name: "hello",
-          type: GraphQLString,
-          resolve(source) {
-            return someTypeHelloResolver(source);
-          },
-        },
-      };
-    },
-  });
-  return new GraphQLSchema({ types: [SomeTypeType] });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return { hello: {
+                name: "hello",
+                type: GraphQLString,
+                resolve(source) {
+                    return someTypeHelloResolver(source);
+                }
+            } };
+        }
+    });
+    return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

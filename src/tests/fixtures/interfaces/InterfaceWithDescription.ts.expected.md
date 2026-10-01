@@ -51,36 +51,43 @@ type User implements IPerson {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLInterfaceType,
-  GraphQLString,
-  GraphQLObjectType,
-} from "graphql";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLString, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
-  const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
-    description:
-      "An interface describing the common elements of all people types.",
-    name: "IPerson",
-    fields() {
-      return { name: { name: "name", type: GraphQLString } };
-    },
-  });
-  const UserType: GraphQLObjectType = new GraphQLObjectType({
-    name: "User",
-    fields() {
-      return { name: { name: "name", type: GraphQLString } };
-    },
-    interfaces() {
-      return [IPersonType];
-    },
-  });
-  const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-      return { me: { name: "me", type: UserType } };
-    },
-  });
-  return new GraphQLSchema({ types: [IPersonType, SomeTypeType, UserType] });
+    const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
+        description: "An interface describing the common elements of all people types.",
+        name: "IPerson",
+        fields() {
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
+        }
+    });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        fields() {
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
+        },
+        interfaces() {
+            return [IPersonType];
+        }
+    });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return { me: {
+                name: "me",
+                type: UserType
+            } };
+        }
+    });
+    return new GraphQLSchema({ types: [
+        IPersonType,
+        SomeTypeType,
+        UserType
+    ] });
 }
 ```

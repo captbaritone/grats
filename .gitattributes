@@ -1,0 +1,2 @@
+# The fixture tests, which also run on Windows, compare files byte for byte.
+src/tests/** text eol=lf

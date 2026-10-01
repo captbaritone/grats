@@ -44,60 +44,47 @@ type Query {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLDirective,
-  DirectiveLocation,
-  GraphQLNonNull,
-  GraphQLInt,
-  specifiedDirectives,
-  GraphQLObjectType,
-  GraphQLString,
-} from "graphql";
-import {
-  likes as queryLikesResolver,
-  shares as querySharesResolver,
-} from "./multipleAnnotatedDirectivesWithArgs";
+import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, GraphQLInt, specifiedDirectives, GraphQLObjectType, GraphQLString } from "graphql";
+import { likes as queryLikesResolver, shares as querySharesResolver } from "./multipleAnnotatedDirectivesWithArgs";
 export function getSchema(): GraphQLSchema {
-  const QueryType: GraphQLObjectType = new GraphQLObjectType({
-    name: "Query",
-    fields() {
-      return {
-        likes: {
-          name: "likes",
-          type: GraphQLString,
-          extensions: {
-            grats: { directives: [{ name: "max", args: { foo: 10 } }] },
-          },
-          resolve() {
-            return queryLikesResolver();
-          },
-        },
-        shares: {
-          name: "shares",
-          type: GraphQLString,
-          extensions: {
-            grats: { directives: [{ name: "max", args: { foo: 20 } }] },
-          },
-          resolve() {
-            return querySharesResolver();
-          },
-        },
-      };
-    },
-  });
-  return new GraphQLSchema({
-    directives: [
-      ...specifiedDirectives,
-      new GraphQLDirective({
-        name: "max",
-        locations: [DirectiveLocation.FIELD_DEFINITION],
-        description: "This is my custom directive.",
-        args: { foo: { type: new GraphQLNonNull(GraphQLInt) } },
-      }),
-    ],
-    query: QueryType,
-    types: [QueryType],
-  });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return {
+                likes: {
+                    name: "likes",
+                    type: GraphQLString,
+                    extensions: { grats: { directives: [{
+                        name: "max",
+                        args: { foo: 10 }
+                    }] } },
+                    resolve() {
+                        return queryLikesResolver();
+                    }
+                },
+                shares: {
+                    name: "shares",
+                    type: GraphQLString,
+                    extensions: { grats: { directives: [{
+                        name: "max",
+                        args: { foo: 20 }
+                    }] } },
+                    resolve() {
+                        return querySharesResolver();
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        directives: [...specifiedDirectives, new GraphQLDirective({
+            name: "max",
+            locations: [DirectiveLocation.FIELD_DEFINITION],
+            description: "This is my custom directive.",
+            args: { foo: { type: new GraphQLNonNull(GraphQLInt) } }
+        })],
+        query: QueryType,
+        types: [QueryType]
+    });
 }
 ```

@@ -12,9 +12,7 @@ mod markdown;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::fs;
-use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
-use std::process::{ChildStdin, ChildStdout, Command, Stdio};
 use std::sync::{Arc, Mutex};
 
 use grats::fix_fixable::{FixOptions, apply_fixes};
@@ -353,17 +351,14 @@ fn transform_schema(code: &str, fixture_path: &str) -> TransformerResult {
     markdown.add_header(3, "SDL");
     markdown.add_code_block(&expect_output(outputs.graphql_schema), "graphql", None);
     markdown.add_header(3, "TypeScript");
-    // Goldens record the generated TypeScript after prettier formatting so
-    // that they assert on the code's structure rather than on the exact
-    // whitespace choices of the printer that emitted it.
-    markdown.add_code_block(&prettier(&expect_output(outputs.ts_schema)), "ts", None);
+    markdown.add_code_block(&expect_output(outputs.ts_schema), "ts", None);
     if let Some(metadata) = outputs.metadata {
         markdown.add_header(3, "Metadata");
         markdown.add_code_block(&metadata, "json", None);
     }
     if let Some(enums) = outputs.ts_client_enums {
         markdown.add_header(3, "TypeScript Enums");
-        markdown.add_code_block(&prettier(&enums), "ts", None);
+        markdown.add_code_block(&enums, "ts", None);
     }
     Ok(markdown)
 }
@@ -530,52 +525,4 @@ impl Host for FixtureHost {
     fn log_error(&self, message: &str) {
         eprintln!("{message}");
     }
-}
-
-/// A Node process which formats TypeScript with prettier, as the TypeScript
-/// harness did.
-struct Prettier {
-    stdin: ChildStdin,
-    stdout: BufReader<ChildStdout>,
-}
-
-static PRETTIER: Mutex<Option<Prettier>> = Mutex::new(None);
-
-const PRETTIER_SCRIPT: &str = r#"
-import { createInterface } from "node:readline";
-const prettier = await import("prettier");
-for await (const line of createInterface({ input: process.stdin })) {
-  const formatted = await prettier.format(JSON.parse(line), {
-    parser: "typescript",
-    objectWrap: "collapse",
-  });
-  process.stdout.write(JSON.stringify(formatted) + "\n");
-}
-"#;
-
-// The process exits once the tests do, which closes its stdin.
-#[allow(clippy::zombie_processes)]
-fn prettier(code: &str) -> String {
-    let mut prettier = PRETTIER.lock().unwrap_or_else(|error| error.into_inner());
-    let prettier = prettier.get_or_insert_with(|| {
-        let mut child = Command::new("node")
-            .args(["--input-type=module", "-e", PRETTIER_SCRIPT])
-            .current_dir(native_host::from_grats_path(&repo_root()))
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .spawn()
-            .expect("Expected to start node");
-        Prettier {
-            stdin: child.stdin.take().expect("Expected stdin"),
-            stdout: BufReader::new(child.stdout.take().expect("Expected stdout")),
-        }
-    });
-    let request = serde_json::to_string(code).expect("Expected a string to serialize");
-    writeln!(prettier.stdin, "{request}").expect("Expected to write to prettier");
-    let mut line = String::new();
-    prettier
-        .stdout
-        .read_line(&mut line)
-        .expect("Expected to read from prettier");
-    serde_json::from_str(&line).expect("Expected prettier to print JSON")
 }

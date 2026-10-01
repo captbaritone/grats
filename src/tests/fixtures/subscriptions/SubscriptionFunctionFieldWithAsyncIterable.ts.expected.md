@@ -54,69 +54,59 @@ type Subscription {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLNonNull,
-  GraphQLString,
-} from "graphql";
-import {
-  greetings as subscriptionGreetingsResolver,
-  greetingsMaybe as subscriptionGreetingsMaybeResolver,
-  maybeGreetings as subscriptionMaybeGreetingsResolver,
-  maybeGreetingsMaybe as subscriptionMaybeGreetingsMaybeResolver,
-} from "./SubscriptionFunctionFieldWithAsyncIterable";
+import { GraphQLSchema, GraphQLObjectType, GraphQLNonNull, GraphQLString } from "graphql";
+import { greetings as subscriptionGreetingsResolver, greetingsMaybe as subscriptionGreetingsMaybeResolver, maybeGreetings as subscriptionMaybeGreetingsResolver, maybeGreetingsMaybe as subscriptionMaybeGreetingsMaybeResolver } from "./SubscriptionFunctionFieldWithAsyncIterable";
 export function getSchema(): GraphQLSchema {
-  const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
-    name: "Subscription",
-    fields() {
-      return {
-        greetings: {
-          name: "greetings",
-          type: new GraphQLNonNull(GraphQLString),
-          subscribe(source) {
-            return subscriptionGreetingsResolver(source);
-          },
-          resolve(payload) {
-            return payload;
-          },
-        },
-        greetingsMaybe: {
-          name: "greetingsMaybe",
-          type: GraphQLString,
-          subscribe(source) {
-            return subscriptionGreetingsMaybeResolver(source);
-          },
-          resolve(payload) {
-            return payload;
-          },
-        },
-        maybeGreetings: {
-          name: "maybeGreetings",
-          type: GraphQLString,
-          subscribe(source) {
-            return subscriptionMaybeGreetingsResolver(source);
-          },
-          resolve(payload) {
-            return payload;
-          },
-        },
-        maybeGreetingsMaybe: {
-          name: "maybeGreetingsMaybe",
-          type: GraphQLString,
-          subscribe(source) {
-            return subscriptionMaybeGreetingsMaybeResolver(source);
-          },
-          resolve(payload) {
-            return payload;
-          },
-        },
-      };
-    },
-  });
-  return new GraphQLSchema({
-    subscription: SubscriptionType,
-    types: [SubscriptionType],
-  });
+    const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Subscription",
+        fields() {
+            return {
+                greetings: {
+                    name: "greetings",
+                    type: new GraphQLNonNull(GraphQLString),
+                    subscribe(source) {
+                        return subscriptionGreetingsResolver(source);
+                    },
+                    resolve(payload) {
+                        return payload;
+                    }
+                },
+                greetingsMaybe: {
+                    name: "greetingsMaybe",
+                    type: GraphQLString,
+                    subscribe(source) {
+                        return subscriptionGreetingsMaybeResolver(source);
+                    },
+                    resolve(payload) {
+                        return payload;
+                    }
+                },
+                maybeGreetings: {
+                    name: "maybeGreetings",
+                    type: GraphQLString,
+                    subscribe(source) {
+                        return subscriptionMaybeGreetingsResolver(source);
+                    },
+                    resolve(payload) {
+                        return payload;
+                    }
+                },
+                maybeGreetingsMaybe: {
+                    name: "maybeGreetingsMaybe",
+                    type: GraphQLString,
+                    subscribe(source) {
+                        return subscriptionMaybeGreetingsMaybeResolver(source);
+                    },
+                    resolve(payload) {
+                        return payload;
+                    }
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({
+        subscription: SubscriptionType,
+        types: [SubscriptionType]
+    });
 }
 ```

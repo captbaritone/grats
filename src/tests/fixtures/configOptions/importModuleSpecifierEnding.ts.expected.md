@@ -34,21 +34,24 @@ type SomeType {
 import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
 import { greeting as someTypeGreetingResolver } from "./importModuleSpecifierEnding.js";
 export function getSchema(): GraphQLSchema {
-  const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-      return {
-        greeting: {
-          name: "greeting",
-          type: GraphQLString,
-          resolve(source) {
-            return someTypeGreetingResolver(source);
-          },
-        },
-        hello: { name: "hello", type: GraphQLString },
-      };
-    },
-  });
-  return new GraphQLSchema({ types: [SomeTypeType] });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    resolve(source) {
+                        return someTypeGreetingResolver(source);
+                    }
+                },
+                hello: {
+                    name: "hello",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

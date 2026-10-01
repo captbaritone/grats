@@ -59,48 +59,49 @@ type User {
 ### TypeScript
 
 ```ts
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLString,
-  GraphQLNonNull,
-} from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 import { getUser as someTypeGetUserResolver } from "./playground";
 export function getSchema(): GraphQLSchema {
-  const UserType: GraphQLObjectType = new GraphQLObjectType({
-    name: "User",
-    description: "A user in our kick-ass system!",
-    fields() {
-      return {
-        greeting: {
-          name: "greeting",
-          type: GraphQLString,
-          args: { salutation: { type: new GraphQLNonNull(GraphQLString) } },
-        },
-        name: { name: "name", type: GraphQLString },
-      };
-    },
-  });
-  const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
-    name: "SomeType",
-    fields() {
-      return {
-        getUser: {
-          name: "getUser",
-          type: UserType,
-          resolve(source) {
-            return someTypeGetUserResolver(source);
-          },
-        },
-        me: { name: "me", type: UserType },
-        viewer: {
-          deprecationReason: "Please use `me` instead.",
-          name: "viewer",
-          type: UserType,
-        },
-      };
-    },
-  });
-  return new GraphQLSchema({ types: [SomeTypeType, UserType] });
+    const UserType: GraphQLObjectType = new GraphQLObjectType({
+        name: "User",
+        description: "A user in our kick-ass system!",
+        fields() {
+            return {
+                greeting: {
+                    name: "greeting",
+                    type: GraphQLString,
+                    args: { salutation: { type: new GraphQLNonNull(GraphQLString) } }
+                },
+                name: {
+                    name: "name",
+                    type: GraphQLString
+                }
+            };
+        }
+    });
+    const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
+        name: "SomeType",
+        fields() {
+            return {
+                getUser: {
+                    name: "getUser",
+                    type: UserType,
+                    resolve(source) {
+                        return someTypeGetUserResolver(source);
+                    }
+                },
+                me: {
+                    name: "me",
+                    type: UserType
+                },
+                viewer: {
+                    deprecationReason: "Please use `me` instead.",
+                    name: "viewer",
+                    type: UserType
+                }
+            };
+        }
+    });
+    return new GraphQLSchema({ types: [SomeTypeType, UserType] });
 }
 ```
