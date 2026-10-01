@@ -14,6 +14,7 @@ use crate::utils::diagnostic_error::{CodeFixAction, Diagnostic};
 use crate::utils::path;
 
 const GREY: &str = "\x1b[90m";
+const BLUE: &str = "\x1b[94m";
 const RED: &str = "\x1b[91m";
 const YELLOW: &str = "\x1b[93m";
 const CYAN: &str = "\x1b[96m";
@@ -92,6 +93,16 @@ pub fn format_diagnostic_with_color_and_context(
             output += &related.message_text;
         }
     }
+    output += "\n";
+    output
+}
+
+/// Formats a message without a location, like those of watch mode.
+pub fn format_message_with_color(message_text: &str) -> String {
+    let mut output = String::new();
+    output += &format_color_and_reset("message", BLUE);
+    output += &format_color_and_reset(": ", GREY);
+    output += message_text;
     output += "\n";
     output
 }

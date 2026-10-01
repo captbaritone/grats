@@ -156,7 +156,7 @@ fn js_compare(a: &str, b: &str) -> Ordering {
 }
 
 /// Like `toRustPath` in `src/rs/host.ts`, for an absolute path.
-fn to_grats_path(native: &Path) -> String {
+pub(crate) fn to_grats_path(native: &Path) -> String {
     let native = native.to_string_lossy();
     // `canonicalize` gives Windows paths in their verbatim form.
     let native = native
@@ -173,6 +173,6 @@ fn to_grats_path(native: &Path) -> String {
 }
 
 /// Like `fromRustPath` in `src/rs/host.ts`.
-fn from_grats_path(path: &str) -> PathBuf {
+pub(crate) fn from_grats_path(path: &str) -> PathBuf {
     PathBuf::from(path::to_native(path))
 }

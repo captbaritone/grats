@@ -170,6 +170,30 @@ jobs:
           "$grats"
           grep -q "hello: String" schema.graphql
           "$grats" locate Query.hello | grep -q "index.ts:2:17"
+      - name: Smoke test watch mode
+        shell: bash
+        run: |
+          grats="$PWD/target/release/grats"
+          cd "$RUNNER_TEMP/smoke"
+          "$grats" --watch > watch.log 2>&1 &
+          pid=$!
+          wait_for() {
+            for _ in $(seq 100); do
+              grep -q "$2" "$1" && return 0
+              sleep 0.1
+            done
+            echo "Timed out waiting for \"$2\" in $1"
+            cat watch.log
+            kill $pid
+            exit 1
+          }
+          wait_for watch.log "Wrote schema"
+          sleep 1
+          printf '/** @gqlQueryField */\nexport function goodbye(): string {\n  return "Goodbye";\n}\n' > src/other.ts
+          wait_for schema.graphql "goodbye: String"
+          printf '/** @gqlQueryField */\nexport function hi(): string {\n  return "Hi";\n}\n' > src/index.ts
+          wait_for schema.graphql "hi: String"
+          kill $pid
   publish:
     name: Publish to NPM
     runs-on: ubuntu-latest

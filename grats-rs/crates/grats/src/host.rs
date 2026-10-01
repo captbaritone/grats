@@ -46,7 +46,7 @@ pub struct DirEntries {
     pub directories: Vec<String>,
 }
 
-#[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq, Hash)]
 #[serde(rename_all = "camelCase")]
 pub enum FileKind {
     File,

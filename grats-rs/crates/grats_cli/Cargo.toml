@@ -11,6 +11,7 @@ path = "src/main.rs"
 
 [dependencies]
 grats.workspace = true
+notify = "8.2.0"
 
 [build-dependencies]
 serde_json.workspace = true

@@ -1,9 +1,10 @@
 //! Port of `src/cli.ts`.
 //!
-//! PORT: Watch mode stays in TypeScript for now: `run` asks for it once the
-//! arguments are parsed, and it writes the outputs and applies fixes through
-//! the entry points of `grats_wasm`. Output goes through the host, and `run`
-//! returns the exit code rather than exiting.
+//! PORT: Output goes through the host, and `run` returns the exit code
+//! rather than exiting. For `--watch`, `run` returns, and the caller watches
+//! the files: the native `grats` binary with `WatchMode`, and the
+//! TypeScript CLI with its own watch program, which writes the outputs and
+//! applies fixes through the entry points of `grats_wasm`.
 
 use std::sync::Arc;
 
@@ -11,7 +12,7 @@ use clap::{CommandFactory, FromArgMatches, Parser, Subcommand};
 use graphql_js::language::ast::DocumentNode;
 use serde::{Deserialize, Serialize};
 
-use crate::fix_fixable::{FixOptions, with_fixes_fixed};
+use crate::fix_fixable::{FixOptions, apply_fixes, with_fixes_fixed};
 use crate::grats_config::GratsConfig;
 use crate::host::Host;
 use crate::locate::{LocateRequest, locate_in_document};
@@ -19,9 +20,12 @@ use crate::pipeline::{self, PipelineRequest};
 use crate::print_schema::{OutputRequest, print_outputs};
 use crate::project::{self, Project};
 use crate::source_table::SourceTable;
-use crate::utils::diagnostic_error::{DiagnosticsWithoutLocationResult, locationless_err};
+use crate::utils::diagnostic_error::{
+    Diagnostic, DiagnosticsWithoutLocationResult, locationless_err,
+};
 use crate::utils::format_diagnostics::{
     format_diagnostic_with_color_and_context, format_location_without_color,
+    format_message_with_color,
 };
 use crate::utils::path;
 
@@ -43,8 +47,7 @@ pub struct CliRequest {
 pub enum CliOutcome {
     /// Exit with this code.
     Exit { code: i32 },
-    /// Start watch mode, which is still TypeScript, with the `--tsconfig` as
-    /// the user wrote it.
+    /// Start watch mode, with the `--tsconfig` as the user wrote it.
     Watch { tsconfig: Option<String>, fix: bool },
 }
 
@@ -138,6 +141,111 @@ fn parse_args(args: Vec<String>, version: String) -> Result<Args, clap::Error> {
     let matches =
         command.try_get_matches_from_mut(std::iter::once("grats".to_string()).chain(args))?;
     Args::from_arg_matches(&matches).map_err(|error| error.format(&mut command))
+}
+
+/// Run the compiler in watch mode.
+///
+/// PORT: `startWatchMode`, without its watch program, which decided when to
+/// rebuild: the caller watches the files and calls `rebuild`. Its messages
+/// are formatted like TypeScript's, as before.
+pub struct WatchMode {
+    host: Arc<dyn Host>,
+    grats_root: String,
+    use_case_sensitive_file_names: bool,
+    tsconfig: Option<String>,
+    fix: bool,
+}
+
+pub struct WatchRequest {
+    /// The `--tsconfig`, as the user wrote it.
+    pub tsconfig: Option<String>,
+    pub fix: bool,
+    /// See `CliRequest`.
+    pub grats_root: String,
+    pub use_case_sensitive_file_names: bool,
+}
+
+impl WatchMode {
+    /// Checks that the project can be loaded, or reports why not.
+    pub fn start(request: WatchRequest, host: Arc<dyn Host>) -> Option<Self> {
+        let watch_mode = WatchMode {
+            host,
+            grats_root: request.grats_root,
+            use_case_sensitive_file_names: request.use_case_sensitive_file_names,
+            tsconfig: request.tsconfig,
+            fix: request.fix,
+        };
+        // Config errors are never fixable.
+        let cli = watch_mode.cli();
+        cli.handle_diagnostics(cli.load_project(watch_mode.tsconfig.as_deref()))
+            .ok()?;
+        watch_mode.report_message("Starting compilation in watch mode...");
+        Some(watch_mode)
+    }
+
+    /// Reports that the files have changed, before a rebuild.
+    pub fn report_change(&self) {
+        self.report_message("File change detected. Starting incremental compilation...");
+    }
+
+    /// Rebuilds the schema, or reports why it couldn't.
+    ///
+    /// Returns true if fixes were applied, in which case it should rebuild
+    /// again.
+    pub fn rebuild(&self) -> bool {
+        // Each build's sources, rather than every build's.
+        let cli = self.cli();
+        let fix_or_report = |diagnostics: Vec<Diagnostic>| {
+            let fixes: Vec<_> = diagnostics
+                .iter()
+                .filter_map(|diagnostic| diagnostic.fix.as_deref())
+                .collect();
+            let log = |message: &str| self.host.log_error(message);
+            let options = FixOptions {
+                fix: true,
+                log: &log,
+            };
+            if self.fix && apply_fixes(&fixes, &options, &*self.host, &self.grats_root) {
+                // Watch mode should re-run after applying fixes
+                return true;
+            }
+            let _ = cli.handle_diagnostics::<()>(Err(diagnostics));
+            false
+        };
+
+        // It's possible our config was updated, so re-read it.
+        let project = match cli.load_project(self.tsconfig.as_deref()) {
+            Ok(project) => project,
+            Err(diagnostics) => return fix_or_report(diagnostics),
+        };
+        // For now we just rebuild the schema on every change.
+        let doc = match cli.build_schema_and_doc(&project) {
+            Ok(doc) => doc,
+            Err(diagnostics) => return fix_or_report(diagnostics),
+        };
+        let _ = cli.handle_diagnostics(write_schema_files_and_report(
+            &doc,
+            &project.config,
+            &project.config_path,
+            &self.grats_root,
+            &*self.host,
+        ));
+        false
+    }
+
+    fn cli(&self) -> Cli {
+        Cli {
+            host: Arc::clone(&self.host),
+            grats_root: self.grats_root.clone(),
+            use_case_sensitive_file_names: self.use_case_sensitive_file_names,
+            sources: SourceTable::default(),
+        }
+    }
+
+    fn report_message(&self, message_text: &str) {
+        self.host
+            .log_error(&format_message_with_color(message_text));
+    }
 }
 
 impl Cli {

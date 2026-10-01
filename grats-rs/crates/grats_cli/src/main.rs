@@ -1,27 +1,31 @@
 //! The `grats` command line tool.
 
 mod native_host;
+mod watch;
 
 use std::process::ExitCode;
 use std::sync::Arc;
 
-use grats::cli::{self, CliOutcome, CliRequest};
+use grats::cli::{self, CliOutcome, CliRequest, WatchRequest};
 
 use native_host::NativeHost;
 
 fn main() -> ExitCode {
-    let host = Arc::new(NativeHost);
+    let grats_root = native_host::grats_root();
+    let use_case_sensitive_file_names = native_host::use_case_sensitive_file_names();
     let request = CliRequest {
         args: std::env::args().skip(1).collect(),
         version: env!("GRATS_VERSION").to_string(),
-        grats_root: native_host::grats_root(),
-        use_case_sensitive_file_names: native_host::use_case_sensitive_file_names(),
+        grats_root: grats_root.clone(),
+        use_case_sensitive_file_names,
     };
-    match cli::run(request, host) {
+    match cli::run(request, Arc::new(NativeHost)) {
         CliOutcome::Exit { code } => ExitCode::from(code as u8),
-        CliOutcome::Watch { .. } => {
-            eprintln!("Grats: Watch mode is not supported yet.");
-            ExitCode::FAILURE
-        }
+        CliOutcome::Watch { tsconfig, fix } => watch::run(WatchRequest {
+            tsconfig,
+            fix,
+            grats_root,
+            use_case_sensitive_file_names,
+        }),
     }
 }
