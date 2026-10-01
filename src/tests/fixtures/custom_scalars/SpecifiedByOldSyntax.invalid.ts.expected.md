@@ -29,12 +29,11 @@ src/tests/fixtures/custom_scalars/SpecifiedByOldSyntax.invalid.ts:3:4 - error: T
 - Original
 + Fixed
 
-@@ -2,4 +2,3 @@
+@@ -2,3 +2,3 @@
    * @gqlScalar
 -  * @specifiedBy https://tools.ietf.org/html/rfc4122
--  */
-+  * @gqlAnnotate specifiedBy(url: "https://tools.ietf.org/html/rfc4122")*/
-  export type UUID = string;
++  * @gqlAnnotate specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
+   */
 ```
 
 #### Applied Fixes
@@ -48,6 +47,7 @@ src/tests/fixtures/custom_scalars/SpecifiedByOldSyntax.invalid.ts:3:4 - error: T
 ```typescript
 /**
  * @gqlScalar
- * @gqlAnnotate specifiedBy(url: "https://tools.ietf.org/html/rfc4122")*/
+ * @gqlAnnotate specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
+ */
 export type UUID = string;
 ```

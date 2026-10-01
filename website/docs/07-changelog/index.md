@@ -27,6 +27,7 @@ Changes in this section are not yet released. If you need access to these change
   - Errors in the arguments of `@gqlAnnotate` directives now point to the argument in your docblock, rather than to a `GraphQL request` copy of the directive. Syntax errors in `@gqlAnnotate` and `@gqlDirective` tags now point to the invalid text rather than to the whole tag.
   - With `strictSemanticNullability` enabled, defining your own `@semanticNonNull` directive is now reported at your definition, rather than at a `GraphQL request` copy of Grats' definition.
   - Errors about the name given in a tag, like `@gqlType Name`, now point to the text after the tag rather than to the whole tag.
+  - The fix which replaces `@specifiedBy` with `@gqlAnnotate` now escapes quotes and backslashes in the URL, and no longer joins the closing `*/` onto the tag's line.
 
 ## 0.0.36
 

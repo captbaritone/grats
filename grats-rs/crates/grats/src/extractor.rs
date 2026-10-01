@@ -14,6 +14,7 @@ use graphql_js::language::ast::{
     ResolverSignature, StringValueNode, TypeNode,
 };
 use graphql_js::language::parser::{ParseResult, Parser, parse_only};
+use graphql_js::language::print_string::print_string;
 use graphql_js::language::source::Source;
 use graphql_js::r#type::assert_name::assert_name;
 use indexmap::IndexMap;
@@ -363,7 +364,13 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     // TODO: Improve validation of miss-placed `@gqlAnnotate` tags.
                 }
                 "specifiedBy" => {
-                    let comment = template_string(jsdoc.tag(tag).comment.as_ref());
+                    let tag_data = jsdoc.tag(tag);
+                    let url = template_string(tag_data.comment.as_ref());
+                    // The tag through its comment, leaving the whitespace (or
+                    // `*/`) after it.
+                    let end = tag_data
+                        .comment_span
+                        .map_or(tag_data.tag_name.end, |span| span.end);
                     self.report(
                         self.tag_span(tag),
                         e::specified_by_deprecated(),
@@ -372,8 +379,8 @@ impl<'f, 'a> Extractor<'f, 'a> {
                             fix_name: "replace-specifiedBy-with-gqlAnnotate".to_string(),
                             description: "Replace @specifiedBy with @gqlAnnotate".to_string(),
                             changes: vec![act::replace_node(
-                                self.locatable(self.tag_span(tag)),
-                                &format!("@gqlAnnotate specifiedBy(url: \"{comment}\")"),
+                                self.locatable(Span::new(tag_data.pos, end)),
+                                &format!("@gqlAnnotate specifiedBy(url: {})", print_string(&url)),
                             )],
                         }),
                     );
