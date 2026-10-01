@@ -1,6 +1,7 @@
 //! A port of Grats. Modules mirror the TypeScript implementation's `src/`
 //! paths so that each can be compared against its source.
 
+pub mod cli;
 pub mod code_actions;
 pub mod codegen;
 pub mod codegen_helpers;
@@ -8,6 +9,7 @@ pub mod comments;
 pub mod errors;
 pub mod extractor;
 pub mod files;
+pub mod fix_fixable;
 pub mod graphql_constructor;
 pub mod grats_config;
 pub mod grats_root;

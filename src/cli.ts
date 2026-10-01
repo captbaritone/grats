@@ -3,26 +3,21 @@
 // LLM agent docs: See the llm-docs/ directory in the package root for
 // Markdown documentation covering all Grats features and configuration.
 
-import { SchemaAndDoc, buildSchemaAndDocResult } from "./lib.js";
-import { Command } from "commander";
-import { writeFileSync, readFileSync } from "fs";
+import { buildSchemaAndDocResult } from "./lib.js";
+import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
-import { locate } from "./Locate.js";
-import { printOutputs } from "./printSchema.js";
-import { nullThrows } from "./utils/helpers.js";
 import * as ts from "typescript";
 import {
   GratsDiagnostic,
   ReportableDiagnostics,
   DiagnosticsWithoutLocationResult,
 } from "./utils/DiagnosticError.js";
-import { GratsConfig } from "./gratsConfig.js";
-import { GratsProject, loadProject } from "./rs/project.js";
+import { loadProject } from "./rs/project.js";
+import { applyFixes, runCli, writeSchemaFiles } from "./rs/cli.js";
 import { cacheFromProgram, cachesAreEqual, RunCache } from "./runCache.js";
-import { withFixesFixed, FixOptions, applyFixes } from "./fixFixable.js";
 
-type BuildOptions = FixOptions;
+type WatchOptions = { fix: boolean };
 
 // A made-up error code that we use to fake a TypeScript error code.
 // We pick a very random number to avoid collisions with real error messages.
@@ -49,57 +44,19 @@ function readPackageVersion(): string {
   return "unknown";
 }
 
-const program = new Command();
-
-program
-  .name("grats")
-  .description("Extract GraphQL schema from your TypeScript project")
-  .version(version)
-  .option(
-    "--tsconfig <TSCONFIG>",
-    "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",
-  )
-  .option("--watch", "Watch for changes and rebuild schema files as needed")
-  .option("--fix", "Automatically fix fixable diagnostics")
-  .action(async ({ tsconfig, watch, fix }) => {
-    if (watch) {
-      startWatchMode(tsconfig, { fix, log: console.error });
-    } else {
-      runBuild(tsconfig, { fix, log: console.error });
-    }
-  });
-
-program
-  .command("locate")
-  .argument("<ENTITY>", "GraphQL entity to locate. E.g. `User` or `User.id`")
-  .option(
-    "--tsconfig <TSCONFIG>",
-    "Path to tsconfig.json. Defaults to auto-detecting based on the current working directory",
-  )
-  .action((entity, { tsconfig }) => {
-    const { project } = handleDiagnostics(loadProject(tsconfig));
-
-    const { doc } = handleDiagnostics(buildSchemaAndDocResult(project));
-
-    const loc = locate(doc, entity);
-    if (loc.kind === "ERROR") {
-      console.error(loc.err);
-      process.exit(1);
-    }
-    // Tools like VS Code and iTerm will automatically turn this into a
-    // clickable link.
-    console.log(loc.value.location);
-  });
-
-program.parse();
+const outcome = runCli(process.argv.slice(2), version);
+if (outcome.kind === "watch") {
+  startWatchMode(outcome.tsconfig ?? undefined, { fix: outcome.fix });
+} else {
+  process.exitCode = outcome.code;
+}
 
 /**
  * Run the compiler in watch mode.
  */
-function startWatchMode(tsconfig: string, options: BuildOptions) {
-  const configInfo = handleDiagnostics(
-    withFixesFixed(() => loadProject(tsconfig), options),
-  );
+function startWatchMode(tsconfig: string | undefined, options: WatchOptions) {
+  // Config errors are never fixable.
+  const configInfo = handleDiagnostics(loadProject(tsconfig));
   const { configPath } = configInfo;
   let project = configInfo.project;
   const watchHost = ts.createWatchCompilerHost(
@@ -145,7 +102,7 @@ function startWatchMode(tsconfig: string, options: BuildOptions) {
     lastRunCache = runCache;
 
     function fixOrReport(diagnostics: GratsDiagnostic[]) {
-      if (options.fix && applyFixes(diagnostics, options)) {
+      if (options.fix && applyFixes(diagnostics, { log: console.error })) {
         // Watch mode should re-run after applying fixes
         return;
       }
@@ -165,69 +122,19 @@ function startWatchMode(tsconfig: string, options: BuildOptions) {
       fixOrReport(schemaResult.err);
       return;
     }
-    writeSchemaFilesAndReport(schemaResult.value, project, configPath);
+    const writeResult = writeSchemaFiles(
+      schemaResult.value.doc,
+      project.config,
+      configPath,
+    );
+    if (writeResult.kind === "ERROR") {
+      reportDiagnostics(writeResult.err);
+    }
   };
   reportTsDiagnostics([
     diagnosticsMessage("Starting compilation in watch mode..."),
   ]);
   ts.createWatchProgram(watchHost);
-}
-
-/**
- * Run the compiler performing a single build.
- */
-function runBuild(tsconfig: string, options: BuildOptions) {
-  const { project, configPath } = handleDiagnostics(
-    withFixesFixed(() => loadProject(tsconfig), options),
-  );
-  const schemaAndDoc = handleDiagnostics(
-    withFixesFixed(() => buildSchemaAndDocResult(project), options),
-  );
-  writeSchemaFilesAndReport(schemaAndDoc, project, configPath);
-}
-
-/**
- * Serializes the SDL and TypeScript schema to disk and reports to the console.
- */
-function writeSchemaFilesAndReport(
-  schemaAndDoc: SchemaAndDoc,
-  project: GratsProject,
-  configPath: string,
-) {
-  const gratsConfig: GratsConfig = project.config;
-
-  const dest = resolve(dirname(configPath), gratsConfig.tsSchema);
-  const enumsDest =
-    gratsConfig.tsClientEnums == null
-      ? undefined
-      : resolve(dirname(configPath), gratsConfig.tsClientEnums);
-  const outputs = printOutputs(schemaAndDoc, gratsConfig, {
-    graphqlSchema: true,
-    tsSchema: dest,
-    tsClientEnums: enumsDest,
-    metadata: gratsConfig.EXPERIMENTAL__emitMetadata,
-  });
-
-  writeFileSync(dest, nullThrows(outputs.tsSchema));
-  console.error(`Grats: Wrote TypeScript schema to \`${dest}\`.`);
-
-  const absOutput = resolve(dirname(configPath), gratsConfig.graphqlSchema);
-  writeFileSync(absOutput, nullThrows(outputs.graphqlSchema));
-  console.error(`Grats: Wrote schema to \`${absOutput}\`.`);
-
-  if (gratsConfig.EXPERIMENTAL__emitMetadata) {
-    const absOutput = resolve(
-      dirname(configPath),
-      gratsConfig.graphqlSchema.replace(/\.graphql$/, ".json"),
-    );
-    writeFileSync(absOutput, nullThrows(outputs.metadata));
-    console.error(`Grats: Wrote resolver signatures to \`${absOutput}\`.`);
-  }
-
-  if (enumsDest != null) {
-    writeFileSync(enumsDest, nullThrows(outputs.tsClientEnums));
-    console.error(`Grats: Wrote enums module to \`${enumsDest}\`.`);
-  }
 }
 
 /**

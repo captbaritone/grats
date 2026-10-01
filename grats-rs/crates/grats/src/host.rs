@@ -1,5 +1,5 @@
 //! PORT: No TypeScript counterpart. What the Rust port of Grats asks of its
-//! host: access to the file system. See `src/rs/host.ts`.
+//! host: access to the file system and the console. See `src/rs/host.ts`.
 //!
 //! Paths are absolute and use `/` as their separator. On Windows, a path like
 //! `C:\project` is given as `/C:/project` (see `crate::utils::path`).
@@ -28,6 +28,15 @@ pub trait Host: Send + Sync {
 
     /// The current directory, which diagnostics' paths are relative to.
     fn current_directory(&self) -> String;
+
+    /// Writes `contents` to the file at `path`, or returns why it couldn't.
+    fn write_file(&self, path: &str, contents: &str) -> Result<(), String>;
+
+    /// Prints a line to stdout, like `console.log`.
+    fn log(&self, message: &str);
+
+    /// Prints a line to stderr, like `console.error`.
+    fn log_error(&self, message: &str);
 }
 
 /// The entries of a directory, by name, each sorted.
@@ -72,6 +81,16 @@ enum HostRequest<'r> {
         path: &'r str,
     },
     CurrentDirectory,
+    WriteFile {
+        path: &'r str,
+        contents: &'r str,
+    },
+    Log {
+        message: &'r str,
+    },
+    LogError {
+        message: &'r str,
+    },
 }
 
 impl<F: Fn(String) -> String> JsonHost<F> {
@@ -109,5 +128,19 @@ impl<F: Fn(String) -> String + Send + Sync> Host for JsonHost<F> {
 
     fn current_directory(&self) -> String {
         self.request(HostRequest::CurrentDirectory)
+    }
+
+    fn write_file(&self, path: &str, contents: &str) -> Result<(), String> {
+        // The host answers with an error message if it couldn't.
+        let error: Option<String> = self.request(HostRequest::WriteFile { path, contents });
+        error.map_or(Ok(()), Err)
+    }
+
+    fn log(&self, message: &str) {
+        self.request::<()>(HostRequest::Log { message })
+    }
+
+    fn log_error(&self, message: &str) {
+        self.request::<()>(HostRequest::LogError { message })
     }
 }

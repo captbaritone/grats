@@ -56,7 +56,7 @@ use crate::host::{FileKind, Host};
 use crate::utils::path;
 
 /// What decides the files of the program. See `crate::project`.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProgramOptions {
     pub root_names: Vec<String>,

@@ -21,7 +21,7 @@ import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives.js";
 import { printOutputs } from "../printSchema.js";
 import { extend, nullThrows } from "../utils/helpers.js";
 import { Result, ok, err } from "../utils/Result.js";
-import { applyFixes } from "../fixFixable.js";
+import { applyFixes } from "../rs/cli.js";
 import { writeTypeScriptTypeToDisk } from "../../scripts/buildConfigTypes.js";
 import { Markdown } from "./Markdown.js";
 
@@ -461,7 +461,7 @@ function formatDiagnosticsWithContext(
     }
 
     const current = readFileSync(fileName, "utf8");
-    applyFixes(diagnostics._diagnostics, { fix: true, log });
+    applyFixes(diagnostics._diagnostics, { log });
     const newText = readFileSync(fileName, "utf8");
 
     writeFileSync(fileName, current, "utf8");

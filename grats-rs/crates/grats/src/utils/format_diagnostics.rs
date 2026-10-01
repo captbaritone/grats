@@ -60,7 +60,7 @@ pub fn reportable_diagnostics(
 
 /// Formats an error, with its location and the code there, and its related
 /// information. Paths are relative to `current_directory`.
-fn format_diagnostic_with_color_and_context(
+pub fn format_diagnostic_with_color_and_context(
     diagnostic: &Diagnostic,
     sources: &SourceTable,
     current_directory: &str,

@@ -145,6 +145,18 @@ pub fn to_native(path: &str) -> &str {
     }
 }
 
+/// A path as Rust is given it, from one the user wrote, which may be relative
+/// to `current_directory`: with `/` as its separator, and on Windows,
+/// `C:\project` is `/C:/project`. Like `toRustPath` in `src/rs/host.ts`.
+pub fn from_native(current_directory: &str, path: &str) -> String {
+    let bytes = path.as_bytes();
+    if bytes.len() >= 2 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':' {
+        resolve(current_directory, &format!("/{path}"))
+    } else {
+        resolve(current_directory, path)
+    }
+}
+
 /// Like `path.dirname(path)`.
 ///
 /// Ported from Node's `lib/path.js` (`posix.dirname`), with backslashes

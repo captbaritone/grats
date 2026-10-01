@@ -69,5 +69,5 @@ export function callRustWithDocument<E extends keyof RustDocumentRequests>(
       "Expected the document from the last call to `runRustPipeline`.",
     );
   }
-  return callRust(entryPoint, JSON.stringify(request));
+  return callRust(entryPoint, JSON.stringify(request), host());
 }

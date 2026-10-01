@@ -5,7 +5,7 @@
 use graphql_js::error::graphql_error::GraphQLError;
 use graphql_js::language::ast::Location;
 use oxc_span::Span;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::files::ParsedFile;
 use crate::jsdoc::CommentRange;
@@ -31,7 +31,7 @@ pub struct DiagnosticRelatedInformation {
 
 /// PORT: A `ts.CodeFixAction`, the `fix` of a `FixableDiagnostic`. Offsets
 /// are UTF-16.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CodeFixAction {
     pub fix_name: String,
@@ -40,7 +40,7 @@ pub struct CodeFixAction {
 }
 
 /// PORT: A `ts.FileTextChanges`.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FileTextChanges {
     pub file_name: String,
@@ -48,7 +48,7 @@ pub struct FileTextChanges {
 }
 
 /// PORT: A `ts.TextChange`.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TextChange {
     pub span: TextSpan,
@@ -56,7 +56,7 @@ pub struct TextChange {
 }
 
 /// PORT: A `ts.TextSpan`.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TextSpan {
     pub start: u32,
     pub length: u32,

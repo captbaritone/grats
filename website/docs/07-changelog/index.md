@@ -13,6 +13,7 @@ Changes in this section are not yet released. If you need access to these change
   - `files`, `include` and `exclude` inherited through `extends` are now relative to your `tsconfig.json` rather than to the config which sets them.
   - `include` and `exclude` patterns are matched case sensitively, and patterns never match files or directories within `node_modules`, `bower_components` or `jspm_packages`, or whose names start with `.`, below the directory the pattern starts from.
   - The errors reported for invalid Grats config options have new wording. For example, an unknown option is now reported as ``Invalid Grats config: lol: unknown field `lol`, expected one of `graphqlSchema`, …``.
+  - The CLI's `--help` output and its errors for invalid arguments have a new format, and invalid arguments now exit with code 2 rather than 1. `--version` now prints `grats <version>` rather than just the version.
 - **Features**
   - Added support for deriving `@gqlEnum` from const arrays (`(typeof X)[number]`) and const objects (`(typeof X)[keyof typeof X]`). This allows defining enums with runtime-accessible values without using TypeScript's `enum` syntax. The const declaration must immediately precede the type alias. See [enum docs](../04-docblock-tags/07-enums.mdx#runtime-accessible-enums) for details.
 - **Improvements**

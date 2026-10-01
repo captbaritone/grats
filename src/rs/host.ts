@@ -4,7 +4,7 @@ import * as ts from "typescript";
 
 /**
  * What the Rust port of Grats asks of its host: access to the file system,
- * and the current directory. See `Host` in
+ * the current directory and the console. See `Host` in
  * `grats-rs/crates/grats/src/host.rs`.
  */
 export type HostRequest =
@@ -13,7 +13,10 @@ export type HostRequest =
   | { kind: "readLink"; path: string }
   | { kind: "realpath"; path: string }
   | { kind: "readDir"; path: string }
-  | { kind: "currentDirectory" };
+  | { kind: "currentDirectory" }
+  | { kind: "writeFile"; path: string; contents: string }
+  | { kind: "log"; message: string }
+  | { kind: "logError"; message: string };
 
 /** A response to a `HostRequest`, as JSON. */
 export type Host = (request: HostRequest) => unknown;
@@ -95,6 +98,19 @@ export function host(): Host {
       }
       case "currentDirectory":
         return toRustPath(process.cwd());
+      case "writeFile":
+        try {
+          fs.writeFileSync(fromRustPath(request.path), request.contents);
+          return null;
+        } catch (error) {
+          return String(error);
+        }
+      case "log":
+        console.log(request.message);
+        return null;
+      case "logError":
+        console.error(request.message);
+        return null;
     }
   };
 }

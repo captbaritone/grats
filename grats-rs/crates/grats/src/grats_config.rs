@@ -9,7 +9,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
 /// The options, in the spec's order.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct GratsConfig {
     pub graphql_schema: String,
