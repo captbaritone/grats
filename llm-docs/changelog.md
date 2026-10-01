@@ -7,13 +7,27 @@ Changes in this section are not yet released. If you need access to these change
 -   **Breaking Changes**
     -   Removed the experimental TypeScript language service plugin (`grats-ts-plugin` and the `initTsPlugin` export). It was never production-ready, and removing it frees Grats' internals to move away from the TypeScript compiler API.
     -   Removed the `reportTypeScriptTypeErrors` config option. Grats no longer type checks your code, so run `tsc` to report TypeScript type errors. Grats still reports TypeScript syntax errors, since they prevent it from extracting your schema.
+    -   Grats now only reads the files included by your `tsconfig.json` and the files they import with `import`/`export` declarations or `import x = require()`. Files which TypeScript would also include (through `/// <reference>` directives, automatically included `@types` packages, its built-in library files, or `import()` and `require()` calls) are no longer read, so Grats won't find GraphQL declarations or global declarations that only appear in those files.
+    -   Grats now resolves imports the way bundlers do, whatever your `moduleResolution`. It ignores `moduleResolution`, `moduleDetection`, `customConditions`, `preserveSymlinks` and `resolution-mode`: it resolves with the `types` condition plus `import` (or `require` for `import x = require()`), follows symlinks within `node_modules`, and decides whether a file is a module from its syntax and extension (`.mts`/`.cts`/`.mjs`/`.cjs`) alone.
+    -   Grats now reads only the parts of your `tsconfig.json` it needs (`files`, `include`, `exclude`, `extends`, `allowJs`/`checkJs`, `outDir`/`declarationDir`, `paths`/`baseUrl`/`rootDirs` and `grats`), and reports only configs it can't read or parse. Other errors in your `tsconfig.json`, and configs that include no files, are no longer reported.
+    -   `files`, `include` and `exclude` inherited through `extends` are now relative to your `tsconfig.json` rather than to the config which sets them.
+    -   `include` and `exclude` patterns are matched case sensitively, and patterns never match files or directories within `node_modules`, `bower_components` or `jspm_packages`, or whose names start with `.`, below the directory the pattern starts from.
+    -   The errors reported for invalid Grats config options have new wording. For example, an unknown option is now reported as `` Invalid Grats config: lol: unknown field `lol`, expected one of `graphqlSchema`, … ``.
+    -   The CLI's `--help` output and its errors for invalid arguments have a new format, and invalid arguments now exit with code 2 rather than 1. `--version` now prints `grats <version>` rather than just the version.
+    -   The `grats` CLI is now a native binary, built from a Rust port of Grats. The npm package includes binaries for macOS (x64 and arm64), Linux (x64 and arm64) and Windows (x64), and the CLI no longer runs on other platforms.
+    -   Watch mode no longer reports errors in your `tsconfig.json` which Grats doesn't read (see above).
 -   **Features**
     -   Added support for deriving `@gqlEnum` from const arrays (`(typeof X)[number]`) and const objects (`(typeof X)[keyof typeof X]`). This allows defining enums with runtime-accessible values without using TypeScript's `enum` syntax. The const declaration must immediately precede the type alias. See [enum docs](./docblock-tags/enums.md#runtime-accessible-enums) for details.
 -   **Improvements**
     -   `typescript` is now a peer dependency (`>=5.5`) instead of a direct dependency, allowing you to use your own TypeScript version. ([PR](https://github.com/captbaritone/grats/pull/228))
     -   Added support for TypeScript 6.0. ([PR](https://github.com/captbaritone/grats/pull/228))
     -   CI now tests against TypeScript 5.5, 5.7, 5.9, and 6.0.
-    -   Grats' output is now printed by a Rust port of Grats, compiled to WebAssembly. The generated TypeScript is formatted differently, for example small objects are printed on one line, so regenerating will produce a formatting-only diff in your generated files. The generated code is otherwise unchanged.
+    -   Grats' output is now printed by a Rust port of Grats. The generated TypeScript is formatted differently, for example small objects are printed on one line, so regenerating will produce a formatting-only diff in your generated files. The generated code is otherwise unchanged.
+    -   Output files which can't be written are now reported as errors, rather than crashing the CLI.
+    -   Errors in the arguments of `@gqlAnnotate` directives now point to the argument in your docblock, rather than to a `GraphQL request` copy of the directive. Syntax errors in `@gqlAnnotate` and `@gqlDirective` tags now point to the invalid text rather than to the whole tag.
+    -   With `strictSemanticNullability` enabled, defining your own `@semanticNonNull` directive is now reported at your definition, rather than at a `GraphQL request` copy of Grats' definition.
+    -   Errors about the name given in a tag, like `@gqlType Name`, now point to the text after the tag rather than to the whole tag.
+    -   The fix which replaces `@specifiedBy` with `@gqlAnnotate` now escapes quotes and backslashes in the URL, and no longer joins the closing `*/` onto the tag's line.
 
 ## 0.0.36
 

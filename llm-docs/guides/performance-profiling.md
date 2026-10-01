@@ -1,32 +1,21 @@
 # Performance Profiling
 
-If Grats is running slowly in your project, you can capture a CPU performance profile and share it with the Grats maintainers to help identify potential performance improvements.
+If Grats is running slowly in your project, you can share some details about the run with the Grats maintainers to help identify potential performance improvements.
 
-## Capturing a Performance Profile
+## Timing a Grats Run
 
-Node.js has built-in support for CPU profiling via the `--cpu-prof` flag. To capture a profile of a Grats run:
+Grats is a native binary, so time it like any other command:
 
 ```bash
-node --cpu-prof --cpu-prof-name=grats-profile.cpuprofile ./node_modules/grats/dist/src/cli.js
+time npx grats
 ```
 
-This will:
-
-1.  Run Grats on your project
-2.  Write a CPU profile to `grats-profile.cpuprofile` in your current directory
-
-## Viewing the Profile
-
-1.  Open Chrome and navigate to `chrome://inspect`
-2.  Click "Open dedicated DevTools for Node"
-3.  Go to the **Performance** tab
-4.  Click **Load profile** and select your `.cpuprofile` file
-
-## Sharing the Profile
+## Sharing the Details
 
 When reporting a performance issue:
 
-1.  Run the profiling command above
+1.  Time a Grats run with the command above
 2.  Open a [GitHub issue](https://github.com/captbaritone/grats/issues/new)
-3.  Attach the `.cpuprofile` file to the issue
+3.  Include the time, the number of TypeScript files in your project, and your operating system
 4.  Include the version of Grats you have installed
+5.  If you can, link to a project which reproduces the slow run
