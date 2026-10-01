@@ -8,7 +8,7 @@ import type { RustProgramOptions } from "./host.js";
 
 /**
  * The input to the `run_pipeline` entry point. See `PipelineRequest` in
- * `grats-rs/crates/grats/src/pipeline.rs`.
+ * `grats-rs/crates/grats_wasm/src/lib.rs`.
  */
 export type RustPipelineRequest = {
   config: GratsConfig;

@@ -13,13 +13,13 @@ use crate::utils::diagnostic_error::{DiagnosticsWithoutLocationResult, locationl
 /// so we can provide the user with a helpful message teaching them about defining
 /// types.
 pub fn validate_some_types_are_defined(
-    schema: GraphQLSchema<'_>,
-) -> DiagnosticsWithoutLocationResult<GraphQLSchema<'_>> {
+    schema: &GraphQLSchema<'_>,
+) -> DiagnosticsWithoutLocationResult<()> {
     let mut types = schema.get_type_map().values().map(|&id| &schema[id]);
     if !types.any(is_user_defined_type) {
         return Err(vec![locationless_err(E::no_types_defined())]);
     }
-    Ok(schema)
+    Ok(())
 }
 
 fn is_user_defined_type(r#type: &GraphQLNamedType) -> bool {

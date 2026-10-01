@@ -6,7 +6,7 @@ use graphql_js::language::ast::{Location, NameNode, ResolverArgument};
 use serde::Deserialize;
 
 use crate::errors::{self as E, ContextOrInfo};
-use crate::extractor::{ExtractionSnapshot, NameDefinitionEntry};
+use crate::extractor::NameDefinitionEntry;
 use crate::name_resolver::{NameResolver, ResolvedDeclaration, ResolvedDeclarationKind};
 use crate::snapshot_refs::{DeclLoc, DeclRef, EntityNameRef};
 use crate::utils::diagnostic_error::{
@@ -70,20 +70,27 @@ pub struct TypeContext<'r> {
 }
 
 impl<'r> TypeContext<'r> {
-    pub fn from_snapshot(
+    /// Indexes the definitions and references of an `ExtractionSnapshot`.
+    pub fn new(
         resolver: &'r dyn NameResolver,
-        snapshot: ExtractionSnapshot,
+        unresolved_names: Vec<(TsIdentifier, EntityNameRef)>,
+        name_definitions: Vec<(DeclLoc, NameDefinitionEntry)>,
+        implicit_name_definitions: Vec<(DeclarationDefinition, EntityNameRef)>,
     ) -> DiagnosticsResult<Self> {
         let mut errors: Vec<Diagnostic> = Vec::new();
-        let mut self_ = TypeContext::new(resolver);
-        self_.unresolved_nodes = snapshot.unresolved_names.into_iter().collect();
+        let mut self_ = TypeContext {
+            resolver,
+            declaration_to_definition: HashMap::new(),
+            unresolved_nodes: unresolved_names.into_iter().collect(),
+            id_to_declaration: HashMap::new(),
+        };
         for (
             _,
             NameDefinitionEntry {
                 declaration,
                 definition,
             },
-        ) in snapshot.name_definitions
+        ) in name_definitions
         {
             let decl_loc = declaration.decl_loc.clone();
             self_
@@ -91,7 +98,7 @@ impl<'r> TypeContext<'r> {
                 .insert(definition.name.ts_identifier, declaration);
             self_.declaration_to_definition.insert(decl_loc, definition);
         }
-        for (definition, reference) in snapshot.implicit_name_definitions {
+        for (definition, reference) in implicit_name_definitions {
             let Some(declaration) = self_.maybe_declaration_for_ts_name(reference.name) else {
                 errors.push(gql_err(
                     Some(reference.name),
@@ -120,15 +127,6 @@ impl<'r> TypeContext<'r> {
             return Err(errors);
         }
         Ok(self_)
-    }
-
-    fn new(resolver: &'r dyn NameResolver) -> Self {
-        TypeContext {
-            resolver,
-            declaration_to_definition: HashMap::new(),
-            unresolved_nodes: HashMap::new(),
-            id_to_declaration: HashMap::new(),
-        }
     }
 
     fn find_declaration(

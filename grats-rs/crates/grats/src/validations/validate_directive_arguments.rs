@@ -11,7 +11,7 @@ use graphql_js::utilities::type_info::{TypeInfo, visit_with_type_info};
 use graphql_js::validation::rules::values_of_correct_type_rule::values_of_correct_type_rule;
 use graphql_js::validation::validation_context::ValidationContext;
 
-use crate::utils::diagnostic_error::{DiagnosticsWithoutLocationResult, gql_err, gql_related};
+use crate::utils::diagnostic_error::{DiagnosticsResult, gql_err, gql_related};
 use crate::utils::helpers::null_throws;
 
 /// Surprisingly, the GraphQL spec (and therefore graphql-js) does not enforce
@@ -25,14 +25,14 @@ use crate::utils::helpers::null_throws;
 /// Therefore, this validation implements the validation which we believe should be
 /// part of the GraphQL spec: Enforcing that for every directive used in the schema,
 /// its arguments are valid with respect to the directive's schema definition.
-pub fn validate_directive_arguments<'a>(
-    schema: GraphQLSchema<'a>,
+pub fn validate_directive_arguments(
+    schema: &GraphQLSchema<'_>,
     ast: &DocumentNode,
-) -> DiagnosticsWithoutLocationResult<GraphQLSchema<'a>> {
+) -> DiagnosticsResult<()> {
     let mut errors = Vec::new();
 
     {
-        let type_info = RefCell::new(TypeInfo::new(&schema));
+        let type_info = RefCell::new(TypeInfo::new(schema));
 
         let mut on_error = |error: GraphQLError| {
             if error.nodes.is_empty() {
@@ -80,7 +80,7 @@ pub fn validate_directive_arguments<'a>(
         };
 
         let visitor =
-            values_of_correct_type_rule(ValidationContext::new(&schema, &type_info, &mut on_error));
+            values_of_correct_type_rule(ValidationContext::new(schema, &type_info, &mut on_error));
 
         visit(ast, &mut visit_with_type_info(&type_info, visitor));
     }
@@ -88,7 +88,7 @@ pub fn validate_directive_arguments<'a>(
     if !errors.is_empty() {
         return Err(errors);
     }
-    Ok(schema)
+    Ok(())
 }
 
 /// PORT: The location of `namedType.astNode`, which every named type class

@@ -121,7 +121,7 @@ pub const TAGS: [&str; 14] = [
 
 pub const OPERATION_TYPES: [&str; 3] = ["Query", "Mutation", "Subscription"];
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct ExtractionSnapshot {
     pub definitions: Vec<DefinitionNode>,
 
@@ -155,6 +155,31 @@ pub struct ExtractionSnapshot {
     /// PORT: The diagnostics which `DiagnosticHandle`s in `definitions`
     /// refer to, which TypeScript holds directly.
     pub diagnostics_by_handle: HashMap<DiagnosticHandle, Diagnostic>,
+}
+
+/// Merges the snapshots of several files. No two files' snapshots share a key.
+impl FromIterator<ExtractionSnapshot> for ExtractionSnapshot {
+    fn from_iter<I: IntoIterator<Item = ExtractionSnapshot>>(snapshots: I) -> Self {
+        let mut result = ExtractionSnapshot::default();
+        for snapshot in snapshots {
+            result.definitions.extend(snapshot.definitions);
+            result.unresolved_names.extend(snapshot.unresolved_names);
+            result.name_definitions.extend(snapshot.name_definitions);
+            result
+                .implicit_name_definitions
+                .extend(snapshot.implicit_name_definitions);
+            result
+                .types_with_typename
+                .extend(snapshot.types_with_typename);
+            result
+                .interface_declarations
+                .extend(snapshot.interface_declarations);
+            result
+                .diagnostics_by_handle
+                .extend(snapshot.diagnostics_by_handle);
+        }
+        result
+    }
 }
 
 /// PORT: `{ declaration: DeclRef; definition: NameDefinition }`.

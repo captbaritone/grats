@@ -13,7 +13,7 @@ use crate::fix_fixable::{FixOptions, apply_fixes, with_fixes_fixed};
 use crate::grats_config::GratsConfig;
 use crate::host::Host;
 use crate::locate::{LocateRequest, locate_in_document};
-use crate::pipeline::{self, PipelineRequest};
+use crate::pipeline;
 use crate::print_schema::{OutputRequest, print_outputs};
 use crate::project::{self, Project};
 use crate::source_table::SourceTable;
@@ -312,12 +312,13 @@ impl Cli {
         &self,
         project: &Project,
     ) -> DiagnosticsWithoutLocationResult<DocumentNode> {
-        let request = PipelineRequest {
-            config: project.config.clone(),
-            grats_root: self.grats_root.clone(),
-            program: project.program.clone(),
-        };
-        pipeline::run(request, Arc::clone(&self.host), &self.sources)
+        pipeline::run(
+            &project.config,
+            &self.grats_root,
+            &project.program,
+            Arc::clone(&self.host),
+            &self.sources,
+        )
     }
 
     /// Utility function to report diagnostics to the console.

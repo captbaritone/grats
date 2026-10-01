@@ -88,8 +88,8 @@ pub struct Program<'a> {
 }
 
 impl<'a> Program<'a> {
-    pub fn new(files: &'a Files<'a>, host: Arc<dyn Host>, options: ProgramOptions) -> Self {
-        let mut builder = Builder::new(files, host, &options);
+    pub fn new(files: &'a Files<'a>, host: Arc<dyn Host>, options: &ProgramOptions) -> Self {
+        let mut builder = Builder::new(files, host, options);
         for root_name in &options.root_names {
             builder.add_root(root_name);
         }

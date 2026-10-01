@@ -6,17 +6,17 @@ use graphql_js::r#type::schema::GraphQLSchema;
 
 use crate::grats_config::GratsConfig;
 use crate::public_directives::SEMANTIC_NON_NULL_DIRECTIVE;
-use crate::utils::diagnostic_error::{DiagnosticsWithoutLocationResult, gql_err, gql_related};
+use crate::utils::diagnostic_error::{DiagnosticsResult, gql_err, gql_related};
 use crate::utils::helpers::ast_node;
 
 /// Ensure that all semantically non-nullable fields on an interface are also
 /// semantically non-nullable on all implementors.
-pub fn validate_semantic_nullability<'a>(
-    schema: GraphQLSchema<'a>,
+pub fn validate_semantic_nullability(
+    schema: &GraphQLSchema<'_>,
     config: &GratsConfig,
-) -> DiagnosticsWithoutLocationResult<GraphQLSchema<'a>> {
+) -> DiagnosticsResult<()> {
     if !config.strict_semantic_nullability {
-        return Ok(schema);
+        return Ok(());
     }
     let mut errors = Vec::new();
     let interfaces = schema
@@ -81,7 +81,7 @@ pub fn validate_semantic_nullability<'a>(
     if !errors.is_empty() {
         return Err(errors);
     }
-    Ok(schema)
+    Ok(())
 }
 
 fn find_semantic_non_null<'a>(field: &GraphQLField<'a>) -> Option<&'a ConstDirectiveNode> {

@@ -25,7 +25,9 @@ use std::sync::Arc;
 
 use graphql_js::language::ast::DocumentNode;
 use grats::fix_fixable::FixOptions;
+use grats::grats_config::GratsConfig;
 use grats::host::{Host, JsonHost};
+use grats::program::ProgramOptions;
 use grats::source_table::SourceTable;
 use grats::utils::diagnostic_error::{CodeFixAction, Diagnostic, gql_err, locationless_err};
 use grats::utils::format_diagnostics::{
@@ -209,7 +211,16 @@ pub unsafe extern "C" fn validate_grats_options(ptr: *mut u8, len: usize) {
     }
 }
 
-/// Input: a `PipelineRequest` (see `grats::pipeline`), as JSON. Output: the
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct PipelineRequest {
+    config: GratsConfig,
+    /// See `grats::grats_root`.
+    grats_root: String,
+    program: ProgramOptions,
+}
+
+/// Input: a `PipelineRequest`, as JSON. Output: the
 /// diagnostics (see `ReportableDiagnostic`), as a JSON `Result` (see
 /// `src/utils/Result.ts`).
 ///
@@ -224,10 +235,17 @@ pub unsafe extern "C" fn run_pipeline(ptr: *mut u8, len: usize) {
         call(ptr, len, |input| {
             PIPELINE_DOC.with(|kept| *kept.borrow_mut() = None);
             PIPELINE_SOURCES.with(|kept| *kept.borrow_mut() = None);
-            let request = serde_json::from_str(&input).expect("Input should be a PipelineRequest");
+            let request: PipelineRequest =
+                serde_json::from_str(&input).expect("Input should be a PipelineRequest");
             let host = json_host();
             let sources = SourceTable::default();
-            let result = match grats::pipeline::run(request, Arc::clone(&host), &sources) {
+            let result = match grats::pipeline::run(
+                &request.config,
+                &request.grats_root,
+                &request.program,
+                Arc::clone(&host),
+                &sources,
+            ) {
                 Ok(doc) => {
                     PIPELINE_DOC.with(|kept| *kept.borrow_mut() = Some(doc));
                     let cwd = host.current_directory();

@@ -6,15 +6,15 @@ use graphql_js::r#type::definition::GraphQLNamedType;
 use graphql_js::r#type::schema::GraphQLSchema;
 
 use crate::errors as E;
-use crate::utils::diagnostic_error::{DiagnosticsWithoutLocationResult, gql_err, gql_related};
+use crate::utils::diagnostic_error::{DiagnosticsResult, gql_err, gql_related};
 use crate::utils::helpers::null_throws;
 
 /// Ensure that every type which implements an interface or is a member of a
 /// union has a __typename field.
-pub fn validate_typenames<'a>(
-    schema: GraphQLSchema<'a>,
+pub fn validate_typenames(
+    schema: &GraphQLSchema<'_>,
     has_typename: &HashSet<String>,
-) -> DiagnosticsWithoutLocationResult<GraphQLSchema<'a>> {
+) -> DiagnosticsResult<()> {
     let mut errors = Vec::new();
     // PORT: Each abstract type with the name node of its AST node.
     let abstract_types = schema
@@ -68,5 +68,5 @@ pub fn validate_typenames<'a>(
     if !errors.is_empty() {
         return Err(errors);
     }
-    Ok(schema)
+    Ok(())
 }
