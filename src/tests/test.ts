@@ -1,33 +1,22 @@
 import * as path from "path";
 import { fileURLToPath } from "url";
-import TestRunner, { Transformer, TransformerResult } from "./TestRunner.js";
+import TestRunner, { Transformer } from "./TestRunner.js";
 import { buildSchemaAndDocResult } from "../lib.js";
-import * as ts from "typescript";
 import { buildSchema, graphql, GraphQLSchema, printSchema } from "graphql";
 import { Command } from "commander";
-import { locate } from "../Locate.js";
-import { ReportableDiagnostics, TextChange } from "../utils/DiagnosticError.js";
-import { readFileSync, writeFileSync } from "fs";
+import { ReportableDiagnostics } from "../utils/DiagnosticError.js";
+import { writeFileSync } from "fs";
 import { diff } from "jest-diff";
-import * as prettier from "prettier";
-import * as semver from "semver";
 import { GratsConfig } from "../gratsConfig.js";
-import {
-  GratsProject,
-  projectFromFiles,
-  validateGratsOptions,
-} from "../rs/project.js";
+import { projectFromFiles, validateGratsOptions } from "../rs/project.js";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives.js";
 import { printOutputs } from "../printSchema.js";
-import { extend, nullThrows } from "../utils/helpers.js";
-import { Result, ok, err } from "../utils/Result.js";
-import { applyFixes } from "../rs/cli.js";
+import { nullThrows } from "../utils/helpers.js";
+import { Result, ok } from "../utils/Result.js";
 import { writeTypeScriptTypeToDisk } from "../../scripts/buildConfigTypes.js";
 import { Markdown } from "./Markdown.js";
 
 writeTypeScriptTypeToDisk();
-
-const TS_VERSION = ts.version;
 
 const program = new Command();
 
@@ -70,8 +59,6 @@ program
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const fixturesDir = path.join(__dirname, "fixtures");
-const configFixturesDir = path.join(__dirname, "configParserFixtures");
 const integrationFixturesDir = path.join(__dirname, "integrationFixtures");
 
 type TestDir = {
@@ -82,176 +69,6 @@ type TestDir = {
 };
 
 const testDirs: TestDir[] = [
-  {
-    fixturesDir: configFixturesDir,
-    testFilePattern: /\.json$/,
-    ignoreFilePattern: null,
-    transformer: (
-      code: string,
-      _fileName: string,
-    ): Result<Markdown, Markdown> => {
-      const config = JSON.parse(code);
-      let parsed: GratsConfig;
-      const warnings: string[] = [];
-      const consoleWarn = console.warn;
-      console.warn = (msg: string) => {
-        warnings.push(msg);
-      };
-      try {
-        const parsedResult = validateGratsOptions(config);
-        if (parsedResult.kind === "ERROR") {
-          return err(
-            formatDiagnosticsWithContext(
-              code,
-              ReportableDiagnostics.fromDiagnostics(parsedResult.err),
-            ),
-          );
-        }
-        parsed = parsedResult.value;
-      } catch (e: any) {
-        return err(e.message);
-      }
-      console.warn = consoleWarn;
-
-      const markdown = new Markdown();
-
-      markdown.addHeader(3, "Parsed Config");
-      markdown.addCodeBlock(JSON.stringify(parsed, null, 2), "json");
-      if (warnings.length > 0) {
-        markdown.addHeader(3, "Warnings");
-        markdown.addCodeBlock(warnings.join("\n"), "text");
-      }
-      return ok(markdown);
-    },
-  },
-  {
-    fixturesDir,
-    testFilePattern: /\.ts$/,
-    ignoreFilePattern: null,
-    transformer: async (
-      code: string,
-      fileName: string,
-    ): Promise<TransformerResult> => {
-      const firstLine = code.split("\n")[0];
-      let config: Partial<GratsConfig> = {
-        nullableByDefault: true,
-        schemaHeader: null,
-        tsSchemaHeader: null,
-      };
-      if (firstLine.startsWith("// {")) {
-        const json = firstLine.slice(3);
-        const { tsVersion, ...testOptions } = JSON.parse(json);
-        if (tsVersion != null && !semver.satisfies(TS_VERSION, tsVersion)) {
-          console.log(
-            "Skipping test because TS version doesn't match",
-            tsVersion,
-            "does not match",
-            TS_VERSION,
-          );
-          return false;
-        }
-        config = { ...config, ...testOptions };
-      }
-
-      const files = [
-        `${fixturesDir}/${fileName}`,
-        path.join(__dirname, `../Types.ts`),
-      ];
-      let project: GratsProject;
-      try {
-        const parsedOptionsResult = validateGratsOptions(config);
-        if (parsedOptionsResult.kind === "ERROR") {
-          return err(
-            formatDiagnosticsWithContext(
-              code,
-              ReportableDiagnostics.fromDiagnostics(parsedOptionsResult.err),
-            ),
-          );
-        }
-        project = projectFromFiles(files, parsedOptionsResult.value);
-      } catch (e: any) {
-        return err(e.message);
-      }
-
-      const schemaResult = buildSchemaAndDocResult(project);
-      if (schemaResult.kind === "ERROR") {
-        return err(
-          formatDiagnosticsWithContext(
-            code,
-            ReportableDiagnostics.fromDiagnostics(schemaResult.err),
-          ),
-        );
-      }
-
-      const { doc } = schemaResult.value;
-
-      const fixturePath = `${fixturesDir}/${fileName}`;
-      const { tsClientEnums } = project.config;
-      // We print every output here, even for `// Locate:` fixtures, to ensure
-      // that printing doesn't throw.
-      const outputs = printOutputs(schemaResult.value, project.config, {
-        graphqlSchema: true,
-        tsSchema: fixturePath,
-        tsClientEnums:
-          tsClientEnums == null
-            ? undefined
-            : path.join(path.dirname(fixturePath), tsClientEnums),
-        metadata: project.config.EXPERIMENTAL__emitMetadata,
-      });
-
-      const LOCATION_REGEX = /^\/\/ Locate: (.*)/;
-      const locationMatch = code.match(LOCATION_REGEX);
-      if (locationMatch != null) {
-        const locResult = locate(doc, locationMatch[1].trim());
-        if (locResult.kind === "ERROR") {
-          const markdown = new Markdown();
-          markdown.addHeader(3, "Error Locating Type");
-          markdown.addCodeBlock(locResult.err, "text");
-          return err(markdown);
-        }
-
-        return err(
-          formatDiagnosticsWithContext(
-            code,
-            ReportableDiagnostics.fromDiagnostics([locResult.value.diagnostic]),
-          ),
-        );
-      } else {
-        const markdown = new Markdown();
-        markdown.addHeader(3, "SDL");
-        markdown.addCodeBlock(nullThrows(outputs.graphqlSchema), "graphql");
-        markdown.addHeader(3, "TypeScript");
-        // Goldens record the generated TypeScript after prettier formatting so
-        // that they assert on the code's structure rather than on the exact
-        // whitespace choices of the printer that emitted it.
-        markdown.addCodeBlock(
-          await prettier.format(nullThrows(outputs.tsSchema), {
-            parser: "typescript",
-            // The printers differ in when they put an object's properties on
-            // separate lines, which prettier would otherwise preserve.
-            objectWrap: "collapse",
-          }),
-          "ts",
-        );
-        if (outputs.metadata != null) {
-          markdown.addHeader(3, "Metadata");
-          markdown.addCodeBlock(outputs.metadata, "json");
-        }
-        if (outputs.tsClientEnums != null) {
-          markdown.addHeader(3, "TypeScript Enums");
-          markdown.addCodeBlock(
-            await prettier.format(outputs.tsClientEnums, {
-              parser: "typescript",
-              objectWrap: "collapse",
-            }),
-            "ts",
-          );
-        }
-
-        return ok(markdown);
-      }
-    },
-  },
   {
     fixturesDir: integrationFixturesDir,
     testFilePattern: /index.ts$/,
@@ -377,102 +194,6 @@ function printSDLFromSchemaWithoutDirectives(schema: GraphQLSchema): string {
       }),
     }),
   );
-}
-
-function formatDiagnosticsWithContext(
-  code: string,
-  diagnostics: ReportableDiagnostics,
-): Markdown {
-  const formatted = diagnostics.formatDiagnosticsWithContext();
-
-  const actions: {
-    fixName: string;
-    description: string;
-    diff: string;
-  }[] = [];
-
-  for (const diagnostic of diagnostics._diagnostics) {
-    if (diagnostic.fix == null) {
-      continue;
-    }
-    const textChanges: TextChange[] = [];
-    for (const change of diagnostic.fix.changes) {
-      extend(textChanges, change.textChanges);
-    }
-    let newCode = code;
-    // Process edits in reverse to avoid changing the span of subsequent edits
-    const reversed = textChanges.slice();
-    reversed.sort((a, b) => b.span.start - a.span.start);
-    for (const textChange of reversed) {
-      const head = newCode.slice(0, textChange.span.start);
-      const tail = newCode.slice(
-        textChange.span.start + textChange.span.length,
-      );
-      newCode = `${head}${textChange.newText}${tail}`;
-    }
-    const noColor = (str: string) => str;
-
-    const diffOptions = {
-      aAnnotation: "Original",
-      bAnnotation: "Fixed",
-      aColor: noColor,
-      bColor: noColor,
-      changeColor: noColor,
-      commonColor: noColor,
-      patchColor: noColor,
-      contextLines: 1,
-      expand: false,
-    };
-
-    const diffText = diff(code, newCode, diffOptions) ?? "No diff";
-    actions.push({
-      fixName: diagnostic.fix.fixName,
-      description: diagnostic.fix.description,
-      diff: diffText,
-    });
-  }
-
-  const markdown = new Markdown();
-  markdown.addHeader(3, "Error Report");
-  markdown.addCodeBlock(formatted, "text");
-
-  if (actions.length === 0) {
-    return markdown;
-  }
-
-  const fixable = diagnostics._diagnostics.filter((d) => d.fix != null);
-  const logEvents: string[] = [];
-  function log(event: string) {
-    logEvents.push(event);
-  }
-
-  for (const action of actions) {
-    markdown.addHeader(
-      4,
-      `Code Action: "${action.description}" (${action.fixName})`,
-    );
-    markdown.addCodeBlock(action.diff, "diff");
-  }
-
-  if (fixable.length > 0) {
-    const fileName = fixable[0].fix?.changes[0]?.fileName;
-    if (fileName == null) {
-      throw new Error("Cannot apply fixes to diagnostic with no changes");
-    }
-
-    const current = readFileSync(fileName, "utf8");
-    applyFixes(diagnostics._diagnostics, { log });
-    const newText = readFileSync(fileName, "utf8");
-
-    writeFileSync(fileName, current, "utf8");
-
-    markdown.addHeader(4, "Applied Fixes");
-    markdown.addCodeBlock(logEvents.join("\n"), "text");
-    markdown.addHeader(4, "Fixed Text");
-    markdown.addCodeBlock(newText, "typescript");
-  }
-
-  return markdown;
 }
 
 program.parse();

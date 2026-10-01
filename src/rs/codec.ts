@@ -30,18 +30,9 @@ export type RustOutputRequest = {
 };
 
 /**
- * The input to the `locate` entry point, besides the document. See
- * `LocateRequest` in `grats-rs/crates/grats/src/locate.rs`.
- */
-export type RustLocateRequest = {
-  entityName: string;
-};
-
-/**
  * The requests of the entry points which use the document kept by `run_pipeline`.
  */
 export type RustDocumentRequests = {
   print_outputs: RustOutputRequest;
   print_sdl_without_metadata: null;
-  locate: RustLocateRequest;
 };

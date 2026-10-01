@@ -8,7 +8,7 @@ export type { GratsConfig } from "./gratsConfig.js";
 export type SchemaAndDoc = {
   /**
    * Stands for the document which Rust keeps (see `src/rs/document.ts`), so
-   * it's what is printed or located in.
+   * it's what is printed.
    */
   doc: RustDocument;
 };

@@ -21,9 +21,6 @@ importers:
       '@types/node':
         specifier: ^24.5.2
         version: 24.5.2
-      '@types/semver':
-        specifier: ^7.7.1
-        version: 7.7.1
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.44.0
         version: 8.44.0(@typescript-eslint/parser@8.44.0(eslint@9.36.0(jiti@1.21.6))(typescript@5.9.2))(eslint@9.36.0(jiti@1.21.6))(typescript@5.9.2)
@@ -54,9 +51,6 @@ importers:
       process:
         specifier: ^0.11.10
         version: 0.11.10
-      semver:
-        specifier: ^7.7.2
-        version: 7.7.2
       tsx:
         specifier: ^4.19.0
         version: 4.21.0
@@ -2972,9 +2966,6 @@ packages:
 
   '@types/scheduler@0.16.3':
     resolution: {integrity: sha512-5cJ8CB4yAx7BH1oMvdU0Jh9lrEXyPkar6F9G/ERswkCuvP4KQZfZkSjcMbAICCpQTN4OuZn8tz0HiKv9TGZgrQ==}
-
-  '@types/semver@7.7.1':
-    resolution: {integrity: sha512-FmgJfu+MOcQ370SD0ev7EI8TlCAfKYU+B4m5T3yXc1CiRN94g/SZPtsCkk506aUDtlMnFZvasDwHHUcZUEaYuA==}
 
   '@types/serve-index@1.9.1':
     resolution: {integrity: sha512-d/Hs3nWDxNL2xAczmOVZNj92YZCS6RGxfBPjKzuu/XirCgXdpKEb88dYNbrYGint6IVWLNP+yonwVAuRC0T2Dg==}
@@ -11292,8 +11283,6 @@ snapshots:
       '@types/node': 20.8.10
 
   '@types/scheduler@0.16.3': {}
-
-  '@types/semver@7.7.1': {}
 
   '@types/serve-index@1.9.1':
     dependencies:

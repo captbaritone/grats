@@ -13,10 +13,9 @@ import type { GratsProject } from "./project.js";
  * Calls the Rust entry points which use the document the pipeline produced.
  *
  * Every caller runs the pipeline, which has been ported to Rust, and then
- * prints the resulting document (or locates an entity in it). So if the
- * document is valid, `run_pipeline` keeps it for the calls which follow, and
- * it never crosses into TypeScript. A `RustDocument` stands for the document
- * Rust keeps.
+ * prints the resulting document. So if the document is valid, `run_pipeline`
+ * keeps it for the calls which follow, and it never crosses into TypeScript.
+ * A `RustDocument` stands for the document Rust keeps.
  */
 export type RustDocument = {
   /** Rust loses the document if its instance is replaced. */

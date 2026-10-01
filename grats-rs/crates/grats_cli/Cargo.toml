@@ -15,3 +15,12 @@ notify = "8.2.0"
 
 [build-dependencies]
 serde_json.workspace = true
+
+[dev-dependencies]
+libtest-mimic = "0.8.2"
+serde_json.workspace = true
+similar = "3.2.0"
+
+[[test]]
+name = "fixtures"
+harness = false

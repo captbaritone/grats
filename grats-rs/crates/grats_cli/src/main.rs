@@ -1,6 +1,5 @@
 //! The `grats` command line tool.
 
-mod native_host;
 mod watch;
 
 use std::process::ExitCode;
@@ -8,7 +7,7 @@ use std::sync::Arc;
 
 use grats::cli::{self, CliOutcome, CliRequest, WatchRequest};
 
-use native_host::NativeHost;
+use grats_cli::native_host::{self, NativeHost};
 
 fn main() -> ExitCode {
     let grats_root = native_host::grats_root();

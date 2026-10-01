@@ -26,7 +26,7 @@ use grats::host::{DirEntries, FileKind, Host};
 use grats::utils::path;
 use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 
-use crate::native_host::{NativeHost, from_grats_path, to_grats_path};
+use grats_cli::native_host::{NativeHost, from_grats_path, to_grats_path};
 
 /// How long the file system must be quiet before Grats rebuilds, so that
 /// changes made together, like switching branches, cause one rebuild.

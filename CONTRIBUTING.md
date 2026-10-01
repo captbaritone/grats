@@ -22,10 +22,10 @@ cargo test
 ## Automated Tests
 
 Our tests are written as a collection of fixture files located in
-`src/tests/fixtures` and `src/tests/integrationFixtures`. Each `.ts` file nested
-within this directory is a test case. The test runner will execute each test
-case and compare the output to corresponding `.expected.ts` file. If the
-output does not match the expected output, the test runner will fail.
+`src/tests/fixtures`, `src/tests/configParserFixtures` and
+`src/tests/integrationFixtures`. Each test case's output is compared to its
+corresponding `.expected.md` file. If the output does not match the expected
+output, the test runner will fail.
 
 The tests in `src/tests/fixtures` are unit tests that test the behavior of the
 extraction and code generation. They extract GraphQL SDL, generated `schema.ts` or any associated errors and code actions from the file and write that as output.
@@ -34,12 +34,28 @@ If the test includes a line like `// Locate: User.name` of `// Locate: SomeType`
 then the test runner will instead locate the given entity and write the location
 as output.
 
+The tests in `src/tests/configParserFixtures` test the parsing of the Grats
+config in each `.json` file.
+
+These two directories are tested by Rust:
+
+```
+cd grats-rs
+cargo test --test fixtures
+```
+
+To run specific test cases, provide a substring match for the test fixtures'
+paths, and to update fixture files, use the `--write` flag:
+
+```
+cargo test --test fixtures -- import
+cargo test --test fixtures -- --write
+```
+
 The tests in `src/tests/integrationFixtures` are integration tests that test the _runtime_ behavior of the generated code. Each directory contains an `index.ts` file with `@gql` docblock tags which exports a root query class as the named export `Query` and a GraphQL query text under the named export `query`. The test runner will execute the query against the root query class and emit the returned response JSON as the test output.
 
 ```
-
 pnpm run test
-
 ```
 
 To run a specific test case, you can use the `--filter` flag and provide a

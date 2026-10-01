@@ -20,33 +20,26 @@
 //! Panics abort, which traps. The panic hook first stores the panic message
 //! as the output so that JS can report it.
 
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 use std::sync::Arc;
 
 use graphql_js::language::ast::DocumentNode;
-use grats::fix_fixable::FixOptions;
 use grats::grats_config::GratsConfig;
 use grats::host::{Host, JsonHost};
 use grats::program::ProgramOptions;
 use grats::source_table::SourceTable;
-use grats::utils::diagnostic_error::{CodeFixAction, Diagnostic, gql_err, locationless_err};
-use grats::utils::format_diagnostics::{
-    ReportableDiagnostic, format_location_without_color, reportable_diagnostics,
-};
+use grats::utils::diagnostic_error::{Diagnostic, locationless_err};
+use grats::utils::format_diagnostics::{ReportableDiagnostic, reportable_diagnostics};
 use serde::{Deserialize, Serialize};
 
 thread_local! {
     static OUTPUT: RefCell<String> = const { RefCell::new(String::new()) };
 
     /// The document from the last `run_pipeline` call, as transformed by it, if
-    /// it was valid. The other entry points print it (or locate an entity in
-    /// it), so the document never crosses. It's kept until the next
-    /// `run_pipeline` call, since a caller may print it more than once.
+    /// it was valid. The other entry points print it, so the document never
+    /// crosses. It's kept until the next `run_pipeline` call, since a caller
+    /// may print it more than once.
     static PIPELINE_DOC: RefCell<Option<DocumentNode>> = const { RefCell::new(None) };
-
-    /// The sources which locations in `PIPELINE_DOC` refer to, and the
-    /// current directory `locate` formats its diagnostic against.
-    static PIPELINE_SOURCES: RefCell<Option<(SourceTable, String)>> = const { RefCell::new(None) };
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -234,7 +227,6 @@ pub unsafe extern "C" fn run_pipeline(ptr: *mut u8, len: usize) {
     unsafe {
         call(ptr, len, |input| {
             PIPELINE_DOC.with(|kept| *kept.borrow_mut() = None);
-            PIPELINE_SOURCES.with(|kept| *kept.borrow_mut() = None);
             let request: PipelineRequest =
                 serde_json::from_str(&input).expect("Input should be a PipelineRequest");
             let host = json_host();
@@ -248,8 +240,6 @@ pub unsafe extern "C" fn run_pipeline(ptr: *mut u8, len: usize) {
             ) {
                 Ok(doc) => {
                     PIPELINE_DOC.with(|kept| *kept.borrow_mut() = Some(doc));
-                    let cwd = host.current_directory();
-                    PIPELINE_SOURCES.with(|kept| *kept.borrow_mut() = Some((sources, cwd)));
                     Ok(())
                 }
                 Err(errors) => Err(report(errors, &sources, &*host)),
@@ -287,98 +277,6 @@ pub unsafe extern "C" fn print_sdl_without_metadata(ptr: *mut u8, len: usize) {
     unsafe {
         call(ptr, len, |_input| {
             with_pipeline_doc(grats::print_schema::print_sdl_without_metadata)
-        })
-    }
-}
-
-/// Where `locate` found an entity.
-#[derive(Serialize)]
-struct Located {
-    /// As `path:line:column`, with an absolute path.
-    location: String,
-    /// A "Located here" diagnostic at the entity.
-    diagnostic: ReportableDiagnostic,
-}
-
-/// Input: a `LocateRequest` (see `grats::locate`), as JSON. Output: where the
-/// entity is in the document kept by `run_pipeline` (see `Located`), or an
-/// error message, as a JSON `Result` (see `src/utils/Result.ts`).
-///
-/// # Safety
-///
-/// See `call`.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn locate(ptr: *mut u8, len: usize) {
-    unsafe {
-        call(ptr, len, |input| {
-            let request = serde_json::from_str(&input).expect("Input should be a LocateRequest");
-            let result = with_pipeline_doc(|doc| grats::locate::locate_in_document(doc, request));
-            let located = result.map(|loc| {
-                PIPELINE_SOURCES.with(|kept| {
-                    let kept = kept.borrow();
-                    let (sources, cwd) = kept
-                        .as_ref()
-                        .expect("Expected sources kept by `run_pipeline`");
-                    let diagnostic = gql_err(Some(loc), "Located here".to_string(), None);
-                    let mut diagnostics = reportable_diagnostics(vec![diagnostic], sources, cwd);
-                    Located {
-                        location: format_location_without_color(sources, &loc),
-                        diagnostic: diagnostics.remove(0),
-                    }
-                })
-            });
-            result_json(located)
-        })
-    }
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct ApplyFixesRequest {
-    fixes: Vec<CodeFixAction>,
-    grats_root: String,
-}
-
-#[derive(Serialize)]
-struct AppliedFixes {
-    /// Whether any files were changed.
-    applied: bool,
-    /// What was logged, line by line.
-    log: Vec<String>,
-}
-
-/// Input: an `ApplyFixesRequest`, as JSON. Output: `AppliedFixes`, as JSON.
-///
-/// # Safety
-///
-/// See `call`.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn apply_fixes(ptr: *mut u8, len: usize) {
-    unsafe {
-        call(ptr, len, |input| {
-            let request: ApplyFixesRequest =
-                serde_json::from_str(&input).expect("Input should be an ApplyFixesRequest");
-            let log = Cell::new(Vec::new());
-            let push = |message: &str| {
-                let mut lines = log.take();
-                lines.push(message.to_string());
-                log.set(lines);
-            };
-            let fixes: Vec<&CodeFixAction> = request.fixes.iter().collect();
-            let applied = grats::fix_fixable::apply_fixes(
-                &fixes,
-                &FixOptions {
-                    fix: true,
-                    log: &push,
-                },
-                &*json_host(),
-                &request.grats_root,
-            );
-            let applied = AppliedFixes {
-                applied,
-                log: log.take(),
-            };
-            serde_json::to_string(&applied).expect("AppliedFixes should serialize")
         })
     }
 }

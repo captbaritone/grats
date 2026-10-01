@@ -8,24 +8,6 @@ import { Result } from "./Result.js";
  */
 export type GratsDiagnostic = {
   formatted: string;
-  fix?: CodeFixAction;
-};
-
-/** Like a `ts.CodeFixAction`. Offsets are UTF-16. */
-export type CodeFixAction = {
-  fixName: string;
-  description: string;
-  changes: FileTextChanges[];
-};
-
-export type FileTextChanges = {
-  fileName: string;
-  textChanges: TextChange[];
-};
-
-export type TextChange = {
-  span: { start: number; length: number };
-  newText: string;
 };
 
 // GraphQL errors might not have a location, so we have to handle that case

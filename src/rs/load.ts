@@ -12,9 +12,7 @@ type EntryPoint =
   | "load_project"
   | "validate_grats_options"
   | "run_pipeline"
-  | "print_outputs"
-  | "locate"
-  | "apply_fixes";
+  | "print_outputs";
 
 type Exports = {
   memory: WebAssembly.Memory;
