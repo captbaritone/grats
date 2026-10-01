@@ -21,6 +21,7 @@ oxc_semantic.workspace = true
 oxc_span.workspace = true
 oxc_str.workspace = true
 oxc_syntax.workspace = true
+schemars = "1.2.2"
 serde.workspace = true
 serde_json.workspace = true
 serde_path_to_error = "0.1.20"

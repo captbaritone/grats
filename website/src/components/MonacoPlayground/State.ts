@@ -1,4 +1,4 @@
-import type { GratsConfig } from "grats/src/TGratsConfig";
+import type { GratsConfig } from "../configSchema";
 
 export type OutputOption =
   | "sdl"
@@ -34,8 +34,8 @@ export type SerializableState = {
   VERSION: number;
 };
 
-// Get default config values for all GratsConfig options
-// These defaults match the spec in configSpecRaw.json
+// Get default config values for all GratsConfig options: Grats' defaults (see
+// grats-rs/crates/grats/grats-config-schema.json), but without headers
 export function getDefaultPlaygroundConfig(): GratsConfig {
   return {
     graphqlSchema: "./schema.graphql",

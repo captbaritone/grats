@@ -7,10 +7,7 @@ import { readFileSync } from "fs";
 import { diff } from "jest-diff";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives.js";
 import { Result, ok } from "../utils/Result.js";
-import { writeTypeScriptTypeToDisk } from "../../scripts/buildConfigTypes.js";
 import { Markdown } from "./Markdown.js";
-
-writeTypeScriptTypeToDisk();
 
 const program = new Command();
 

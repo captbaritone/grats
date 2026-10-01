@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import DynamicConfigEditor from "./DynamicConfigEditor";
-import { GratsConfigSpec } from "grats/src/configSpec";
 
 type ConfigDropdownProps = {
   isOpen: boolean;
@@ -134,11 +133,7 @@ export default function ConfigDropdown({
           borderBottomRightRadius: "6px",
         }}
       >
-        <DynamicConfigEditor
-          configSpec={GratsConfigSpec}
-          config={config}
-          onConfigChange={onConfigChange}
-        />
+        <DynamicConfigEditor config={config} onConfigChange={onConfigChange} />
       </div>
     </div>,
     document.body,

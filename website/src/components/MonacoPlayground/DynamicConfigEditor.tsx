@@ -1,16 +1,12 @@
 import React from "react";
-import type { ConfigSpec } from "grats/src/gratsConfig";
-
-type ConfigValue = string | boolean | null;
+import { CONFIG_OPTIONS, ConfigOption, ConfigValue } from "../configSchema";
 
 type ConfigEditorProps = {
-  configSpec: ConfigSpec;
   config: Record<string, ConfigValue>;
   onConfigChange: (key: string, value: ConfigValue) => void;
 };
 
 export default function DynamicConfigEditor({
-  configSpec,
   config,
   onConfigChange,
 }: ConfigEditorProps): JSX.Element {
@@ -26,9 +22,10 @@ export default function DynamicConfigEditor({
         backgroundColor: "var(--ifm-background-surface-color)",
       }}
     >
-      {Object.entries(configSpec.properties).map(([key, property]) => {
-        const value = config[key] ?? property.default;
-        const isExperimental = property.experimental;
+      {CONFIG_OPTIONS.map((option) => {
+        const key = option.name;
+        const value = config[key] ?? option.default;
+        const isExperimental = option.experimental;
 
         return (
           <div
@@ -76,18 +73,18 @@ export default function DynamicConfigEditor({
                 lineHeight: "1.3",
               }}
             >
-              {property.description}
+              {option.paragraphs.join(" ")}
             </div>
 
             <div
               style={{ display: "flex", alignItems: "center", gap: "0.5em" }}
             >
               <ConfigControl
-                property={property}
+                option={option}
                 value={value}
                 onChange={(newValue) => onConfigChange(key, newValue)}
               />
-              <DefaultValue value={property.default} />
+              <DefaultValue value={option.default} />
             </div>
           </div>
         );
@@ -197,17 +194,17 @@ function StringInputWrapper({
   );
 }
 
-// Component to render the appropriate control based on property type
+// Component to render the appropriate control based on the option's type
 function ConfigControl({
-  property,
+  option,
   value,
   onChange,
 }: {
-  property: any;
+  option: ConfigOption;
   value: ConfigValue;
   onChange: (value: ConfigValue) => void;
 }) {
-  switch (property.type.kind) {
+  switch (option.kind) {
     case "boolean":
       return (
         <label style={{ display: "flex", alignItems: "center", gap: "0.5em" }}>
@@ -226,15 +223,15 @@ function ConfigControl({
       return (
         <StringInputWrapper
           value={value}
-          defaultValue={property.default}
-          nullable={property.nullable}
+          defaultValue={option.default}
+          nullable={option.nullable}
           onChange={onChange}
         >
           <input
             type="text"
             value={value === null ? "" : String(value)}
             onChange={(e) => onChange(e.target.value || null)}
-            placeholder={String(property.default)}
+            placeholder={String(option.default)}
             style={INPUT_STYLE}
           />
         </StringInputWrapper>
@@ -244,14 +241,14 @@ function ConfigControl({
       return (
         <StringInputWrapper
           value={value}
-          defaultValue={property.default}
-          nullable={property.nullable}
+          defaultValue={option.default}
+          nullable={option.nullable}
           onChange={onChange}
         >
           <textarea
             value={value === null ? "" : String(value)}
             onChange={(e) => onChange(e.target.value || null)}
-            placeholder={String(property.default)}
+            placeholder={String(option.default)}
             rows={3}
             style={{ ...INPUT_STYLE, resize: "vertical" }}
           />

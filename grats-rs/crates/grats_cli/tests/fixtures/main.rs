@@ -9,6 +9,9 @@
 //! For the website's `.grats.ts` snippets, this generates the `.out` file
 //! shown with each, so changes to the docs are reviewed as fixture changes.
 //!
+//! It also generates the JSON Schema of Grats' config (see
+//! `grats::grats_config`).
+//!
 //! Run with `cargo test --test fixtures`. Pass `-- --write` to write the
 //! actual output to the expected output files, and delete unexpected files,
 //! and a name to run only the fixtures whose paths contain it.
@@ -22,7 +25,7 @@ use std::path::Path;
 use std::sync::{Arc, Mutex};
 
 use grats::fix_fixable::{FixOptions, apply_fixes};
-use grats::grats_config::{GratsConfig, validate_grats_options};
+use grats::grats_config::{self, GratsConfig, validate_grats_options};
 use grats::host::{DirEntries, FileKind, Host};
 use grats::locate::{LocateRequest, locate_in_document};
 use grats::print_schema::{OutputRequest, print_outputs, print_sdl_without_metadata};
@@ -38,6 +41,9 @@ use libtest_mimic::{Arguments, Failed, Trial};
 use serde_json::{Value, json};
 
 use markdown::Markdown;
+
+/// The JSON Schema of Grats' config, relative to the repository's root.
+const CONFIG_SCHEMA: &str = "grats-rs/crates/grats/grats-config-schema.json";
 
 /// The fixtures transformed by each kind of transformer.
 #[derive(Clone, Copy)]
@@ -153,6 +159,15 @@ fn main() {
             move || check_other_files(&fixtures_dir, &other_files, write),
         ));
     }
+    trials.push(Trial::test(CONFIG_SCHEMA, move || {
+        let schema = serde_json::to_string_pretty(&grats_config::json_schema())
+            .expect("Expected the config's schema to serialize");
+        compare_or_write(
+            &format!("{repo}/{CONFIG_SCHEMA}"),
+            &format!("{schema}\n"),
+            write,
+        )
+    }));
     libtest_mimic::run(&args, trials).exit();
 }
 
