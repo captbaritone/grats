@@ -9,6 +9,10 @@ cd "$(dirname "$0")/.."
 # Delete llm-docs/ before build so removed pages are detected
 rm -rf ../llm-docs
 
+# The website's playground needs Grats' WebAssembly build. Install the Rust
+# toolchain it's built with, for deploys whose environment doesn't have it.
+(cd ../grats-rs && rustup toolchain install)
+
 # Build the website (also regenerates llm-docs/ via docs-export plugin)
 pnpm run build
 

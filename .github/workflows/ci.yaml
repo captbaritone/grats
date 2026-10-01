@@ -31,7 +31,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
-      - name: Install Rust # Builds Grats (grats-rs/) natively
+      - name: Install Rust # Builds Grats (grats-rs/) natively, and for the website
         working-directory: ./grats-rs
         run: rustup toolchain install
       - name: Install dependencies
@@ -55,8 +55,6 @@ jobs:
       - name: Test Example Projects
         run: pnpm run test-example-projects
       - name: Build Docs Website
-        # The website isn't expected to work on the Rust port's branch yet.
-        if: github.ref != 'refs/heads/grats-rs-port'
         working-directory: ./website
         run: ./scripts/build.sh
   test:
