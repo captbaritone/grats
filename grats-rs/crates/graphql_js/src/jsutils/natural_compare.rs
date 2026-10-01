@@ -11,24 +11,33 @@ use std::cmp::Ordering;
 /// ordering. Compares UTF-16 code units, like JavaScript's `charCodeAt`, and
 /// accumulates digit runs as `f64`, like JavaScript numbers.
 pub fn natural_compare(a_str: &str, b_str: &str) -> Ordering {
+    // PORT: The bytes of ASCII text, such as GraphQL names, are its UTF-16
+    // code units, so it's compared without encoding it.
+    if a_str.is_ascii() && b_str.is_ascii() {
+        return compare_code_units(a_str.as_bytes(), b_str.as_bytes());
+    }
     let a_str: Vec<u16> = a_str.encode_utf16().collect();
     let b_str: Vec<u16> = b_str.encode_utf16().collect();
+    compare_code_units(&a_str, &b_str)
+}
+
+fn compare_code_units<T: Copy + Into<u16>>(a_str: &[T], b_str: &[T]) -> Ordering {
     // PORT: `charCodeAt` returns `NaN` past the end of the string, which is
     // not a digit.
-    let char_code_at = |s: &[u16], index: usize| s.get(index).copied();
+    let char_code_at = |s: &[T], index: usize| s.get(index).map(|&code| code.into());
     let mut a_index = 0;
     let mut b_index = 0;
 
     while a_index < a_str.len() && b_index < b_str.len() {
-        let mut a_char = char_code_at(&a_str, a_index);
-        let mut b_char = char_code_at(&b_str, b_index);
+        let mut a_char = char_code_at(a_str, a_index);
+        let mut b_char = char_code_at(b_str, b_index);
 
         if is_digit(a_char) && is_digit(b_char) {
             let mut a_num = 0.0;
             loop {
                 a_index += 1;
                 a_num = a_num * 10.0 + f64::from(a_char.unwrap() - DIGIT_0);
-                a_char = char_code_at(&a_str, a_index);
+                a_char = char_code_at(a_str, a_index);
                 if !(is_digit(a_char) && a_num > 0.0) {
                     break;
                 }
@@ -38,7 +47,7 @@ pub fn natural_compare(a_str: &str, b_str: &str) -> Ordering {
             loop {
                 b_index += 1;
                 b_num = b_num * 10.0 + f64::from(b_char.unwrap() - DIGIT_0);
-                b_char = char_code_at(&b_str, b_index);
+                b_char = char_code_at(b_str, b_index);
                 if !(is_digit(b_char) && b_num > 0.0) {
                     break;
                 }
@@ -90,6 +99,7 @@ mod tests {
         assert_eq!(natural_compare("ab", "a"), Ordering::Greater);
         // U+FF21 is one UTF-16 code unit, less than the two of U+1F600.
         assert_eq!(natural_compare("\u{FF21}", "\u{1F600}"), Ordering::Greater);
+        assert_eq!(natural_compare("a\u{e9}2", "a\u{e9}10"), Ordering::Less);
     }
 
     #[test]

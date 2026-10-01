@@ -7,8 +7,6 @@
 //! Their kinds are TypeScript's, only so that its rules apply as written.
 //! Offsets are UTF-8 byte offsets.
 
-use std::collections::HashMap;
-
 use oxc_ast::AstKind;
 use oxc_ast::ast::{
     BindingPattern, ClassType, ExportDefaultDeclarationKind, Expression, FunctionType,
@@ -139,7 +137,25 @@ pub struct TsNode {
 pub struct JSDocIndex {
     nodes: Vec<TsNode>,
     js_docs: Vec<JSDoc>,
-    by_ast: HashMap<NodeId, TsNodeId>,
+    by_ast: NodeMap<TsNodeId>,
+}
+
+/// A value for some of a file's oxc nodes, by their `NodeId`, which number
+/// the nodes from 0.
+struct NodeMap<T>(Vec<Option<T>>);
+
+impl<T: Copy> NodeMap<T> {
+    fn new(len: usize) -> Self {
+        NodeMap(vec![None; len])
+    }
+
+    fn get(&self, id: NodeId) -> Option<T> {
+        self.0.get(id.index()).copied().flatten()
+    }
+
+    fn insert(&mut self, id: NodeId, value: T) {
+        self.0[id.index()] = Some(value);
+    }
 }
 
 /// How an oxc node appears in TypeScript's AST.
@@ -154,23 +170,23 @@ enum Mapping {
 
 impl JSDocIndex {
     pub fn new(text: &str, semantic: &Semantic) -> Self {
+        let nodes = semantic.nodes();
         let mut file = JSDocIndex {
             nodes: Vec::new(),
             js_docs: Vec::new(),
-            by_ast: HashMap::new(),
+            by_ast: NodeMap::new(nodes.len()),
         };
-        let nodes = semantic.nodes();
         // The node the children of each oxc node are children of.
-        let mut child_parents: HashMap<NodeId, TsNodeId> = HashMap::new();
+        let mut child_parents: NodeMap<TsNodeId> = NodeMap::new(nodes.len());
         // For oxc nodes without a TypeScript node, the node which stands in
         // for them as an initializer.
-        let mut skipped: HashMap<NodeId, TsNodeId> = HashMap::new();
+        let mut skipped: NodeMap<TsNodeId> = NodeMap::new(nodes.len());
         for node in nodes.iter() {
             let id = node.id();
             let kind = node.kind();
             let oxc_parent = Some(nodes.parent_id(id)).filter(|&parent| parent != id);
             let parent_kind = oxc_parent.map(|parent| nodes.kind(parent));
-            let parent = oxc_parent.and_then(|parent| child_parents.get(&parent).copied());
+            let parent = oxc_parent.and_then(|parent| child_parents.get(parent));
             let span = kind.span();
             // PORT: oxc's spans of exported declarations start after the
             // `export`, and those of classes after decorators which come
@@ -291,11 +307,10 @@ impl JSDocIndex {
         file.nodes[end_of_file.0 as usize].pos = full_start(text, text_len, comments, hashbang_end);
 
         // Initializers.
-        let resolve = |file: &JSDocIndex, id: NodeId| {
-            file.by_ast.get(&id).or_else(|| skipped.get(&id)).copied()
-        };
+        let resolve =
+            |file: &JSDocIndex, id: NodeId| file.by_ast.get(id).or_else(|| skipped.get(id));
         for node in nodes.iter() {
-            let Some(&ts_id) = file.by_ast.get(&node.id()) else {
+            let Some(ts_id) = file.by_ast.get(node.id()) else {
                 continue;
             };
             let initializer: Option<&Expression> = match node.kind() {
@@ -610,7 +625,7 @@ impl JSDocIndex {
     /// The node built from an oxc node. For a `VariableDeclaration`, it's
     /// the `VariableStatement`.
     pub fn from_ast(&self, id: NodeId) -> Option<TsNodeId> {
-        self.by_ast.get(&id).copied()
+        self.by_ast.get(id)
     }
 
     pub fn js_doc(&self, id: JSDocId) -> &JSDoc {
