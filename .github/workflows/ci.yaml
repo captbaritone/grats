@@ -182,9 +182,12 @@ jobs:
           cd "$project"
           echo '{ "include": ["src"] }' > tsconfig.json
           printf '/** @gqlQueryField */\nexport function hello(): string {\n  return "Hello";\n}\n' > src/index.ts
-          "$grats"
+          "$grats" || { echo "grats exited with $?"; exit 1; }
+          cat schema.graphql
           grep -q "hello: String" schema.graphql
-          "$grats" locate Query.hello | grep -q "index.ts:2:17"
+          "$grats" locate Query.hello > locate.txt || { echo "grats locate exited with $?"; cat locate.txt; exit 1; }
+          cat locate.txt
+          grep -q "index.ts:2:17" locate.txt
       - name: Smoke test watch mode
         if: ${{ !matrix.cross }}
         run: |
