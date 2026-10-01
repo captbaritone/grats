@@ -42,7 +42,7 @@ use crate::grats_config::GratsConfig;
 use crate::grats_root::relative_path;
 use crate::jsdoc::{
     JSDocComment, JSDocCommentPart, JSDocIndex, JSDocOrTag, SyntaxKind, TagId, TsNodeId,
-    full_start, get_text_of_js_doc_comment, is_js_white_space, js_trim, skip_trivia,
+    full_start, get_text_of_js_doc_comment, is_js_white_space, is_line_break, js_trim, skip_trivia,
 };
 use crate::snapshot_refs::{
     DeclLoc, DeclRef, EntityName, EntityNameRef, decl_ref, entity_name_ref,
@@ -1316,17 +1316,16 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let tag = self.find_tag(node, DEPRECATED_TAG);
         if let Some(tag) = tag {
             let mut reason: Option<ConstArgumentNode> = None;
-            let comment = self.jsdoc.tag(tag).comment.as_ref();
-            if comment.is_some() {
-                let reason_comment = get_text_of_js_doc_comment(comment);
+            let tag_data = self.jsdoc.tag(tag);
+            if let Some(comment_span) = tag_data.comment_span {
+                let reason_comment = get_text_of_js_doc_comment(tag_data.comment.as_ref());
                 if let Some(reason_comment) = reason_comment {
-                    // FIXME: Use the _value_'s location not the tag's
                     let tag_node = self.locatable(self.tag_span(tag));
                     reason = Some(self.gql.const_argument(
                         tag_node,
                         self.gql.name(tag_node, "reason"),
                         ConstValueNode::StringValue(self.gql.string(
-                            tag_node,
+                            self.locatable(comment_span),
                             &reason_comment,
                             None,
                         )),
@@ -3209,15 +3208,12 @@ impl<'f, 'a> Extractor<'f, 'a> {
     fn entity_name(&mut self, node: Span, name: Option<Name<'a>>, tag: TagId) -> Option<NameNode> {
         let jsdoc = self.jsdoc;
         let tag_data = jsdoc.tag(tag);
-        if tag_data.comment.is_some() {
+        if let Some(loc_node) = tag_data.comment_span {
             let comment_name = get_text_of_js_doc_comment(tag_data.comment.as_ref());
             if let Some(comment_name) = comment_name {
-                // FIXME: Use the _value_'s location not the tag's
-                let loc_node = self.tag_span(tag);
-
-                // Test for leading newlines using the raw text
-                let has_leading_newlines =
-                    trim_trailing_comment_lines(self.text(loc_node)).contains('\n');
+                let has_leading_newlines = self
+                    .text(Span::new(tag_data.tag_name.end, loc_node.start))
+                    .contains(is_line_break);
                 let has_internal_whitespace = comment_name.chars().any(is_js_white_space);
                 let validation_message = graphql_name_validation_message(&comment_name);
 
@@ -4390,39 +4386,6 @@ fn extract_as_const_expression<'a>(
 
 fn graphql_name_validation_message(name: &str) -> Option<String> {
     assert_name(name).err().map(|error| error.message)
-}
-
-// Trims any number of whitespace-only lines including any lines that simply
-// contain a `*` surrounded by whitespace.
-//
-// PORT: `text.replace(/(\s*\n\s*\*?\s*)+$/, "")`.
-fn trim_trailing_comment_lines(text: &str) -> &str {
-    for (index, _) in text.char_indices() {
-        if is_trailing_comment_lines(&text[index..]) {
-            return &text[..index];
-        }
-    }
-    text
-}
-
-/// Whether all of `text` matches `(\s*\n\s*\*?\s*)+`.
-fn is_trailing_comment_lines(text: &str) -> bool {
-    let mut seen_newline = false;
-    let mut seen_star = false;
-    for ch in text.chars() {
-        if ch == '\n' {
-            seen_newline = true;
-            seen_star = false;
-        } else if ch == '*' {
-            if !seen_newline || seen_star {
-                return false;
-            }
-            seen_star = true;
-        } else if !is_js_white_space(ch) {
-            return false;
-        }
-    }
-    seen_newline
 }
 
 /// PORT: How a JSDoc tag's comment is interpolated into a JavaScript template

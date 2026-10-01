@@ -47,26 +47,26 @@ src/tests/fixtures/extend_interface/addStringFieldToInterfaceTwice.invalid.ts:9:
 9 export function greeting(person: IPerson): string {
                   ~~~~~~~~
 
-  src/tests/fixtures/extend_interface/addStringFieldToInterfaceTwice.invalid.ts:13:5
+  src/tests/fixtures/extend_interface/addStringFieldToInterfaceTwice.invalid.ts:13:15
     13 /** @gqlField greeting */
-           ~~~~~~~~~~~~~~~~~~~
+                     ~~~~~~~~
     Related location
 src/tests/fixtures/extend_interface/addStringFieldToInterfaceTwice.invalid.ts:9:17 - error: Field "Admin.greeting" can only be defined once.
 
 9 export function greeting(person: IPerson): string {
                   ~~~~~~~~
 
-  src/tests/fixtures/extend_interface/addStringFieldToInterfaceTwice.invalid.ts:13:5
+  src/tests/fixtures/extend_interface/addStringFieldToInterfaceTwice.invalid.ts:13:15
     13 /** @gqlField greeting */
-           ~~~~~~~~~~~~~~~~~~~
+                     ~~~~~~~~
     Related location
 src/tests/fixtures/extend_interface/addStringFieldToInterfaceTwice.invalid.ts:9:17 - error: Field "User.greeting" can only be defined once.
 
 9 export function greeting(person: IPerson): string {
                   ~~~~~~~~
 
-  src/tests/fixtures/extend_interface/addStringFieldToInterfaceTwice.invalid.ts:13:5
+  src/tests/fixtures/extend_interface/addStringFieldToInterfaceTwice.invalid.ts:13:15
     13 /** @gqlField greeting */
-           ~~~~~~~~~~~~~~~~~~~
+                     ~~~~~~~~
     Related location
 ```

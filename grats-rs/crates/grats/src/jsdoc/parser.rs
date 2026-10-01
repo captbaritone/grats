@@ -13,7 +13,9 @@
 //! link in the comment of `@throws`. Nested tags (`@property` under
 //! `@typedef`) are top-level tags here.
 
-use super::scanner::{Scanner, Token, js_slice, js_trim_end, utf16_len};
+use oxc_span::Span;
+
+use super::scanner::{Scanner, Token, is_js_white_space, js_slice, js_trim_end, utf16_len};
 
 #[derive(Debug, Clone)]
 pub struct JSDoc {
@@ -29,6 +31,9 @@ pub struct JSDocTag {
     pub end: u32,
     pub tag_name: Identifier,
     pub comment: Option<JSDocComment>,
+    /// PORT: The span of the comment's text, from its first non-whitespace
+    /// character to its last, which TypeScript doesn't record.
+    pub comment_span: Option<Span>,
 }
 
 #[derive(Debug, Clone)]
@@ -342,7 +347,7 @@ impl JSDocParser<'_> {
         end: usize,
         margin: usize,
         indent_text: &str,
-    ) -> Option<JSDocComment> {
+    ) -> (Option<JSDocComment>, Option<Span>) {
         let mut margin = margin;
         // some tags, like typedef and callback, have already parsed their comments earlier
         if indent_text.is_empty() {
@@ -353,9 +358,15 @@ impl JSDocParser<'_> {
     }
 
     /// PORT: `initialMargin` is always given by `parseTrailingTagComments`,
-    /// the only caller which is ported.
-    fn parse_tag_comments(&mut self, indent: usize, initial_margin: &str) -> Option<JSDocComment> {
+    /// the only caller which is ported. Also returns the span of the
+    /// comment's text.
+    fn parse_tag_comments(
+        &mut self,
+        indent: usize,
+        initial_margin: &str,
+    ) -> (Option<JSDocComment>, Option<Span>) {
         let mut indent = indent;
+        let mut span: Option<Span> = None;
         let mut comments: Vec<String> = Vec::new();
         let mut parts: Vec<JSDocCommentPart> = Vec::new();
         let mut state;
@@ -379,6 +390,11 @@ impl JSDocParser<'_> {
         state = JSDocState::SawAsterisk;
         let mut tok = self.token();
         loop {
+            // The comment's text is every token but whitespace and the
+            // asterisks which begin lines.
+            let is_text = !matches!(tok, Token::NewLineTrivia | Token::WhitespaceTrivia)
+                && !(tok == Token::AsteriskToken && state == JSDocState::BeginningOfLine);
+            let token_start = self.scanner.get_token_start();
             match tok {
                 Token::NewLineTrivia => {
                     state = JSDocState::BeginningOfLine;
@@ -455,6 +471,9 @@ impl JSDocParser<'_> {
                     push_comment(&mut comments, &mut margin, &mut indent, text);
                 }
             }
+            if is_text {
+                span = extend_span(span, self.text, token_start, self.scanner.get_token_end());
+            }
             if state == JSDocState::SavingComments || state == JSDocState::SavingBackticks {
                 tok = self.next_jsdoc_comment_text_token(state == JSDocState::SavingBackticks);
             } else {
@@ -464,7 +483,7 @@ impl JSDocParser<'_> {
 
         remove_leading_newlines(&mut comments);
         let trimmed_comments = js_trim_end(&comments.concat()).to_string();
-        if !parts.is_empty() {
+        let comment = if !parts.is_empty() {
             if !trimmed_comments.is_empty() {
                 parts.push(JSDocCommentPart::Text(trimmed_comments));
             }
@@ -473,7 +492,8 @@ impl JSDocParser<'_> {
             Some(JSDocComment::Text(trimmed_comments))
         } else {
             None
-        }
+        };
+        (comment, span)
     }
 
     fn parse_jsdoc_link(&mut self, start: usize) -> Option<JSDocCommentPart> {
@@ -563,12 +583,14 @@ impl JSDocParser<'_> {
         indent_text: &str,
     ) -> JSDocTag {
         let end = self.scanner.get_token_full_start();
-        let comment = self.parse_trailing_tag_comments(start, end, indent, indent_text);
+        let (comment, comment_span) =
+            self.parse_trailing_tag_comments(start, end, indent, indent_text);
         JSDocTag {
             pos: start as u32,
             end: self.scanner.get_token_full_start() as u32,
             tag_name,
             comment,
+            comment_span,
         }
     }
 
@@ -592,6 +614,21 @@ impl JSDocParser<'_> {
     }
 }
 
+/// Extends `span` to the non-whitespace text from `start` to `end`.
+fn extend_span(span: Option<Span>, text: &str, start: usize, end: usize) -> Option<Span> {
+    let token = &text[start..end];
+    let trimmed = token.trim_start_matches(is_js_white_space);
+    let start = start + token.len() - trimmed.len();
+    let end = start + js_trim_end(trimmed).len();
+    if start == end {
+        return span;
+    }
+    Some(Span::new(
+        span.map_or(start as u32, |span| span.start),
+        end as u32,
+    ))
+}
+
 fn remove_leading_newlines(comments: &mut Vec<String>) {
     while comments
         .first()
@@ -612,5 +649,30 @@ fn remove_trailing_whitespace(comments: &mut Vec<String>) {
         } else {
             break;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn comment_spans(text: &str) -> Vec<Option<&str>> {
+        let js_doc = parse_jsdoc_comment(text, 0, text.len() as u32).unwrap();
+        js_doc
+            .tags
+            .iter()
+            .map(|tag| {
+                tag.comment_span
+                    .map(|span| &text[span.start as usize..span.end as usize])
+            })
+            .collect()
+    }
+
+    #[test]
+    fn locates_tag_comments() {
+        assert_eq!(
+            comment_spans("/** @a  One \n * two  \n * @b\n * @c `x` *y* */"),
+            vec![Some("One \n * two"), None, Some("`x` *y*")]
+        );
     }
 }

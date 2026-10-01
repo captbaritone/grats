@@ -12,5 +12,5 @@ mod utilities;
 pub use nodes::{JSDocId, JSDocIndex, SyntaxKind, TagId, TsNode, TsNodeId};
 pub(crate) use nodes::{full_start, skip_trivia};
 pub use parser::{JSDoc, JSDocComment, JSDocCommentPart, JSDocLinkKind, JSDocTag};
-pub use scanner::{CommentKind, CommentRange, is_js_white_space, js_trim};
+pub use scanner::{CommentKind, CommentRange, is_js_white_space, is_line_break, js_trim};
 pub use utilities::{JSDocOrTag, get_text_of_js_doc_comment};
