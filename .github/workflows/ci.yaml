@@ -182,9 +182,13 @@ jobs:
           cd "$project"
           echo '{ "include": ["src"] }' > tsconfig.json
           printf '/** @gqlQueryField */\nexport function hello(): string {\n  return "Hello";\n}\n' > src/index.ts
+          # A type defined in another module, found through module resolution.
+          printf '/** @gqlType */\nexport class Greeting {\n  /** @gqlField */\n  text: string = "Hi";\n}\n' > src/greeting.ts
+          printf 'import { Greeting } from "./greeting";\n\n/** @gqlQueryField */\nexport function greeting(): Greeting {\n  return new Greeting();\n}\n' > src/queries.ts
           "$grats" || { echo "grats exited with $?"; exit 1; }
           cat schema.graphql
           grep -q "hello: String" schema.graphql
+          grep -q "greeting: Greeting" schema.graphql
           "$grats" locate Query.hello > locate.txt || { echo "grats locate exited with $?"; cat locate.txt; exit 1; }
           cat locate.txt
           grep -q "index.ts:2:17" locate.txt

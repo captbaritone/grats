@@ -94,7 +94,7 @@ pub fn load_project(
             "Grats: Could not read `{config_path}`: {message}"
         ))]
     })?;
-    let tsconfig_path = tsconfig.path().to_string_lossy().into_owned();
+    let tsconfig_path = path::from_std(tsconfig.path());
 
     // The `grats` key of the config itself, which isn't inherited.
     let raw = host.read_file(&tsconfig_path).and_then(|mut text| {
@@ -140,8 +140,8 @@ fn find_config_file(host: &dyn Host) -> Option<String> {
 /// Like `getFileNamesFromConfigSpecs`: the files named by `files`, followed
 /// by the files `include` matches and `exclude` doesn't.
 fn root_names(tsconfig: &TsConfig, allow_js: bool, host: &dyn Host) -> Vec<String> {
-    let path = |path: &std::path::PathBuf| path.to_string_lossy().into_owned();
-    let directory = tsconfig.directory().to_string_lossy().into_owned();
+    let path = |path: &std::path::PathBuf| path::from_std(path);
+    let directory = path::from_std(tsconfig.directory());
     let files: Vec<String> = tsconfig.files.iter().flatten().map(path).collect();
     let includes: Vec<String> = match &tsconfig.include {
         Some(include) => include.iter().map(path).map(implicit_glob).collect(),

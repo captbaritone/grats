@@ -425,7 +425,7 @@ impl HostFileSystem {
     fn stat(&self, path: &Path, follow_links: bool) -> io::Result<FileMetadata> {
         let kind = self
             .host
-            .stat(&path.to_string_lossy(), follow_links)
+            .stat(&path::from_std(path), follow_links)
             .ok_or_else(not_found)?;
         Ok(FileMetadata::new(
             kind == FileKind::File,
@@ -450,7 +450,7 @@ impl FileSystem for HostFileSystem {
 
     fn read_to_string(&self, path: &Path) -> io::Result<String> {
         self.host
-            .read_file(&path.to_string_lossy())
+            .read_file(&path::from_std(path))
             .ok_or_else(not_found)
     }
 
@@ -464,14 +464,14 @@ impl FileSystem for HostFileSystem {
 
     fn read_link(&self, path: &Path) -> Result<PathBuf, ResolveError> {
         self.host
-            .read_link(&path.to_string_lossy())
+            .read_link(&path::from_std(path))
             .map(PathBuf::from)
             .ok_or_else(|| ResolveError::from(not_found()))
     }
 
     fn canonicalize(&self, path: &Path) -> io::Result<PathBuf> {
         self.host
-            .realpath(&path.to_string_lossy())
+            .realpath(&path::from_std(path))
             .map(PathBuf::from)
             .ok_or_else(not_found)
     }
@@ -529,7 +529,7 @@ fn resolve_dts(
     specifier: &str,
 ) -> Option<String> {
     let resolution = resolver.resolve_dts(containing_file, specifier).ok()?;
-    let path = resolution.into_path_buf().to_string_lossy().into_owned();
+    let path = path::from_std(resolution.path());
     (ends_with_any(&path, &TS_EXTENSIONS) || ends_with_any(&path, &JS_EXTENSIONS)).then_some(path)
 }
 

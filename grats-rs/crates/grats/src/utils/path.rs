@@ -145,6 +145,18 @@ pub fn to_native(path: &str) -> &str {
     }
 }
 
+/// A path from `std::path`, such as one `oxc_resolver` built from Grats'
+/// paths. On Windows, `std::path` joins components with `\`, so
+/// `/C:/project` comes back as `\C:\project`.
+pub fn from_std(path: &std::path::Path) -> String {
+    let path = path.to_string_lossy();
+    if cfg!(windows) {
+        path.replace('\\', "/")
+    } else {
+        path.into_owned()
+    }
+}
+
 /// A path as Rust is given it, from one the user wrote, which may be relative
 /// to `current_directory`: with `/` as its separator, and on Windows,
 /// `C:\project` is `/C:/project`. Like `toRustPath` in `src/rs/host.ts`.
