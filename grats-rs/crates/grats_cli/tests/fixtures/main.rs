@@ -2,6 +2,10 @@
 //! in `src/tests/fixtures` and `src/tests/configParserFixtures`. Each fixture
 //! is transformed and the result compared to its `.expected.md` file.
 //!
+//! For the fixtures in `src/tests/integrationFixtures`, this generates the
+//! schema of each `index.ts` and compares it to the generated files in its
+//! directory. `pnpm test` then executes their queries against them.
+//!
 //! Run with `cargo test --test fixtures`. Pass `-- --write` to write the
 //! actual output to the expected output files, and delete unexpected files,
 //! and a name to run only the fixtures whose paths contain it.
@@ -39,6 +43,8 @@ enum Kind {
     Schema,
     /// `.json` files, which are Grats configs.
     Config,
+    /// `index.ts` files, whose schema is generated next to them.
+    Integration,
 }
 
 impl Kind {
@@ -46,6 +52,27 @@ impl Kind {
         match self {
             Kind::Schema => file_name.ends_with(".ts"),
             Kind::Config => file_name.ends_with(".json"),
+            Kind::Integration => file_name == "index.ts" || file_name.ends_with("/index.ts"),
+        }
+    }
+
+    /// The files which belong to the fixture, besides itself, relative to the
+    /// fixtures directory.
+    fn fixture_files(self, fixtures_dir: &str, fixture: &str) -> Vec<String> {
+        let expected = format!("{fixture}.expected.md");
+        match self {
+            Kind::Schema | Kind::Config => vec![expected],
+            Kind::Integration => {
+                let code = read(&format!("{fixtures_dir}/{fixture}"));
+                let dir = path::dirname(fixture);
+                let mut files = vec![expected];
+                files.extend(
+                    integration_outputs(&integration_config(&code))
+                        .into_iter()
+                        .map(|output| format!("{dir}/{output}")),
+                );
+                files
+            }
         }
     }
 }
@@ -68,6 +95,7 @@ fn main() {
     for (dir, kind) in [
         ("src/tests/configParserFixtures", Kind::Config),
         ("src/tests/fixtures", Kind::Schema),
+        ("src/tests/integrationFixtures", Kind::Integration),
     ] {
         let fixtures_dir = format!("{repo}/{dir}");
         let mut test_fixtures = Vec::new();
@@ -80,13 +108,22 @@ fn main() {
             }
         }
         for fixture in &test_fixtures {
-            other_files.remove(&format!("{fixture}.expected.md"));
+            for file_name in kind.fixture_files(&fixtures_dir, fixture) {
+                other_files.remove(&file_name);
+            }
         }
         for fixture in test_fixtures {
             let fixtures_dir = fixtures_dir.clone();
             let name = format!("{dir}/{fixture}");
-            trials.push(Trial::test(name, move || {
-                test_fixture(&fixtures_dir, &fixture, kind, write)
+            trials.push(Trial::test(name, move || match kind {
+                Kind::Schema => test_fixture(&fixtures_dir, &fixture, transform_schema, write),
+                Kind::Config => test_fixture(
+                    &fixtures_dir,
+                    &fixture,
+                    |code, _| transform_config(code),
+                    write,
+                ),
+                Kind::Integration => test_integration_fixture(&fixtures_dir, &fixture, write),
             }));
         }
         let mut other_files: Vec<_> = other_files.into_iter().collect();
@@ -151,17 +188,20 @@ fn read(path: &str) -> String {
         .unwrap_or_else(|error| panic!("Expected to read {path}: {error}"))
 }
 
-fn test_fixture(fixtures_dir: &str, fixture: &str, kind: Kind, write: bool) -> Result<(), Failed> {
+/// Transforms the fixture's content, given its path.
+type Transformer = fn(&str, &str) -> TransformerResult;
+
+fn test_fixture(
+    fixtures_dir: &str,
+    fixture: &str,
+    transformer: Transformer,
+    write: bool,
+) -> Result<(), Failed> {
     let expected_file_path = format!("{fixtures_dir}/{fixture}.expected.md");
-    let expected_content =
-        fs::read_to_string(native_host::from_grats_path(&expected_file_path)).unwrap_or_default();
     let fixture_path = format!("{fixtures_dir}/{fixture}");
     let fixture_content = read(&fixture_path);
 
-    let transform_result = match kind {
-        Kind::Schema => transform_schema(&fixture_content, &fixture_path),
-        Kind::Config => transform_config(&fixture_content),
-    };
+    let transform_result = transformer(&fixture_content, &fixture_path);
     let actual_has_error = transform_result.is_err();
     let actual_output = transform_result.unwrap_or_else(|err| err);
 
@@ -191,27 +231,116 @@ fn test_fixture(fixtures_dir: &str, fixture: &str, kind: Kind, write: bool) -> R
         None
     };
 
-    if test_output != expected_content {
-        if write {
-            fs::write(
-                native_host::from_grats_path(&expected_file_path),
-                &test_output,
-            )
-            .expect("Expected to write the expected output");
-            Ok(())
-        } else {
-            Err(format!(
-                "Fixture did not match. Run with `-- --write` to update fixtures.\n{}",
-                similar::TextDiff::from_lines(&expected_content, &test_output)
-                    .unified_diff()
-                    .header("expected", "actual")
-            )
-            .into())
-        }
-    } else if let Some(error) = naming_convention_error {
-        Err(error.into())
-    } else {
+    compare_or_write(&expected_file_path, &test_output, write)?;
+    match naming_convention_error {
+        Some(error) => Err(error.into()),
+        None => Ok(()),
+    }
+}
+
+/// Compares the file to its expected content, or writes it in write mode. A
+/// missing file is treated as empty.
+fn compare_or_write(file_path: &str, actual: &str, write: bool) -> Result<(), Failed> {
+    let native_path = native_host::from_grats_path(file_path);
+    let expected = fs::read_to_string(&native_path).unwrap_or_default();
+    if actual == expected {
         Ok(())
+    } else if write {
+        fs::write(&native_path, actual).expect("Expected to write the expected output");
+        Ok(())
+    } else {
+        Err(format!(
+            "{file_path} did not match. Run with `-- --write` to update fixtures.\n{}",
+            similar::TextDiff::from_lines(&expected, actual)
+                .unified_diff()
+                .header("expected", "actual")
+        )
+        .into())
+    }
+}
+
+/// The config of an integration fixture: the defaults, and the options on its
+/// first line.
+fn integration_config(code: &str) -> Value {
+    let mut config = json!({
+        "nullableByDefault": true,
+        "importModuleSpecifierEnding": ".js",
+        "schemaHeader": null,
+        "tsSchemaHeader": null,
+    });
+    if let Some(test_options) = test_options(code) {
+        config
+            .as_object_mut()
+            .expect("Expected the config to be an object")
+            .extend(test_options);
+    }
+    config
+}
+
+/// The files generated for an integration fixture, relative to its directory.
+fn integration_outputs(config: &Value) -> Vec<&str> {
+    let mut outputs = vec!["schema.ts", "schema.graphql"];
+    if let Some(enums) = config.get("tsClientEnums").and_then(Value::as_str) {
+        outputs.push(enums);
+    }
+    outputs
+}
+
+/// Generates the schema of an integration fixture, and compares each file to
+/// the one in its directory.
+fn test_integration_fixture(fixtures_dir: &str, fixture: &str, write: bool) -> Result<(), Failed> {
+    let fixture_path = format!("{fixtures_dir}/{fixture}");
+    let code = read(&fixture_path);
+    let config = validate_grats_options(Some(&integration_config(&code)))
+        .map_err(|message| format!("Invalid config: {message}"))?
+        .config;
+
+    let host = Arc::new(FixtureHost::new());
+    let sources = SourceTable::default();
+    let program = program_options(&fixture_path);
+    let doc = grats::pipeline::run(&config, &grats_root(), &program, host.clone(), &sources)
+        .map_err(|diagnostics| {
+            let report = format_diagnostics_with_context(&code, diagnostics, &sources, &host);
+            format!("Expected the schema to build:\n{report}")
+        })?;
+
+    let dir = path::dirname(&fixture_path);
+    let schema_path = path::resolve(dir, "schema.ts");
+    let enums_path = config
+        .ts_client_enums
+        .as_ref()
+        .map(|enums| path::resolve(dir, enums));
+    let outputs = print_outputs(
+        &doc,
+        OutputRequest {
+            config,
+            grats_root: grats_root(),
+            graphql_schema: true,
+            ts_schema: Some(schema_path.clone()),
+            ts_client_enums: enums_path.clone(),
+            metadata: false,
+        },
+    );
+
+    let mut files = vec![
+        (schema_path, outputs.ts_schema),
+        (path::resolve(dir, "schema.graphql"), outputs.graphql_schema),
+    ];
+    if let Some(enums_path) = enums_path {
+        files.push((enums_path, outputs.ts_client_enums));
+    }
+    let errors: Vec<String> = files
+        .into_iter()
+        .filter_map(|(file_path, output)| {
+            compare_or_write(&file_path, &expect_output(output), write)
+                .err()
+                .map(|error| error.message().unwrap_or_default().to_string())
+        })
+        .collect();
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors.join("\n").into())
     }
 }
 
@@ -285,16 +414,10 @@ fn transform_schema(code: &str, fixture_path: &str) -> TransformerResult {
         .map_err(|message| config_error_report(code, message))?
         .config;
 
-    let repo = repo_root();
     let grats_root = grats_root();
-    let program = ProgramOptions {
-        root_names: vec![fixture_path.to_string(), format!("{repo}/src/Types.ts")],
-        allow_js: false,
-        tsconfig: None,
-        use_case_sensitive_file_names: native_host::use_case_sensitive_file_names(),
-    };
     let host = Arc::new(FixtureHost::new());
     let sources = SourceTable::default();
+    let program = program_options(fixture_path);
     let doc = grats::pipeline::run(&config, &grats_root, &program, host.clone(), &sources)
         .map_err(|diagnostics| {
             format_diagnostics_with_context(code, diagnostics, &sources, &host)
@@ -359,6 +482,19 @@ fn transform_schema(code: &str, fixture_path: &str) -> TransformerResult {
         markdown.add_code_block(&enums, "ts", None);
     }
     Ok(markdown)
+}
+
+/// The program of a fixture, which can use the types Grats exports.
+fn program_options(fixture_path: &str) -> ProgramOptions {
+    ProgramOptions {
+        root_names: vec![
+            fixture_path.to_string(),
+            format!("{}/src/Types.ts", repo_root()),
+        ],
+        allow_js: false,
+        tsconfig: None,
+        use_case_sensitive_file_names: native_host::use_case_sensitive_file_names(),
+    }
 }
 
 fn expect_output(output: Option<String>) -> String {

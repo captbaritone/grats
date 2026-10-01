@@ -1,0 +1,17 @@
+enum Color {
+  blue
+  green
+  red
+}
+
+enum Priority {
+  high
+  low
+  medium
+}
+
+type Query {
+  colorName(color: Color!): String
+  currentPriority: Priority
+  favoriteColor: Color
+}

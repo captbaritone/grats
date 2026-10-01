@@ -1,0 +1,23 @@
+interface GqlNode {
+  id: ID
+}
+
+type DefaultNode implements GqlNode {
+  id: ID
+}
+
+type Guest implements GqlNode {
+  id: ID
+}
+
+type Query {
+  node(id: ID!): GqlNode
+}
+
+type RenamedNode implements GqlNode {
+  id: ID
+}
+
+type User implements GqlNode {
+  id: ID
+}

@@ -1,0 +1,14 @@
+input Greeting @oneOf {
+  name: String
+  user: UserPayload
+  userId: ID
+}
+
+input UserPayload {
+  id: ID!
+  name: String!
+}
+
+type Query {
+  greet(greeting: Greeting!): String
+}

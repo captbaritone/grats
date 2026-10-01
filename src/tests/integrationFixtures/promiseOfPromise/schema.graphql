@@ -1,0 +1,4 @@
+type Query {
+  promiseOfPromise: String
+  promiseOfPromisePromise: String
+}

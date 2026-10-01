@@ -1,0 +1,20 @@
+type FirstHundredIntegersConnection {
+  edges: [FirstHundredIntegersEdge!]
+  pageInfo: FirstHundredIntegersPageInfo
+}
+
+type FirstHundredIntegersEdge {
+  cursor: String
+  node: Int
+}
+
+type FirstHundredIntegersPageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  firstHundredIntegers(after: String, first: Int): FirstHundredIntegersConnection
+}

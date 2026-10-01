@@ -1,0 +1,10 @@
+type Query {
+  currentUser: User
+  hello: String
+  user: User
+}
+
+type User {
+  greeting: String
+  name: String
+}

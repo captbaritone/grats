@@ -1,0 +1,7 @@
+input SomeObj {
+  a: String!
+}
+
+type Query {
+  hello(someObj: SomeObj! = {a: "Sup"}): String
+}
