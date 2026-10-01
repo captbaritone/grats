@@ -21,13 +21,12 @@ src/tests/fixtures/user_error/WrongCaseGqlTag.invalid.ts:1:6 - error: Incorrect 
 #### Code Action: "Change to @gqlField" (fix-grats-tag-casing)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -1,2 +1,2 @@
-- /** @GQLField */
-+ /** @gqlField */
-  function field() {}
+-/** @GQLField */
++/** @gqlField */
+ function field() {}
 ```
 
 #### Applied Fixes

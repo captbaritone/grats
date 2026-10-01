@@ -26,14 +26,13 @@ src/tests/fixtures/field_definitions/asyncFunctionFieldNotExported.invalid.ts:2:
 #### Code Action: "Add export keyword to function with @gqlField" (add-export-keyword-to-function)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -1,3 +1,3 @@
-  /** @gqlField */
-- async function greet(_: Query): Promise<string> {
-+ export async function greet(_: Query): Promise<string> {
-    return "Hello, World!";
+ /** @gqlField */
+-async function greet(_: Query): Promise<string> {
++export async function greet(_: Query): Promise<string> {
+   return "Hello, World!";
 ```
 
 #### Applied Fixes

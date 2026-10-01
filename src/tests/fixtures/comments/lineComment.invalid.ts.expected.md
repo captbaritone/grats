@@ -31,26 +31,24 @@ src/tests/fixtures/comments/lineComment.invalid.ts:3:6 - error: Unexpected Grats
 #### Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -1,2 +1,2 @@
-- // @gqlType
-+ /** @gqlType */
-  export default class Composer {
+-// @gqlType
++/** @gqlType */
+ export default class Composer {
 ```
 
 #### Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -2,3 +2,3 @@
-  export default class Composer {
--   // @gqlField
-+   /** @gqlField */
-    url(): string {
+ export default class Composer {
+-  // @gqlField
++  /** @gqlField */
+   url(): string {
 ```
 
 #### Applied Fixes

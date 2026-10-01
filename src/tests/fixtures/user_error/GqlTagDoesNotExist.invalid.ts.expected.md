@@ -20,11 +20,11 @@ src/tests/fixtures/user_error/GqlTagDoesNotExist.invalid.ts:1:6 - error: `@gqlFi
 #### Code Action: "Change to @gqlField" (change-to-gqlField)
 
 ```diff
-- Original
-+ Fixed
-
-- /** @gqlFiled */
-+ /** @gqlField */
+--- Original
++++ Fixed
+@@ -1 +1 @@
+-/** @gqlFiled */
++/** @gqlField */
 ```
 
 #### Applied Fixes

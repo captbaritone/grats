@@ -6,7 +6,6 @@
 //! actual output to the expected output files, and delete unexpected files,
 //! and a name to run only the fixtures whose paths contain it.
 
-mod diff;
 mod markdown;
 
 use std::cell::RefCell;
@@ -31,7 +30,6 @@ use grats_cli::native_host::{self, NativeHost};
 use libtest_mimic::{Arguments, Failed, Trial};
 use serde_json::{Value, json};
 
-use diff::diff;
 use markdown::Markdown;
 
 /// The fixtures transformed by each kind of transformer.
@@ -417,7 +415,12 @@ fn format_diagnostics_with_context(
             4,
             &format!("Code Action: \"{}\" ({})", fix.description, fix.fix_name),
         );
-        markdown.add_code_block(&diff(code, &new_code, "Original", "Fixed"), "diff", None);
+        let diff = similar::TextDiff::from_lines(code, &new_code)
+            .unified_diff()
+            .context_radius(1)
+            .header("Original", "Fixed")
+            .to_string();
+        markdown.add_code_block(&diff, "diff", None);
     }
 
     let file_name = fixes[0]

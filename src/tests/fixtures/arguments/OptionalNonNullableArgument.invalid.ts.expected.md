@@ -26,14 +26,13 @@ src/tests/fixtures/arguments/OptionalNonNullableArgument.invalid.ts:4:33 - error
 #### Code Action: "Add '| null' to the type" (add-null-to-optional-type)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -3,3 +3,3 @@
-    /** @gqlField */
--   hello({ greeting }: { greeting?: string }): string {
-+   hello({ greeting }: { greeting?: string | null }): string {
-      return `${greeting ?? "Hello"} World!`;
+   /** @gqlField */
+-  hello({ greeting }: { greeting?: string }): string {
++  hello({ greeting }: { greeting?: string | null }): string {
+     return `${greeting ?? "Hello"} World!`;
 ```
 
 #### Applied Fixes

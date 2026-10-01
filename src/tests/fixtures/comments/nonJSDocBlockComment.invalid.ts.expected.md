@@ -23,14 +23,13 @@ src/tests/fixtures/comments/nonJSDocBlockComment.invalid.ts:3:4 - error: Unexpec
 #### Code Action: "Convert to a docblock comment" (convert-block-comment-to-docblock-comment)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -2,3 +2,3 @@
-
-- /* @gqlType */
-+ /** @gqlType */
-  class Composer {}
+ 
+-/* @gqlType */
++/** @gqlType */
+ class Composer {}
 ```
 
 #### Applied Fixes

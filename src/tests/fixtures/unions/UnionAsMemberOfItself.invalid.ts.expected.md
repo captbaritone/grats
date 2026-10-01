@@ -46,27 +46,25 @@ src/tests/fixtures/unions/UnionAsMemberOfItself.invalid.ts:16:16 - error: Expect
 #### Code Action: "Create Grats-compatible `__typename` property" (fix-typename-property)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -8,3 +8,3 @@
-  class User {
--   __typename = "User";
-+   __typename = "User" as const;
-    /** @gqlField */
+ class User {
+-  __typename = "User";
++  __typename = "User" as const;
+   /** @gqlField */
 ```
 
 #### Code Action: "Create Grats-compatible `__typename` property" (fix-typename-property)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -15,3 +15,3 @@
-  class Entity {
--   __typename = "Entity";
-+   __typename = "Entity" as const;
-    /** @gqlField */
+ class Entity {
+-  __typename = "Entity";
++  __typename = "Entity" as const;
+   /** @gqlField */
 ```
 
 #### Applied Fixes

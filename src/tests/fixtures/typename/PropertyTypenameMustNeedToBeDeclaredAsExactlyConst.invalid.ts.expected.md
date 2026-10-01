@@ -27,14 +27,13 @@ src/tests/fixtures/typename/PropertyTypenameMustNeedToBeDeclaredAsExactlyConst.i
 #### Code Action: "Create Grats-compatible `__typename` property" (fix-typename-property)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -2,3 +2,3 @@
-  export class User {
--   __typename = "User" as Foo;
-+   __typename = "User" as const;
-    /** @gqlField */
+ export class User {
+-  __typename = "User" as Foo;
++  __typename = "User" as const;
+   /** @gqlField */
 ```
 
 #### Applied Fixes

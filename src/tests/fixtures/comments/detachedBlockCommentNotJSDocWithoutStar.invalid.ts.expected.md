@@ -25,13 +25,12 @@ src/tests/fixtures/comments/detachedBlockCommentNotJSDocWithoutStar.invalid.ts:2
 #### Code Action: "Convert to a docblock comment" (convert-block-comment-to-docblock-comment)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -1,2 +1,2 @@
-- /*
-+ /**
-     @gqlType
+-/*
++/**
+    @gqlType
 ```
 
 #### Applied Fixes

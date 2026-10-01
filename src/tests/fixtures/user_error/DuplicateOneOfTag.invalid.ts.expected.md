@@ -36,15 +36,14 @@ src/tests/fixtures/user_error/DuplicateOneOfTag.invalid.ts:3:4 - error: Unexpect
 #### Code Action: "Remove duplicate @oneOf tag" (remove-duplicate-tag)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -3,4 +3,3 @@
-   * @oneOf
--  * @oneOf
--  */
-+  * */
-  type Foo = {
+  * @oneOf
+- * @oneOf
+- */
++ * */
+ type Foo = {
 ```
 
 #### Applied Fixes

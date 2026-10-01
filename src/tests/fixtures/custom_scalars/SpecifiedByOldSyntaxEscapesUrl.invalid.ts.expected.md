@@ -26,14 +26,13 @@ src/tests/fixtures/custom_scalars/SpecifiedByOldSyntaxEscapesUrl.invalid.ts:3:4 
 #### Code Action: "Replace @specifiedBy with @gqlAnnotate" (replace-specifiedBy-with-gqlAnnotate)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -2,3 +2,3 @@
-   * @gqlScalar
--  * @specifiedBy https://example.com/"uuid"\spec
-+  * @gqlAnnotate specifiedBy(url: "https://example.com/\"uuid\"\\spec")
-   */
+  * @gqlScalar
+- * @specifiedBy https://example.com/"uuid"\spec
++ * @gqlAnnotate specifiedBy(url: "https://example.com/\"uuid\"\\spec")
+  */
 ```
 
 #### Applied Fixes

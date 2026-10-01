@@ -37,14 +37,13 @@ src/tests/fixtures/field_definitions/FieldAsStaticClassMethodNotExported.invalid
 #### Code Action: "Add export keyword to class with static @gqlField" (add-export-keyword-to-class)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -1,3 +1,3 @@
-  /** @gqlType */
-- class User {
-+ export class User {
-    /** @gqlField */
+ /** @gqlType */
+-class User {
++export class User {
+   /** @gqlField */
 ```
 
 #### Applied Fixes
