@@ -20,6 +20,8 @@
     "build": "pnpm run build:binary && pnpm run build:js",
     "build:binary": "tsx scripts/buildBinary.ts",
     "build:js": "rm -rf dist/ && tsc --build",
+    "build:wasm": "cd grats-rs && cargo build --release --target wasm32-unknown-unknown --package grats_wasm",
+    "test:wasm": "pnpm run build:wasm && node --import tsx --test website/src/wasm/grats.test.ts",
     "format": "prettier . --write",
     "lint": "eslint . && prettier . --check",
     "profile": "tsx scripts/profile.ts"

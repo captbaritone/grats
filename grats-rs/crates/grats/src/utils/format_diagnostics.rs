@@ -97,6 +97,37 @@ pub fn format_diagnostic_with_color_and_context(
     output
 }
 
+/// Like `format_diagnostic_with_color_and_context`, without the color, for
+/// the playground. Port of `ReportableDiagnostics.formatDiagnosticsWithContext`
+/// in `src/utils/DiagnosticError.ts`.
+pub fn format_diagnostic_with_context(
+    diagnostic: &Diagnostic,
+    sources: &SourceTable,
+    current_directory: &str,
+) -> String {
+    strip_color(&format_diagnostic_with_color_and_context(
+        diagnostic,
+        sources,
+        current_directory,
+    ))
+}
+
+/// Removes the escape sequences which set the color.
+fn strip_color(text: &str) -> String {
+    let mut stripped = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(start) = rest.find("\x1b[") {
+        stripped += &rest[..start];
+        let sequence = &rest[start..];
+        let end = sequence
+            .find('m')
+            .expect("Expected the escape sequence to end");
+        rest = &sequence[end + 1..];
+    }
+    stripped += rest;
+    stripped
+}
+
 /// Formats a message without a location, like those of watch mode.
 pub fn format_message_with_color(message_text: &str) -> String {
     let mut output = String::new();

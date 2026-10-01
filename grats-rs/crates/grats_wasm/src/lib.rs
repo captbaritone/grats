@@ -1,10 +1,13 @@
-//! WebAssembly bindings for the Rust port of Grats, for the website's
-//! playground. Nothing loads them yet: Grats' JS API, whose `src/rs/load.ts`
-//! loaded them, was removed.
+//! WebAssembly bindings for Grats, for the website's playground. See
+//! `website/src/wasm/grats.ts`, which loads them.
 //!
-//! Every entry point takes a string (usually JSON) and produces a string. We
-//! use a small hand-written ABI rather than wasm-bindgen, so that the build
-//! only needs `cargo`:
+//! The playground's files are in memory, so rather than giving Grats access
+//! to a file system, each call is given the files (see `MemoryHost`) and
+//! returns everything the playground shows for them.
+//!
+//! Entry points take a string (usually JSON) and produce a string. We use a
+//! small hand-written ABI rather than wasm-bindgen, so that the build only
+//! needs `cargo`:
 //!
 //! 1. The loader calls `init` once after instantiating the module.
 //! 2. To call an entry point, JS calls `alloc(len)` and writes the UTF-8 input
@@ -13,66 +16,34 @@
 //!    buffer and stores its result as the output.
 //! 4. JS reads the output via `output_ptr()` and `output_len()`.
 //!
-//! While an entry point runs, Rust may call the host through the imported
-//! `grats.host_call(ptr, len, out_ptr)`, with a request as JSON (see
-//! `grats::host`). JS writes the response into a buffer from `alloc`, stores
-//! its address at `out_ptr` and returns its length. Rust takes ownership of
-//! the buffer.
-//!
 //! Panics abort, which traps. The panic hook first stores the panic message
 //! as the output so that JS can report it.
 
+mod memory_host;
+
 use std::cell::RefCell;
+use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use graphql_js::language::ast::DocumentNode;
-use grats::grats_config::GratsConfig;
-use grats::host::{Host, JsonHost};
+use graphql_js::language::ast::Location;
+use grats::grats_config::{ValidatedConfig, validate_grats_options};
+use grats::print_schema::{OutputRequest, Outputs, print_outputs};
 use grats::program::ProgramOptions;
 use grats::source_table::SourceTable;
-use grats::utils::diagnostic_error::{Diagnostic, locationless_err};
-use grats::utils::format_diagnostics::{ReportableDiagnostic, reportable_diagnostics};
+use grats::utils::diagnostic_error::{CodeFixAction, Diagnostic, locationless_err};
+use grats::utils::format_diagnostics::format_diagnostic_with_context;
+use grats::utils::path;
 use serde::{Deserialize, Serialize};
+
+use crate::memory_host::MemoryHost;
+
+/// The directory of the playground's project: its `tsconfig.json`, which
+/// the options' paths are relative to, and the current directory, which
+/// diagnostics' paths are relative to.
+const PROJECT_DIRECTORY: &str = "/";
 
 thread_local! {
     static OUTPUT: RefCell<String> = const { RefCell::new(String::new()) };
-
-    /// The document from the last `run_pipeline` call, as transformed by it, if
-    /// it was valid. The other entry points print it, so the document never
-    /// crosses. It's kept until the next `run_pipeline` call, since a caller
-    /// may print it more than once.
-    static PIPELINE_DOC: RefCell<Option<DocumentNode>> = const { RefCell::new(None) };
-}
-
-#[cfg(target_arch = "wasm32")]
-#[link(wasm_import_module = "grats")]
-unsafe extern "C" {
-    fn host_call(ptr: *const u8, len: usize, out_ptr: *mut *mut u8) -> usize;
-}
-
-/// Sends a request to the host and returns its response.
-#[cfg(target_arch = "wasm32")]
-fn call_host(request: String) -> String {
-    let mut out_ptr: *mut u8 = std::ptr::null_mut();
-    let len = unsafe { host_call(request.as_ptr(), request.len(), &mut out_ptr) };
-    let bytes = unsafe { Vec::from_raw_parts(out_ptr, len, len) };
-    String::from_utf8(bytes).expect("Host responses should be UTF-8")
-}
-
-/// There's only a host when the module is loaded as WebAssembly. This
-/// lets the crate build for other targets, like `cargo test`.
-#[cfg(not(target_arch = "wasm32"))]
-fn call_host(_request: String) -> String {
-    unimplemented!("The host is only available in WebAssembly")
-}
-
-fn with_pipeline_doc<R>(f: impl FnOnce(&DocumentNode) -> R) -> R {
-    PIPELINE_DOC.with(|kept| {
-        let kept = kept.borrow();
-        f(kept
-            .as_ref()
-            .expect("Expected a document kept by `run_pipeline`"))
-    })
 }
 
 #[unsafe(no_mangle)]
@@ -117,170 +88,134 @@ unsafe fn call(ptr: *mut u8, len: usize, f: impl FnOnce(String) -> String) {
     // Don't leave a previous result behind if this call traps without a panic
     // message.
     set_output(String::new());
-    reserve_heap(len * 4);
     let bytes = unsafe { Vec::from_raw_parts(ptr, len, len) };
     let input = String::from_utf8(bytes).expect("Input should be UTF-8");
     set_output(f(input));
 }
 
-/// Growing wasm memory is slow, and the allocator grows it in small steps as it
-/// needs more. Under JS heap pressure, like in the CLI, each step can also
-/// trigger garbage collections. So we grow memory in one step: allocating and
-/// freeing a buffer leaves it free for the allocations that follow.
-///
-/// A parsed input takes about as much memory as its JSON, and what's built
-/// from it (like a schema) and the output take more. Four times the input
-/// covers it: on a 10k-file benchmark it made printing with the enums module
-/// ~20% faster than reserving just the input's size.
-fn reserve_heap(bytes: usize) {
-    drop(std::hint::black_box(Vec::<u8>::with_capacity(bytes)));
-}
-
-fn json_host() -> Arc<dyn Host> {
-    Arc::new(JsonHost::new(call_host))
-}
-
-/// Formats diagnostics whose locations refer to `sources`, relative to the
-/// host's current directory.
-fn report(
-    diagnostics: Vec<Diagnostic>,
-    sources: &SourceTable,
-    host: &dyn Host,
-) -> Vec<ReportableDiagnostic> {
-    reportable_diagnostics(diagnostics, sources, &host.current_directory())
-}
-
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct LoadProjectRequest {
-    /// If there's none, the `tsconfig.json` is found from the current
-    /// directory.
-    config_path: Option<String>,
-    use_case_sensitive_file_names: bool,
+struct CompileRequest {
+    /// The text of each file of the project, by absolute path. Grats' types
+    /// can be imported from `"grats"` if the package is among them, in
+    /// `/node_modules/grats`.
+    files: BTreeMap<String, String>,
+    /// The files to extract GraphQL definitions from, along with the files
+    /// they import.
+    root_names: Vec<String>,
+    /// The `grats` key of the project's `tsconfig.json`.
+    config: serde_json::Value,
 }
 
-/// Input: a `LoadProjectRequest`, as JSON. Output: the `Project` (see
-/// `grats::project`) its `tsconfig.json` describes, or the diagnostics (see
-/// `ReportableDiagnostic`), as a JSON `Result` (see `src/utils/Result.ts`).
-///
-/// # Safety
-///
-/// See `call`.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn load_project(ptr: *mut u8, len: usize) {
-    unsafe {
-        call(ptr, len, |input| {
-            let request: LoadProjectRequest =
-                serde_json::from_str(&input).expect("Input should be a LoadProjectRequest");
-            let host = json_host();
-            let result = grats::project::load_project(
-                request.config_path.as_deref(),
-                request.use_case_sensitive_file_names,
-                Arc::clone(&host),
-            );
-            result_json(result.map_err(|errors| report(errors, &SourceTable::default(), &*host)))
-        })
-    }
+#[derive(Serialize)]
+struct Compiled {
+    /// The files which the CLI would write, as the config asks for them.
+    outputs: Outputs,
+    /// Warnings about the config.
+    warnings: Vec<String>,
 }
 
-/// Input: the `grats` key of a `tsconfig.json`, as JSON. Output: the
-/// `ValidatedConfig` (see `grats::grats_config`), or the diagnostics (see
-/// `ReportableDiagnostic`), as a JSON `Result` (see `src/utils/Result.ts`).
-///
-/// # Safety
-///
-/// See `call`.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn validate_grats_options(ptr: *mut u8, len: usize) {
-    unsafe {
-        call(ptr, len, |input| {
-            let options: serde_json::Value =
-                serde_json::from_str(&input).expect("Input should be JSON");
-            let result = grats::grats_config::validate_grats_options(Some(&options));
-            // The error has no location, so there's no need to ask the host
-            // for the directory its path would be relative to.
-            result_json(result.map_err(|message| {
-                reportable_diagnostics(vec![locationless_err(message)], &SourceTable::default(), "")
-            }))
-        })
-    }
-}
-
-#[derive(Deserialize)]
+/// A diagnostic, with what an editor needs to show it.
+#[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct PipelineRequest {
-    config: GratsConfig,
-    /// See `grats::grats_root`.
-    grats_root: String,
-    program: ProgramOptions,
+struct ReportedDiagnostic {
+    message: String,
+    /// The diagnostic as the CLI reports it, without color.
+    formatted: String,
+    location: Option<FileLocation>,
+    related_information: Vec<RelatedInformation>,
+    fix: Option<CodeFixAction>,
 }
 
-/// Input: a `PipelineRequest`, as JSON. Output: the
-/// diagnostics (see `ReportableDiagnostic`), as a JSON `Result` (see
+#[derive(Serialize)]
+struct RelatedInformation {
+    message: String,
+    location: FileLocation,
+}
+
+/// A span of a file. Offsets are UTF-16, like JavaScript's.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct FileLocation {
+    file_name: String,
+    start: u32,
+    length: u32,
+}
+
+/// Input: a `CompileRequest`, as JSON. Output: the `Compiled` project, or
+/// its diagnostics (see `ReportedDiagnostic`), as a JSON `Result` (see
 /// `src/utils/Result.ts`).
 ///
-/// If the document is valid, it's kept for the entry points which follow.
-///
 /// # Safety
 ///
 /// See `call`.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn run_pipeline(ptr: *mut u8, len: usize) {
+pub unsafe extern "C" fn compile(ptr: *mut u8, len: usize) {
     unsafe {
         call(ptr, len, |input| {
-            PIPELINE_DOC.with(|kept| *kept.borrow_mut() = None);
-            let request: PipelineRequest =
-                serde_json::from_str(&input).expect("Input should be a PipelineRequest");
-            let host = json_host();
-            let sources = SourceTable::default();
-            let result = match grats::pipeline::run(
-                &request.config,
-                &request.grats_root,
-                &request.program,
-                Arc::clone(&host),
-                &sources,
-            ) {
-                Ok(doc) => {
-                    PIPELINE_DOC.with(|kept| *kept.borrow_mut() = Some(doc));
-                    Ok(())
-                }
-                Err(errors) => Err(report(errors, &sources, &*host)),
-            };
-            result_json(result)
+            let request: CompileRequest =
+                serde_json::from_str(&input).expect("Input should be a CompileRequest");
+            result_json(compile_project(request))
         })
     }
 }
 
-/// Input: an `OutputRequest` (see `grats::print_schema`), as JSON. Output:
-/// the printed `Outputs` for the document kept by `run_pipeline`, as JSON.
-///
-/// # Safety
-///
-/// See `call`.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn print_outputs(ptr: *mut u8, len: usize) {
-    unsafe {
-        call(ptr, len, |input| {
-            let request = serde_json::from_str(&input).expect("Input should be an OutputRequest");
-            let outputs = with_pipeline_doc(|doc| grats::print_schema::print_outputs(doc, request));
-            serde_json::to_string(&outputs).expect("Outputs should serialize")
-        })
-    }
+/// Like running the CLI on the project, keeping what it would write.
+fn compile_project(request: CompileRequest) -> Result<Compiled, Vec<ReportedDiagnostic>> {
+    let ValidatedConfig { config, warnings } = validate_grats_options(Some(&request.config))
+        .map_err(|message| report(vec![locationless_err(message)], &SourceTable::default()))?;
+    let program = ProgramOptions {
+        root_names: request.root_names,
+        allow_js: false,
+        tsconfig: None,
+        use_case_sensitive_file_names: true,
+    };
+    let host = Arc::new(MemoryHost::new(request.files));
+    let sources = SourceTable::default();
+    // Module paths are kept relative to the root, then printed relative to
+    // the TypeScript schema, so any root will do.
+    let grats_root = PROJECT_DIRECTORY;
+    let doc = grats::pipeline::run(&config, grats_root, &program, host, &sources)
+        .map_err(|diagnostics| report(diagnostics, &sources))?;
+    let resolve = |relative: &str| path::resolve(PROJECT_DIRECTORY, relative);
+    let outputs = print_outputs(
+        &doc,
+        OutputRequest {
+            config: config.clone(),
+            grats_root: grats_root.to_string(),
+            graphql_schema: true,
+            ts_schema: Some(resolve(&config.ts_schema)),
+            ts_client_enums: config.ts_client_enums.as_deref().map(resolve),
+            metadata: config.experimental_emit_metadata,
+        },
+    );
+    Ok(Compiled { outputs, warnings })
 }
 
-/// Input: `null`. Output: the SDL for the document kept by `run_pipeline`,
-/// without Grats' metadata.
-///
-/// # Safety
-///
-/// See `call`.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn print_sdl_without_metadata(ptr: *mut u8, len: usize) {
-    unsafe {
-        call(ptr, len, |_input| {
-            with_pipeline_doc(grats::print_schema::print_sdl_without_metadata)
+fn report(diagnostics: Vec<Diagnostic>, sources: &SourceTable) -> Vec<ReportedDiagnostic> {
+    let file_location = |loc: &Location| FileLocation {
+        file_name: sources.get(loc.source).name.clone(),
+        start: loc.start,
+        length: loc.end - loc.start,
+    };
+    diagnostics
+        .into_iter()
+        .map(|diagnostic| ReportedDiagnostic {
+            formatted: format_diagnostic_with_context(&diagnostic, sources, PROJECT_DIRECTORY),
+            location: diagnostic.loc.as_ref().map(file_location),
+            related_information: diagnostic
+                .related_information
+                .iter()
+                .flatten()
+                .map(|related| RelatedInformation {
+                    message: related.message_text.clone(),
+                    location: file_location(&related.loc),
+                })
+                .collect(),
+            fix: diagnostic.fix.map(|fix| *fix),
+            message: diagnostic.message_text,
         })
-    }
+        .collect()
 }
 
 fn result_json<T: Serialize, E: Serialize>(result: Result<T, E>) -> String {
