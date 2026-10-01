@@ -1,5 +1,4 @@
-//! A `Host` backed by the file system and the console, which answers like
-//! `host()` in `src/rs/host.ts`.
+//! A `Host` backed by the file system and the console.
 //!
 //! Grats' paths are absolute and use `/` as their separator, and on Windows
 //! `C:\project` is `/C:/project` (see `grats::host`). Paths are converted to
@@ -98,9 +97,8 @@ impl Host for NativeHost {
 }
 
 /// The root which Grats' module paths are relative to (see
-/// `grats::grats_root`): the root of the `grats` package, like
-/// `src/gratsRoot.ts`, since this executable is `bin/<platform>/grats` (see
-/// `bin/binaryPath.js`).
+/// `grats::grats_root`): the root of the `grats` package, since this
+/// executable is `bin/<platform>/grats` (see `bin/binaryPath.js`).
 pub fn grats_root() -> String {
     let exe = std::env::current_exe().expect("Expected the executable's path to be known");
     let exe = fs::canonicalize(&exe).unwrap_or(exe);
@@ -157,7 +155,7 @@ fn js_compare(a: &str, b: &str) -> Ordering {
     a.encode_utf16().cmp(b.encode_utf16())
 }
 
-/// Like `toRustPath` in `src/rs/host.ts`, for an absolute path.
+/// The Grats path of an absolute native path.
 pub fn to_grats_path(native: &Path) -> String {
     let native = native.to_string_lossy();
     // `canonicalize` gives Windows paths in their verbatim form.
@@ -174,7 +172,7 @@ pub fn to_grats_path(native: &Path) -> String {
     }
 }
 
-/// Like `fromRustPath` in `src/rs/host.ts`.
+/// The native path of a Grats path.
 pub fn from_grats_path(path: &str) -> PathBuf {
     PathBuf::from(path::to_native(path))
 }

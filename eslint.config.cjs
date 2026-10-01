@@ -69,6 +69,5 @@ module.exports = defineConfig([
     "website/.docusaurus",
     "website/src/workers/ts.worker.mjs",
     "grats-rs",
-    "src/rs/wasm.generated.ts",
   ]),
 ]);

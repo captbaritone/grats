@@ -1,11 +1,8 @@
 //! Port of graphql-js `language/ast.ts`.
 //!
 //! PORT: Only the type system subset of the AST is ported, since Grats never
-//! handles executable documents. Nodes deserialize from the JSON produced by
-//! `encodeDocument` in `src/rs/codec.ts`, which is graphql-js's AST plus
-//! Grats' metadata fields (see `src/GraphQLAstExtensions.ts`). Metadata fields
-//! are modeled once ported code reads them. The others are ignored when
-//! deserializing.
+//! handles executable documents. Nodes are graphql-js's AST plus Grats'
+//! metadata fields.
 
 use serde::{Deserialize, Serialize};
 

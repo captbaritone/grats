@@ -1,4 +1,6 @@
-//! WebAssembly bindings for the Rust port of Grats, loaded by `src/rs/load.ts`.
+//! WebAssembly bindings for the Rust port of Grats, for the website's
+//! playground. Nothing loads them yet: Grats' JS API, whose `src/rs/load.ts`
+//! loaded them, was removed.
 //!
 //! Every entry point takes a string (usually JSON) and produces a string. We
 //! use a small hand-written ABI rather than wasm-bindgen, so that the build
@@ -57,7 +59,7 @@ fn call_host(request: String) -> String {
     String::from_utf8(bytes).expect("Host responses should be UTF-8")
 }
 
-/// There's only a host when the module is loaded by `src/rs/load.ts`. This
+/// There's only a host when the module is loaded as WebAssembly. This
 /// lets the crate build for other targets, like `cargo test`.
 #[cfg(not(target_arch = "wasm32"))]
 fn call_host(_request: String) -> String {

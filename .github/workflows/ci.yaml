@@ -31,7 +31,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
-      - name: Install Rust # Builds Grats (grats-rs/) natively and to WebAssembly
+      - name: Install Rust # Builds Grats (grats-rs/) natively
         working-directory: ./grats-rs
         run: rustup toolchain install
       - name: Install dependencies
@@ -80,15 +80,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
-      - name: Install Rust # Builds the Rust port of Grats (grats-rs/) to WebAssembly
-        working-directory: ./grats-rs
-        run: rustup toolchain install
       - name: Install dependencies
         run: pnpm install
       - name: Install TypeScript ${{ matrix.typescript-version }}
         run: pnpm add -wD typescript@${{ matrix.typescript-version }}
       - name: Build # Integration tests depend upon having .js versions created by tsc
-        run: pnpm run build:wasm && pnpm run build:js
+        run: pnpm run build:js
       - name: Unit Tests
         run: pnpm run test
   lint:
@@ -127,6 +124,8 @@ jobs:
         run: cargo clippy --all-targets -- -D warnings
       - name: Test
         run: cargo test
+      - name: Clippy (WebAssembly) # For the website's playground
+        run: cargo clippy --package grats_wasm --target wasm32-unknown-unknown -- -D warnings
   build-binary:
     name: "Native binary (${{ matrix.target }})"
     runs-on: ${{ matrix.os }}
@@ -244,13 +243,10 @@ jobs:
           cache: "pnpm"
       - name: Ensure npm 11.5.1 or later for trusted publishing
         run: npm install -g npm@11.7.0
-      - name: Install Rust # Builds the Rust port of Grats (grats-rs/) to WebAssembly
-        working-directory: ./grats-rs
-        run: rustup toolchain install
       - name: Install dependencies
         run: pnpm install
       - name: Build # The types. The binaries were built by `build-binary`.
-        run: pnpm run build:wasm && pnpm run build:js
+        run: pnpm run build:js
       - name: Download the binaries
         uses: actions/download-artifact@v4
         with:

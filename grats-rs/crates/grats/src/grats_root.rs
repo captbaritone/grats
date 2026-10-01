@@ -1,8 +1,8 @@
 //! Port of `src/gratsRoot.ts`.
 //!
-//! PORT: The TypeScript implementation finds the root from its own module's
-//! location, which wasm doesn't have. Instead, TypeScript passes the absolute
-//! root along with the ported code's input, and it's passed as an argument.
+//! PORT: The TypeScript implementation found the root from its own module's
+//! location, which wasm doesn't have. Instead, the absolute root is passed as
+//! an argument.
 
 use crate::utils::path;
 

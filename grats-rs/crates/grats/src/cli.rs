@@ -32,7 +32,7 @@ pub struct CliRequest {
     pub args: Vec<String>,
     /// The version of the `grats` package.
     pub version: String,
-    /// The absolute path of `src/gratsRoot.ts`'s root. See `src/grats_root.rs`.
+    /// The root which module paths are relative to. See `crate::grats_root`.
     pub grats_root: String,
     pub use_case_sensitive_file_names: bool,
 }

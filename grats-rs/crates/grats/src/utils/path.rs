@@ -9,7 +9,7 @@
 //!
 //! - Backslashes are treated as separators, like `path.win32` does. On other
 //!   platforms Node would treat them as part of a file name.
-//! - TypeScript passes absolute paths, and paths are resolved against `/`
+//! - Hosts give absolute paths, and paths are resolved against `/`
 //!   rather than a working directory. POSIX rules consider a Windows path like
 //!   `C:/project` relative, so it resolves to `/C:/project`, which keeps the
 //!   drive as the first component. Relative paths between two paths on the
@@ -135,7 +135,7 @@ pub fn relative(from: &str, to: &str) -> String {
 }
 
 /// A path as the platform writes it, for showing to users: on Windows,
-/// `/C:/project` is `C:/project`. Like `fromRustPath` in `src/rs/host.ts`.
+/// `/C:/project` is `C:/project`.
 pub fn to_native(path: &str) -> &str {
     let bytes = path.as_bytes();
     if bytes.len() >= 3 && bytes[0] == b'/' && bytes[1].is_ascii_alphabetic() && bytes[2] == b':' {
@@ -175,7 +175,7 @@ pub fn from_std(path: &std::path::Path) -> String {
 
 /// A path as Rust is given it, from one the user wrote, which may be relative
 /// to `current_directory`: with `/` as its separator, and on Windows,
-/// `C:\project` is `/C:/project`. Like `toRustPath` in `src/rs/host.ts`.
+/// `C:\project` is `/C:/project`.
 pub fn from_native(current_directory: &str, path: &str) -> String {
     let bytes = path.as_bytes();
     if bytes.len() >= 2 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':' {

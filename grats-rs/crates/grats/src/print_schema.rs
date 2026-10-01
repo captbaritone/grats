@@ -21,7 +21,7 @@ use crate::utils::visitor::map_definitions;
 #[serde(rename_all = "camelCase")]
 pub struct OutputRequest {
     pub config: GratsConfig,
-    /// The absolute path of `src/gratsRoot.ts`'s root. See `src/grats_root.rs`.
+    /// The root which module paths are relative to. See `crate::grats_root`.
     pub grats_root: String,
     /// Whether to print the SDL.
     pub graphql_schema: bool,

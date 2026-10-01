@@ -163,8 +163,8 @@ fn repo_root() -> String {
     native_host::to_grats_path(&root)
 }
 
-/// PORT: The root which Grats' module paths are relative to, as
-/// `src/gratsRoot.ts` gives it when run from `src/`.
+/// The root which Grats' module paths are relative to. As in the TypeScript
+/// tests, it's the repository's parent, so paths start with `grats/`.
 fn grats_root() -> String {
     path::resolve(&repo_root(), "..")
 }

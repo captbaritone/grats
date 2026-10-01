@@ -1,5 +1,5 @@
 //! PORT: No TypeScript counterpart. What the Rust port of Grats asks of its
-//! host: access to the file system and the console. See `src/rs/host.ts`.
+//! host: access to the file system and the console.
 //!
 //! Paths are absolute and use `/` as their separator. On Windows, a path like
 //! `C:\project` is given as `/C:/project` (see `crate::utils::path`).

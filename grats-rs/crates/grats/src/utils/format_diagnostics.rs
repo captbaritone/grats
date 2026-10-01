@@ -25,8 +25,8 @@ const ELLIPSIS: &str = "...";
 const HALF_INDENT: &str = "  ";
 const INDENT: &str = "    ";
 
-/// A diagnostic as the TypeScript side reports it: formatted, with its fix
-/// if it has one. See `GratsDiagnostic` in `src/utils/DiagnosticError.ts`.
+/// A diagnostic as JavaScript reports it: formatted, with its fix if it has
+/// one.
 #[derive(Debug, Serialize)]
 pub struct ReportableDiagnostic {
     pub formatted: String,

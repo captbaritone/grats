@@ -4,13 +4,12 @@ Below is some guidance on how to work on this project. If you have any questions
 
 ## Building
 
-Parts of Grats are implemented in Rust (see `grats-rs/`) and compiled to
-WebAssembly. To build, you need [rustup](https://rustup.rs), which installs the
+Grats is implemented in Rust (see `grats-rs/`), and its CLI is a native
+binary. To build, you need [rustup](https://rustup.rs), which installs the
 toolchain pinned in `grats-rs/rust-toolchain.toml`.
 
-`pnpm build` compiles the Rust code and embeds it in
-`src/rs/wasm.generated.ts`. Run `pnpm build:wasm` to rebuild just that file,
-which the tests need, after changing Rust code.
+`pnpm build` builds the binary for your platform, and the types which Grats
+projects import from `grats`.
 
 The Rust code has its own tests:
 
