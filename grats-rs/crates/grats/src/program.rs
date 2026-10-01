@@ -465,14 +465,14 @@ impl FileSystem for HostFileSystem {
     fn read_link(&self, path: &Path) -> Result<PathBuf, ResolveError> {
         self.host
             .read_link(&path::from_std(path))
-            .map(PathBuf::from)
+            .map(|path| path::to_std(&path))
             .ok_or_else(|| ResolveError::from(not_found()))
     }
 
     fn canonicalize(&self, path: &Path) -> io::Result<PathBuf> {
         self.host
             .realpath(&path::from_std(path))
-            .map(PathBuf::from)
+            .map(|path| path::to_std(&path))
             .ok_or_else(not_found)
     }
 }
@@ -502,7 +502,7 @@ impl Resolvers {
             node_path: false,
             tsconfig: options.tsconfig.as_ref().map(|config_file| {
                 TsconfigDiscovery::Manual(TsconfigOptions {
-                    config_file: PathBuf::from(config_file),
+                    config_file: path::to_std(config_file),
                     references: TsconfigReferences::Disabled,
                 })
             }),
@@ -528,7 +528,9 @@ fn resolve_dts(
     containing_file: &str,
     specifier: &str,
 ) -> Option<String> {
-    let resolution = resolver.resolve_dts(containing_file, specifier).ok()?;
+    let resolution = resolver
+        .resolve_dts(path::to_std(containing_file), specifier)
+        .ok()?;
     let path = path::from_std(resolution.path());
     (ends_with_any(&path, &TS_EXTENSIONS) || ends_with_any(&path, &JS_EXTENSIONS)).then_some(path)
 }

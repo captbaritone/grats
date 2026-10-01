@@ -145,15 +145,31 @@ pub fn to_native(path: &str) -> &str {
     }
 }
 
-/// A path from `std::path`, such as one `oxc_resolver` built from Grats'
-/// paths. On Windows, `std::path` joins components with `\`, so
-/// `/C:/project` comes back as `\C:\project`.
+/// A path for `std::path`, such as one to give `oxc_resolver`. On Windows,
+/// `/C:/project` is `C:/project`, which `std::path` considers absolute.
+pub fn to_std(path: &str) -> std::path::PathBuf {
+    if cfg!(windows) {
+        to_native(path).into()
+    } else {
+        path.into()
+    }
+}
+
+/// A path from `std::path`, such as one `oxc_resolver` built from paths
+/// `to_std` gave it. On Windows, `std::path` joins components with `\`, so
+/// `C:/project` and `src` come back as `C:/project\src`, which is
+/// `/C:/project/src`.
 pub fn from_std(path: &std::path::Path) -> String {
     let path = path.to_string_lossy();
-    if cfg!(windows) {
-        path.replace('\\', "/")
+    if !cfg!(windows) {
+        return path.into_owned();
+    }
+    let slashed = path.replace('\\', "/");
+    let bytes = slashed.as_bytes();
+    if bytes.len() >= 2 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':' {
+        format!("/{slashed}")
     } else {
-        path.into_owned()
+        slashed
     }
 }
 

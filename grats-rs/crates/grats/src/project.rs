@@ -80,20 +80,22 @@ pub fn load_project(
         },
         ResolveOptions::default(),
     );
-    let tsconfig = resolver.resolve_tsconfig(config_path).map_err(|error| {
-        // serde_json's message for invalid JSON, rather than `JSONError`'s
-        // `Debug` output.
-        let message = match &error {
-            ResolveError::TsconfigLoadFailed { source, .. } => match &**source {
-                ResolveError::Json(json) => json.message.clone(),
+    let tsconfig = resolver
+        .resolve_tsconfig(path::to_std(config_path))
+        .map_err(|error| {
+            // serde_json's message for invalid JSON, rather than `JSONError`'s
+            // `Debug` output.
+            let message = match &error {
+                ResolveError::TsconfigLoadFailed { source, .. } => match &**source {
+                    ResolveError::Json(json) => json.message.clone(),
+                    _ => error.to_string(),
+                },
                 _ => error.to_string(),
-            },
-            _ => error.to_string(),
-        };
-        vec![locationless_err(format!(
-            "Grats: Could not read `{config_path}`: {message}"
-        ))]
-    })?;
+            };
+            vec![locationless_err(format!(
+                "Grats: Could not read `{config_path}`: {message}"
+            ))]
+        })?;
     let tsconfig_path = path::from_std(tsconfig.path());
 
     // The `grats` key of the config itself, which isn't inherited.
