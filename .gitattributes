@@ -1,2 +1,4 @@
 # The fixture tests, which also run on Windows, compare files byte for byte.
 src/tests/** text eol=lf
+website/**/*.grats.ts text eol=lf
+website/**/*.out text eol=lf
