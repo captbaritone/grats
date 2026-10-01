@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
-    "start": "REACT_APP_GIT_HASH=$(git rev-parse HEAD) docusaurus start",
-    "build": "REACT_APP_GIT_HASH=$(git rev-parse HEAD) docusaurus build",
+    "start": "pnpm --dir .. run build:wasm && REACT_APP_GIT_HASH=$(git rev-parse HEAD) docusaurus start",
+    "build": "pnpm --dir .. run build:wasm && REACT_APP_GIT_HASH=$(git rev-parse HEAD) docusaurus build",
     "swizzle": "docusaurus swizzle",
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",

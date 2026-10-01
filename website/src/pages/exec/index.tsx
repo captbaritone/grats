@@ -7,22 +7,8 @@ import * as ts from "typescript";
 import lzstring from "lz-string";
 import GRATS_TYPE_DECLARATIONS from "!!raw-loader!grats/src/Types.ts";
 
-import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
-import { buildSchemaAndDocResultWithHost, GratsConfig } from "grats/src/lib";
-import { printOutputs } from "grats/src/printSchema";
 import { useState } from "react";
-
-if (ExecutionEnvironment.canUseDOM) {
-  // @ts-ignore
-  window.process = {
-    // Grats depends upon calling path.resolver and path.relative
-    // which depend upon process.cwd() being set.
-    // Here we supply a fake cwd() function that returns the root
-    cwd() {
-      return "/";
-    },
-  };
-}
+import { loadGrats, PACKAGE_FILES } from "../../wasm/loadGrats";
 
 export default function () {
   const [gratsCode, setGratsCode] = useState(`/** @gqlQueryField */
@@ -306,55 +292,27 @@ async function exec(gratsCode: string, queryText: string): Promise<any> {
   };
   const host = createVirtualCompilerHost(system, compilerOpts, ts);
 
-  const config: GratsConfig = {
-    graphqlSchema: "schema.graphql",
-    tsSchema: "schema.ts",
-    nullableByDefault: true,
-    strictSemanticNullability: false,
-    schemaHeader: null,
-    tsSchemaHeader: null,
-    importModuleSpecifierEnding: ".js",
-    EXPERIMENTAL__emitMetadata: false,
-    EXPERIMENTAL__emitResolverMap: false,
-  };
-
-  const parsedOptions = {
-    raw: {
-      grats: config,
+  const grats = await loadGrats();
+  const result = grats.compile({
+    files: { ...PACKAGE_FILES, "/index.ts": gratsCode },
+    rootNames: ["/index.ts"],
+    config: {
+      tsSchema: "schema.ts",
+      schemaHeader: null,
+      tsSchemaHeader: null,
+      importModuleSpecifierEnding: ".js",
     },
-
-    options: compilerOpts,
-    fileNames: ["index.ts"],
-    errors: [],
-  };
-
-  // const program = ts.createProgram(
-  //   parsedOptions.fileNames,
-  //   parsedOptions.options,
-  //   host.compilerHost,
-  // );
-
-  const schemaAndDoc = buildSchemaAndDocResultWithHost(
-    parsedOptions,
-    host.compilerHost,
-  );
-
-  if (schemaAndDoc.kind === "ERROR") {
-    console.error(schemaAndDoc.err);
-    return;
-  }
-
-  const result = schemaAndDoc;
-
-  const { tsSchema: codegenOutput } = printOutputs(result.value, config, {
-    tsSchema: "./schema.ts",
   });
 
-  fsMap.set("schema.ts", codegenOutput!);
+  if (result.kind === "ERROR") {
+    throw new Error(result.err.map((err) => err.formatted).join("\n"));
+  }
+
+  fsMap.set("schema.ts", result.value.outputs.tsSchema);
 
   const programComplete = ts.createProgram(
     ["index.ts", "schema.ts"],
-    parsedOptions.options,
+    compilerOpts,
     host.compilerHost,
   );
   const { diagnostics: _diagnostics } = programComplete.emit();
