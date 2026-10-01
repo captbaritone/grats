@@ -71,43 +71,21 @@ pub type DiagnosticsWithoutLocationResult<T> = Result<T, Vec<Diagnostic>>;
 pub type DiagnosticsResult<T> = Result<T, Vec<Diagnostic>>;
 
 /// PORT: graphql-js derives the error's `positions` and `source` from its
-/// nodes' locations, so its first position and its source are those of the
-/// first node which has a location.
+/// nodes' locations, and TypeScript uses the first position unless the first
+/// node has a location. Here the error is at the whole location of the first
+/// node which has one, the rest of which are related, so errors about Grats'
+/// own directives (which have no locations) are reported at the user's code.
+/// An error whose nodes have no locations has none.
 pub fn graphql_error_to_diagnostic(error: &GraphQLError) -> Diagnostic {
-    let Some(position) = error.nodes.iter().flatten().next() else {
-        panic!("Expected error to have a position");
-    };
-
-    // Start with baseline location information
-    let mut loc = Location {
-        source: position.source,
-        start: position.start,
-        end: position.start + 1,
-    };
-    let mut related_information = None;
-
-    // Nodes have actual ranges (not just a single position), so we we have one
-    // (or more!) use that instead.
-    if let Some((node, rest)) = error.nodes.split_first()
-        && let Some(node_loc) = node
-    {
-        loc = *node_loc;
-        if !rest.is_empty() {
-            let mut related = Vec::new();
-            for related_node in rest {
-                if related_node.is_none() {
-                    continue;
-                }
-                related.push(gql_related(*related_node, "Related location"));
-            }
-            related_information = Some(related);
-        }
-    }
-
+    let mut locs = error.nodes.iter().flatten();
+    let loc = locs.next().copied();
+    let related: Vec<_> = locs
+        .map(|loc| gql_related(Some(*loc), "Related location"))
+        .collect();
     Diagnostic {
         message_text: error.message.clone(),
-        loc: Some(loc),
-        related_information,
+        loc,
+        related_information: (!related.is_empty()).then_some(related),
         fix: None,
     }
 }

@@ -10,9 +10,8 @@ use graphql_js::language::ast::{
     ConstDirectiveNode, DefinitionNode, DocumentNode, Location, NameNode,
 };
 use graphql_js::language::parser::{Parser, parse_only};
-use graphql_js::language::source::{DEFAULT_SOURCE_NAME, Source};
+use graphql_js::language::source::Source;
 
-use crate::source_table::SourceTable;
 use crate::utils::helpers::UNTRACKED_ID;
 
 pub const SEMANTIC_NON_NULL_DIRECTIVE: &str = "semanticNonNull";
@@ -55,13 +54,11 @@ Passing a negative level or a level greater than the list dimension is an error.
 directive @semanticNonNull(levels: [Int] = [0]) on FIELD_DEFINITION
 "#;
 
-/// PORT: `DIRECTIVES_AST`, which TypeScript parses when the module loads. Its
-/// source is added to the `SourceTable` so that locations can refer to it.
-pub fn directives_ast(sources: &SourceTable) -> DocumentNode {
-    let source = Source::new(
-        DIRECTIVES_SDL,
-        sources.add(DEFAULT_SOURCE_NAME, DIRECTIVES_SDL),
-    );
+/// PORT: `DIRECTIVES_AST`, which TypeScript parses when the module loads.
+/// It's parsed without locations, so errors about it are reported at the
+/// user's code (see `graphql_error_to_diagnostic`).
+pub fn directives_ast() -> DocumentNode {
+    let source = Source::without_locations(DIRECTIVES_SDL);
     // PORT: Grats' only directive is parsed as a directive definition rather
     // than a document.
     let definition = parse_only(source, Parser::parse_directive_definition)
@@ -73,11 +70,8 @@ pub fn directives_ast(sources: &SourceTable) -> DocumentNode {
 }
 
 /// PORT: `DIRECTIVES_AST` is parsed on demand (see `directives_ast`).
-pub fn add_semantic_non_null_directive(
-    sources: &SourceTable,
-    definitions: Vec<DefinitionNode>,
-) -> Vec<DefinitionNode> {
-    directives_ast(sources)
+pub fn add_semantic_non_null_directive(definitions: Vec<DefinitionNode>) -> Vec<DefinitionNode> {
+    directives_ast()
         .definitions
         .into_iter()
         .chain(definitions)

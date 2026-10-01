@@ -9,7 +9,8 @@ use crate::language::source::Source;
 ///
 /// PORT: graphql-js gives the error its source and position. Here its node is
 /// the location of what's invalid, from `start` to `end` in the source's
-/// body, which is where Grats reports it.
+/// body, which is where Grats reports it. A source without an id gives no
+/// location.
 pub fn syntax_error(
     source: &Source<'_>,
     start: usize,
@@ -18,8 +19,8 @@ pub fn syntax_error(
 ) -> GraphQLError {
     GraphQLError::new(
         format!("Syntax Error: {description}"),
-        vec![Some(Location {
-            source: source.id,
+        vec![source.id.map(|id| Location {
+            source: id,
             start: source.offset + start as u32,
             end: source.offset + end as u32,
         })],

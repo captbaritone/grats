@@ -25,6 +25,7 @@ Changes in this section are not yet released. If you need access to these change
   - Grats' output is now printed by a Rust port of Grats. The generated TypeScript is formatted differently, for example small objects are printed on one line, so regenerating will produce a formatting-only diff in your generated files. The generated code is otherwise unchanged.
   - Output files which can't be written are now reported as errors, rather than crashing the CLI.
   - Errors in the arguments of `@gqlAnnotate` directives now point to the argument in your docblock, rather than to a `GraphQL request` copy of the directive. Syntax errors in `@gqlAnnotate` and `@gqlDirective` tags now point to the invalid text rather than to the whole tag.
+  - With `strictSemanticNullability` enabled, defining your own `@semanticNonNull` directive is now reported at your definition, rather than at a `GraphQL request` copy of Grats' definition.
 
 ## 0.0.36
 

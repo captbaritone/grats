@@ -8,7 +8,9 @@
 ///
 /// PORT: Locations reference their source by `id`, its index in a
 /// `SourceTable` (see `Location`), which also holds its name, so a source
-/// must be added to the table before it's parsed. `body` may be a range of
+/// must be added to the table before it's parsed. Like graphql-js's
+/// `noLocation` option, nothing parsed from a source without an `id` has a
+/// location, nor do its syntax errors. `body` may be a range of
 /// that source: `offset` is where it starts, in UTF-16 code units, which is
 /// added to the locations of what's parsed. If `docblock` is set, `body` is
 /// the text of a JSDoc tag, and the leading `*` of each of its lines after
@@ -16,19 +18,27 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Source<'s> {
     pub body: &'s str,
-    pub id: u32,
+    pub id: Option<u32>,
     pub offset: u32,
     pub docblock: bool,
 }
-
-/// PORT: The default `name` of a `Source`.
-pub const DEFAULT_SOURCE_NAME: &str = "GraphQL request";
 
 impl<'s> Source<'s> {
     pub fn new(body: &'s str, id: u32) -> Self {
         Source {
             body,
-            id,
+            id: Some(id),
+            offset: 0,
+            docblock: false,
+        }
+    }
+
+    /// PORT: A source which isn't in a `SourceTable`, like graphql-js's
+    /// `noLocation` option.
+    pub fn without_locations(body: &'s str) -> Self {
+        Source {
+            body,
+            id: None,
             offset: 0,
             docblock: false,
         }
@@ -39,7 +49,7 @@ impl<'s> Source<'s> {
     pub fn docblock(body: &'s str, id: u32, offset: u32) -> Self {
         Source {
             body,
-            id,
+            id: Some(id),
             offset,
             docblock: true,
         }

@@ -119,7 +119,7 @@ pub fn run(
     let doc = validate_async_iterable(doc)?;
     // Apply default nullability to fields and arguments, and detect any misuse
     // of `@killsParentOnException`.
-    let doc = apply_default_nullability(doc, config, sources)?;
+    let doc = apply_default_nullability(doc, config)?;
     // Ensure we have Query/Mutation/Subscription types if they've been
     // extended with `@gqlQueryField` and friends.
     let doc = add_implicit_root_types(doc);

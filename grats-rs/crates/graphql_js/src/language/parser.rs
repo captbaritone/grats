@@ -426,10 +426,10 @@ impl<'s> Parser<'s> {
     /// location object, used to identify the place in the source that created a
     /// given parsed object.
     ///
-    /// PORT: Returns the location to set on the node.
+    /// PORT: Returns the location to set on the node, if its source has an id.
     fn node(&self, start_token: &Token) -> Option<Location> {
         Some(Location {
-            source: self.lexer.source.id,
+            source: self.lexer.source.id?,
             start: self.lexer.source.offset + start_token.start as u32,
             end: self.lexer.source.offset + self.lexer.last_token().end as u32,
         })
@@ -772,6 +772,24 @@ mod tests {
             )),
             (109, 110)
         );
+    }
+
+    #[test]
+    fn parses_sources_without_locations() {
+        let directive = parse_only(
+            Source::without_locations("@d(a: [1])"),
+            Parser::parse_const_directive,
+        )
+        .unwrap();
+        assert!(directive.loc.is_none());
+        assert!(directive.name.loc.is_none());
+        assert!(directive.arguments.unwrap()[0].loc.is_none());
+        let error = parse_only(
+            Source::without_locations("@d(a: )"),
+            Parser::parse_const_directive,
+        )
+        .unwrap_err();
+        assert_eq!(error.nodes, vec![None]);
     }
 
     #[test]
