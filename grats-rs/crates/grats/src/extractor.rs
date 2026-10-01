@@ -24,12 +24,13 @@ use oxc_ast::ast::{
     Class, ClassElement, ClassType, Declaration, Decorator, Expression, FormalParameter,
     FormalParameterRest, FormalParameters, Function, MethodDefinition, MethodDefinitionKind,
     ObjectExpression, ObjectPattern, ObjectPropertyKind, PropertyKey, PropertyKind, Statement,
-    StringLiteral, TSEnumDeclaration, TSEnumMemberName, TSIndexedAccessType,
+    StringLiteral, TSAccessibility, TSEnumDeclaration, TSEnumMemberName, TSIndexedAccessType,
     TSInterfaceDeclaration, TSLiteral, TSMethodSignatureKind, TSPropertySignature, TSSignature,
     TSThisParameter, TSType, TSTypeAliasDeclaration, TSTypeAnnotation, TSTypeName,
     TSTypeOperatorOperator, TSTypeParameterInstantiation, TSTypeQueryExprName, TSTypeReference,
     VariableDeclaration, VariableDeclarationKind, VariableDeclarator,
 };
+use oxc_parser::{Kind, Token};
 use oxc_span::{GetSpan, Span};
 use oxc_syntax::node::NodeId;
 use oxc_syntax::number::ToJsString;
@@ -43,7 +44,7 @@ use crate::grats_config::GratsConfig;
 use crate::grats_root::relative_path;
 use crate::jsdoc::{
     JSDocComment, JSDocCommentPart, JSDocIndex, JSDocOrTag, SyntaxKind, TagId, TsNodeId,
-    full_start, get_text_of_js_doc_comment, is_js_white_space, is_line_break, js_trim, skip_trivia,
+    get_text_of_js_doc_comment, is_js_white_space, is_line_break, js_trim,
 };
 use crate::snapshot_refs::{
     DeclLoc, DeclRef, EntityName, EntityNameRef, decl_ref, entity_name_ref,
@@ -2349,8 +2350,11 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
     fn constructor_param(&mut self, node: Param<'a>) -> Option<FieldDefinitionNode> {
         let tag = self.find_tag(self.ts(node.node_id()), FIELD_TAG)?;
-        let modifiers = self.modifiers(node.modifiers_start(), node.modifiers_end());
-        if node.decorators().is_empty() && modifiers.is_empty() {
+        let (accessibility, readonly, r#override) = match node {
+            Param::Item(param) => (param.accessibility, param.readonly, param.r#override),
+            Param::This(_) | Param::Rest(_) => (None, false, false),
+        };
+        if node.decorators().is_empty() && accessibility.is_none() && !readonly && !r#override {
             self.report(
                 node.span(),
                 e::parameter_without_modifiers(),
@@ -2367,11 +2371,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return None;
         }
 
-        let is_parameter_property = modifiers.iter().any(|&(modifier, _)| {
-            matches!(modifier, "public" | "private" | "protected" | "readonly")
-        });
-
-        if !is_parameter_property {
+        if accessibility.is_none() && !readonly {
             self.report(
                 node.span(),
                 e::parameter_without_modifiers(),
@@ -2388,11 +2388,14 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return None;
         }
 
-        let not_public = modifiers
-            .iter()
-            .find(|&&(modifier, _)| matches!(modifier, "private" | "protected"));
-
-        if let Some(&(_, not_public)) = not_public {
+        if let Some(not_public @ (TSAccessibility::Private | TSAccessibility::Protected)) =
+            accessibility
+        {
+            let not_public = self.modifier_span(
+                node.modifiers_start(),
+                node.name().span().start,
+                accessibility_kind(not_public),
+            );
             self.report(
                 not_public,
                 e::parameter_property_not_public(),
@@ -3274,31 +3277,30 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let tag = self.find_tag(self.ts(node.id), FIELD_TAG)?;
 
         let name_node = key_name(self.file, node.key, node.computed);
-        for (modifier, modifier_span) in
-            self.modifiers(node.modifiers_start, name_node.span().start)
+        let name_start = name_node.span().start;
+        if let Some(not_public @ (TSAccessibility::Private | TSAccessibility::Protected)) =
+            node.accessibility
         {
-            match modifier {
-                "private" | "protected" => {
-                    self.report(
-                        modifier_span,
-                        e::invalid_field_non_public_access_modifier(),
-                        None,
-                        None,
-                    );
-                }
-                "static" => {
-                    // Return early here, since static methods expect a parent object as
-                    // first argument rather than args, and we don't want to emit
-                    // confusing error messages
-                    // Note: We expect that static methods are handled at the top-level
-                    // and will be filtered out before getting here, so this just
-                    // catches static property signatures which are also invalid
-                    // TypeScript.
-                    self.report(modifier_span, e::invalid_static_modifier(), None, None);
-                    return None;
-                }
-                _ => {}
-            }
+            self.report(
+                self.modifier_span(
+                    node.modifiers_start,
+                    name_start,
+                    accessibility_kind(not_public),
+                ),
+                e::invalid_field_non_public_access_modifier(),
+                None,
+                None,
+            );
+        }
+        if node.r#static {
+            // Return early here, since static methods expect a parent object as
+            // first argument rather than args, and we don't want to emit
+            // confusing error messages
+            // Note: We expect that static methods are handled at the top-level
+            // and will be filtered out before getting here.
+            let r#static = self.modifier_span(node.modifiers_start, name_start, Kind::Static);
+            self.report(r#static, e::invalid_static_modifier(), None, None);
+            return None;
         }
 
         let name = self.entity_name(node.span, Some(name_node), tag)?;
@@ -3906,32 +3908,6 @@ impl<'f, 'a> Extractor<'f, 'a> {
         }
     }
 
-    /// PORT: TypeScript's modifier keywords between `from` and `to`, which oxc
-    /// records as flags (if at all), without their spans.
-    fn modifiers(&self, from: u32, to: u32) -> Vec<(&'a str, Span)> {
-        let text = self.file.text;
-        let comments = self.file.semantic().comments();
-        let mut modifiers = Vec::new();
-        let mut pos = skip_trivia(text, from, comments);
-        while pos < to {
-            let rest = &text[pos as usize..];
-            let word_len = rest
-                .find(|ch: char| !(ch.is_ascii_alphanumeric() || ch == '_' || ch == '$'))
-                .unwrap_or(rest.len());
-            if word_len == 0 {
-                pos += rest.chars().next().map_or(1, |ch| ch.len_utf8() as u32);
-            } else {
-                let word = &rest[..word_len];
-                if MODIFIERS.contains(&word) {
-                    modifiers.push((word, Span::new(pos, pos + word_len as u32)));
-                }
-                pos += word_len as u32;
-            }
-            pos = skip_trivia(text, pos, comments);
-        }
-        modifiers
-    }
-
     /// PORT: `ts.isSourceFile(node.parent)`.
     fn is_top_level(&self, node: TsNodeId) -> bool {
         self.jsdoc
@@ -3954,8 +3930,17 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
     /// PORT: The span of the `?` after `after`.
     fn question_token(&self, after: u32) -> Span {
-        let pos = skip_trivia(self.file.text, after, self.file.semantic().comments());
-        Span::new(pos, pos + 1)
+        self.file
+            .token_after(after)
+            .map_or(Span::empty(after), Token::span)
+    }
+
+    /// PORT: The span of a modifier keyword between `from` and `to`, which
+    /// oxc records as a flag.
+    fn modifier_span(&self, from: u32, to: u32, modifier: Kind) -> Span {
+        self.file
+            .find_token(from, to, modifier)
+            .unwrap_or(Span::new(from, to))
     }
 
     /// PORT: The span of an element of an array literal. An elision is
@@ -3964,8 +3949,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
     fn array_element_span(&self, element: &ArrayExpressionElement<'a>) -> Span {
         match element {
             ArrayExpressionElement::Elision(elision) => {
-                let start = full_start_of(self.file, elision.span.start);
-                Span::new(start, start)
+                Span::empty(self.file.full_start(elision.span.start))
             }
             _ => element.span(),
         }
@@ -3981,19 +3965,15 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 type_annotation: property.type_annotation.as_deref(),
                 optional: property.optional,
             }),
-            // PORT: oxc doesn't record whether an `accessor` is optional.
-            Member::Class(ClassElement::AccessorProperty(property)) => {
-                let name = key_name(self.file, &property.key, property.computed);
-                let question = self.question_token(name.span().end);
-                Some(PropertyLike {
-                    span: property.span,
-                    id: property.node_id(),
-                    key: &property.key,
-                    computed: property.computed,
-                    type_annotation: property.type_annotation.as_deref(),
-                    optional: self.text(question) == "?",
-                })
-            }
+            // An `accessor` can't be optional.
+            Member::Class(ClassElement::AccessorProperty(property)) => Some(PropertyLike {
+                span: property.span,
+                id: property.node_id(),
+                key: &property.key,
+                computed: property.computed,
+                type_annotation: property.type_annotation.as_deref(),
+                optional: false,
+            }),
             Member::Type(TSSignature::TSPropertySignature(property)) => Some(PropertyLike {
                 span: property.span,
                 id: property.node_id(),
@@ -4031,25 +4011,6 @@ impl<'f, 'a> Extractor<'f, 'a> {
         }
     }
 }
-
-/// PORT: The modifier keywords TypeScript parses.
-const MODIFIERS: [&str; 15] = [
-    "abstract",
-    "accessor",
-    "async",
-    "const",
-    "declare",
-    "default",
-    "export",
-    "in",
-    "out",
-    "override",
-    "private",
-    "protected",
-    "public",
-    "readonly",
-    "static",
-];
 
 type ArgDefaults<'a> = HashMap<&'a str, &'a Expression<'a>>;
 
@@ -4166,14 +4127,6 @@ impl<'a> Param<'a> {
             .last()
             .map_or(self.span().start, |decorator| decorator.span.end)
     }
-
-    /// PORT: Where the modifiers end: at the `...` or the name.
-    fn modifiers_end(self) -> u32 {
-        match self {
-            Param::Rest(param) => param.rest.span.start,
-            _ => self.name().span().start,
-        }
-    }
 }
 
 /// PORT: A `ts.MethodDeclaration`, `ts.MethodSignature` or
@@ -4183,6 +4136,8 @@ struct MethodLike<'a> {
     id: NodeId,
     /// PORT: Where the modifiers start: after any decorators.
     modifiers_start: u32,
+    accessibility: Option<TSAccessibility>,
+    r#static: bool,
     key: &'a PropertyKey<'a>,
     computed: bool,
     /// Whether it's a method, rather than a get accessor.
@@ -4231,6 +4186,8 @@ fn method_like<'a>(node: Member<'a>) -> Option<MethodLike<'a>> {
                     .decorators
                     .last()
                     .map_or(method.span.start, |decorator| decorator.span.end),
+                accessibility: method.accessibility,
+                r#static: method.r#static,
                 key: &method.key,
                 computed: method.computed,
                 callable: method.kind == MethodDefinitionKind::Method,
@@ -4248,6 +4205,8 @@ fn method_like<'a>(node: Member<'a>) -> Option<MethodLike<'a>> {
                 span: method.span,
                 id: method.node_id(),
                 modifiers_start: method.span.start,
+                accessibility: None,
+                r#static: false,
                 key: &method.key,
                 computed: method.computed,
                 callable: method.kind == TSMethodSignatureKind::Method,
@@ -4304,18 +4263,21 @@ fn key_name<'a>(file: &ParsedFile, key: &PropertyKey<'a>, computed: bool) -> Nam
 
 /// PORT: The span of a computed name's brackets, around `expression`.
 fn bracket_span(file: &ParsedFile, expression: Span) -> Span {
-    let start = full_start_of(file, expression.start) - 1;
-    let end = skip_trivia(file.text, expression.end, file.semantic().comments()) + 1;
+    let start = file
+        .token_before(expression.start)
+        .map_or(expression.start, Token::start);
+    let end = file
+        .token_after(expression.end)
+        .map_or(expression.end, Token::end);
     Span::new(start, end)
 }
 
-fn full_start_of(file: &ParsedFile, start: u32) -> u32 {
-    let hashbang_end = file
-        .program
-        .hashbang
-        .as_ref()
-        .map(|hashbang| hashbang.span.end);
-    full_start(file.text, start, file.semantic().comments(), hashbang_end)
+fn accessibility_kind(accessibility: TSAccessibility) -> Kind {
+    match accessibility {
+        TSAccessibility::Public => Kind::Public,
+        TSAccessibility::Private => Kind::Private,
+        TSAccessibility::Protected => Kind::Protected,
+    }
 }
 
 fn is_static_method(node: &ClassElement) -> bool {

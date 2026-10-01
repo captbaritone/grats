@@ -11,7 +11,8 @@ use std::rc::Rc;
 use oxc_allocator::Allocator;
 use oxc_ast::AstKind;
 use oxc_ast::ast::Program;
-use oxc_parser::Parser;
+use oxc_parser::config::TokensParserConfig;
+use oxc_parser::{Kind, Parser, Token};
 use oxc_semantic::{NodeId, Semantic, SemanticBuilder};
 use oxc_span::{GetSpan, SourceType, Span};
 
@@ -40,6 +41,8 @@ pub struct ParsedFile<'a> {
     pub is_module: bool,
     pub is_declaration_file: bool,
     pub program: &'a Program<'a>,
+    /// The file's tokens, in order, without its hashbang or comments.
+    tokens: &'a [Token],
     pub offsets: Utf16Offsets,
     /// The syntax errors oxc encountered while parsing the file.
     pub syntax_errors: Vec<SyntaxError>,
@@ -139,7 +142,9 @@ impl<'a> Files<'a> {
         if source_type.is_javascript() {
             source_type = source_type.with_jsx(true);
         }
-        let parsed = Parser::new(self.allocator, text, source_type).parse();
+        let parsed = Parser::new(self.allocator, text, source_type)
+            .with_config(TokensParserConfig)
+            .parse();
         let syntax_errors = parsed
             .diagnostics
             .errors()
@@ -158,6 +163,7 @@ impl<'a> Files<'a> {
             })
             .collect();
         let program = self.allocator.alloc(parsed.program);
+        let tokens = self.allocator.alloc(parsed.tokens);
         ParsedFile {
             source,
             path: path.to_string(),
@@ -166,6 +172,7 @@ impl<'a> Files<'a> {
             is_module: is_module(program, source_type),
             is_declaration_file: source_type.is_typescript_definition(),
             program,
+            tokens,
             offsets: Utf16Offsets::new(text),
             syntax_errors,
             semantic: OnceCell::new(),
@@ -176,6 +183,34 @@ impl<'a> Files<'a> {
 }
 
 impl<'a> ParsedFile<'a> {
+    /// The first token which starts at or after `pos`.
+    pub fn token_after(&self, pos: u32) -> Option<&Token> {
+        let index = self.tokens.partition_point(|token| token.start() < pos);
+        self.tokens.get(index)
+    }
+
+    /// The last token which ends at or before `pos`.
+    pub fn token_before(&self, pos: u32) -> Option<&Token> {
+        let index = self.tokens.partition_point(|token| token.end() <= pos);
+        index.checked_sub(1).map(|index| &self.tokens[index])
+    }
+
+    /// PORT: A node's `pos`, its "full start": the end of the token before
+    /// `start`, so it includes the trivia before it.
+    pub fn full_start(&self, start: u32) -> u32 {
+        self.token_before(start).map_or(0, Token::end)
+    }
+
+    /// The span of the `kind` token between `from` and `to`, if there is one.
+    pub fn find_token(&self, from: u32, to: u32, kind: Kind) -> Option<Span> {
+        let start = self.tokens.partition_point(|token| token.start() < from);
+        self.tokens[start..]
+            .iter()
+            .take_while(|token| token.end() <= to)
+            .find(|token| token.kind() == kind)
+            .map(Token::span)
+    }
+
     /// The file's scopes, symbols and nodes.
     pub fn semantic(&self) -> &Semantic<'a> {
         self.semantic.get_or_init(|| {
@@ -210,8 +245,7 @@ impl<'a> ParsedFile<'a> {
 
     /// The file's JSDoc, by the node it's attached to.
     pub fn jsdoc(&self) -> &JSDocIndex {
-        self.jsdoc
-            .get_or_init(|| JSDocIndex::new(self.text, self.semantic()))
+        self.jsdoc.get_or_init(|| JSDocIndex::new(self))
     }
 }
 

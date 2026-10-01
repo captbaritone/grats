@@ -12,11 +12,11 @@ use oxc_ast::ast::{
     BindingPattern, ClassType, ExportDefaultDeclarationKind, Expression, FunctionType,
     MethodDefinitionKind, PropertyKind, TSMethodSignatureKind,
 };
-use oxc_semantic::{NodeId, Semantic};
+use oxc_semantic::NodeId;
 use oxc_span::{GetSpan, Span};
 
 use super::parser::{JSDoc, parse_jsdoc_comment};
-use super::scanner::is_white_space_like;
+use crate::files::ParsedFile;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct TsNodeId(u32);
@@ -169,7 +169,9 @@ enum Mapping {
 }
 
 impl JSDocIndex {
-    pub fn new(text: &str, semantic: &Semantic) -> Self {
+    pub fn new(source_file: &ParsedFile) -> Self {
+        let text = source_file.text;
+        let semantic = source_file.semantic();
         let nodes = semantic.nodes();
         let mut file = JSDocIndex {
             nodes: Vec::new(),
@@ -258,11 +260,9 @@ impl JSDocIndex {
                     // The declaration list starts at its keyword, after any
                     // modifiers.
                     let list_start = if declaration.declare {
-                        skip_trivia(
-                            text,
-                            span.start + "declare".len() as u32,
-                            semantic.comments(),
-                        )
+                        source_file
+                            .token_after(span.start + "declare".len() as u32)
+                            .map_or(span.start, |token| token.start())
                     } else {
                         span.start
                     };
@@ -283,28 +283,18 @@ impl JSDocIndex {
             }
         }
         let text_len = text.len() as u32;
-        let source_file = TsNodeId(0);
-        let end_of_file = file.push(
+        file.push(
             SyntaxKind::EndOfFileToken,
             text_len,
             text_len,
-            Some(source_file),
+            Some(TsNodeId(0)),
             None,
         );
 
         // `pos`: The end of the previous token.
-        let hashbang_end = semantic
-            .nodes()
-            .program()
-            .hashbang
-            .as_ref()
-            .map(|hashbang| hashbang.span.end);
-        let comments = semantic.comments();
         for node in &mut file.nodes {
-            node.pos = full_start(text, node.start, comments, hashbang_end);
+            node.pos = source_file.full_start(node.start);
         }
-        file.nodes[source_file.0 as usize].pos = 0;
-        file.nodes[end_of_file.0 as usize].pos = full_start(text, text_len, comments, hashbang_end);
 
         // Initializers.
         let resolve =
@@ -340,7 +330,7 @@ impl JSDocIndex {
             if !file.has_js_doc_kind(TsNodeId(index as u32), text) {
                 continue;
             }
-            for range in get_js_doc_comment_ranges(&file.nodes[index], text, comments) {
+            for range in get_js_doc_comment_ranges(&file.nodes[index], text, semantic.comments()) {
                 if let Some(js_doc) = parse_jsdoc_comment(text, range.0, range.1) {
                     let id = JSDocId(file.js_docs.len() as u32);
                     file.js_docs.push(js_doc);
@@ -732,36 +722,6 @@ fn comment_ranges(
     ranges
 }
 
-/// The end of the token before `start`: `start`, less any whitespace and
-/// comments before it.
-pub(crate) fn full_start(
-    text: &str,
-    start: u32,
-    comments: &[oxc_ast::Comment],
-    hashbang_end: Option<u32>,
-) -> u32 {
-    let mut pos = start as usize;
-    loop {
-        while let Some(ch) = text[..pos]
-            .chars()
-            .next_back()
-            .filter(|&ch| is_white_space_like(ch))
-        {
-            pos -= ch.len_utf8();
-        }
-        let index = comments.partition_point(|comment| (comment.span.end as usize) < pos);
-        match comments.get(index) {
-            Some(comment) if comment.span.end as usize == pos => pos = comment.span.start as usize,
-            _ => break,
-        }
-    }
-    // A hashbang is trivia before the first token.
-    if hashbang_end == Some(pos as u32) {
-        pos = 0;
-    }
-    pos as u32
-}
-
 /// Whether a node with `span` is the computed key of `owner`.
 fn is_computed_key(owner: AstKind, span: Span) -> bool {
     let (computed, key) = match owner {
@@ -775,18 +735,4 @@ fn is_computed_key(owner: AstKind, span: Span) -> bool {
         _ => return false,
     };
     computed && key.span() == span
-}
-
-/// PORT: `skipTrivia`, for the whitespace and comments after a modifier.
-pub(crate) fn skip_trivia(text: &str, pos: u32, comments: &[oxc_ast::Comment]) -> u32 {
-    let mut pos = pos as usize;
-    loop {
-        let rest = &text[pos..];
-        pos += rest.len() - rest.trim_start_matches(is_white_space_like).len();
-        let index = comments.partition_point(|comment| (comment.span.start as usize) < pos);
-        match comments.get(index) {
-            Some(comment) if comment.span.start as usize == pos => pos = comment.span.end as usize,
-            _ => return pos as u32,
-        }
-    }
 }
