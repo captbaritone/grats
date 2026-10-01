@@ -8,6 +8,6 @@ use crate::language::source::Source;
 ///
 /// PORT: `GraphQLError` doesn't model a source and positions, since Grats only
 /// reads the message of syntax errors.
-pub fn syntax_error(_source: &Source, _position: usize, description: &str) -> GraphQLError {
+pub fn syntax_error(_source: &Source<'_>, _position: usize, description: &str) -> GraphQLError {
     GraphQLError::new(format!("Syntax Error: {description}"), Vec::new())
 }

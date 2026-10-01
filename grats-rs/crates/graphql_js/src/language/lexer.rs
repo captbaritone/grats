@@ -19,7 +19,7 @@ use crate::error::syntax_error::syntax_error;
 /// EOF, after which the lexer will repeatedly return the same EOF token
 /// whenever called.
 pub struct Lexer<'s> {
-    pub source: &'s Source,
+    pub source: Source<'s>,
     /// PORT: The source's body as UTF-16 code units.
     body: Vec<u16>,
     /// PORT: Every token read so far, including ignored tokens, in the order
@@ -40,7 +40,7 @@ pub struct Lexer<'s> {
 }
 
 impl<'s> Lexer<'s> {
-    pub fn new(source: &'s Source) -> Self {
+    pub fn new(source: Source<'s>) -> Self {
         let start_of_file_token = Token::new(TokenKind::Sof, 0, 0, 0, 0, None);
         Lexer {
             source,
@@ -264,6 +264,7 @@ fn read_next_token(lexer: &mut Lexer, start: usize) -> Result<Token, GraphQLErro
                 position += 1;
                 lexer.line += 1;
                 lexer.line_start = position;
+                position = skip_docblock_decoration(lexer, position);
                 continue;
             }
             0x000d => {
@@ -275,6 +276,7 @@ fn read_next_token(lexer: &mut Lexer, start: usize) -> Result<Token, GraphQLErro
                 }
                 lexer.line += 1;
                 lexer.line_start = position;
+                position = skip_docblock_decoration(lexer, position);
                 continue;
             }
             // Comment
@@ -346,7 +348,7 @@ fn read_next_token(lexer: &mut Lexer, start: usize) -> Result<Token, GraphQLErro
         }
 
         return Err(syntax_error(
-            lexer.source,
+            &lexer.source,
             position,
             &if code == 0x0027 {
                 "Unexpected single quote character ('), did you mean to use a double quote (\")?"
@@ -374,6 +376,24 @@ fn read_next_token(lexer: &mut Lexer, start: usize) -> Result<Token, GraphQLErro
         body_length,
         None,
     ))
+}
+
+/// PORT: In a docblock, a line's leading `*` and the whitespace before it
+/// are ignored, like JSDoc does. Returns the position after them, given the
+/// position at which the line begins.
+fn skip_docblock_decoration(lexer: &Lexer, line_start: usize) -> usize {
+    if !lexer.source.docblock {
+        return line_start;
+    }
+    let mut position = line_start;
+    while matches!(char_code_at(&lexer.body, position), Some(0x0009 | 0x0020)) {
+        position += 1;
+    }
+    if char_code_at(&lexer.body, position) == Some(0x002a) {
+        position + 1
+    } else {
+        line_start
+    }
 }
 
 /// Reads a comment token from the source file.
@@ -460,7 +480,7 @@ fn read_number(lexer: &Lexer, start: usize, first_code: u16) -> Result<Token, Gr
         code = char_code_at(body, position);
         if is_digit(code) {
             return Err(syntax_error(
-                lexer.source,
+                &lexer.source,
                 position,
                 &format!(
                     "Invalid number, unexpected digit after 0: {}.",
@@ -501,7 +521,7 @@ fn read_number(lexer: &Lexer, start: usize, first_code: u16) -> Result<Token, Gr
     // Numbers cannot be followed by . or NameStart
     if code == Some(0x002e) || is_name_start(code) {
         return Err(syntax_error(
-            lexer.source,
+            &lexer.source,
             position,
             &format!(
                 "Invalid number, expected digit but got: {}.",
@@ -531,7 +551,7 @@ fn read_digits(
 ) -> Result<usize, GraphQLError> {
     if !is_digit(first_code) {
         return Err(syntax_error(
-            lexer.source,
+            &lexer.source,
             start,
             &format!(
                 "Invalid number, expected digit but got: {}.",
@@ -622,7 +642,7 @@ fn read_string(lexer: &Lexer, start: usize) -> Result<Token, GraphQLError> {
             position += 2;
         } else {
             return Err(syntax_error(
-                lexer.source,
+                &lexer.source,
                 position,
                 &format!(
                     "Invalid character within String: {}.",
@@ -632,7 +652,11 @@ fn read_string(lexer: &Lexer, start: usize) -> Result<Token, GraphQLError> {
         }
     }
 
-    Err(syntax_error(lexer.source, position, "Unterminated string."))
+    Err(syntax_error(
+        &lexer.source,
+        position,
+        "Unterminated string.",
+    ))
 }
 
 // The string value and lexed size of an escape sequence.
@@ -671,7 +695,7 @@ fn read_escaped_unicode_variable_width(
     }
 
     Err(syntax_error(
-        lexer.source,
+        &lexer.source,
         position,
         &format!(
             "Invalid Unicode escape sequence: \"{}\".",
@@ -718,7 +742,7 @@ fn read_escaped_unicode_fixed_width(
     }
 
     Err(syntax_error(
-        lexer.source,
+        &lexer.source,
         position,
         &format!(
             "Invalid Unicode escape sequence: \"{}\".",
@@ -793,7 +817,7 @@ fn read_escaped_character(lexer: &Lexer, position: usize) -> Result<EscapeSequen
         });
     }
     Err(syntax_error(
-        lexer.source,
+        &lexer.source,
         position,
         &format!(
             "Invalid character escape sequence: \"{}\".",
@@ -872,8 +896,9 @@ fn read_block_string(lexer: &mut Lexer, start: usize) -> Result<Token, GraphQLEr
                 position += 1;
             }
 
-            chunk_start = position;
             line_start = position;
+            position = skip_docblock_decoration(lexer, position);
+            chunk_start = position;
             continue;
         }
 
@@ -884,7 +909,7 @@ fn read_block_string(lexer: &mut Lexer, start: usize) -> Result<Token, GraphQLEr
             position += 2;
         } else {
             return Err(syntax_error(
-                lexer.source,
+                &lexer.source,
                 position,
                 &format!(
                     "Invalid character within String: {}.",
@@ -894,7 +919,11 @@ fn read_block_string(lexer: &mut Lexer, start: usize) -> Result<Token, GraphQLEr
         }
     }
 
-    Err(syntax_error(lexer.source, position, "Unterminated string."))
+    Err(syntax_error(
+        &lexer.source,
+        position,
+        "Unterminated string.",
+    ))
 }
 
 /// Reads an alphanumeric + underscore name from the source.
@@ -934,16 +963,13 @@ mod tests {
 
     // Expectations are from graphql-js.
 
-    fn source(body: &str) -> Source {
-        Source::new(body.to_string(), "GraphQL request".to_string(), 0)
-    }
-
     #[test]
     fn lexes_tokens_with_positions_and_values() {
-        let source = source(
+        let source = Source::new(
             "# c\nscalar S @d(a: \"x\\u{1F600}\", b: \"\"\"\n    one\n      two\n  \"\"\", c: -1.5e3)\n",
+            0,
         );
-        let mut lexer = Lexer::new(&source);
+        let mut lexer = Lexer::new(source);
         let mut tokens = Vec::new();
         loop {
             let token = lexer.advance().unwrap().clone();
@@ -986,8 +1012,8 @@ mod tests {
 
     #[test]
     fn lookahead_skips_comments_without_advancing() {
-        let source = source("a # c\n b");
-        let mut lexer = Lexer::new(&source);
+        let source = Source::new("a # c\n b", 0);
+        let mut lexer = Lexer::new(source);
         assert_eq!(lexer.lookahead().unwrap().value.as_deref(), Some("a"));
         assert_eq!(lexer.token().kind, TokenKind::Sof);
         assert_eq!(lexer.advance().unwrap().value.as_deref(), Some("a"));

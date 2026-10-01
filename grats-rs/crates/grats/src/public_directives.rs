@@ -59,13 +59,12 @@ directive @semanticNonNull(levels: [Int] = [0]) on FIELD_DEFINITION
 /// source is added to the `SourceTable` so that locations can refer to it.
 pub fn directives_ast(sources: &SourceTable) -> DocumentNode {
     let source = Source::new(
-        DIRECTIVES_SDL.to_string(),
-        DEFAULT_SOURCE_NAME.to_string(),
+        DIRECTIVES_SDL,
         sources.add(DEFAULT_SOURCE_NAME, DIRECTIVES_SDL),
     );
     // PORT: Grats' only directive is parsed as a directive definition rather
     // than a document.
-    let definition = parse_only(&source, Parser::parse_directive_definition)
+    let definition = parse_only(source, Parser::parse_directive_definition)
         .expect("Grats' directives should parse");
     DocumentNode {
         loc: None,

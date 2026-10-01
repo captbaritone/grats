@@ -77,7 +77,7 @@ pub fn run(
     } = collect_results(
         source_files
             .iter()
-            .map(|source_file| extract(source_file, config, grats_root, sources)),
+            .map(|source_file| extract(source_file, config, grats_root)),
     )?;
 
     // These need the name definitions, which `TypeContext` takes, but its

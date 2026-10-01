@@ -24,6 +24,7 @@ Changes in this section are not yet released. If you need access to these change
   - CI now tests against TypeScript 5.5, 5.7, 5.9, and 6.0.
   - Grats' output is now printed by a Rust port of Grats. The generated TypeScript is formatted differently, for example small objects are printed on one line, so regenerating will produce a formatting-only diff in your generated files. The generated code is otherwise unchanged.
   - Output files which can't be written are now reported as errors, rather than crashing the CLI.
+  - Errors in the arguments of `@gqlAnnotate` directives now point to the argument in your docblock, rather than to a `GraphQL request` copy of the directive.
 
 ## 0.0.36
 

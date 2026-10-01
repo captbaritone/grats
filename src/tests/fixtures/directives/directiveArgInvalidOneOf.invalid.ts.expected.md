@@ -27,10 +27,10 @@ export function myQueryField(): string {
 ### Error Report
 
 ```text
-GraphQL request:1:23 - error: OneOf Input Object "MyInput" must specify exactly one key.
+src/tests/fixtures/directives/directiveArgInvalidOneOf.invalid.ts:13:38 - error: OneOf Input Object "MyInput" must specify exactly one key.
 
-1 @customDirective(foo: {a: "a", b: "b"})
-                        ~~~~~~~~~~~~~~~~
+13  * @gqlAnnotate customDirective(foo: {a: "a", b: "b"})
+                                        ~~~~~~~~~~~~~~~~
 
   src/tests/fixtures/directives/directiveArgInvalidOneOf.invalid.ts:4:1
     4 type MyInput = { a: string } | { b: string };

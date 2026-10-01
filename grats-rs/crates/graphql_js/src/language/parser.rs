@@ -27,7 +27,7 @@ pub type ParseResult<T> = Result<T, GraphQLError>;
 /// PORT: Like graphql-js's `parseConstValue` and `parseType`, which parse a
 /// source that's a single construct, for the construct `parse_fn` parses.
 pub fn parse_only<'s, T>(
-    source: &'s Source,
+    source: Source<'s>,
     parse_fn: impl FnOnce(&mut Parser<'s>) -> ParseResult<T>,
 ) -> ParseResult<T> {
     let mut parser = Parser::new(source);
@@ -49,7 +49,7 @@ pub struct Parser<'s> {
 }
 
 impl<'s> Parser<'s> {
-    pub fn new(source: &'s Source) -> Self {
+    pub fn new(source: Source<'s>) -> Self {
         Parser {
             lexer: Lexer::new(source),
         }
@@ -145,7 +145,7 @@ impl<'s> Parser<'s> {
                 if self.lexer.token().kind == TokenKind::Name {
                     let var_name = token_value(self.lexer.token());
                     Err(syntax_error(
-                        self.lexer.source,
+                        &self.lexer.source,
                         token.start,
                         &format!("Unexpected variable \"${var_name}\" in constant value."),
                     ))
@@ -242,6 +242,18 @@ impl<'s> Parser<'s> {
     pub fn parse_const_directive(&mut self) -> ParseResult<ConstDirectiveNode> {
         let start = self.lexer.token().clone();
         self.expect_token(TokenKind::At)?;
+        self.parse_const_directive_after(start)
+    }
+
+    /// PORT: A constant directive without its `@`, for docblock tags which
+    /// stand in for it.
+    pub fn parse_const_directive_without_at(&mut self) -> ParseResult<ConstDirectiveNode> {
+        let start = self.lexer.token().clone();
+        self.parse_const_directive_after(start)
+    }
+
+    /// PORT: The rest of a constant directive, which begins at `start`.
+    fn parse_const_directive_after(&mut self, start: Token) -> ParseResult<ConstDirectiveNode> {
         let name = self.parse_name()?;
         // PORT: `parseArguments(true)`.
         let arguments = self.optional_many(
@@ -417,8 +429,8 @@ impl<'s> Parser<'s> {
     fn node(&self, start_token: &Token) -> Option<Location> {
         Some(Location {
             source: self.lexer.source.id,
-            start: start_token.start as u32,
-            end: self.lexer.last_token().end as u32,
+            start: self.lexer.source.offset + start_token.start as u32,
+            end: self.lexer.source.offset + self.lexer.last_token().end as u32,
         })
     }
 
@@ -437,7 +449,7 @@ impl<'s> Parser<'s> {
         }
 
         Err(syntax_error(
-            self.lexer.source,
+            &self.lexer.source,
             token.start,
             &format!(
                 "Expected {}, found {}.",
@@ -466,7 +478,7 @@ impl<'s> Parser<'s> {
             Ok(())
         } else {
             Err(syntax_error(
-                self.lexer.source,
+                &self.lexer.source,
                 token.start,
                 &format!("Expected \"{value}\", found {}.", get_token_desc(token)),
             ))
@@ -488,7 +500,7 @@ impl<'s> Parser<'s> {
     pub fn unexpected(&self, at_token: Option<&Token>) -> GraphQLError {
         let token = at_token.unwrap_or_else(|| self.lexer.token());
         syntax_error(
-            self.lexer.source,
+            &self.lexer.source,
             token.start,
             &format!("Unexpected {}.", get_token_desc(token)),
         )
@@ -601,16 +613,28 @@ mod tests {
 
     // Expectations are from graphql-js.
 
-    fn source(body: &str) -> Source {
-        Source::new(body.to_string(), "GraphQL request".to_string(), 3)
-    }
-
     fn parse_directive(body: &str) -> Result<ConstDirectiveNode, String> {
-        parse_only(&source(body), Parser::parse_const_directive).map_err(|error| error.message)
+        parse_only(Source::new(body, 3), Parser::parse_const_directive)
+            .map_err(|error| error.message)
     }
 
     fn parse_directive_definition(body: &str) -> Result<DirectiveDefinitionNode, String> {
-        parse_only(&source(body), Parser::parse_directive_definition).map_err(|error| error.message)
+        parse_only(Source::new(body, 3), Parser::parse_directive_definition)
+            .map_err(|error| error.message)
+    }
+
+    fn parse_docblock_directive(body: &str) -> Result<ConstDirectiveNode, String> {
+        parse_only(
+            Source::docblock(body, 3, 100),
+            Parser::parse_const_directive_without_at,
+        )
+        .map_err(|error| error.message)
+    }
+
+    fn locations(document: &DocumentNode) -> Vec<(u32, u32)> {
+        let mut locations = Locations(Vec::new());
+        visit(document, &mut locations);
+        locations.0
     }
 
     struct Locations(Vec<(u32, u32)>);
@@ -637,10 +661,8 @@ mod tests {
             loc: None,
             definitions: vec![DefinitionNode::DirectiveDefinition(definition)],
         };
-        let mut locations = Locations(Vec::new());
-        visit(&document, &mut locations);
         assert_eq!(
-            locations.0,
+            locations(&document),
             [
                 (0, 71),
                 (0, 3),
@@ -661,6 +683,53 @@ mod tests {
                 (57, 62),
                 (65, 71),
             ]
+        );
+    }
+
+    #[test]
+    fn ignores_docblock_decoration() {
+        let directive = parse_docblock_directive(
+            " d(\n   * a: [1,\n\t*  2],\n *\n * b: \"\"\"\n *   x\n *     y\n *   \"\"\")\n * ",
+        )
+        .unwrap();
+        assert_eq!(
+            print_directive(&directive),
+            "@d(a: [1, 2], b: \"\"\"\nx\n  y\n\"\"\")"
+        );
+        // Offsets are in the docblock, after `offset`.
+        let directive = parse_docblock_directive(" d(\n * a: 1)").unwrap();
+        assert_eq!(
+            directive.loc.map(|loc| (loc.start, loc.end)),
+            Some((101, 112))
+        );
+        let argument = &directive.arguments.as_ref().unwrap()[0];
+        assert_eq!(
+            argument.loc.map(|loc| (loc.start, loc.end)),
+            Some((107, 111))
+        );
+    }
+
+    #[test]
+    fn reports_docblock_asterisks_which_do_not_begin_lines() {
+        let cases = [
+            (" * d", "Syntax Error: Unexpected character: \"*\"."),
+            (
+                " d(a:\n * * 1)",
+                "Syntax Error: Unexpected character: \"*\".",
+            ),
+            (" d(a: 1 *)", "Syntax Error: Unexpected character: \"*\"."),
+        ];
+        for (body, message) in cases {
+            assert_eq!(
+                parse_docblock_directive(body).unwrap_err(),
+                message,
+                "{body:?}"
+            );
+        }
+        // Outside of docblocks, they're never ignored.
+        assert_eq!(
+            parse_directive("@d(a:\n * 1)").unwrap_err(),
+            "Syntax Error: Unexpected character: \"*\"."
         );
     }
 

@@ -14,7 +14,7 @@ use graphql_js::language::ast::{
     ResolverSignature, StringValueNode, TypeNode,
 };
 use graphql_js::language::parser::{ParseResult, Parser, parse_only};
-use graphql_js::language::source::{DEFAULT_SOURCE_NAME, Source};
+use graphql_js::language::source::Source;
 use graphql_js::r#type::assert_name::assert_name;
 use indexmap::IndexMap;
 use oxc_ast::AstKind;
@@ -47,7 +47,6 @@ use crate::jsdoc::{
 use crate::snapshot_refs::{
     DeclLoc, DeclRef, EntityName, EntityNameRef, decl_ref, entity_name_ref,
 };
-use crate::source_table::SourceTable;
 use crate::type_context::{
     DeclarationDefinition, DeclarationDefinitionKind, DerivedResolverDefinition,
     UNRESOLVED_REFERENCE_NAME,
@@ -199,16 +198,14 @@ pub struct NameDefinitionEntry {
 /// errors will point to the correct location in the TypeScript source code.
 ///
 /// PORT: Takes the config's `tsClientEnums`, as TypeScript does, with the
-/// rest of it. `grats_root` and `sources` are the context which TypeScript's
-/// module-level state provides: the root which exported paths are relative
-/// to, and the `SourceTable` of the `@gqlAnnotate` tags' GraphQL sources.
+/// rest of it. `grats_root` is the context which TypeScript's module-level
+/// state provides: the root which exported paths are relative to.
 pub fn extract(
     source_file: &ParsedFile,
     config: &GratsConfig,
     grats_root: &str,
-    sources: &SourceTable,
 ) -> DiagnosticsResult<ExtractionSnapshot> {
-    let extractor = Extractor::new(source_file, config, grats_root, sources);
+    let extractor = Extractor::new(source_file, config, grats_root);
     extractor.extract()
 }
 
@@ -230,18 +227,12 @@ struct Extractor<'f, 'a> {
     /// PORT: The JSDoc of `file`.
     jsdoc: &'f JSDocIndex,
     grats_root: &'f str,
-    sources: &'f SourceTable,
     /// PORT: See `ExtractionSnapshot::diagnostics_by_handle`.
     diagnostics_by_handle: HashMap<DiagnosticHandle, Diagnostic>,
 }
 
 impl<'f, 'a> Extractor<'f, 'a> {
-    fn new(
-        file: &'f ParsedFile<'a>,
-        config: &'f GratsConfig,
-        grats_root: &'f str,
-        sources: &'f SourceTable,
-    ) -> Self {
+    fn new(file: &'f ParsedFile<'a>, config: &'f GratsConfig, grats_root: &'f str) -> Self {
         Extractor {
             definitions: Vec::new(),
             unresolved_names: IndexMap::new(),
@@ -255,7 +246,6 @@ impl<'f, 'a> Extractor<'f, 'a> {
             file,
             jsdoc: file.jsdoc(),
             grats_root,
-            sources,
             diagnostics_by_handle: HashMap::new(),
         }
     }
@@ -675,20 +665,17 @@ impl<'f, 'a> Extractor<'f, 'a> {
         ));
     }
 
-    /// PORT: When the comment has parts, TypeScript reads the text parts'
-    /// source text, which differs from their text across lines. But a comment
-    /// only has parts if one of them is a link, which is reported, so the text
-    /// is never read.
-    fn extract_docblock_tag_comment(&mut self, comment: &JSDocComment) -> Option<String> {
+    /// Whether the comment can be parsed by `parse_tag_gql`, which reads the
+    /// tag's source text. Reports any links in it.
+    fn check_docblock_tag_comment(&mut self, comment: &JSDocComment) -> bool {
         let parts = match comment {
-            JSDocComment::Text(comment) => return Some(comment.clone()),
+            JSDocComment::Text(_) => return true,
             JSDocComment::Parts(parts) => parts,
         };
-        let mut text = String::new();
         let mut has_errors = false;
         for tag in parts {
             match tag {
-                JSDocCommentPart::Text(part) => text.push_str(part),
+                JSDocCommentPart::Text(_) => {}
                 JSDocCommentPart::Link { pos, end, .. } => {
                     self.report(
                         Span::new(*pos, *end),
@@ -700,10 +687,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 }
             }
         }
-        if has_errors {
-            return None;
-        }
-        Some(text)
+        !has_errors
     }
 
     fn extract_directive(&mut self, node: TsNodeId, tag: TagId) {
@@ -742,12 +726,11 @@ impl<'f, 'a> Extractor<'f, 'a> {
             );
             return;
         };
-        let Some(comment) = self.extract_docblock_tag_comment(tag_comment) else {
+        if !self.check_docblock_tag_comment(tag_comment) {
             return;
-        };
+        }
 
-        let tag_loc = loc(self.locatable(self.tag_span(tag)));
-        let tag_data = self.parse_gql(self.tag_span(tag), comment, |parser| {
+        let tag_data = self.parse_tag_gql(tag, |parser| {
             let mut name: Option<NameNode> = None;
             let mut repeatable = parser.expect_optional_keyword("repeatable")?;
             let on = parser.expect_optional_keyword("on")?;
@@ -755,22 +738,12 @@ impl<'f, 'a> Extractor<'f, 'a> {
             // If the first identifier was neither `repeatable` nor `on`, then
             // we expect it to be the directive name.
             if !on && !repeatable {
-                name = Some(NameNode {
-                    loc: Some(tag_loc),
-                    ..parser.parse_name()?
-                });
+                name = Some(parser.parse_name()?);
                 repeatable = parser.expect_optional_keyword("repeatable")?;
                 parser.expect_keyword("on")?;
             }
 
-            let locations = parser
-                .parse_directive_locations()?
-                .into_iter()
-                .map(|location| NameNode {
-                    loc: Some(tag_loc),
-                    ..location
-                })
-                .collect::<Vec<_>>();
+            let locations = parser.parse_directive_locations()?;
             Ok((name, repeatable, locations))
         });
 
@@ -1281,28 +1254,24 @@ impl<'f, 'a> Extractor<'f, 'a> {
         self.collect_abstract_field(method, export_name, Some(method_name), name, parent_type);
     }
 
-    /// Runs the parser code in `cb` over the source text and reports any errors at
-    /// `node`.
+    /// Runs the parser code in `cb` over the text of `tag`, after its name, and
+    /// reports any errors at the tag.
     ///
-    /// Ideally we could use GraphQL `Source` with a `locationOffset`, but for
-    /// parsing text in docblocks which might span multiple lines, it's not as
-    /// simple as providing an offset since the lines in the source text might be
-    /// prefixed with indentation and `*`s.
-    ///
-    /// PORT: The source is added to the `SourceTable`, so that locations can
-    /// refer to it.
-    fn parse_gql<T>(
+    /// The text is parsed where it is in the file, so that locations point into
+    /// the docblock. The lexer ignores the `*`s which prefix its lines.
+    fn parse_tag_gql<T>(
         &mut self,
-        node: Span,
-        source: String,
+        tag: TagId,
         cb: impl FnOnce(&mut Parser) -> ParseResult<T>,
     ) -> Option<T> {
-        let id = self.sources.add(DEFAULT_SOURCE_NAME, &source);
-        let source = Source::new(source, DEFAULT_SOURCE_NAME.to_string(), id);
-        match parse_only(&source, cb) {
+        let tag_data = self.jsdoc.tag(tag);
+        let start = tag_data.tag_name.end;
+        let text = &self.file.text[start as usize..tag_data.end as usize];
+        let source = Source::docblock(text, self.file.source, self.file.offsets.to_utf16(start));
+        match parse_only(source, cb) {
             Ok(result) => Some(result),
             Err(err) => {
-                self.report(node, err.message, None, None);
+                self.report(self.tag_span(tag), err.message, None, None);
                 None
             }
         }
@@ -1316,7 +1285,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             if tag_data.tag_name.text != ANNOTATE_TAG {
                 continue;
             }
-            let Some(JSDocComment::Text(comment)) = &tag_data.comment else {
+            let Some(JSDocComment::Text(_)) = &tag_data.comment else {
                 self.report(
                     self.tag_span(tag),
                     "Expected docblock tag to have a value.".to_string(),
@@ -1325,10 +1294,8 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 );
                 continue;
             };
-            let directive_text = format!("@{comment}");
-            let directive = self.parse_gql(self.tag_span(tag), directive_text, |parser| {
-                parser.parse_const_directive()
-            });
+            let directive =
+                self.parse_tag_gql(tag, |parser| parser.parse_const_directive_without_at());
             if let Some(directive) = directive {
                 directives.push(ConstDirectiveNode {
                     loc: Some(loc(self.locatable(self.tag_span(tag)))),
