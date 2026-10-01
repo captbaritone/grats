@@ -6,6 +6,9 @@
 //! schema of each `index.ts` and compares it to the generated files in its
 //! directory. `pnpm test` then executes their queries against them.
 //!
+//! For the website's `.grats.ts` snippets, this generates the `.out` file
+//! shown with each, so changes to the docs are reviewed as fixture changes.
+//!
 //! Run with `cargo test --test fixtures`. Pass `-- --write` to write the
 //! actual output to the expected output files, and delete unexpected files,
 //! and a name to run only the fixtures whose paths contain it.
@@ -22,7 +25,7 @@ use grats::fix_fixable::{FixOptions, apply_fixes};
 use grats::grats_config::{GratsConfig, validate_grats_options};
 use grats::host::{DirEntries, FileKind, Host};
 use grats::locate::{LocateRequest, locate_in_document};
-use grats::print_schema::{OutputRequest, print_outputs};
+use grats::print_schema::{OutputRequest, print_outputs, print_sdl_without_metadata};
 use grats::program::ProgramOptions;
 use grats::source_table::SourceTable;
 use grats::utils::diagnostic_error::{
@@ -45,6 +48,9 @@ enum Kind {
     Config,
     /// `index.ts` files, whose schema is generated next to them.
     Integration,
+    /// The website's `.grats.ts` snippets, whose `.out` files are generated
+    /// next to them.
+    Snippet,
 }
 
 impl Kind {
@@ -53,6 +59,16 @@ impl Kind {
             Kind::Schema => file_name.ends_with(".ts"),
             Kind::Config => file_name.ends_with(".json"),
             Kind::Integration => file_name == "index.ts" || file_name.ends_with("/index.ts"),
+            Kind::Snippet => file_name.ends_with(".grats.ts"),
+        }
+    }
+
+    /// Whether the file, if it doesn't belong to a fixture, is unexpected.
+    /// The website's directories contain more than snippets.
+    fn is_fixture_file(self, file_name: &str) -> bool {
+        match self {
+            Kind::Schema | Kind::Config | Kind::Integration => true,
+            Kind::Snippet => file_name.ends_with(".out"),
         }
     }
 
@@ -62,6 +78,7 @@ impl Kind {
         let expected = format!("{fixture}.expected.md");
         match self {
             Kind::Schema | Kind::Config => vec![expected],
+            Kind::Snippet => vec![snippet_out_file(fixture)],
             Kind::Integration => {
                 let code = read(&format!("{fixtures_dir}/{fixture}"));
                 let dir = path::dirname(fixture);
@@ -96,6 +113,8 @@ fn main() {
         ("src/tests/configParserFixtures", Kind::Config),
         ("src/tests/fixtures", Kind::Schema),
         ("src/tests/integrationFixtures", Kind::Integration),
+        ("website/docs", Kind::Snippet),
+        ("website/src", Kind::Snippet),
     ] {
         let fixtures_dir = format!("{repo}/{dir}");
         let mut test_fixtures = Vec::new();
@@ -103,7 +122,7 @@ fn main() {
         for file_name in read_dir_recursive(&fixtures_dir) {
             if kind.is_test_file(&file_name) {
                 test_fixtures.push(file_name);
-            } else {
+            } else if kind.is_fixture_file(&file_name) {
                 other_files.insert(file_name);
             }
         }
@@ -124,6 +143,7 @@ fn main() {
                     write,
                 ),
                 Kind::Integration => test_integration_fixture(&fixtures_dir, &fixture, write),
+                Kind::Snippet => test_snippet(&fixtures_dir, &fixture, write),
             }));
         }
         let mut other_files: Vec<_> = other_files.into_iter().collect();
@@ -257,6 +277,61 @@ fn compare_or_write(file_path: &str, actual: &str, write: bool) -> Result<(), Fa
         )
         .into())
     }
+}
+
+/// The `.out` file of a website snippet.
+fn snippet_out_file(snippet: &str) -> String {
+    format!("{}.out", snippet.trim_end_matches(".grats.ts"))
+}
+
+/// PORT: `website/scripts/gratsCode.ts`. Generates the snippet's `.out` file:
+/// the snippet, its SDL and its `schema.ts`, which the website shows in tabs.
+fn test_snippet(snippets_dir: &str, snippet: &str, write: bool) -> Result<(), Failed> {
+    let snippet_path = format!("{snippets_dir}/{snippet}");
+    let code = read(&snippet_path);
+    let config = validate_grats_options(Some(&json!({
+        "nullableByDefault": true,
+        "importModuleSpecifierEnding": "",
+        "schemaHeader": null,
+        "tsSchemaHeader": null,
+    })))
+    .map_err(|message| format!("Invalid config: {message}"))?
+    .config;
+
+    let host = Arc::new(FixtureHost::new());
+    let sources = SourceTable::default();
+    let program = ProgramOptions {
+        root_names: vec![snippet_path.clone()],
+        tsconfig: Some(format!("{}/website/tsconfig.snippets.json", repo_root())),
+        ..program_options(&snippet_path)
+    };
+    let doc = grats::pipeline::run(&config, &grats_root(), &program, host.clone(), &sources)
+        .map_err(|diagnostics| {
+            let report = format_diagnostics_with_context(&code, diagnostics, &sources, &host);
+            format!("Expected the snippet to be valid:\n{report}")
+        })?;
+    let outputs = print_outputs(
+        &doc,
+        OutputRequest {
+            config,
+            grats_root: grats_root(),
+            graphql_schema: false,
+            ts_schema: Some(snippet_path.clone()),
+            ts_client_enums: None,
+            metadata: false,
+        },
+    );
+
+    let output = format!(
+        "{code}\n=== SNIP ===\n{}\n=== SNIP ===\n{}",
+        print_sdl_without_metadata(&doc),
+        expect_output(outputs.ts_schema)
+    );
+    compare_or_write(
+        &format!("{snippets_dir}/{}", snippet_out_file(snippet)),
+        &output,
+        write,
+    )
 }
 
 /// The config of an integration fixture: the defaults, and the options on its

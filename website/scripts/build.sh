@@ -20,11 +20,6 @@ cd ..
 pnpm run build
 cd website
 
-# Rebuild/validate the grats code used in the website
-pnpm run grats
-# Error if any of these changes have not been committed
-git diff --exit-code || (echo "Uncommitted changes detected." && exit 1)
-
 # Delete llm-docs/ before build so removed pages are detected
 rm -rf ../llm-docs
 

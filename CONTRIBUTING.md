@@ -39,7 +39,8 @@ config in each `.json` file.
 
 These two directories are tested by Rust, which also generates the
 `schema.ts` and `schema.graphql` files for `src/tests/integrationFixtures`
-(see below):
+(see below), and the `.out` file shown with each `.grats.ts` snippet in the
+website, so changes to the docs' output show up as fixture changes:
 
 ```
 cd grats-rs
