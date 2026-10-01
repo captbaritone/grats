@@ -90,7 +90,9 @@ fn print_object_field(node: &ConstObjectFieldNode) -> String {
 
 // Directive
 
-fn print_directive(node: &ConstDirectiveNode) -> String {
+/// PORT: graphql-js's `print` accepts any node. Directives are printed on
+/// their own by the parser's tests.
+pub fn print_directive(node: &ConstDirectiveNode) -> String {
     "@".to_string()
         + &print_name(&node.name)
         + &wrap(

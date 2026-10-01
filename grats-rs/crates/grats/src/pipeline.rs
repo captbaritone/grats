@@ -149,7 +149,6 @@ pub fn run(
         .map(|definitions| DocumentNode {
             loc: None,
             definitions,
-            token_count: None,
         })
         // Ensure all subscription fields return an AsyncIterable.
         .and_then(validate_async_iterable)

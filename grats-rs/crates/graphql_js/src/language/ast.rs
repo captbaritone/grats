@@ -238,7 +238,6 @@ pub struct NameNode {
 pub struct DocumentNode {
     pub loc: Option<Location>,
     pub definitions: Vec<DefinitionNode>,
-    pub token_count: Option<u32>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

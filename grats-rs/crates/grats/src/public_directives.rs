@@ -9,7 +9,7 @@
 use graphql_js::language::ast::{
     ConstDirectiveNode, DefinitionNode, DocumentNode, Location, NameNode,
 };
-use graphql_js::language::parser::parse;
+use graphql_js::language::parser::{Parser, parse_only};
 use graphql_js::language::source::{DEFAULT_SOURCE_NAME, Source};
 
 use crate::source_table::SourceTable;
@@ -63,7 +63,14 @@ pub fn directives_ast(sources: &SourceTable) -> DocumentNode {
         DEFAULT_SOURCE_NAME.to_string(),
         sources.add(DEFAULT_SOURCE_NAME, DIRECTIVES_SDL),
     );
-    parse(&source).expect("Grats' directives should parse")
+    // PORT: Grats' only directive is parsed as a directive definition rather
+    // than a document.
+    let definition = parse_only(&source, Parser::parse_directive_definition)
+        .expect("Grats' directives should parse");
+    DocumentNode {
+        loc: None,
+        definitions: vec![DefinitionNode::DirectiveDefinition(definition)],
+    }
 }
 
 /// PORT: `DIRECTIVES_AST` is parsed on demand (see `directives_ast`).

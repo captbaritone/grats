@@ -13,9 +13,8 @@ use graphql_js::language::ast::{
     InputValueDefinitionNodeOrResolverArg, NameNode, NamedTypeNode, ResolverArgument,
     ResolverSignature, StringValueNode, TypeNode,
 };
-use graphql_js::language::parser::{ParseResult, Parser};
+use graphql_js::language::parser::{ParseResult, Parser, parse_only};
 use graphql_js::language::source::{DEFAULT_SOURCE_NAME, Source};
-use graphql_js::language::token_kind::TokenKind;
 use graphql_js::r#type::assert_name::assert_name;
 use indexmap::IndexMap;
 use oxc_ast::AstKind;
@@ -1275,14 +1274,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
     ) -> Option<T> {
         let id = self.sources.add(DEFAULT_SOURCE_NAME, &source);
         let source = Source::new(source, DEFAULT_SOURCE_NAME.to_string(), id);
-        let mut parser = Parser::new(&source);
-        let result: ParseResult<T> = (|| {
-            parser.expect_token(TokenKind::Sof)?;
-            let result = cb(&mut parser)?;
-            parser.expect_token(TokenKind::Eof)?;
-            Ok(result)
-        })();
-        match result {
+        match parse_only(&source, cb) {
             Ok(result) => Some(result),
             Err(err) => {
                 self.report(node, err.message, None, None);
