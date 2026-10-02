@@ -26,3 +26,6 @@ status = 301
 
 [build.environment]
 NODE_VERSION = "20.10.0"
+# Netlify doesn't read the root package.json's packageManager, since our base
+# is website/. Keep this in sync with it.
+PNPM_VERSION = "10.15.1"
