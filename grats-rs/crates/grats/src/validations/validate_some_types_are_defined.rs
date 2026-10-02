@@ -1,5 +1,3 @@
-//! Port of `src/validations/validateSomeTypesAreDefined.ts`.
-
 use graphql_js::r#type::definition::GraphQLNamedType;
 use graphql_js::r#type::schema::GraphQLSchema;
 
@@ -14,10 +12,11 @@ use crate::utils::diagnostic_error::{DiagnosticsResult, locationless_err};
 /// types.
 pub fn validate_some_types_are_defined(schema: &GraphQLSchema<'_>) -> DiagnosticsResult<()> {
     let mut types = schema.get_type_map().values().map(|&id| &schema[id]);
-    if !types.any(is_user_defined_type) {
-        return Err(vec![locationless_err(E::no_types_defined())]);
+    if types.any(is_user_defined_type) {
+        Ok(())
+    } else {
+        Err(vec![locationless_err(E::no_types_defined())])
     }
-    Ok(())
 }
 
 fn is_user_defined_type(r#type: &GraphQLNamedType) -> bool {
