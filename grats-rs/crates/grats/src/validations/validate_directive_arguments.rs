@@ -1,5 +1,3 @@
-//! Port of `src/validations/validateDirectiveArguments.ts`.
-
 use std::cell::RefCell;
 
 use graphql_js::error::graphql_error::GraphQLError;
@@ -12,7 +10,7 @@ use graphql_js::validation::rules::values_of_correct_type_rule::values_of_correc
 use graphql_js::validation::validation_context::ValidationContext;
 
 use crate::utils::diagnostic_error::{DiagnosticsResult, gql_err, gql_related};
-use crate::utils::helpers::null_throws;
+use crate::utils::result::ok_unless_errors;
 
 /// Surprisingly, the GraphQL spec (and therefore graphql-js) does not enforce
 /// that the types of arguments passed to directives used within the schema are
@@ -30,76 +28,61 @@ pub fn validate_directive_arguments(
     ast: &DocumentNode,
 ) -> DiagnosticsResult<()> {
     let mut errors = Vec::new();
+    let type_info = RefCell::new(TypeInfo::new(schema));
 
-    {
-        let type_info = RefCell::new(TypeInfo::new(schema));
-
-        let mut on_error = |error: GraphQLError| {
-            if error.nodes.is_empty() {
-                // Every validation error should have a location to blame to. If not, this
-                // is probably some internal error and we should blow up.
-                panic!("{}", error.message);
-            }
-
-            let type_info = type_info.borrow();
-            let mut related = Vec::new();
-            let input_type = type_info.get_input_type();
-            if let Some(input_type) = input_type {
-                let input_named_type = &schema[input_type.get_named_type()];
-                if !matches!(input_named_type, GraphQLNamedType::Scalar(_)) {
-                    let input_type_ast = null_throws(ast_node_loc(input_named_type));
-                    related.push(gql_related(input_type_ast, "Input type defined here"));
-                }
-            }
-
-            let parent_type = type_info.get_parent_input_type();
-            if let Some(parent_type) = parent_type {
-                let parent_named_type = &schema[parent_type.get_named_type()];
-                if !matches!(parent_named_type, GraphQLNamedType::Scalar(_)) {
-                    let parent_type_ast = null_throws(ast_node_loc(parent_named_type));
-                    related.push(gql_related(
-                        parent_type_ast,
-                        "Parent input type defined here",
-                    ));
-                }
-            }
-
-            // PORT: The TypeScript implementation also relates the location of
-            // `typeInfo.getFieldDef()`, "Directive argument defined here".
-            // `TypeInfo` only tracks a field definition within the fields of
-            // executable documents, so it is always `undefined` here.
-
-            // Ideally we could include a related code location of the actual field
-            // definition, which might be some field on a deeply nested input type.
-            // However, it's not possible for us to do that without having our own
-            // implementation of parsing a literal to a specific type.
-
-            // For now we'll settle for just including the directive argument location.
-
-            errors.push(gql_err(error.nodes[0], error.message, Some(related)));
+    let mut on_error = |error: GraphQLError| {
+        // Every validation error should have a location to blame to. If not, this
+        // is probably some internal error and we should blow up.
+        let Some(&loc) = error.nodes.first() else {
+            panic!("{}", error.message);
         };
 
-        let visitor =
-            values_of_correct_type_rule(ValidationContext::new(schema, &type_info, &mut on_error));
+        let type_info = type_info.borrow();
+        let input_types = [
+            (type_info.get_input_type(), "Input type defined here"),
+            (
+                type_info.get_parent_input_type(),
+                "Parent input type defined here",
+            ),
+        ];
+        let related = input_types
+            .into_iter()
+            .filter_map(|(input_type, message)| {
+                let definition = input_type_definition(&schema[input_type?.get_named_type()])?;
+                Some(gql_related(definition, message))
+            })
+            .collect();
 
-        visit(ast, &mut visit_with_type_info(&type_info, visitor));
-    }
+        // Ideally we could include a related code location of the actual field
+        // definition, which might be some field on a deeply nested input type.
+        // However, it's not possible for us to do that without having our own
+        // implementation of parsing a literal to a specific type.
 
-    if !errors.is_empty() {
-        return Err(errors);
-    }
-    Ok(())
+        // For now we'll settle for just including the directive argument location.
+
+        errors.push(gql_err(loc, error.message, Some(related)));
+    };
+
+    visit(
+        ast,
+        &mut visit_with_type_info(
+            &type_info,
+            values_of_correct_type_rule(ValidationContext::new(schema, &type_info, &mut on_error)),
+        ),
+    );
+
+    ok_unless_errors(errors, ())
 }
 
-/// PORT: The location of `namedType.astNode`, which every named type class
-/// has, or `None` if it has no AST node.
-fn ast_node_loc(r#type: &GraphQLNamedType) -> Option<Option<Location>> {
-    match r#type {
-        GraphQLNamedType::Scalar(t) => t.ast_node.map(|n| n.loc),
-        GraphQLNamedType::Object(t) => t.ast_node.map(|n| n.loc),
-        GraphQLNamedType::Interface(t) => t.ast_node.map(|n| n.loc),
-        GraphQLNamedType::Union(t) => t.ast_node.map(|n| n.loc),
+/// The location of an input type's definition, unless it's a scalar.
+fn input_type_definition(r#type: &GraphQLNamedType) -> Option<Option<Location>> {
+    let ast_loc = match r#type {
+        GraphQLNamedType::Scalar(_) => return None,
         GraphQLNamedType::Enum(t) => t.ast_node.map(|n| n.loc),
         GraphQLNamedType::InputObject(t) => t.ast_node.map(|n| n.loc),
-    }
+        GraphQLNamedType::Object(_)
+        | GraphQLNamedType::Interface(_)
+        | GraphQLNamedType::Union(_) => unreachable!("Expected an input type"),
+    };
+    Some(ast_loc.expect("Expected input type to have astNode"))
 }

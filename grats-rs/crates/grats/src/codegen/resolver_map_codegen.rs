@@ -1,5 +1,3 @@
-//! Port of `src/codegen/resolverMapCodegen.ts`.
-
 use graphql_js::r#type::definition::GraphQLNamedType;
 use graphql_js::r#type::schema::GraphQLSchema;
 use indexmap::IndexMap;
@@ -10,7 +8,6 @@ use crate::codegen::resolver_codegen::ResolverCodegen;
 use crate::codegen::ts_ast_builder::{ImportSpecifier, TsAstBuilder};
 use crate::grats_config::GratsConfig;
 use crate::metadata::{FieldDefinition, Metadata};
-use crate::utils::helpers::null_throws;
 
 /// EXPERIMENTAL!
 ///
@@ -21,8 +18,7 @@ use crate::utils::helpers::null_throws;
 ///
 /// https://the-guild.dev/graphql/tools/docs/resolvers#resolver-map
 ///
-/// PORT: Also takes the root that module paths are relative to. See
-/// `src/grats_root.rs`.
+/// Module paths are relative to `grats_root`. See `src/grats_root.rs`.
 pub fn resolver_map_codegen(
     schema: &GraphQLSchema,
     resolvers: &Metadata,
@@ -52,7 +48,6 @@ struct Codegen<'s, 'd, 'a> {
     ts: TsAstBuilder<'a>,
     resolvers: ResolverCodegen<'s>,
     schema: &'s GraphQLSchema<'d>,
-    /// `_resolvers` in the TypeScript implementation.
     metadata: &'s Metadata,
 }
 
@@ -92,17 +87,20 @@ impl<'s, 'a> Codegen<'s, '_, 'a> {
     }
 
     fn types(&mut self) -> Vec<Option<ObjectPropertyKind<'a>>> {
-        let mut types = Vec::new();
-        for (type_name, fields) in &self.metadata.types {
-            let resolver_methods = self.resolvers_methods(type_name, fields);
-            if !resolver_methods.is_empty() {
-                types.push(Some(self.ts.property_assignment(
-                    type_name,
-                    self.ts.object_literal(resolver_methods),
-                )));
-            }
-        }
-        types
+        let metadata = self.metadata;
+        metadata
+            .types
+            .iter()
+            .filter_map(|(type_name, fields)| {
+                let resolver_methods = self.resolvers_methods(type_name, fields);
+                if resolver_methods.is_empty() {
+                    return None;
+                }
+                let methods = self.ts.object_literal(resolver_methods);
+                Some(self.ts.property_assignment(type_name, methods))
+            })
+            .map(Some)
+            .collect()
     }
 
     fn resolvers_methods(
@@ -111,30 +109,34 @@ impl<'s, 'a> Codegen<'s, '_, 'a> {
         field_definitions: &'s IndexMap<String, FieldDefinition>,
     ) -> Vec<Option<ObjectPropertyKind<'a>>> {
         let schema = self.schema;
-        let graphql_type = match schema.get_type(type_name).map(|id| &schema[id]) {
-            Some(GraphQLNamedType::Object(graphql_type)) => graphql_type,
-            _ => panic!("Type {type_name} is not an object type"),
+        let Some(GraphQLNamedType::Object(graphql_type)) =
+            schema.get_type(type_name).map(|id| &schema[id])
+        else {
+            panic!("Type {type_name} is not an object type");
         };
-        let mut fields = Vec::new();
-        for field_name in field_definitions.keys() {
-            let method = self.resolvers.resolve_method(
-                &mut self.ts,
-                field_name,
-                field_name,
-                type_name,
-                null_throws(graphql_type.ast_node).exported.as_ref(),
-            );
-            let wrapped = self.resolvers.maybe_apply_semantic_null_runtime_check(
-                &mut self.ts,
-                &graphql_type.get_fields()[field_name.as_str()],
-                method,
-                field_name,
-            );
-            if wrapped.is_some() {
-                fields.push(wrapped);
-            }
-        }
-
-        fields
+        let exported = graphql_type
+            .ast_node
+            .expect("Expected object type to have astNode")
+            .exported
+            .as_ref();
+        field_definitions
+            .keys()
+            .map(|field_name| {
+                let method = self.resolvers.resolve_method(
+                    &mut self.ts,
+                    field_name,
+                    field_name,
+                    type_name,
+                    exported,
+                );
+                self.resolvers.maybe_apply_semantic_null_runtime_check(
+                    &mut self.ts,
+                    &graphql_type.get_fields()[field_name.as_str()],
+                    method,
+                    field_name,
+                )
+            })
+            .filter(Option::is_some)
+            .collect()
     }
 }
