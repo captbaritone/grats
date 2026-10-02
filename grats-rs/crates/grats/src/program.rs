@@ -1,7 +1,6 @@
-//! PORT: Replaces `ts.createProgram`, which found the files of the program,
-//! and `src/gratsSourceFiles.ts`, which picked the files to extract GraphQL
-//! definitions from. The root files come from `tsconfig.json` (see
-//! `crate::project`).
+//! The files of the program, like TypeScript's `ts.createProgram` finds, and
+//! the files to extract GraphQL definitions from. The root files come from
+//! `tsconfig.json` (see `crate::project`).
 //!
 //! The files are the root files and every file they import, found by
 //! following `import` and `export ... from` declarations and `import =`,
@@ -49,15 +48,13 @@ use oxc_resolver::{
     TsconfigOptions, TsconfigReferences,
 };
 use oxc_span::SourceType;
-use serde::{Deserialize, Serialize};
 
 use crate::files::{Files, ParsedFile};
 use crate::host::{FileKind, Host};
 use crate::utils::path;
 
 /// What decides the files of the program. See `crate::project`.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone)]
 pub struct ProgramOptions {
     pub root_names: Vec<String>,
     /// Whether imported JavaScript files are part of the program.
@@ -106,11 +103,9 @@ impl<'a> Program<'a> {
         &self.source_files
     }
 
-    /// Ported from `gratsSourceFilesFromProgram` in `src/gratsSourceFiles.ts`:
-    /// the files to extract GraphQL definitions from.
+    /// The files to extract GraphQL definitions from.
     pub fn grats_source_files(&self) -> Vec<Rc<ParsedFile<'a>>> {
         // If the file doesn't contain any GraphQL definitions, skip it.
-        // PORT: TypeScript tests `/@(gql)|(killsParentOnException)/i`.
         self.source_files
             .iter()
             .filter(|file| {
@@ -157,21 +152,23 @@ impl<'a> Program<'a> {
                     .push(Rc::clone(file));
             }
         };
-        for file in &self.source_files {
-            if !file.is_module {
-                add(file, declared_names(&file.program.body));
-            }
+        for file in self.source_files.iter().filter(|file| !file.is_module) {
+            add(file, declared_names(&file.program.body));
         }
-        for file in &self.source_files {
-            if file.is_module {
-                let mut names = HashSet::new();
-                for statement in &file.program.body {
-                    if let Statement::TSGlobalDeclaration(global) = statement {
-                        names.extend(declared_names(&global.body.body));
+        for file in self.source_files.iter().filter(|file| file.is_module) {
+            let names = file
+                .program
+                .body
+                .iter()
+                .filter_map(|statement| match statement {
+                    Statement::TSGlobalDeclaration(global) => {
+                        Some(declared_names(&global.body.body))
                     }
-                }
-                add(file, names);
-            }
+                    _ => None,
+                })
+                .flatten()
+                .collect();
+            add(file, names);
         }
         index
     }
@@ -320,28 +317,19 @@ impl<'p, 'a> Builder<'p, 'a> {
         mode: Mode,
     ) -> Option<String> {
         let directory = path::dirname(containing_file).to_string();
-        let cache_key = (directory, specifier.to_string(), mode);
-        if let Some(resolved) = self.module_resolutions.get(&cache_key) {
-            return resolved.clone();
-        }
-        let resolved = self.resolve_module_name_uncached(containing_file, specifier, mode);
-        self.module_resolutions.insert(cache_key, resolved.clone());
-        resolved
-    }
-
-    fn resolve_module_name_uncached(
-        &self,
-        containing_file: &str,
-        specifier: &str,
-        mode: Mode,
-    ) -> Option<String> {
-        // Relative imports and `#imports` don't follow symbolic links.
-        let resolvers = if specifier.starts_with(['.', '/', '#']) {
-            &self.resolvers.no_realpath
-        } else {
-            &self.resolvers.realpath
-        };
-        resolve_dts(&resolvers[mode as usize], containing_file, specifier)
+        let resolvers = &self.resolvers;
+        self.module_resolutions
+            .entry((directory, specifier.to_string(), mode))
+            .or_insert_with(|| {
+                // Relative imports and `#imports` don't follow symbolic links.
+                let resolvers = if specifier.starts_with(['.', '/', '#']) {
+                    &resolvers.no_realpath
+                } else {
+                    &resolvers.realpath
+                };
+                resolve_dts(&resolvers[mode as usize], containing_file, specifier)
+            })
+            .clone()
     }
 }
 

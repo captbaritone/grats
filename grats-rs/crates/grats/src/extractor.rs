@@ -39,7 +39,7 @@ use crate::code_actions as act;
 use crate::comments::detect_invalid_comments;
 use crate::errors as e;
 use crate::files::ParsedFile;
-use crate::graphql_constructor::{GraphQLConstructor, loc};
+use crate::graphql_constructor as gql;
 use crate::grats_config::GratsConfig;
 use crate::jsdoc::{
     JSDocComment, JSDocCommentPart, JSDocIndex, JSDocOrTag, SyntaxKind, TagId, TsNodeId,
@@ -221,7 +221,6 @@ struct Extractor<'f, 'a> {
     interface_declarations: Vec<DeclRef>,
 
     errors: Vec<Diagnostic>,
-    gql: GraphQLConstructor,
     config: &'f GratsConfig,
 
     /// PORT: The file being extracted, which TypeScript's nodes refer to.
@@ -243,7 +242,6 @@ impl<'f, 'a> Extractor<'f, 'a> {
             types_with_typename: HashSet::new(),
             interface_declarations: Vec::new(),
             errors: Vec::new(),
-            gql: GraphQLConstructor,
             config,
             file,
             jsdoc: file.jsdoc(),
@@ -326,9 +324,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     } else if jsdoc.node(node).kind == SyntaxKind::FunctionDeclaration {
                         self.record_derived_context(node, tag);
                     } else {
-                        let name = self
-                            .gql
-                            .name(self.locatable(self.tag_span(tag)), "CONTEXT_DUMMY_NAME");
+                        let name = gql::name(self.locatable(self.tag_span(tag)), "CONTEXT_DUMMY_NAME");
                         self.record_type_name(node, name, DeclarationDefinitionKind::Context);
                     }
                 }
@@ -336,9 +332,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     if jsdoc.node(node).kind != SyntaxKind::TypeAliasDeclaration {
                         self.report(self.tag_span(tag), e::user_defined_info_tag(), None, None);
                     } else {
-                        let name = self
-                            .gql
-                            .name(self.locatable(self.tag_span(tag)), "INFO_DUMMY_NAME");
+                        let name = gql::name(self.locatable(self.tag_span(tag)), "INFO_DUMMY_NAME");
                         self.record_type_name(node, name, DeclarationDefinitionKind::Info);
                     }
                 }
@@ -656,9 +650,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return;
         };
 
-        let name = self
-            .gql
-            .name(self.locatable(self.tag_span(tag)), "CONTEXT_DUMMY_NAME");
+        let name = gql::name(self.locatable(self.tag_span(tag)), "CONTEXT_DUMMY_NAME");
         self.implicit_name_definitions.push((
             DeclarationDefinition {
                 name,
@@ -776,11 +768,11 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 let Some((id_span, id)) = self.expect_name_identifier(binding_name(id)) else {
                     return;
                 };
-                self.gql.name(self.locatable(id_span), id)
+                gql::name(self.locatable(id_span), id)
             }
         };
 
-        let definition = self.gql.directive_definition(
+        let definition = gql::directive_definition(
             self.locatable(self.node_span(node)),
             name,
             args,
@@ -988,7 +980,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                             None,
                         );
                     };
-                    let named_type = self.gql.named_type(
+                    let named_type = gql::named_type(
                         self.locatable(member.type_name.span()),
                         UNRESOLVED_REFERENCE_NAME,
                     );
@@ -1017,7 +1009,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         let directives = self.collect_directives(node);
 
-        let definition = self.gql.union_type_definition(
+        let definition = gql::union_type_definition(
             self.locatable(self.node_span(node)),
             name,
             types,
@@ -1029,7 +1021,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
     }
 
     fn union_member_declaration(&mut self, member: &'a TSTypeReference<'a>) -> NamedTypeNode {
-        let named_type = self.gql.named_type(
+        let named_type = gql::named_type(
             self.locatable(member.type_name.span()),
             UNRESOLVED_REFERENCE_NAME,
         );
@@ -1316,7 +1308,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 self.parse_tag_gql(tag, |parser| parser.parse_const_directive_without_at());
             if let Some(directive) = directive {
                 directives.push(ConstDirectiveNode {
-                    loc: Some(loc(self.locatable(self.tag_span(tag)))),
+                    loc: Some(self.locatable(self.tag_span(tag)).loc()),
                     ..directive
                 });
             }
@@ -1330,26 +1322,23 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 let reason_comment = get_text_of_js_doc_comment(tag_data.comment.as_ref());
                 if let Some(reason_comment) = reason_comment {
                     let tag_node = self.locatable(self.tag_span(tag));
-                    reason = Some(self.gql.const_argument(
+                    reason = Some(gql::const_argument(
                         tag_node,
-                        self.gql.name(tag_node, "reason"),
-                        ConstValueNode::StringValue(self.gql.string(
+                        gql::name(tag_node, "reason"),
+                        ConstValueNode::StringValue(gql::string(
                             self.locatable(comment_span),
                             &reason_comment,
-                            None,
+                            false,
                         )),
                     ));
                 }
             }
 
-            directives.push(
-                self.gql.const_directive(
-                    self.locatable(self.tag_name_span(tag)),
-                    self.gql
-                        .name(self.locatable(self.node_span(node)), DEPRECATED_TAG),
-                    reason.map(|reason| vec![reason]),
-                ),
-            );
+            directives.push(gql::const_directive(
+                self.locatable(self.tag_name_span(tag)),
+                gql::name(self.locatable(self.node_span(node)), DEPRECATED_TAG),
+                reason.map(|reason| vec![reason]),
+            ));
         }
 
         directives
@@ -1391,7 +1380,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let kills_parent_on_exception = self.kills_parent_on_exception(node.id);
 
         let export_name = export_name.map(|(_, export_name)| export_name.to_string());
-        let field = self.gql.field_definition(
+        let field = gql::field_definition(
             self.locatable(self.node_span(node.id)),
             name,
             r#type,
@@ -1413,7 +1402,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 },
             },
         );
-        let definition = self.gql.abstract_field_definition(
+        let definition = gql::abstract_field_definition(
             self.locatable(self.node_span(node.id)),
             args.type_name,
             field,
@@ -1434,9 +1423,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return Some(AbstractFieldArgs {
                 args,
                 resolver_params,
-                type_name: self
-                    .gql
-                    .name(self.locatable(self.node_span(node.id)), parent_type),
+                type_name: gql::name(self.locatable(self.node_span(node.id)), parent_type),
             });
         }
 
@@ -1454,7 +1441,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let (params, args) = self.resolver_params(rest_params)?;
 
         let mut resolver_params: Vec<ResolverArgument> = vec![ResolverArgument::Source {
-            loc: Some(loc(self.locatable(type_param.span()))),
+            loc: Some(self.locatable(type_param.span()).loc()),
         }];
         resolver_params.extend(params);
         Some(AbstractFieldArgs {
@@ -1484,7 +1471,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return None;
         };
 
-        let type_name = self.gql.name(
+        let type_name = gql::name(
             self.locatable(reference.type_name.span()),
             UNRESOLVED_REFERENCE_NAME,
         );
@@ -1568,7 +1555,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             export_name: Some(decl.id.name.to_string()),
         };
 
-        let definition = self.gql.scalar_type_definition(
+        let definition = gql::scalar_type_definition(
             self.locatable(self.node_span(node)),
             name,
             Some(directives),
@@ -1597,9 +1584,9 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         let mut directives = self.collect_directives(node);
         if let TSType::TSUnionType(union) = &decl.type_annotation {
-            directives.push(self.gql.const_directive(
+            directives.push(gql::const_directive(
                 self.locatable(self.node_span(node)),
-                self.gql.name(self.locatable(union.span), ONE_OF_TAG),
+                gql::name(self.locatable(union.span), ONE_OF_TAG),
                 Some(vec![]),
             ));
 
@@ -1610,7 +1597,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         let Some(fields) = fields else { return };
 
-        let definition = self.gql.input_object_type_definition(
+        let definition = gql::input_object_type_definition(
             self.locatable(self.node_span(node)),
             name,
             Some(fields),
@@ -1657,7 +1644,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         let directives = self.collect_directives(node);
 
-        let definition = self.gql.input_object_type_definition(
+        let definition = gql::input_object_type_definition(
             self.locatable(self.node_span(node)),
             name,
             Some(fields),
@@ -1735,10 +1722,10 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let inner = self.collect_type(&property_type.type_annotation, FieldTypeContext::Input)?;
 
         // All fields must be nullable since only one will be present at a time.
-        let r#type = self.gql.nullable_type(inner);
-        Some(self.gql.input_value_definition(
+        let r#type = gql::nullable_type(inner);
+        Some(gql::input_value_definition(
             self.locatable(node.span()),
-            self.gql.name(self.locatable(name_span), name),
+            gql::name(self.locatable(name_span), name),
             r#type.into(),
             Some(vec![]),
             None,
@@ -1802,16 +1789,16 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let r#type = if !node.optional {
             inner
         } else {
-            self.gql.nullable_type(inner).into()
+            gql::nullable_type(inner).into()
         };
 
         let description = self.collect_description(self.ts(node.node_id()));
 
         let directives = self.collect_directives(self.ts(node.node_id()));
 
-        Some(self.gql.input_value_definition(
+        Some(gql::input_value_definition(
             self.locatable(node.span),
-            self.gql.name(self.locatable(id_span), id),
+            gql::name(self.locatable(id_span), id),
             r#type,
             Some(directives),
             None,
@@ -1869,7 +1856,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         let directives = self.collect_directives(node);
 
-        let definition = self.gql.object_type_definition(
+        let definition = gql::object_type_definition(
             self.locatable(self.node_span(node)),
             name,
             fields,
@@ -1914,7 +1901,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         let directives = self.collect_directives(node);
 
-        let definition = self.gql.object_type_definition(
+        let definition = gql::object_type_definition(
             self.locatable(self.node_span(node)),
             name,
             fields,
@@ -1972,7 +1959,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         let directives = self.collect_directives(node);
 
-        let definition = self.gql.object_type_definition(
+        let definition = gql::object_type_definition(
             self.locatable(self.node_span(node)),
             name,
             fields,
@@ -2263,9 +2250,8 @@ impl<'f, 'a> Extractor<'f, 'a> {
             let TSTypeName::IdentifierReference(expression) = expression else {
                 continue;
             };
-            let named_type = self
-                .gql
-                .named_type(self.locatable(expression.span), UNRESOLVED_REFERENCE_NAME);
+            let named_type =
+                gql::named_type(self.locatable(expression.span), UNRESOLVED_REFERENCE_NAME);
             self.mark_unresolved_type(
                 EntityName::ExpressionWithTypeArguments {
                     expression,
@@ -2307,7 +2293,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         let directives = self.collect_directives(node);
 
-        let definition = self.gql.interface_type_definition(
+        let definition = gql::interface_type_definition(
             self.locatable(self.node_span(node)),
             name,
             fields,
@@ -2436,7 +2422,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         let kills_parent_on_exception = self.kills_parent_on_exception(self.ts(node.node_id()));
 
-        Some(self.gql.field_definition(
+        Some(gql::field_definition(
             self.locatable(node.span()),
             name,
             r#type,
@@ -2537,16 +2523,16 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 );
                 return None;
             }
-            r#type = self.gql.nullable_type(r#type).into();
+            r#type = gql::nullable_type(r#type).into();
         }
 
         let description = self.collect_description(self.ts(node.node_id()));
 
         let directives = self.collect_directives(self.ts(node.node_id()));
 
-        Some(self.gql.input_value_definition(
+        Some(gql::input_value_definition(
             self.locatable(node.span),
-            self.gql.name(self.locatable(name_span), name_text),
+            gql::name(self.locatable(name_span), name_text),
             r#type,
             Some(directives),
             default_value,
@@ -2557,19 +2543,19 @@ impl<'f, 'a> Extractor<'f, 'a> {
     fn collect_const_value(&mut self, node: &'a Expression<'a>) -> Option<ConstValueNode> {
         match node {
             Expression::StringLiteral(literal) => {
-                return Some(ConstValueNode::StringValue(self.gql.string(
+                return Some(ConstValueNode::StringValue(gql::string(
                     self.locatable(literal.span),
                     &literal.value,
-                    None,
+                    false,
                 )));
             }
             Expression::TemplateLiteral(literal) if literal.expressions.is_empty() => {
                 let quasi = &literal.quasis[0].value;
                 let text = quasi.cooked.as_ref().unwrap_or(&quasi.raw);
-                return Some(ConstValueNode::StringValue(self.gql.string(
+                return Some(ConstValueNode::StringValue(gql::string(
                     self.locatable(literal.span),
                     text,
-                    None,
+                    false,
                 )));
             }
             Expression::NumericLiteral(literal) => {
@@ -2577,26 +2563,26 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 // as JavaScript would print it.
                 let text = literal.value.to_js_string();
                 return Some(if text.contains('.') {
-                    ConstValueNode::FloatValue(self.gql.float(self.locatable(literal.span), &text))
+                    ConstValueNode::FloatValue(gql::float(self.locatable(literal.span), &text))
                 } else {
-                    ConstValueNode::IntValue(self.gql.int(self.locatable(literal.span), &text))
+                    ConstValueNode::IntValue(gql::int(self.locatable(literal.span), &text))
                 });
             }
             Expression::Identifier(id) if id.name == "undefined" => {
-                return Some(ConstValueNode::NullValue(
-                    self.gql.null(self.locatable(id.span)),
-                ));
+                return Some(ConstValueNode::NullValue(gql::null(
+                    self.locatable(id.span),
+                )));
             }
             Expression::NullLiteral(literal) => {
-                return Some(ConstValueNode::NullValue(
-                    self.gql.null(self.locatable(literal.span)),
-                ));
+                return Some(ConstValueNode::NullValue(gql::null(
+                    self.locatable(literal.span),
+                )));
             }
             Expression::BooleanLiteral(literal) => {
-                return Some(ConstValueNode::BooleanValue(
-                    self.gql
-                        .boolean(self.locatable(literal.span), literal.value),
-                ));
+                return Some(ConstValueNode::BooleanValue(gql::boolean(
+                    self.locatable(literal.span),
+                    literal.value,
+                )));
             }
             Expression::ObjectExpression(object) => {
                 return self
@@ -2615,13 +2601,13 @@ impl<'f, 'a> Extractor<'f, 'a> {
             // A later transform (after we become type aware) takes care of fixing
             // this up.
             Expression::StaticMemberExpression(member) => {
-                return Some(ConstValueNode::EnumValue(
-                    self.gql
-                        .r#enum(self.locatable(member.span), &member.property.name),
-                ));
+                return Some(ConstValueNode::EnumValue(gql::r#enum(
+                    self.locatable(member.span),
+                    &member.property.name,
+                )));
             }
             Expression::PrivateFieldExpression(member) => {
-                return Some(ConstValueNode::EnumValue(self.gql.r#enum(
+                return Some(ConstValueNode::EnumValue(gql::r#enum(
                     self.locatable(member.span),
                     &format!("#{}", member.field.name),
                 )));
@@ -2629,13 +2615,13 @@ impl<'f, 'a> Extractor<'f, 'a> {
             // PORT: TypeScript's property accesses include optional chains.
             Expression::ChainExpression(chain) => match &chain.expression {
                 ChainElement::StaticMemberExpression(member) => {
-                    return Some(ConstValueNode::EnumValue(
-                        self.gql
-                            .r#enum(self.locatable(chain.span), &member.property.name),
-                    ));
+                    return Some(ConstValueNode::EnumValue(gql::r#enum(
+                        self.locatable(chain.span),
+                        &member.property.name,
+                    )));
                 }
                 ChainElement::PrivateFieldExpression(member) => {
-                    return Some(ConstValueNode::EnumValue(self.gql.r#enum(
+                    return Some(ConstValueNode::EnumValue(gql::r#enum(
                         self.locatable(chain.span),
                         &format!("#{}", member.field.name),
                     )));
@@ -2680,7 +2666,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         if errors {
             return None;
         }
-        Some(self.gql.list(self.locatable(node.span), values))
+        Some(gql::list(self.locatable(node.span), values))
     }
 
     fn collect_object_literal(
@@ -2699,7 +2685,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         if errors {
             return None;
         }
-        Some(self.gql.object(self.locatable(node.span), fields))
+        Some(gql::object(self.locatable(node.span), fields))
     }
 
     fn collect_object_field(
@@ -2728,9 +2714,9 @@ impl<'f, 'a> Extractor<'f, 'a> {
             self.expect_name_identifier(key_name(self.file, &property.key, property.computed))?;
 
         let value = self.collect_const_value(&property.value)?;
-        Some(self.gql.const_object_field(
+        Some(gql::const_object_field(
             self.locatable(property.span),
-            self.gql.name(self.locatable(name_span), name),
+            gql::name(self.locatable(name_span), name),
             value,
         ))
     }
@@ -2782,7 +2768,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         let directives = self.collect_directives(node);
 
-        let definition = self.gql.enum_type_definition(
+        let definition = gql::enum_type_definition(
             self.locatable(self.node_span(node)),
             name,
             values,
@@ -2825,7 +2811,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         let directives = self.collect_directives(node);
 
-        let definition = self.gql.enum_type_definition(
+        let definition = gql::enum_type_definition(
             self.locatable(self.node_span(node)),
             name,
             values,
@@ -2848,9 +2834,9 @@ impl<'f, 'a> Extractor<'f, 'a> {
         // TypeScript. So, we also support deriving enums from type aliases of a single
         // string literal.
         if let Some(literal) = string_literal_type(&decl.type_annotation) {
-            return Some(vec![self.gql.enum_value_definition(
+            return Some(vec![gql::enum_value_definition(
                 self.locatable(self.node_span(node)),
-                self.gql.name(self.locatable(literal.span), &literal.value),
+                gql::name(self.locatable(literal.span), &literal.value),
                 None,
                 None,
                 None,
@@ -2889,9 +2875,9 @@ impl<'f, 'a> Extractor<'f, 'a> {
             };
             // TODO: Support descriptions on enum members. As it stands, TypeScript
             // does not allow comments attached to string literal types.
-            values.push(self.gql.enum_value_definition(
+            values.push(gql::enum_value_definition(
                 self.locatable(self.node_span(node)),
-                self.gql.name(self.locatable(literal.span), &literal.value),
+                gql::name(self.locatable(literal.span), &literal.value),
                 Some(directives),
                 None,
                 None,
@@ -3099,9 +3085,9 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 self.report(element.span, error_message, None, None);
             }
 
-            values.push(self.gql.enum_value_definition(
+            values.push(gql::enum_value_definition(
                 self.locatable(self.node_span(node)),
-                self.gql.name(self.locatable(element.span), &element.value),
+                gql::name(self.locatable(element.span), &element.value),
                 None,
                 None,
                 None,
@@ -3154,9 +3140,9 @@ impl<'f, 'a> Extractor<'f, 'a> {
             let directives = self.collect_directives(self.ts(prop.node_id()));
 
             let prop_name = key_name(self.file, &prop.key, prop.computed).span();
-            values.push(self.gql.enum_value_definition(
+            values.push(gql::enum_value_definition(
                 self.locatable(prop.span),
-                self.gql.name(self.locatable(value.span), &value.value),
+                gql::name(self.locatable(value.span), &value.value),
                 Some(directives),
                 description,
                 Some(self.text(prop_name).to_string()),
@@ -3199,16 +3185,13 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     bracket_span(self.file, name.span)
                 }
             };
-            values.push(
-                self.gql.enum_value_definition(
-                    self.locatable(member.span),
-                    self.gql
-                        .name(self.locatable(initializer.span), &initializer.value),
-                    Some(directives),
-                    description,
-                    Some(self.text(member_name).to_string()),
-                ),
-            );
+            values.push(gql::enum_value_definition(
+                self.locatable(member.span),
+                gql::name(self.locatable(initializer.span), &initializer.value),
+                Some(directives),
+                description,
+                Some(self.text(member_name).to_string()),
+            ));
         }
 
         values
@@ -3262,7 +3245,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     self.report(loc_node, validation_message, None, None);
                     return None;
                 }
-                return Some(self.gql.name(self.locatable(loc_node), &comment_name));
+                return Some(gql::name(self.locatable(loc_node), &comment_name));
             }
         }
 
@@ -3271,7 +3254,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return None;
         };
         let (id_span, id) = self.expect_name_identifier(name)?;
-        Some(self.gql.name(self.locatable(id_span), id))
+        Some(gql::name(self.locatable(id_span), id))
     }
 
     fn method_declaration(&mut self, node: MethodLike<'a>) -> Option<FieldDefinitionNode> {
@@ -3327,7 +3310,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         } else {
             Some(id.to_string())
         };
-        Some(self.gql.field_definition(
+        Some(gql::field_definition(
             self.locatable(node.span),
             name,
             r#type,
@@ -3394,7 +3377,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     return None;
                 }
                 resolver_params.push(ResolverArgument::ArgumentsObject {
-                    loc: Some(loc(self.locatable(param.span()))),
+                    loc: Some(self.locatable(param.span()).loc()),
                 });
                 let mut inputs: Vec<InputValueDefinitionNode> = Vec::new();
 
@@ -3418,7 +3401,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             let input_definition = self.collect_param_arg(param, param_type)?;
             resolver_params.push(ResolverArgument::Unresolved {
                 input_definition,
-                loc: Some(loc(self.locatable(param.span()))),
+                loc: Some(self.locatable(param.span()).loc()),
             });
         }
         Some((resolver_params, args.map(|(_, inputs)| inputs)))
@@ -3440,7 +3423,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let param_name = param.name();
         let mut name: DiagnosticHandleResult<NameNode> = match param_name {
             Name::Identifier(span, text) => DiagnosticHandleResult::Ok {
-                value: self.gql.name(self.locatable(span), text),
+                value: gql::name(self.locatable(span), text),
             },
             Name::Other(span) => self.diagnostic_handle(ts_err(
                 self.locatable(span),
@@ -3492,7 +3475,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let directives = self.collect_directives(self.ts(param.node_id()));
 
         let description = self.collect_description(self.ts(param.node_id()));
-        Some(self.gql.input_value_definition_or_resolver_arg(
+        Some(gql::input_value_definition_or_resolver_arg(
             self.locatable(param.span()),
             name,
             r#type,
@@ -3527,10 +3510,10 @@ impl<'f, 'a> Extractor<'f, 'a> {
             .join("");
 
         if !comment.is_empty() {
-            return Some(self.gql.string(
+            return Some(gql::string(
                 self.locatable(self.node_span(node)),
                 js_trim(&comment),
-                Some(true),
+                true,
             ));
         }
         None
@@ -3557,7 +3540,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let r#type = if !node.optional {
             inner
         } else {
-            self.gql.nullable_type(inner).into()
+            gql::nullable_type(inner).into()
         };
 
         let description = self.collect_description(self.ts(node.id));
@@ -3568,7 +3551,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         let kills_parent_on_exception = self.kills_parent_on_exception(self.ts(node.id));
 
-        Some(self.gql.field_definition(
+        Some(gql::field_definition(
             self.locatable(node.span),
             name.clone(),
             r#type,
@@ -3596,9 +3579,9 @@ impl<'f, 'a> Extractor<'f, 'a> {
             }
             TSType::TSArrayType(array) => {
                 let element = self.collect_type(&array.element_type, ctx)?;
-                return Some(self.gql.non_null_type(
+                return Some(gql::non_null_type(
                     self.locatable(array.span),
-                    TypeNode::ListType(self.gql.list_type(self.locatable(array.span), element)),
+                    TypeNode::ListType(gql::list_type(self.locatable(array.span), element)),
                 ));
             }
             TSType::TSUnionType(union) => {
@@ -3635,30 +3618,26 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     return None;
                 }
                 if union.types.len() > 1 {
-                    return Some(self.gql.with_location(
+                    return Some(gql::with_location(
                         self.locatable(union.span),
-                        self.gql.nullable_type(r#type),
+                        gql::nullable_type(r#type),
                     ));
                 }
-                return Some(self.gql.non_null_type(self.locatable(union.span), r#type));
+                return Some(gql::non_null_type(self.locatable(union.span), r#type));
             }
             TSType::TSParenthesizedType(parenthesized) => {
                 return self.collect_type(&parenthesized.type_annotation, ctx);
             }
             TSType::TSStringKeyword(keyword) => {
-                return Some(self.gql.non_null_type(
+                return Some(gql::non_null_type(
                     self.locatable(keyword.span),
-                    TypeNode::NamedType(
-                        self.gql.named_type(self.locatable(keyword.span), "String"),
-                    ),
+                    TypeNode::NamedType(gql::named_type(self.locatable(keyword.span), "String")),
                 ));
             }
             TSType::TSBooleanKeyword(keyword) => {
-                return Some(self.gql.non_null_type(
+                return Some(gql::non_null_type(
                     self.locatable(keyword.span),
-                    TypeNode::NamedType(
-                        self.gql.named_type(self.locatable(keyword.span), "Boolean"),
-                    ),
+                    TypeNode::NamedType(gql::named_type(self.locatable(keyword.span), "Boolean")),
                 ));
             }
             TSType::TSNumberKeyword(keyword) => {
@@ -3677,19 +3656,21 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 if let TSType::TSLiteralType(literal) = node {
                     match &literal.literal {
                         TSLiteral::BooleanLiteral(_) => {
-                            return Some(self.gql.non_null_type(
+                            return Some(gql::non_null_type(
                                 self.locatable(literal.span),
-                                TypeNode::NamedType(
-                                    self.gql.named_type(self.locatable(literal.span), "Boolean"),
-                                ),
+                                TypeNode::NamedType(gql::named_type(
+                                    self.locatable(literal.span),
+                                    "Boolean",
+                                )),
                             ));
                         }
                         TSLiteral::StringLiteral(_) => {
-                            return Some(self.gql.non_null_type(
+                            return Some(gql::non_null_type(
                                 self.locatable(literal.span),
-                                TypeNode::NamedType(
-                                    self.gql.named_type(self.locatable(literal.span), "String"),
-                                ),
+                                TypeNode::NamedType(gql::named_type(
+                                    self.locatable(literal.span),
+                                    "String",
+                                )),
                             ));
                         }
                         TSLiteral::NumericLiteral(_) => {
@@ -3810,14 +3791,14 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     return None;
                 };
                 let element = self.collect_type(type_arguments.params.first()?, ctx)?;
-                let mut list_type = self.gql.list_type(self.locatable(node.span), element);
+                let mut list_type = gql::list_type(self.locatable(node.span), element);
                 if type_name == "AsyncIterable" {
                     list_type.is_async_iterable = true;
                 }
-                Some(
-                    self.gql
-                        .non_null_type(self.locatable(node.span), TypeNode::ListType(list_type)),
-                )
+                Some(gql::non_null_type(
+                    self.locatable(node.span),
+                    TypeNode::ListType(list_type),
+                ))
             }
             "Promise" => {
                 let unwrapped = self.maybe_unwrap_promise_type(type_node)?;
@@ -3829,14 +3810,13 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 // mark it as unresolved and return a placeholder type.
                 //
                 // A later pass will resolve the type.
-                let named_type = self
-                    .gql
-                    .named_type(self.locatable(node.span), UNRESOLVED_REFERENCE_NAME);
+                let named_type =
+                    gql::named_type(self.locatable(node.span), UNRESOLVED_REFERENCE_NAME);
                 self.mark_unresolved_type(EntityName::TypeReference(node), &named_type.name);
-                Some(
-                    self.gql
-                        .non_null_type(self.locatable(node.span), TypeNode::NamedType(named_type)),
-                )
+                Some(gql::non_null_type(
+                    self.locatable(node.span),
+                    TypeNode::NamedType(named_type),
+                ))
             }
         }
     }
@@ -3861,7 +3841,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             .into_iter()
             .find(|&tag| self.jsdoc.tag(tag).tag_name.text == KILLS_PARENT_ON_EXCEPTION_TAG);
         kills_parent_on_exceptions.map(|tag| {
-            self.gql.name(
+            gql::name(
                 self.locatable(self.tag_name_span(tag)),
                 KILLS_PARENT_ON_EXCEPTION_TAG,
             )

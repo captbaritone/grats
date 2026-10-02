@@ -8,7 +8,7 @@ use crate::code_actions as act;
 use crate::errors as e;
 use crate::extractor::{KILLS_PARENT_ON_EXCEPTION_TAG, TAGS};
 use crate::files::ParsedFile;
-use crate::jsdoc::{CommentKind, CommentRange};
+use crate::jsdoc::{CommentKind, CommentRange, is_js_white_space};
 use crate::utils::diagnostic_error::{CodeFixAction, Diagnostic, range_err};
 
 /// Matches a line that starts with optional `*`s followed by `@gql...` or
@@ -17,9 +17,9 @@ use crate::utils::diagnostic_error::{CodeFixAction, Diagnostic, range_err};
 fn match_tag_line(line: &str) -> Option<(usize, usize)> {
     // Whitespace and asterisks are distinct, so matching greedily never needs
     // to backtrack.
-    let after_space = line.trim_start_matches(is_js_whitespace);
+    let after_space = line.trim_start_matches(is_js_white_space);
     let after_stars = after_space.trim_start_matches('*');
-    let rest = after_stars.trim_start_matches(is_js_whitespace);
+    let rest = after_stars.trim_start_matches(is_js_white_space);
     let prefix = line.len() - rest.len();
     let name = rest.strip_prefix('@')?;
     let name_len = if name.get(..3).is_some_and(|s| s.eq_ignore_ascii_case("gql")) {
@@ -35,21 +35,6 @@ fn match_tag_line(line: &str) -> Option<(usize, usize)> {
         return None;
     };
     Some((prefix, 1 + name_len))
-}
-
-/// Whitespace, as matched by JavaScript's `\s`.
-fn is_js_whitespace(c: char) -> bool {
-    matches!(
-        c,
-        '\t' | '\n' | '\u{000B}' | '\u{000C}' | '\r' | ' ' | '\u{00A0}' | '\u{1680}' | '\u{2000}'
-            ..='\u{200A}'
-                | '\u{2028}'
-                | '\u{2029}'
-                | '\u{202F}'
-                | '\u{205F}'
-                | '\u{3000}'
-                | '\u{FEFF}'
-    )
 }
 
 // Report helpful errors when tags are used in invalid positions

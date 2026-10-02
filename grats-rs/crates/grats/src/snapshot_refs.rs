@@ -15,7 +15,6 @@ use oxc_ast::ast::{
 use oxc_span::{GetSpan, Span};
 
 use crate::files::ParsedFile;
-use crate::graphql_constructor::loc;
 use crate::utils::diagnostic_error::TsLocatableNode;
 
 /// Identifies a TypeScript declaration by the file and position at which it is
@@ -72,14 +71,14 @@ pub fn decl_ref(file: &ParsedFile, node: AstKind, span: Span) -> DeclRef {
     let anchor = get_name_of_declaration(node).unwrap_or(span);
     DeclRef {
         decl_loc: decl_loc(file, anchor),
-        name: loc(TsLocatableNode::new(file, anchor)),
+        name: TsLocatableNode::new(file, anchor).loc(),
         type_parameters: get_type_parameters(node)
             .into_iter()
             .flat_map(|parameters| &parameters.params)
             .map(|param| TypeParameterRef {
                 decl_loc: decl_loc(file, param.name.span),
                 name: param.name.name.to_string(),
-                loc: loc(TsLocatableNode::new(file, param.span)),
+                loc: TsLocatableNode::new(file, param.span).loc(),
             })
             .collect(),
     }
@@ -147,11 +146,8 @@ pub fn entity_name_ref(file: &ParsedFile, node: EntityName) -> EntityNameRef {
                 .and_then(|type_arguments| type_arguments.params.last())
                 .map_or(expression.span, |last| last.span());
             EntityNameRef {
-                name: loc(TsLocatableNode::new(file, expression.span)),
-                loc: loc(TsLocatableNode::new(
-                    file,
-                    Span::new(expression.span.start, last.end),
-                )),
+                name: TsLocatableNode::new(file, expression.span).loc(),
+                loc: TsLocatableNode::new(file, Span::new(expression.span.start, last.end)).loc(),
                 type_arguments: type_argument_refs(file, type_arguments),
             }
         }
@@ -160,8 +156,8 @@ pub fn entity_name_ref(file: &ParsedFile, node: EntityName) -> EntityNameRef {
 
 fn type_reference_ref(file: &ParsedFile, node: &TSTypeReference) -> EntityNameRef {
     EntityNameRef {
-        name: loc(TsLocatableNode::new(file, node.type_name.span())),
-        loc: loc(TsLocatableNode::new(file, node.span)),
+        name: TsLocatableNode::new(file, node.type_name.span()).loc(),
+        loc: TsLocatableNode::new(file, node.span).loc(),
         type_arguments: type_argument_refs(file, node.type_arguments.as_deref()),
     }
 }
@@ -173,7 +169,7 @@ fn type_argument_refs(
     let refs = type_arguments?.params.iter().map(|arg| match arg {
         TSType::TSTypeReference(arg) => TypeArgumentRef::EntityName(type_reference_ref(file, arg)),
         arg => TypeArgumentRef::OtherType {
-            loc: loc(TsLocatableNode::new(file, arg.span())),
+            loc: TsLocatableNode::new(file, arg.span()).loc(),
         },
     });
     Some(refs.collect())

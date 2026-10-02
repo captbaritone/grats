@@ -23,7 +23,6 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 use oxc_resolver::{ResolveError, ResolveOptions, ResolverGeneric, TsConfig};
-use serde::Serialize;
 use serde_json::Value;
 
 use crate::errors::ts_config_not_found;
@@ -34,8 +33,7 @@ use crate::utils::diagnostic_error::{DiagnosticsResult, locationless_err};
 use crate::utils::path;
 
 /// A project, as its `tsconfig.json` describes it.
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug)]
 pub struct Project {
     /// The path of the `tsconfig.json`.
     pub config_path: String,

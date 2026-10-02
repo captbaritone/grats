@@ -1,8 +1,8 @@
-//! Port of `src/cli.ts`.
+//! The `grats` command line interface.
 //!
-//! PORT: Output goes through the host, and `run` returns the exit code
-//! rather than exiting. For `--watch`, `run` returns, and the caller (the
-//! native `grats` binary) watches the files and rebuilds with `WatchMode`.
+//! Output goes through the host, and `run` returns the exit code rather than
+//! exiting. For `--watch`, `run` returns, and the caller (the native `grats`
+//! binary) watches the files and rebuilds with `WatchMode`.
 
 use std::sync::Arc;
 
@@ -44,8 +44,8 @@ pub enum CliOutcome {
     Watch { tsconfig: Option<String>, fix: bool },
 }
 
-// PORT: Replaces commander. Help, the version and usage errors are printed
-// as clap formats them. Doc comments here are the help text.
+// Help, the version and usage errors are printed as clap formats them. Doc
+// comments here are the help text.
 
 /// Extract GraphQL schema from your TypeScript project
 #[derive(Debug, Parser)]
@@ -77,7 +77,7 @@ enum Command {
     },
 }
 
-/// PORT: `process.exit(1)`.
+/// Exit with code 1, once the reason has been reported.
 struct Exit;
 
 struct Cli {
@@ -122,11 +122,9 @@ pub fn run(request: CliRequest, host: Arc<dyn Host>) -> CliOutcome {
         }
         None => cli.run_build(args.tsconfig.as_deref(), args.fix),
     };
-    let code = match result {
-        Ok(()) => 0,
-        Err(Exit) => 1,
-    };
-    CliOutcome::Exit { code }
+    CliOutcome::Exit {
+        code: if result.is_ok() { 0 } else { 1 },
+    }
 }
 
 fn parse_args(args: Vec<String>, version: String) -> Result<Args, clap::Error> {
@@ -138,9 +136,8 @@ fn parse_args(args: Vec<String>, version: String) -> Result<Args, clap::Error> {
 
 /// Run the compiler in watch mode.
 ///
-/// PORT: `startWatchMode`, without its watch program, which decided when to
-/// rebuild: the caller watches the files and calls `rebuild`. Its messages
-/// are formatted like TypeScript's, as before.
+/// The caller watches the files and calls `rebuild`. Messages are formatted
+/// like those of TypeScript's watch mode.
 pub struct WatchMode {
     host: Arc<dyn Host>,
     grats_root: String,
@@ -287,7 +284,7 @@ impl Cli {
         ))
     }
 
-    /// PORT: `loadProject`, which printed the warnings about the config.
+    /// Loads the project, printing any warnings about the config.
     fn load_project(&self, tsconfig: Option<&str>) -> DiagnosticsResult<Project> {
         let tsconfig =
             tsconfig.map(|tsconfig| path::from_native(&self.host.current_directory(), tsconfig));
@@ -302,7 +299,6 @@ impl Cli {
         Ok(project)
     }
 
-    /// PORT: `buildSchemaAndDocResult`.
     fn build_schema_and_doc(&self, project: &Project) -> DiagnosticsResult<DocumentNode> {
         pipeline::run(
             &project.config,
@@ -333,10 +329,8 @@ impl Cli {
     }
 }
 
-/// Serializes the SDL and TypeScript schema to disk and reports to the console.
-///
-/// PORT: Reports a file which can't be written, where the TypeScript
-/// implementation threw.
+/// Serializes the SDL and TypeScript schema to disk and reports to the console,
+/// or reports a file which can't be written.
 fn write_schema_files_and_report(
     doc: &DocumentNode,
     grats_config: &GratsConfig,
@@ -345,14 +339,16 @@ fn write_schema_files_and_report(
     host: &dyn Host,
 ) -> DiagnosticsResult<()> {
     let config_dir = path::dirname(config_path);
-    let write_file = |path: &str, contents: Option<String>| {
+    let write_file = |path: &str, contents: Option<String>, description: &str| {
         let contents = contents.expect("Expected the requested output to be printed");
+        let native_path = path::to_native(path);
         host.write_file(path, &contents).map_err(|error| {
             vec![locationless_err(format!(
-                "Grats: Could not write `{}`: {error}",
-                path::to_native(path)
+                "Grats: Could not write `{native_path}`: {error}"
             ))]
-        })
+        })?;
+        host.log_error(&format!("Grats: Wrote {description} to `{native_path}`."));
+        DiagnosticsResult::Ok(())
     };
 
     let dest = path::resolve(config_dir, &grats_config.ts_schema);
@@ -372,18 +368,10 @@ fn write_schema_files_and_report(
         },
     );
 
-    write_file(&dest, outputs.ts_schema)?;
-    host.log_error(&format!(
-        "Grats: Wrote TypeScript schema to `{}`.",
-        path::to_native(&dest)
-    ));
+    write_file(&dest, outputs.ts_schema, "TypeScript schema")?;
 
     let abs_output = path::resolve(config_dir, &grats_config.graphql_schema);
-    write_file(&abs_output, outputs.graphql_schema)?;
-    host.log_error(&format!(
-        "Grats: Wrote schema to `{}`.",
-        path::to_native(&abs_output)
-    ));
+    write_file(&abs_output, outputs.graphql_schema, "schema")?;
 
     if grats_config.experimental_emit_metadata {
         let graphql_schema = &grats_config.graphql_schema;
@@ -392,19 +380,11 @@ fn write_schema_files_and_report(
             None => graphql_schema.clone(),
         };
         let abs_output = path::resolve(config_dir, &metadata_path);
-        write_file(&abs_output, outputs.metadata)?;
-        host.log_error(&format!(
-            "Grats: Wrote resolver signatures to `{}`.",
-            path::to_native(&abs_output)
-        ));
+        write_file(&abs_output, outputs.metadata, "resolver signatures")?;
     }
 
     if let Some(enums_dest) = enums_dest {
-        write_file(&enums_dest, outputs.ts_client_enums)?;
-        host.log_error(&format!(
-            "Grats: Wrote enums module to `{}`.",
-            path::to_native(&enums_dest)
-        ));
+        write_file(&enums_dest, outputs.ts_client_enums, "enums module")?;
     }
     Ok(())
 }

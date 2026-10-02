@@ -1,7 +1,7 @@
-//! Port of the JSDoc parser in TypeScript's `parser.ts` (`JSDocParser`).
+//! A JSDoc parser, like TypeScript's `JSDocParser`.
 //!
-//! PORT: Every tag is parsed as TypeScript parses tags it doesn't know
-//! (`parseUnknownTag`), including tags such as `@param`, `@returns` and
+//! Unlike TypeScript, every tag is parsed as TypeScript parses tags it
+//! doesn't know (`parseUnknownTag`), including tags such as `@param`, `@returns` and
 //! `@type` which TypeScript parses specially. Grats only reads the names,
 //! comments and locations of its own tags (and of `@deprecated`, which
 //! TypeScript parses the same way). Nodes are only modeled as far as Grats
@@ -31,7 +31,7 @@ pub struct JSDocTag {
     pub end: u32,
     pub tag_name: Identifier,
     pub comment: Option<JSDocComment>,
-    /// PORT: The span of the comment's text, from its first non-whitespace
+    /// The span of the comment's text, from its first non-whitespace
     /// character to its last, which TypeScript doesn't record.
     pub comment_span: Option<Span>,
 }
@@ -43,14 +43,14 @@ pub struct Identifier {
     pub text: String,
 }
 
-/// PORT: `string | NodeArray<JSDocComment>`.
+/// Like TypeScript's `string | NodeArray<JSDocComment>`.
 #[derive(Debug, Clone)]
 pub enum JSDocComment {
     Text(String),
     Parts(Vec<JSDocCommentPart>),
 }
 
-/// PORT: `JSDocText | JSDocLink | JSDocLinkCode | JSDocLinkPlain`. Only the
+/// Like TypeScript's `JSDocText | JSDocLink | JSDocLinkCode | JSDocLinkPlain`. Only the
 /// locations of links are read.
 #[derive(Debug, Clone)]
 pub enum JSDocCommentPart {
@@ -87,8 +87,8 @@ pub fn is_jsdoc_like_text(text: &str, start: usize) -> bool {
         && bytes.get(start + 3) != Some(&b'/')
 }
 
-/// PORT: `parseJSDocComment` and `parseJSDocCommentWorker`, for the comment
-/// from `start` to `end`.
+/// Parses the JSDoc comment from `start` to `end`, like TypeScript's
+/// `parseJSDocComment`.
 pub fn parse_jsdoc_comment(text: &str, start: u32, end: u32) -> Option<JSDoc> {
     let (start, end) = (start as usize, end as usize);
     if !is_jsdoc_like_text(text, start) {
@@ -98,11 +98,6 @@ pub fn parse_jsdoc_comment(text: &str, start: u32, end: u32) -> Option<JSDoc> {
         text,
         start,
         scanner: Scanner::new(text, start + 3, end - 2),
-        tags: Vec::new(),
-        comments: Vec::new(),
-        parts: Vec::new(),
-        link_end: None,
-        comments_pos: None,
     };
     let (comment, tags) = parser.do_jsdoc_scan();
     Some(JSDoc {
@@ -117,11 +112,6 @@ struct JSDocParser<'t> {
     text: &'t str,
     start: usize,
     scanner: Scanner<'t>,
-    tags: Vec<JSDocTag>,
-    comments: Vec<String>,
-    parts: Vec<JSDocCommentPart>,
-    link_end: Option<usize>,
-    comments_pos: Option<usize>,
 }
 
 impl JSDocParser<'_> {
@@ -137,6 +127,10 @@ impl JSDocParser<'_> {
         self.scanner.scan_jsdoc_comment_text_token(in_backticks)
     }
 
+    fn is_whitespace_token(&self) -> bool {
+        matches!(self.token(), Token::WhitespaceTrivia | Token::NewLineTrivia)
+    }
+
     fn parse_optional_jsdoc(&mut self, t: Token) -> bool {
         if self.token() == t {
             self.next_token_jsdoc();
@@ -146,23 +140,13 @@ impl JSDocParser<'_> {
     }
 
     fn do_jsdoc_scan(&mut self) -> (Option<JSDocComment>, Vec<JSDocTag>) {
+        let mut tags = Vec::new();
+        let mut comments = Vec::new();
+        let mut parts = Vec::new();
         let mut state = JSDocState::SawAsterisk;
         let mut margin: Option<usize> = None;
         let line_start = self.text[..self.start].rfind('\n').map_or(0, |i| i + 1);
         let mut indent = utf16_len(&self.text[line_start..self.start]) + 4;
-        fn push_comment(
-            comments: &mut Vec<String>,
-            margin: &mut Option<usize>,
-            indent: &mut usize,
-            text: &str,
-        ) {
-            // PORT: `if (!margin)`, which is also true if the margin is 0.
-            if margin.is_none_or(|margin| margin == 0) {
-                *margin = Some(*indent);
-            }
-            comments.push(text.to_string());
-            *indent += utf16_len(text);
-        }
 
         self.next_token_jsdoc();
         while self.parse_optional_jsdoc(Token::WhitespaceTrivia) {}
@@ -173,18 +157,13 @@ impl JSDocParser<'_> {
         loop {
             match self.token() {
                 Token::AtToken => {
-                    remove_trailing_whitespace(&mut self.comments);
-                    if self.comments_pos.is_none_or(|pos| pos == 0) {
-                        self.comments_pos = Some(self.scanner.get_token_full_start());
-                    }
-                    let tag = self.parse_tag(indent);
-                    self.tags.push(tag);
+                    remove_trailing_whitespace(&mut comments);
+                    tags.push(self.parse_tag(indent));
                     state = JSDocState::BeginningOfLine;
                     margin = None;
                 }
                 Token::NewLineTrivia => {
-                    self.comments
-                        .push(self.scanner.get_token_text().to_string());
+                    comments.push(self.scanner.get_token_text().to_string());
                     state = JSDocState::BeginningOfLine;
                     indent = 0;
                 }
@@ -193,7 +172,7 @@ impl JSDocParser<'_> {
                     if state == JSDocState::SawAsterisk {
                         // If we've already seen an asterisk, then we can no longer parse a tag on this line
                         state = JSDocState::SavingComments;
-                        push_comment(&mut self.comments, &mut margin, &mut indent, asterisk);
+                        push_comment(&mut comments, &mut margin, &mut indent, asterisk);
                     } else {
                         // Ignore the first asterisk on a line
                         state = JSDocState::SawAsterisk;
@@ -207,7 +186,7 @@ impl JSDocParser<'_> {
                     if let Some(margin) = margin
                         && indent + len > margin
                     {
-                        self.comments.push(
+                        comments.push(
                             js_slice(whitespace, margin as isize - indent as isize).to_string(),
                         );
                     }
@@ -216,31 +195,30 @@ impl JSDocParser<'_> {
                 Token::EndOfFileToken => break,
                 Token::JSDocCommentTextToken => {
                     state = JSDocState::SavingComments;
-                    let value = self.scanner.get_token_value();
-                    push_comment(&mut self.comments, &mut margin, &mut indent, value);
+                    let value = self.scanner.get_token_text();
+                    push_comment(&mut comments, &mut margin, &mut indent, value);
                 }
                 token => {
-                    let mut is_link = false;
-                    if token == Token::OpenBraceToken {
-                        state = JSDocState::SavingComments;
-                        let link_start = self.scanner.get_token_end() - 1;
-                        if let Some(link) = self.parse_jsdoc_link(link_start) {
-                            if self.link_end.is_none() {
-                                remove_leading_newlines(&mut self.comments);
+                    state = JSDocState::SavingComments;
+                    let link = if token == Token::OpenBraceToken {
+                        self.parse_jsdoc_link(self.scanner.get_token_end() - 1)
+                    } else {
+                        None
+                    };
+                    match link {
+                        Some(link) => {
+                            if parts.is_empty() {
+                                remove_leading_newlines(&mut comments);
                             }
-                            self.parts
-                                .push(JSDocCommentPart::Text(self.comments.concat()));
-                            self.parts.push(link);
-                            self.comments = Vec::new();
-                            self.link_end = Some(self.scanner.get_token_end());
-                            is_link = true;
+                            parts.push(JSDocCommentPart::Text(comments.concat()));
+                            parts.push(link);
+                            comments.clear();
                         }
-                    }
-                    // fallthrough if it's not a {@link sequence
-                    if !is_link {
-                        state = JSDocState::SavingComments;
-                        let text = self.scanner.get_token_text();
-                        push_comment(&mut self.comments, &mut margin, &mut indent, text);
+                        // fallthrough if it's not a {@link sequence
+                        None => {
+                            let text = self.scanner.get_token_text();
+                            push_comment(&mut comments, &mut margin, &mut indent, text);
+                        }
                     }
                 }
             }
@@ -250,19 +228,7 @@ impl JSDocParser<'_> {
                 self.next_token_jsdoc();
             }
         }
-        let trimmed_comments = js_trim_end(&self.comments.concat()).to_string();
-        let mut parts = std::mem::take(&mut self.parts);
-        if !parts.is_empty() && !trimmed_comments.is_empty() {
-            parts.push(JSDocCommentPart::Text(trimmed_comments.clone()));
-        }
-        let comment = if !parts.is_empty() {
-            Some(JSDocComment::Parts(parts))
-        } else if !trimmed_comments.is_empty() {
-            Some(JSDocComment::Text(trimmed_comments))
-        } else {
-            None
-        };
-        (comment, std::mem::take(&mut self.tags))
+        (to_comment(parts, &comments), tags)
     }
 
     fn is_next_nonwhitespace_token_end_of_file(&mut self) -> bool {
@@ -272,13 +238,13 @@ impl JSDocParser<'_> {
             if self.token() == Token::EndOfFileToken {
                 return true;
             }
-            if !(self.token() == Token::WhitespaceTrivia || self.token() == Token::NewLineTrivia) {
+            if !self.is_whitespace_token() {
                 return false;
             }
         }
     }
 
-    /// PORT: `lookAhead(isNextNonwhitespaceTokenEndOfFile)`.
+    /// Like `is_next_nonwhitespace_token_end_of_file`, without advancing.
     fn look_ahead_is_next_nonwhitespace_token_end_of_file(&mut self) -> bool {
         let saved = self.scanner;
         let result = self.is_next_nonwhitespace_token_end_of_file();
@@ -287,20 +253,16 @@ impl JSDocParser<'_> {
     }
 
     fn skip_whitespace(&mut self) {
-        if (self.token() == Token::WhitespaceTrivia || self.token() == Token::NewLineTrivia)
-            && self.look_ahead_is_next_nonwhitespace_token_end_of_file()
-        {
+        if self.is_whitespace_token() && self.look_ahead_is_next_nonwhitespace_token_end_of_file() {
             return; // Don't skip whitespace prior to EoF (or end of comment) - that shouldn't be included in any node's range
         }
-        while self.token() == Token::WhitespaceTrivia || self.token() == Token::NewLineTrivia {
+        while self.is_whitespace_token() {
             self.next_token_jsdoc();
         }
     }
 
     fn skip_whitespace_or_asterisk(&mut self) -> String {
-        if (self.token() == Token::WhitespaceTrivia || self.token() == Token::NewLineTrivia)
-            && self.look_ahead_is_next_nonwhitespace_token_end_of_file()
-        {
+        if self.is_whitespace_token() && self.look_ahead_is_next_nonwhitespace_token_end_of_file() {
             return String::new(); // Don't skip whitespace prior to EoF (or end of comment) - that shouldn't be included in any node's range
         }
 
@@ -308,8 +270,7 @@ impl JSDocParser<'_> {
         let mut seen_line_break = false;
         let mut indent_text = String::new();
         while (preceding_line_break && self.token() == Token::AsteriskToken)
-            || self.token() == Token::WhitespaceTrivia
-            || self.token() == Token::NewLineTrivia
+            || self.is_whitespace_token()
         {
             indent_text.push_str(self.scanner.get_token_text());
             if self.token() == Token::NewLineTrivia {
@@ -336,19 +297,27 @@ impl JSDocParser<'_> {
         let tag_name = self.parse_jsdoc_identifier_name();
         let indent_text = self.skip_whitespace_or_asterisk();
 
-        // PORT: TypeScript parses some tags specially. See the module's
-        // documentation.
-        self.parse_unknown_tag(start, tag_name, margin, &indent_text)
+        // Unlike TypeScript, every tag is parsed as an unknown tag. See the
+        // module's documentation.
+        let end = self.scanner.get_token_full_start();
+        let (comment, comment_span) =
+            self.parse_trailing_tag_comments(start, end, margin, &indent_text);
+        JSDocTag {
+            pos: start as u32,
+            end: self.scanner.get_token_full_start() as u32,
+            tag_name,
+            comment,
+            comment_span,
+        }
     }
 
     fn parse_trailing_tag_comments(
         &mut self,
         pos: usize,
         end: usize,
-        margin: usize,
+        mut margin: usize,
         indent_text: &str,
     ) -> (Option<JSDocComment>, Option<Span>) {
-        let mut margin = margin;
         // some tags, like typedef and callback, have already parsed their comments earlier
         if indent_text.is_empty() {
             margin += utf16_len(&self.text[pos..end]);
@@ -357,37 +326,20 @@ impl JSDocParser<'_> {
         self.parse_tag_comments(margin, &initial_margin)
     }
 
-    /// PORT: `initialMargin` is always given by `parseTrailingTagComments`,
-    /// the only caller which is ported. Also returns the span of the
-    /// comment's text.
+    /// Also returns the span of the comment's text.
     fn parse_tag_comments(
         &mut self,
-        indent: usize,
+        mut indent: usize,
         initial_margin: &str,
     ) -> (Option<JSDocComment>, Option<Span>) {
-        let mut indent = indent;
         let mut span: Option<Span> = None;
         let mut comments: Vec<String> = Vec::new();
         let mut parts: Vec<JSDocCommentPart> = Vec::new();
-        let mut state;
         let mut margin: Option<usize> = None;
-        fn push_comment(
-            comments: &mut Vec<String>,
-            margin: &mut Option<usize>,
-            indent: &mut usize,
-            text: &str,
-        ) {
-            // PORT: `if (!margin)`, which is also true if the margin is 0.
-            if margin.is_none_or(|margin| margin == 0) {
-                *margin = Some(*indent);
-            }
-            comments.push(text.to_string());
-            *indent += utf16_len(text);
-        }
         if !initial_margin.is_empty() {
             push_comment(&mut comments, &mut margin, &mut indent, initial_margin);
         }
-        state = JSDocState::SawAsterisk;
+        let mut state = JSDocState::SawAsterisk;
         let mut tok = self.token();
         loop {
             // The comment's text is every token but whitespace and the
@@ -435,7 +387,7 @@ impl JSDocParser<'_> {
                     if let Some(link) = self.parse_jsdoc_link(link_start) {
                         parts.push(JSDocCommentPart::Text(comments.concat()));
                         parts.push(link);
-                        comments = Vec::new();
+                        comments.clear();
                     } else {
                         let text = self.scanner.get_token_text();
                         push_comment(&mut comments, &mut margin, &mut indent, text);
@@ -454,7 +406,7 @@ impl JSDocParser<'_> {
                     if state != JSDocState::SavingBackticks {
                         state = JSDocState::SavingComments; // leading identifiers start recording as well
                     }
-                    let value = self.scanner.get_token_value();
+                    let value = self.scanner.get_token_text();
                     push_comment(&mut comments, &mut margin, &mut indent, value);
                 }
                 Token::AsteriskToken if state == JSDocState::BeginningOfLine => {
@@ -482,22 +434,11 @@ impl JSDocParser<'_> {
         }
 
         remove_leading_newlines(&mut comments);
-        let trimmed_comments = js_trim_end(&comments.concat()).to_string();
-        let comment = if !parts.is_empty() {
-            if !trimmed_comments.is_empty() {
-                parts.push(JSDocCommentPart::Text(trimmed_comments));
-            }
-            Some(JSDocComment::Parts(parts))
-        } else if !trimmed_comments.is_empty() {
-            Some(JSDocComment::Text(trimmed_comments))
-        } else {
-            None
-        };
-        (comment, span)
+        (to_comment(parts, &comments), span)
     }
 
     fn parse_jsdoc_link(&mut self, start: usize) -> Option<JSDocCommentPart> {
-        // PORT: `tryParse(parseJSDocLinkPrefix)`.
+        // Restores the scanner if this isn't a link.
         let saved = self.scanner;
         let Some(kind) = self.parse_jsdoc_link_prefix() else {
             self.scanner = saved;
@@ -523,8 +464,8 @@ impl JSDocParser<'_> {
         })
     }
 
-    /// PORT: Returns the name as `entityNameToString` prints it. After each
-    /// identifier, TypeScript's parser scans with its regular scanner (see
+    /// Returns the name as TypeScript's `entityNameToString` prints it. After
+    /// each identifier, TypeScript's parser scans with its regular scanner (see
     /// `Scanner::scan_link_name_token`).
     fn parse_jsdoc_link_name(&mut self) -> Option<String> {
         if self.token() != Token::Identifier {
@@ -547,56 +488,37 @@ impl JSDocParser<'_> {
         Some(name)
     }
 
-    /// PORT: `parseIdentifierName`, which advances with TypeScript's regular
-    /// scanner (see `Scanner::scan_link_name_token`). Returns the
+    /// Like TypeScript's `parseIdentifierName`, which advances with its
+    /// regular scanner (see `Scanner::scan_link_name_token`). Returns the
     /// identifier's text, which is empty if it's missing.
     fn parse_identifier_name(&mut self) -> String {
         if self.token() != Token::Identifier {
             return String::new();
         }
-        let text = self.scanner.get_token_value().to_string();
+        let text = self.scanner.get_token_text().to_string();
         self.scanner.scan_link_name_token();
         text
     }
 
     fn parse_jsdoc_link_prefix(&mut self) -> Option<JSDocLinkKind> {
         self.skip_whitespace_or_asterisk();
-        if self.token() == Token::OpenBraceToken
+        if !(self.token() == Token::OpenBraceToken
             && self.next_token_jsdoc() == Token::AtToken
-            && self.next_token_jsdoc() == Token::Identifier
+            && self.next_token_jsdoc() == Token::Identifier)
         {
-            match self.scanner.get_token_value() {
-                "link" => return Some(JSDocLinkKind::Link),
-                "linkcode" => return Some(JSDocLinkKind::LinkCode),
-                "linkplain" => return Some(JSDocLinkKind::LinkPlain),
-                _ => {}
-            }
+            return None;
         }
-        None
-    }
-
-    fn parse_unknown_tag(
-        &mut self,
-        start: usize,
-        tag_name: Identifier,
-        indent: usize,
-        indent_text: &str,
-    ) -> JSDocTag {
-        let end = self.scanner.get_token_full_start();
-        let (comment, comment_span) =
-            self.parse_trailing_tag_comments(start, end, indent, indent_text);
-        JSDocTag {
-            pos: start as u32,
-            end: self.scanner.get_token_full_start() as u32,
-            tag_name,
-            comment,
-            comment_span,
+        match self.scanner.get_token_text() {
+            "link" => Some(JSDocLinkKind::Link),
+            "linkcode" => Some(JSDocLinkKind::LinkCode),
+            "linkplain" => Some(JSDocLinkKind::LinkPlain),
+            _ => None,
         }
     }
 
     fn parse_jsdoc_identifier_name(&mut self) -> Identifier {
         if self.token() != Token::Identifier {
-            // PORT: A missing identifier.
+            // A missing identifier.
             let pos = self.scanner.get_token_full_start() as u32;
             return Identifier {
                 pos,
@@ -607,7 +529,7 @@ impl JSDocParser<'_> {
         let identifier = Identifier {
             pos: self.scanner.get_token_start() as u32,
             end: self.scanner.get_token_end() as u32,
-            text: self.scanner.get_token_value().to_string(),
+            text: self.scanner.get_token_text().to_string(),
         };
         self.next_token_jsdoc();
         identifier
@@ -629,26 +551,49 @@ fn extend_span(span: Option<Span>, text: &str, start: usize, end: usize) -> Opti
     ))
 }
 
-fn remove_leading_newlines(comments: &mut Vec<String>) {
-    while comments
-        .first()
-        .is_some_and(|comment| comment == "\n" || comment == "\r")
-    {
-        comments.remove(0);
+fn push_comment(
+    comments: &mut Vec<String>,
+    margin: &mut Option<usize>,
+    indent: &mut usize,
+    text: &str,
+) {
+    // Like TypeScript's `if (!margin)`, which is also true if the margin is 0.
+    if margin.is_none_or(|margin| margin == 0) {
+        *margin = Some(*indent);
     }
+    comments.push(text.to_string());
+    *indent += utf16_len(text);
+}
+
+/// The comment made of the `parts` before any links and the `comments` after
+/// them, if it isn't empty.
+fn to_comment(mut parts: Vec<JSDocCommentPart>, comments: &[String]) -> Option<JSDocComment> {
+    let trimmed_comments = js_trim_end(&comments.concat()).to_string();
+    if parts.is_empty() {
+        return (!trimmed_comments.is_empty()).then_some(JSDocComment::Text(trimmed_comments));
+    }
+    if !trimmed_comments.is_empty() {
+        parts.push(JSDocCommentPart::Text(trimmed_comments));
+    }
+    Some(JSDocComment::Parts(parts))
+}
+
+fn remove_leading_newlines(comments: &mut Vec<String>) {
+    let newlines = comments
+        .iter()
+        .take_while(|comment| *comment == "\n" || *comment == "\r")
+        .count();
+    comments.drain(..newlines);
 }
 
 fn remove_trailing_whitespace(comments: &mut Vec<String>) {
     while let Some(last) = comments.last_mut() {
-        let trimmed = js_trim_end(last);
-        if trimmed.is_empty() {
-            comments.pop();
-        } else if trimmed.len() < last.len() {
-            *last = trimmed.to_string();
-            break;
-        } else {
+        let trimmed_len = js_trim_end(last).len();
+        if trimmed_len > 0 {
+            last.truncate(trimmed_len);
             break;
         }
+        comments.pop();
     }
 }
 
@@ -666,6 +611,24 @@ mod tests {
                     .map(|span| &text[span.start as usize..span.end as usize])
             })
             .collect()
+    }
+
+    #[test]
+    fn parses_links_in_comments() {
+        let text = "/**\n *\n * See {@link Foo} and {@linkcode Bar.baz the baz}.  \n * @a x {@linkplain Y}\n * @b {@link}\n */";
+        let js_doc = parse_jsdoc_comment(text, 0, text.len() as u32).unwrap();
+        let comments: Vec<_> = std::iter::once(&js_doc.comment)
+            .chain(js_doc.tags.iter().map(|tag| &tag.comment))
+            .map(|comment| format!("{comment:?}"))
+            .collect();
+        assert_eq!(
+            comments,
+            vec![
+                "Some(Parts([Text(\"See \"), Link { pos: 14, end: 25, kind: Link, name: Some(\"Foo\"), text: \"\" }, Text(\" and \"), Link { pos: 30, end: 57, kind: LinkCode, name: Some(\"Bar.baz\"), text: \"the baz\" }, Text(\".\")]))",
+                "Some(Parts([Text(\"x \"), Link { pos: 69, end: 83, kind: LinkPlain, name: Some(\"Y\"), text: \"\" }]))",
+                "Some(Parts([Text(\"\"), Link { pos: 90, end: 97, kind: Link, name: None, text: \"\" }]))",
+            ]
+        );
     }
 
     #[test]
