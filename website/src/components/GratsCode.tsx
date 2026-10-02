@@ -89,7 +89,7 @@ function PlaygroundLink({ ts }) {
   const playgroundLink = useMemo(() => {
     const { code: doc } = parseLines(ts, {
       language: "typescript",
-      metastring: null,
+      metastring: undefined,
       magicComments,
     });
     const hash = serializeState({
@@ -98,7 +98,7 @@ function PlaygroundLink({ ts }) {
         nullableByDefault: true,
       },
       view: {
-        showGratsDirectives: false,
+        outputOption: "sdl",
       },
       VERSION: URL_VERSION,
     });

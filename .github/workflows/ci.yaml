@@ -106,6 +106,8 @@ jobs:
         run: pnpm install
       - name: Lint
         run: pnpm run lint
+      - name: Type-check the website
+        run: pnpm --filter website run typecheck
   rust:
     name: "Rust"
     runs-on: ubuntu-latest

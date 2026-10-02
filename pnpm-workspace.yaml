@@ -1,3 +1,7 @@
 packages:
   - 'website'
   - 'examples/*'
+# One copy of React's types, so that packages which import them without
+# declaring a peer dependency agree with the website's.
+overrides:
+  '@types/react': ^18.2.29
