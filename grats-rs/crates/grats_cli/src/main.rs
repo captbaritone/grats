@@ -9,6 +9,11 @@ use grats::cli::{self, CliOutcome, CliRequest, WatchRequest};
 
 use grats_cli::native_host::{self, NativeHost};
 
+// Grats allocates a lot, and mimalloc is much faster than the system
+// allocators, especially musl's.
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 fn main() -> ExitCode {
     let grats_root = native_host::grats_root();
     let use_case_sensitive_file_names = native_host::use_case_sensitive_file_names();
