@@ -22,12 +22,13 @@ use oxc_ast::ast::{
     ArrayExpression, ArrayExpressionElement, BindingIdentifier, BindingPattern, ChainElement,
     Class, ClassElement, ClassType, Declaration, Decorator, Expression, FormalParameter,
     FormalParameterRest, FormalParameters, Function, MethodDefinition, MethodDefinitionKind,
-    ObjectExpression, ObjectPattern, ObjectPropertyKind, PropertyKey, PropertyKind, Statement,
-    StringLiteral, TSAccessibility, TSEnumDeclaration, TSEnumMemberName, TSIndexedAccessType,
-    TSInterfaceDeclaration, TSLiteral, TSMethodSignatureKind, TSPropertySignature, TSSignature,
-    TSThisParameter, TSType, TSTypeAliasDeclaration, TSTypeAnnotation, TSTypeName,
-    TSTypeOperatorOperator, TSTypeParameterInstantiation, TSTypeQueryExprName, TSTypeReference,
-    VariableDeclaration, VariableDeclarationKind, VariableDeclarator,
+    ObjectExpression, ObjectPattern, ObjectProperty, ObjectPropertyKind, PropertyKey, PropertyKind,
+    Statement, StringLiteral, TSAccessibility, TSEnumDeclaration, TSEnumMemberName,
+    TSIndexedAccessType, TSInterfaceDeclaration, TSLiteral, TSMethodSignatureKind,
+    TSPropertySignature, TSSignature, TSThisParameter, TSType, TSTypeAliasDeclaration,
+    TSTypeAnnotation, TSTypeName, TSTypeOperatorOperator, TSTypeParameterInstantiation,
+    TSTypeQueryExprName, TSTypeReference, VariableDeclaration, VariableDeclarationKind,
+    VariableDeclarator,
 };
 use oxc_parser::{Kind, Token};
 use oxc_span::{GetSpan, Span};
@@ -1679,10 +1680,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let exported = if has_type_name {
             None
         } else {
-            self.export_kind(node).map(|is_default| ExportDefinition {
-                ts_module_path: path::relative(self.grats_root, &self.file.path),
-                export_name: (!is_default).then(|| class_name.name.to_string()),
-            })
+            self.export_definition(node, &class_name.name)
         };
 
         let directives = self.collect_directives(node);
@@ -2331,49 +2329,37 @@ impl<'f, 'a> Extractor<'f, 'a> {
     }
 
     fn collect_const_value(&mut self, node: &'a Expression<'a>) -> Option<ConstValueNode> {
-        match node {
-            Expression::StringLiteral(literal) => {
-                return Some(ConstValueNode::StringValue(gql::string(
-                    self.locatable(literal.span),
-                    &literal.value,
-                    false,
-                )));
-            }
+        let value = match node {
+            Expression::StringLiteral(literal) => ConstValueNode::StringValue(gql::string(
+                self.locatable(literal.span),
+                &literal.value,
+                false,
+            )),
             Expression::TemplateLiteral(literal) if literal.expressions.is_empty() => {
                 let quasi = &literal.quasis[0].value;
                 let text = quasi.cooked.as_ref().unwrap_or(&quasi.raw);
-                return Some(ConstValueNode::StringValue(gql::string(
-                    self.locatable(literal.span),
-                    text,
-                    false,
-                )));
+                ConstValueNode::StringValue(gql::string(self.locatable(literal.span), text, false))
             }
             Expression::NumericLiteral(literal) => {
-                // PORT: The text of a TypeScript numeric literal is its value
-                // as JavaScript would print it.
+                // Like TypeScript, read the number as JavaScript would print
+                // it, so `1.0` is an Int.
                 let text = literal.value.to_js_string();
-                return Some(if text.contains('.') {
+                if text.contains('.') {
                     ConstValueNode::FloatValue(gql::float(self.locatable(literal.span), &text))
                 } else {
                     ConstValueNode::IntValue(gql::int(self.locatable(literal.span), &text))
-                });
+                }
             }
             Expression::Identifier(id) if id.name == "undefined" => {
-                return Some(ConstValueNode::NullValue(gql::null(
-                    self.locatable(id.span),
-                )));
+                ConstValueNode::NullValue(gql::null(self.locatable(id.span)))
             }
             Expression::NullLiteral(literal) => {
-                return Some(ConstValueNode::NullValue(gql::null(
-                    self.locatable(literal.span),
-                )));
+                ConstValueNode::NullValue(gql::null(self.locatable(literal.span)))
             }
-            Expression::BooleanLiteral(literal) => {
-                return Some(ConstValueNode::BooleanValue(gql::boolean(
-                    self.locatable(literal.span),
-                    literal.value,
-                )));
-            }
+            Expression::BooleanLiteral(literal) => ConstValueNode::BooleanValue(gql::boolean(
+                self.locatable(literal.span),
+                literal.value,
+            )),
             Expression::ObjectExpression(object) => {
                 return self
                     .collect_object_literal(object)
@@ -2391,37 +2377,33 @@ impl<'f, 'a> Extractor<'f, 'a> {
             // A later transform (after we become type aware) takes care of fixing
             // this up.
             Expression::StaticMemberExpression(member) => {
-                return Some(ConstValueNode::EnumValue(gql::r#enum(
-                    self.locatable(member.span),
-                    &member.property.name,
-                )));
+                self.enum_value(member.span, &member.property.name)
             }
             Expression::PrivateFieldExpression(member) => {
-                return Some(ConstValueNode::EnumValue(gql::r#enum(
-                    self.locatable(member.span),
-                    &format!("#{}", member.field.name),
-                )));
+                self.enum_value(member.span, &format!("#{}", member.field.name))
             }
-            // PORT: TypeScript's property accesses include optional chains.
+            // Like TypeScript, treat optional chains as property accesses.
             Expression::ChainExpression(chain) => match &chain.expression {
                 ChainElement::StaticMemberExpression(member) => {
-                    return Some(ConstValueNode::EnumValue(gql::r#enum(
-                        self.locatable(chain.span),
-                        &member.property.name,
-                    )));
+                    self.enum_value(chain.span, &member.property.name)
                 }
                 ChainElement::PrivateFieldExpression(member) => {
-                    return Some(ConstValueNode::EnumValue(gql::r#enum(
-                        self.locatable(chain.span),
-                        &format!("#{}", member.field.name),
-                    )));
+                    self.enum_value(chain.span, &format!("#{}", member.field.name))
                 }
-                _ => {}
+                _ => return self.report_not_literal(node.span()),
             },
-            _ => {}
-        }
+            _ => return self.report_not_literal(node.span()),
+        };
+        Some(value)
+    }
+
+    fn enum_value(&self, span: Span, value: &str) -> ConstValueNode {
+        ConstValueNode::EnumValue(gql::r#enum(self.locatable(span), value))
+    }
+
+    fn report_not_literal<T>(&mut self, span: Span) -> Option<T> {
         self.report_unhandled(
-            node.span(),
+            span,
             "constant value",
             e::default_value_is_not_literal(),
             None,
@@ -2433,29 +2415,17 @@ impl<'f, 'a> Extractor<'f, 'a> {
         &mut self,
         node: &'a ArrayExpression<'a>,
     ) -> Option<ConstListValueNode> {
-        let mut values: Vec<ConstValueNode> = Vec::new();
-        let mut errors = false;
-        for element in &node.elements {
-            let value = match element.as_expression() {
+        // Collect every element before giving up, so all their errors are
+        // reported.
+        let values: Vec<Option<ConstValueNode>> = node
+            .elements
+            .iter()
+            .map(|element| match element.as_expression() {
                 Some(element) => self.collect_const_value(element),
-                None => {
-                    self.report_unhandled(
-                        self.array_element_span(element),
-                        "constant value",
-                        e::default_value_is_not_literal(),
-                        None,
-                    );
-                    None
-                }
-            };
-            match value {
-                None => errors = true,
-                Some(value) => values.push(value),
-            }
-        }
-        if errors {
-            return None;
-        }
+                None => self.report_not_literal(self.array_element_span(element)),
+            })
+            .collect();
+        let values = values.into_iter().collect::<Option<_>>()?;
         Some(gql::list(self.locatable(node.span), values))
     }
 
@@ -2463,18 +2433,14 @@ impl<'f, 'a> Extractor<'f, 'a> {
         &mut self,
         node: &'a ObjectExpression<'a>,
     ) -> Option<ConstObjectValueNode> {
-        let mut fields: Vec<ConstObjectFieldNode> = Vec::new();
-        let mut errors = false;
-        for property in &node.properties {
-            let field = self.collect_object_field(property);
-            match field {
-                None => errors = true,
-                Some(field) => fields.push(field),
-            }
-        }
-        if errors {
-            return None;
-        }
+        // Collect every field before giving up, so all their errors are
+        // reported.
+        let fields: Vec<Option<ConstObjectFieldNode>> = node
+            .properties
+            .iter()
+            .map(|property| self.collect_object_field(property))
+            .collect();
+        let fields = fields.into_iter().collect::<Option<_>>()?;
         Some(gql::object(self.locatable(node.span), fields))
     }
 
@@ -2482,23 +2448,14 @@ impl<'f, 'a> Extractor<'f, 'a> {
         &mut self,
         node: &'a ObjectPropertyKind<'a>,
     ) -> Option<ConstObjectFieldNode> {
-        let property = match node {
-            ObjectPropertyKind::ObjectProperty(property)
-                if property.kind == PropertyKind::Init
-                    && !property.method
-                    && !property.shorthand =>
-            {
-                property
-            }
-            _ => {
-                self.report_unhandled(
-                    node.span(),
-                    "constant value",
-                    e::default_arg_element_is_not_assignment(),
-                    None,
-                );
-                return None;
-            }
+        let Some(property) = init_property(node) else {
+            self.report_unhandled(
+                node.span(),
+                "constant value",
+                e::default_arg_element_is_not_assignment(),
+                None,
+            );
+            return None;
         };
         let (name_span, name) =
             self.expect_name_identifier(key_name(self.file, &property.key, property.computed))?;
@@ -2521,11 +2478,9 @@ impl<'f, 'a> Extractor<'f, 'a> {
         else {
             return;
         };
+        let exported = self.export_definition(node, &decl.id.name);
         // Check if enum must be exported when tsClientEnums is configured
-        let mut exported: Option<ExportDefinition> = None;
-        let export_kind = self.export_kind(node);
-        let is_exported = export_kind.is_some();
-        if self.config.ts_client_enums.is_some() && !is_exported {
+        if self.config.ts_client_enums.is_some() && exported.is_none() {
             self.report_with(
                 self.node_span(node),
                 e::enum_not_exported(),
@@ -2540,16 +2495,6 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 }),
             );
             return;
-        }
-        if let Some(is_default) = export_kind {
-            exported = Some(ExportDefinition {
-                ts_module_path: path::relative(self.grats_root, &self.file.path),
-                export_name: if is_default {
-                    None
-                } else {
-                    Some(decl.id.name.to_string())
-                },
-            });
         }
 
         let description = self.collect_description(node);
@@ -2570,6 +2515,15 @@ impl<'f, 'a> Extractor<'f, 'a> {
             .push(DefinitionNode::EnumTypeDefinition(definition));
     }
 
+    /// Where `node`, which is named `name`, is exported from, if it's
+    /// exported.
+    fn export_definition(&self, node: TsNodeId, name: &str) -> Option<ExportDefinition> {
+        self.export_kind(node).map(|is_default| ExportDefinition {
+            ts_module_path: path::relative(self.grats_root, &self.file.path),
+            export_name: (!is_default).then(|| name.to_string()),
+        })
+    }
+
     fn enum_type_alias_declaration(
         &mut self,
         node: TsNodeId,
@@ -2583,11 +2537,10 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         // Prohibit type alias enums when tsClientEnums is configured
         if self.config.ts_client_enums.is_some() {
-            self.report(
+            return self.report(
                 self.node_span(node),
                 e::type_alias_enum_not_supported_with_emit_enums(),
             );
-            return;
         }
 
         let Some(values) = self.enum_type_alias_variants(node, decl) else {
@@ -2645,32 +2598,36 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return None;
         };
 
-        let mut values: Vec<EnumValueDefinitionNode> = Vec::new();
-        for member in &union.types {
-            let Some(literal) = string_literal_type(member) else {
-                self.report_unhandled(
-                    member.span(),
-                    "union member",
-                    e::enum_variant_not_string_literal(),
+        let values = union
+            .types
+            .iter()
+            .filter_map(|member| {
+                let Some(literal) = string_literal_type(member) else {
+                    self.report_unhandled(
+                        member.span(),
+                        "union member",
+                        e::enum_variant_not_string_literal(),
+                        None,
+                    );
+                    return None;
+                };
+                // Literal types can't have JSDoc, so they aren't in the index.
+                let directives = self
+                    .jsdoc
+                    .from_ast(member_type_node_id(member))
+                    .map(|member| self.collect_directives(member))
+                    .unwrap_or_default();
+                // TODO: Support descriptions on enum members. As it stands, TypeScript
+                // does not allow comments attached to string literal types.
+                Some(gql::enum_value_definition(
+                    self.locatable(self.node_span(node)),
+                    gql::name(self.locatable(literal.span), &literal.value),
+                    Some(directives),
                     None,
-                );
-                continue;
-            };
-            // PORT: Literal types can't have JSDoc, so aren't in the index.
-            let directives = match self.jsdoc.from_ast(member_type_node_id(member)) {
-                Some(member) => self.collect_directives(member),
-                None => Vec::new(),
-            };
-            // TODO: Support descriptions on enum members. As it stands, TypeScript
-            // does not allow comments attached to string literal types.
-            values.push(gql::enum_value_definition(
-                self.locatable(self.node_span(node)),
-                gql::name(self.locatable(literal.span), &literal.value),
-                Some(directives),
-                None,
-                None,
-            ));
-        }
+                    None,
+                ))
+            })
+            .collect();
 
         Some(values)
     }
@@ -2731,63 +2688,33 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         // Find the preceding statement in the containing block (source file,
         // namespace body, etc.)
-        //
-        // PORT: An exported declaration is its oxc parent's declaration.
         let nodes = self.file.semantic().nodes();
-        let mut statement = decl.node_id();
-        if let AstKind::ExportDeclaration(export) = nodes.parent_kind(statement) {
-            statement = export.node_id();
-        }
+        // oxc wraps an exported declaration in its export declaration.
+        let statement = match nodes.parent_kind(decl.node_id()) {
+            AstKind::ExportDeclaration(export) => export.node_id(),
+            _ => decl.node_id(),
+        };
         let statement_span = nodes.kind(statement).span();
-        let statements: &'a [Statement<'a>] = match nodes.parent_kind(statement) {
-            AstKind::Program(program) => &program.body,
-            AstKind::BlockStatement(block) => &block.body,
-            AstKind::FunctionBody(body) => &body.statements,
-            AstKind::TSModuleBlock(block) => &block.body,
-            AstKind::SwitchCase(case) => &case.consequent,
-            AstKind::StaticBlock(block) => &block.body,
-            _ => {
-                self.report(indexed_access.span, e::enum_const_must_precede_type_alias());
-                return None;
-            }
-        };
-        let node_index = statements
-            .iter()
-            .position(|statement| statement.span() == statement_span);
-        let Some(node_index) = node_index.filter(|&index| index > 0) else {
-            self.report(indexed_access.span, e::enum_const_must_precede_type_alias());
-            return None;
-        };
-
-        let preceding_statement = &statements[node_index - 1];
-
-        // Preceding statement must be a const variable statement
-        let variable_statement = match preceding_statement {
-            Statement::VariableDeclaration(declaration) => Some(declaration),
-            Statement::ExportDeclaration(export) => match &export.declaration {
-                Declaration::VariableDeclaration(declaration) => Some(declaration),
-                _ => None,
-            },
+        let statements: Option<&'a [Statement<'a>]> = match nodes.parent_kind(statement) {
+            AstKind::Program(program) => Some(&program.body),
+            AstKind::BlockStatement(block) => Some(&block.body),
+            AstKind::FunctionBody(body) => Some(&body.statements),
+            AstKind::TSModuleBlock(block) => Some(&block.body),
+            AstKind::SwitchCase(case) => Some(&case.consequent),
+            AstKind::StaticBlock(block) => Some(&block.body),
             _ => None,
         };
-        let Some(variable_statement) = variable_statement.filter(|declaration| {
-            matches!(
-                declaration.kind,
-                VariableDeclarationKind::Const | VariableDeclarationKind::AwaitUsing
-            )
-        }) else {
-            self.report(indexed_access.span, e::enum_const_must_precede_type_alias());
-            return None;
-        };
+        let preceding_statement = statements.and_then(|statements| {
+            let index = statements
+                .iter()
+                .position(|statement| statement.span() == statement_span)?;
+            statements.get(index.checked_sub(1)?)
+        });
 
-        let declarations = &variable_statement.declarations;
-        if declarations.len() != 1 {
-            self.report(indexed_access.span, e::enum_const_must_precede_type_alias());
-            return None;
-        }
-
-        let declaration = &declarations[0];
-        let BindingPattern::BindingIdentifier(declaration_name) = &declaration.id else {
+        // Preceding statement must declare a single const
+        let Some((declaration, declaration_name)) =
+            preceding_statement.and_then(sole_const_declarator)
+        else {
             self.report(indexed_access.span, e::enum_const_must_precede_type_alias());
             return None;
         };
@@ -2824,31 +2751,31 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return None;
         };
 
-        let mut values: Vec<EnumValueDefinitionNode> = Vec::new();
-        for element in &expr.elements {
-            let Some(Expression::StringLiteral(element)) = element.as_expression() else {
-                self.report_unhandled(
-                    self.array_element_span(element),
-                    "union member",
-                    e::enum_variant_not_string_literal(),
+        let values = expr
+            .elements
+            .iter()
+            .filter_map(|element| {
+                let Some(Expression::StringLiteral(element)) = element.as_expression() else {
+                    self.report_unhandled(
+                        self.array_element_span(element),
+                        "union member",
+                        e::enum_variant_not_string_literal(),
+                        None,
+                    );
+                    return None;
+                };
+
+                self.validate_enum_value_name(element);
+
+                Some(gql::enum_value_definition(
+                    self.locatable(self.node_span(node)),
+                    gql::name(self.locatable(element.span), &element.value),
                     None,
-                );
-                continue;
-            };
-
-            let error_message = graphql_name_validation_message(&element.value);
-            if let Some(error_message) = error_message {
-                self.report(element.span, error_message);
-            }
-
-            values.push(gql::enum_value_definition(
-                self.locatable(self.node_span(node)),
-                gql::name(self.locatable(element.span), &element.value),
-                None,
-                None,
-                None,
-            ));
-        }
+                    None,
+                    None,
+                ))
+            })
+            .collect();
 
         Some(values)
     }
@@ -2862,48 +2789,40 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return None;
         };
 
-        let mut values: Vec<EnumValueDefinitionNode> = Vec::new();
-        for prop in &expr.properties {
-            let assignment = match prop {
-                ObjectPropertyKind::ObjectProperty(property)
-                    if property.kind == PropertyKind::Init
-                        && !property.method
-                        && !property.shorthand =>
-                {
-                    match &property.value {
-                        Expression::StringLiteral(value) => Some((property, value)),
-                        _ => None,
-                    }
-                }
-                _ => None,
-            };
-            let Some((prop, value)) = assignment else {
-                self.report_unhandled(
-                    prop.span(),
-                    "enum value",
-                    e::enum_variant_not_string_literal(),
-                    None,
-                );
-                continue;
-            };
+        let values = expr
+            .properties
+            .iter()
+            .filter_map(|prop| {
+                let assignment = init_property(prop).and_then(|property| match &property.value {
+                    Expression::StringLiteral(value) => Some((property, value)),
+                    _ => None,
+                });
+                let Some((prop, value)) = assignment else {
+                    self.report_unhandled(
+                        prop.span(),
+                        "enum value",
+                        e::enum_variant_not_string_literal(),
+                        None,
+                    );
+                    return None;
+                };
 
-            let error_message = graphql_name_validation_message(&value.value);
-            if let Some(error_message) = error_message {
-                self.report(value.span, error_message);
-            }
+                self.validate_enum_value_name(value);
 
-            let description = self.collect_description(self.ts(prop.node_id()));
-            let directives = self.collect_directives(self.ts(prop.node_id()));
+                let ts = self.ts(prop.node_id());
+                let description = self.collect_description(ts);
+                let directives = self.collect_directives(ts);
 
-            let prop_name = key_name(self.file, &prop.key, prop.computed).span();
-            values.push(gql::enum_value_definition(
-                self.locatable(prop.span),
-                gql::name(self.locatable(value.span), &value.value),
-                Some(directives),
-                description,
-                Some(self.text(prop_name).to_string()),
-            ));
-        }
+                let prop_name = key_name(self.file, &prop.key, prop.computed).span();
+                Some(gql::enum_value_definition(
+                    self.locatable(prop.span),
+                    gql::name(self.locatable(value.span), &value.value),
+                    Some(directives),
+                    description,
+                    Some(self.text(prop_name).to_string()),
+                ))
+            })
+            .collect();
 
         Some(values)
     }
@@ -2912,93 +2831,94 @@ impl<'f, 'a> Extractor<'f, 'a> {
         &mut self,
         node: &'a TSEnumDeclaration<'a>,
     ) -> Vec<EnumValueDefinitionNode> {
-        let mut values: Vec<EnumValueDefinitionNode> = Vec::new();
+        node.body
+            .members
+            .iter()
+            .filter_map(|member| {
+                let Some(Expression::StringLiteral(initializer)) = &member.initializer else {
+                    self.report_unhandled(
+                        member.span,
+                        "enum value",
+                        e::enum_variant_missing_initializer(),
+                        None,
+                    );
+                    return None;
+                };
 
-        for member in &node.body.members {
-            let Some(Expression::StringLiteral(initializer)) = &member.initializer else {
-                self.report_unhandled(
-                    member.span,
-                    "enum value",
-                    e::enum_variant_missing_initializer(),
-                    None,
-                );
-                continue;
-            };
+                self.validate_enum_value_name(initializer);
 
-            let error_message = graphql_name_validation_message(&initializer.value);
-            if let Some(error_message) = error_message {
-                self.report(initializer.span, error_message);
-            }
+                let ts = self.ts(member.node_id());
+                let description = self.collect_description(ts);
+                let directives = self.collect_directives(ts);
 
-            let description = self.collect_description(self.ts(member.node_id()));
-            let directives = self.collect_directives(self.ts(member.node_id()));
-
-            let member_name = match &member.id {
-                TSEnumMemberName::Identifier(name) => name.span,
-                TSEnumMemberName::String(name) => name.span,
-                TSEnumMemberName::ComputedString(name) => bracket_span(self.file, name.span),
-                TSEnumMemberName::ComputedTemplateString(name) => {
-                    bracket_span(self.file, name.span)
-                }
-            };
-            values.push(gql::enum_value_definition(
-                self.locatable(member.span),
-                gql::name(self.locatable(initializer.span), &initializer.value),
-                Some(directives),
-                description,
-                Some(self.text(member_name).to_string()),
-            ));
-        }
-
-        values
+                let member_name = match &member.id {
+                    TSEnumMemberName::Identifier(name) => name.span,
+                    TSEnumMemberName::String(name) => name.span,
+                    TSEnumMemberName::ComputedString(name) => bracket_span(self.file, name.span),
+                    TSEnumMemberName::ComputedTemplateString(name) => {
+                        bracket_span(self.file, name.span)
+                    }
+                };
+                Some(gql::enum_value_definition(
+                    self.locatable(member.span),
+                    gql::name(self.locatable(initializer.span), &initializer.value),
+                    Some(directives),
+                    description,
+                    Some(self.text(member_name).to_string()),
+                ))
+            })
+            .collect()
     }
 
-    /// PORT: `node` is the span of the declaration, and `name` its name, if
-    /// it has one.
+    /// Reports an enum value which isn't a valid GraphQL name.
+    fn validate_enum_value_name(&mut self, value: &StringLiteral) {
+        if let Some(message) = graphql_name_validation_message(&value.value) {
+            self.report(value.span, message);
+        }
+    }
+
+    /// `node` is the span of the declaration, and `name` its name, if it has
+    /// one.
     fn entity_name(&mut self, node: Span, name: Option<Name<'a>>, tag: TagId) -> Option<NameNode> {
         let jsdoc = self.jsdoc;
         let tag_data = jsdoc.tag(tag);
-        if let Some(loc_node) = tag_data.comment_span {
-            let comment_name = get_text_of_js_doc_comment(tag_data.comment.as_ref());
-            if let Some(comment_name) = comment_name {
-                let has_leading_newlines = self
-                    .text(Span::new(tag_data.tag_name.end, loc_node.start))
-                    .contains(is_line_break);
-                let has_internal_whitespace = comment_name.chars().any(is_js_white_space);
-                let validation_message = graphql_name_validation_message(&comment_name);
+        if let Some(loc_node) = tag_data.comment_span
+            && let Some(comment_name) = get_text_of_js_doc_comment(tag_data.comment.as_ref())
+        {
+            let has_leading_newlines = self
+                .text(Span::new(tag_data.tag_name.end, loc_node.start))
+                .contains(is_line_break);
+            let has_internal_whitespace = comment_name.chars().any(is_js_white_space);
+            let validation_message = graphql_name_validation_message(&comment_name);
 
-                if has_leading_newlines && validation_message.is_none() {
-                    // TODO: Offer quick fix.
-                    self.report(
-                        loc_node,
-                        e::graphql_name_has_leading_newlines(
-                            &comment_name,
-                            &tag_data.tag_name.text,
-                        ),
-                    );
-                    return None;
-                }
-
-                if has_leading_newlines || has_internal_whitespace {
-                    self.report(
-                        loc_node,
-                        e::graphql_tag_name_has_whitespace(&tag_data.tag_name.text),
-                    );
-                    return None;
-                }
-
-                // No whitespace, but still invalid. We will assume they meant this to
-                // be a GraphQL name but didn't provide a valid identifier.
-                //
-                // NOTE: We can't let GraphQL validation handle this, because it throws rather
-                // than returning a validation message. Presumably because it expects token
-                // validation to be done during lexing/parsing.
-                if let Some(validation_message) = validation_message {
-                    self.report(loc_node, validation_message);
-                    return None;
-                }
-                return Some(gql::name(self.locatable(loc_node), &comment_name));
+            if has_leading_newlines && validation_message.is_none() {
+                // TODO: Offer quick fix.
+                self.report(
+                    loc_node,
+                    e::graphql_name_has_leading_newlines(&comment_name, &tag_data.tag_name.text),
+                );
+                return None;
             }
+
+            if has_leading_newlines || has_internal_whitespace {
+                self.report(
+                    loc_node,
+                    e::graphql_tag_name_has_whitespace(&tag_data.tag_name.text),
+                );
+                return None;
+            }
+
+            // No whitespace, but still invalid. We will assume they meant this to
+            // be a GraphQL name but didn't provide a valid identifier.
+            //
+            // NOTE: We can't let GraphQL validation handle this, because it throws rather
+            // than returning a validation message. Presumably because it expects token
+            // validation to be done during lexing/parsing.
+            if let Some(validation_message) = validation_message {
+                self.report(loc_node, validation_message);
+                return None;
+            }
+            return Some(gql::name(self.locatable(loc_node), &comment_name));
         }
 
         let Some(name) = name else {
@@ -3048,18 +2968,15 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         let (resolver_params, args) = self.resolver_params(&node.params)?;
 
-        let description = self.collect_description(self.ts(node.id));
+        let ts = self.ts(node.id);
+        let description = self.collect_description(ts);
 
         let (_, id) = self.expect_name_identifier(name_node)?;
-        let directives = self.collect_directives(self.ts(node.id));
+        let directives = self.collect_directives(ts);
 
-        let kills_parent_on_exception = self.kills_parent_on_exception(self.ts(node.id));
+        let kills_parent_on_exception = self.kills_parent_on_exception(ts);
 
-        let resolver_name = if id == name.value {
-            None
-        } else {
-            Some(id.to_string())
-        };
+        let resolver_name = (id != name.value).then(|| id.to_string());
         Some(gql::field_definition(
             self.locatable(node.span),
             name,
@@ -3122,21 +3039,19 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 resolver_params.push(ResolverArgument::ArgumentsObject {
                     loc: Some(self.locatable(param.span()).loc()),
                 });
-                let mut inputs: Vec<InputValueDefinitionNode> = Vec::new();
-
-                let mut defaults: Option<ArgDefaults<'a>> = None;
-                if let Param::Item(item) = param
+                let defaults = if let Param::Item(item) = param
                     && let BindingPattern::ObjectPattern(pattern) = &item.pattern
                 {
-                    defaults = Some(self.collect_arg_defaults(pattern));
-                }
+                    Some(self.collect_arg_defaults(pattern))
+                } else {
+                    None
+                };
 
-                for member in &literal.members {
-                    let arg = self.collect_arg(member, defaults.as_ref());
-                    if let Some(arg) = arg {
-                        inputs.push(arg);
-                    }
-                }
+                let inputs = literal
+                    .members
+                    .iter()
+                    .filter_map(|member| self.collect_arg(member, defaults.as_ref()))
+                    .collect();
                 args = Some((param, inputs));
                 continue;
             }
@@ -3150,8 +3065,8 @@ impl<'f, 'a> Extractor<'f, 'a> {
         Some((resolver_params, args.map(|(_, inputs)| inputs)))
     }
 
-    /// PORT: Takes the parameter's type annotation, which TypeScript asserts
-    /// is present.
+    /// Takes the parameter's type annotation, which the caller has checked is
+    /// present.
     fn collect_param_arg(
         &mut self,
         param: Param<'a>,
@@ -3178,46 +3093,45 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         let r#type = self.collect_type(&param_type.type_annotation, FieldTypeContext::Input)?;
 
-        let mut default_value: Option<ConstValueNode> = None;
+        let default_value = param
+            .initializer()
+            .and_then(|initializer| self.collect_const_value(initializer));
 
-        if let Some(initializer) = param.initializer() {
-            default_value = self.collect_const_value(initializer);
+        // Question mark means we can handle the argument being undefined in the
+        // object literal, but if we are going to type the GraphQL arg as
+        // optional, the code must also be able to handle an explicit null.
+        //
+        // In the object map args case we have to consider the possibility of a
+        // default value, but TS does not allow default value for optional args,
+        // so TS will take care of that for us.
+        //
+        // This is only a problem if the type turns out to be a GraphQL type.
+        // If it's info or context, it's fine. So, we defer the error until
+        // later when we try to use this as a GraphQL type.
+        if param.optional()
+            && matches!(r#type, TypeNode::NonNullType(_))
+            && matches!(name, DiagnosticHandleResult::Ok { .. })
+        {
+            let diagnostic = ts_err(
+                self.locatable(self.question_token(param_name.span().end)),
+                e::non_null_type_cannot_be_optional(),
+                Some(vec![]),
+                Some(CodeFixAction {
+                    fix_name: "add-null-to-optional-parameter-type".to_string(),
+                    description: "Add '| null' to the parameter type".to_string(),
+                    changes: vec![act::suffix_node(
+                        self.locatable(param_type.type_annotation.span()),
+                        " | null",
+                    )],
+                }),
+            );
+            name = self.diagnostic_handle(diagnostic);
         }
 
-        if param.optional() {
-            // Question mark means we can handle the argument being undefined in the
-            // object literal, but if we are going to type the GraphQL arg as
-            // optional, the code must also be able to handle an explicit null.
-            //
-            // In the object map args case we have to consider the possibility of a
-            // default value, but TS does not allow default value for optional args,
-            // so TS will take care of that for us.
-            if matches!(r#type, TypeNode::NonNullType(_)) {
-                // This is only a problem if the type turns out to be a GraphQL type.
-                // If it's info or context, it's fine. So, we defer the error until
-                // later when we try to use this as a GraphQL type.
-                if let DiagnosticHandleResult::Ok { .. } = name {
-                    let diagnostic = ts_err(
-                        self.locatable(self.question_token(param_name.span().end)),
-                        e::non_null_type_cannot_be_optional(),
-                        Some(vec![]),
-                        Some(CodeFixAction {
-                            fix_name: "add-null-to-optional-parameter-type".to_string(),
-                            description: "Add '| null' to the parameter type".to_string(),
-                            changes: vec![act::suffix_node(
-                                self.locatable(param_type.type_annotation.span()),
-                                " | null",
-                            )],
-                        }),
-                    );
-                    name = self.diagnostic_handle(diagnostic);
-                }
-            }
-        }
+        let ts = self.ts(param.node_id());
+        let directives = self.collect_directives(ts);
 
-        let directives = self.collect_directives(self.ts(param.node_id()));
-
-        let description = self.collect_description(self.ts(param.node_id()));
+        let description = self.collect_description(ts);
         Some(gql::input_value_definition_or_resolver_arg(
             self.locatable(param.span()),
             name,
@@ -4048,6 +3962,47 @@ fn extract_as_const_expression<'a>(
             ) =>
         {
             Some(&expr.expression)
+        }
+        _ => None,
+    }
+}
+
+/// The declarator of a statement which declares a single const, like
+/// `const X = …`, and its name.
+fn sole_const_declarator<'n, 'a>(
+    statement: &'n Statement<'a>,
+) -> Option<(&'n VariableDeclarator<'a>, &'n BindingIdentifier<'a>)> {
+    let declaration = match statement {
+        Statement::VariableDeclaration(declaration) => declaration,
+        Statement::ExportDeclaration(export) => match &export.declaration {
+            Declaration::VariableDeclaration(declaration) => declaration,
+            _ => return None,
+        },
+        _ => return None,
+    };
+    // Like TypeScript's `Const` flag, which `await using` declarations share.
+    if !matches!(
+        declaration.kind,
+        VariableDeclarationKind::Const | VariableDeclarationKind::AwaitUsing
+    ) {
+        return None;
+    }
+    let [declarator] = declaration.declarations.as_slice() else {
+        return None;
+    };
+    match &declarator.id {
+        BindingPattern::BindingIdentifier(name) => Some((declarator, name)),
+        _ => None,
+    }
+}
+
+/// An object literal's `key: value` property.
+fn init_property<'n, 'a>(node: &'n ObjectPropertyKind<'a>) -> Option<&'n ObjectProperty<'a>> {
+    match node {
+        ObjectPropertyKind::ObjectProperty(property)
+            if property.kind == PropertyKind::Init && !property.method && !property.shorthand =>
+        {
+            Some(property)
         }
         _ => None,
     }
