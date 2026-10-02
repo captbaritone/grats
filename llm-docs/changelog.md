@@ -8,23 +8,10 @@ Changes in this section are not yet released. If you need access to these change
 
 Grats has been rewritten in Rust. The `grats` CLI is now a native binary, which parses your code with [oxc](https://oxc.rs) rather than running the TypeScript compiler, and it's much faster:
 
-Project
-
-CPU time
-
-Peak memory
-
-[`examples/production-app`](https://github.com/captbaritone/grats/tree/main/examples/production-app) (18 files)
-
-2.1 s → 0.05 s (40× less)
-
-350 MB → 23 MB (15× less)
-
-10,000 generated files
-
-16.7 s → 4.1 s (4× less)
-
-1.75 GB → 0.92 GB (1.9× less)
+| Project | CPU time | Peak memory |
+| --- | --- | --- |
+| [`examples/production-app`](https://github.com/captbaritone/grats/tree/main/examples/production-app) (18 files) | 2.1 s → 0.05 s (40× less) | 350 MB → 23 MB (15× less) |
+| 10,000 generated files | 16.7 s → 4.1 s (4× less) | 1.75 GB → 0.92 GB (1.9× less) |
 
 _CPU time (user and system) and peak memory of 0.0.36's CLI on Node 24 compared with the Rust binary, on an M1 Pro MacBook Pro. The generated project is the one `pnpm run profile` creates._
 
