@@ -1,0 +1,7 @@
+/**
+ * @gqlType
+ * @gqlField
+ */
+/**
+ * Foo
+ */

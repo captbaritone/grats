@@ -1,20 +1,20 @@
-//! Port of `src/comments.ts`.
+//! Reports Grats tags in comments where they have no effect.
 //!
-//! PORT: Offsets are UTF-8, and are converted when diagnostics are made.
+//! Offsets are UTF-8, and are converted when diagnostics are made.
 
 use std::collections::HashSet;
 
 use crate::code_actions as act;
 use crate::errors as e;
-use crate::extractor::{ALL_GQL_TAGS, KILLS_PARENT_ON_EXCEPTION_TAG, ONE_OF_TAG};
+use crate::extractor::{KILLS_PARENT_ON_EXCEPTION_TAG, TAGS};
 use crate::files::ParsedFile;
 use crate::jsdoc::{CommentKind, CommentRange};
 use crate::utils::diagnostic_error::{CodeFixAction, Diagnostic, range_err};
 
-// A line that starts with optional *s followed by @gql or @killsParentOnException
-/// PORT: `BLOCK_COMMENT_REGEX`, `/^(\s*\**\s*)(@((gql[a-z]*)|(killsParentOnException)))/i`.
-/// Returns the lengths of the prefix and the tag.
-fn match_block_comment_regex(line: &str) -> Option<(usize, usize)> {
+/// Matches a line that starts with optional `*`s followed by `@gql...` or
+/// `@killsParentOnException`, ignoring case. Returns the lengths of the prefix
+/// and the tag.
+fn match_tag_line(line: &str) -> Option<(usize, usize)> {
     // Whitespace and asterisks are distinct, so matching greedily never needs
     // to backtrack.
     let after_space = line.trim_start_matches(is_js_whitespace);
@@ -37,7 +37,7 @@ fn match_block_comment_regex(line: &str) -> Option<(usize, usize)> {
     Some((prefix, 1 + name_len))
 }
 
-/// PORT: JavaScript's `\s`.
+/// Whitespace, as matched by JavaScript's `\s`.
 fn is_js_whitespace(c: char) -> bool {
     matches!(
         c,
@@ -59,23 +59,28 @@ pub fn detect_invalid_comments(
     valid_comment_positions: &HashSet<u32>,
 ) -> Vec<Diagnostic> {
     let mut errors = Vec::new();
-    for_each_comment(source_file, |full_text, comment| {
-        if valid_comment_positions.contains(&comment.pos) {
-            return;
+    // oxc collects the file's comments, in order, while parsing.
+    for comment in source_file.semantic().comments() {
+        if valid_comment_positions.contains(&comment.span.start) {
+            continue;
         }
-
-        let is_line = comment.kind == CommentKind::SingleLineCommentTrivia;
+        let is_line = comment.is_line();
+        let comment = CommentRange {
+            pos: comment.span.start,
+            end: comment.span.end,
+            kind: if is_line {
+                CommentKind::SingleLineCommentTrivia
+            } else {
+                CommentKind::MultiLineCommentTrivia
+            },
+        };
 
         let start = comment.pos + 2; // Skip the // or /*
         let end = comment.end - if is_line { 0 } else { 2 }; // Maybe skip the */ at the end
 
-        let text_slice = &full_text[start as usize..end as usize];
-        let tags = get_grats_adjacent_tags(text_slice, comment);
-        if tags.is_empty() {
-            return;
-        }
-        for (tag_name, range) in tags {
-            if !is_grats_docblock_tag(tag_name) {
+        let text_slice = &source_file.text[start as usize..end as usize];
+        for (tag_name, range) in get_grats_adjacent_tags(text_slice, start, comment.kind) {
+            if !TAGS.contains(&tag_name) {
                 errors.push(range_err(
                     source_file,
                     &range,
@@ -93,7 +98,7 @@ pub fn detect_invalid_comments(
                     Some(CodeFixAction {
                         fix_name: "convert-line-comment-to-docblock-comment".to_string(),
                         description: "Convert to a docblock comment".to_string(),
-                        changes: vec![act::convert_line_comment_to_docblock(source_file, comment)],
+                        changes: vec![act::convert_line_comment_to_docblock(source_file, &comment)],
                     }),
                 ));
             } else if !text_slice.starts_with('*') {
@@ -105,7 +110,10 @@ pub fn detect_invalid_comments(
                     Some(CodeFixAction {
                         fix_name: "convert-block-comment-to-docblock-comment".to_string(),
                         description: "Convert to a docblock comment".to_string(),
-                        changes: vec![act::convert_block_comment_to_docblock(source_file, comment)],
+                        changes: vec![act::convert_block_comment_to_docblock(
+                            source_file,
+                            &comment,
+                        )],
                     }),
                 ));
             } else {
@@ -118,66 +126,31 @@ pub fn detect_invalid_comments(
                 ));
             }
         }
-    });
+    }
     errors
 }
 
-// Extract @gql or @killsParentOnException tags from a JSDoc block comment.
-// along with their positions.
-fn get_grats_adjacent_tags<'t>(
-    text: &'t str,
-    comment_range: &CommentRange,
-) -> Vec<(&'t str, CommentRange)> {
-    let mut offset = 0;
-    let lines = text.split('\n');
-
+// Extract @gql or @killsParentOnException tags from the text of a comment,
+// which starts at `text_pos`, along with their positions.
+fn get_grats_adjacent_tags(
+    text: &str,
+    text_pos: u32,
+    kind: CommentKind,
+) -> Vec<(&str, CommentRange)> {
     let mut tags = Vec::new();
-    for line in lines {
-        let Some((prefix_len, tag_len)) = match_block_comment_regex(line) else {
-            offset += line.len() as u32 + 1;
-            continue;
-        };
-        let tag = &line[prefix_len..prefix_len + tag_len];
-        let pos = comment_range.pos + 2 + offset + prefix_len as u32;
-        let end = pos + tag.len() as u32;
-        let range = CommentRange {
-            kind: comment_range.kind,
-            pos,
-            end,
-        };
-        let tag_name = &tag[1..]; // Trim the @
-        tags.push((tag_name, range));
+    let mut line_pos = text_pos;
+    for line in text.split('\n') {
+        if let Some((prefix_len, tag_len)) = match_tag_line(line) {
+            let pos = line_pos + prefix_len as u32;
+            let range = CommentRange {
+                kind,
+                pos,
+                end: pos + tag_len as u32,
+            };
+            let tag_name = &line[prefix_len + 1..prefix_len + tag_len]; // Trim the @
+            tags.push((tag_name, range));
+        }
+        line_pos += line.len() as u32 + 1;
     }
     tags
-}
-
-fn is_grats_docblock_tag(tag: &str) -> bool {
-    ALL_GQL_TAGS.contains(&tag) || tag == KILLS_PARENT_ON_EXCEPTION_TAG || tag == ONE_OF_TAG
-}
-
-/// TypeScript does not provide a way to iterate over comments, so this function
-/// provides a way to iterate over all comments in a source file.
-///
-/// PORT: TypeScript's version visits the leading and trailing comments of
-/// each token. Every comment is in exactly one of those lists (trailing
-/// comments are those before the first line break after a token), and
-/// tokens are visited in order, so these are the file's comments in order,
-/// which oxc collects while parsing.
-pub fn for_each_comment(source_file: &ParsedFile, mut callback: impl FnMut(&str, &CommentRange)) {
-    let full_text = source_file.text;
-    for comment in source_file.semantic().comments() {
-        let kind = if comment.is_line() {
-            CommentKind::SingleLineCommentTrivia
-        } else {
-            CommentKind::MultiLineCommentTrivia
-        };
-        callback(
-            full_text,
-            &CommentRange {
-                pos: comment.span.start,
-                end: comment.span.end,
-                kind,
-            },
-        );
-    }
 }
