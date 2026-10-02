@@ -15,7 +15,9 @@ Grats has been rewritten in Rust. The `grats` CLI is now a native binary, which 
 
 _CPU time (user and system) and peak memory of 0.0.36's CLI on Node 24 compared with the Rust binary, on an M1 Pro MacBook Pro. The generated project is the one `pnpm run profile` creates._
 
-For the same code, Grats extracts the same schema and generates the same code, though the generated TypeScript is formatted a little differently (for example, small objects are printed on one line). For most projects, upgrading is just a matter of regenerating, and committing a formatting-only diff. But no longer being a JavaScript program built on TypeScript does change how Grats is distributed and which files it reads, so check the breaking changes below.
+We ported Grats one file at a time, and checked every step against its existing test suite: 480 snapshot tests, which record the schema, code, errors and fixes Grats produces for an input, 29 integration tests, which run queries against the generated schema, and the 75 examples in these docs. The Rust implementation passes all of them, and the only snapshot changes are formatting and the error-report changes listed below.
+
+So, for the same code, Grats extracts the same schema and generates the same code with slightly different formatting. **For most projects, upgrading is just a matter of regenerating, and committing a formatting-only diff.** But no longer being a JavaScript program built on TypeScript does change how Grats is distributed and which files it reads, so check the breaking changes below.
 
 ### Breaking changes
 
