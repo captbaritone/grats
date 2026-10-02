@@ -23,9 +23,7 @@ jobs:
           - 24.x # LTS
     steps:
       - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 9.3.0
+      - uses: pnpm/action-setup@v4 # The version in package.json's packageManager
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
@@ -70,9 +68,7 @@ jobs:
           - "6.0.2"
     steps:
       - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 9.3.0
+      - uses: pnpm/action-setup@v4 # The version in package.json's packageManager
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
@@ -94,9 +90,7 @@ jobs:
         node-version: *node-versions
     steps:
       - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 9.3.0
+      - uses: pnpm/action-setup@v4 # The version in package.json's packageManager
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
@@ -131,9 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 9.3.0
+      - uses: pnpm/action-setup@v4 # The version in package.json's packageManager
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
@@ -252,9 +244,7 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 9.3.0
+      - uses: pnpm/action-setup@v4 # The version in package.json's packageManager
       - name: Use Node.js 20.x
         uses: actions/setup-node@v4
         with:
