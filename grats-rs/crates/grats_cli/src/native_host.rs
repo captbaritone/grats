@@ -19,30 +19,6 @@ impl Host for NativeHost {
         fs::read(from_grats_path(path)).ok().map(decode)
     }
 
-    /// Reads the files on several threads. Reading is mostly waiting on the
-    /// file system, so there are more threads than cores.
-    fn read_files(&self, paths: &[String]) -> Vec<Option<String>> {
-        let threads = std::thread::available_parallelism().map_or(1, |cores| cores.get() * 2);
-        let chunk_size = paths.len().div_ceil(threads).max(1);
-        std::thread::scope(|scope| {
-            let chunks: Vec<_> = paths
-                .chunks(chunk_size)
-                .map(|chunk| {
-                    scope.spawn(|| {
-                        chunk
-                            .iter()
-                            .map(|path| self.read_file(path))
-                            .collect::<Vec<_>>()
-                    })
-                })
-                .collect();
-            chunks
-                .into_iter()
-                .flat_map(|chunk| chunk.join().expect("Reading files shouldn't panic"))
-                .collect()
-        })
-    }
-
     fn stat(&self, path: &str, follow_links: bool) -> Option<FileKind> {
         let path = from_grats_path(path);
         let metadata = if follow_links {
@@ -199,31 +175,4 @@ pub fn to_grats_path(native: &Path) -> String {
 /// The native path of a Grats path.
 pub fn from_grats_path(path: &str) -> PathBuf {
     PathBuf::from(path::to_native(path))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn read_files_reads_each_file_in_order() {
-        let dir = std::env::temp_dir().join(format!("grats-read-files-{}", std::process::id()));
-        fs::create_dir_all(&dir).unwrap();
-        let paths: Vec<String> = (0..50)
-            .map(|index| {
-                let native = dir.join(format!("file{index}.ts"));
-                // Every third file is missing.
-                if index % 3 != 0 {
-                    fs::write(&native, format!("// {index}")).unwrap();
-                }
-                to_grats_path(&native)
-            })
-            .collect();
-        let texts = NativeHost.read_files(&paths);
-        fs::remove_dir_all(&dir).unwrap();
-        let expected: Vec<Option<String>> = (0..50)
-            .map(|index| (index % 3 != 0).then(|| format!("// {index}")))
-            .collect();
-        assert_eq!(texts, expected);
-    }
 }
