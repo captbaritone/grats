@@ -47,6 +47,7 @@ If any of these changes cause problems for your project, please [file an issue](
   - The fix which replaces `@specifiedBy` with `@gqlAnnotate` now escapes quotes and backslashes in the URL, and no longer joins the closing `*/` onto the tag's line.
   - Projects without any GraphQL types now get an error explaining how to define one, rather than an empty schema. Grats always meant to report this, but the check never fired.
   - Two different generic type instantiations which Grats would give the same name, like `Pair<AB, C>` and `Pair<A, BC>` (both `ABCPair`), are now reported as an error. Previously, one silently used the other's type.
+  - Generic types which pass their type parameter to another generic type after a concrete type argument, like `pair: Pair<User, T>`, are now supported. Previously, they were reported as an invalid type parameter.
 
 ## 0.0.36
 

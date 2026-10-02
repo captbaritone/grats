@@ -351,14 +351,14 @@ impl<'a> TemplateExtractor<'a> {
                 let declaration = match self.ctx.resolve_entity_name(reference.name) {
                     Err(error) => {
                         self.errors.push(error);
-                        return;
+                        continue;
                     }
                     Ok(declaration) => declaration,
                 };
 
                 // If the type points to a type param...
                 if declaration.kind != ResolvedDeclarationKind::TypeParameter {
-                    return;
+                    continue;
                 }
                 // And it's one of our parent type's type params...
                 let generic_index = type_params

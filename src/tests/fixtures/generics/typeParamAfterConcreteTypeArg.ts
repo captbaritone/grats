@@ -1,5 +1,4 @@
-// TODO: This should not be an error. `Wrapper` is only detected as generic if
-// its first type reference which has type arguments passes a type parameter.
+// A type parameter may be passed to a generic type after a concrete type argument.
 /** @gqlType */
 type User = {
   /** @gqlField */
