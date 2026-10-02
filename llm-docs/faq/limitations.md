@@ -32,21 +32,6 @@ However, Grats does not run TypeScript's type checker, so it has no way to know 
 
 Even if Grats could ask TypeScript, inferred types end up not being a good fit for GraphQL's type system, since GraphQL is "nominal" rather than "structural" like TypeScript. See [Structural vs Nominal Typing](./structural-vs-nominal-typing.md) for more details.
 
-## Descriptions and @deprecated on TypeScript union @gqlEnums
-
-Currently Grats does not support descriptions or `@deprecated` on GraphQL enum values when the enum is defined as a TypeScript union.
-
-```typescript
-/** @gqlEnum */
-type MyEnum =
-  /** This gets ignored */
-  | "A"
-  /** So does this */
-  | "B";
-```
-
-This is because Grats follows TypeScript's rules for which docblocks are "attached" to a given AST node, and under those rules these comments aren't attached to anything.
-
 ## Alternate comment types
 
 It would be nice if Grats supported other comment types, such as regular block comments (with one *) or inline comments (starting with two slashes). However we can't currently. Instead, Grats reports an error if it finds a Grats tag in one of these comments.

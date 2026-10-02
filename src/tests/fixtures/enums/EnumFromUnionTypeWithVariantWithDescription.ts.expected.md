@@ -1,8 +1,8 @@
-# todo/EnumFromUnionTypeWithVariantWithDescription.ts
+# enums/EnumFromUnionTypeWithVariantWithDescription.ts
 
 ## Input
 
-```ts title="todo/EnumFromUnionTypeWithVariantWithDescription.ts"
+```ts title="enums/EnumFromUnionTypeWithVariantWithDescription.ts"
 /** @gqlType */
 export default class SomeType {
   /** @gqlField */
@@ -23,7 +23,9 @@ type MyEnum =
 
 ```graphql
 enum MyEnum {
+  """INVALIDATED!"""
   INVALID
+  """VALIDATED!"""
   VALID
 }
 
@@ -40,8 +42,14 @@ export function getSchema(): GraphQLSchema {
     const MyEnumType: GraphQLEnumType = new GraphQLEnumType({
         name: "MyEnum",
         values: {
-            INVALID: { value: "INVALID" },
-            VALID: { value: "VALID" }
+            INVALID: {
+                description: "INVALIDATED!",
+                value: "INVALID"
+            },
+            VALID: {
+                description: "VALIDATED!",
+                value: "VALID"
+            }
         }
     });
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({

@@ -1,5 +1,6 @@
 //! The JSDoc comments attached to each node, as TypeScript's parser attaches
-//! them (`addJSDocComment`), and what TypeScript's rules for finding a
+//! them (`addJSDocComment`), plus those Grats attaches to enum values (see
+//! `JSDocIndex::attach_enum_value_js_docs`), and what TypeScript's rules for finding a
 //! node's JSDoc need to know about the node: its kind, location and parent.
 //!
 //! The nodes are built from oxc's, with the differences between the two ASTs
@@ -9,8 +10,9 @@
 
 use oxc_ast::AstKind;
 use oxc_ast::ast::{
-    BindingPattern, ClassType, ExportDefaultDeclarationKind, Expression, FunctionType,
-    MethodDefinitionKind, PropertyKind, TSMethodSignatureKind, VariableDeclaration,
+    ArrayExpressionElement, BindingPattern, ClassType, ExportDefaultDeclarationKind, Expression,
+    FunctionType, MethodDefinitionKind, PropertyKind, TSLiteral, TSMethodSignatureKind, TSType,
+    VariableDeclaration,
 };
 use oxc_semantic::NodeId;
 use oxc_span::{GetSpan, Span};
@@ -112,6 +114,11 @@ pub enum SyntaxKind {
     SpreadAssignment,
     EnumMember,
     SourceFile,
+    /// A literal type in a union. Only Grats attaches JSDoc to these.
+    LiteralType,
+    /// A string literal in an array literal. Only Grats attaches JSDoc to
+    /// these.
+    StringLiteral,
     Other,
 }
 
@@ -329,7 +336,73 @@ impl JSDocIndex {
                 }
             }
         }
+        file.attach_enum_value_js_docs(source_file);
         file
+    }
+
+    /// Unlike TypeScript, Grats attaches JSDoc comments to the string literal
+    /// members of union types and the string literal elements of array
+    /// literals, which can be the values of enums. Each gets the docblocks
+    /// between the member before it, or the start of the list, and itself.
+    fn attach_enum_value_js_docs(&mut self, source_file: &ParsedFile) {
+        let text = source_file.text;
+        let semantic = source_file.semantic();
+        let comments = semantic.comments();
+        for node in semantic.nodes().iter() {
+            let (list_start, members): (u32, Vec<(Option<NodeId>, Span)>) = match node.kind() {
+                AstKind::TSUnionType(union) => (
+                    source_file.full_start(union.span.start),
+                    union
+                        .types
+                        .iter()
+                        .map(|member| match member {
+                            TSType::TSLiteralType(literal)
+                                if matches!(literal.literal, TSLiteral::StringLiteral(_)) =>
+                            {
+                                (Some(literal.node_id()), literal.span)
+                            }
+                            _ => (None, member.span()),
+                        })
+                        .collect(),
+                ),
+                AstKind::ArrayExpression(array) => (
+                    array.span.start + 1,
+                    array
+                        .elements
+                        .iter()
+                        .map(|element| match element {
+                            ArrayExpressionElement::StringLiteral(literal) => {
+                                (Some(literal.node_id()), literal.span)
+                            }
+                            _ => (None, element.span()),
+                        })
+                        .collect(),
+                ),
+                _ => continue,
+            };
+            let mut gap_start = list_start;
+            for (member, span) in members {
+                if let Some(id) = member.and_then(|member| self.by_ast.get(member)) {
+                    let first = comments.partition_point(|comment| comment.span.start < gap_start);
+                    for comment in comments[first..]
+                        .iter()
+                        .take_while(|comment| comment.span.end <= span.start)
+                    {
+                        if !is_jsdoc_like_text(text, comment.span.start as usize) {
+                            continue;
+                        }
+                        if let Some(js_doc) =
+                            parse_jsdoc_comment(text, comment.span.start, comment.span.end)
+                        {
+                            let js_doc_id = JSDocId(self.js_docs.len() as u32);
+                            self.js_docs.push(js_doc);
+                            self.node_mut(id).js_doc.push(js_doc_id);
+                        }
+                    }
+                }
+                gap_start = span.end;
+            }
+        }
     }
 
     fn push(
@@ -623,6 +696,12 @@ fn mapping<'a>(kind: AstKind<'a>, parent_kind: Option<AstKind>) -> Mapping<'a> {
         AstKind::Decorator(_) => K::Decorator,
         AstKind::TSExportAssignment(_) => K::ExportAssignment,
         AstKind::TSNamespaceExportDeclaration(_) => K::NamespaceExportDeclaration,
+        AstKind::TSLiteralType(_) if matches!(parent_kind, Some(AstKind::TSUnionType(_))) => {
+            K::LiteralType
+        }
+        AstKind::StringLiteral(_) if matches!(parent_kind, Some(AstKind::ArrayExpression(_))) => {
+            K::StringLiteral
+        }
         _ => K::Other,
     })
 }

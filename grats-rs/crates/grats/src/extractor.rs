@@ -2611,19 +2611,14 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     );
                     return None;
                 };
-                // Literal types can't have JSDoc, so they aren't in the index.
-                let directives = self
-                    .jsdoc
-                    .from_ast(member_type_node_id(member))
-                    .map(|member| self.collect_directives(member))
-                    .unwrap_or_default();
-                // TODO: Support descriptions on enum members. As it stands, TypeScript
-                // does not allow comments attached to string literal types.
+                let ts = self.ts(member_type_node_id(member));
+                let description = self.collect_description(ts);
+                let directives = self.collect_directives(ts);
                 Some(gql::enum_value_definition(
                     self.locatable(self.node_span(node)),
                     gql::name(self.locatable(literal.span), &literal.value),
                     Some(directives),
-                    None,
+                    description,
                     None,
                 ))
             })
@@ -2767,11 +2762,14 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
                 self.validate_enum_value_name(element);
 
+                let ts = self.ts(element.node_id());
+                let description = self.collect_description(ts);
+                let directives = self.collect_directives(ts);
                 Some(gql::enum_value_definition(
                     self.locatable(self.node_span(node)),
                     gql::name(self.locatable(element.span), &element.value),
-                    None,
-                    None,
+                    Some(directives),
+                    description,
                     None,
                 ))
             })

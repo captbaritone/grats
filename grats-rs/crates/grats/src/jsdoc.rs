@@ -3,6 +3,10 @@
 //! how they're parsed, and which tags each node sees. Grats' behavior (error
 //! locations, fixes and descriptions) depends on their exact results, which
 //! oxc's JSDoc support doesn't reproduce.
+//!
+//! The one exception is that Grats also attaches comments to the string
+//! literal members of unions and elements of arrays, which can be the values
+//! of enums.
 
 mod nodes;
 mod parser;

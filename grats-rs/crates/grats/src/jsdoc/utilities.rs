@@ -56,6 +56,8 @@ impl JSDocIndex {
                 | K::ImportDeclaration
                 | K::ImportEqualsDeclaration
                 | K::IndexSignature
+                | K::LiteralType
+                | K::StringLiteral
                 | K::InterfaceDeclaration
                 | K::LabeledStatement
                 | K::MethodDeclaration

@@ -22,14 +22,8 @@ To mark a variant as deprecated, use the `@deprecated` JSDoc tag directly before
 
 <GratsCode out={EnumDeprecated} mode="both" />
 
-We also support defining enums using a union of string literals, however there
-are some limitations to this approach:
-
-- You cannot add descriptions to enum values
-- You cannot mark enum values as deprecated
-
-This is due to the fact that TypeScript does not see JSDoc comments as
-"attaching" to string literal types.
+Enums can also be defined using a union of string literals. A docblock before
+each member works the same way:
 
 <GratsCode out={EnumStringUnion} mode="both" />
 
@@ -46,12 +40,9 @@ The const declaration must use `as const` and must be the statement immediately 
 
 <GratsCode out={EnumConstArray} mode="both" />
 
-Like union-of-literal enums, const arrays do not support descriptions or `@deprecated` on individual values. Use a const object or TypeScript `enum` if you need those.
-
 ### Const object
 
 Const objects allow you to define human-readable keys that map to GraphQL enum
-values, similar to TypeScript `enum` declarations. Unlike arrays, object
-properties support descriptions and `@deprecated` tags:
+values, similar to TypeScript `enum` declarations:
 
 <GratsCode out={EnumConstObject} mode="both" />

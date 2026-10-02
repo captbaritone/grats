@@ -1,6 +1,5 @@
 import GratsCode from "@site/src/components/GratsCode";
 import Example from "!!raw-loader!./snippets/03-description-example.out";
-import EnumFail from "!!raw-loader!./snippets/03-description-enum-fail.out";
 
 # Descriptions
 
@@ -26,17 +25,3 @@ A `@` symbol in a description's text, for example in a GitHub handle, starts a d
 ```
 
 :::
-
-## Limitations
-
-:::caution
-Grats follows TypeScript's rules for "attaching" docblock comments to constructs, and those rules don't attach docblocks to certain constructs. In these cases, Grats is currently unable to extract descriptions.
-:::
-
-For example, Grats is **not** currently able to attach descriptions to enum values defined using a type union.
-
-<GratsCode mode="ts" out={EnumFail} />
-
-Will _incorrectly_ extract this GraphQL:
-
-<GratsCode mode="gql" out={EnumFail} />

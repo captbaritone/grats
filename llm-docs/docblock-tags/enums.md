@@ -55,16 +55,16 @@ enum MyEnum {
 }
 ```
 
-We also support defining enums using a union of string literals, however there are some limitations to this approach:
-
--   You cannot add descriptions to enum values
--   You cannot mark enum values as deprecated
-
-This is due to the fact that TypeScript does not see JSDoc comments as "attaching" to string literal types.
+Enums can also be defined using a union of string literals. A docblock before each member works the same way:
 
 ```tsx
 /** @gqlEnum */
-type MyEnum = "OK" | "ERROR";
+type MyEnum =
+  /** The request succeeded. */
+  | "OK"
+  /** @deprecated Please use OK instead. */
+  | "OKAY"
+  | "ERROR";
 ```
 
 _Generated GraphQL schema:_
@@ -72,7 +72,9 @@ _Generated GraphQL schema:_
 ```graphql
 enum MyEnum {
   ERROR
+  """The request succeeded."""
   OK
+  OKAY @deprecated(reason: "Please use OK instead.")
 }
 ```
 
@@ -102,11 +104,9 @@ enum Status {
 }
 ```
 
-Like union-of-literal enums, const arrays do not support descriptions or `@deprecated` on individual values. Use a const object or TypeScript `enum` if you need those.
-
 ### Const object
 
-Const objects allow you to define human-readable keys that map to GraphQL enum values, similar to TypeScript `enum` declarations. Unlike arrays, object properties support descriptions and `@deprecated` tags:
+Const objects allow you to define human-readable keys that map to GraphQL enum values, similar to TypeScript `enum` declarations:
 
 ```tsx
 const Status = {

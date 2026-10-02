@@ -1,7 +1,7 @@
 const ALL_STATUSES = [
-  /** Currently being edited */
   "DRAFT",
-  /** Available to readers */
+  /** @deprecated Use DRAFT instead. */
+  "UNPUBLISHED",
   "PUBLISHED",
 ] as const;
 

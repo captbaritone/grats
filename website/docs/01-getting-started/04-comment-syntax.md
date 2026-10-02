@@ -47,4 +47,6 @@ See [Descriptions](../03-resolvers/03-descriptions.mdx) for more information abo
 
 Grats follows the same rules as the TypeScript compiler to determine "comment attachment", or which declaration a comment refers to. Comment attachment is a surprisingly complex problem, with edge cases that don't always feel intuitive. But in general, a comment is attached to the declaration that directly follows it.
 
+Grats goes one step further than TypeScript for [enums](../04-docblock-tags/07-enums.mdx): a docblock before a member of a union of string literals, or before an element of a const array, is attached to that member.
+
 If Grats encounters a `@gql` comment that does not seem to be attached to _any_ declaration, it will report an error. Similarly, if Grats encounters a `@gql` comment that is attached to a declaration that is incompatible with the tag used, it will report an error.

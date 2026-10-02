@@ -38,6 +38,7 @@ If any of these changes cause problems for your project, please [file an issue](
 
 -   **Features**
     -   Added support for deriving `@gqlEnum` from const arrays (`(typeof X)[number]`) and const objects (`(typeof X)[keyof typeof X]`). This allows defining enums with runtime-accessible values without using TypeScript's `enum` syntax. The const declaration must immediately precede the type alias. See [enum docs](./docblock-tags/enums.md#runtime-accessible-enums) for details.
+    -   Values of `@gqlEnum`s defined as a union of string literals or a const array can now have descriptions, `@deprecated` and `@gqlAnnotate` tags, using a docblock before each value. Previously, since TypeScript doesn't attach docblocks to them, descriptions and `@deprecated` were silently ignored and `@gqlAnnotate` was reported as a detached docblock. See [enum docs](./docblock-tags/enums.md) for details.
 -   **Improvements**
     -   `typescript` is now a peer dependency (`>=5.5`) rather than a dependency, so Grats no longer installs its own copy of TypeScript. ([PR](https://github.com/captbaritone/grats/pull/228))
     -   Grats' types support TypeScript 6.0. ([PR](https://github.com/captbaritone/grats/pull/228))

@@ -53,28 +53,3 @@ type User {
 > ```text
 > /** This comment was added by `@captbaritone`. */
 > ```
-
-## Limitations
-
-> **CAUTION:**
-> Grats follows TypeScript's rules for "attaching" docblock comments to constructs, and those rules don't attach docblocks to certain constructs. In these cases, Grats is currently unable to extract descriptions.
-
-For example, Grats is **not** currently able to attach descriptions to enum values defined using a type union.
-
-```tsx
-/** @gqlEnum */
-type GreetingStyle =
-  /** For a business greeting */
-  | "formal"
-  /** For a friendly greeting */
-  | "casual";
-```
-
-Will _incorrectly_ extract this GraphQL:
-
-```graphql
-enum GreetingStyle {
-  casual
-  formal
-}
-```

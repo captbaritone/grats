@@ -1,12 +1,12 @@
-# enums/EnumFromConstArrayWithDescription.ts
+# enums/EnumFromConstArrayWithDeprecated.ts
 
 ## Input
 
-```ts title="enums/EnumFromConstArrayWithDescription.ts"
+```ts title="enums/EnumFromConstArrayWithDeprecated.ts"
 const ALL_STATUSES = [
-  /** Currently being edited */
   "DRAFT",
-  /** Available to readers */
+  /** @deprecated Use DRAFT instead. */
+  "UNPUBLISHED",
   "PUBLISHED",
 ] as const;
 
@@ -26,10 +26,9 @@ class Show {
 
 ```graphql
 enum ShowStatus {
-  """Currently being edited"""
   DRAFT
-  """Available to readers"""
   PUBLISHED
+  UNPUBLISHED @deprecated(reason: "Use DRAFT instead.")
 }
 
 type Show {
@@ -45,13 +44,11 @@ export function getSchema(): GraphQLSchema {
     const ShowStatusType: GraphQLEnumType = new GraphQLEnumType({
         name: "ShowStatus",
         values: {
-            DRAFT: {
-                description: "Currently being edited",
-                value: "DRAFT"
-            },
-            PUBLISHED: {
-                description: "Available to readers",
-                value: "PUBLISHED"
+            DRAFT: { value: "DRAFT" },
+            PUBLISHED: { value: "PUBLISHED" },
+            UNPUBLISHED: {
+                deprecationReason: "Use DRAFT instead.",
+                value: "UNPUBLISHED"
             }
         }
     });
