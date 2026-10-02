@@ -133,79 +133,22 @@ impl<'r> TypeContext<'r> {
         &self,
         mut declarations: Vec<ResolvedDeclaration>,
     ) -> Option<ResolvedDeclaration> {
-        if declarations.is_empty() {
-            return None;
-        }
         // When a symbol has multiple declarations (e.g., `const X` and `type X`
         // sharing a name), prefer the one registered in the GraphQL schema.
-        if declarations.len() > 1 {
-            let registered = declarations
-                .iter()
-                .position(|decl| self.declaration_to_definition.contains_key(&decl.decl_loc));
-            if let Some(index) = registered {
-                return Some(declarations.swap_remove(index));
-            }
+        let registered = declarations
+            .iter()
+            .position(|decl| self.declaration_to_definition.contains_key(&decl.decl_loc));
+        match registered {
+            Some(index) => Some(declarations.swap_remove(index)),
+            None => declarations.into_iter().next(),
         }
-        Some(declarations.swap_remove(0))
-    }
-
-    /// Resolves an unresolved NameNode to its actual GraphQL name
-    pub fn resolve_unresolved_named_type(
-        &self,
-        unresolved: &NameNode,
-    ) -> DiagnosticResult<NameNode> {
-        if unresolved.value != UNRESOLVED_REFERENCE_NAME {
-            return Ok(unresolved.clone());
-        }
-        let Some(type_reference) = self.get_entity_name(unresolved) else {
-            panic!("Unexpected unresolved reference name.");
-        };
-
-        let declaration = self.resolve_entity_name(type_reference.name)?;
-        if declaration.kind == ResolvedDeclarationKind::TypeParameter {
-            return Err(gql_err(
-                unresolved.loc,
-                "Type parameters are not supported in this context.".to_string(),
-                None,
-            ));
-        }
-
-        let Some(name_definition) = self.declaration_to_definition.get(&declaration.decl_loc)
-        else {
-            return Err(gql_err(
-                unresolved.loc,
-                E::unresolved_type_reference(),
-                None,
-            ));
-        };
-        let context_or_info = match name_definition.kind {
-            DeclarationDefinitionKind::Context => Some(ContextOrInfo::Context),
-            DeclarationDefinitionKind::Info => Some(ContextOrInfo::Info),
-            _ => None,
-        };
-        if let Some(kind) = context_or_info {
-            return Err(gql_err(
-                unresolved.loc,
-                E::context_or_info_used_in_graphql_position(kind),
-                Some(vec![gql_related(name_definition.name.loc, "Defined here")]),
-            ));
-        }
-        Ok(NameNode {
-            value: name_definition.name.value.clone(),
-            ..unresolved.clone()
-        })
     }
 
     /// Checks if an unresolved NameNode refers to a GraphQL type
     pub fn unresolved_name_is_graphql(&self, unresolved: &NameNode) -> bool {
-        let Some(reference_node) = self.get_entity_name(unresolved) else {
-            return false;
-        };
-        let Some(declaration) = self.maybe_declaration_for_ts_name(reference_node.name) else {
-            return false;
-        };
-        self.declaration_to_definition
-            .contains_key(&declaration.decl_loc)
+        self.get_entity_name(unresolved)
+            .and_then(|reference| self.definition_for_ts_name(reference.name))
+            .is_some()
     }
 
     /// Gets the declaration definition for a GraphQL NameNode
@@ -213,17 +156,11 @@ impl<'r> TypeContext<'r> {
         &self,
         name_node: &NameNode,
     ) -> DiagnosticResult<&DeclarationDefinition> {
-        let Some(reference_node) = self.get_entity_name(name_node) else {
-            panic!("Expected to find reference node for name node.");
-        };
-
-        let Some(declaration) = self.maybe_declaration_for_ts_name(reference_node.name) else {
-            return Err(gql_err(name_node.loc, E::unresolved_type_reference(), None));
-        };
-        let Some(definition) = self.declaration_to_definition.get(&declaration.decl_loc) else {
-            return Err(gql_err(name_node.loc, E::unresolved_type_reference(), None));
-        };
-        Ok(definition)
+        let reference = self
+            .get_entity_name(name_node)
+            .expect("Expected to find reference node for name node.");
+        self.definition_for_ts_name(reference.name)
+            .ok_or_else(|| gql_err(name_node.loc, E::unresolved_type_reference(), None))
     }
 
     // Note! This assumes you have already handled any type parameters.
@@ -241,19 +178,22 @@ impl<'r> TypeContext<'r> {
         else {
             return Err(gql_err(Some(name), E::unresolved_type_reference(), None));
         };
-        let context_or_info = match name_definition.kind {
-            DeclarationDefinitionKind::Context => Some(ContextOrInfo::Context),
-            DeclarationDefinitionKind::Info => Some(ContextOrInfo::Info),
-            _ => None,
+        let kind = match name_definition.kind {
+            DeclarationDefinitionKind::Context => ContextOrInfo::Context,
+            DeclarationDefinitionKind::Info => ContextOrInfo::Info,
+            _ => return Ok(name_definition.name.value.clone()),
         };
-        if let Some(kind) = context_or_info {
-            return Err(gql_err(
-                Some(name),
-                E::context_or_info_used_in_graphql_position(kind),
-                Some(vec![gql_related(name_definition.name.loc, "Defined here")]),
-            ));
-        }
-        Ok(name_definition.name.value.clone())
+        Err(gql_err(
+            Some(name),
+            E::context_or_info_used_in_graphql_position(kind),
+            Some(vec![gql_related(name_definition.name.loc, "Defined here")]),
+        ))
+    }
+
+    /// The definition of the declaration a TypeScript entity name refers to.
+    fn definition_for_ts_name(&self, name: Location) -> Option<&DeclarationDefinition> {
+        let declaration = self.maybe_declaration_for_ts_name(name)?;
+        self.declaration_to_definition.get(&declaration.decl_loc)
     }
 
     fn maybe_declaration_for_ts_name(&self, name: Location) -> Option<ResolvedDeclaration> {

@@ -24,7 +24,7 @@ pub fn add_interface_fields(
 ) -> DiagnosticsResult<Vec<DefinitionNode>> {
     let mut new_docs = Vec::new();
     let mut errors: Vec<Diagnostic> = Vec::new();
-    let interface_graph = compute_interface_map(ctx, &docs);
+    let interface_graph = compute_interface_map(&docs);
 
     for doc in docs {
         match doc {

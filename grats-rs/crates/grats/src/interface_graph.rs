@@ -2,8 +2,6 @@ use std::collections::HashMap;
 
 use graphql_js::language::ast::DefinitionNode;
 
-use crate::type_context::TypeContext;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InterfaceImplementorKind {
     Type,
@@ -30,7 +28,8 @@ impl InterfaceMap {
 }
 
 /// Compute a map of interfaces to the types and interfaces that implement them.
-pub fn compute_interface_map(type_context: &TypeContext, docs: &[DefinitionNode]) -> InterfaceMap {
+/// Expects type names to have been resolved.
+pub fn compute_interface_map(docs: &[DefinitionNode]) -> InterfaceMap {
     let mut graph = InterfaceMap::default();
     for doc in docs {
         let (interfaces, kind, name) = match doc {
@@ -53,13 +52,9 @@ pub fn compute_interface_map(type_context: &TypeContext, docs: &[DefinitionNode]
             _ => continue,
         };
         for interface in interfaces.iter().flatten() {
-            let Ok(resolved) = type_context.resolve_unresolved_named_type(&interface.name) else {
-                // We trust that these errors will be reported elsewhere.
-                continue;
-            };
             graph
                 .map
-                .entry(resolved.value)
+                .entry(interface.name.value.clone())
                 .or_default()
                 .push(InterfaceImplementor {
                     kind,
