@@ -2146,6 +2146,17 @@ impl<'f, 'a> Extractor<'f, 'a> {
             } else {
                 "add-public-modifier"
             };
+            // `public` must precede `override`, the only other modifier a
+            // parameter can have here.
+            let insert_before = if r#override {
+                self.modifier_span(
+                    node.modifiers_start(),
+                    node.name().span().start,
+                    Kind::Override,
+                )
+            } else {
+                node.name().span()
+            };
             self.report_with(
                 node.span(),
                 e::parameter_without_modifiers(),
@@ -2153,10 +2164,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 Some(CodeFixAction {
                     fix_name: fix_name.to_string(),
                     description: "Add 'public' modifier".to_string(),
-                    changes: vec![act::prefix_node(
-                        self.locatable(node.name().span()),
-                        "public ",
-                    )],
+                    changes: vec![act::prefix_node(self.locatable(insert_before), "public ")],
                 }),
             );
             return None;

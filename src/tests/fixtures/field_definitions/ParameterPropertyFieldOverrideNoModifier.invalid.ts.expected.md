@@ -39,7 +39,7 @@ Learn more: https://grats.capt.dev/docs/docblock-tags/fields#class-based-fields
 @@ -8,3 +8,3 @@
      /** @gqlField */
 -    override hello: string,
-+    override public hello: string,
++    public override hello: string,
    ) {
 ```
 
@@ -60,7 +60,7 @@ class Base {
 export default class SomeType extends Base {
   constructor(
     /** @gqlField */
-    override public hello: string,
+    public override hello: string,
   ) {
     super();
   }
