@@ -1,5 +1,3 @@
-//! Port of `src/transforms/sortSchemaAst.ts`.
-
 use std::cmp::Ordering;
 
 use graphql_js::language::ast::{
@@ -9,24 +7,15 @@ use graphql_js::language::ast::{
 
 use graphql_js::jsutils::natural_compare::natural_compare;
 
-/*
- * Similar to lexicographicSortSchema from graphql-js but applied against an AST
- * instead of a `GraphQLSchema`. Note that this creates some subtle differences,
- * such as the presence of schema directives, which are not preserved in a
- * `GraphQLSchema`.
- *
- * PORT: TypeScript uses graphql-js's `visit` to replace nodes with sorted
- * copies. The Rust visitor can't edit the AST, so this sorts in place, walking
- * to every node that the TypeScript visitor has a function for.
- */
+/// Similar to lexicographicSortSchema from graphql-js but applied against an AST
+/// instead of a `GraphQLSchema`. Note that this creates some subtle differences,
+/// such as the presence of schema directives, which are not preserved in a
+/// `GraphQLSchema`.
 pub fn sort_schema_ast(mut doc: DocumentNode) -> DocumentNode {
-    // Document
     doc.definitions.sort_by(|a, b| {
-        let kind_order = kind_sort_order(a).total_cmp(&kind_sort_order(b));
-        if kind_order != Ordering::Equal {
-            return kind_order;
-        }
-        compare_by_name(a, b)
+        kind_sort_order(a)
+            .cmp(&kind_sort_order(b))
+            .then_with(|| compare_by_name(a, b))
     });
     for definition in &mut doc.definitions {
         sort_definition(definition);
@@ -136,18 +125,13 @@ fn sort_directives(nodes: &mut Option<Vec<ConstDirectiveNode>>) {
     }
 }
 
-/// PORT: `{ kind: Kind; name?: NameNode }`.
 trait Named {
-    fn kind(&self) -> &'static str;
     fn name(&self) -> Option<&NameNode>;
 }
 
 macro_rules! impl_named {
-    ($($node:ty => $kind:literal),* $(,)?) => {
+    ($($node:ty),* $(,)?) => {
         $(impl Named for $node {
-            fn kind(&self) -> &'static str {
-                $kind
-            }
             fn name(&self) -> Option<&NameNode> {
                 Some(&self.name)
             }
@@ -156,35 +140,15 @@ macro_rules! impl_named {
 }
 
 impl_named!(
-    ConstDirectiveNode => "Directive",
-    ConstArgumentNode => "Argument",
-    NamedTypeNode => "NamedType",
-    FieldDefinitionNode => "FieldDefinition",
-    InputValueDefinitionNode => "InputValueDefinition",
-    EnumValueDefinitionNode => "EnumValueDefinition",
+    ConstDirectiveNode,
+    ConstArgumentNode,
+    NamedTypeNode,
+    FieldDefinitionNode,
+    InputValueDefinitionNode,
+    EnumValueDefinitionNode,
 );
 
 impl Named for DefinitionNode {
-    fn kind(&self) -> &'static str {
-        match self {
-            DefinitionNode::SchemaDefinition(_) => "SchemaDefinition",
-            DefinitionNode::ScalarTypeDefinition(_) => "ScalarTypeDefinition",
-            DefinitionNode::ObjectTypeDefinition(_) => "ObjectTypeDefinition",
-            DefinitionNode::InterfaceTypeDefinition(_) => "InterfaceTypeDefinition",
-            DefinitionNode::UnionTypeDefinition(_) => "UnionTypeDefinition",
-            DefinitionNode::EnumTypeDefinition(_) => "EnumTypeDefinition",
-            DefinitionNode::InputObjectTypeDefinition(_) => "InputObjectTypeDefinition",
-            DefinitionNode::DirectiveDefinition(_) => "DirectiveDefinition",
-            DefinitionNode::SchemaExtension(_) => "SchemaExtension",
-            DefinitionNode::ScalarTypeExtension(_) => "ScalarTypeExtension",
-            DefinitionNode::ObjectTypeExtension(_) => "ObjectTypeExtension",
-            DefinitionNode::InterfaceTypeExtension(_) => "InterfaceTypeExtension",
-            DefinitionNode::UnionTypeExtension(_) => "UnionTypeExtension",
-            DefinitionNode::EnumTypeExtension(_) => "EnumTypeExtension",
-            DefinitionNode::InputObjectTypeExtension(_) => "InputObjectTypeExtension",
-        }
-    }
-
     fn name(&self) -> Option<&NameNode> {
         match self {
             DefinitionNode::SchemaDefinition(_) | DefinitionNode::SchemaExtension(_) => None,
@@ -205,10 +169,10 @@ impl Named for DefinitionNode {
     }
 }
 
-// Given an optional array of AST nodes, sort them by name or kind.
-fn sort_named<T: Named>(arr: &mut Option<Vec<T>>) {
-    if let Some(arr) = arr {
-        arr.sort_by(compare_by_name);
+// Given an optional array of AST nodes, sort them by name.
+fn sort_named<T: Named>(nodes: &mut Option<Vec<T>>) {
+    if let Some(nodes) = nodes {
+        nodes.sort_by(compare_by_name);
     }
 }
 
@@ -221,8 +185,9 @@ fn sort_named<T: Named>(arr: &mut Option<Vec<T>>) {
 // * It's likely a more user-friendly sort order than simple > or <.
 fn compare_by_name<T: Named>(a: &T, b: &T) -> Ordering {
     match (a.name(), b.name()) {
-        // If both are unnamed, sort by kind
-        (None, None) => natural_compare(a.kind(), b.kind()),
+        // Only schema definitions and extensions are unnamed, and
+        // `kind_sort_order` already orders them.
+        (None, None) => Ordering::Equal,
         // Unnamed things go first
         (None, Some(_)) => Ordering::Less,
         (Some(_), None) => Ordering::Greater,
@@ -230,22 +195,22 @@ fn compare_by_name<T: Named>(a: &T, b: &T) -> Ordering {
     }
 }
 
-fn kind_sort_order(def: &DefinitionNode) -> f64 {
+fn kind_sort_order(def: &DefinitionNode) -> u8 {
     match def {
-        DefinitionNode::DirectiveDefinition(_) => 1.0,
-        DefinitionNode::SchemaDefinition(_) => 2.0,
-        DefinitionNode::ScalarTypeDefinition(_) => 3.0,
-        DefinitionNode::ScalarTypeExtension(_) => 3.5,
-        DefinitionNode::EnumTypeDefinition(_) => 4.0,
-        DefinitionNode::EnumTypeExtension(_) => 4.5,
-        DefinitionNode::UnionTypeDefinition(_) => 5.0,
-        DefinitionNode::UnionTypeExtension(_) => 5.5,
-        DefinitionNode::InterfaceTypeDefinition(_) => 6.0,
-        DefinitionNode::InterfaceTypeExtension(_) => 6.5,
-        DefinitionNode::InputObjectTypeDefinition(_) => 7.0,
-        DefinitionNode::InputObjectTypeExtension(_) => 7.5,
-        DefinitionNode::ObjectTypeDefinition(_) => 8.0,
-        DefinitionNode::ObjectTypeExtension(_) => 8.5,
-        _ => 9.0,
+        DefinitionNode::DirectiveDefinition(_) => 0,
+        DefinitionNode::SchemaDefinition(_) => 1,
+        DefinitionNode::ScalarTypeDefinition(_) => 2,
+        DefinitionNode::ScalarTypeExtension(_) => 3,
+        DefinitionNode::EnumTypeDefinition(_) => 4,
+        DefinitionNode::EnumTypeExtension(_) => 5,
+        DefinitionNode::UnionTypeDefinition(_) => 6,
+        DefinitionNode::UnionTypeExtension(_) => 7,
+        DefinitionNode::InterfaceTypeDefinition(_) => 8,
+        DefinitionNode::InterfaceTypeExtension(_) => 9,
+        DefinitionNode::InputObjectTypeDefinition(_) => 10,
+        DefinitionNode::InputObjectTypeExtension(_) => 11,
+        DefinitionNode::ObjectTypeDefinition(_) => 12,
+        DefinitionNode::ObjectTypeExtension(_) => 13,
+        DefinitionNode::SchemaExtension(_) => 14,
     }
 }
