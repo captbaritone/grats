@@ -170,8 +170,7 @@ impl RecordingHost {
         }
         directories
             .into_iter()
-            .map(|directory| {
-                let mut directory = directory;
+            .map(|mut directory| {
                 while self.inner.stat(directory, true) != Some(FileKind::Directory) {
                     let parent = path::dirname(directory);
                     if parent == directory {

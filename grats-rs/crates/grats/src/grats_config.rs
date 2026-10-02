@@ -3,8 +3,7 @@
 //! `GratsConfig` is their spec: their docs, defaults and types are derived
 //! from it as a JSON Schema (see [`json_schema`]), which is checked in as
 //! `grats-config-schema.json` and rendered by the website's docs and
-//! playground. The TypeScript side reported its own errors for invalid
-//! options; we report serde's.
+//! playground. Invalid options are reported with serde's errors.
 
 use schemars::{JsonSchema, Schema};
 use serde::{Deserialize, Deserializer, Serialize};
@@ -162,30 +161,32 @@ const REMOVED_OPTIONS: [(&str, &str); 1] = [(
     "Grats no longer type checks your code. Run `tsc` to report TypeScript type errors.",
 )];
 
-/// `validateGratsOptions`: validates the `grats` key of `tsconfig.json`,
-/// filling in the defaults of options it doesn't set.
+/// Validates the `grats` key of `tsconfig.json`, filling in the defaults of
+/// options it doesn't set.
 pub fn validate_grats_options(options: Option<&Value>) -> Result<ValidatedConfig, String> {
     let options = match options {
         None | Some(Value::Null) => serde_json::Map::new(),
         Some(Value::Object(options)) => options.clone(),
         Some(_) => return Err("Expected the Grats config to be an object.".to_string()),
     };
-    for (key, removed) in REMOVED_OPTIONS {
-        if options.contains_key(key) {
-            return Err(format!(
-                "The Grats config option `{key}` has been removed. {removed}"
-            ));
-        }
+    if let Some((key, removed)) = REMOVED_OPTIONS
+        .iter()
+        .find(|(key, _)| options.contains_key(*key))
+    {
+        return Err(format!(
+            "The Grats config option `{key}` has been removed. {removed}"
+        ));
     }
     let schema = json_schema();
-    let mut warnings = Vec::new();
-    for (key, value) in &options {
-        if schema.as_value()["properties"][key]["experimental"] == true && !value.is_null() {
-            warnings.push(format!(
-                "Grats: The `{key}` option is experimental and will be renamed or removed in a future release."
-            ));
-        }
-    }
+    let warnings = options
+        .iter()
+        .filter(|(key, value)| {
+            schema.as_value()["properties"][key]["experimental"] == true && !value.is_null()
+        })
+        .map(|(key, _)| format!(
+            "Grats: The `{key}` option is experimental and will be renamed or removed in a future release."
+        ))
+        .collect();
     let config = serde_path_to_error::deserialize(Value::Object(options))
         .map_err(|error| format!("Invalid Grats config: {error}"))?;
     Ok(ValidatedConfig { config, warnings })
