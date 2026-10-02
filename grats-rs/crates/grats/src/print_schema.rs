@@ -1,7 +1,7 @@
 //! Prints the outputs of a validated schema document.
 
 use graphql_js::language::ast::{DefinitionNode, DocumentNode};
-use graphql_js::language::printer::print;
+use graphql_js::language::printer::print_definition;
 use graphql_js::r#type::scalars::specified_scalar_types;
 use graphql_js::r#type::schema::GraphQLSchema;
 use serde::Serialize;
@@ -11,7 +11,6 @@ use crate::codegen::resolver_map_codegen::resolver_map_codegen;
 use crate::codegen::schema_codegen::codegen;
 use crate::grats_config::GratsConfig;
 use crate::metadata::Metadata;
-use crate::utils::visitor::map_definitions;
 
 /// The absolute paths the TypeScript outputs will be written to, which the
 /// module paths they import are relative to.
@@ -77,17 +76,22 @@ pub fn print_metadata(resolvers: &Metadata) -> String {
 /// Prints the document as SDL, leaving out the definitions of the built-in
 /// scalars.
 pub fn print_sdl_without_metadata(doc: &DocumentNode) -> String {
-    let trimmed = map_definitions(doc.clone(), |def| match def {
-        DefinitionNode::ScalarTypeDefinition(t)
-            if specified_scalar_types()
-                .iter()
-                .any(|scalar| scalar.name == t.name.value) =>
-        {
-            None
-        }
-        def => Some(def),
-    });
-    print(&trimmed)
+    let definitions: Vec<String> = doc
+        .definitions
+        .iter()
+        .filter(|def| !is_built_in_scalar(def))
+        .map(print_definition)
+        .collect();
+    definitions.join("\n\n")
+}
+
+fn is_built_in_scalar(def: &DefinitionNode) -> bool {
+    let DefinitionNode::ScalarTypeDefinition(def) = def else {
+        return false;
+    };
+    specified_scalar_types()
+        .iter()
+        .any(|scalar| scalar.name == def.name.value)
 }
 
 fn format_header(header: Option<&str>, code: &str) -> String {

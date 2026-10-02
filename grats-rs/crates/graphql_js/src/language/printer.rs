@@ -25,7 +25,9 @@ fn print_document(node: &DocumentNode) -> String {
     join(node.definitions.iter().map(print_definition), "\n\n")
 }
 
-fn print_definition(node: &DefinitionNode) -> String {
+/// PORT: graphql-js's `print` accepts any node. Grats prints definitions on
+/// their own to leave some of a document's out.
+pub fn print_definition(node: &DefinitionNode) -> String {
     match node {
         DefinitionNode::SchemaDefinition(node) => print_schema_definition(node),
         DefinitionNode::ScalarTypeDefinition(node) => print_scalar_type_definition(node),
