@@ -114,21 +114,12 @@ impl<'s, 'a> Codegen<'s, '_, 'a> {
         else {
             panic!("Type {type_name} is not an object type");
         };
-        let exported = graphql_type
-            .ast_node
-            .expect("Expected object type to have astNode")
-            .exported
-            .as_ref();
         field_definitions
             .keys()
             .map(|field_name| {
-                let method = self.resolvers.resolve_method(
-                    &mut self.ts,
-                    field_name,
-                    field_name,
-                    type_name,
-                    exported,
-                );
+                let method =
+                    self.resolvers
+                        .resolve_method(&mut self.ts, field_name, field_name, type_name);
                 self.resolvers.maybe_apply_semantic_null_runtime_check(
                     &mut self.ts,
                     &graphql_type.get_fields()[field_name.as_str()],

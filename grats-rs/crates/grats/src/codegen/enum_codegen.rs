@@ -1,7 +1,3 @@
-//! Port of `src/codegen/enumCodegen.ts`.
-
-use std::collections::HashMap;
-
 use graphql_js::r#type::definition::{GraphQLEnumType, GraphQLNamedType};
 use graphql_js::r#type::schema::GraphQLSchema;
 use oxc_allocator::{Allocator, ArenaVec};
@@ -10,10 +6,9 @@ use oxc_span::SPAN;
 
 use crate::codegen::ts_ast_builder::TsAstBuilder;
 use crate::grats_config::GratsConfig;
-use crate::utils::helpers::null_throws;
 
-// Given a GraphQL schema, returns TypeScript code that exports all enums
-// as a single object mapping enum names to their TypeScript values.
+/// Given a GraphQL schema, returns TypeScript code that exports all enums
+/// as a single object mapping enum names to their TypeScript values.
 pub fn codegen_enums(
     schema: &GraphQLSchema,
     config: &GratsConfig,
@@ -21,158 +16,131 @@ pub fn codegen_enums(
     grats_root: &str,
 ) -> String {
     let allocator = Allocator::default();
-    let codegen = EnumCodegen::new(schema, config, destination, grats_root, &allocator);
-    codegen.generate()
+    let mut ts = TsAstBuilder::new(
+        &allocator,
+        destination,
+        &config.import_module_specifier_ending,
+        grats_root,
+    );
+    // Collect all user-defined enum types (filter out built-in/introspection enums)
+    let enum_types: Vec<&GraphQLEnumType> = schema
+        .get_type_map()
+        .values()
+        .filter_map(|&r#type| match &schema[r#type] {
+            // Filter out introspection types
+            GraphQLNamedType::Enum(r#type) if !r#type.name.starts_with("__") => Some(r#type),
+            _ => None,
+        })
+        .collect();
+
+    for enum_type in &enum_types {
+        import_enum(&mut ts, enum_type);
+    }
+
+    let enums_object = enums_object(&ts, &enum_types);
+    ts.add_statement(enums_object);
+
+    // Also export individual enums for convenience
+    for enum_type in &enum_types {
+        let export = enum_export(&ts, enum_type);
+        ts.add_statement(export);
+    }
+
+    ts.print()
 }
 
-struct EnumCodegen<'s, 'd, 'a> {
-    ts: TsAstBuilder<'a>,
-    /// PORT: Maps each enum's name to its local name. The TypeScript
-    /// implementation also stores the module path and export name, which are
-    /// never read.
-    enum_imports: HashMap<&'s str, String>,
-    schema: &'s GraphQLSchema<'d>,
+/// The name each enum is imported as.
+fn local_name(enum_type: &GraphQLEnumType) -> String {
+    format!("{}Enum", enum_type.name)
 }
 
-impl<'s, 'd, 'a> EnumCodegen<'s, 'd, 'a> {
-    fn new(
-        schema: &'s GraphQLSchema<'d>,
-        config: &GratsConfig,
-        destination: &str,
-        grats_root: &str,
-        allocator: &'a Allocator,
-    ) -> Self {
-        EnumCodegen {
-            ts: TsAstBuilder::new(
-                allocator,
-                destination,
-                &config.import_module_specifier_ending,
-                grats_root,
-            ),
-            enum_imports: HashMap::new(),
-            schema,
-        }
-    }
+fn import_enum(ts: &mut TsAstBuilder, enum_type: &GraphQLEnumType) {
+    // Assert that astNode and exported info are present - this should be guaranteed by validation
+    let exported = enum_type
+        .ast_node
+        .and_then(|ast| ast.exported.as_ref())
+        .expect("Expected enum to be exported");
+    ts.import_user_construct(
+        &exported.ts_module_path,
+        exported.export_name.as_deref(),
+        &local_name(enum_type),
+        false,
+    );
+}
 
-    fn generate(mut self) -> String {
-        let schema = self.schema;
-        // Collect all user-defined enum types (filter out built-in/introspection enums)
-        let enum_types: Vec<&'s GraphQLEnumType<'d>> = schema
-            .get_type_map()
-            .values()
-            .filter_map(|&r#type| match &schema[r#type] {
-                // Filter out introspection types
-                GraphQLNamedType::Enum(r#type) if !r#type.name.starts_with("__") => Some(r#type),
-                _ => None,
-            })
-            .collect();
-
-        // Collect enum export information and import statements
-        for enum_type in &enum_types {
-            self.collect_enum_exports(enum_type);
-        }
-
-        // Generate the enums export object
-        self.generate_enums_object(&enum_types);
-
-        self.ts.print()
-    }
-
-    fn collect_enum_exports(&mut self, enum_type: &'s GraphQLEnumType<'d>) {
-        // Assert that astNode and exported info are present - this should be guaranteed by validation
-        let ast_node = null_throws(enum_type.ast_node);
-        let exported = null_throws(ast_node.exported.as_ref());
-
-        let local_name = format!("{}Enum", enum_type.name);
-        self.enum_imports.insert(enum_type.name, local_name.clone());
-
-        // Import the enum
-        self.ts.import_user_construct(
-            &exported.ts_module_path,
-            exported.export_name.as_deref(),
-            &local_name,
-            false,
-        );
-    }
-
-    fn generate_enums_object(&mut self, enum_types: &[&'s GraphQLEnumType<'d>]) {
-        let ts = &self.ts;
-        // All enums should have import information at this point
-        let enum_properties = ArenaVec::from_iter_in(
-            enum_types.iter().map(|enum_type| {
-                let local_name = null_throws(self.enum_imports.get(enum_type.name));
-                ObjectPropertyKind::new_object_property(
-                    SPAN,
-                    PropertyKind::Init,
-                    PropertyKey::new_static_identifier(
-                        SPAN,
-                        Ident::from_str_in(enum_type.name, ts),
-                        ts,
-                    ),
-                    Expression::new_identifier(SPAN, Ident::from_str_in(local_name, ts), ts),
-                    false,
-                    false,
-                    false,
-                    ts,
-                )
-            }),
-            ts,
-        );
-
-        // Create the exported enums object
-        let enums_object = Statement::new_export_declaration(
-            SPAN,
-            Declaration::new_variable_declaration(
+/// `export const enums = { Name: NameEnum, ... };`
+fn enums_object<'a>(ts: &TsAstBuilder<'a>, enum_types: &[&GraphQLEnumType]) -> Statement<'a> {
+    let enum_properties = ArenaVec::from_iter_in(
+        enum_types.iter().map(|enum_type| {
+            ObjectPropertyKind::new_object_property(
                 SPAN,
-                VariableDeclarationKind::Const,
-                ArenaVec::from_array_in(
-                    [VariableDeclarator::new(
-                        SPAN,
-                        BindingPattern::new_binding_identifier(SPAN, "enums", ts),
-                        None,
-                        Some(Expression::new_object_expression(SPAN, enum_properties, ts)),
-                        false,
-                        ts,
-                    )],
+                PropertyKind::Init,
+                PropertyKey::new_static_identifier(
+                    SPAN,
+                    Ident::from_str_in(enum_type.name, ts),
+                    ts,
+                ),
+                Expression::new_identifier(
+                    SPAN,
+                    Ident::from_str_in(&local_name(enum_type), ts),
                     ts,
                 ),
                 false,
+                false,
+                false,
+                ts,
+            )
+        }),
+        ts,
+    );
+    Statement::new_export_declaration(
+        SPAN,
+        Declaration::new_variable_declaration(
+            SPAN,
+            VariableDeclarationKind::Const,
+            ArenaVec::from_array_in(
+                [VariableDeclarator::new(
+                    SPAN,
+                    BindingPattern::new_binding_identifier(SPAN, "enums", ts),
+                    None,
+                    Some(Expression::new_object_expression(SPAN, enum_properties, ts)),
+                    false,
+                    ts,
+                )],
                 ts,
             ),
+            false,
             ts,
-        );
-        self.ts.add_statement(enums_object);
+        ),
+        ts,
+    )
+}
 
-        // Also export individual enums for convenience
-        for enum_type in enum_types {
-            let ts = &self.ts;
-            let local_name = null_throws(self.enum_imports.get(enum_type.name));
-            let export = Statement::new_export_named_declaration(
+/// `export { NameEnum as Name };`
+fn enum_export<'a>(ts: &TsAstBuilder<'a>, enum_type: &GraphQLEnumType) -> Statement<'a> {
+    Statement::new_export_named_declaration(
+        SPAN,
+        ArenaVec::from_array_in(
+            [ExportSpecifier::new(
                 SPAN,
-                ArenaVec::from_array_in(
-                    [ExportSpecifier::new(
-                        SPAN,
-                        ModuleExportName::new_identifier_reference(
-                            SPAN,
-                            Ident::from_str_in(local_name, ts),
-                            ts,
-                        ),
-                        ModuleExportName::new_identifier_name(
-                            SPAN,
-                            Ident::from_str_in(enum_type.name, ts),
-                            ts,
-                        ),
-                        ImportOrExportKind::Value,
-                        ts,
-                    )],
+                ModuleExportName::new_identifier_reference(
+                    SPAN,
+                    Ident::from_str_in(&local_name(enum_type), ts),
+                    ts,
+                ),
+                ModuleExportName::new_identifier_name(
+                    SPAN,
+                    Ident::from_str_in(enum_type.name, ts),
                     ts,
                 ),
                 ImportOrExportKind::Value,
                 ts,
-            );
-            self.ts.add_statement(export);
-        }
-    }
+            )],
+            ts,
+        ),
+        ImportOrExportKind::Value,
+        ts,
+    )
 }
 
 #[cfg(test)]

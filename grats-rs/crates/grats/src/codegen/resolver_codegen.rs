@@ -1,8 +1,6 @@
-//! Port of `src/codegen/resolverCodegen.ts`.
+use std::collections::HashMap;
 
-use std::collections::{HashMap, HashSet};
-
-use graphql_js::language::ast::{ConstDirectiveNode, ExportDefinition};
+use graphql_js::language::ast::ConstDirectiveNode;
 use graphql_js::r#type::definition::GraphQLField;
 use oxc_ast::ast::*;
 use oxc_span::SPAN;
@@ -11,20 +9,15 @@ use crate::codegen::ts_ast_builder::{ImportSpecifier, TsAstBuilder};
 use crate::codegen_helpers::{ASSERT_NON_NULL_HELPER, create_assert_non_null_helper};
 use crate::metadata::{Metadata, ResolverArgument, ResolverDefinition};
 use crate::public_directives::SEMANTIC_NON_NULL_DIRECTIVE;
-use crate::utils::helpers::null_throws;
 
 const RESOLVER_ARGS: [&str; 4] = ["source", "args", "context", "info"];
 
-const TYPE_RESOLVER_ARGS: bool = false;
-
 /// Codegen specifically for generating resolver methods for a given field.
 /// Having this separate from the other codegen classes allows it to be used
-/// for any codegen that needs to generate resolver methods.
-///
-/// PORT: The TypeScript implementation holds the `TSAstBuilder` it shares with
-/// the codegen using it. Here each method takes the builder instead.
+/// for any codegen that needs to generate resolver methods. Each method takes
+/// the `TsAstBuilder` of the codegen using it.
 pub struct ResolverCodegen<'m> {
-    helpers: HashSet<&'static str>,
+    added_assert_non_null_helper: bool,
     derived_context_names: HashMap<String, String>,
     resolvers: &'m Metadata,
 }
@@ -32,7 +25,7 @@ pub struct ResolverCodegen<'m> {
 impl<'m> ResolverCodegen<'m> {
     pub fn new(resolvers: &'m Metadata) -> Self {
         ResolverCodegen {
-            helpers: HashSet::new(),
+            added_assert_non_null_helper: false,
             derived_context_names: HashMap::new(),
             resolvers,
         }
@@ -44,62 +37,27 @@ impl<'m> ResolverCodegen<'m> {
         field_name: &str,
         method_name: &str,
         parent_type_name: &str,
-        source_export: Option<&ExportDefinition>,
     ) -> Option<ObjectPropertyKind<'a>> {
         let resolver = &self.resolvers.types[parent_type_name][field_name].resolver;
-        if self.is_default_resolver_signature(field_name, resolver) {
+        if is_default_resolver_signature(field_name, resolver) {
             return None;
         }
 
-        let get_source_type_ref = |ts: &mut TsAstBuilder<'a>| -> Option<TSType<'a>> {
-            let source_export = source_export?;
-            if !TYPE_RESOLVER_ARGS {
-                return None;
-            }
-            let source_type_name = format!("{parent_type_name}SourceType");
-            ts.import_user_construct(
-                &source_export.ts_module_path,
-                source_export.export_name.as_deref(),
-                &source_type_name,
-                true,
-            );
-            Some(ts.type_reference(&source_type_name, vec![]))
-        };
-        let params = |ts: &mut TsAstBuilder<'a>, names: Vec<String>| {
-            names
-                .into_iter()
-                .map(|name| {
-                    if name == "source" {
-                        let r#type = get_source_type_ref(ts);
-                        return ts.param("source", r#type);
-                    }
-                    ts.param(&name, None)
-                })
-                .collect::<Vec<_>>()
-        };
-        Some(match resolver {
+        let (callee, arguments, include_source) = match resolver {
             ResolverDefinition::Property { name } => {
-                let params = params(ts, vec!["source".to_string()]);
+                let params = vec![ts.param("source", None)];
                 let body = vec![ts.return_statement(ts.property_access(
                     ts.identifier("source"),
                     name.as_deref().unwrap_or(field_name),
                 ))];
-                ts.method(method_name, params, body, false)
+                return Some(ts.method(method_name, params, body, false));
             }
             ResolverDefinition::Method { name, arguments } => {
-                let args = arguments.as_deref().unwrap_or_default();
-                let is_async = args.iter().any(uses_async_derived_context);
-                let params = params(ts, extract_used_params(args, true));
                 let callee = ts.property_access(
                     ts.identifier("source"),
                     name.as_deref().unwrap_or(field_name),
                 );
-                let args = args
-                    .iter()
-                    .map(|arg| self.resolver_param(ts, arg))
-                    .collect();
-                let body = vec![ts.return_statement(ts.call(callee, args))];
-                ts.method(method_name, params, body, is_async)
+                (callee, arguments, true)
             }
             ResolverDefinition::Function {
                 path,
@@ -108,15 +66,7 @@ impl<'m> ResolverCodegen<'m> {
             } => {
                 let resolver_name = format_resolver_function_var_name(parent_type_name, field_name);
                 ts.import_user_construct(path, export_name.as_deref(), &resolver_name, false);
-                let args = arguments.as_deref().unwrap_or_default();
-                let is_async = args.iter().any(uses_async_derived_context);
-                let params = params(ts, extract_used_params(args, false));
-                let args = args
-                    .iter()
-                    .map(|arg| self.resolver_param(ts, arg))
-                    .collect();
-                let body = vec![ts.return_statement(ts.call(ts.identifier(&resolver_name), args))];
-                ts.method(method_name, params, body, is_async)
+                (ts.identifier(&resolver_name), arguments, false)
             }
             ResolverDefinition::StaticMethod {
                 path,
@@ -128,45 +78,22 @@ impl<'m> ResolverCodegen<'m> {
                 // means we import the same class multiple times with multiple names.
                 let resolver_name = format_resolver_function_var_name(parent_type_name, field_name);
                 ts.import_user_construct(path, export_name.as_deref(), &resolver_name, false);
-                let args = arguments.as_deref().unwrap_or_default();
-                let is_async = args.iter().any(uses_async_derived_context);
-                let params = params(ts, extract_used_params(args, false));
                 let callee = ts.property_access(ts.identifier(&resolver_name), name);
-                let args = args
-                    .iter()
-                    .map(|arg| self.resolver_param(ts, arg))
-                    .collect();
-                let body = vec![ts.return_statement(ts.call(callee, args))];
-                ts.method(method_name, params, body, is_async)
+                (callee, arguments, false)
             }
-        })
-    }
-
-    fn is_default_resolver_signature(
-        &self,
-        field_name: &str,
-        signature: &ResolverDefinition,
-    ) -> bool {
-        match signature {
-            ResolverDefinition::Property { name } => {
-                name.is_none() || name.as_deref() == Some(field_name)
-            }
-            ResolverDefinition::Method { name, arguments } => {
-                if name.as_ref().is_some_and(|name| field_name != name) {
-                    return false;
-                }
-                let Some(arguments) = arguments.as_ref().filter(|args| !args.is_empty()) else {
-                    return true;
-                };
-                arguments.iter().enumerate().all(|(i, arg)| match i {
-                    0 => matches!(arg, ResolverArgument::ArgumentsObject),
-                    // TODO: More?
-                    _ => false,
-                })
-            }
-            ResolverDefinition::Function { .. } => false,
-            ResolverDefinition::StaticMethod { .. } => false,
-        }
+        };
+        let arguments = arguments.as_deref().unwrap_or_default();
+        let is_async = arguments.iter().any(uses_async_derived_context);
+        let params = extract_used_params(arguments, include_source)
+            .iter()
+            .map(|name| ts.param(name, None))
+            .collect();
+        let arguments = arguments
+            .iter()
+            .map(|arg| self.resolver_param(ts, arg))
+            .collect();
+        let body = vec![ts.return_statement(ts.call(callee, arguments))];
+        Some(ts.method(method_name, params, body, is_async))
     }
 
     // Either `args`, `context`, `info`, or a positional argument like
@@ -227,24 +154,21 @@ impl<'m> ResolverCodegen<'m> {
         &mut self,
         ts: &mut TsAstBuilder<'a>,
         field: &GraphQLField,
-        method_: Option<ObjectPropertyKind<'a>>,
+        method: Option<ObjectPropertyKind<'a>>,
         method_name: &str,
     ) -> Option<ObjectPropertyKind<'a>> {
-        let semantic_non_null = field_directive(field, SEMANTIC_NON_NULL_DIRECTIVE);
-        if semantic_non_null.is_none() {
-            return method_;
+        if field_directive(field, SEMANTIC_NON_NULL_DIRECTIVE).is_none() {
+            return method;
         }
 
-        if !self.helpers.contains(ASSERT_NON_NULL_HELPER) {
-            self.helpers.insert(ASSERT_NON_NULL_HELPER);
+        if !self.added_assert_non_null_helper {
+            self.added_assert_non_null_helper = true;
             let helper = create_assert_non_null_helper(ts);
             ts.add_helper(helper);
         }
 
-        let mut method = method_.unwrap_or_else(|| self.default_resolver_method(ts, method_name));
+        let mut method = method.unwrap_or_else(|| default_resolver_method(ts, method_name));
 
-        // PORT: The TypeScript implementation creates a copy of the method
-        // with a new body. This replaces its return statements in place.
         let body_statements = match &mut method {
             ObjectPropertyKind::ObjectProperty(property) => match &mut property.value {
                 Expression::FunctionExpression(function) => {
@@ -263,7 +187,10 @@ impl<'m> ResolverCodegen<'m> {
             if let Statement::ReturnStatement(return_statement) = statement {
                 found_return = true;
                 // We need to wrap the return statement in a call to the runtime check
-                let expression = null_throws(return_statement.argument.take());
+                let expression = return_statement
+                    .argument
+                    .take()
+                    .expect("Expected return statement to have an argument");
                 *statement = ts.return_statement(
                     ts.call(ts.identifier(ASSERT_NON_NULL_HELPER), vec![expression]),
                 );
@@ -274,39 +201,55 @@ impl<'m> ResolverCodegen<'m> {
         }
         Some(method)
     }
+}
 
-    fn default_resolver_method<'a>(
-        &self,
-        ts: &mut TsAstBuilder<'a>,
-        method_name: &str,
-    ) -> ObjectPropertyKind<'a> {
-        ts.import(
-            "graphql",
-            vec![ImportSpecifier {
-                name: "defaultFieldResolver".to_string(),
-                r#as: None,
-                is_type_only: false,
-            }],
-        );
-        ts.method(
-            method_name,
-            RESOLVER_ARGS
-                .iter()
-                .map(|name| ts.param(name, None))
-                .collect(),
-            vec![
-                ts.return_statement(
-                    ts.call(
-                        ts.identifier("defaultFieldResolver"),
-                        RESOLVER_ARGS
-                            .iter()
-                            .map(|name| ts.identifier(name))
-                            .collect(),
-                    ),
+fn default_resolver_method<'a>(
+    ts: &mut TsAstBuilder<'a>,
+    method_name: &str,
+) -> ObjectPropertyKind<'a> {
+    ts.import(
+        "graphql",
+        vec![ImportSpecifier {
+            name: "defaultFieldResolver".to_string(),
+            r#as: None,
+            is_type_only: false,
+        }],
+    );
+    ts.method(
+        method_name,
+        RESOLVER_ARGS
+            .iter()
+            .map(|name| ts.param(name, None))
+            .collect(),
+        vec![
+            ts.return_statement(
+                ts.call(
+                    ts.identifier("defaultFieldResolver"),
+                    RESOLVER_ARGS
+                        .iter()
+                        .map(|name| ts.identifier(name))
+                        .collect(),
                 ),
-            ],
-            false,
-        )
+            ),
+        ],
+        false,
+    )
+}
+
+fn is_default_resolver_signature(field_name: &str, signature: &ResolverDefinition) -> bool {
+    match signature {
+        ResolverDefinition::Property { name } => {
+            name.as_deref().is_none_or(|name| name == field_name)
+        }
+        ResolverDefinition::Method { name, arguments } => {
+            // TODO: More?
+            name.as_deref().is_none_or(|name| name == field_name)
+                && matches!(
+                    arguments.as_deref().unwrap_or_default(),
+                    [] | [ResolverArgument::ArgumentsObject]
+                )
+        }
+        ResolverDefinition::Function { .. } | ResolverDefinition::StaticMethod { .. } => false,
     }
 }
 
@@ -315,39 +258,34 @@ impl<'m> ResolverCodegen<'m> {
 // Unused trailing args are trimmed, unused intermediate args are prefixed with
 // an underscore.
 fn extract_used_params(resolver_params: &[ResolverArgument], include_source: bool) -> Vec<String> {
-    let mut wrapper_args: Vec<String> = Vec::new();
-
-    let mut adding = false;
-    for name in RESOLVER_ARGS.iter().rev() {
-        let used = resolver_params.iter().any(|param| match *name {
-            "source" => matches!(param, ResolverArgument::Source),
-            "args" => matches!(
-                param,
-                ResolverArgument::Named { .. } | ResolverArgument::ArgumentsObject
-            ),
-            // Recursively check if this arg uses context.
-            "context" => uses_context(param),
-            "info" => matches!(param, ResolverArgument::Information),
-            _ => panic!("Unexpected resolver kind {name}"),
-        }) || (*name == "source" && include_source);
-
-        if used {
-            adding = true;
-        }
-        if !adding {
-            continue;
-        }
-
-        wrapper_args.insert(
-            0,
+    let used = RESOLVER_ARGS.map(|name| {
+        (name == "source" && include_source)
+            || resolver_params.iter().any(|param| match name {
+                "source" => matches!(param, ResolverArgument::Source),
+                "args" => matches!(
+                    param,
+                    ResolverArgument::Named { .. } | ResolverArgument::ArgumentsObject
+                ),
+                // Recursively check if this arg uses context.
+                "context" => uses_context(param),
+                "info" => matches!(param, ResolverArgument::Information),
+                _ => unreachable!("Unexpected resolver kind {name}"),
+            })
+    });
+    let Some(last_used) = used.iter().rposition(|&used| used) else {
+        return Vec::new();
+    };
+    RESOLVER_ARGS[..=last_used]
+        .iter()
+        .zip(used)
+        .map(|(name, used)| {
             if used {
                 name.to_string()
             } else {
                 format!("_{name}")
-            },
-        );
-    }
-    wrapper_args
+            }
+        })
+        .collect()
 }
 
 // A param only uses context if it is the root context value, or if it is a
@@ -380,8 +318,8 @@ fn field_directive<'f>(field: &GraphQLField<'f>, name: &str) -> Option<&'f Const
         .find(|d| d.name.value == name)
 }
 
-/// PORT: GraphQL names are ASCII, so this changes the case of the first
-/// character with ASCII case mapping.
+/// GraphQL names are ASCII, so this changes the case of the first character
+/// with ASCII case mapping.
 fn format_resolver_function_var_name(parent_type_name: &str, field_name: &str) -> String {
     let parent = parent_type_name[..1].to_ascii_lowercase() + &parent_type_name[1..];
     let field = field_name[..1].to_ascii_uppercase() + &field_name[1..];

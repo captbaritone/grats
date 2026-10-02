@@ -1,9 +1,7 @@
-//! Port of `src/codegen/schemaCodegen.ts`.
-
 use std::collections::HashSet;
 
 use graphql_js::js_value::Value;
-use graphql_js::language::ast::{ConstDirectiveNode, ExportDefinition};
+use graphql_js::language::ast::ConstDirectiveNode;
 use graphql_js::r#type::definition::{
     GraphQLArgument, GraphQLEnumType, GraphQLEnumValue, GraphQLField, GraphQLInputField,
     GraphQLInputObjectType, GraphQLNamedType, GraphQLObjectType, GraphQLScalarType, GraphQLType,
@@ -13,6 +11,7 @@ use graphql_js::r#type::directives::GraphQLDirective;
 use graphql_js::r#type::schema::GraphQLSchema;
 use graphql_js::utilities::value_from_ast_untyped::value_from_ast_untyped;
 use indexmap::IndexMap;
+use indexmap::map::Entry;
 use oxc_allocator::{Allocator, ArenaBox, ArenaVec};
 use oxc_ast::ast::*;
 use oxc_span::SPAN;
@@ -21,7 +20,7 @@ use crate::codegen::resolver_codegen::ResolverCodegen;
 use crate::codegen::ts_ast_builder::{ImportSpecifier, TsAstBuilder};
 use crate::grats_config::GratsConfig;
 use crate::metadata::Metadata;
-use crate::utils::helpers::null_throws;
+use crate::public_directives::SEMANTIC_NON_NULL_DIRECTIVE;
 use graphql_js::jsutils::natural_compare::natural_compare;
 
 // These directives will be added to the schema by default, so we don't need to
@@ -31,11 +30,9 @@ const BUILT_IN_DIRECTIVES: [&str; 5] = ["skip", "include", "deprecated", "specif
 pub(crate) const BUILT_IN_SCALARS: [&str; 5] = ["String", "Int", "Float", "Boolean", "ID"];
 const GQL_SCALAR_TYPE_NAME: &str = "GqlScalar";
 
-// Given a GraphQL SDL, returns the a string of TypeScript code that generates a
-// GraphQLSchema implementing that schema.
-//
-// PORT: Also takes the root that module paths are relative to. See
-// `src/grats_root.rs`.
+/// Given a GraphQL SDL, returns the a string of TypeScript code that generates a
+/// GraphQLSchema implementing that schema. Module paths are relative to
+/// `grats_root`. See `src/grats_root.rs`.
 pub fn codegen(
     schema: &GraphQLSchema,
     resolvers: &Metadata,
@@ -140,7 +137,10 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
                     is_type_only: true,
                 }],
             );
-            let exported = null_throws(r#type.ast_node.and_then(|ast| ast.exported.as_ref()));
+            let exported = r#type
+                .ast_node
+                .and_then(|ast| ast.exported.as_ref())
+                .expect("Expected custom scalar to be exported");
 
             let local_name = format!("{}Internal", r#type.name);
 
@@ -318,8 +318,6 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
             .property_assignment("types", self.ts.array_literal(types))
     }
 
-    /// PORT: Takes the deprecation reason of the field, enum value, argument
-    /// or input field, since they are different Rust types.
     fn deprecated(&self, deprecation_reason: Option<&str>) -> Option<ObjectPropertyKind<'a>> {
         let deprecation_reason = deprecation_reason.filter(|reason| !reason.is_empty())?;
         Some(self.ts.property_assignment(
@@ -354,60 +352,62 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
         Some(self.ts.property_assignment("subscription", object_type))
     }
 
-    /// PORT: Named types are referenced by `TypeId`.
-    fn object_type(&mut self, obj: TypeId) -> Expression<'a> {
-        let GraphQLNamedType::Object(obj) = &self.schema[obj] else {
-            unreachable!("Expected an object type");
-        };
-        let var_name = format!("{}Type", obj.name);
-        if !self.type_definitions.contains(&var_name) {
-            self.type_definitions.insert(var_name.clone());
-
-            let ast = null_throws(obj.ast_node);
-
-            let callee = self.graphql_import("GraphQLObjectType");
-            let config = self.object_type_config(obj, ast.exported.as_ref());
+    /// A reference to the variable which defines the named type `name`, an
+    /// instance of the graphql-js class `class`. The first reference declares
+    /// it, with the config `config` builds.
+    fn type_definition(
+        &mut self,
+        name: &str,
+        class: &str,
+        config: impl FnOnce(&mut Self) -> Expression<'a>,
+    ) -> Expression<'a> {
+        let var_name = format!("{name}Type");
+        if self.type_definitions.insert(var_name.clone()) {
+            let callee = self.graphql_import(class);
+            let config = config(self);
             let initializer = self.ts.new_expression(callee, vec![config]);
             // We need to explicitly specify the type due to circular references in
             // the definition.
-            let r#type = self.ts.type_reference("GraphQLObjectType", vec![]);
+            let r#type = self.ts.type_reference(class, vec![]);
             self.ts
                 .const_declaration(&var_name, initializer, Some(r#type));
         }
         self.ts.identifier(&var_name)
     }
 
-    fn object_type_config(
-        &mut self,
-        obj: &'s GraphQLObjectType<'d>,
-        source_export: Option<&'s ExportDefinition>,
-    ) -> Expression<'a> {
+    fn object_type(&mut self, id: TypeId) -> Expression<'a> {
+        let GraphQLNamedType::Object(obj) = &self.schema[id] else {
+            unreachable!("Expected an object type");
+        };
+        self.type_definition(obj.name, "GraphQLObjectType", |this| {
+            this.object_type_config(obj)
+        })
+    }
+
+    fn object_type_config(&mut self, obj: &'s GraphQLObjectType<'d>) -> Expression<'a> {
         let properties = vec![
             Some(
                 self.ts
                     .property_assignment("name", self.ts.string_literal(obj.name)),
             ),
             self.description(obj.description),
-            Some(self.fields(obj.name, obj.get_fields(), false, source_export)),
+            Some(self.fields(obj.name, obj.get_fields(), false)),
             self.interfaces(obj.get_interfaces()),
             self.extensions(obj.ast_node.and_then(|ast| ast.directives.as_deref())),
         ];
         self.ts.object_literal(properties)
     }
 
-    /// PORT: Takes the object or interface type's name and fields, since they
-    /// are different Rust types.
     fn fields(
         &mut self,
         obj_name: &'d str,
         fields: &'s IndexMap<&'d str, GraphQLField<'d>>,
         is_interface: bool,
-        source_export: Option<&'s ExportDefinition>,
     ) -> ObjectPropertyKind<'a> {
         let fields = fields
             .iter()
             .map(|(name, field)| {
-                let config = self.field_config(field, obj_name, is_interface, source_export);
+                let config = self.field_config(field, obj_name, is_interface);
                 Some(self.ts.property_assignment(name, config))
             })
             .collect();
@@ -416,8 +416,6 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
         self.ts.method("fields", vec![], vec![statement], false)
     }
 
-    /// PORT: Takes the object or interface type's interfaces, since they are
-    /// different Rust types.
     fn interfaces(&mut self, interfaces: &'s [TypeId]) -> Option<ObjectPropertyKind<'a>> {
         if interfaces.is_empty() {
             return None;
@@ -431,34 +429,13 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
     }
 
     fn interface_type(&mut self, id: TypeId) -> Expression<'a> {
-        let GraphQLNamedType::Interface(obj) = &self.schema[id] else {
-            unreachable!("Expected an interface type");
-        };
-        let var_name = format!("{}Type", obj.name);
-        if !self.type_definitions.contains(&var_name) {
-            self.type_definitions.insert(var_name.clone());
-
-            let callee = self.graphql_import("GraphQLInterfaceType");
-            // TODO: Find interface export if exported.
-            let config = self.interface_type_config(id, None);
-            let initializer = self.ts.new_expression(callee, vec![config]);
-            // We need to explicitly specify the type due to circular references in
-            // the definition.
-            self.graphql_import("GraphQLInterfaceType");
-            let r#type = self.ts.type_reference("GraphQLInterfaceType", vec![]);
-            self.ts
-                .const_declaration(&var_name, initializer, Some(r#type));
-        }
-        self.ts.identifier(&var_name)
+        let name = self.schema[id].name();
+        self.type_definition(name, "GraphQLInterfaceType", |this| {
+            this.interface_type_config(id)
+        })
     }
 
-    /// PORT: The TypeScript implementation calls `getPossibleTypes` here and
-    /// discards the result.
-    fn interface_type_config(
-        &mut self,
-        id: TypeId,
-        source_export: Option<&'s ExportDefinition>,
-    ) -> Expression<'a> {
+    fn interface_type_config(&mut self, id: TypeId) -> Expression<'a> {
         let GraphQLNamedType::Interface(obj) = &self.schema[id] else {
             unreachable!("Expected an interface type");
         };
@@ -468,7 +445,7 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
                 self.ts
                     .property_assignment("name", self.ts.string_literal(obj.name)),
             ),
-            Some(self.fields(obj.name, obj.get_fields(), true, source_export)),
+            Some(self.fields(obj.name, obj.get_fields(), true)),
             self.interfaces(obj.get_interfaces()),
             self.resolve_type(id),
             self.extensions(obj.ast_node.and_then(|ast| ast.directives.as_deref())),
@@ -477,20 +454,8 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
     }
 
     fn union_type(&mut self, id: TypeId) -> Expression<'a> {
-        let var_name = format!("{}Type", self.schema[id].name());
-        if !self.type_definitions.contains(&var_name) {
-            self.type_definitions.insert(var_name.clone());
-            let callee = self.graphql_import("GraphQLUnionType");
-            let config = self.union_type_config(id);
-            let initializer = self.ts.new_expression(callee, vec![config]);
-            // We need to explicitly specify the type due to circular references in
-            // the definition.
-            self.graphql_import("GraphQLUnionType");
-            let r#type = self.ts.type_reference("GraphQLUnionType", vec![]);
-            self.ts
-                .const_declaration(&var_name, initializer, Some(r#type));
-        }
-        self.ts.identifier(&var_name)
+        let name = self.schema[id].name();
+        self.type_definition(name, "GraphQLUnionType", |this| this.union_type_config(id))
     }
 
     fn resolve_type(&mut self, obj: TypeId) -> Option<ObjectPropertyKind<'a>> {
@@ -500,31 +465,27 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
             let GraphQLNamedType::Object(t) = &schema[t] else {
                 unreachable!("Expected an object type");
             };
-            let ast = null_throws(t.ast_node);
+            let ast = t.ast_node.expect("Expected object type to have astNode");
             if ast.has_type_name_field {
                 continue;
             }
-
-            if let Some(exported_metadata) = &ast.exported {
-                if !self.type_name_mappings.contains_key(t.name) {
-                    let local_name = format!("{}Class", t.name);
-                    self.ts.import_user_construct(
-                        &exported_metadata.ts_module_path,
-                        exported_metadata.export_name.as_deref(),
-                        &local_name,
-                        false,
-                    );
-
-                    self.type_name_mappings.insert(t.name, local_name);
-                }
-                needs_resolve_type = true;
+            let Some(exported) = &ast.exported else {
+                continue;
+            };
+            if let Entry::Vacant(entry) = self.type_name_mappings.entry(t.name) {
+                let local_name = format!("{}Class", t.name);
+                self.ts.import_user_construct(
+                    &exported.ts_module_path,
+                    exported.export_name.as_deref(),
+                    &local_name,
+                    false,
+                );
+                entry.insert(local_name);
             }
+            needs_resolve_type = true;
         }
-        if needs_resolve_type {
-            return Some(self.ts.shorthand_property_assignment("resolveType"));
-        }
-        // Just use the default resolveType
-        None
+        // Otherwise, just use the default resolveType.
+        needs_resolve_type.then(|| self.ts.shorthand_property_assignment("resolveType"))
     }
 
     fn union_type_config(&mut self, id: TypeId) -> Expression<'a> {
@@ -552,20 +513,9 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
     }
 
     fn custom_scalar_type(&mut self, obj: &'s GraphQLScalarType<'d>) -> Expression<'a> {
-        let var_name = format!("{}Type", obj.name);
-        if !self.type_definitions.contains(&var_name) {
-            self.type_definitions.insert(var_name.clone());
-            let callee = self.graphql_import("GraphQLScalarType");
-            let config = self.custom_scalar_type_config(obj);
-            let initializer = self.ts.new_expression(callee, vec![config]);
-            // We need to explicitly specify the type due to circular references in
-            // the definition.
-            self.graphql_import("GraphQLScalarType");
-            let r#type = self.ts.type_reference("GraphQLScalarType", vec![]);
-            self.ts
-                .const_declaration(&var_name, initializer, Some(r#type));
-        }
-        self.ts.identifier(&var_name)
+        self.type_definition(obj.name, "GraphQLScalarType", |this| {
+            this.custom_scalar_type_config(obj)
+        })
     }
 
     fn custom_scalar_type_config(&mut self, obj: &'s GraphQLScalarType<'d>) -> Expression<'a> {
@@ -588,20 +538,9 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
     }
 
     fn input_type(&mut self, obj: &'s GraphQLInputObjectType<'d>) -> Expression<'a> {
-        let var_name = format!("{}Type", obj.name);
-        if !self.type_definitions.contains(&var_name) {
-            self.type_definitions.insert(var_name.clone());
-            let callee = self.graphql_import("GraphQLInputObjectType");
-            let config = self.input_type_config(obj);
-            let initializer = self.ts.new_expression(callee, vec![config]);
-            // We need to explicitly specify the type due to circular references in
-            // the definition.
-            self.graphql_import("GraphQLInputObjectType");
-            let r#type = self.ts.type_reference("GraphQLInputObjectType", vec![]);
-            self.ts
-                .const_declaration(&var_name, initializer, Some(r#type));
-        }
-        self.ts.identifier(&var_name)
+        self.type_definition(obj.name, "GraphQLInputObjectType", |this| {
+            this.input_type_config(obj)
+        })
     }
 
     fn input_type_config(&mut self, obj: &'s GraphQLInputObjectType<'d>) -> Expression<'a> {
@@ -662,36 +601,32 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
         &self,
         directive_nodes: Option<&[ConstDirectiveNode]>,
     ) -> Option<ObjectPropertyKind<'a>> {
-        let directive_nodes = directive_nodes?;
-        let directives_sans_builtin: Vec<&ConstDirectiveNode> = directive_nodes
+        let directives: Vec<Value> = directive_nodes?
             .iter()
             .filter(|directive| {
                 // These directives have first-class ways of being represented in the
                 // `GraphQLSchema` so we omit them from the extensions data.
                 !BUILT_IN_DIRECTIVES.contains(&directive.name.value.as_str())
-                    && directive.name.value != "semanticNonNull"
+                    && directive.name.value != SEMANTIC_NON_NULL_DIRECTIVE
+            })
+            .map(|directive| {
+                let args = directive
+                    .arguments
+                    .iter()
+                    .flatten()
+                    .map(|arg| (arg.name.value.clone(), value_from_ast_untyped(&arg.value)))
+                    .collect();
+                Value::Object(IndexMap::from([
+                    (
+                        "name".to_string(),
+                        Value::String(directive.name.value.clone()),
+                    ),
+                    ("args".to_string(), Value::Object(args)),
+                ]))
             })
             .collect();
-        if directives_sans_builtin.is_empty() {
+        if directives.is_empty() {
             return None;
-        }
-
-        let mut directives: Vec<Value> = Vec::new();
-        for directive in directives_sans_builtin {
-            let mut directive_args = IndexMap::new();
-            if let Some(arguments) = &directive.arguments {
-                for arg in arguments {
-                    directive_args
-                        .insert(arg.name.value.clone(), value_from_ast_untyped(&arg.value));
-                }
-            }
-            directives.push(Value::Object(IndexMap::from([
-                (
-                    "name".to_string(),
-                    Value::String(directive.name.value.clone()),
-                ),
-                ("args".to_string(), Value::Object(directive_args)),
-            ])));
         }
 
         Some(self.ts.property_assignment(
@@ -711,7 +646,6 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
         field: &'s GraphQLField<'d>,
         parent_type_name: &str,
         is_interface: bool,
-        source_export: Option<&'s ExportDefinition>,
     ) -> Expression<'a> {
         let mut props = vec![
             self.description(field.description),
@@ -730,11 +664,11 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
                 let args = self.arg_map(&field.args);
                 Some(self.ts.property_assignment("args", args))
             },
-            self.extensions(null_throws(field.ast_node).directives.as_deref()),
+            self.extensions(field.ast_node.and_then(|ast| ast.directives.as_deref())),
         ];
 
         if !is_interface {
-            props.extend(self.field_methods(field, parent_type_name, source_export));
+            props.extend(self.field_methods(field, parent_type_name));
         }
 
         self.ts.object_literal(props)
@@ -744,7 +678,6 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
         &mut self,
         field: &'s GraphQLField<'d>,
         parent_type_name: &str,
-        source_export: Option<&'s ExportDefinition>,
     ) -> Vec<Option<ObjectPropertyKind<'a>>> {
         // Note: We assume the default name is used here. When custom operation types are supported
         // we'll need to update this.
@@ -754,7 +687,6 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
                 field.name,
                 "resolve",
                 parent_type_name,
-                source_export,
             );
             return vec![self.resolvers.maybe_apply_semantic_null_runtime_check(
                 &mut self.ts,
@@ -765,13 +697,8 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
         }
         vec![
             // TODO: Maybe avoid adding `assertNonNull` for subscription resolvers?
-            self.resolvers.resolve_method(
-                &mut self.ts,
-                field.name,
-                "subscribe",
-                parent_type_name,
-                source_export,
-            ),
+            self.resolvers
+                .resolve_method(&mut self.ts, field.name, "subscribe", parent_type_name),
             // Identity function (method?)
             {
                 let method = self.ts.method(
@@ -812,7 +739,7 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
             // TODO: arg.defaultValue seems to be missing for complex objects
             arg.default_value.as_ref().map(|default_value| {
                 self.ts
-                    .property_assignment("defaultValue", self.default_value(default_value))
+                    .property_assignment("defaultValue", self.ts.json(default_value))
             }),
             self.extensions(arg.ast_node.and_then(|ast| ast.directives.as_deref())),
         ];
@@ -820,20 +747,9 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
     }
 
     fn enum_type(&mut self, obj: &'s GraphQLEnumType<'d>) -> Expression<'a> {
-        let var_name = format!("{}Type", obj.name);
-        if !self.type_definitions.contains(&var_name) {
-            self.type_definitions.insert(var_name.clone());
-            let callee = self.graphql_import("GraphQLEnumType");
-            let config = self.enum_type_config(obj);
-            let initializer = self.ts.new_expression(callee, vec![config]);
-            // We need to explicitly specify the type due to circular references in
-            // the definition.
-            self.graphql_import("GraphQLEnumType");
-            let r#type = self.ts.type_reference("GraphQLEnumType", vec![]);
-            self.ts
-                .const_declaration(&var_name, initializer, Some(r#type));
-        }
-        self.ts.identifier(&var_name)
+        self.type_definition(obj.name, "GraphQLEnumType", |this| {
+            this.enum_type_config(obj)
+        })
     }
 
     fn enum_type_config(&self, obj: &'s GraphQLEnumType<'d>) -> Expression<'a> {
@@ -877,10 +793,6 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
         ])
     }
 
-    fn default_value(&self, value: &Value) -> Expression<'a> {
-        self.ts.json(value)
-    }
-
     fn type_reference(&mut self, t: &'s GraphQLType) -> Expression<'a> {
         match t {
             GraphQLType::NonNull(of_type) => {
@@ -897,8 +809,6 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
         }
     }
 
-    /// PORT: The part of `typeReference` which handles named types, which are
-    /// referenced by `TypeId`.
     fn named_type_reference(&mut self, id: TypeId) -> Expression<'a> {
         let schema = self.schema;
         match &schema[id] {
@@ -1029,9 +939,7 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
                 std::mem::take(&mut self.type_name_mappings)
                     .into_iter()
                     .collect();
-            type_name_entries.sort_by(|(a_type_name, _), (b_type_name, _)| {
-                natural_compare(a_type_name, b_type_name)
-            });
+            type_name_entries.sort_by(|(a, _), (b, _)| natural_compare(a, b));
 
             for (type_name, class_name) in type_name_entries {
                 let statement = Statement::new_expression_statement(

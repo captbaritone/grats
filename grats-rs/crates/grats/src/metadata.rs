@@ -1,18 +1,12 @@
-//! Port of `src/metadata.ts`.
-//!
 //! Grats extracts a GraphQL schema from your TypeScript source code, but it also
 //! infers additional non-Schema information, such as the signature of your
 //! resolves.
 //!
 //! In order to allow external tools to make use of Grats' analysis, we are
 //! are EXPERIMENTING with exposing the result of Grats' analysis as JSON. This
-//! file contains the TypeScript types describing that shape.
-//!
-//! PORT: These types serialize to that JSON. Objects are `IndexMap`s since
-//! codegen and serialization iterate them in insertion order, as JavaScript
-//! does for keys which aren't array indices, which GraphQL names can't be.
-//! Fields are declared in the order `makeResolverSignature` sets them, which
-//! is the order they are serialized in.
+//! file contains the types describing that shape, which serialize to it.
+//! Objects are `IndexMap`s, since codegen and serialization iterate them in
+//! insertion order, and fields are serialized in the order they are declared.
 
 use indexmap::IndexMap;
 use serde::Serialize;
@@ -88,8 +82,7 @@ pub enum ResolverArgument {
         /// Export name. If omitted, the class is the default export
         export_name: Option<String>,
         r#async: bool,
-        /// PORT: `ContextArgs` in TypeScript, which only allows context and
-        /// derived context arguments.
+        /// Only context and derived context arguments.
         args: Vec<ResolverArgument>,
     },
     /// The GraphQL info object

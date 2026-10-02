@@ -11,16 +11,6 @@ pub fn unique_id() -> TsIdentifier {
     NEXT_ID.with(|next| next.replace(next.get() + 1))
 }
 
-pub fn null_throws<T>(value: Option<T>) -> T {
-    value.expect(
-        "Grats Error. Expected value to be non-nullish. This error represents an error in Grats. Please report it.",
-    )
-}
-
-pub fn ast_node<T>(ast_node: Option<T>) -> T {
-    ast_node.expect("Expected item to have astNode")
-}
-
 /// The edit distance between `s` and `t`, counted in UTF-16 code units, as
 /// JavaScript indexes strings.
 pub fn levenshtein_distance(s: &str, t: &str) -> usize {
