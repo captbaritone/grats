@@ -27,8 +27,8 @@ use oxc_ast::ast::{
     TSIndexedAccessType, TSInterfaceDeclaration, TSLiteral, TSMethodSignatureKind,
     TSPropertySignature, TSSignature, TSThisParameter, TSType, TSTypeAliasDeclaration,
     TSTypeAnnotation, TSTypeName, TSTypeOperatorOperator, TSTypeParameterInstantiation,
-    TSTypeQueryExprName, TSTypeReference, VariableDeclaration, VariableDeclarationKind,
-    VariableDeclarator,
+    TSTypeQueryExprName, TSTypeReference, TSUnionType, VariableDeclaration,
+    VariableDeclarationKind, VariableDeclarator,
 };
 use oxc_parser::{Kind, Token};
 use oxc_span::{GetSpan, Span};
@@ -3142,7 +3142,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         ))
     }
 
-    /// PORT: Records a diagnostic which a `DiagnosticHandle` refers to.
+    /// Records `diagnostic`, returning a handle which refers to it.
     fn diagnostic_handle<T>(&mut self, diagnostic: Diagnostic) -> DiagnosticHandleResult<T> {
         let handle = DiagnosticHandle { id: unique_id() };
         self.diagnostics_by_handle.insert(handle, diagnostic);
@@ -3151,29 +3151,29 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
     fn collect_description(&mut self, node: TsNodeId) -> Option<StringValueNode> {
         let jsdoc = self.jsdoc;
-        let docs = jsdoc.get_js_doc_comments_and_tags(node);
-
-        let comment = docs
+        let comment: String = jsdoc
+            .get_js_doc_comments_and_tags(node)
             .into_iter()
             .filter_map(|doc| match doc {
                 JSDocOrTag::JSDoc(doc) => Some(doc),
                 JSDocOrTag::Tag(_) => None,
             })
-            .map(|doc| match &jsdoc.js_doc(doc).comment {
-                Some(comment) => template_string(Some(comment)),
-                None => String::new(),
+            .map(|doc| {
+                jsdoc
+                    .js_doc(doc)
+                    .comment
+                    .as_ref()
+                    .map_or_else(String::new, |comment| template_string(Some(comment)))
             })
-            .collect::<Vec<_>>()
-            .join("");
+            .collect();
 
-        if !comment.is_empty() {
-            return Some(gql::string(
+        (!comment.is_empty()).then(|| {
+            gql::string(
                 self.locatable(self.node_span(node)),
                 js_trim(&comment),
                 true,
-            ));
-        }
-        None
+            )
+        })
     }
 
     fn property(&mut self, node: PropertyLike<'a>) -> Option<FieldDefinitionNode> {
@@ -3188,35 +3188,32 @@ impl<'f, 'a> Extractor<'f, 'a> {
         };
 
         let inner = self.collect_type(&node_type.type_annotation, FieldTypeContext::Output)?;
-        // We already reported an error
-        let r#type = if !node.optional {
-            inner
-        } else {
+        let r#type = if node.optional {
             gql::nullable_type(inner).into()
+        } else {
+            inner
         };
 
-        let description = self.collect_description(self.ts(node.id));
+        let ts = self.ts(node.id);
+        let description = self.collect_description(ts);
 
         let (_, id) = self.expect_name_identifier(node_name)?;
 
-        let directives = self.collect_directives(self.ts(node.id));
+        let directives = self.collect_directives(ts);
 
-        let kills_parent_on_exception = self.kills_parent_on_exception(self.ts(node.id));
+        let kills_parent_on_exception = self.kills_parent_on_exception(ts);
 
+        let resolver_name = (id != name.value).then(|| id.to_string());
         Some(gql::field_definition(
             self.locatable(node.span),
-            name.clone(),
+            name,
             r#type,
             None,
             directives,
             description,
             kills_parent_on_exception,
             ResolverSignature::Property {
-                name: if id == name.value {
-                    None
-                } else {
-                    Some(id.to_string())
-                },
+                name: resolver_name,
             },
         ))
     }
@@ -3225,161 +3222,141 @@ impl<'f, 'a> Extractor<'f, 'a> {
     // For input nodes and field may only be optional if `null` is a valid value.
     fn collect_type(&mut self, node: &'a TSType<'a>, ctx: FieldTypeContext) -> Option<TypeNode> {
         match node {
-            TSType::TSTypeReference(reference) => {
-                let r#type = self.type_reference(node, reference, ctx)?;
-                return Some(r#type);
-            }
+            TSType::TSTypeReference(reference) => self.type_reference(node, reference, ctx),
             TSType::TSArrayType(array) => {
                 let element = self.collect_type(&array.element_type, ctx)?;
-                return Some(gql::non_null_type(
+                Some(gql::non_null_type(
                     self.locatable(array.span),
                     TypeNode::ListType(gql::list_type(self.locatable(array.span), element)),
-                ));
+                ))
             }
-            TSType::TSUnionType(union) => {
-                let types: Vec<&'a TSType<'a>> = union
-                    .types
-                    .iter()
-                    .filter(|r#type| !is_nullish(r#type))
-                    .collect();
-                if types.is_empty() {
-                    self.report(union.span, e::expected_one_non_nullish_type());
-                    return None;
-                }
-
-                let r#type = self.collect_type(types[0], ctx)?;
-
-                if types.len() > 1 {
-                    let first = types[0];
-                    // FIXME: If each of `rest` matches `first` this should be okay.
-                    let incompatible_variants = types[1..]
-                        .iter()
-                        .map(|ts_type| {
-                            ts_related(
-                                self.locatable(ts_type.span()),
-                                "Other non-nullish type".to_string(),
-                            )
-                        })
-                        .collect();
-                    self.report_with(
-                        first.span(),
-                        e::expected_one_non_nullish_type(),
-                        Some(incompatible_variants),
-                        None,
-                    );
-                    return None;
-                }
-                if union.types.len() > 1 {
-                    return Some(gql::with_location(
-                        self.locatable(union.span),
-                        gql::nullable_type(r#type),
-                    ));
-                }
-                return Some(gql::non_null_type(self.locatable(union.span), r#type));
-            }
+            TSType::TSUnionType(union) => self.collect_union_type(union, ctx),
             TSType::TSParenthesizedType(parenthesized) => {
-                return self.collect_type(&parenthesized.type_annotation, ctx);
+                self.collect_type(&parenthesized.type_annotation, ctx)
             }
             TSType::TSStringKeyword(keyword) => {
-                return Some(gql::non_null_type(
-                    self.locatable(keyword.span),
-                    TypeNode::NamedType(gql::named_type(self.locatable(keyword.span), "String")),
-                ));
+                Some(self.non_null_named_type(keyword.span, "String"))
             }
             TSType::TSBooleanKeyword(keyword) => {
-                return Some(gql::non_null_type(
-                    self.locatable(keyword.span),
-                    TypeNode::NamedType(gql::named_type(self.locatable(keyword.span), "Boolean")),
-                ));
+                Some(self.non_null_named_type(keyword.span, "Boolean"))
             }
             TSType::TSNumberKeyword(keyword) => {
                 self.report(keyword.span, e::ambiguous_number_type());
-                return None;
+                None
             }
-            // PORT: TypeScript's literal types include `null` and template
-            // literals without substitutions.
-            TSType::TSLiteralType(_) | TSType::TSNullKeyword(_) => {
-                // Literal types are only valid in output positions. In input positions,
-                // GraphQL cannot enforce that only this specific value is passed.
-                if ctx == FieldTypeContext::Input {
-                    self.report(node.span(), e::literal_type_in_input_position());
-                    return None;
-                }
-                if let TSType::TSLiteralType(literal) = node {
-                    match &literal.literal {
-                        TSLiteral::BooleanLiteral(_) => {
-                            return Some(gql::non_null_type(
-                                self.locatable(literal.span),
-                                TypeNode::NamedType(gql::named_type(
-                                    self.locatable(literal.span),
-                                    "Boolean",
-                                )),
-                            ));
-                        }
-                        TSLiteral::StringLiteral(_) => {
-                            return Some(gql::non_null_type(
-                                self.locatable(literal.span),
-                                TypeNode::NamedType(gql::named_type(
-                                    self.locatable(literal.span),
-                                    "String",
-                                )),
-                            ));
-                        }
-                        TSLiteral::NumericLiteral(_) => {
-                            self.report(literal.span, e::ambiguous_number_literal_type());
-                            return None;
-                        }
-                        _ => {}
-                    }
-                }
+            // Literal types are only valid in output positions. In input positions,
+            // GraphQL cannot enforce that only this specific value is passed.
+            _ if ctx == FieldTypeContext::Input && is_literal_type(node) => {
+                self.report(node.span(), e::literal_type_in_input_position());
+                None
             }
-            TSType::TSTemplateLiteralType(template) if template.types.is_empty() => {
-                if ctx == FieldTypeContext::Input {
-                    self.report(template.span, e::literal_type_in_input_position());
-                    return None;
+            TSType::TSLiteralType(literal) => match &literal.literal {
+                TSLiteral::BooleanLiteral(_) => {
+                    Some(self.non_null_named_type(literal.span, "Boolean"))
                 }
-            }
+                TSLiteral::StringLiteral(_) => {
+                    Some(self.non_null_named_type(literal.span, "String"))
+                }
+                TSLiteral::NumericLiteral(_) => {
+                    self.report(literal.span, e::ambiguous_number_literal_type());
+                    None
+                }
+                _ => self.report_unknown_type(node.span()),
+            },
             TSType::TSTypeLiteral(literal) => {
                 self.report(literal.span, e::unsupported_type_literal());
-                return None;
+                None
             }
             TSType::TSTypeOperatorType(operator)
                 if operator.operator == TSTypeOperatorOperator::Readonly =>
             {
-                return self.collect_type(&operator.type_annotation, ctx);
+                self.collect_type(&operator.type_annotation, ctx)
             }
-            _ => {}
+            _ => self.report_unknown_type(node.span()),
         }
+    }
+
+    fn collect_union_type(
+        &mut self,
+        union: &'a TSUnionType<'a>,
+        ctx: FieldTypeContext,
+    ) -> Option<TypeNode> {
+        let types: Vec<&'a TSType<'a>> = union
+            .types
+            .iter()
+            .filter(|r#type| !is_nullish(r#type))
+            .collect();
+        let [first, rest @ ..] = types.as_slice() else {
+            self.report(union.span, e::expected_one_non_nullish_type());
+            return None;
+        };
+
+        let r#type = self.collect_type(first, ctx)?;
+
+        if !rest.is_empty() {
+            // FIXME: If each of `rest` matches `first` this should be okay.
+            let incompatible_variants = rest
+                .iter()
+                .map(|ts_type| {
+                    ts_related(
+                        self.locatable(ts_type.span()),
+                        "Other non-nullish type".to_string(),
+                    )
+                })
+                .collect();
+            self.report_with(
+                first.span(),
+                e::expected_one_non_nullish_type(),
+                Some(incompatible_variants),
+                None,
+            );
+            return None;
+        }
+        if union.types.len() > 1 {
+            Some(gql::with_location(
+                self.locatable(union.span),
+                gql::nullable_type(r#type),
+            ))
+        } else {
+            Some(gql::non_null_type(self.locatable(union.span), r#type))
+        }
+    }
+
+    fn non_null_named_type(&self, span: Span, name: &str) -> TypeNode {
+        gql::non_null_type(
+            self.locatable(span),
+            TypeNode::NamedType(gql::named_type(self.locatable(span), name)),
+        )
+    }
+
+    fn report_unknown_type<T>(&mut self, span: Span) -> Option<T> {
         // TODO: Better error message. This is okay if it's a type reference, but everything else is not.
-        self.report_unhandled(node.span(), "type", e::unknown_graphql_type(), None);
+        self.report_unhandled(span, "type", e::unknown_graphql_type(), None);
         None
     }
 
     /// Unwraps a Promise<T> type to T, tracking whether it was async.
-    /// Returns null if there's an error (e.g., Promise without type arguments).
+    /// Returns `None` if there's an error (e.g., Promise without type arguments).
     fn maybe_unwrap_promise_type(&mut self, r#type: &'a TSType<'a>) -> Option<UnwrappedType<'a>> {
-        let TSType::TSTypeReference(reference) = r#type else {
-            return Some(UnwrappedType {
-                r#type,
-                is_async: false,
-            });
-        };
-
-        if let TSTypeName::IdentifierReference(type_name) = &reference.type_name
+        if let TSType::TSTypeReference(reference) = r#type
+            && let TSTypeName::IdentifierReference(type_name) = &reference.type_name
             && type_name.name == "Promise"
         {
-            match &reference.type_arguments {
-                Some(type_arguments) if type_arguments.params.len() == 1 => {
-                    return Some(UnwrappedType {
-                        r#type: &type_arguments.params[0],
-                        is_async: true,
-                    });
-                }
-                _ => {
-                    self.report(reference.span, e::wrapper_missing_type_arg(&type_name.name));
-                    return None;
-                }
-            }
+            let type_argument = match reference.type_arguments.as_deref() {
+                Some(type_arguments) => match type_arguments.params.as_slice() {
+                    [type_argument] => Some(type_argument),
+                    _ => None,
+                },
+                None => None,
+            };
+            let Some(type_argument) = type_argument else {
+                self.report(reference.span, e::wrapper_missing_type_arg(&type_name.name));
+                return None;
+            };
+            return Some(UnwrappedType {
+                r#type: type_argument,
+                is_async: true,
+            });
         }
 
         Some(UnwrappedType {
@@ -3388,7 +3365,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         })
     }
 
-    /// PORT: Takes the type reference both as a type and as a reference.
+    /// Takes the type reference both as a type and as a reference.
     fn type_reference(
         &mut self,
         type_node: &'a TSType<'a>,
@@ -3398,24 +3375,12 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let (_, type_name) = self.expect_name_identifier(type_name(&node.type_name))?;
 
         // Some types are not valid as input types. Validate that here:
-        if ctx == FieldTypeContext::Input {
-            match type_name {
-                "AsyncIterable" => {
-                    self.report(
-                        node.span,
-                        "`AsyncIterable` is not a valid as an input type.".to_string(),
-                    );
-                    return None;
-                }
-                "Promise" => {
-                    self.report(
-                        node.span,
-                        "`Promise` is not a valid as an input type.".to_string(),
-                    );
-                    return None;
-                }
-                _ => {}
-            }
+        if ctx == FieldTypeContext::Input && matches!(type_name, "AsyncIterable" | "Promise") {
+            self.report(
+                node.span,
+                format!("`{type_name}` is not a valid as an input type."),
+            );
+            return None;
         }
         match type_name {
             "Array" | "Iterator" | "ReadonlyArray" | "AsyncIterable" => {
@@ -3425,9 +3390,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 };
                 let element = self.collect_type(type_arguments.params.first()?, ctx)?;
                 let mut list_type = gql::list_type(self.locatable(node.span), element);
-                if type_name == "AsyncIterable" {
-                    list_type.is_async_iterable = true;
-                }
+                list_type.is_async_iterable = type_name == "AsyncIterable";
                 Some(gql::non_null_type(
                     self.locatable(node.span),
                     TypeNode::ListType(list_type),
@@ -3435,8 +3398,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             }
             "Promise" => {
                 let unwrapped = self.maybe_unwrap_promise_type(type_node)?;
-                let element = self.collect_type(unwrapped.r#type, ctx)?;
-                Some(element)
+                self.collect_type(unwrapped.r#type, ctx)
             }
             _ => {
                 // We may not have encountered the definition of this type yet. So, we
@@ -3469,21 +3431,21 @@ impl<'f, 'a> Extractor<'f, 'a> {
     // that field.
     // https://graphql.org/learn/best-practices/#nullability
     fn kills_parent_on_exception(&self, parent_node: TsNodeId) -> Option<NameNode> {
-        let tags = self.jsdoc.get_js_doc_tags(parent_node);
-        let kills_parent_on_exceptions = tags
+        self.jsdoc
+            .get_js_doc_tags(parent_node)
             .into_iter()
-            .find(|&tag| self.jsdoc.tag(tag).tag_name.text == KILLS_PARENT_ON_EXCEPTION_TAG);
-        kills_parent_on_exceptions.map(|tag| {
-            gql::name(
-                self.locatable(self.tag_name_span(tag)),
-                KILLS_PARENT_ON_EXCEPTION_TAG,
-            )
-        })
+            .find(|&tag| self.jsdoc.tag(tag).tag_name.text == KILLS_PARENT_ON_EXCEPTION_TAG)
+            .map(|tag| {
+                gql::name(
+                    self.locatable(self.tag_name_span(tag)),
+                    KILLS_PARENT_ON_EXCEPTION_TAG,
+                )
+            })
     }
 
-    /* PORT: Helpers for reading oxc's AST as TypeScript's. */
+    /* Helpers for reading oxc's AST and the JSDoc index built from it. */
 
-    /// PORT: The oxc node a JSDoc index node was built from.
+    /// The oxc node a JSDoc index node was built from.
     fn kind(&self, node: TsNodeId) -> Option<AstKind<'a>> {
         let id = self.jsdoc.node(node).ast?;
         Some(self.file.semantic().nodes().kind(id))
@@ -3493,15 +3455,15 @@ impl<'f, 'a> Extractor<'f, 'a> {
         self.kind(node).expect("Expected an oxc node")
     }
 
-    /// PORT: The JSDoc index node of an oxc node.
+    /// The JSDoc index node of an oxc node.
     fn ts(&self, id: NodeId) -> TsNodeId {
         self.jsdoc
             .from_ast(id)
             .expect("Expected the node to be in the JSDoc index")
     }
 
-    /// PORT: The span of a node, as TypeScript's `getStart()` and `getEnd()`
-    /// give it: including any `export` and decorators.
+    /// The span of a node, including any `export` and decorators, like
+    /// TypeScript's `getStart()` and `getEnd()`.
     fn node_span(&self, node: TsNodeId) -> Span {
         let node = self.jsdoc.node(node);
         Span::new(node.start, node.end)
@@ -3511,8 +3473,8 @@ impl<'f, 'a> Extractor<'f, 'a> {
         &self.file.text[span.start as usize..span.end as usize]
     }
 
-    /// PORT: Whether the declaration is exported, and if so, whether it's the
-    /// default export. TypeScript reads its modifiers.
+    /// Whether the declaration is exported, and if so, whether it's the
+    /// default export.
     fn export_kind(&self, node: TsNodeId) -> Option<bool> {
         let id = self.jsdoc.node(node).ast?;
         match self.file.semantic().nodes().parent_kind(id) {
@@ -3522,7 +3484,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         }
     }
 
-    /// PORT: `ts.isSourceFile(node.parent)`.
+    /// Whether the node is a statement of the source file.
     fn is_top_level(&self, node: TsNodeId) -> bool {
         self.jsdoc
             .node(node)
@@ -3530,8 +3492,8 @@ impl<'f, 'a> Extractor<'f, 'a> {
             .is_some_and(|parent| self.jsdoc.node(parent).kind == SyntaxKind::SourceFile)
     }
 
-    /// PORT: A `VariableStatement`'s `declarationList`, which oxc doesn't
-    /// have.
+    /// The declaration list of a variable statement in the JSDoc index, which
+    /// oxc doesn't have.
     fn declaration_list(&self, statement: TsNodeId) -> TsNodeId {
         self.jsdoc
             .node(statement)
@@ -3542,24 +3504,24 @@ impl<'f, 'a> Extractor<'f, 'a> {
             .expect("Expected a variable statement to have a declaration list")
     }
 
-    /// PORT: The span of the `?` after `after`.
+    /// The span of the `?` after `after`.
     fn question_token(&self, after: u32) -> Span {
         self.file
             .token_after(after)
             .map_or(Span::empty(after), Token::span)
     }
 
-    /// PORT: The span of a modifier keyword between `from` and `to`, which
-    /// oxc records as a flag.
+    /// The span of a modifier keyword between `from` and `to`, since oxc
+    /// records modifiers as flags.
     fn modifier_span(&self, from: u32, to: u32, modifier: Kind) -> Span {
         self.file
             .find_token(from, to, modifier)
             .unwrap_or(Span::new(from, to))
     }
 
-    /// PORT: The span of an element of an array literal. An elision is
-    /// TypeScript's `OmittedExpression`, which is empty, so its start is its
-    /// full start: the end of the token before it.
+    /// The span of an element of an array literal. Like TypeScript's
+    /// `OmittedExpression`, an elision is empty, at the end of the token
+    /// before it.
     fn array_element_span(&self, element: &ArrayExpressionElement<'a>) -> Span {
         match element {
             ArrayExpressionElement::Elision(elision) => {
@@ -3600,13 +3562,12 @@ impl<'f, 'a> Extractor<'f, 'a> {
         }
     }
 
-    /// PORT: `member.name`, for the members which have one.
+    /// The name of a member, if it has one.
     fn member_name(&self, member: Member<'a>) -> Option<Name<'a>> {
         match member {
-            Member::Class(ClassElement::MethodDefinition(method)) => {
-                if method.kind == MethodDefinitionKind::Constructor {
-                    return None;
-                }
+            Member::Class(ClassElement::MethodDefinition(method))
+                if method.kind != MethodDefinitionKind::Constructor =>
+            {
                 Some(key_name(self.file, &method.key, method.computed))
             }
             Member::Class(ClassElement::PropertyDefinition(property)) => {
@@ -3634,14 +3595,15 @@ enum FieldTypeContext {
     Output,
 }
 
-/// PORT: `{ type, isAsync }`.
+/// A type, unwrapped from any `Promise`.
 struct UnwrappedType<'a> {
     r#type: &'a TSType<'a>,
+    /// Whether it was a `Promise`.
     is_async: bool,
 }
 
-/// PORT: A TypeScript `PropertyName`, `BindingName` or `EntityName`: an
-/// identifier, or another kind of name, which is reported.
+/// A name, like TypeScript's `PropertyName`, `BindingName` or `EntityName`:
+/// an identifier, or another kind of name, which is reported.
 #[derive(Clone, Copy)]
 enum Name<'a> {
     Identifier(Span, &'a str),
@@ -3656,14 +3618,14 @@ impl Name<'_> {
     }
 }
 
-/// PORT: A `ts.ClassElement` or `ts.TypeElement`.
+/// A member of a class, or of an interface or type literal.
 #[derive(Clone, Copy)]
 enum Member<'a> {
     Class(&'a ClassElement<'a>),
     Type(&'a TSSignature<'a>),
 }
 
-/// PORT: The declaration whose heritage clauses are read.
+/// The declaration whose heritage clauses are read.
 #[derive(Clone, Copy)]
 enum Heritage<'a> {
     Class(&'a Class<'a>),
@@ -3671,8 +3633,7 @@ enum Heritage<'a> {
     TypeAlias,
 }
 
-/// PORT: A `ts.ParameterDeclaration`. TypeScript's parameters include `this`
-/// and rest parameters.
+/// A parameter. Like TypeScript's, they include `this` and rest parameters.
 #[derive(Clone, Copy)]
 enum Param<'a> {
     This(&'a TSThisParameter<'a>),
@@ -3735,7 +3696,7 @@ impl<'a> Param<'a> {
         }
     }
 
-    /// PORT: Where the modifiers start: after any decorators.
+    /// Where the modifiers start: after any decorators.
     fn modifiers_start(self) -> u32 {
         self.decorators()
             .last()
@@ -3743,12 +3704,11 @@ impl<'a> Param<'a> {
     }
 }
 
-/// PORT: A `ts.MethodDeclaration`, `ts.MethodSignature` or
-/// `ts.GetAccessorDeclaration`.
+/// A method, method signature or get accessor.
 struct MethodLike<'a> {
     span: Span,
     id: NodeId,
-    /// PORT: Where the modifiers start: after any decorators.
+    /// Where the modifiers start: after any decorators.
     modifiers_start: u32,
     accessibility: Option<TSAccessibility>,
     r#static: bool,
@@ -3760,22 +3720,22 @@ struct MethodLike<'a> {
     return_type: Option<&'a TSTypeAnnotation<'a>>,
 }
 
-/// PORT: A `ts.FunctionDeclaration`, `ts.MethodDeclaration` or
-/// `ts.ArrowFunction`.
+/// A function declaration, method or arrow function.
 struct FunctionLike<'a> {
     id: TsNodeId,
     params: Vec<Param<'a>>,
     return_type: Option<&'a TSTypeAnnotation<'a>>,
 }
 
-/// PORT: `{ resolverParams, args, typeName }`.
+/// A function field's resolver parameters, GraphQL arguments, and the type
+/// it's defined on.
 struct AbstractFieldArgs {
     resolver_params: Vec<ResolverArgument>,
     args: Option<Vec<InputValueDefinitionNode>>,
     type_name: NameNode,
 }
 
-/// PORT: A `ts.PropertyDeclaration` or `ts.PropertySignature`.
+/// A property declaration, `accessor` or property signature.
 struct PropertyLike<'a> {
     span: Span,
     id: NodeId,
@@ -3832,7 +3792,7 @@ fn method_like<'a>(node: Member<'a>) -> Option<MethodLike<'a>> {
     }
 }
 
-/// PORT: A function's parameters, as TypeScript lists them.
+/// A function's parameters, including `this` and rest parameters.
 fn params<'a>(
     this_param: Option<&'a TSThisParameter<'a>>,
     params: &'a FormalParameters<'a>,
@@ -3863,8 +3823,8 @@ fn type_name<'a>(name: &TSTypeName<'a>) -> Name<'a> {
     }
 }
 
-/// PORT: A property's name. A computed name is TypeScript's
-/// `ComputedPropertyName`, which includes the brackets.
+/// A property's name. Like TypeScript's `ComputedPropertyName`, a computed
+/// name includes its brackets.
 fn key_name<'a>(file: &ParsedFile, key: &PropertyKey<'a>, computed: bool) -> Name<'a> {
     if computed {
         return Name::Other(bracket_span(file, key.span()));
@@ -3875,7 +3835,7 @@ fn key_name<'a>(file: &ParsedFile, key: &PropertyKey<'a>, computed: bool) -> Nam
     }
 }
 
-/// PORT: The span of a computed name's brackets, around `expression`.
+/// The span of a computed name's brackets, around `expression`.
 fn bracket_span(file: &ParsedFile, expression: Span) -> Span {
     let start = file
         .token_before(expression.start)
@@ -3909,6 +3869,16 @@ fn is_nullish(node: &TSType) -> bool {
     )
 }
 
+/// Like TypeScript's literal types, which include `null` and template
+/// literals without substitutions.
+fn is_literal_type(node: &TSType) -> bool {
+    match node {
+        TSType::TSLiteralType(_) | TSType::TSNullKeyword(_) => true,
+        TSType::TSTemplateLiteralType(template) => template.types.is_empty(),
+        _ => false,
+    }
+}
+
 fn string_literal_type<'n, 'a>(node: &'n TSType<'a>) -> Option<&'n StringLiteral<'a>> {
     match node {
         TSType::TSLiteralType(literal) => match &literal.literal {
@@ -3926,7 +3896,7 @@ fn member_type_node_id(node: &TSType) -> NodeId {
     }
 }
 
-/// PORT: `X` of `typeof X`, if `X` is an identifier.
+/// `X` of `typeof X`, if `X` is an identifier.
 fn type_query_identifier<'n>(node: &'n TSType) -> Option<&'n str> {
     let TSType::TSTypeQuery(query) = node else {
         return None;
@@ -3938,7 +3908,7 @@ fn type_query_identifier<'n>(node: &'n TSType) -> Option<&'n str> {
 }
 
 /// Given a variable declaration, extract the inner expression from an
-/// `as const` or `as const satisfies T` assertion. Returns null if the
+/// `as const` or `as const satisfies T` assertion. Returns `None` if the
 /// declaration doesn't use `as const`.
 fn extract_as_const_expression<'a>(
     declaration: &'a VariableDeclarator<'a>,
@@ -4012,8 +3982,9 @@ fn graphql_name_validation_message(name: &str) -> Option<String> {
     assert_name(name).err().map(|error| error.message)
 }
 
-/// PORT: How a JSDoc tag's comment is interpolated into a JavaScript template
-/// string. A list of comment parts becomes their objects' strings, joined.
+/// A JSDoc comment, as Grats' TypeScript implementation interpolated it into a
+/// JavaScript template string. A list of comment parts becomes their objects'
+/// strings, joined.
 fn template_string(comment: Option<&JSDocComment>) -> String {
     match comment {
         Some(JSDocComment::Text(text)) => text.clone(),
