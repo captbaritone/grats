@@ -96,9 +96,9 @@ impl Host for NativeHost {
     }
 }
 
-/// The root which Grats' module paths are relative to (see
-/// `grats::grats_root`): the root of the `grats` package, since this
-/// executable is `bin/<platform>/grats` (see `bin/binaryPath.js`).
+/// The root which Grats' module paths are relative to: the root of the
+/// `grats` package, since this executable is `bin/<platform>/grats` (see
+/// `bin/binaryPath.js`).
 pub fn grats_root() -> String {
     let exe = std::env::current_exe().expect("Expected the executable's path to be known");
     let exe = fs::canonicalize(&exe).unwrap_or(exe);

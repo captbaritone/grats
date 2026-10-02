@@ -2,20 +2,20 @@
 //! them (`addJSDocComment`), and what TypeScript's rules for finding a
 //! node's JSDoc need to know about the node: its kind, location and parent.
 //!
-//! PORT: No TypeScript counterpart. The nodes are built from oxc's, with the
-//! differences between the two ASTs smoothed over (see `JSDocIndex::new`).
+//! The nodes are built from oxc's, with the differences between the two ASTs
+//! smoothed over (see `JSDocIndex::new`).
 //! Their kinds are TypeScript's, only so that its rules apply as written.
 //! Offsets are UTF-8 byte offsets.
 
 use oxc_ast::AstKind;
 use oxc_ast::ast::{
     BindingPattern, ClassType, ExportDefaultDeclarationKind, Expression, FunctionType,
-    MethodDefinitionKind, PropertyKind, TSMethodSignatureKind,
+    MethodDefinitionKind, PropertyKind, TSMethodSignatureKind, VariableDeclaration,
 };
 use oxc_semantic::NodeId;
 use oxc_span::{GetSpan, Span};
 
-use super::parser::{JSDoc, parse_jsdoc_comment};
+use super::parser::{JSDoc, JSDocTag, is_jsdoc_like_text, parse_jsdoc_comment};
 use crate::files::ParsedFile;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -34,8 +34,8 @@ pub struct TagId {
     pub index: u32,
 }
 
-/// PORT: TypeScript's `SyntaxKind`, with only the kinds of nodes. Nodes whose
-/// kind Grats never checks are `Other`.
+/// TypeScript's `SyntaxKind`, with only the kinds of nodes. Nodes whose kind
+/// Grats never checks are `Other`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SyntaxKind {
     EndOfFileToken,
@@ -120,7 +120,7 @@ pub struct TsNode {
     pub kind: SyntaxKind,
     /// The full start, including leading trivia.
     pub pos: u32,
-    /// PORT: `getStart()`.
+    /// The start of the first token, like TypeScript's `getStart()`.
     pub start: u32,
     pub end: u32,
     pub parent: Option<TsNodeId>,
@@ -128,7 +128,7 @@ pub struct TsNode {
     /// The oxc node this node was built from, if any.
     pub ast: Option<NodeId>,
     pub js_doc: Vec<JSDocId>,
-    /// PORT: The `initializer` of variable-like nodes.
+    /// The `initializer` of variable-like nodes.
     pub initializer: Option<TsNodeId>,
     /// Whether it's an assignment `BinaryExpression`.
     pub is_assignment: bool,
@@ -159,13 +159,13 @@ impl<T: Copy> NodeMap<T> {
 }
 
 /// How an oxc node appears in TypeScript's AST.
-enum Mapping {
+enum Mapping<'a> {
     /// TypeScript has no such node. Its children are the children of its
     /// parent.
     Skip,
     Node(SyntaxKind),
     /// A `VariableStatement` and its `VariableDeclarationList`.
-    VariableStatement,
+    VariableStatement(&'a VariableDeclaration<'a>),
 }
 
 impl JSDocIndex {
@@ -190,37 +190,41 @@ impl JSDocIndex {
             let parent_kind = oxc_parent.map(|parent| nodes.kind(parent));
             let parent = oxc_parent.and_then(|parent| child_parents.get(parent));
             let span = kind.span();
-            // PORT: oxc's spans of exported declarations start after the
-            // `export`, and those of classes after decorators which come
-            // before the `export`.
+            // Unlike TypeScript's, oxc's spans of exported declarations start
+            // after the `export`, and those of classes after decorators which
+            // come before the `export`.
             let mut start = span.start;
-            if let Some(AstKind::ExportDeclaration(_) | AstKind::ExportDefaultDeclaration(_)) =
-                parent_kind
+            if let Some(
+                export @ (AstKind::ExportDeclaration(_) | AstKind::ExportDefaultDeclaration(_)),
+            ) = parent_kind
             {
-                start = start.min(parent_kind.unwrap().span().start);
+                start = start.min(export.span().start);
             }
             if let AstKind::Class(class) = kind
                 && let Some(decorator) = class.decorators.first()
             {
                 start = start.min(decorator.span.start);
             }
-            // PORT: oxc has no node for a computed property name, only a
-            // flag on its owner. The span is the expression's, without the
-            // brackets.
+            // Unlike TypeScript, oxc has no node for a computed property
+            // name, only a flag on its owner. The span is the expression's,
+            // without the brackets.
             let parent = match parent_kind {
-                Some(owner) if is_computed_key(owner, span) => {
-                    let computed = file.push(
-                        SyntaxKind::ComputedPropertyName,
-                        span.start,
-                        span.end,
-                        parent,
-                        None,
-                    );
-                    Some(computed)
-                }
+                Some(owner) if is_computed_key(owner, span) => Some(file.push(
+                    SyntaxKind::ComputedPropertyName,
+                    span.start,
+                    span.end,
+                    parent,
+                    None,
+                )),
                 _ => parent,
             };
-            match Self::mapping(kind, parent_kind) {
+            let declarations_end = |declaration: &VariableDeclaration| {
+                declaration
+                    .declarations
+                    .last()
+                    .map_or(span.end, |declarator| declarator.span.end)
+            };
+            match mapping(kind, parent_kind) {
                 Mapping::Skip => {
                     if let Some(parent) = parent {
                         child_parents.insert(id, parent);
@@ -228,28 +232,19 @@ impl JSDocIndex {
                     skipped.insert(id, TsNodeId(file.nodes.len() as u32));
                 }
                 Mapping::Node(ts_kind) => {
-                    // PORT: TypeScript has a `VariableDeclarationList` in
-                    // for-heads, but no `VariableStatement`.
-                    let (ts_kind, end) = match kind {
-                        AstKind::VariableDeclaration(declaration) => (
-                            ts_kind,
-                            declaration
-                                .declarations
-                                .last()
-                                .map_or(span.end, |declarator| declarator.span.end),
-                        ),
-                        _ => (ts_kind, span.end),
+                    // TypeScript has a `VariableDeclarationList` in for-heads,
+                    // but no `VariableStatement`.
+                    let end = match kind {
+                        AstKind::VariableDeclaration(declaration) => declarations_end(declaration),
+                        _ => span.end,
                     };
                     let ts_id = file.push(ts_kind, start, end, parent, Some(id));
-                    file.nodes[ts_id.0 as usize].is_assignment =
+                    file.node_mut(ts_id).is_assignment =
                         matches!(kind, AstKind::AssignmentExpression(_));
                     file.by_ast.insert(id, ts_id);
                     child_parents.insert(id, ts_id);
                 }
-                Mapping::VariableStatement => {
-                    let AstKind::VariableDeclaration(declaration) = kind else {
-                        unreachable!()
-                    };
+                Mapping::VariableStatement(declaration) => {
                     let statement = file.push(
                         SyntaxKind::VariableStatement,
                         start,
@@ -266,14 +261,10 @@ impl JSDocIndex {
                     } else {
                         span.start
                     };
-                    let list_end = declaration
-                        .declarations
-                        .last()
-                        .map_or(span.end, |declarator| declarator.span.end);
                     let list = file.push(
                         SyntaxKind::VariableDeclarationList,
                         list_start,
-                        list_end,
+                        declarations_end(declaration),
                         Some(statement),
                         None,
                     );
@@ -308,7 +299,7 @@ impl JSDocIndex {
                 AstKind::PropertyDefinition(property) => property.value.as_ref(),
                 AstKind::AccessorProperty(property) => property.value.as_ref(),
                 AstKind::ObjectProperty(property)
-                    if file.nodes[ts_id.0 as usize].kind == SyntaxKind::PropertyAssignment =>
+                    if file.node(ts_id).kind == SyntaxKind::PropertyAssignment =>
                 {
                     Some(&property.value)
                 }
@@ -321,20 +312,20 @@ impl JSDocIndex {
                 _ => None,
             };
             if let Some(initializer) = initializer {
-                file.nodes[ts_id.0 as usize].initializer = resolve(&file, initializer.node_id());
+                file.node_mut(ts_id).initializer = resolve(&file, initializer.node_id());
             }
         }
 
         // JSDoc comments.
-        for index in 0..file.nodes.len() {
-            if !file.has_js_doc_kind(TsNodeId(index as u32), text) {
+        for id in file.nodes() {
+            if !file.has_js_doc_kind(id, text) {
                 continue;
             }
-            for range in get_js_doc_comment_ranges(&file.nodes[index], text, semantic.comments()) {
-                if let Some(js_doc) = parse_jsdoc_comment(text, range.0, range.1) {
-                    let id = JSDocId(file.js_docs.len() as u32);
+            for range in get_js_doc_comment_ranges(file.node(id), text, semantic.comments()) {
+                if let Some(js_doc) = parse_jsdoc_comment(text, range.start, range.end) {
+                    let js_doc_id = JSDocId(file.js_docs.len() as u32);
                     file.js_docs.push(js_doc);
-                    file.nodes[index].js_doc.push(id);
+                    file.node_mut(id).js_doc.push(js_doc_id);
                 }
             }
         }
@@ -363,166 +354,9 @@ impl JSDocIndex {
             is_assignment: false,
         });
         if let Some(parent) = parent {
-            self.nodes[parent.0 as usize].children.push(id);
+            self.node_mut(parent).children.push(id);
         }
         id
-    }
-
-    fn mapping(kind: AstKind, parent_kind: Option<AstKind>) -> Mapping {
-        use SyntaxKind as K;
-        Mapping::Node(match kind {
-            AstKind::Program(_) => K::SourceFile,
-            AstKind::IdentifierName(_)
-            | AstKind::IdentifierReference(_)
-            | AstKind::BindingIdentifier(_)
-            | AstKind::LabelIdentifier(_) => K::Identifier,
-            AstKind::PrivateIdentifier(_) => K::PrivateIdentifier,
-            AstKind::ObjectExpression(_) => K::ObjectLiteralExpression,
-            AstKind::ObjectProperty(property) => match property.kind {
-                PropertyKind::Get => K::GetAccessor,
-                PropertyKind::Set => K::SetAccessor,
-                PropertyKind::Init if property.method => K::MethodDeclaration,
-                PropertyKind::Init if property.shorthand => K::ShorthandPropertyAssignment,
-                PropertyKind::Init => K::PropertyAssignment,
-            },
-            AstKind::StaticMemberExpression(_) | AstKind::PrivateFieldExpression(_) => {
-                K::PropertyAccessExpression
-            }
-            AstKind::ComputedMemberExpression(_) => K::ElementAccessExpression,
-            AstKind::SpreadElement(_) => match parent_kind {
-                Some(AstKind::ObjectExpression(_)) => K::SpreadAssignment,
-                _ => K::SpreadElement,
-            },
-            AstKind::BinaryExpression(_)
-            | AstKind::LogicalExpression(_)
-            | AstKind::PrivateInExpression(_)
-            | AstKind::AssignmentExpression(_) => K::BinaryExpression,
-            AstKind::ParenthesizedExpression(_) => K::ParenthesizedExpression,
-            AstKind::ChainExpression(_) => return Mapping::Skip,
-            AstKind::Directive(_) => K::ExpressionStatement,
-            AstKind::Hashbang(_) => return Mapping::Skip,
-            AstKind::BlockStatement(_) | AstKind::FunctionBody(_) => K::Block,
-            AstKind::VariableDeclaration(_) => match parent_kind {
-                Some(
-                    AstKind::ForStatement(_)
-                    | AstKind::ForInStatement(_)
-                    | AstKind::ForOfStatement(_),
-                ) => K::VariableDeclarationList,
-                _ => return Mapping::VariableStatement,
-            },
-            AstKind::VariableDeclarator(_) | AstKind::CatchParameter(_) => K::VariableDeclaration,
-            AstKind::EmptyStatement(_) => K::EmptyStatement,
-            AstKind::ExpressionStatement(_) => K::ExpressionStatement,
-            AstKind::IfStatement(_) => K::IfStatement,
-            AstKind::DoWhileStatement(_) => K::DoStatement,
-            AstKind::WhileStatement(_) => K::WhileStatement,
-            AstKind::ForStatement(_) => K::ForStatement,
-            AstKind::ForInStatement(_) => K::ForInStatement,
-            AstKind::ForOfStatement(_) => K::ForOfStatement,
-            AstKind::ContinueStatement(_) => K::ContinueStatement,
-            AstKind::BreakStatement(_) => K::BreakStatement,
-            AstKind::ReturnStatement(_) => K::ReturnStatement,
-            AstKind::WithStatement(_) => K::WithStatement,
-            AstKind::SwitchStatement(_) => K::SwitchStatement,
-            AstKind::SwitchCase(case) => {
-                if case.test.is_some() {
-                    K::CaseClause
-                } else {
-                    K::DefaultClause
-                }
-            }
-            AstKind::LabeledStatement(_) => K::LabeledStatement,
-            AstKind::ThrowStatement(_) => K::ThrowStatement,
-            AstKind::TryStatement(_) => K::TryStatement,
-            AstKind::CatchClause(_) => K::CatchClause,
-            AstKind::DebuggerStatement(_) => K::DebuggerStatement,
-            AstKind::BindingProperty(_) => K::BindingElement,
-            AstKind::Function(function) => match parent_kind {
-                // The function of a method is the method itself.
-                Some(AstKind::MethodDefinition(_)) => return Mapping::Skip,
-                Some(AstKind::ObjectProperty(property))
-                    if property.method || property.kind != PropertyKind::Init =>
-                {
-                    return Mapping::Skip;
-                }
-                _ => match function.r#type {
-                    FunctionType::FunctionDeclaration | FunctionType::TSDeclareFunction => {
-                        K::FunctionDeclaration
-                    }
-                    FunctionType::FunctionExpression
-                    | FunctionType::TSEmptyBodyFunctionExpression => K::FunctionExpression,
-                },
-            },
-            AstKind::FormalParameters(_) => return Mapping::Skip,
-            AstKind::FormalParameter(_)
-            | AstKind::FormalParameterRest(_)
-            | AstKind::TSThisParameter(_)
-            | AstKind::TSIndexSignatureName(_) => K::Parameter,
-            AstKind::ArrowFunctionExpression(_) => K::ArrowFunction,
-            AstKind::Class(class) => match class.r#type {
-                ClassType::ClassDeclaration => K::ClassDeclaration,
-                ClassType::ClassExpression => K::ClassExpression,
-            },
-            AstKind::ClassBody(_) => return Mapping::Skip,
-            AstKind::MethodDefinition(method) => match method.kind {
-                MethodDefinitionKind::Constructor => K::Constructor,
-                MethodDefinitionKind::Method => K::MethodDeclaration,
-                MethodDefinitionKind::Get => K::GetAccessor,
-                MethodDefinitionKind::Set => K::SetAccessor,
-            },
-            AstKind::PropertyDefinition(_) | AstKind::AccessorProperty(_) => K::PropertyDeclaration,
-            AstKind::StaticBlock(_) => K::ClassStaticBlockDeclaration,
-            AstKind::ImportDeclaration(_) => K::ImportDeclaration,
-            // PORT: oxc's `ExportDeclaration` is an exported declaration,
-            // which TypeScript represents as a declaration with an `export`
-            // modifier.
-            AstKind::ExportDeclaration(_) => return Mapping::Skip,
-            AstKind::ExportNamedDeclaration(_)
-            | AstKind::ExportFromDeclaration(_)
-            | AstKind::ExportAllDeclaration(_) => K::ExportDeclaration,
-            AstKind::ExportDefaultDeclaration(export) => match export.declaration {
-                ExportDefaultDeclarationKind::FunctionDeclaration(_)
-                | ExportDefaultDeclarationKind::ClassDeclaration(_)
-                | ExportDefaultDeclarationKind::TSInterfaceDeclaration(_) => {
-                    return Mapping::Skip;
-                }
-                _ => K::ExportAssignment,
-            },
-            AstKind::ExportSpecifier(_) => K::ExportSpecifier,
-            AstKind::TSEnumDeclaration(_) => K::EnumDeclaration,
-            AstKind::TSEnumBody(_) => return Mapping::Skip,
-            AstKind::TSEnumMember(_) => K::EnumMember,
-            AstKind::TSTypeAnnotation(_) => return Mapping::Skip,
-            AstKind::TSNamedTupleMember(_) => K::NamedTupleMember,
-            AstKind::TSTypeParameterInstantiation(_) | AstKind::TSTypeParameterDeclaration(_) => {
-                return Mapping::Skip;
-            }
-            AstKind::TSTypeParameter(_) => K::TypeParameter,
-            AstKind::TSTypeAliasDeclaration(_) => K::TypeAliasDeclaration,
-            AstKind::TSInterfaceDeclaration(_) => K::InterfaceDeclaration,
-            AstKind::TSInterfaceBody(_) => return Mapping::Skip,
-            AstKind::TSPropertySignature(_) => K::PropertySignature,
-            AstKind::TSIndexSignature(_) => K::IndexSignature,
-            AstKind::TSCallSignatureDeclaration(_) => K::CallSignature,
-            AstKind::TSMethodSignature(method) => match method.kind {
-                TSMethodSignatureKind::Method => K::MethodSignature,
-                TSMethodSignatureKind::Get => K::GetAccessor,
-                TSMethodSignatureKind::Set => K::SetAccessor,
-            },
-            AstKind::TSConstructSignatureDeclaration(_) => K::ConstructSignature,
-            AstKind::TSExternalModuleDeclaration(_)
-            | AstKind::TSNamespaceDeclaration(_)
-            | AstKind::TSGlobalDeclaration(_) => K::ModuleDeclaration,
-            AstKind::TSModuleBlock(_) => K::ModuleBlock,
-            AstKind::TSTypeLiteral(_) => K::TypeLiteral,
-            AstKind::TSFunctionType(_) => K::FunctionType,
-            AstKind::TSConstructorType(_) => K::ConstructorType,
-            AstKind::TSImportEqualsDeclaration(_) => K::ImportEqualsDeclaration,
-            AstKind::Decorator(_) => K::Decorator,
-            AstKind::TSExportAssignment(_) => K::ExportAssignment,
-            AstKind::TSNamespaceExportDeclaration(_) => K::NamespaceExportDeclaration,
-            _ => K::Other,
-        })
     }
 
     /// Whether TypeScript's parser attaches JSDoc comments to the node
@@ -607,6 +441,10 @@ impl JSDocIndex {
         &self.nodes[id.0 as usize]
     }
 
+    fn node_mut(&mut self, id: TsNodeId) -> &mut TsNode {
+        &mut self.nodes[id.0 as usize]
+    }
+
     /// The nodes in the order `forEachChild` visits them, depth first.
     pub fn nodes(&self) -> impl Iterator<Item = TsNodeId> + use<> {
         (0..self.nodes.len() as u32).map(TsNodeId)
@@ -622,7 +460,7 @@ impl JSDocIndex {
         &self.js_docs[id.0 as usize]
     }
 
-    pub fn tag(&self, id: TagId) -> &super::parser::JSDocTag {
+    pub fn tag(&self, id: TagId) -> &JSDocTag {
         &self.js_doc(id.js_doc).tags[id.index as usize]
     }
 
@@ -632,14 +470,172 @@ impl JSDocIndex {
     }
 }
 
-/// PORT: `getJSDocCommentRanges`, returning each range's start and end.
+/// How an oxc node of `kind`, whose parent is of `parent_kind`, appears in
+/// TypeScript's AST.
+fn mapping<'a>(kind: AstKind<'a>, parent_kind: Option<AstKind>) -> Mapping<'a> {
+    use SyntaxKind as K;
+    Mapping::Node(match kind {
+        AstKind::Program(_) => K::SourceFile,
+        AstKind::IdentifierName(_)
+        | AstKind::IdentifierReference(_)
+        | AstKind::BindingIdentifier(_)
+        | AstKind::LabelIdentifier(_) => K::Identifier,
+        AstKind::PrivateIdentifier(_) => K::PrivateIdentifier,
+        AstKind::ObjectExpression(_) => K::ObjectLiteralExpression,
+        AstKind::ObjectProperty(property) => match property.kind {
+            PropertyKind::Get => K::GetAccessor,
+            PropertyKind::Set => K::SetAccessor,
+            PropertyKind::Init if property.method => K::MethodDeclaration,
+            PropertyKind::Init if property.shorthand => K::ShorthandPropertyAssignment,
+            PropertyKind::Init => K::PropertyAssignment,
+        },
+        AstKind::StaticMemberExpression(_) | AstKind::PrivateFieldExpression(_) => {
+            K::PropertyAccessExpression
+        }
+        AstKind::ComputedMemberExpression(_) => K::ElementAccessExpression,
+        AstKind::SpreadElement(_) => match parent_kind {
+            Some(AstKind::ObjectExpression(_)) => K::SpreadAssignment,
+            _ => K::SpreadElement,
+        },
+        AstKind::BinaryExpression(_)
+        | AstKind::LogicalExpression(_)
+        | AstKind::PrivateInExpression(_)
+        | AstKind::AssignmentExpression(_) => K::BinaryExpression,
+        AstKind::ParenthesizedExpression(_) => K::ParenthesizedExpression,
+        AstKind::ChainExpression(_) => return Mapping::Skip,
+        AstKind::Directive(_) => K::ExpressionStatement,
+        AstKind::Hashbang(_) => return Mapping::Skip,
+        AstKind::BlockStatement(_) | AstKind::FunctionBody(_) => K::Block,
+        AstKind::VariableDeclaration(declaration) => match parent_kind {
+            Some(
+                AstKind::ForStatement(_) | AstKind::ForInStatement(_) | AstKind::ForOfStatement(_),
+            ) => K::VariableDeclarationList,
+            _ => return Mapping::VariableStatement(declaration),
+        },
+        AstKind::VariableDeclarator(_) | AstKind::CatchParameter(_) => K::VariableDeclaration,
+        AstKind::EmptyStatement(_) => K::EmptyStatement,
+        AstKind::ExpressionStatement(_) => K::ExpressionStatement,
+        AstKind::IfStatement(_) => K::IfStatement,
+        AstKind::DoWhileStatement(_) => K::DoStatement,
+        AstKind::WhileStatement(_) => K::WhileStatement,
+        AstKind::ForStatement(_) => K::ForStatement,
+        AstKind::ForInStatement(_) => K::ForInStatement,
+        AstKind::ForOfStatement(_) => K::ForOfStatement,
+        AstKind::ContinueStatement(_) => K::ContinueStatement,
+        AstKind::BreakStatement(_) => K::BreakStatement,
+        AstKind::ReturnStatement(_) => K::ReturnStatement,
+        AstKind::WithStatement(_) => K::WithStatement,
+        AstKind::SwitchStatement(_) => K::SwitchStatement,
+        AstKind::SwitchCase(case) => {
+            if case.test.is_some() {
+                K::CaseClause
+            } else {
+                K::DefaultClause
+            }
+        }
+        AstKind::LabeledStatement(_) => K::LabeledStatement,
+        AstKind::ThrowStatement(_) => K::ThrowStatement,
+        AstKind::TryStatement(_) => K::TryStatement,
+        AstKind::CatchClause(_) => K::CatchClause,
+        AstKind::DebuggerStatement(_) => K::DebuggerStatement,
+        AstKind::BindingProperty(_) => K::BindingElement,
+        AstKind::Function(function) => match parent_kind {
+            // The function of a method is the method itself.
+            Some(AstKind::MethodDefinition(_)) => return Mapping::Skip,
+            Some(AstKind::ObjectProperty(property))
+                if property.method || property.kind != PropertyKind::Init =>
+            {
+                return Mapping::Skip;
+            }
+            _ => match function.r#type {
+                FunctionType::FunctionDeclaration | FunctionType::TSDeclareFunction => {
+                    K::FunctionDeclaration
+                }
+                FunctionType::FunctionExpression | FunctionType::TSEmptyBodyFunctionExpression => {
+                    K::FunctionExpression
+                }
+            },
+        },
+        AstKind::FormalParameters(_) => return Mapping::Skip,
+        AstKind::FormalParameter(_)
+        | AstKind::FormalParameterRest(_)
+        | AstKind::TSThisParameter(_)
+        | AstKind::TSIndexSignatureName(_) => K::Parameter,
+        AstKind::ArrowFunctionExpression(_) => K::ArrowFunction,
+        AstKind::Class(class) => match class.r#type {
+            ClassType::ClassDeclaration => K::ClassDeclaration,
+            ClassType::ClassExpression => K::ClassExpression,
+        },
+        AstKind::ClassBody(_) => return Mapping::Skip,
+        AstKind::MethodDefinition(method) => match method.kind {
+            MethodDefinitionKind::Constructor => K::Constructor,
+            MethodDefinitionKind::Method => K::MethodDeclaration,
+            MethodDefinitionKind::Get => K::GetAccessor,
+            MethodDefinitionKind::Set => K::SetAccessor,
+        },
+        AstKind::PropertyDefinition(_) | AstKind::AccessorProperty(_) => K::PropertyDeclaration,
+        AstKind::StaticBlock(_) => K::ClassStaticBlockDeclaration,
+        AstKind::ImportDeclaration(_) => K::ImportDeclaration,
+        // oxc's `ExportDeclaration` is an exported declaration, which
+        // TypeScript represents as a declaration with an `export` modifier.
+        AstKind::ExportDeclaration(_) => return Mapping::Skip,
+        AstKind::ExportNamedDeclaration(_)
+        | AstKind::ExportFromDeclaration(_)
+        | AstKind::ExportAllDeclaration(_) => K::ExportDeclaration,
+        AstKind::ExportDefaultDeclaration(export) => match export.declaration {
+            ExportDefaultDeclarationKind::FunctionDeclaration(_)
+            | ExportDefaultDeclarationKind::ClassDeclaration(_)
+            | ExportDefaultDeclarationKind::TSInterfaceDeclaration(_) => {
+                return Mapping::Skip;
+            }
+            _ => K::ExportAssignment,
+        },
+        AstKind::ExportSpecifier(_) => K::ExportSpecifier,
+        AstKind::TSEnumDeclaration(_) => K::EnumDeclaration,
+        AstKind::TSEnumBody(_) => return Mapping::Skip,
+        AstKind::TSEnumMember(_) => K::EnumMember,
+        AstKind::TSTypeAnnotation(_) => return Mapping::Skip,
+        AstKind::TSNamedTupleMember(_) => K::NamedTupleMember,
+        AstKind::TSTypeParameterInstantiation(_) | AstKind::TSTypeParameterDeclaration(_) => {
+            return Mapping::Skip;
+        }
+        AstKind::TSTypeParameter(_) => K::TypeParameter,
+        AstKind::TSTypeAliasDeclaration(_) => K::TypeAliasDeclaration,
+        AstKind::TSInterfaceDeclaration(_) => K::InterfaceDeclaration,
+        AstKind::TSInterfaceBody(_) => return Mapping::Skip,
+        AstKind::TSPropertySignature(_) => K::PropertySignature,
+        AstKind::TSIndexSignature(_) => K::IndexSignature,
+        AstKind::TSCallSignatureDeclaration(_) => K::CallSignature,
+        AstKind::TSMethodSignature(method) => match method.kind {
+            TSMethodSignatureKind::Method => K::MethodSignature,
+            TSMethodSignatureKind::Get => K::GetAccessor,
+            TSMethodSignatureKind::Set => K::SetAccessor,
+        },
+        AstKind::TSConstructSignatureDeclaration(_) => K::ConstructSignature,
+        AstKind::TSExternalModuleDeclaration(_)
+        | AstKind::TSNamespaceDeclaration(_)
+        | AstKind::TSGlobalDeclaration(_) => K::ModuleDeclaration,
+        AstKind::TSModuleBlock(_) => K::ModuleBlock,
+        AstKind::TSTypeLiteral(_) => K::TypeLiteral,
+        AstKind::TSFunctionType(_) => K::FunctionType,
+        AstKind::TSConstructorType(_) => K::ConstructorType,
+        AstKind::TSImportEqualsDeclaration(_) => K::ImportEqualsDeclaration,
+        AstKind::Decorator(_) => K::Decorator,
+        AstKind::TSExportAssignment(_) => K::ExportAssignment,
+        AstKind::TSNamespaceExportDeclaration(_) => K::NamespaceExportDeclaration,
+        _ => K::Other,
+    })
+}
+
+/// The ranges of the JSDoc comments of a node, like TypeScript's
+/// `getJSDocCommentRanges`.
 fn get_js_doc_comment_ranges(
     node: &TsNode,
     text: &str,
     comments: &[oxc_ast::Comment],
-) -> Vec<(u32, u32)> {
+) -> Vec<Span> {
     use SyntaxKind as K;
-    let comment_ranges = if matches!(
+    let has_trailing = matches!(
         node.kind,
         K::Parameter
             | K::TypeParameter
@@ -648,46 +644,24 @@ fn get_js_doc_comment_ranges(
             | K::ParenthesizedExpression
             | K::VariableDeclaration
             | K::ExportSpecifier
-    ) {
-        let mut ranges = get_trailing_comment_ranges(node, text, comments);
-        ranges.extend(get_leading_comment_ranges(node, text, comments));
-        ranges
+    );
+    let trailing = if has_trailing {
+        comment_ranges(node, text, comments, true)
     } else {
-        get_leading_comment_ranges(node, text, comments)
+        Vec::new()
     };
-    let bytes = text.as_bytes();
-    comment_ranges
+    trailing
         .into_iter()
+        .chain(comment_ranges(node, text, comments, false))
         // Due to parse errors sometime empty parameter may get comments assigned to it that end up not in parameter range
         .filter(|comment| {
-            let pos = comment.start as usize;
-            comment.end <= node.end
-                && bytes.get(pos + 1) == Some(&b'*')
-                && bytes.get(pos + 2) == Some(&b'*')
-                && bytes.get(pos + 3) != Some(&b'/')
+            comment.end <= node.end && is_jsdoc_like_text(text, comment.start as usize)
         })
-        .map(|comment| (comment.start, comment.end))
         .collect()
 }
 
-fn get_leading_comment_ranges(
-    node: &TsNode,
-    text: &str,
-    comments: &[oxc_ast::Comment],
-) -> Vec<Span> {
-    comment_ranges(node, text, comments, false)
-}
-
-fn get_trailing_comment_ranges(
-    node: &TsNode,
-    text: &str,
-    comments: &[oxc_ast::Comment],
-) -> Vec<Span> {
-    comment_ranges(node, text, comments, true)
-}
-
-/// PORT: `getLeadingCommentRanges` and `getTrailingCommentRanges` at the
-/// node's `pos`, which scan the comments before its first token. Those are
+/// Like TypeScript's `getLeadingCommentRanges` and `getTrailingCommentRanges`
+/// at the node's `pos`, which scan the comments before its first token. Those are
 /// the comments oxc found between `pos` and `start`, since there's only
 /// trivia between them. Leading comments are those after the first line
 /// break, or all of them at the start of the file. Trailing comments are

@@ -1,5 +1,3 @@
-//! Port of `src/Errors.ts`.
-
 use crate::extractor::{
     ALL_GQL_TAGS, CONTEXT_TAG, DIRECTIVE_TAG, ENUM_TAG, FIELD_TAG, IMPLEMENTS_TAG_DEPRECATED,
     INFO_TAG, INPUT_TAG, INTERFACE_TAG, KILLS_PARENT_ON_EXCEPTION_TAG, LIBRARY_IMPORT_NAME,
@@ -50,11 +48,7 @@ pub fn wrong_casing_for_grats_tag(actual: &str, expected: &str) -> String {
 
 // TODO: Add code action
 pub fn invalid_grats_tag(actual: &str) -> String {
-    let valid_tag_list = ALL_GQL_TAGS
-        .iter()
-        .map(|t| format!("`@{t}`"))
-        .collect::<Vec<_>>()
-        .join(", ");
+    let valid_tag_list = ALL_GQL_TAGS.map(|t| format!("`@{t}`")).join(", ");
     format!("`@{actual}` is not a valid Grats tag. Valid tags are: {valid_tag_list}.")
 }
 
@@ -436,17 +430,10 @@ pub fn non_null_type_cannot_be_optional() -> String {
 }
 
 pub fn merged_interfaces() -> String {
-    [
-        "Unexpected merged interface.".to_string(),
-        "If an interface is declared multiple times in a scope, TypeScript merges them."
-            .to_string(),
-        "To avoid ambiguity Grats does not support using merged interfaces as GraphQL definitions."
-            .to_string(),
-        "Consider using a unique name for your TypeScript interface and renaming it.\n\n"
-            .to_string(),
-        format!("Learn more: {}", doc_urls::MERGED_INTERFACES),
-    ]
-    .join(" ")
+    format!(
+        "Unexpected merged interface. If an interface is declared multiple times in a scope, TypeScript merges them. To avoid ambiguity Grats does not support using merged interfaces as GraphQL definitions. Consider using a unique name for your TypeScript interface and renaming it.\n\n Learn more: {}",
+        doc_urls::MERGED_INTERFACES
+    )
 }
 
 pub fn implements_tag_deprecated() -> String {
@@ -483,23 +470,17 @@ pub fn duplicate_interface_tag() -> String {
 
 // TODO: Add code action
 pub fn parameter_without_modifiers() -> String {
-    [
-        format!(
-            "Expected `@{FIELD_TAG}` constructor parameter to be a parameter property. This requires a modifier such as `public` or `readonly` before the parameter name.\n\n"
-        ),
-        format!("Learn more: {}", doc_urls::PARAMETER_PROPERTIES),
-    ]
-    .join("")
+    format!(
+        "Expected `@{FIELD_TAG}` constructor parameter to be a parameter property. This requires a modifier such as `public` or `readonly` before the parameter name.\n\nLearn more: {}",
+        doc_urls::PARAMETER_PROPERTIES
+    )
 }
 
 pub fn parameter_property_not_public() -> String {
-    [
-        format!(
-            "Expected `@{FIELD_TAG}` parameter property to be public. Valid modifiers for `@{FIELD_TAG}` parameter properties are  `public` and `readonly`.\n\n"
-        ),
-        format!("Learn more: {}", doc_urls::PARAMETER_PROPERTIES),
-    ]
-    .join("")
+    format!(
+        "Expected `@{FIELD_TAG}` parameter property to be public. Valid modifiers for `@{FIELD_TAG}` parameter properties are  `public` and `readonly`.\n\nLearn more: {}",
+        doc_urls::PARAMETER_PROPERTIES
+    )
 }
 
 pub fn parameter_property_missing_type() -> String {
@@ -754,7 +735,7 @@ pub fn positional_arg_and_args_object() -> String {
     "Unexpected arguments object in resolver that is also using positional GraphQL arguments. Grats expects that either all GraphQL arguments will be defined in a single object, or that all GraphQL arguments will be defined using positional arguments. The two strategies may not be combined.".to_string()
 }
 
-/// PORT: The TypeScript function takes the definition kind, `"CONTEXT" | "INFO"`.
+/// Whether a type is the context or info type.
 pub enum ContextOrInfo {
     Context,
     Info,

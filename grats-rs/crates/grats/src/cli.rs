@@ -30,7 +30,8 @@ pub struct CliRequest {
     pub args: Vec<String>,
     /// The version of the `grats` package.
     pub version: String,
-    /// The root which module paths are relative to. See `crate::grats_root`.
+    /// The absolute path which module paths in the extracted schema are
+    /// relative to.
     pub grats_root: String,
     pub use_case_sensitive_file_names: bool,
 }

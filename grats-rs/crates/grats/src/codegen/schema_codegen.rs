@@ -32,7 +32,7 @@ const GQL_SCALAR_TYPE_NAME: &str = "GqlScalar";
 
 /// Given a GraphQL SDL, returns the a string of TypeScript code that generates a
 /// GraphQLSchema implementing that schema. Module paths are relative to
-/// `grats_root`. See `src/grats_root.rs`.
+/// `grats_root`.
 pub fn codegen(
     schema: &GraphQLSchema,
     resolvers: &Metadata,

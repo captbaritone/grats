@@ -1,13 +1,13 @@
-//! Port of `src/codegen/TSAstBuilder.ts`.
+//! Builds a TypeScript module's oxc AST, and prints it with `oxc_codegen`.
 //!
-//! PORT: Builds an oxc AST and prints it with `oxc_codegen`, where the
-//! TypeScript implementation uses the TypeScript compiler's factory and
+//! The TypeScript implementation used the TypeScript compiler's factory and
 //! printer. The printers differ in whitespace, which is not significant: the
 //! test harness formats generated code with prettier before comparing it.
 //! Where the TypeScript printer's choices do survive formatting, such as how
 //! string literals are escaped, this reproduces them.
 
 use std::collections::HashMap;
+use std::fmt::Write;
 
 use graphql_js::js_value::Value;
 use indexmap::IndexMap;
@@ -26,21 +26,20 @@ pub struct ImportSpecifier {
     pub is_type_only: bool,
 }
 
-/// A helper class to build up a TypeScript document AST.
+/// A helper to build up a TypeScript document AST.
 ///
-/// PORT: Implements `GetAstBuilder`, so it can be passed to oxc's AST builder
-/// methods in place of the TypeScript implementation's `ts.factory`.
+/// Implements `GetAstBuilder`, so it can be passed to oxc's AST builder
+/// methods.
 pub struct TsAstBuilder<'a> {
     builder: AstBuilder<'a>,
     global_names: HashMap<String, usize>,
-    /// `_imports` in the TypeScript implementation.
     import_statements: Vec<Statement<'a>>,
-    pub imports: IndexMap<String, Vec<ImportSpecifier>>,
+    imports: IndexMap<String, Vec<ImportSpecifier>>,
     helpers: Vec<Statement<'a>>,
     statements: Vec<Statement<'a>>,
     destination: String,
     import_module_specifier_ending: String,
-    /// PORT: See `src/grats_root.rs`.
+    /// The absolute path which the module paths of imports are relative to.
     grats_root: String,
 }
 
@@ -86,8 +85,9 @@ impl<'a> TsAstBuilder<'a> {
         self.statements.push(statement);
     }
 
-    /// PORT: Takes the closure's context, which gives it access to the
-    /// builder, rather than capturing it.
+    /// Returns a block of the statements the closure adds. The closure takes
+    /// its context, which gives it access to the builder, rather than
+    /// capturing it.
     pub fn create_block_with_scope<C: AsMut<Self>>(
         context: &mut C,
         closure: impl FnOnce(&mut C),
@@ -149,21 +149,17 @@ impl<'a> TsAstBuilder<'a> {
         )
     }
 
-    /// PORT: Takes member names rather than identifiers.
     pub fn property_access_chain(
         &self,
         parent: Expression<'a>,
         members: &[&str],
     ) -> Expression<'a> {
-        let mut expr = parent;
-        for member in members {
-            expr = self.property_access(expr, member);
-        }
-        expr
+        members
+            .iter()
+            .fold(parent, |expr, member| self.property_access(expr, member))
     }
 
-    /// PORT: Takes whether to export the function, the only modifier used,
-    /// rather than a list of modifiers.
+    /// Adds a function declaration, exported if `export` is true.
     pub fn function_declaration(
         &mut self,
         name: &str,
@@ -245,23 +241,18 @@ impl<'a> TsAstBuilder<'a> {
             is_type_only,
         } in names
         {
-            let mut seen = false;
-            for imp in module_imports.iter_mut() {
-                if imp.name == name && imp.r#as == r#as {
-                    // If a name is imported both as type only and as a value, it needs to
-                    // be imported as a value.
-                    if imp.is_type_only && !is_type_only {
-                        imp.is_type_only = false;
-                    }
-                    seen = true;
-                }
-            }
-            if !seen {
-                module_imports.push(ImportSpecifier {
+            match module_imports
+                .iter_mut()
+                .find(|imp| imp.name == name && imp.r#as == r#as)
+            {
+                // If a name is imported both as type only and as a value, it needs to
+                // be imported as a value.
+                Some(imp) => imp.is_type_only &= is_type_only,
+                None => module_imports.push(ImportSpecifier {
                     name,
                     r#as,
                     is_type_only,
-                });
+                }),
             }
         }
     }
@@ -310,7 +301,8 @@ impl<'a> TsAstBuilder<'a> {
         }
     }
 
-    /// PORT: Takes `self`, since printing moves the AST into the program.
+    /// Prints the module. Takes `self`, since printing moves the AST into the
+    /// program.
     pub fn print(mut self) -> String {
         for (from, names) in std::mem::take(&mut self.imports) {
             let all_imports_are_type_only = names.iter().all(|name| name.is_type_only);
@@ -320,8 +312,8 @@ impl<'a> TsAstBuilder<'a> {
                     // individual import as type only.
                     let is_type_only = !all_imports_are_type_only && name.is_type_only;
 
-                    // PORT: oxc import specifiers always have a local name, and
-                    // are printed without `as` if it matches the imported name.
+                    // oxc import specifiers always have a local name, and are
+                    // printed without `as` if it matches the imported name.
                     let local = match &name.r#as {
                         Some(r#as) if *r#as != name.name => r#as,
                         _ => &name.name,
@@ -400,8 +392,9 @@ impl<'a> TsAstBuilder<'a> {
         }
     }
 
-    // PORT: The helpers below stand in for the `ts.factory` functions used by
-    // codegen, where oxc's builder methods don't correspond one-to-one.
+    // The helpers below stand in for the TypeScript factory functions which
+    // the TypeScript implementation's codegen used, where oxc's builder
+    // methods don't correspond one-to-one.
 
     /// `F.createIdentifier(name)` as an expression.
     pub fn identifier(&self, name: &str) -> Expression<'a> {
@@ -410,8 +403,8 @@ impl<'a> TsAstBuilder<'a> {
 
     /// `F.createStringLiteral(value)`.
     ///
-    /// PORT: oxc prints string literals with its own escaping, which differs
-    /// from TypeScript's and survives formatting. So this emits the literal
+    /// oxc prints string literals with its own escaping, which differs from
+    /// TypeScript's and survives formatting. So this emits the literal
     /// as TypeScript prints it, as the name of an identifier, which oxc
     /// prints verbatim.
     pub fn string_literal(&self, value: &str) -> Expression<'a> {
@@ -420,7 +413,7 @@ impl<'a> TsAstBuilder<'a> {
 
     /// `F.createNumericLiteral(value)`.
     ///
-    /// PORT: TypeScript prints a number as JavaScript's `Number.toString`
+    /// Like TypeScript, prints a number as JavaScript's `Number.toString`
     /// does, without a special case for negative or non-finite numbers. As
     /// with `string_literal`, this is emitted verbatim.
     pub fn numeric_literal(&self, value: f64) -> Expression<'a> {
@@ -519,15 +512,13 @@ impl<'a> TsAstBuilder<'a> {
 
     /// `F.createTypeReferenceNode(name, typeArguments)`.
     pub fn type_reference(&self, name: &str, type_arguments: Vec<TSType<'a>>) -> TSType<'a> {
-        let type_arguments = if type_arguments.is_empty() {
-            None
-        } else {
-            Some(TSTypeParameterInstantiation::boxed(
+        let type_arguments = (!type_arguments.is_empty()).then(|| {
+            TSTypeParameterInstantiation::boxed(
                 SPAN,
                 ArenaVec::from_iter_in(type_arguments, self),
                 self,
-            ))
-        };
+            )
+        });
         TSType::new_ts_type_reference(
             SPAN,
             TSTypeName::new_identifier_reference(SPAN, Ident::from_str_in(name, self), self),
@@ -662,7 +653,7 @@ impl<'a> AsMut<TsAstBuilder<'a>> for TsAstBuilder<'a> {
     }
 }
 
-/// PORT: How TypeScript's printer prints a synthesized string literal:
+/// How TypeScript's printer prints a synthesized string literal:
 /// double quoted and escaped by `escapeNonAsciiString`, which escapes
 /// characters as `escapeString` does, then escapes every non-ASCII UTF-16
 /// code unit.
@@ -695,7 +686,7 @@ fn print_string_literal(value: &str) -> String {
                 // escapes the same way).
                 let mut units = [0; 2];
                 for unit in c.encode_utf16(&mut units) {
-                    out.push_str(&format!("\\u{unit:04X}"));
+                    let _ = write!(out, "\\u{unit:04X}");
                 }
             }
         }
@@ -714,7 +705,7 @@ fn import_kind(is_type_only: bool) -> ImportOrExportKind {
 
 fn replace_ext(file_path: &str, new_suffix: &str) -> String {
     let ext = path::extname(file_path);
-    // PORT: In JavaScript, `filePath.slice(0, -ext.length)` is empty when
+    // Like JavaScript's `filePath.slice(0, -ext.length)`, which is empty when
     // there's no extension.
     let stem = if ext.is_empty() {
         ""

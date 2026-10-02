@@ -18,7 +18,7 @@ use crate::metadata::{FieldDefinition, Metadata};
 ///
 /// https://the-guild.dev/graphql/tools/docs/resolvers#resolver-map
 ///
-/// Module paths are relative to `grats_root`. See `src/grats_root.rs`.
+/// Module paths are relative to `grats_root`.
 pub fn resolver_map_codegen(
     schema: &GraphQLSchema,
     resolvers: &Metadata,

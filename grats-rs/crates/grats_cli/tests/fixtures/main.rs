@@ -1,6 +1,6 @@
-//! PORT: `src/tests/test.ts` and `src/tests/TestRunner.ts`, for the fixtures
-//! in `src/tests/fixtures` and `src/tests/configParserFixtures`. Each fixture
-//! is transformed and the result compared to its `.expected.md` file.
+//! For the fixtures in `src/tests/fixtures` and
+//! `src/tests/configParserFixtures`, each fixture is transformed and the result
+//! compared to its `.expected.md` file.
 //!
 //! For the fixtures in `src/tests/integrationFixtures`, this generates the
 //! schema of each `index.ts` and compares it to the generated files in its
@@ -88,13 +88,11 @@ impl Kind {
             Kind::Integration => {
                 let code = read(&format!("{fixtures_dir}/{fixture}"));
                 let dir = path::dirname(fixture);
-                let mut files = vec![expected];
-                files.extend(
-                    integration_outputs(&integration_config(&code))
-                        .into_iter()
-                        .map(|output| format!("{dir}/{output}")),
-                );
-                files
+                let config = integration_config(&code);
+                let outputs = integration_outputs(&config)
+                    .into_iter()
+                    .map(|output| format!("{dir}/{output}"));
+                std::iter::once(expected).chain(outputs).collect()
             }
         }
     }
@@ -205,17 +203,22 @@ fn read_dir_recursive(dir: &str) -> Vec<String> {
     files
 }
 
-/// The options given as JSON on the fixture's first line, if any.
-fn test_options(code: &str) -> Option<serde_json::Map<String, Value>> {
+/// The config `defaults`, with the options given as JSON on the fixture's
+/// first line, if any.
+fn with_test_options(mut defaults: Value, code: &str) -> Value {
     let first_line = code.split('\n').next().unwrap_or("");
-    if !first_line.starts_with("// {") {
-        return None;
+    if first_line.starts_with("// {") {
+        let options: Value =
+            serde_json::from_str(&first_line[3..]).expect("Expected options to be JSON");
+        let Value::Object(options) = options else {
+            panic!("Expected options to be an object");
+        };
+        defaults
+            .as_object_mut()
+            .expect("Expected the config to be an object")
+            .extend(options);
     }
-    let options = serde_json::from_str(&first_line[3..]).expect("Expected options to be JSON");
-    match options {
-        Value::Object(options) => Some(options),
-        _ => panic!("Expected options to be an object"),
-    }
+    defaults
 }
 
 fn read(path: &str) -> String {
@@ -299,8 +302,8 @@ fn snippet_out_file(snippet: &str) -> String {
     format!("{}.out", snippet.trim_end_matches(".grats.ts"))
 }
 
-/// PORT: `website/scripts/gratsCode.ts`. Generates the snippet's `.out` file:
-/// the snippet, its SDL and its `schema.ts`, which the website shows in tabs.
+/// Generates the snippet's `.out` file: the snippet, its SDL and its
+/// `schema.ts`, which the website shows in tabs.
 fn test_snippet(snippets_dir: &str, snippet: &str, write: bool) -> Result<(), Failed> {
     let snippet_path = format!("{snippets_dir}/{snippet}");
     let code = read(&snippet_path);
@@ -352,19 +355,13 @@ fn test_snippet(snippets_dir: &str, snippet: &str, write: bool) -> Result<(), Fa
 /// The config of an integration fixture: the defaults, and the options on its
 /// first line.
 fn integration_config(code: &str) -> Value {
-    let mut config = json!({
+    let defaults = json!({
         "nullableByDefault": true,
         "importModuleSpecifierEnding": ".js",
         "schemaHeader": null,
         "tsSchemaHeader": null,
     });
-    if let Some(test_options) = test_options(code) {
-        config
-            .as_object_mut()
-            .expect("Expected the config to be an object")
-            .extend(test_options);
-    }
-    config
+    with_test_options(defaults, code)
 }
 
 /// The files generated for an integration fixture, relative to its directory.
@@ -489,18 +486,12 @@ fn config_error_report(code: &str, message: String) -> Markdown {
 }
 
 fn transform_schema(code: &str, fixture_path: &str) -> TransformerResult {
-    let mut config = json!({
+    let defaults = json!({
         "nullableByDefault": true,
         "schemaHeader": null,
         "tsSchemaHeader": null,
     });
-    if let Some(test_options) = test_options(code) {
-        config
-            .as_object_mut()
-            .expect("Expected the config to be an object")
-            .extend(test_options);
-    }
-    let config = validate_grats_options(Some(&config))
+    let config = validate_grats_options(Some(&with_test_options(defaults, code)))
         .map_err(|message| config_error_report(code, message))?
         .config;
 
@@ -676,11 +667,7 @@ fn strip_color(text: &str) -> String {
     let mut chars = text.chars();
     while let Some(ch) = chars.next() {
         if ch == '\x1b' {
-            for ch in chars.by_ref() {
-                if ch.is_ascii_alphabetic() {
-                    break;
-                }
-            }
+            chars.find(char::is_ascii_alphabetic);
         } else {
             output.push(ch);
         }

@@ -1,6 +1,7 @@
-//! PORT: Replaces `src/CheckerNameResolver.ts`, which asked the TypeScript
-//! checker what names refer to. This resolver follows names itself, the way
-//! the checker binds and resolves them, but only as far as Grats needs:
+//! Resolves names to their declarations. Where the TypeScript implementation
+//! asked the TypeScript checker what names refer to, this resolver follows
+//! names itself, the way the checker binds and resolves them, but only as far
+//! as Grats needs:
 //!
 //! - Files are parsed with oxc as they're needed, and `oxc_semantic` resolves
 //!   names within a file (scopes, same-name declaration merging, type
@@ -157,9 +158,10 @@ impl<'a> OxcNameResolver<'a> {
                 }
             }
         }
-        // PORT: The checker merges the global symbols of each file as a whole
-        // (see `mergeSymbol`), which only differs when a file declares a name
-        // twice and both conflict with another file's declarations.
+        // Unlike this, TypeScript's checker merges the global symbols of each
+        // file as a whole (see `mergeSymbol`), which only differs when a file
+        // declares a name twice and both conflict with another file's
+        // declarations.
         let targets = merge(targets, Target::binder_flags);
         filter_meaning(targets, meaning)
     }
@@ -167,14 +169,22 @@ impl<'a> OxcNameResolver<'a> {
     /// The declarations of a symbol, after following it if it's an alias,
     /// such as an import.
     fn symbol_targets(&self, file: &Rc<ParsedFile<'a>>, symbol: SymbolId) -> Vec<Target<'a>> {
-        let mut targets = Vec::new();
-        for declaration in file.merged_declarations(symbol) {
-            match self.alias_targets(file, declaration) {
-                Some(aliased) => targets.extend(aliased),
-                None => targets.push(Target::Declaration(Rc::clone(file), declaration)),
-            }
-        }
-        targets
+        self.declaration_targets(file, file.merged_declarations(symbol))
+    }
+
+    /// The declarations, after following any which are aliases.
+    fn declaration_targets(
+        &self,
+        file: &Rc<ParsedFile<'a>>,
+        declarations: Vec<NodeId>,
+    ) -> Vec<Target<'a>> {
+        declarations
+            .into_iter()
+            .flat_map(|declaration| {
+                self.alias_targets(file, declaration)
+                    .unwrap_or_else(|| vec![Target::Declaration(Rc::clone(file), declaration)])
+            })
+            .collect()
     }
 
     /// If `declaration` is an alias, what it refers to.
@@ -304,13 +314,8 @@ impl<'a> OxcNameResolver<'a> {
             let exported = scoping
                 .symbol_declarations(symbol)
                 .filter(|&declaration| file.is_exported(declaration, export_context));
-            let mut targets = Vec::new();
-            for declaration in merge(exported, |&declaration| file.binder_flags(declaration)) {
-                match self.alias_targets(file, declaration) {
-                    Some(aliased) => targets.extend(aliased),
-                    None => targets.push(Target::Declaration(Rc::clone(file), declaration)),
-                }
-            }
+            let exported = merge(exported, |&declaration| file.binder_flags(declaration));
+            let targets = self.declaration_targets(file, exported);
             if !targets.is_empty() {
                 return targets;
             }
@@ -547,13 +552,12 @@ impl<'a> ParsedFile<'a> {
 
     /// The entity name at `loc`.
     fn name_at(&self, loc: Location) -> NodeId {
-        let Some(&node) = self.names().get(&self.span_key(loc)) else {
+        *self.names().get(&self.span_key(loc)).unwrap_or_else(|| {
             panic!(
                 "Could not find node at {}:{}-{}.",
                 self.path, loc.start, loc.end
-            );
-        };
-        node
+            )
+        })
     }
 
     fn location(&self, span: Span) -> Location {

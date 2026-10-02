@@ -20,7 +20,8 @@ use crate::utils::visitor::map_definitions;
 #[derive(Debug)]
 pub struct OutputRequest {
     pub config: GratsConfig,
-    /// The root which module paths are relative to. See `crate::grats_root`.
+    /// The absolute path which module paths in the extracted schema are
+    /// relative to.
     pub grats_root: String,
     /// Whether to print the SDL.
     pub graphql_schema: bool,
