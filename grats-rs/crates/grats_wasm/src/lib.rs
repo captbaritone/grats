@@ -27,7 +27,7 @@ use std::sync::Arc;
 
 use graphql_js::language::ast::Location;
 use grats::grats_config::{ValidatedConfig, validate_grats_options};
-use grats::print_schema::{OutputRequest, Outputs, print_outputs};
+use grats::print_schema::{OutputPaths, Outputs};
 use grats::program::ProgramOptions;
 use grats::source_table::SourceTable;
 use grats::utils::diagnostic_error::{CodeFixAction, Diagnostic, locationless_err};
@@ -175,20 +175,15 @@ fn compile_project(request: CompileRequest) -> Result<Compiled, Vec<ReportedDiag
     // Module paths are kept relative to the root, then printed relative to
     // the TypeScript schema, so any root will do.
     let grats_root = PROJECT_DIRECTORY;
-    let doc = grats::pipeline::run(&config, grats_root, &program, host, &sources)
-        .map_err(|diagnostics| report(diagnostics, &sources))?;
     let resolve = |relative: &str| path::resolve(PROJECT_DIRECTORY, relative);
-    let outputs = print_outputs(
-        &doc,
-        OutputRequest {
-            config: config.clone(),
-            grats_root: grats_root.to_string(),
-            graphql_schema: true,
-            ts_schema: Some(resolve(&config.ts_schema)),
-            ts_client_enums: config.ts_client_enums.as_deref().map(resolve),
-            metadata: config.experimental_emit_metadata,
-        },
-    );
+    let output_paths = OutputPaths {
+        ts_schema: resolve(&config.ts_schema),
+        ts_client_enums: config.ts_client_enums.as_deref().map(resolve),
+    };
+    let outputs =
+        grats::pipeline::run(&config, grats_root, &program, host, &sources, &output_paths)
+            .map_err(|diagnostics| report(diagnostics, &sources))?
+            .outputs;
     Ok(Compiled { outputs, warnings })
 }
 

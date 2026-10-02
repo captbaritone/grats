@@ -28,7 +28,8 @@ use grats::fix_fixable::{FixOptions, apply_fixes};
 use grats::grats_config::{self, GratsConfig, validate_grats_options};
 use grats::host::{DirEntries, FileKind, Host};
 use grats::locate::locate_in_document;
-use grats::print_schema::{OutputRequest, print_outputs, print_sdl_without_metadata};
+use grats::pipeline::Compiled;
+use grats::print_schema::{OutputPaths, print_sdl_without_metadata};
 use grats::program::ProgramOptions;
 use grats::source_table::SourceTable;
 use grats::utils::diagnostic_error::{
@@ -323,27 +324,27 @@ fn test_snippet(snippets_dir: &str, snippet: &str, write: bool) -> Result<(), Fa
         tsconfig: Some(format!("{}/website/tsconfig.snippets.json", repo_root())),
         ..program_options(&snippet_path)
     };
-    let doc = grats::pipeline::run(&config, &grats_root(), &program, host.clone(), &sources)
-        .map_err(|diagnostics| {
-            let report = format_diagnostics_with_context(&code, diagnostics, &sources, &host);
-            format!("Expected the snippet to be valid:\n{report}")
-        })?;
-    let outputs = print_outputs(
-        &doc,
-        OutputRequest {
-            config,
-            grats_root: grats_root(),
-            graphql_schema: false,
-            ts_schema: Some(snippet_path.clone()),
-            ts_client_enums: None,
-            metadata: false,
-        },
-    );
+    let output_paths = OutputPaths {
+        ts_schema: snippet_path.clone(),
+        ts_client_enums: None,
+    };
+    let Compiled { doc, outputs } = grats::pipeline::run(
+        &config,
+        &grats_root(),
+        &program,
+        host.clone(),
+        &sources,
+        &output_paths,
+    )
+    .map_err(|diagnostics| {
+        let report = format_diagnostics_with_context(&code, diagnostics, &sources, &host);
+        format!("Expected the snippet to be valid:\n{report}")
+    })?;
 
     let output = format!(
         "{code}\n=== SNIP ===\n{}\n=== SNIP ===\n{}",
         print_sdl_without_metadata(&doc),
-        expect_output(outputs.ts_schema)
+        outputs.ts_schema
     );
     compare_or_write(
         &format!("{snippets_dir}/{}", snippet_out_file(snippet)),
@@ -385,41 +386,40 @@ fn test_integration_fixture(fixtures_dir: &str, fixture: &str, write: bool) -> R
     let host = Arc::new(FixtureHost::new());
     let sources = SourceTable::default();
     let program = program_options(&fixture_path);
-    let doc = grats::pipeline::run(&config, &grats_root(), &program, host.clone(), &sources)
-        .map_err(|diagnostics| {
-            let report = format_diagnostics_with_context(&code, diagnostics, &sources, &host);
-            format!("Expected the schema to build:\n{report}")
-        })?;
-
     let dir = path::dirname(&fixture_path);
-    let schema_path = path::resolve(dir, "schema.ts");
-    let enums_path = config
-        .ts_client_enums
-        .as_ref()
-        .map(|enums| path::resolve(dir, enums));
-    let outputs = print_outputs(
-        &doc,
-        OutputRequest {
-            config,
-            grats_root: grats_root(),
-            graphql_schema: true,
-            ts_schema: Some(schema_path.clone()),
-            ts_client_enums: enums_path.clone(),
-            metadata: false,
-        },
-    );
+    let output_paths = OutputPaths {
+        ts_schema: path::resolve(dir, "schema.ts"),
+        ts_client_enums: config
+            .ts_client_enums
+            .as_ref()
+            .map(|enums| path::resolve(dir, enums)),
+    };
+    let outputs = grats::pipeline::run(
+        &config,
+        &grats_root(),
+        &program,
+        host.clone(),
+        &sources,
+        &output_paths,
+    )
+    .map_err(|diagnostics| {
+        let report = format_diagnostics_with_context(&code, diagnostics, &sources, &host);
+        format!("Expected the schema to build:\n{report}")
+    })?
+    .outputs;
 
     let mut files = vec![
-        (schema_path, outputs.ts_schema),
+        (output_paths.ts_schema, outputs.ts_schema),
         (path::resolve(dir, "schema.graphql"), outputs.graphql_schema),
     ];
-    if let Some(enums_path) = enums_path {
-        files.push((enums_path, outputs.ts_client_enums));
+    if let (Some(enums_path), Some(enums)) = (output_paths.ts_client_enums, outputs.ts_client_enums)
+    {
+        files.push((enums_path, enums));
     }
     let errors: Vec<String> = files
         .into_iter()
         .filter_map(|(file_path, output)| {
-            compare_or_write(&file_path, &expect_output(output), write)
+            compare_or_write(&file_path, &output, write)
                 .err()
                 .map(|error| error.message().unwrap_or_default().to_string())
         })
@@ -499,27 +499,24 @@ fn transform_schema(code: &str, fixture_path: &str) -> TransformerResult {
     let host = Arc::new(FixtureHost::new());
     let sources = SourceTable::default();
     let program = program_options(fixture_path);
-    let doc = grats::pipeline::run(&config, &grats_root, &program, host.clone(), &sources)
-        .map_err(|diagnostics| {
-            format_diagnostics_with_context(code, diagnostics, &sources, &host)
-        })?;
-
-    // We print every output here, even for `// Locate:` fixtures, to ensure
-    // that printing doesn't throw.
-    let outputs = print_outputs(
-        &doc,
-        OutputRequest {
-            config: config.clone(),
-            grats_root,
-            graphql_schema: true,
-            ts_schema: Some(fixture_path.to_string()),
-            ts_client_enums: config
-                .ts_client_enums
-                .as_ref()
-                .map(|enums| path::resolve(path::dirname(fixture_path), enums)),
-            metadata: config.experimental_emit_metadata,
-        },
-    );
+    let output_paths = OutputPaths {
+        ts_schema: fixture_path.to_string(),
+        ts_client_enums: config
+            .ts_client_enums
+            .as_ref()
+            .map(|enums| path::resolve(path::dirname(fixture_path), enums)),
+    };
+    // The pipeline prints every output, even for `// Locate:` fixtures, which
+    // ensures that printing doesn't throw.
+    let Compiled { doc, outputs } = grats::pipeline::run(
+        &config,
+        &grats_root,
+        &program,
+        host.clone(),
+        &sources,
+        &output_paths,
+    )
+    .map_err(|diagnostics| format_diagnostics_with_context(code, diagnostics, &sources, &host))?;
 
     if let Some(entity_name) = code
         .split('\n')
@@ -544,9 +541,9 @@ fn transform_schema(code: &str, fixture_path: &str) -> TransformerResult {
 
     let mut markdown = Markdown::default();
     markdown.add_header(3, "SDL");
-    markdown.add_code_block(&expect_output(outputs.graphql_schema), "graphql", None);
+    markdown.add_code_block(&outputs.graphql_schema, "graphql", None);
     markdown.add_header(3, "TypeScript");
-    markdown.add_code_block(&expect_output(outputs.ts_schema), "ts", None);
+    markdown.add_code_block(&outputs.ts_schema, "ts", None);
     if let Some(metadata) = outputs.metadata {
         markdown.add_header(3, "Metadata");
         markdown.add_code_block(&metadata, "json", None);
@@ -569,10 +566,6 @@ fn program_options(fixture_path: &str) -> ProgramOptions {
         tsconfig: None,
         use_case_sensitive_file_names: native_host::use_case_sensitive_file_names(),
     }
-}
-
-fn expect_output(output: Option<String>) -> String {
-    output.expect("Expected the output to be printed")
 }
 
 /// Like `JSON.stringify(value, null, 2)`.

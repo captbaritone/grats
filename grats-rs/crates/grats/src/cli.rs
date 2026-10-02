@@ -7,14 +7,12 @@
 use std::sync::Arc;
 
 use clap::{CommandFactory, FromArgMatches, Parser, Subcommand};
-use graphql_js::language::ast::DocumentNode;
 
 use crate::fix_fixable::{FixOptions, apply_fixes, with_fixes_fixed};
-use crate::grats_config::GratsConfig;
 use crate::host::Host;
 use crate::locate::locate_in_document;
-use crate::pipeline;
-use crate::print_schema::{OutputRequest, print_outputs};
+use crate::pipeline::{self, Compiled};
+use crate::print_schema::{OutputPaths, Outputs};
 use crate::project::{self, Project};
 use crate::source_table::SourceTable;
 use crate::utils::diagnostic_error::{Diagnostic, DiagnosticsResult, locationless_err};
@@ -210,15 +208,13 @@ impl WatchMode {
             Err(diagnostics) => return fix_or_report(diagnostics),
         };
         // For now we just rebuild the schema on every change.
-        let doc = match cli.build_schema_and_doc(&project) {
-            Ok(doc) => doc,
+        let compiled = match cli.compile(&project) {
+            Ok(compiled) => compiled,
             Err(diagnostics) => return fix_or_report(diagnostics),
         };
         let _ = cli.handle_diagnostics(write_schema_files_and_report(
-            &doc,
-            &project.config,
-            &project.config_path,
-            &self.grats_root,
+            &compiled.outputs,
+            &project,
             &*self.host,
         ));
         false
@@ -243,7 +239,7 @@ impl Cli {
     fn locate(&self, tsconfig: Option<&str>, entity: &str) -> Result<(), Exit> {
         let project = self.handle_diagnostics(self.load_project(tsconfig))?;
 
-        let doc = self.handle_diagnostics(self.build_schema_and_doc(&project))?;
+        let Compiled { doc, .. } = self.handle_diagnostics(self.compile(&project))?;
 
         match locate_in_document(&doc, entity) {
             Err(message) => {
@@ -270,17 +266,15 @@ impl Cli {
             &*self.host,
             &self.grats_root,
         ))?;
-        let doc = self.handle_diagnostics(with_fixes_fixed(
-            || self.build_schema_and_doc(&project),
+        let compiled = self.handle_diagnostics(with_fixes_fixed(
+            || self.compile(&project),
             &options,
             &*self.host,
             &self.grats_root,
         ))?;
         self.handle_diagnostics(write_schema_files_and_report(
-            &doc,
-            &project.config,
-            &project.config_path,
-            &self.grats_root,
+            &compiled.outputs,
+            &project,
             &*self.host,
         ))
     }
@@ -300,13 +294,14 @@ impl Cli {
         Ok(project)
     }
 
-    fn build_schema_and_doc(&self, project: &Project) -> DiagnosticsResult<DocumentNode> {
+    fn compile(&self, project: &Project) -> DiagnosticsResult<Compiled> {
         pipeline::run(
             &project.config,
             &self.grats_root,
             &project.program,
             Arc::clone(&self.host),
             &self.sources,
+            &output_paths(project),
         )
     }
 
@@ -330,20 +325,31 @@ impl Cli {
     }
 }
 
-/// Serializes the SDL and TypeScript schema to disk and reports to the console,
-/// or reports a file which can't be written.
+/// Where the project's TypeScript outputs are written.
+fn output_paths(project: &Project) -> OutputPaths {
+    let config_dir = path::dirname(&project.config_path);
+    OutputPaths {
+        ts_schema: path::resolve(config_dir, &project.config.ts_schema),
+        ts_client_enums: project
+            .config
+            .ts_client_enums
+            .as_ref()
+            .map(|ts_client_enums| path::resolve(config_dir, ts_client_enums)),
+    }
+}
+
+/// Writes the outputs to disk and reports to the console, or reports a file
+/// which can't be written.
 fn write_schema_files_and_report(
-    doc: &DocumentNode,
-    grats_config: &GratsConfig,
-    config_path: &str,
-    grats_root: &str,
+    outputs: &Outputs,
+    project: &Project,
     host: &dyn Host,
 ) -> DiagnosticsResult<()> {
-    let config_dir = path::dirname(config_path);
-    let write_file = |path: &str, contents: Option<String>, description: &str| {
-        let contents = contents.expect("Expected the requested output to be printed");
+    let config = &project.config;
+    let config_dir = path::dirname(&project.config_path);
+    let write_file = |path: &str, contents: &str, description: &str| {
         let native_path = path::to_native(path);
-        host.write_file(path, &contents).map_err(|error| {
+        host.write_file(path, contents).map_err(|error| {
             vec![locationless_err(format!(
                 "Grats: Could not write `{native_path}`: {error}"
             ))]
@@ -351,36 +357,20 @@ fn write_schema_files_and_report(
         host.log_error(&format!("Grats: Wrote {description} to `{native_path}`."));
         DiagnosticsResult::Ok(())
     };
+    let paths = output_paths(project);
 
-    let dest = path::resolve(config_dir, &grats_config.ts_schema);
-    let enums_dest = grats_config
-        .ts_client_enums
-        .as_ref()
-        .map(|ts_client_enums| path::resolve(config_dir, ts_client_enums));
-    let outputs = print_outputs(
-        doc,
-        OutputRequest {
-            config: grats_config.clone(),
-            grats_root: grats_root.to_string(),
-            graphql_schema: true,
-            ts_schema: Some(dest.clone()),
-            ts_client_enums: enums_dest.clone(),
-            metadata: grats_config.experimental_emit_metadata,
-        },
-    );
+    write_file(&paths.ts_schema, &outputs.ts_schema, "TypeScript schema")?;
 
-    write_file(&dest, outputs.ts_schema, "TypeScript schema")?;
+    let abs_output = path::resolve(config_dir, &config.graphql_schema);
+    write_file(&abs_output, &outputs.graphql_schema, "schema")?;
 
-    let abs_output = path::resolve(config_dir, &grats_config.graphql_schema);
-    write_file(&abs_output, outputs.graphql_schema, "schema")?;
-
-    if grats_config.experimental_emit_metadata {
-        let abs_output = path::resolve(config_dir, &metadata_path(&grats_config.graphql_schema));
-        write_file(&abs_output, outputs.metadata, "resolver signatures")?;
+    if let Some(metadata) = &outputs.metadata {
+        let abs_output = path::resolve(config_dir, &metadata_path(&config.graphql_schema));
+        write_file(&abs_output, metadata, "resolver signatures")?;
     }
 
-    if let Some(enums_dest) = enums_dest {
-        write_file(&enums_dest, outputs.ts_client_enums, "enums module")?;
+    if let (Some(enums_dest), Some(enums)) = (&paths.ts_client_enums, &outputs.ts_client_enums) {
+        write_file(enums_dest, enums, "enums module")?;
     }
     Ok(())
 }
