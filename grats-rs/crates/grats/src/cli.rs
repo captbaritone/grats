@@ -374,12 +374,7 @@ fn write_schema_files_and_report(
     write_file(&abs_output, outputs.graphql_schema, "schema")?;
 
     if grats_config.experimental_emit_metadata {
-        let graphql_schema = &grats_config.graphql_schema;
-        let metadata_path = match graphql_schema.strip_suffix(".graphql") {
-            Some(stem) => format!("{stem}.json"),
-            None => graphql_schema.clone(),
-        };
-        let abs_output = path::resolve(config_dir, &metadata_path);
+        let abs_output = path::resolve(config_dir, &metadata_path(&grats_config.graphql_schema));
         write_file(&abs_output, outputs.metadata, "resolver signatures")?;
     }
 
@@ -387,4 +382,25 @@ fn write_schema_files_and_report(
         write_file(&enums_dest, outputs.ts_client_enums, "enums module")?;
     }
     Ok(())
+}
+
+/// The path of the metadata JSON: the GraphQL schema's path, with `.json` in
+/// place of its `.graphql` extension, or appended if it has another.
+fn metadata_path(graphql_schema: &str) -> String {
+    let stem = graphql_schema
+        .strip_suffix(".graphql")
+        .unwrap_or(graphql_schema);
+    format!("{stem}.json")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn metadata_path_differs_from_schema_path() {
+        assert_eq!(metadata_path("./schema.graphql"), "./schema.json");
+        assert_eq!(metadata_path("./schema.gql"), "./schema.gql.json");
+        assert_eq!(metadata_path("./schema"), "./schema.json");
+    }
 }

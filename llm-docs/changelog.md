@@ -54,6 +54,7 @@ If any of these changes cause problems for your project, please [file an issue](
     -   The error for an interface field which is semantically non-null on the interface but nullable on an implementor now names the interface field as the one expecting a non-nullable type. Previously, the two field names were swapped.
     -   `--fix` no longer corrupts the file when removing a tag that is repeated more than twice in the same docblock. Previously, each removal was applied once per duplicate.
     -   When a comment Grats cannot use contains multiple Grats tags on separate lines, each error now points to its own tag. Previously, errors for tags after the first pointed to the first tag.
+    -   With `EXPERIMENTAL__emitMetadata`, if `graphqlSchema` doesn't end in `.graphql`, the metadata is now written to its path with `.json` appended. Previously, it overwrote the GraphQL schema.
 
 ## 0.0.36
 
