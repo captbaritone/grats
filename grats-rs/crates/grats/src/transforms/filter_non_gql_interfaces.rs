@@ -1,6 +1,4 @@
-//! Port of `src/transforms/filterNonGqlInterfaces.ts`.
-
-use graphql_js::language::ast::{DefinitionNode, NamedTypeNode};
+use graphql_js::language::ast::DefinitionNode;
 
 use crate::type_context::TypeContext;
 
@@ -8,35 +6,21 @@ use crate::type_context::TypeContext;
 /// Note: We depend upon traversal order here to ensure that we remove all
 /// non-GraphQL interfaces before we try to resolve the names of the GraphQL
 /// interfaces.
-///
-/// PORT: TypeScript returns copies of the definitions it filters. This filters
-/// them in place.
 pub fn filter_non_gql_interfaces(
     ctx: &TypeContext,
     mut definitions: Vec<DefinitionNode>,
 ) -> Vec<DefinitionNode> {
     for def in &mut definitions {
-        match def {
-            DefinitionNode::InterfaceTypeDefinition(def) => {
-                filter_interfaces(ctx, &mut def.interfaces)
-            }
-            DefinitionNode::InterfaceTypeExtension(def) => {
-                filter_interfaces(ctx, &mut def.interfaces)
-            }
-            DefinitionNode::ObjectTypeDefinition(def) => {
-                filter_interfaces(ctx, &mut def.interfaces)
-            }
-            DefinitionNode::ObjectTypeExtension(def) => filter_interfaces(ctx, &mut def.interfaces),
-            _ => {}
+        let interfaces = match def {
+            DefinitionNode::InterfaceTypeDefinition(def) => &mut def.interfaces,
+            DefinitionNode::InterfaceTypeExtension(def) => &mut def.interfaces,
+            DefinitionNode::ObjectTypeDefinition(def) => &mut def.interfaces,
+            DefinitionNode::ObjectTypeExtension(def) => &mut def.interfaces,
+            _ => continue,
+        };
+        if let Some(interfaces) = interfaces {
+            interfaces.retain(|i| ctx.unresolved_name_is_graphql(&i.name));
         }
     }
     definitions
-}
-
-/// PORT: Takes the definition's `interfaces`, which is all it reads.
-fn filter_interfaces(ctx: &TypeContext, interfaces: &mut Option<Vec<NamedTypeNode>>) {
-    let Some(interfaces) = interfaces else {
-        return;
-    };
-    interfaces.retain(|i| ctx.unresolved_name_is_graphql(&i.name));
 }

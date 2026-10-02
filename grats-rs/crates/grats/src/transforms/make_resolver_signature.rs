@@ -1,75 +1,69 @@
-//! Port of `src/transforms/makeResolverSignature.ts`.
-
 use graphql_js::language::ast::{
     DefinitionNode, DocumentNode, ResolverArgument as DirectiveResolverArgument, ResolverSignature,
 };
-use indexmap::IndexMap;
 
 use crate::metadata::{FieldDefinition, Metadata, ResolverArgument, ResolverDefinition};
-use crate::utils::helpers::null_throws;
 
+/// How each field of each object type is resolved.
 pub fn make_resolver_signature(document_ast: &DocumentNode) -> Metadata {
-    let mut resolvers = Metadata {
-        types: IndexMap::new(),
-    };
+    let types = document_ast
+        .definitions
+        .iter()
+        .filter_map(|declaration| match declaration {
+            DefinitionNode::ObjectTypeDefinition(declaration) => Some(declaration),
+            _ => None,
+        })
+        .filter_map(|declaration| {
+            let fields = declaration.fields.as_ref()?;
+            let field_resolvers = fields
+                .iter()
+                .map(|field_ast| {
+                    let signature = field_ast
+                        .resolver
+                        .as_ref()
+                        .expect("Expected field to have a resolver");
+                    let resolver = resolver_definition(signature);
+                    (field_ast.name.value.clone(), FieldDefinition { resolver })
+                })
+                .collect();
+            Some((declaration.name.value.clone(), field_resolvers))
+        })
+        .collect();
+    Metadata { types }
+}
 
-    for declaration in &document_ast.definitions {
-        let DefinitionNode::ObjectTypeDefinition(declaration) = declaration else {
-            continue;
-        };
-        let Some(fields) = &declaration.fields else {
-            continue;
-        };
-
-        let mut field_resolvers: IndexMap<String, FieldDefinition> = IndexMap::new();
-
-        for field_ast in fields {
-            let field_resolver = null_throws(field_ast.resolver.as_ref());
-            let field_name = &field_ast.name.value;
-            let resolver = match field_resolver {
-                ResolverSignature::Property { name } => {
-                    ResolverDefinition::Property { name: name.clone() }
-                }
-                ResolverSignature::Function {
-                    path,
-                    export_name,
-                    arguments,
-                } => ResolverDefinition::Function {
-                    path: path.clone(),
-                    export_name: export_name.clone(),
-                    arguments: transform_args(arguments.as_deref()),
-                },
-                ResolverSignature::Method { name, arguments } => ResolverDefinition::Method {
-                    name: name.clone(),
-                    arguments: transform_args(arguments.as_deref()),
-                },
-                ResolverSignature::StaticMethod {
-                    path,
-                    export_name,
-                    name,
-                    arguments,
-                } => ResolverDefinition::StaticMethod {
-                    path: path.clone(),
-                    export_name: export_name.clone(),
-                    name: name.clone(),
-                    arguments: transform_args(arguments.as_deref()),
-                },
-            };
-
-            field_resolvers.insert(field_name.clone(), FieldDefinition { resolver });
-        }
-
-        resolvers
-            .types
-            .insert(declaration.name.value.clone(), field_resolvers);
+fn resolver_definition(signature: &ResolverSignature) -> ResolverDefinition {
+    match signature {
+        ResolverSignature::Property { name } => ResolverDefinition::Property { name: name.clone() },
+        ResolverSignature::Function {
+            path,
+            export_name,
+            arguments,
+        } => ResolverDefinition::Function {
+            path: path.clone(),
+            export_name: export_name.clone(),
+            arguments: transform_args(arguments.as_deref()),
+        },
+        ResolverSignature::Method { name, arguments } => ResolverDefinition::Method {
+            name: name.clone(),
+            arguments: transform_args(arguments.as_deref()),
+        },
+        ResolverSignature::StaticMethod {
+            path,
+            export_name,
+            name,
+            arguments,
+        } => ResolverDefinition::StaticMethod {
+            path: path.clone(),
+            export_name: export_name.clone(),
+            name: name.clone(),
+            arguments: transform_args(arguments.as_deref()),
+        },
     }
-
-    resolvers
 }
 
 fn transform_args(args: Option<&[DirectiveResolverArgument]>) -> Option<Vec<ResolverArgument>> {
-    let args = args?;
-    Some(args.iter().map(transform_arg).collect())
+    args.map(|args| args.iter().map(transform_arg).collect())
 }
 
 fn transform_arg(arg: &DirectiveResolverArgument) -> ResolverArgument {
