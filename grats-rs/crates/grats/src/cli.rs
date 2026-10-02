@@ -12,7 +12,7 @@ use graphql_js::language::ast::DocumentNode;
 use crate::fix_fixable::{FixOptions, apply_fixes, with_fixes_fixed};
 use crate::grats_config::GratsConfig;
 use crate::host::Host;
-use crate::locate::{LocateRequest, locate_in_document};
+use crate::locate::locate_in_document;
 use crate::pipeline;
 use crate::print_schema::{OutputRequest, print_outputs};
 use crate::project::{self, Project};
@@ -247,10 +247,7 @@ impl Cli {
 
         let doc = self.handle_diagnostics(self.build_schema_and_doc(&project))?;
 
-        let request = LocateRequest {
-            entity_name: entity.to_string(),
-        };
-        match locate_in_document(&doc, request) {
+        match locate_in_document(&doc, entity) {
             Err(message) => {
                 self.host.log_error(&message);
                 Err(Exit)

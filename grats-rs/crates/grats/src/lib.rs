@@ -1,5 +1,5 @@
-//! A port of Grats. Modules mirror the TypeScript implementation's `src/`
-//! paths so that each can be compared against its source.
+//! Grats extracts a GraphQL schema from TypeScript code annotated with
+//! docblock tags, and generates an executable schema for it.
 
 pub mod cli;
 pub mod code_actions;
@@ -12,7 +12,6 @@ pub mod files;
 pub mod fix_fixable;
 pub mod graphql_constructor;
 pub mod grats_config;
-pub mod grats_root;
 pub mod host;
 pub mod interface_graph;
 pub mod jsdoc;

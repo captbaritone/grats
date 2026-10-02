@@ -41,7 +41,6 @@ use crate::errors as e;
 use crate::files::ParsedFile;
 use crate::graphql_constructor::{GraphQLConstructor, loc};
 use crate::grats_config::GratsConfig;
-use crate::grats_root::relative_path;
 use crate::jsdoc::{
     JSDocComment, JSDocCommentPart, JSDocIndex, JSDocOrTag, SyntaxKind, TagId, TsNodeId,
     get_text_of_js_doc_comment, is_js_white_space, is_line_break, js_trim,
@@ -58,6 +57,7 @@ use crate::utils::diagnostic_error::{
     gql_err, ts_err, ts_related,
 };
 use crate::utils::helpers::{levenshtein_distance, unique_id};
+use crate::utils::path;
 
 pub const LIBRARY_IMPORT_NAME: &str = "grats";
 pub const LIBRARY_NAME: &str = "Grats";
@@ -648,7 +648,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             );
         }
 
-        let ts_module_path = relative_path(self.grats_root, &self.file.path);
+        let ts_module_path = path::relative(self.grats_root, &self.file.path);
 
         let Some((resolver_params, _)) =
             self.resolver_params(&params(function.this_param.as_deref(), &function.params))
@@ -1382,7 +1382,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return;
         };
 
-        let ts_module_path = relative_path(self.grats_root, &self.file.path);
+        let ts_module_path = path::relative(self.grats_root, &self.file.path);
 
         let directives = self.collect_directives(node.id);
 
@@ -1564,7 +1564,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         }
 
         let exported = ExportDefinition {
-            ts_module_path: relative_path(self.grats_root, &self.file.path),
+            ts_module_path: path::relative(self.grats_root, &self.file.path),
             export_name: Some(decl.id.name.to_string()),
         };
 
@@ -1858,7 +1858,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let mut exported: Option<ExportDefinition> = None;
         if !has_type_name && let Some(is_default) = self.export_kind(node) {
             exported = Some(ExportDefinition {
-                ts_module_path: relative_path(self.grats_root, &self.file.path),
+                ts_module_path: path::relative(self.grats_root, &self.file.path),
                 export_name: if is_default {
                     None
                 } else {
@@ -2767,7 +2767,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         }
         if let Some(is_default) = export_kind {
             exported = Some(ExportDefinition {
-                ts_module_path: relative_path(self.grats_root, &self.file.path),
+                ts_module_path: path::relative(self.grats_root, &self.file.path),
                 export_name: if is_default {
                     None
                 } else {

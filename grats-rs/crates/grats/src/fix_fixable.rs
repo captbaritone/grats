@@ -6,7 +6,6 @@
 
 use indexmap::IndexMap;
 
-use crate::grats_root::relative_path;
 use crate::host::Host;
 use crate::utils::diagnostic_error::{CodeFixAction, DiagnosticsResult, TextChange};
 use crate::utils::path;
@@ -158,7 +157,7 @@ pub fn apply_fixes(
             (options.log)(&format!(
                 "  * Applied fix \"{}\" in {}",
                 fix.description,
-                relative_path(grats_root, &change.file_name)
+                path::relative(grats_root, &change.file_name)
             ));
         }
     }

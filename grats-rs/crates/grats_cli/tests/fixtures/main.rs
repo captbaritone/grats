@@ -27,7 +27,7 @@ use std::sync::{Arc, Mutex};
 use grats::fix_fixable::{FixOptions, apply_fixes};
 use grats::grats_config::{self, GratsConfig, validate_grats_options};
 use grats::host::{DirEntries, FileKind, Host};
-use grats::locate::{LocateRequest, locate_in_document};
+use grats::locate::locate_in_document;
 use grats::print_schema::{OutputRequest, print_outputs, print_sdl_without_metadata};
 use grats::program::ProgramOptions;
 use grats::source_table::SourceTable;
@@ -535,27 +535,20 @@ fn transform_schema(code: &str, fixture_path: &str) -> TransformerResult {
         .next()
         .and_then(|line| line.strip_prefix("// Locate: "))
     {
-        return Err(
-            match locate_in_document(
-                &doc,
-                LocateRequest {
-                    entity_name: entity_name.trim().to_string(),
-                },
-            ) {
-                Err(message) => {
-                    let mut markdown = Markdown::default();
-                    markdown.add_header(3, "Error Locating Type");
-                    markdown.add_code_block(&message, "text", None);
-                    markdown
-                }
-                Ok(loc) => format_diagnostics_with_context(
-                    code,
-                    vec![gql_err(Some(loc), "Located here".to_string(), None)],
-                    &sources,
-                    &host,
-                ),
-            },
-        );
+        return Err(match locate_in_document(&doc, entity_name.trim()) {
+            Err(message) => {
+                let mut markdown = Markdown::default();
+                markdown.add_header(3, "Error Locating Type");
+                markdown.add_code_block(&message, "text", None);
+                markdown
+            }
+            Ok(loc) => format_diagnostics_with_context(
+                code,
+                vec![gql_err(Some(loc), "Located here".to_string(), None)],
+                &sources,
+                &host,
+            ),
+        });
     }
 
     let mut markdown = Markdown::default();

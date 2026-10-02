@@ -18,7 +18,6 @@ use oxc_codegen::{Codegen, CodegenOptions, IndentChar};
 use oxc_span::{SPAN, SourceType};
 use oxc_syntax::number::ToJsString;
 
-use crate::grats_root::resolve_relative_path;
 use crate::utils::path;
 
 pub struct ImportSpecifier {
@@ -292,7 +291,7 @@ impl<'a> TsAstBuilder<'a> {
         local_name: &str,
         is_type_only: bool,
     ) {
-        let abs = resolve_relative_path(&self.grats_root, ts_module_path);
+        let abs = path::resolve(&self.grats_root, ts_module_path);
         let relative = replace_ext(
             &path::relative(path::dirname(&self.destination), &abs),
             &self.import_module_specifier_ending,

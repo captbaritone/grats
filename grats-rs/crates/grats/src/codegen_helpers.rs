@@ -1,5 +1,3 @@
-//! Port of `src/codegenHelpers.ts`.
-
 use oxc_allocator::ArenaVec;
 use oxc_ast::ast::*;
 use oxc_span::SPAN;
@@ -16,14 +14,11 @@ pub const ASSERT_NON_NULL_HELPER: &str = "assertNonNull";
 ///   return awaited;
 /// }
 /// ```
-///
-/// PORT: Returns the declaration as a statement, and takes the builder that
-/// stands in for `ts.factory`.
 pub fn create_assert_non_null_helper<'a>(ts: &TsAstBuilder<'a>) -> Statement<'a> {
     let arg_name = "value";
     let awaited = "awaited";
     let t = "T";
-    let t_reference = || ts.type_reference("T", vec![]);
+    let t_reference = || ts.type_reference(t, vec![]);
     let promise_t = || ts.type_reference("Promise", vec![t_reference()]);
 
     let type_param = TSType::new_ts_union_type(
