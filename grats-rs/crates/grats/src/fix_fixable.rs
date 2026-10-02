@@ -1,8 +1,6 @@
-//! Port of `src/fixFixable.ts`.
+//! Applies the code fixes of diagnostics to the files they edit.
 //!
-//! PORT: Files are read and written through the host. Text changes have
-//! UTF-16 offsets, so they're applied to the text as UTF-16, like
-//! JavaScript's `slice`.
+//! Text changes have UTF-16 offsets, so they're applied to the text as UTF-16.
 
 use indexmap::IndexMap;
 
@@ -24,12 +22,12 @@ pub fn with_fixes_fixed<T>(
     host: &dyn Host,
     grats_root: &str,
 ) -> DiagnosticsResult<T> {
+    const MAX_ITERATIONS: usize = 10;
     if !options.fix {
         return result_fn();
     }
 
     let mut total_fixes_applied = 0;
-    const MAX_ITERATIONS: usize = 10;
 
     for iteration in 0..=MAX_ITERATIONS {
         if iteration > 0 {
@@ -85,11 +83,9 @@ pub fn with_fixes_fixed<T>(
     result_fn()
 }
 
-/// Apply fixes to source files and return the set of files that were changed.
+/// Applies fixes to the files they edit, and logs each applied fix.
 ///
 /// Returns true if any files were changed, false otherwise.
-///
-/// PORT: Takes the fixes of the fixable diagnostics.
 pub fn apply_fixes(
     fixes: &[&CodeFixAction],
     options: &FixOptions,
@@ -98,20 +94,16 @@ pub fn apply_fixes(
 ) -> bool {
     let mut applied_any_fixes = false;
 
-    // Group diagnostics by file to batch changes
-    let mut fixes_by_file: IndexMap<&str, Vec<&CodeFixAction>> = IndexMap::new();
-
-    for fix in fixes {
-        for change in &fix.changes {
-            fixes_by_file
-                .entry(change.file_name.as_str())
-                .or_default()
-                .push(fix);
-        }
+    // Group text changes by file to batch changes
+    let mut changes_by_file: IndexMap<&str, Vec<&TextChange>> = IndexMap::new();
+    for change in fixes.iter().flat_map(|fix| &fix.changes) {
+        changes_by_file
+            .entry(&change.file_name)
+            .or_default()
+            .extend(&change.text_changes);
     }
 
-    // Apply changes to each file
-    for (file_name, file_fixes) in &fixes_by_file {
+    for (file_name, mut text_changes) in changes_by_file {
         let failed = |error: &str| {
             (options.log)(&format!(
                 "Grats: Failed to apply fix to {}: {error}",
@@ -124,25 +116,12 @@ pub fn apply_fixes(
         };
         let mut new_content: Vec<u16> = content.encode_utf16().collect();
 
-        // Collect all text changes for this file and sort by position in reverse order
-        let mut all_text_changes: Vec<&TextChange> = Vec::new();
-
-        for fix in file_fixes {
-            for file_change in &fix.changes {
-                if file_change.file_name == *file_name {
-                    all_text_changes.extend(&file_change.text_changes);
-                }
-            }
-        }
-
-        // Sort changes by position in reverse order to avoid offset issues
-        all_text_changes.sort_by_key(|change| std::cmp::Reverse(change.span.start));
-
-        // Apply each change
-        for change in all_text_changes {
+        // Apply changes in reverse order to avoid offset issues
+        text_changes.sort_by_key(|change| std::cmp::Reverse(change.span.start));
+        for change in text_changes {
             let start = (change.span.start as usize).min(new_content.len());
-            let end = ((change.span.start + change.span.length) as usize).min(new_content.len());
-            new_content.splice(start..end.max(start), change.new_text.encode_utf16());
+            let end = (start + change.span.length as usize).min(new_content.len());
+            new_content.splice(start..end, change.new_text.encode_utf16());
         }
 
         match host.write_file(file_name, &String::from_utf16_lossy(&new_content)) {

@@ -52,6 +52,7 @@ If any of these changes cause problems for your project, please [file an issue](
   - Errors in generic types are now reported once, rather than once for each combination of type arguments the type is used with.
   - Type parameters are now only considered used in a GraphQL position if the generic types they're passed to use theirs in one. So, passing a type parameter to a generic type which ignores it no longer requires a GraphQL type argument, and types whose type parameters are only passed between each other, like `type Foo<T> = { bar: Bar<T> }` and `type Bar<T> = { foo: Foo<T> }`, are no longer generic. Previously, Grats named such types after their type arguments, like `BazFoo`.
   - The error for an interface field which is semantically non-null on the interface but nullable on an implementor now names the interface field as the one expecting a non-nullable type. Previously, the two field names were swapped.
+  - `--fix` no longer corrupts the file when removing a tag that is repeated more than twice in the same docblock. Previously, each removal was applied once per duplicate.
 
 ## 0.0.36
 
