@@ -8,12 +8,14 @@ Changes in this section are not yet released. If you need access to these change
 
 Grats has been rewritten in Rust. The `grats` CLI is now a native binary, which parses your code with [oxc](https://oxc.rs) rather than running the TypeScript compiler, and it's much faster:
 
-| Project | CPU time | Peak memory |
+| Project | Wall time | Peak memory |
 | --- | --- | --- |
-| [`examples/production-app`](https://github.com/captbaritone/grats/tree/main/examples/production-app) (18 files) | 2.1 s → 0.05 s (40× less) | 350 MB → 23 MB (15× less) |
-| 10,000 generated files | 16.7 s → 4.1 s (4× less) | 1.75 GB → 0.92 GB (1.9× less) |
+| [`examples/production-app`](https://github.com/captbaritone/grats/tree/main/examples/production-app) (18 files) | 0.81 s → 0.06 s (14× less) | 381 MB → 44 MB (8.6× less) |
+| 10,000 generated files | 6.1 s → 1.3 s (4.7× less) | 1.79 GB → 0.83 GB (2.2× less) |
 
-_CPU time (user and system) and peak memory of 0.0.36's CLI on Node 24 compared with the Rust binary, on an M1 Pro MacBook Pro. The generated project is the one `pnpm run profile` creates._
+_Wall time and peak memory of 0.0.36's CLI compared with the current one, both run as you'd run them — the `grats` command, Node wrapper and all — on Node 24 on an M1 Pro MacBook Pro. Medians of repeated runs against a warm file cache. The generated project is the one `pnpm run profile` creates._
+
+_Most of what's left on `production-app` is the wrapper starting Node: the binary itself finishes in 0.03 s. Small projects are dominated by startup, so the larger the project, the more of the schema extraction itself you're measuring._
 
 We ported Grats one file at a time, and checked every step against its existing test suite: 480 snapshot tests, which record the schema, code, errors and fixes Grats produces for an input, 29 integration tests, which run queries against the generated schema, and the 75 examples in these docs. The Rust implementation passes all of them, and the only snapshot changes are formatting and the error-report changes listed below.
 
