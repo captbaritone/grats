@@ -2,14 +2,10 @@ name: Node.js CI
 
 on:
   push:
-    branches: [main, grats-rs-port]
+    branches: [main]
     tags: ["v*"]
   pull_request:
     branches: [main]
-
-env:
-  # npm dist-tag for prerelease builds published from branches.
-  NPM_TAG: ${{ github.ref == 'refs/heads/grats-rs-port' && 'rust' || 'main' }}
 
 jobs:
   build:
@@ -178,7 +174,7 @@ jobs:
       - name: Set dev version (branch)
         # Must match the version the publish job gives the package.
         if: github.ref_type == 'branch'
-        run: echo "GRATS_VERSION=0.0.0-${NPM_TAG}-${GITHUB_SHA:0:8}" >> "$GITHUB_ENV"
+        run: echo "GRATS_VERSION=0.0.0-main-${GITHUB_SHA:0:8}" >> "$GITHUB_ENV"
       - name: Test
         if: ${{ !matrix.cross }}
         run: cargo test
@@ -237,7 +233,7 @@ jobs:
   publish:
     name: Publish to NPM
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/grats-rs-port' || startsWith(github.ref, 'refs/tags/v')) && github.repository == 'captbaritone/grats'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && github.repository == 'captbaritone/grats'
     needs: [build, test, lint, rust, wasm, build-binary]
     permissions:
       contents: read
@@ -265,7 +261,7 @@ jobs:
         run: chmod +x bin/*/grats
       - name: Set dev version (branch)
         if: github.ref_type == 'branch'
-        run: pnpm version --no-git-tag-version 0.0.0-${NPM_TAG}-${RELEASE_COMMIT_SHA:0:8}
+        run: pnpm version --no-git-tag-version 0.0.0-main-${RELEASE_COMMIT_SHA:0:8}
         env:
           RELEASE_COMMIT_SHA: ${{ github.sha }}
       - name: Check the binaries' version
@@ -293,7 +289,7 @@ jobs:
           node --input-type=module -e 'import "grats";'
       - name: Publish dev version (branch)
         if: github.ref_type == 'branch'
-        run: npm publish "$RUNNER_TEMP"/grats-*.tgz --tag ${NPM_TAG} --access=public
+        run: npm publish "$RUNNER_TEMP"/grats-*.tgz --tag main --access=public
       - name: Publish release (tag)
         if: startsWith(github.ref, 'refs/tags/v')
         run: npm publish "$RUNNER_TEMP"/grats-*.tgz --access=public
