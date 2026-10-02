@@ -13,6 +13,11 @@ type GQLCtx = {
   userID: string;
   db: Database;
 };
+
+/** @gqlQueryField */
+export function userId(ctx: GQLCtx): string {
+  return ctx.userID;
+}
 ```
 
 ## Consuming context values in resolvers

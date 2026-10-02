@@ -28,7 +28,7 @@ use graphql_js::jsutils::natural_compare::natural_compare;
 // include them in the generated schema.
 const BUILT_IN_DIRECTIVES: [&str; 5] = ["skip", "include", "deprecated", "specifiedBy", "oneOf"];
 
-const BUILT_IN_SCALARS: [&str; 5] = ["String", "Int", "Float", "Boolean", "ID"];
+pub(crate) const BUILT_IN_SCALARS: [&str; 5] = ["String", "Int", "Float", "Boolean", "ID"];
 const GQL_SCALAR_TYPE_NAME: &str = "GqlScalar";
 
 // Given a GraphQL SDL, returns the a string of TypeScript code that generates a

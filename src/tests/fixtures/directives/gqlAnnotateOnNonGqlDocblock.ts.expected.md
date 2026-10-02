@@ -10,6 +10,11 @@
  * @gqlAnnotate max(foo: ["a", "b"])
  */
 export function foo() {}
+
+/** @gqlQueryField */
+export function hello(): string {
+  return "Hello";
+}
 ```
 
 ## Output
@@ -17,14 +22,32 @@ export function foo() {}
 ### SDL
 
 ```graphql
-
+type Query {
+  hello: String
+}
 ```
 
 ### TypeScript
 
 ```ts
-import { GraphQLSchema } from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+import { hello as queryHelloResolver } from "./gqlAnnotateOnNonGqlDocblock";
 export function getSchema(): GraphQLSchema {
-    return new GraphQLSchema({ types: [] });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return { hello: {
+                name: "hello",
+                type: GraphQLString,
+                resolve() {
+                    return queryHelloResolver();
+                }
+            } };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType]
+    });
 }
 ```

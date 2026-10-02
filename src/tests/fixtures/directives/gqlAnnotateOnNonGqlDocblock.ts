@@ -5,3 +5,8 @@
  * @gqlAnnotate max(foo: ["a", "b"])
  */
 export function foo() {}
+
+/** @gqlQueryField */
+export function hello(): string {
+  return "Hello";
+}

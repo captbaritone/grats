@@ -45,6 +45,7 @@ If any of these changes cause problems for your project, please [file an issue](
   - With `strictSemanticNullability` enabled, defining your own `@semanticNonNull` directive is now reported at your definition, rather than at a `GraphQL request` copy of Grats' definition.
   - Errors about the name given in a tag, like `@gqlType Name`, now point to the text after the tag rather than to the whole tag.
   - The fix which replaces `@specifiedBy` with `@gqlAnnotate` now escapes quotes and backslashes in the URL, and no longer joins the closing `*/` onto the tag's line.
+  - Projects without any GraphQL types now get an error explaining how to define one, rather than an empty schema. Grats always meant to report this, but the check never fired.
 
 ## 0.0.36
 

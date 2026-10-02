@@ -21,11 +21,36 @@ export function adminCheck(ctx: Ctx): AssertAdminToken {
   }
   return "AdminToken" as AdminToken;
 }
+// trim-start
+
+/** @gqlQueryField */
+export function someField(_admin: AssertAdminToken): string {
+  return "You must be an admin!";
+}
+// trim-end
 
 === SNIP ===
-
+type Query {
+  someField: String
+}
 === SNIP ===
-import { GraphQLSchema } from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+import { someField as querySomeFieldResolver, adminCheck } from "./09-permissions-assert-token-impl.grats";
 export function getSchema(): GraphQLSchema {
-    return new GraphQLSchema({ types: [] });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return { someField: {
+                name: "someField",
+                type: GraphQLString,
+                resolve(_source, _args, context) {
+                    return querySomeFieldResolver(adminCheck(context));
+                }
+            } };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType]
+    });
 }

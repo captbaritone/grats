@@ -139,7 +139,7 @@ pub fn run(
     // System" section.
     graphql_errors(validate_schema(&schema))?;
     // Provide a helpful getting started error if no types are detected.
-    validate_some_types_are_defined(&schema)?;
+    validate_some_types_are_defined(&doc)?;
     // The above spec validation fails to catch type errors in directive
     // arguments, so Grats checks these manually.
     validate_directive_arguments(&schema, &doc)?;

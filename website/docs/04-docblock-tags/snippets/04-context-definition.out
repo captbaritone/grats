@@ -8,11 +8,36 @@ type GQLCtx = {
   userID: string;
   db: Database;
 };
+// trim-start
+
+/** @gqlQueryField */
+export function userId(ctx: GQLCtx): string {
+  return ctx.userID;
+}
+// trim-end
 
 === SNIP ===
-
+type Query {
+  userId: String
+}
 === SNIP ===
-import { GraphQLSchema } from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLString } from "graphql";
+import { userId as queryUserIdResolver } from "./04-context-definition.grats";
 export function getSchema(): GraphQLSchema {
-    return new GraphQLSchema({ types: [] });
+    const QueryType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Query",
+        fields() {
+            return { userId: {
+                name: "userId",
+                type: GraphQLString,
+                resolve(_source, _args, context) {
+                    return queryUserIdResolver(context);
+                }
+            } };
+        }
+    });
+    return new GraphQLSchema({
+        query: QueryType,
+        types: [QueryType]
+    });
 }

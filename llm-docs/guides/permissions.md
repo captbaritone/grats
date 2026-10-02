@@ -266,6 +266,11 @@ export function adminCheck(ctx: Ctx): AssertAdminToken {
   }
   return "AdminToken" as AdminToken;
 }
+
+/** @gqlQueryField */
+export function someField(_admin: AssertAdminToken): string {
+  return "You must be an admin!";
+}
 ```
 
 ### Maybe Tokens
