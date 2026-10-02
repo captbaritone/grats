@@ -10,12 +10,12 @@ Grats has been rewritten in Rust. The `grats` CLI is now a native binary, which 
 
 | Project | Wall time | Peak memory |
 | --- | --- | --- |
-| [`examples/production-app`](https://github.com/captbaritone/grats/tree/main/examples/production-app) (18 files) | 0.81 s → 0.06 s (14× less) | 381 MB → 44 MB (8.6× less) |
-| 10,000 generated files | 6.1 s → 1.3 s (4.7× less) | 1.79 GB → 0.83 GB (2.2× less) |
+| [`examples/production-app`](https://github.com/captbaritone/grats/tree/main/examples/production-app) (18 files) | 0.82 s → 0.06 s (14× less) | 380 MB → 44 MB (8.6× less) |
+| 10,000 generated files | 6.1 s → 0.9 s (6.6× less) | 1.79 GB → 0.82 GB (2.2× less) |
 
 _Wall time and peak memory of 0.0.36's CLI compared with the current one, both run as you'd run them — the `grats` command, Node wrapper and all — on Node 24 on an M1 Pro MacBook Pro. Medians of repeated runs against a warm file cache. The generated project is the one `pnpm run profile` creates._
 
-_Most of what's left on `production-app` is the wrapper starting Node: the binary itself finishes in 0.03 s. Small projects are dominated by startup, so the larger the project, the more of the schema extraction itself you're measuring._
+_Most of what's left on `production-app` is the wrapper starting Node: the binary itself finishes in 0.02 s. Small projects are dominated by startup, so the larger the project, the more of the schema extraction itself you're measuring._
 
 We ported Grats one file at a time, and checked every step against its existing test suite: 480 snapshot tests, which record the schema, code, errors and fixes Grats produces for an input, 29 integration tests, which run queries against the generated schema, and the 75 examples in these docs. The Rust implementation passes all of them, and the only snapshot changes are formatting and the error-report changes listed below.
 
