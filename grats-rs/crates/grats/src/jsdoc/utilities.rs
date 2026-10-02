@@ -1,12 +1,14 @@
-//! Ports of the JSDoc functions of TypeScript's `utilities.ts` and
-//! `utilitiesPublic.ts`, and of Grats' `utils/JSDoc.ts`.
+//! Finds the JSDoc of nodes. Which nodes a docblock applies to follows
+//! TypeScript's `getJSDocCommentsAndTags`, so that tags apply to the same
+//! nodes they did when Grats used TypeScript's parser.
 
 use std::collections::HashSet;
 
 use super::nodes::{JSDocId, JSDocIndex, SyntaxKind, TagId, TsNodeId};
 use super::parser::{JSDocComment, JSDocCommentPart, JSDocLinkKind};
 
-/// PORT: `JSDoc | JSDocTag`, the items of `getJSDocCommentsAndTags`.
+/// A whole docblock, or one of the `@overload` tags of a docblock before the
+/// last one of a node.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum JSDocOrTag {
     JSDoc(JSDocId),
@@ -14,7 +16,7 @@ pub enum JSDocOrTag {
 }
 
 impl JSDocIndex {
-    pub fn can_have_js_doc(&self, node: TsNodeId) -> bool {
+    fn can_have_js_doc(&self, node: TsNodeId) -> bool {
         use SyntaxKind as K;
         matches!(
             self.node(node).kind,
@@ -84,11 +86,8 @@ impl JSDocIndex {
         )
     }
 
-    pub fn has_js_doc_nodes(&self, node: TsNodeId) -> bool {
-        if !self.can_have_js_doc(node) {
-            return false;
-        }
-        !self.node(node).js_doc.is_empty()
+    fn has_js_doc_nodes(&self, node: TsNodeId) -> bool {
+        self.can_have_js_doc(node) && !self.node(node).js_doc.is_empty()
     }
 
     /// Get all JSDoc tags related to a node, including those on parent nodes.
@@ -96,19 +95,21 @@ impl JSDocIndex {
         if !self.can_have_js_doc(node) {
             return Vec::new();
         }
-        let comments = self.get_js_doc_comments_and_tags(node);
-        comments
+        self.get_js_doc_comments_and_tags(node)
             .into_iter()
-            .flat_map(|j| match j {
+            .flat_map(|item| match item {
                 JSDocOrTag::JSDoc(js_doc) => self.tags(js_doc).collect::<Vec<_>>(),
                 JSDocOrTag::Tag(tag) => vec![tag],
             })
             .collect()
     }
 
-    /// PORT: `@param` and `@template` tags aren't included for parameters
-    /// and type parameters. Since they come last, the other tags are the
-    /// same.
+    /// The JSDoc which applies to a node, including the JSDoc of the nodes
+    /// it's part of, like the variable statement of a variable declaration.
+    ///
+    /// Unlike TypeScript, the `@param` and `@template` tags of a function
+    /// aren't included for its parameters and type parameters. Since they
+    /// come last, the other tags are the same.
     pub fn get_js_doc_comments_and_tags(&self, host_node: TsNodeId) -> Vec<JSDocOrTag> {
         let mut result = Vec::new();
         if self.is_variable_like(host_node)
@@ -124,10 +125,10 @@ impl JSDocIndex {
             if self.has_js_doc_nodes(current) {
                 result.extend(self.filter_owned_js_doc_tags(&self.node(current).js_doc));
             }
-            if self.node(current).kind == SyntaxKind::Parameter {
-                break;
-            }
-            if self.node(current).kind == SyntaxKind::TypeParameter {
+            if matches!(
+                self.node(current).kind,
+                SyntaxKind::Parameter | SyntaxKind::TypeParameter
+            ) {
                 break;
             }
             node = self.get_next_js_doc_comment_location(current);
@@ -135,25 +136,20 @@ impl JSDocIndex {
         result
     }
 
-    /// PORT: `ownsJSDocTag` is always true, since only `@type` and
-    /// `@satisfies` tags on parenthesized expressions can be disowned, and
-    /// they aren't parsed as such (see `parser`).
+    /// The last of a node's docblocks, after the `@overload` tags of the
+    /// others.
+    ///
+    /// TypeScript also leaves out the `@type` and `@satisfies` tags of
+    /// parenthesized expressions, which aren't parsed as such (see `parser`).
     fn filter_owned_js_doc_tags(&self, comments: &[JSDocId]) -> Vec<JSDocOrTag> {
-        let Some(&last_js_doc) = comments.last() else {
+        let Some((&last_js_doc, rest)) = comments.split_last() else {
             return Vec::new();
         };
-        comments
-            .iter()
-            .flat_map(|&js_doc| {
-                if js_doc == last_js_doc {
-                    vec![JSDocOrTag::JSDoc(js_doc)]
-                } else {
-                    self.tags(js_doc)
-                        .filter(|&tag| self.tag(tag).tag_name.text == "overload")
-                        .map(JSDocOrTag::Tag)
-                        .collect()
-                }
-            })
+        rest.iter()
+            .flat_map(|&js_doc| self.tags(js_doc))
+            .filter(|&tag| self.tag(tag).tag_name.text == "overload")
+            .map(JSDocOrTag::Tag)
+            .chain([JSDocOrTag::JSDoc(last_js_doc)])
             .collect()
     }
 
@@ -167,7 +163,7 @@ impl JSDocIndex {
         ) || (parent_kind == K::ExpressionStatement
             && self.node(node).kind == K::PropertyAccessExpression)
             || parent_kind == K::ReturnStatement
-            || self.get_nested_module_declaration(parent).is_some()
+            || self.has_nested_module_declaration(parent)
             || self.is_assignment_expression(node)
         {
             return Some(parent);
@@ -179,7 +175,8 @@ impl JSDocIndex {
             return Some(grandparent);
         }
         let great_grandparent = self.node(grandparent).parent?;
-        // PORT: `getSourceOfDefaultedAssignment` is only for JavaScript.
+        // TypeScript also checks `getSourceOfDefaultedAssignment`, which is
+        // only for JavaScript.
         if self
             .get_single_variable_of_variable_statement(great_grandparent)
             .is_some()
@@ -207,23 +204,23 @@ impl JSDocIndex {
         )
     }
 
-    /// PORT: `isAssignmentExpression`, for any assignment operator.
+    /// Whether the node is an assignment, with any assignment operator.
     fn is_assignment_expression(&self, node: TsNodeId) -> bool {
         self.node(node).is_assignment
     }
 
-    fn get_nested_module_declaration(&self, node: TsNodeId) -> Option<TsNodeId> {
-        if self.node(node).kind != SyntaxKind::ModuleDeclaration {
-            return None;
-        }
-        self.node(node)
-            .children
-            .iter()
-            .copied()
-            .find(|&child| self.node(child).kind == SyntaxKind::ModuleDeclaration)
+    /// Whether the node is a module declaration with a module declaration in
+    /// it, like `namespace A.B {}`.
+    fn has_nested_module_declaration(&self, node: TsNodeId) -> bool {
+        let node = self.node(node);
+        node.kind == SyntaxKind::ModuleDeclaration
+            && node
+                .children
+                .iter()
+                .any(|&child| self.node(child).kind == SyntaxKind::ModuleDeclaration)
     }
 
-    pub fn get_single_variable_of_variable_statement(&self, node: TsNodeId) -> Option<TsNodeId> {
+    fn get_single_variable_of_variable_statement(&self, node: TsNodeId) -> Option<TsNodeId> {
         if self.node(node).kind != SyntaxKind::VariableStatement {
             return None;
         }
@@ -256,8 +253,8 @@ impl JSDocIndex {
         }
     }
 
-    /// PORT: `isDeclarationStatement`. oxc doesn't produce
-    /// `MissingDeclaration`s.
+    /// Like TypeScript's `isDeclarationStatement`, besides
+    /// `MissingDeclaration`s, which oxc doesn't produce.
     pub fn is_declaration_statement(&self, node: TsNodeId) -> bool {
         use SyntaxKind as K;
         matches!(
@@ -276,25 +273,19 @@ impl JSDocIndex {
         )
     }
 
-    /// PORT: Grats' `traverseJSDocTags`.
-    ///
-    /// Recursively search for all JSDoc tags calling `cb` on each one with
-    /// its direct parent node.
+    /// Calls `cb` on each JSDoc tag in the file with its direct parent node.
     pub fn traverse_js_doc_tags(&self, mut cb: impl FnMut(TsNodeId, TagId)) {
-        // Typescript only has an API to get the JSDoc tags for a node AND all of its
-        // parents. So, we rely on the fact that we are recursing breadth-first and
-        // only call the callback the first time we encounter a tag.  This should
-        // ensure we only ever call the callback once per tag, and that we call it
-        // with the tag's "true" parent node.
+        // `get_js_doc_tags` gets the JSDoc tags for a node AND all of the nodes
+        // it's part of. So, we rely on the fact that we visit parents before
+        // their children and only call the callback the first time we
+        // encounter a tag. This should ensure we only ever call the callback
+        // once per tag, and that we call it with the tag's "true" parent node.
         let mut seen_tags: HashSet<TagId> = HashSet::new();
-        // PORT: The nodes are already in the order `forEachChild` visits
-        // them.
         for node in self.nodes() {
             for tag in self.get_js_doc_tags(node) {
-                if seen_tags.contains(&tag) {
+                if !seen_tags.insert(tag) {
                     break;
                 }
-                seen_tags.insert(tag);
                 cb(node, tag);
             }
         }
@@ -307,22 +298,18 @@ pub fn get_text_of_js_doc_comment(comment: Option<&JSDocComment>) -> Option<Stri
         JSDocComment::Parts(parts) => Some(
             parts
                 .iter()
-                .map(|c| match c {
+                .map(|part| match part {
                     JSDocCommentPart::Text(text) => text.clone(),
-                    link => format_js_doc_link(link),
+                    JSDocCommentPart::Link {
+                        kind, name, text, ..
+                    } => format_js_doc_link(*kind, name.as_deref(), text),
                 })
                 .collect(),
         ),
     }
 }
 
-fn format_js_doc_link(link: &JSDocCommentPart) -> String {
-    let JSDocCommentPart::Link {
-        kind, name, text, ..
-    } = link
-    else {
-        unreachable!()
-    };
+fn format_js_doc_link(kind: JSDocLinkKind, name: Option<&str>, text: &str) -> String {
     let kind = match kind {
         JSDocLinkKind::Link => "link",
         JSDocLinkKind::LinkCode => "linkcode",
@@ -333,5 +320,5 @@ fn format_js_doc_link(link: &JSDocCommentPart) -> String {
     } else {
         " "
     };
-    format!("{{@{kind} {}{space}{text}}}", name.as_deref().unwrap_or(""))
+    format!("{{@{kind} {}{space}{text}}}", name.unwrap_or(""))
 }

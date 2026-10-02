@@ -1,8 +1,6 @@
-//! PORT: Replaces `getParsedTsConfig` in `src/index.ts`, which read
-//! `tsconfig.json` with `ts.getParsedCommandLineOfConfigFile`, and
-//! `getTsConfig` in `src/cli.ts`, which found it with `ts.findConfigFile`.
-//! `oxc_resolver` reads the config, following `extends`, and we list the
-//! files it includes like TypeScript's `matchFiles`.
+//! Finds and reads a project's `tsconfig.json`. `oxc_resolver` reads the
+//! config, following `extends`, and we list the files it includes like
+//! TypeScript's `matchFiles`.
 //!
 //! Differences from TypeScript:
 //!
@@ -193,9 +191,7 @@ fn root_names(tsconfig: &TsConfig, allow_js: bool, host: &dyn Host) -> Vec<Strin
             && split_extension(file)
                 .is_none_or(|(stem, group, priority)| priorities[&(stem, group)] == priority)
     });
-    let mut root_names = files.clone();
-    root_names.extend(wildcard.cloned());
-    root_names
+    files.iter().chain(wildcard).cloned().collect()
 }
 
 /// A pattern whose last component has no extension or wildcard names a

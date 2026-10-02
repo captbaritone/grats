@@ -1,8 +1,7 @@
-//! PORT: No TypeScript counterpart. The files of the program, which are
-//! parsed with oxc as they're loaded (see `crate::program`). Like the
-//! `SourceFile`s of a `ts.Program`, each file is parsed once and shared by
-//! everything which reads it: the program's file walk, the extractor and the
-//! name resolver. Semantic analysis only runs on the files that need it.
+//! The files of the program, which are parsed with oxc as they're loaded
+//! (see `crate::program`). Each file is parsed once and shared by everything
+//! which reads it: the program's file walk, the extractor and the name
+//! resolver. Semantic analysis only runs on the files that need it.
 
 use std::cell::{OnceCell, RefCell};
 use std::collections::HashMap;
@@ -195,8 +194,8 @@ impl<'a> ParsedFile<'a> {
         index.checked_sub(1).map(|index| &self.tokens[index])
     }
 
-    /// PORT: A node's `pos`, its "full start": the end of the token before
-    /// `start`, so it includes the trivia before it.
+    /// The "full start" of a node which starts at `start`: the end of the
+    /// token before it, so it includes the trivia before the node.
     pub fn full_start(&self, start: u32) -> u32 {
         self.token_before(start).map_or(0, Token::end)
     }

@@ -1,12 +1,10 @@
-//! Port of `src/snapshotRefs.ts`.
-//!
 //! Plain-data handles which the extractor records in an `ExtractionSnapshot`
 //! in place of TypeScript AST nodes. They capture everything later passes need
 //! to know about a node syntactically. Anything that requires knowing what a
 //! name refers to is answered by `TypeContext`.
 //!
-//! PORT: The functions which record refs take oxc's nodes, along with the
-//! file they're in, which TypeScript's nodes know.
+//! The functions which record refs take oxc's nodes, along with the file
+//! they're in.
 
 use graphql_js::language::ast::Location;
 use oxc_ast::AstKind;
@@ -15,7 +13,6 @@ use oxc_ast::ast::{
     TSTypeParameterDeclaration, TSTypeParameterInstantiation, TSTypeReference,
 };
 use oxc_span::{GetSpan, Span};
-use serde::Deserialize;
 
 use crate::files::ParsedFile;
 use crate::graphql_constructor::loc;
@@ -28,10 +25,7 @@ pub type DeclLoc = String;
 
 /// A declaration which defines a GraphQL construct, or a TypeScript interface
 /// used to define one.
-///
-/// PORT: Fields are modeled once ported code reads them.
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug)]
 pub struct DeclRef {
     pub decl_loc: DeclLoc,
     pub name: Location,
@@ -39,8 +33,7 @@ pub struct DeclRef {
     pub type_parameters: Vec<TypeParameterRef>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone)]
 pub struct TypeParameterRef {
     pub decl_loc: DeclLoc,
     pub name: String,
@@ -50,10 +43,7 @@ pub struct TypeParameterRef {
 
 /// A reference to a TypeScript type by name, such as `Foo`, `ns.Foo` or
 /// `Foo<Bar>`, which may reference a GraphQL type.
-///
-/// PORT: `kind: "ENTITY_NAME"` is modeled by `TypeArgumentRef`.
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug)]
 pub struct EntityNameRef {
     /// The name being referenced, e.g. `ns.Foo` in `ns.Foo<Bar>`.
     pub name: Location,
@@ -62,47 +52,40 @@ pub struct EntityNameRef {
     pub type_arguments: Option<Vec<TypeArgumentRef>>,
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(tag = "kind", rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Debug)]
 pub enum TypeArgumentRef {
     EntityName(EntityNameRef),
     OtherType { loc: Location },
 }
 
-/// PORT: TypeScript's declaration nodes know their file and name. Here,
-/// `anchor` is the declaration's name, if it has one, or else the
-/// declaration (see `declaration_anchor`).
+/// Identifies the declaration in `file` whose name is at `anchor`, or for a
+/// declaration without a name, the declaration at `anchor` (see `decl_ref`).
 pub fn decl_loc(file: &ParsedFile, anchor: Span) -> DeclLoc {
     // Anchor on the name, if there is one, since its position is unaffected
     // by any modifiers or decorators.
     format!("{}:{}", file.path, file.offsets.to_utf16(anchor.start))
 }
 
-/// PORT: `node` is the declaration and `span` its span, as TypeScript's
-/// `getStart()` and `getEnd()` give it: including any `export` and
-/// decorators.
+/// `node` is the declaration and `span` its whole span, including any
+/// `export` and decorators.
 pub fn decl_ref(file: &ParsedFile, node: AstKind, span: Span) -> DeclRef {
     let anchor = get_name_of_declaration(node).unwrap_or(span);
     DeclRef {
         decl_loc: decl_loc(file, anchor),
         name: loc(TsLocatableNode::new(file, anchor)),
         type_parameters: get_type_parameters(node)
-            .map(|parameters| {
-                parameters
-                    .params
-                    .iter()
-                    .map(|param| TypeParameterRef {
-                        decl_loc: decl_loc(file, param.name.span),
-                        name: param.name.name.to_string(),
-                        loc: loc(TsLocatableNode::new(file, param.span)),
-                    })
-                    .collect()
+            .into_iter()
+            .flat_map(|parameters| &parameters.params)
+            .map(|param| TypeParameterRef {
+                decl_loc: decl_loc(file, param.name.span),
+                name: param.name.name.to_string(),
+                loc: loc(TsLocatableNode::new(file, param.span)),
             })
-            .unwrap_or_default(),
+            .collect(),
     }
 }
 
-/// PORT: `ts.getNameOfDeclaration`, for the declarations Grats records.
+/// Like `ts.getNameOfDeclaration`, for the declarations Grats records.
 fn get_name_of_declaration(node: AstKind) -> Option<Span> {
     match node {
         AstKind::Class(class) => class.id.as_ref().map(|id| id.span),
@@ -137,7 +120,7 @@ fn get_type_parameters<'a>(declaration: AstKind<'a>) -> Option<&'a TSTypeParamet
     }
 }
 
-/// PORT: A `ts.EntityName`, by the parent which `entityNameRef` looks at.
+/// A TypeScript entity name, by the node it's the name of.
 #[derive(Clone, Copy)]
 pub enum EntityName<'n, 'a> {
     /// The name of a type reference.
@@ -187,19 +170,11 @@ fn type_argument_refs(
     file: &ParsedFile,
     type_arguments: Option<&TSTypeParameterInstantiation>,
 ) -> Option<Vec<TypeArgumentRef>> {
-    let type_arguments = type_arguments?;
-    Some(
-        type_arguments
-            .params
-            .iter()
-            .map(|arg| {
-                if let TSType::TSTypeReference(arg) = arg {
-                    return TypeArgumentRef::EntityName(type_reference_ref(file, arg));
-                }
-                TypeArgumentRef::OtherType {
-                    loc: loc(TsLocatableNode::new(file, arg.span())),
-                }
-            })
-            .collect(),
-    )
+    let refs = type_arguments?.params.iter().map(|arg| match arg {
+        TSType::TSTypeReference(arg) => TypeArgumentRef::EntityName(type_reference_ref(file, arg)),
+        arg => TypeArgumentRef::OtherType {
+            loc: loc(TsLocatableNode::new(file, arg.span())),
+        },
+    });
+    Some(refs.collect())
 }

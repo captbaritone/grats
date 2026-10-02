@@ -1,9 +1,6 @@
-//! Port of `src/TypeContext.ts`.
-
 use std::collections::HashMap;
 
-use graphql_js::language::ast::{Location, NameNode, ResolverArgument};
-use serde::Deserialize;
+use graphql_js::language::ast::{Location, NameNode, ResolverArgument, TsIdentifier};
 
 use crate::errors::{self as E, ContextOrInfo};
 use crate::extractor::NameDefinitionEntry;
@@ -12,12 +9,11 @@ use crate::snapshot_refs::{DeclLoc, DeclRef, EntityNameRef};
 use crate::utils::diagnostic_error::{
     Diagnostic, DiagnosticResult, DiagnosticsResult, gql_err, gql_related,
 };
-use graphql_js::language::ast::TsIdentifier;
+use crate::utils::result::ok_unless_errors;
 
 pub const UNRESOLVED_REFERENCE_NAME: &str = "__UNRESOLVED_REFERENCE__";
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DeclarationDefinitionKind {
     Type,
     Interface,
@@ -30,20 +26,18 @@ pub enum DeclarationDefinitionKind {
     DerivedContext,
 }
 
-/// PORT: `NameDefinition | DerivedResolverDefinition`, which share `name` and
-/// `kind`. The rest of a `DerivedResolverDefinition` is in `derived_context`.
-#[derive(Debug, Deserialize)]
+/// What a declaration defines: a GraphQL construct, the context or info type,
+/// or a derived context.
+#[derive(Debug)]
 pub struct DeclarationDefinition {
     pub name: NameNode,
     pub kind: DeclarationDefinitionKind,
     /// Present if `kind` is `DerivedContext`.
-    #[serde(flatten)]
     pub derived_context: Option<DerivedResolverDefinition>,
 }
 
-/// PORT: The fields of `DerivedResolverDefinition` besides `name` and `kind`.
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
+/// The resolver function which derives a derived context.
+#[derive(Debug)]
 pub struct DerivedResolverDefinition {
     pub path: String,
     pub export_name: Option<String>,
@@ -78,7 +72,7 @@ impl<'r> TypeContext<'r> {
         implicit_name_definitions: Vec<(DeclarationDefinition, EntityNameRef)>,
     ) -> DiagnosticsResult<Self> {
         let mut errors: Vec<Diagnostic> = Vec::new();
-        let mut self_ = TypeContext {
+        let mut type_context = TypeContext {
             resolver,
             declaration_to_definition: HashMap::new(),
             unresolved_nodes: unresolved_names.into_iter().collect(),
@@ -93,13 +87,16 @@ impl<'r> TypeContext<'r> {
         ) in name_definitions
         {
             let decl_loc = declaration.decl_loc.clone();
-            self_
+            type_context
                 .id_to_declaration
                 .insert(definition.name.ts_identifier, declaration);
-            self_.declaration_to_definition.insert(decl_loc, definition);
+            type_context
+                .declaration_to_definition
+                .insert(decl_loc, definition);
         }
         for (definition, reference) in implicit_name_definitions {
-            let Some(declaration) = self_.maybe_declaration_for_ts_name(reference.name) else {
+            let Some(declaration) = type_context.maybe_declaration_for_ts_name(reference.name)
+            else {
                 errors.push(gql_err(
                     Some(reference.name),
                     E::unresolved_type_reference(),
@@ -107,7 +104,10 @@ impl<'r> TypeContext<'r> {
                 ));
                 continue;
             };
-            if let Some(existing) = self_.declaration_to_definition.get(&declaration.decl_loc) {
+            if let Some(existing) = type_context
+                .declaration_to_definition
+                .get(&declaration.decl_loc)
+            {
                 errors.push(gql_err(
                     Some(declaration.loc),
                     "Multiple derived contexts defined for given type".to_string(),
@@ -118,15 +118,12 @@ impl<'r> TypeContext<'r> {
                 ));
                 continue;
             }
-            self_
+            type_context
                 .declaration_to_definition
                 .insert(declaration.decl_loc, definition);
         }
 
-        if !errors.is_empty() {
-            return Err(errors);
-        }
-        Ok(self_)
+        ok_unless_errors(errors, type_context)
     }
 
     fn find_declaration(
@@ -202,23 +199,18 @@ impl<'r> TypeContext<'r> {
 
     /// Resolves a TypeScript entity name to the declaration it refers to.
     pub fn resolve_entity_name(&self, name: Location) -> DiagnosticResult<ResolvedDeclaration> {
-        let Some(declaration) = self.maybe_declaration_for_ts_name(name) else {
-            return Err(gql_err(Some(name), E::unresolved_type_reference(), None));
-        };
-        Ok(declaration)
+        self.maybe_declaration_for_ts_name(name)
+            .ok_or_else(|| gql_err(Some(name), E::unresolved_type_reference(), None))
     }
 
     /// Gets the TypeScript declaration for a GraphQL definition node
     /// Currently used exclusively for taking a GraphQL declaration and
     /// finding its TypeScript declaration in order to find generic type
     /// parameters.
-    ///
-    /// PORT: Takes the definition's name, which is all it reads.
     pub fn declaration_for_gql_definition(&self, name: &NameNode) -> &DeclRef {
-        let Some(declaration) = self.id_to_declaration.get(&name.ts_identifier) else {
-            panic!("Could not find declaration for {}", name.value);
-        };
-        declaration
+        self.id_to_declaration
+            .get(&name.ts_identifier)
+            .unwrap_or_else(|| panic!("Could not find declaration for {}", name.value))
     }
 
     /// Gets the TypeScript entity name associated with a GraphQL NameNode
