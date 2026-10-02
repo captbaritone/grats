@@ -1,14 +1,13 @@
-//! Port of `src/Extractor.ts`.
+//! Extracts GraphQL definitions from a TypeScript file.
 //!
-//! PORT: The extractor reads the file's JSDoc (`jsdoc`), which follows
-//! TypeScript's rules, and oxc's AST. Offsets are UTF-8 until locations are
-//! made.
+//! The extractor reads the file's JSDoc (`jsdoc`), which follows TypeScript's
+//! rules, and oxc's AST. Offsets are UTF-8 until locations are made.
 
 use std::collections::{HashMap, HashSet};
 
 use graphql_js::language::ast::{
-    ConstArgumentNode, ConstDirectiveNode, ConstListValueNode, ConstObjectFieldNode,
-    ConstObjectValueNode, ConstValueNode, DefinitionNode, DiagnosticHandle, DiagnosticHandleResult,
+    ConstDirectiveNode, ConstListValueNode, ConstObjectFieldNode, ConstObjectValueNode,
+    ConstValueNode, DefinitionNode, DiagnosticHandle, DiagnosticHandleResult,
     EnumValueDefinitionNode, ExportDefinition, FieldDefinitionNode, InputValueDefinitionNode,
     InputValueDefinitionNodeOrResolverArg, NameNode, NamedTypeNode, ResolverArgument,
     ResolverSignature, StringValueNode, TsIdentifier, TypeNode,
@@ -58,6 +57,7 @@ use crate::utils::diagnostic_error::{
 };
 use crate::utils::helpers::{levenshtein_distance, unique_id};
 use crate::utils::path;
+use crate::utils::result::ok_unless_errors;
 
 pub const LIBRARY_IMPORT_NAME: &str = "grats";
 pub const LIBRARY_NAME: &str = "Grats";
@@ -101,8 +101,8 @@ pub const ALL_GQL_TAGS: [&str; 12] = [
 const DEPRECATED_TAG: &str = "deprecated";
 pub const ONE_OF_TAG: &str = "oneOf";
 
-/// PORT: `[...ALL_GQL_TAGS, KILLS_PARENT_ON_EXCEPTION_TAG, ONE_OF_TAG]`, spelled
-/// out since arrays can't be spread in a `const`.
+/// `ALL_GQL_TAGS`, `KILLS_PARENT_ON_EXCEPTION_TAG` and `ONE_OF_TAG`, spelled
+/// out since arrays can't be concatenated in a `const`.
 pub const TAGS: [&str; 14] = [
     TYPE_TAG,
     FIELD_TAG,
@@ -153,8 +153,7 @@ pub struct ExtractionSnapshot {
     /// since merged interfaces have surprising behaviors which can lead to bugs.
     pub interface_declarations: Vec<DeclRef>,
 
-    /// PORT: The diagnostics which `DiagnosticHandle`s in `definitions`
-    /// refer to, which TypeScript holds directly.
+    /// The diagnostics which `DiagnosticHandle`s in `definitions` refer to.
     pub diagnostics_by_handle: HashMap<DiagnosticHandle, Diagnostic>,
 }
 
@@ -183,7 +182,7 @@ impl FromIterator<ExtractionSnapshot> for ExtractionSnapshot {
     }
 }
 
-/// PORT: `{ declaration: DeclRef; definition: NameDefinition }`.
+/// A declaration, and what it defines.
 #[derive(Debug)]
 pub struct NameDefinitionEntry {
     pub declaration: DeclRef,
@@ -199,16 +198,14 @@ pub struct NameDefinitionEntry {
 /// This ensures that we can apply GraphQL schema validation rules, and any reported
 /// errors will point to the correct location in the TypeScript source code.
 ///
-/// PORT: Takes the config's `tsClientEnums`, as TypeScript does, with the
-/// rest of it. `grats_root` is the context which TypeScript's module-level
-/// state provides: the root which exported paths are relative to.
+/// `grats_root` is the absolute path which the module paths of resolvers are
+/// relative to.
 pub fn extract(
     source_file: &ParsedFile,
     config: &GratsConfig,
     grats_root: &str,
 ) -> DiagnosticsResult<ExtractionSnapshot> {
-    let extractor = Extractor::new(source_file, config, grats_root);
-    extractor.extract()
+    Extractor::new(source_file, config, grats_root).extract()
 }
 
 struct Extractor<'f, 'a> {
@@ -223,12 +220,10 @@ struct Extractor<'f, 'a> {
     errors: Vec<Diagnostic>,
     config: &'f GratsConfig,
 
-    /// PORT: The file being extracted, which TypeScript's nodes refer to.
     file: &'f ParsedFile<'a>,
-    /// PORT: The JSDoc of `file`.
+    /// The JSDoc of `file`.
     jsdoc: &'f JSDocIndex,
     grats_root: &'f str,
-    /// PORT: See `ExtractionSnapshot::diagnostics_by_handle`.
     diagnostics_by_handle: HashMap<DiagnosticHandle, Diagnostic>,
 }
 
@@ -292,9 +287,8 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 INTERFACE_TAG => self.extract_interface(node, tag),
                 ENUM_TAG => self.extract_enum(node, tag),
                 INPUT_TAG => {
-                    let one_of = self.find_tag(node, ONE_OF_TAG);
-                    if let Some(one_of) = one_of {
-                        self.report(
+                    if let Some(one_of) = self.find_tag(node, ONE_OF_TAG) {
+                        self.report_with(
                             self.tag_span(one_of),
                             "The `@oneOf` tag has been deprecated. Grats will now automatically add the `@oneOf` directive if you define your input type as a TypeScript union. You can remove the `@oneOf` tag.".to_string(),
                             Some(vec![]),
@@ -315,12 +309,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 FIELD_TAG => self.extract_field(node, tag, None),
                 CONTEXT_TAG => {
                     if !jsdoc.is_declaration_statement(node) {
-                        self.report(
-                            self.tag_span(tag),
-                            e::context_tag_on_non_declaration(),
-                            None,
-                            None,
-                        );
+                        self.report(self.tag_span(tag), e::context_tag_on_non_declaration());
                     } else if jsdoc.node(node).kind == SyntaxKind::FunctionDeclaration {
                         self.record_derived_context(node, tag);
                     } else {
@@ -330,19 +319,21 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 }
                 INFO_TAG => {
                     if jsdoc.node(node).kind != SyntaxKind::TypeAliasDeclaration {
-                        self.report(self.tag_span(tag), e::user_defined_info_tag(), None, None);
+                        self.report(self.tag_span(tag), e::user_defined_info_tag());
                     } else {
                         let name = gql::name(self.locatable(self.tag_span(tag)), "INFO_DUMMY_NAME");
                         self.record_type_name(node, name, DeclarationDefinitionKind::Info);
                     }
                 }
                 KILLS_PARENT_ON_EXCEPTION_TAG => {
-                    if !(self.has_tag(node, FIELD_TAG)
-                        || self.has_tag(node, QUERY_FIELD_TAG)
-                        || self.has_tag(node, MUTATION_FIELD_TAG)
-                        || self.has_tag(node, SUBSCRIPTION_FIELD_TAG))
-                    {
-                        self.report(
+                    let field_tags = [
+                        FIELD_TAG,
+                        QUERY_FIELD_TAG,
+                        MUTATION_FIELD_TAG,
+                        SUBSCRIPTION_FIELD_TAG,
+                    ];
+                    if !field_tags.iter().any(|field_tag| self.has_tag(node, field_tag)) {
+                        self.report_with(
                             self.tag_name_span(tag),
                             e::kills_parent_on_exception_on_wrong_node(),
                             Some(vec![]),
@@ -366,7 +357,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     let end = tag_data
                         .comment_span
                         .map_or(tag_data.tag_name.end, |span| span.end);
-                    self.report(
+                    self.report_with(
                         self.tag_span(tag),
                         e::specified_by_deprecated(),
                         Some(vec![]),
@@ -380,69 +371,55 @@ impl<'f, 'a> Extractor<'f, 'a> {
                         }),
                     );
                 }
+                IMPLEMENTS_TAG_DEPRECATED => {
+                    self.report(self.tag_name_span(tag), e::implements_tag_deprecated());
+                }
                 _ => {
                     let lower_case_tag = tag_name.to_lowercase();
-                    if lower_case_tag.starts_with("gql") {
-                        let mut reported = false;
-                        if tag_name == IMPLEMENTS_TAG_DEPRECATED {
-                            self.report(
-                                self.tag_name_span(tag),
-                                e::implements_tag_deprecated(),
-                                None,
-                                None,
-                            );
-                            return;
-                        }
-                        for t in ALL_GQL_TAGS {
-                            if t.to_lowercase() == lower_case_tag {
-                                self.report(
-                                    self.tag_name_span(tag),
-                                    e::wrong_casing_for_grats_tag(tag_name, t),
-                                    Some(vec![]),
-                                    Some(CodeFixAction {
-                                        fix_name: "fix-grats-tag-casing".to_string(),
-                                        description: format!("Change to @{t}"),
-                                        changes: vec![act::replace_node(
-                                            self.locatable(self.tag_name_span(tag)),
-                                            t,
-                                        )],
-                                    }),
-                                );
-                                reported = true;
-                                break;
-                            }
-                        }
-                        if !reported {
+                    if !lower_case_tag.starts_with("gql") {
+                        return;
+                    }
+                    let (message, fix_name, replacement) = match ALL_GQL_TAGS
+                        .into_iter()
+                        .find(|t| t.to_lowercase() == lower_case_tag)
+                    {
+                        Some(t) => (
+                            e::wrong_casing_for_grats_tag(tag_name, t),
+                            "fix-grats-tag-casing".to_string(),
+                            t,
+                        ),
+                        None => {
                             let suggested = ALL_GQL_TAGS
                                 .into_iter()
                                 .min_by_key(|t| levenshtein_distance(t, tag_name))
                                 .expect("ALL_GQL_TAGS is not empty");
-
-                            self.report(
-                                self.tag_name_span(tag),
+                            (
                                 e::invalid_grats_tag(tag_name),
-                                Some(vec![]),
-                                Some(CodeFixAction {
-                                    fix_name: format!("change-to-{suggested}"),
-                                    description: format!("Change to @{suggested}"),
-                                    changes: vec![act::replace_node(
-                                        self.locatable(self.tag_name_span(tag)),
-                                        suggested,
-                                    )],
-                                }),
-                            );
+                                format!("change-to-{suggested}"),
+                                suggested,
+                            )
                         }
-                    }
+                    };
+                    self.report_with(
+                        self.tag_name_span(tag),
+                        message,
+                        Some(vec![]),
+                        Some(CodeFixAction {
+                            fix_name,
+                            description: format!("Change to @{replacement}"),
+                            changes: vec![act::replace_node(
+                                self.locatable(self.tag_name_span(tag)),
+                                replacement,
+                            )],
+                        }),
+                    );
                 }
             }
         });
-        let errors = detect_invalid_comments(self.file, &seen_comment_positions);
-        self.errors.extend(errors);
+        self.errors
+            .extend(detect_invalid_comments(self.file, &seen_comment_positions));
 
-        if !self.errors.is_empty() {
-            return Err(self.errors);
-        }
-        Ok(ExtractionSnapshot {
+        let snapshot = ExtractionSnapshot {
             definitions: self.definitions,
             unresolved_names: self.unresolved_names.into_iter().collect(),
             name_definitions: self.name_definitions.into_iter().collect(),
@@ -450,7 +427,8 @@ impl<'f, 'a> Extractor<'f, 'a> {
             types_with_typename: self.types_with_typename,
             interface_declarations: self.interface_declarations,
             diagnostics_by_handle: self.diagnostics_by_handle,
-        })
+        };
+        ok_unless_errors(self.errors, snapshot)
     }
 
     fn extract_field(&mut self, node: TsNodeId, tag: TagId, parent_type: Option<&str>) {
@@ -472,8 +450,6 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     self.report(
                         self.tag_span(tag),
                         e::root_field_tag_on_wrong_node(parent_type),
-                        None,
-                        None,
                     );
                     return;
                 }
@@ -508,7 +484,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                         } else {
                             act::remove_node(self.locatable(self.tag_span(tag)))
                         };
-                        self.report(
+                        self.report_with(
                             self.tag_span(tag),
                             e::gql_field_tag_on_input_type(),
                             Some(vec![]),
@@ -523,12 +499,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                         if !self.has_tag(parent, TYPE_TAG)
                             && !self.has_tag(parent, INTERFACE_TAG) =>
                     {
-                        self.report(
-                            self.tag_name_span(tag),
-                            e::gql_field_parent_missing_tag(),
-                            None,
-                            None,
-                        );
+                        self.report(self.tag_name_span(tag), e::gql_field_parent_missing_tag());
                     }
                     Some(_) => {}
                 }
@@ -536,33 +507,30 @@ impl<'f, 'a> Extractor<'f, 'a> {
         }
     }
 
-    /// PORT: Reads the JSDoc index's nodes, whose kinds and parents are
-    /// TypeScript's.
+    /// The declaration which a field could belong to, read from the JSDoc
+    /// index's nodes, whose kinds and parents are TypeScript's.
     fn get_field_parent(&self, node: TsNodeId) -> Option<TsNodeId> {
         let node_data = self.jsdoc.node(node);
         let parent = node_data.parent?;
-        match node_data.kind {
-            SyntaxKind::MethodDeclaration
-            | SyntaxKind::GetAccessor
-            | SyntaxKind::PropertyDeclaration => Some(parent),
-            SyntaxKind::Parameter => {
-                if self.jsdoc.node(parent).kind == SyntaxKind::Constructor {
-                    return self.jsdoc.node(parent).parent;
-                }
-                None
-            }
-            SyntaxKind::PropertySignature | SyntaxKind::MethodSignature => {
-                let parent_data = self.jsdoc.node(parent);
-                if parent_data.kind == SyntaxKind::TypeLiteral
-                    && let Some(grandparent) = parent_data.parent
-                    && self.jsdoc.node(grandparent).kind == SyntaxKind::TypeAliasDeclaration
-                {
-                    return Some(grandparent);
-                } else if parent_data.kind == SyntaxKind::InterfaceDeclaration {
-                    return Some(parent);
-                }
-                None
-            }
+        let parent_data = self.jsdoc.node(parent);
+        match (node_data.kind, parent_data.kind) {
+            (
+                SyntaxKind::MethodDeclaration
+                | SyntaxKind::GetAccessor
+                | SyntaxKind::PropertyDeclaration,
+                _,
+            ) => Some(parent),
+            (SyntaxKind::Parameter, SyntaxKind::Constructor) => parent_data.parent,
+            (
+                SyntaxKind::PropertySignature | SyntaxKind::MethodSignature,
+                SyntaxKind::TypeLiteral,
+            ) => parent_data.parent.filter(|&grandparent| {
+                self.jsdoc.node(grandparent).kind == SyntaxKind::TypeAliasDeclaration
+            }),
+            (
+                SyntaxKind::PropertySignature | SyntaxKind::MethodSignature,
+                SyntaxKind::InterfaceDeclaration,
+            ) => Some(parent),
             _ => None,
         }
     }
@@ -571,12 +539,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         if let Some(AstKind::TSInterfaceDeclaration(decl)) = self.kind(node) {
             self.interface_interface_declaration(node, decl, tag);
         } else {
-            self.report(
-                self.tag_span(tag),
-                e::invalid_interface_tag_usage(),
-                None,
-                None,
-            );
+            self.report(self.tag_span(tag), e::invalid_interface_tag_usage());
         }
     }
 
@@ -584,7 +547,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         if let Some(AstKind::TSTypeAliasDeclaration(decl)) = self.kind(node) {
             self.union_type_alias_declaration(node, decl, tag);
         } else {
-            self.report(self.tag_span(tag), e::invalid_union_tag_usage(), None, None);
+            self.report(self.tag_span(tag), e::invalid_union_tag_usage());
         }
     }
 
@@ -596,7 +559,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             Some(AstKind::TSInterfaceDeclaration(decl)) => {
                 self.input_interface_declaration(node, decl, tag);
             }
-            _ => self.report(self.tag_span(tag), e::invalid_input_tag_usage(), None, None),
+            _ => self.report(self.tag_span(tag), e::invalid_input_tag_usage()),
         }
     }
 
@@ -608,38 +571,29 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return self.report(
                 self.node_span(node),
                 e::missing_return_type_for_derived_resolver(),
-                None,
-                None,
             );
         };
 
         // Check if the return type is Promise<T> and unwrap it
-        let Some(unwrapped) = self.maybe_unwrap_promise_type(&return_type.type_annotation) else {
-            return;
-        };
-        let UnwrappedType {
+        let Some(UnwrappedType {
             r#type: inner_type,
             is_async,
-        } = unwrapped;
+        }) = self.maybe_unwrap_promise_type(&return_type.type_annotation)
+        else {
+            return;
+        };
 
         let TSType::TSTypeReference(inner_type) = inner_type else {
             return self.report(
                 inner_type.span(),
                 e::missing_return_type_for_derived_resolver(),
-                None,
-                None,
             );
         };
 
         let func_name = self.named_function_export_name(node, function);
 
         if !self.is_top_level(node) {
-            return self.report(
-                self.node_span(node),
-                e::function_field_not_top_level(),
-                None,
-                None,
-            );
+            return self.report(self.node_span(node), e::function_field_not_top_level());
         }
 
         let ts_module_path = path::relative(self.grats_root, &self.file.path);
@@ -669,26 +623,17 @@ impl<'f, 'a> Extractor<'f, 'a> {
     /// Whether the comment can be parsed by `parse_tag_gql`, which reads the
     /// tag's source text. Reports any links in it.
     fn check_docblock_tag_comment(&mut self, comment: &JSDocComment) -> bool {
-        let parts = match comment {
-            JSDocComment::Text(_) => return true,
-            JSDocComment::Parts(parts) => parts,
+        let JSDocComment::Parts(parts) = comment else {
+            return true;
         };
-        let mut has_errors = false;
-        for tag in parts {
-            match tag {
-                JSDocCommentPart::Text(_) => {}
-                JSDocCommentPart::Link { pos, end, .. } => {
-                    self.report(
-                        Span::new(*pos, *end),
-                        e::directive_tag_comment_not_text(),
-                        None,
-                        None,
-                    );
-                    has_errors = true;
-                }
+        let mut is_text = true;
+        for part in parts {
+            if let JSDocCommentPart::Link { pos, end, .. } = part {
+                self.report(Span::new(*pos, *end), e::directive_tag_comment_not_text());
+                is_text = false;
             }
         }
-        !has_errors
+        is_text
     }
 
     fn extract_directive(&mut self, node: TsNodeId, tag: TagId) {
@@ -698,12 +643,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             {
                 self.extract_directive_function(node, function, tag);
             }
-            _ => self.report(
-                self.tag_span(tag),
-                e::directive_tag_on_wrong_node(),
-                None,
-                None,
-            ),
+            _ => self.report(self.tag_span(tag), e::directive_tag_on_wrong_node()),
         }
     }
 
@@ -719,12 +659,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         let jsdoc = self.jsdoc;
         let Some(tag_comment) = &jsdoc.tag(tag).comment else {
-            self.report(
-                self.tag_span(tag),
-                e::directive_tag_no_comment(),
-                None,
-                None,
-            );
+            self.report(self.tag_span(tag), e::directive_tag_no_comment());
             return;
         };
         if !self.check_docblock_tag_comment(tag_comment) {
@@ -758,12 +693,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             Some(name) => name,
             None => {
                 let Some(id) = &function.id else {
-                    return self.report(
-                        self.node_span(node),
-                        e::directive_function_not_named(),
-                        None,
-                        None,
-                    );
+                    return self.report(self.node_span(node), e::directive_function_not_named());
                 };
                 let Some((id_span, id)) = self.expect_name_identifier(binding_name(id)) else {
                     return;
@@ -791,30 +721,28 @@ impl<'f, 'a> Extractor<'f, 'a> {
         // Additional arguments are ignored.
         let param = *params(node.this_param.as_deref(), &node.params).first()?;
         let Some(param_type) = param.type_annotation() else {
-            self.report(param.span(), e::directive_argument_not_object(), None, None);
+            self.report(param.span(), e::directive_argument_not_object());
             return None;
         };
-        if let TSType::TSNeverKeyword(_) = &param_type.type_annotation {
+        if matches!(param_type.type_annotation, TSType::TSNeverKeyword(_)) {
             return None;
         }
         let TSType::TSTypeLiteral(literal) = &param_type.type_annotation else {
-            self.report(param.span(), e::directive_argument_not_object(), None, None);
+            self.report(param.span(), e::directive_argument_not_object());
             return None;
         };
-        let mut defaults: Option<ArgDefaults<'a>> = None;
-        if let Param::Item(item) = param
+        let defaults = if let Param::Item(item) = param
             && let BindingPattern::ObjectPattern(pattern) = &item.pattern
         {
-            defaults = Some(self.collect_arg_defaults(pattern));
-        }
-
-        let mut args: Vec<InputValueDefinitionNode> = Vec::new();
-        for member in &literal.members {
-            let arg = self.collect_arg(member, defaults.as_ref());
-            if let Some(arg) = arg {
-                args.push(arg);
-            }
-        }
+            Some(self.collect_arg_defaults(pattern))
+        } else {
+            None
+        };
+        let args = literal
+            .members
+            .iter()
+            .filter_map(|member| self.collect_arg(member, defaults.as_ref()))
+            .collect();
         Some(args)
     }
 
@@ -829,7 +757,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             Some(AstKind::TSTypeAliasDeclaration(decl)) => {
                 self.type_type_alias_declaration(node, decl, tag);
             }
-            _ => self.report(self.tag_span(tag), e::invalid_type_tag_usage(), None, None),
+            _ => self.report(self.tag_span(tag), e::invalid_type_tag_usage()),
         }
     }
 
@@ -837,12 +765,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         if let Some(AstKind::TSTypeAliasDeclaration(decl)) = self.kind(node) {
             self.scalar_type_alias_declaration(node, decl, tag);
         } else {
-            self.report(
-                self.tag_span(tag),
-                e::invalid_scalar_tag_usage(),
-                None,
-                None,
-            );
+            self.report(self.tag_span(tag), e::invalid_scalar_tag_usage());
         }
     }
 
@@ -854,13 +777,17 @@ impl<'f, 'a> Extractor<'f, 'a> {
             Some(AstKind::TSTypeAliasDeclaration(decl)) => {
                 self.enum_type_alias_declaration(node, decl, tag);
             }
-            _ => self.report(self.tag_span(tag), e::invalid_enum_tag_usage(), None, None),
+            _ => self.report(self.tag_span(tag), e::invalid_enum_tag_usage()),
         }
     }
 
-    /// PORT: Takes the span of the node, since TypeScript's nodes and oxc's
-    /// are reported alike.
-    fn report(
+    /// Reports an error at `span`.
+    fn report(&mut self, span: Span, message: String) {
+        self.report_with(span, message, None, None);
+    }
+
+    /// Reports an error at `span`, with related information and a fix.
+    fn report_with(
         &mut self,
         span: Span,
         message: String,
@@ -880,11 +807,9 @@ impl<'f, 'a> Extractor<'f, 'a> {
             .filter(|&tag| self.jsdoc.tag(tag).tag_name.text == tag_name)
             .collect();
 
-        if tags.is_empty() {
-            return None;
-        }
-        if tags.len() > 1 {
-            let additional_tags = tags[1..]
+        let (first, additional) = tags.split_first()?;
+        if !additional.is_empty() {
+            let additional_tags = additional
                 .iter()
                 .map(|&tag| {
                     ts_related(
@@ -894,14 +819,14 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 })
                 .collect();
 
-            self.report(
-                self.tag_span(tags[0]),
+            self.report_with(
+                self.tag_span(*first),
                 e::duplicate_tag(tag_name),
                 Some(additional_tags),
                 Some(CodeFixAction {
                     fix_name: "remove-duplicate-tag".to_string(),
                     description: format!("Remove duplicate @{tag_name} tag"),
-                    changes: tags[1..]
+                    changes: additional
                         .iter()
                         .map(|&tag| act::remove_node(self.locatable(self.tag_span(tag))))
                         .collect(), // Remove all but the first tag
@@ -909,7 +834,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             );
             return None;
         }
-        Some(tags[0])
+        Some(*first)
     }
 
     fn has_tag(&self, node: TsNodeId, tag_name: &str) -> bool {
@@ -919,18 +844,18 @@ impl<'f, 'a> Extractor<'f, 'a> {
             .any(|tag| self.jsdoc.tag(tag).tag_name.text == tag_name)
     }
 
-    /// PORT: A span in this file, as a node which diagnostics can locate.
+    /// A span in this file, as a node which diagnostics can locate.
     fn locatable(&self, span: Span) -> TsLocatableNode<'f> {
         TsLocatableNode::new(self.file, span)
     }
 
-    /// PORT: The span of a JSDoc tag, from its `@`.
+    /// The span of a JSDoc tag, from its `@`.
     fn tag_span(&self, tag: TagId) -> Span {
         let tag = self.jsdoc.tag(tag);
         Span::new(tag.pos, tag.end)
     }
 
-    /// PORT: The span of a JSDoc tag's name, after its `@`.
+    /// The span of a JSDoc tag's name, after its `@`.
     fn tag_name_span(&self, tag: TagId) -> Span {
         let tag_name = &self.jsdoc.tag(tag).tag_name;
         Span::new(tag_name.pos, tag_name.end)
@@ -952,7 +877,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             e::ISSUE_URL
         );
         let completed_message = format!("{message}\n\n{suggestion}");
-        self.report(span, completed_message, related_information, None);
+        self.report_with(span, completed_message, related_information, None);
     }
 
     /* TypeScript traversals */
@@ -980,26 +905,12 @@ impl<'f, 'a> Extractor<'f, 'a> {
                             None,
                         );
                     };
-                    let named_type = gql::named_type(
-                        self.locatable(member.type_name.span()),
-                        UNRESOLVED_REFERENCE_NAME,
-                    );
-                    self.mark_unresolved_type(EntityName::TypeReference(member), &named_type.name);
-                    let member = self.union_member_declaration(member);
-                    types.push(member);
+                    types.push(self.union_member_declaration(member));
                 }
             }
-            TSType::TSTypeReference(member) => {
-                let member = self.union_member_declaration(member);
-                types.push(member);
-            }
+            TSType::TSTypeReference(member) => types.push(self.union_member_declaration(member)),
             _ => {
-                return self.report(
-                    self.node_span(node),
-                    e::expected_union_type_node(),
-                    None,
-                    None,
-                );
+                return self.report(self.node_span(node), e::expected_union_type_node());
             }
         }
 
@@ -1040,13 +951,11 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return self.report(
                 self.node_span(node),
                 e::exported_field_variable_multiple_declarations(statement.declarations.len()),
-                None,
-                None,
             );
         }
         let declaration = &statement.declarations[0];
 
-        // PORT: TypeScript's `NodeFlags.Const` is also set for `await using`.
+        // Like TypeScript, which flags `await using` declarations as `const`.
         if !matches!(
             statement.kind,
             VariableDeclarationKind::Const | VariableDeclarationKind::AwaitUsing
@@ -1056,8 +965,6 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return self.report(
                 self.node_span(self.declaration_list(node)),
                 e::exported_arrow_function_not_const(),
-                None,
-                None,
             );
         }
 
@@ -1072,8 +979,6 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return self.report(
                 self.node_span(node),
                 e::field_variable_not_top_level_exported(),
-                None,
-                None,
             );
         }
 
@@ -1081,15 +986,11 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return self.report(
                 self.node_span(node),
                 e::field_variable_is_not_arrow_function(),
-                None,
-                None,
             );
         };
 
-        let is_exported = self.export_kind(node).is_some();
-
-        if !is_exported {
-            return self.report(
+        if self.export_kind(node).is_none() {
+            return self.report_with(
                 declaration.id.span(),
                 e::field_variable_not_top_level_exported(),
                 Some(vec![]),
@@ -1130,12 +1031,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         };
 
         if !self.is_top_level(node) {
-            return self.report(
-                self.node_span(node),
-                e::function_field_not_top_level(),
-                None,
-                None,
-            );
+            return self.report(self.node_span(node), e::function_field_not_top_level());
         }
 
         let function = FunctionLike {
@@ -1188,7 +1084,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             }
             _ => {
                 let related = field_defined_here();
-                return self.report(
+                return self.report_with(
                     self.node_span(class_node),
                     e::static_method_on_non_class(),
                     Some(related),
@@ -1203,7 +1099,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         if !self.is_top_level(class_node) {
             let related = field_defined_here();
-            return self.report(
+            return self.report_with(
                 class_blame_node,
                 e::static_method_class_not_top_level(),
                 Some(related),
@@ -1211,11 +1107,9 @@ impl<'f, 'a> Extractor<'f, 'a> {
             );
         }
 
-        let mut export_name: Option<(Span, &'a str)> = None;
-
         let Some(is_default) = self.export_kind(class_node) else {
             let related = field_defined_here();
-            return self.report(
+            return self.report_with(
                 class_blame_node,
                 e::static_method_field_class_not_exported(),
                 Some(related),
@@ -1230,10 +1124,12 @@ impl<'f, 'a> Extractor<'f, 'a> {
             );
         };
 
-        if !is_default {
+        let export_name = if is_default {
+            None
+        } else {
             let Some(class_name) = &class.id else {
                 let related = field_defined_here();
-                return self.report(
+                return self.report_with(
                     class_blame_node,
                     e::static_method_class_with_named_export_not_named(),
                     Some(related),
@@ -1243,9 +1139,8 @@ impl<'f, 'a> Extractor<'f, 'a> {
             let Some(class_name) = self.expect_name_identifier(binding_name(class_name)) else {
                 return;
             };
-
-            export_name = Some(class_name);
-        }
+            Some(class_name)
+        };
 
         let method = FunctionLike {
             id: node,
@@ -1281,7 +1176,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     ),
                     _ => self.tag_span(tag),
                 };
-                self.report(span, err.message, None, None);
+                self.report(span, err.message);
                 None
             }
         }
@@ -1299,8 +1194,6 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 self.report(
                     self.tag_span(tag),
                     "Expected docblock tag to have a value.".to_string(),
-                    None,
-                    None,
                 );
                 continue;
             };
@@ -1314,25 +1207,21 @@ impl<'f, 'a> Extractor<'f, 'a> {
             }
         }
 
-        let tag = self.find_tag(node, DEPRECATED_TAG);
-        if let Some(tag) = tag {
-            let mut reason: Option<ConstArgumentNode> = None;
+        if let Some(tag) = self.find_tag(node, DEPRECATED_TAG) {
             let tag_data = self.jsdoc.tag(tag);
-            if let Some(comment_span) = tag_data.comment_span {
-                let reason_comment = get_text_of_js_doc_comment(tag_data.comment.as_ref());
-                if let Some(reason_comment) = reason_comment {
-                    let tag_node = self.locatable(self.tag_span(tag));
-                    reason = Some(gql::const_argument(
-                        tag_node,
-                        gql::name(tag_node, "reason"),
-                        ConstValueNode::StringValue(gql::string(
-                            self.locatable(comment_span),
-                            &reason_comment,
-                            false,
-                        )),
-                    ));
-                }
-            }
+            let reason = tag_data.comment_span.and_then(|comment_span| {
+                let reason = get_text_of_js_doc_comment(tag_data.comment.as_ref())?;
+                let tag_node = self.locatable(self.tag_span(tag));
+                Some(gql::const_argument(
+                    tag_node,
+                    gql::name(tag_node, "reason"),
+                    ConstValueNode::StringValue(gql::string(
+                        self.locatable(comment_span),
+                        &reason,
+                        false,
+                    )),
+                ))
+            });
 
             directives.push(gql::const_directive(
                 self.locatable(self.tag_name_span(tag)),
@@ -1440,10 +1329,10 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let type_name = self.type_reference_from_param(type_param)?;
         let (params, args) = self.resolver_params(rest_params)?;
 
-        let mut resolver_params: Vec<ResolverArgument> = vec![ResolverArgument::Source {
+        let source = ResolverArgument::Source {
             loc: Some(self.locatable(type_param.span()).loc()),
-        }];
-        resolver_params.extend(params);
+        };
+        let resolver_params = std::iter::once(source).chain(params).collect();
         Some(AbstractFieldArgs {
             type_name,
             args,
@@ -1453,20 +1342,13 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
     fn type_reference_from_param(&mut self, type_param: Param<'a>) -> Option<NameNode> {
         let Some(param_type) = type_param.type_annotation() else {
-            self.report(
-                type_param.span(),
-                e::function_field_parent_type_missing(),
-                None,
-                None,
-            );
+            self.report(type_param.span(), e::function_field_parent_type_missing());
             return None;
         };
         let TSType::TSTypeReference(reference) = &param_type.type_annotation else {
             self.report(
                 param_type.type_annotation.span(),
                 e::function_field_parent_type_not_valid(),
-                None,
-                None,
             );
             return None;
         };
@@ -1486,16 +1368,11 @@ impl<'f, 'a> Extractor<'f, 'a> {
         function: &'a Function<'a>,
     ) -> Option<(Span, &'a str)> {
         let Some(id) = &function.id else {
-            self.report(
-                self.node_span(node),
-                e::function_field_not_named(),
-                None,
-                None,
-            );
+            self.report(self.node_span(node), e::function_field_not_named());
             return None;
         };
         let Some(is_default) = self.export_kind(node) else {
-            self.report(
+            self.report_with(
                 id.span,
                 e::function_field_not_named_export(),
                 Some(vec![]),
@@ -1511,10 +1388,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return None;
         };
 
-        if is_default {
-            return None;
-        }
-        Some((id.span, id.name.as_str()))
+        (!is_default).then_some((id.span, id.name.as_str()))
     }
 
     fn scalar_type_alias_declaration(
@@ -1533,9 +1407,8 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
         let directives = self.collect_directives(node);
 
-        let is_exported = self.export_kind(node).is_some();
-        if !is_exported {
-            self.report(
+        if self.export_kind(node).is_none() {
+            self.report_with(
                 decl.id.span,
                 e::scalar_not_exported(),
                 Some(vec![]),
@@ -1580,20 +1453,17 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let description = self.collect_description(node);
         self.record_type_name(node, name.clone(), DeclarationDefinitionKind::InputObject);
 
-        let fields: Option<Vec<InputValueDefinitionNode>>;
-
         let mut directives = self.collect_directives(node);
-        if let TSType::TSUnionType(union) = &decl.type_annotation {
+        let fields = if let TSType::TSUnionType(union) = &decl.type_annotation {
             directives.push(gql::const_directive(
                 self.locatable(self.node_span(node)),
                 gql::name(self.locatable(union.span), ONE_OF_TAG),
                 Some(vec![]),
             ));
-
-            fields = self.extract_one_of_input_fields(union.types.iter());
+            Some(self.extract_one_of_input_fields(&union.types))
         } else {
-            fields = self.collect_input_fields(node, decl);
-        }
+            self.collect_input_fields(node, decl)
+        };
 
         let Some(fields) = fields else { return };
 
@@ -1622,22 +1492,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let description = self.collect_description(node);
         self.record_type_name(node, name.clone(), DeclarationDefinitionKind::InputObject);
 
-        let mut fields: Vec<InputValueDefinitionNode> = Vec::new();
-
-        for member in &decl.body.body {
-            let TSSignature::TSPropertySignature(member) = member else {
-                self.report_unhandled(
-                    member.span(),
-                    "input field",
-                    e::input_type_field_not_property(),
-                    None,
-                );
-                continue;
-            };
-            if let Some(field) = self.collect_input_field(member) {
-                fields.push(field);
-            }
-        }
+        let fields = self.collect_input_field_signatures(&decl.body.body);
 
         self.interface_declarations
             .push(decl_ref(self.file, self.ast(node), self.node_span(node)));
@@ -1655,20 +1510,14 @@ impl<'f, 'a> Extractor<'f, 'a> {
             .push(DefinitionNode::InputObjectTypeDefinition(definition));
     }
 
-    /// PORT: TypeScript first checks that the version of graphql-js supports
-    /// `@oneOf` (16.9.0). The version ported here does.
     fn extract_one_of_input_fields(
         &mut self,
-        types: impl Iterator<Item = &'a TSType<'a>>,
-    ) -> Option<Vec<InputValueDefinitionNode>> {
-        let mut fields: Vec<InputValueDefinitionNode> = Vec::new();
-        for member in types {
-            if let Some(field) = self.collect_one_of_input_field(member) {
-                fields.push(field);
-            }
-        }
-
-        Some(fields)
+        types: &'a [TSType<'a>],
+    ) -> Vec<InputValueDefinitionNode> {
+        types
+            .iter()
+            .filter_map(|member| self.collect_one_of_input_field(member))
+            .collect()
     }
 
     fn collect_one_of_input_field(
@@ -1679,39 +1528,26 @@ impl<'f, 'a> Extractor<'f, 'a> {
             self.report(
                 node.span(),
                 e::one_of_field_not_type_literal_with_one_property(),
-                None,
-                None,
             );
             return None;
         };
-        if literal.members.len() != 1 {
+        let [property] = literal.members.as_slice() else {
             self.report(
                 node.span(),
                 e::one_of_field_not_type_literal_with_one_property(),
-                None,
-                None,
             );
             return None;
-        }
-
-        let property = &literal.members[0];
+        };
         let TSSignature::TSPropertySignature(property) = property else {
             self.report(
                 property.span(),
                 e::one_of_field_not_type_literal_with_one_property(),
-                None,
-                None,
             );
             return None;
         };
 
         let Some(property_type) = &property.type_annotation else {
-            self.report(
-                property.span,
-                e::one_of_property_missing_type_annotation(),
-                None,
-                None,
-            );
+            self.report(property.span, e::one_of_property_missing_type_annotation());
             return None;
         };
 
@@ -1738,8 +1574,6 @@ impl<'f, 'a> Extractor<'f, 'a> {
         node: TsNodeId,
         decl: &'a TSTypeAliasDeclaration<'a>,
     ) -> Option<Vec<InputValueDefinitionNode>> {
-        let mut fields: Vec<InputValueDefinitionNode> = Vec::new();
-
         let TSType::TSTypeLiteral(literal) = &decl.type_annotation else {
             self.report_unhandled(
                 self.node_span(node),
@@ -1749,27 +1583,31 @@ impl<'f, 'a> Extractor<'f, 'a> {
             );
             return None;
         };
+        let fields = self.collect_input_field_signatures(&literal.members);
+        (!fields.is_empty()).then_some(fields)
+    }
 
-        for member in &literal.members {
-            let TSSignature::TSPropertySignature(member) = member else {
-                self.report_unhandled(
-                    member.span(),
-                    "input field",
-                    e::input_type_field_not_property(),
-                    None,
-                );
-                continue;
-            };
-            if let Some(field) = self.collect_input_field(member) {
-                fields.push(field);
-            }
-        }
-
-        if fields.is_empty() {
-            None
-        } else {
-            Some(fields)
-        }
+    /// The input fields of an input type's members, reporting any which
+    /// aren't property signatures.
+    fn collect_input_field_signatures(
+        &mut self,
+        members: &'a [TSSignature<'a>],
+    ) -> Vec<InputValueDefinitionNode> {
+        members
+            .iter()
+            .filter_map(|member| {
+                let TSSignature::TSPropertySignature(member) = member else {
+                    self.report_unhandled(
+                        member.span(),
+                        "input field",
+                        e::input_type_field_not_property(),
+                        None,
+                    );
+                    return None;
+                };
+                self.collect_input_field(member)
+            })
+            .collect()
     }
 
     fn collect_input_field(
@@ -1780,21 +1618,22 @@ impl<'f, 'a> Extractor<'f, 'a> {
             self.expect_name_identifier(key_name(self.file, &node.key, node.computed))?;
 
         let Some(node_type) = &node.type_annotation else {
-            self.report(node.span, e::input_field_untyped(), None, None);
+            self.report(node.span, e::input_field_untyped());
             return None;
         };
 
         let inner = self.collect_type(&node_type.type_annotation, FieldTypeContext::Input)?;
 
-        let r#type = if !node.optional {
-            inner
-        } else {
+        let r#type = if node.optional {
             gql::nullable_type(inner).into()
+        } else {
+            inner
         };
 
-        let description = self.collect_description(self.ts(node.node_id()));
+        let ts = self.ts(node.node_id());
+        let description = self.collect_description(ts);
 
-        let directives = self.collect_directives(self.ts(node.node_id()));
+        let directives = self.collect_directives(ts);
 
         Some(gql::input_value_definition(
             self.locatable(node.span),
@@ -1808,12 +1647,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
     fn type_class_declaration(&mut self, node: TsNodeId, class: &'a Class<'a>, tag: TagId) {
         let Some(class_name) = &class.id else {
-            return self.report(
-                self.node_span(node),
-                e::type_tag_on_unnamed_class(),
-                None,
-                None,
-            );
+            return self.report(self.node_span(node), e::type_tag_on_unnamed_class());
         };
 
         let Some(name) =
@@ -1842,17 +1676,14 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let members: Vec<Member<'a>> = class.body.body.iter().map(Member::Class).collect();
         let has_type_name = self.check_for_typename_property(&members, &name.value);
 
-        let mut exported: Option<ExportDefinition> = None;
-        if !has_type_name && let Some(is_default) = self.export_kind(node) {
-            exported = Some(ExportDefinition {
+        let exported = if has_type_name {
+            None
+        } else {
+            self.export_kind(node).map(|is_default| ExportDefinition {
                 ts_module_path: path::relative(self.grats_root, &self.file.path),
-                export_name: if is_default {
-                    None
-                } else {
-                    Some(class_name.name.to_string())
-                },
-            });
-        }
+                export_name: (!is_default).then(|| class_name.name.to_string()),
+            })
+        };
 
         let directives = self.collect_directives(node);
 
@@ -1874,7 +1705,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         // TODO: If we start supporting defining operation types using
         // non-standard names, we will need to update this logic.
         if OPERATION_TYPES.contains(&name) {
-            self.report(node, e::operation_type_not_unknown(), None, None);
+            self.report(node, e::operation_type_not_unknown());
         }
     }
 
@@ -1926,33 +1757,26 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return;
         };
 
-        let mut fields: Vec<FieldDefinitionNode> = Vec::new();
-        let mut interfaces: Option<Vec<NamedTypeNode>> = None;
-
-        let mut has_type_name = false;
-
-        match &decl.type_annotation {
+        let (fields, interfaces, has_type_name) = match &decl.type_annotation {
             TSType::TSTypeLiteral(literal) => {
                 self.validate_operation_types(literal.span, &name.value);
                 let members: Vec<Member<'a>> = literal.members.iter().map(Member::Type).collect();
-                fields = self.collect_fields(&members);
-                interfaces = self.collect_interfaces(node, Heritage::TypeAlias);
-                has_type_name = self.check_for_typename_property(&members, &name.value);
+                let fields = self.collect_fields(&members);
+                let interfaces = self.collect_interfaces(node, Heritage::TypeAlias);
+                let has_type_name = self.check_for_typename_property(&members, &name.value);
+                (fields, interfaces, has_type_name)
             }
-            TSType::TSUnknownKeyword(_) => {
-                // This is fine, we just don't know what it is. This should be the expected
-                // case for operation types such as `Query`, `Mutation`, and `Subscription`
-                // where there is not strong convention around.
-            }
+            // This is fine, we just don't know what it is. This should be the expected
+            // case for operation types such as `Query`, `Mutation`, and `Subscription`
+            // where there is not strong convention around.
+            TSType::TSUnknownKeyword(_) => (Vec::new(), None, false),
             other => {
                 return self.report(
                     other.span(),
                     e::type_tag_on_alias_of_non_object_or_unknown(),
-                    None,
-                    None,
                 );
             }
-        }
+        };
 
         let description = self.collect_description(node);
         self.record_type_name(node, name.clone(), DeclarationDefinitionKind::Type);
@@ -1974,18 +1798,13 @@ impl<'f, 'a> Extractor<'f, 'a> {
     }
 
     fn check_for_typename_property(&mut self, members: &[Member<'a>], expected_name: &str) -> bool {
-        let mut has_typename = false;
-        for &member in members {
-            if self.is_valid_type_name_property(member, expected_name) {
-                has_typename = true;
-                break;
-            }
-        }
+        let has_typename = members
+            .iter()
+            .any(|&member| self.is_valid_type_name_property(member, expected_name));
         if has_typename {
             self.types_with_typename.insert(expected_name.to_string());
-            return true;
         }
-        false
+        has_typename
     }
 
     fn is_valid_type_name_property(&mut self, member: Member<'a>, expected_name: &str) -> bool {
@@ -1997,37 +1816,35 @@ impl<'f, 'a> Extractor<'f, 'a> {
         };
 
         match member {
-            Member::Class(ClassElement::PropertyDefinition(property)) => {
-                return self.is_valid_typename_property_declaration(
+            Member::Class(ClassElement::PropertyDefinition(property)) => self
+                .is_valid_typename_property_declaration(
                     property.span,
                     name_span,
                     property.type_annotation.as_deref(),
                     property.value.as_ref(),
                     expected_name,
-                );
-            }
-            Member::Class(ClassElement::AccessorProperty(property)) => {
-                return self.is_valid_typename_property_declaration(
+                ),
+            Member::Class(ClassElement::AccessorProperty(property)) => self
+                .is_valid_typename_property_declaration(
                     property.span,
                     name_span,
                     property.type_annotation.as_deref(),
                     property.value.as_ref(),
                     expected_name,
-                );
-            }
+                ),
             Member::Type(TSSignature::TSPropertySignature(property)) => {
-                return self.is_valid_typename_property_signature(property, expected_name);
+                self.is_valid_typename_property_signature(property, expected_name)
             }
-            _ => {}
+            _ => {
+                // TODO: Could show what kind we found, but TS AST does not have node names.
+                self.report(name_span, e::type_name_not_declaration());
+                false
+            }
         }
-
-        // TODO: Could show what kind we found, but TS AST does not have node names.
-        self.report(name_span, e::type_name_not_declaration(), None, None);
-        false
     }
 
-    /// PORT: Takes the parts of the `PropertyDeclaration` which it reads,
-    /// since oxc models `accessor` properties separately.
+    /// Takes the parts of a property declaration which it reads, since oxc
+    /// models `accessor` properties separately.
     fn is_valid_typename_property_declaration(
         &mut self,
         node: Span,
@@ -2043,7 +1860,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return self.is_valid_typename_property_type(&node_type.type_annotation, expected_name);
         }
         let Some(initializer) = initializer else {
-            self.report(
+            self.report_with(
                 node_name,
                 e::type_name_missing_initializer(),
                 Some(vec![]),
@@ -2053,7 +1870,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         };
 
         let Expression::TSAsExpression(initializer) = initializer else {
-            self.report(
+            self.report_with(
                 initializer.span(),
                 e::type_name_initialize_not_expression(expected_name),
                 Some(vec![]),
@@ -2063,7 +1880,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         };
 
         let Expression::StringLiteral(expression) = &initializer.expression else {
-            self.report(
+            self.report_with(
                 initializer.expression.span(),
                 e::type_name_initialize_not_string(expected_name),
                 Some(vec![]),
@@ -2073,7 +1890,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         };
 
         if expression.value != expected_name {
-            self.report(
+            self.report_with(
                 expression.span,
                 e::type_name_initializer_wrong(expected_name, &expression.value),
                 Some(vec![]),
@@ -2083,7 +1900,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         }
 
         let TSType::TSTypeReference(initializer_type) = &initializer.type_annotation else {
-            self.report(
+            self.report_with(
                 initializer.type_annotation.span(),
                 e::type_name_type_not_reference_node(expected_name),
                 Some(vec![]),
@@ -2093,7 +1910,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         };
 
         let TSTypeName::IdentifierReference(type_name) = &initializer_type.type_name else {
-            self.report(
+            self.report_with(
                 initializer_type.type_name.span(),
                 e::type_name_type_name_not_identifier(expected_name),
                 Some(vec![]),
@@ -2103,7 +1920,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         };
 
         if type_name.name != "const" {
-            self.report(
+            self.report_with(
                 type_name.span,
                 e::type_name_type_name_not_const(expected_name),
                 Some(vec![]),
@@ -2143,7 +1960,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         expected_name: &str,
     ) -> bool {
         let Some(node_type) = &node.type_annotation else {
-            self.report(
+            self.report_with(
                 node.span,
                 e::type_name_missing_type_annotation(expected_name),
                 Some(vec![]),
@@ -2166,15 +1983,8 @@ impl<'f, 'a> Extractor<'f, 'a> {
         node: &'a TSType<'a>,
         expected_name: &str,
     ) -> bool {
-        let literal = match node {
-            TSType::TSLiteralType(literal) => match &literal.literal {
-                TSLiteral::StringLiteral(literal) => Some(literal),
-                _ => None,
-            },
-            _ => None,
-        };
-        let Some(literal) = literal else {
-            self.report(
+        let Some(literal) = string_literal_type(node) else {
+            self.report_with(
                 node.span(),
                 e::type_name_type_not_string_literal(expected_name),
                 Some(vec![]),
@@ -2183,7 +1993,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return false;
         };
         if literal.value != expected_name {
-            self.report(
+            self.report_with(
                 node.span(),
                 e::type_name_does_not_match_expected(expected_name),
                 Some(vec![]),
@@ -2200,13 +2010,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         heritage: Heritage<'a>,
     ) -> Option<Vec<NamedTypeNode>> {
         self.report_tag_interfaces(node, heritage);
-
-        match heritage {
-            Heritage::Class(_) | Heritage::Interface(_) => {
-                self.collect_heritage_interfaces(heritage)
-            }
-            Heritage::TypeAlias => None,
-        }
+        self.collect_heritage_interfaces(heritage)
     }
 
     fn report_tag_interfaces(&mut self, node: TsNodeId, heritage: Heritage<'a>) {
@@ -2219,11 +2023,11 @@ impl<'f, 'a> Extractor<'f, 'a> {
             Heritage::Interface(_) => e::implements_tag_on_interface(),
             Heritage::TypeAlias => e::implements_tag_on_type_alias(),
         };
-        self.report(self.tag_span(tag), message, None, None);
+        self.report(self.tag_span(tag), message);
     }
 
-    /// PORT: Classes' `implements` clauses and interfaces' `extends` clauses,
-    /// which TypeScript filters its heritage clauses down to.
+    /// The interfaces in classes' `implements` clauses and interfaces'
+    /// `extends` clauses.
     fn collect_heritage_interfaces(
         &mut self,
         heritage: Heritage<'a>,
@@ -2245,28 +2049,25 @@ impl<'f, 'a> Extractor<'f, 'a> {
             Heritage::TypeAlias => return None,
         };
 
-        let mut interfaces: Vec<NamedTypeNode> = Vec::new();
-        for (expression, type_arguments) in types {
-            let TSTypeName::IdentifierReference(expression) = expression else {
-                continue;
-            };
-            let named_type =
-                gql::named_type(self.locatable(expression.span), UNRESOLVED_REFERENCE_NAME);
-            self.mark_unresolved_type(
-                EntityName::ExpressionWithTypeArguments {
-                    expression,
-                    type_arguments,
-                },
-                &named_type.name,
-            );
-            interfaces.push(named_type);
-        }
-
-        if interfaces.is_empty() {
-            return None;
-        }
-
-        Some(interfaces)
+        let interfaces: Vec<NamedTypeNode> = types
+            .into_iter()
+            .filter_map(|(expression, type_arguments)| {
+                let TSTypeName::IdentifierReference(expression) = expression else {
+                    return None;
+                };
+                let named_type =
+                    gql::named_type(self.locatable(expression.span), UNRESOLVED_REFERENCE_NAME);
+                self.mark_unresolved_type(
+                    EntityName::ExpressionWithTypeArguments {
+                        expression,
+                        type_arguments,
+                    },
+                    &named_type.name,
+                );
+                Some(named_type)
+            })
+            .collect();
+        (!interfaces.is_empty()).then_some(interfaces)
     }
 
     fn interface_interface_declaration(
@@ -2313,24 +2114,21 @@ impl<'f, 'a> Extractor<'f, 'a> {
             {
                 // Handle parameter properties
                 // https://www.typescriptlang.org/docs/handbook/2/classes.html#parameter-properties
-                for param in params(method.value.this_param.as_deref(), &method.value.params) {
-                    let field = self.constructor_param(param);
-                    if let Some(field) = field {
-                        fields.push(field);
-                    }
-                }
+                let params = params(method.value.this_param.as_deref(), &method.value.params);
+                fields.extend(
+                    params
+                        .into_iter()
+                        .filter_map(|param| self.constructor_param(param)),
+                );
             }
-            if let Some(method) = method_like(node) {
-                let field = self.method_declaration(method);
-                if let Some(field) = field {
-                    fields.push(field);
-                }
+            let field = if let Some(method) = method_like(node) {
+                self.method_declaration(method)
             } else if let Some(property) = self.property_like(node) {
-                let field = self.property(property);
-                if let Some(field) = field {
-                    fields.push(field);
-                }
-            }
+                self.property(property)
+            } else {
+                None
+            };
+            fields.extend(field);
         }
         fields
     }
@@ -2341,30 +2139,19 @@ impl<'f, 'a> Extractor<'f, 'a> {
             Param::Item(param) => (param.accessibility, param.readonly, param.r#override),
             Param::This(_) | Param::Rest(_) => (None, false, false),
         };
-        if node.decorators().is_empty() && accessibility.is_none() && !readonly && !r#override {
-            self.report(
-                node.span(),
-                e::parameter_without_modifiers(),
-                Some(vec![]),
-                Some(CodeFixAction {
-                    fix_name: "add-public-modifier".to_string(),
-                    description: "Add 'public' modifier".to_string(),
-                    changes: vec![act::prefix_node(
-                        self.locatable(node.name().span()),
-                        "public ",
-                    )],
-                }),
-            );
-            return None;
-        }
-
         if accessibility.is_none() && !readonly {
-            self.report(
+            let has_modifiers = !node.decorators().is_empty() || r#override;
+            let fix_name = if has_modifiers {
+                "add-public-modifier-to-existing"
+            } else {
+                "add-public-modifier"
+            };
+            self.report_with(
                 node.span(),
                 e::parameter_without_modifiers(),
                 Some(vec![]),
                 Some(CodeFixAction {
-                    fix_name: "add-public-modifier-to-existing".to_string(),
+                    fix_name: fix_name.to_string(),
                     description: "Add 'public' modifier".to_string(),
                     changes: vec![act::prefix_node(
                         self.locatable(node.name().span()),
@@ -2383,7 +2170,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 node.name().span().start,
                 accessibility_kind(not_public),
             );
-            self.report(
+            self.report_with(
                 not_public,
                 e::parameter_property_not_public(),
                 Some(vec![]),
@@ -2399,12 +2186,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let name = self.entity_name(node.span(), Some(node.name()), tag)?;
 
         let Some(node_type) = node.type_annotation() else {
-            self.report(
-                node.span(),
-                e::parameter_property_missing_type(),
-                None,
-                None,
-            );
+            self.report(node.span(), e::parameter_property_missing_type());
             return None;
         };
 
@@ -2414,13 +2196,14 @@ impl<'f, 'a> Extractor<'f, 'a> {
             // https://www.typescriptlang.org/play?#code/MYGwhgzhAEBiD29oG8BQ1rHgOwgFwCcBXYPeAgCgAciAjEAS2BQDNEBfAShXdXaA
             return None;
         };
-        let directives = self.collect_directives(self.ts(node.node_id()));
+        let ts = self.ts(node.node_id());
+        let directives = self.collect_directives(ts);
 
         let r#type = self.collect_type(&node_type.type_annotation, FieldTypeContext::Output)?;
 
-        let description = self.collect_description(self.ts(node.node_id()));
+        let description = self.collect_description(ts);
 
-        let kills_parent_on_exception = self.kills_parent_on_exception(self.ts(node.node_id()));
+        let kills_parent_on_exception = self.kills_parent_on_exception(ts);
 
         Some(gql::field_definition(
             self.locatable(node.span()),
@@ -2437,16 +2220,19 @@ impl<'f, 'a> Extractor<'f, 'a> {
     }
 
     fn collect_arg_defaults(&self, node: &'a ObjectPattern<'a>) -> ArgDefaults<'a> {
-        let mut defaults = HashMap::new();
-        for element in &node.properties {
-            if let BindingPattern::AssignmentPattern(initializer) = &element.value
-                && !element.computed
-                && let PropertyKey::StaticIdentifier(name) = &element.key
-            {
-                defaults.insert(name.name.as_str(), &initializer.right);
-            }
-        }
-        defaults
+        node.properties
+            .iter()
+            .filter_map(|element| {
+                if let BindingPattern::AssignmentPattern(initializer) = &element.value
+                    && !element.computed
+                    && let PropertyKey::StaticIdentifier(name) = &element.key
+                {
+                    Some((name.name.as_str(), &initializer.right))
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
 
     fn collect_arg(
@@ -2456,19 +2242,18 @@ impl<'f, 'a> Extractor<'f, 'a> {
     ) -> Option<InputValueDefinitionNode> {
         let TSSignature::TSPropertySignature(node) = node else {
             // TODO: How can I create this error?
-            self.report(node.span(), e::arg_is_not_property(), None, None);
+            self.report(node.span(), e::arg_is_not_property());
             return None;
         };
-        let Name::Identifier(name_span, name_text) = key_name(self.file, &node.key, node.computed)
-        else {
+        let name = key_name(self.file, &node.key, node.computed);
+        let Name::Identifier(name_span, name_text) = name else {
             // TODO: How can I create this error?
-            let name = key_name(self.file, &node.key, node.computed);
-            self.report(name.span(), e::arg_name_not_literal(), None, None);
+            self.report(name.span(), e::arg_name_not_literal());
             return None;
         };
 
         let Some(node_type) = &node.type_annotation else {
-            self.report(name_span, e::arg_not_typed(), None, None);
+            self.report(name_span, e::arg_not_typed());
             return None;
         };
         let mut r#type = self.collect_type(&node_type.type_annotation, FieldTypeContext::Input)?;
@@ -2477,7 +2262,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             // If a field is passed an argument value, and that argument is not defined in the request,
             // `graphql-js` will not define the argument property. Therefore we must ensure the argument
             // is not just nullable, but optional.
-            self.report(
+            self.report_with(
                 name_span,
                 e::expected_nullable_argument_to_be_optional(),
                 Some(vec![]),
@@ -2490,13 +2275,9 @@ impl<'f, 'a> Extractor<'f, 'a> {
             return None;
         }
 
-        let mut default_value: Option<ConstValueNode> = None;
-        if let Some(defaults) = defaults {
-            let def = defaults.get(name_text);
-            if let Some(def) = def {
-                default_value = self.collect_const_value(def);
-            }
-        }
+        let default_value = defaults
+            .and_then(|defaults| defaults.get(name_text))
+            .and_then(|default| self.collect_const_value(default));
 
         if node.optional && default_value.is_none() {
             // Question mark means we can handle the argument being undefined in the
@@ -2508,7 +2289,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
             // TODO: This will catch { a?: string } but not { a?: string | undefined }.
             if matches!(r#type, TypeNode::NonNullType(_)) {
-                self.report(
+                self.report_with(
                     self.question_token(name_span.end),
                     e::non_null_type_cannot_be_optional(),
                     Some(vec![]),
@@ -2526,9 +2307,10 @@ impl<'f, 'a> Extractor<'f, 'a> {
             r#type = gql::nullable_type(r#type).into();
         }
 
-        let description = self.collect_description(self.ts(node.node_id()));
+        let ts = self.ts(node.node_id());
+        let description = self.collect_description(ts);
 
-        let directives = self.collect_directives(self.ts(node.node_id()));
+        let directives = self.collect_directives(ts);
 
         Some(gql::input_value_definition(
             self.locatable(node.span),
@@ -2736,7 +2518,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let export_kind = self.export_kind(node);
         let is_exported = export_kind.is_some();
         if self.config.ts_client_enums.is_some() && !is_exported {
-            self.report(
+            self.report_with(
                 self.node_span(node),
                 e::enum_not_exported(),
                 Some(vec![]),
@@ -2796,8 +2578,6 @@ impl<'f, 'a> Extractor<'f, 'a> {
             self.report(
                 self.node_span(node),
                 e::type_alias_enum_not_supported_with_emit_enums(),
-                None,
-                None,
             );
             return;
         }
@@ -2959,12 +2739,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             AstKind::SwitchCase(case) => &case.consequent,
             AstKind::StaticBlock(block) => &block.body,
             _ => {
-                self.report(
-                    indexed_access.span,
-                    e::enum_const_must_precede_type_alias(),
-                    None,
-                    None,
-                );
+                self.report(indexed_access.span, e::enum_const_must_precede_type_alias());
                 return None;
             }
         };
@@ -2972,12 +2747,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             .iter()
             .position(|statement| statement.span() == statement_span);
         let Some(node_index) = node_index.filter(|&index| index > 0) else {
-            self.report(
-                indexed_access.span,
-                e::enum_const_must_precede_type_alias(),
-                None,
-                None,
-            );
+            self.report(indexed_access.span, e::enum_const_must_precede_type_alias());
             return None;
         };
 
@@ -2998,34 +2768,19 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 VariableDeclarationKind::Const | VariableDeclarationKind::AwaitUsing
             )
         }) else {
-            self.report(
-                indexed_access.span,
-                e::enum_const_must_precede_type_alias(),
-                None,
-                None,
-            );
+            self.report(indexed_access.span, e::enum_const_must_precede_type_alias());
             return None;
         };
 
         let declarations = &variable_statement.declarations;
         if declarations.len() != 1 {
-            self.report(
-                indexed_access.span,
-                e::enum_const_must_precede_type_alias(),
-                None,
-                None,
-            );
+            self.report(indexed_access.span, e::enum_const_must_precede_type_alias());
             return None;
         }
 
         let declaration = &declarations[0];
         let BindingPattern::BindingIdentifier(declaration_name) = &declaration.id else {
-            self.report(
-                indexed_access.span,
-                e::enum_const_must_precede_type_alias(),
-                None,
-                None,
-            );
+            self.report(indexed_access.span, e::enum_const_must_precede_type_alias());
             return None;
         };
 
@@ -3034,20 +2789,13 @@ impl<'f, 'a> Extractor<'f, 'a> {
             self.report(
                 indexed_access.span,
                 e::enum_const_name_mismatch(referenced_name, &declaration_name.name),
-                None,
-                None,
             );
             return None;
         }
 
         // Extract the `as const` expression, handling both `X as const` and `X as const satisfies T`
         let Some(const_expr) = extract_as_const_expression(declaration) else {
-            self.report(
-                indexed_access.span,
-                e::enum_const_missing_as_const(),
-                None,
-                None,
-            );
+            self.report(indexed_access.span, e::enum_const_missing_as_const());
             return None;
         };
 
@@ -3064,7 +2812,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         expr: &'a Expression<'a>,
     ) -> Option<Vec<EnumValueDefinitionNode>> {
         let Expression::ArrayExpression(expr) = expr else {
-            self.report(expr.span(), e::enum_const_invalid_expression(), None, None);
+            self.report(expr.span(), e::enum_const_invalid_expression());
             return None;
         };
 
@@ -3082,7 +2830,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
             let error_message = graphql_name_validation_message(&element.value);
             if let Some(error_message) = error_message {
-                self.report(element.span, error_message, None, None);
+                self.report(element.span, error_message);
             }
 
             values.push(gql::enum_value_definition(
@@ -3102,7 +2850,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         expr: &'a Expression<'a>,
     ) -> Option<Vec<EnumValueDefinitionNode>> {
         let Expression::ObjectExpression(expr) = expr else {
-            self.report(expr.span(), e::enum_const_invalid_expression(), None, None);
+            self.report(expr.span(), e::enum_const_invalid_expression());
             return None;
         };
 
@@ -3133,7 +2881,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
             let error_message = graphql_name_validation_message(&value.value);
             if let Some(error_message) = error_message {
-                self.report(value.span, error_message, None, None);
+                self.report(value.span, error_message);
             }
 
             let description = self.collect_description(self.ts(prop.node_id()));
@@ -3171,7 +2919,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
 
             let error_message = graphql_name_validation_message(&initializer.value);
             if let Some(error_message) = error_message {
-                self.report(initializer.span, error_message, None, None);
+                self.report(initializer.span, error_message);
             }
 
             let description = self.collect_description(self.ts(member.node_id()));
@@ -3219,8 +2967,6 @@ impl<'f, 'a> Extractor<'f, 'a> {
                             &comment_name,
                             &tag_data.tag_name.text,
                         ),
-                        None,
-                        None,
                     );
                     return None;
                 }
@@ -3229,8 +2975,6 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     self.report(
                         loc_node,
                         e::graphql_tag_name_has_whitespace(&tag_data.tag_name.text),
-                        None,
-                        None,
                     );
                     return None;
                 }
@@ -3242,7 +2986,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 // than returning a validation message. Presumably because it expects token
                 // validation to be done during lexing/parsing.
                 if let Some(validation_message) = validation_message {
-                    self.report(loc_node, validation_message, None, None);
+                    self.report(loc_node, validation_message);
                     return None;
                 }
                 return Some(gql::name(self.locatable(loc_node), &comment_name));
@@ -3250,7 +2994,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         }
 
         let Some(name) = name else {
-            self.report(node, e::gql_entity_missing_name(), None, None);
+            self.report(node, e::gql_entity_missing_name());
             return None;
         };
         let (id_span, id) = self.expect_name_identifier(name)?;
@@ -3272,8 +3016,6 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     accessibility_kind(not_public),
                 ),
                 e::invalid_field_non_public_access_modifier(),
-                None,
-                None,
             );
         }
         if node.r#static {
@@ -3283,14 +3025,14 @@ impl<'f, 'a> Extractor<'f, 'a> {
             // Note: We expect that static methods are handled at the top-level
             // and will be filtered out before getting here.
             let r#static = self.modifier_span(node.modifiers_start, name_start, Kind::Static);
-            self.report(r#static, e::invalid_static_modifier(), None, None);
+            self.report(r#static, e::invalid_static_modifier());
             return None;
         }
 
         let name = self.entity_name(node.span, Some(name_node), tag)?;
 
         let Some(node_type) = node.return_type else {
-            self.report(name_node.span(), e::method_missing_type(), None, None);
+            self.report(name_node.span(), e::method_missing_type());
             return None;
         };
 
@@ -3348,18 +3090,11 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 self.report(
                     Span::new(rest.rest.span.start, rest.rest.span.start + 3),
                     e::unexpected_param_spread_for_resolver_param(),
-                    None,
-                    None,
                 );
                 return None;
             }
             let Some(param_type) = param.type_annotation() else {
-                self.report(
-                    param.span(),
-                    e::resolver_param_is_missing_type(),
-                    None,
-                    None,
-                );
+                self.report(param.span(), e::resolver_param_is_missing_type());
                 return None;
             };
             if let TSType::TSTypeLiteral(literal) = &param_type.type_annotation {
@@ -3368,7 +3103,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                         self.locatable(previous.span()),
                         "Previous type literal".to_string(),
                     );
-                    self.report(
+                    self.report_with(
                         param.span(),
                         e::multiple_resolver_type_literals(),
                         Some(vec![related]),
@@ -3526,12 +3261,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let name = self.entity_name(node.span, Some(node_name), tag)?;
 
         let Some(node_type) = node.type_annotation else {
-            self.report(
-                node_name.span(),
-                e::property_field_missing_type(),
-                None,
-                None,
-            );
+            self.report(node_name.span(), e::property_field_missing_type());
             return None;
         };
 
@@ -3591,7 +3321,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     .filter(|r#type| !is_nullish(r#type))
                     .collect();
                 if types.is_empty() {
-                    self.report(union.span, e::expected_one_non_nullish_type(), None, None);
+                    self.report(union.span, e::expected_one_non_nullish_type());
                     return None;
                 }
 
@@ -3609,7 +3339,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                             )
                         })
                         .collect();
-                    self.report(
+                    self.report_with(
                         first.span(),
                         e::expected_one_non_nullish_type(),
                         Some(incompatible_variants),
@@ -3641,7 +3371,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 ));
             }
             TSType::TSNumberKeyword(keyword) => {
-                self.report(keyword.span, e::ambiguous_number_type(), None, None);
+                self.report(keyword.span, e::ambiguous_number_type());
                 return None;
             }
             // PORT: TypeScript's literal types include `null` and template
@@ -3650,7 +3380,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 // Literal types are only valid in output positions. In input positions,
                 // GraphQL cannot enforce that only this specific value is passed.
                 if ctx == FieldTypeContext::Input {
-                    self.report(node.span(), e::literal_type_in_input_position(), None, None);
+                    self.report(node.span(), e::literal_type_in_input_position());
                     return None;
                 }
                 if let TSType::TSLiteralType(literal) = node {
@@ -3674,12 +3404,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                             ));
                         }
                         TSLiteral::NumericLiteral(_) => {
-                            self.report(
-                                literal.span,
-                                e::ambiguous_number_literal_type(),
-                                None,
-                                None,
-                            );
+                            self.report(literal.span, e::ambiguous_number_literal_type());
                             return None;
                         }
                         _ => {}
@@ -3688,17 +3413,12 @@ impl<'f, 'a> Extractor<'f, 'a> {
             }
             TSType::TSTemplateLiteralType(template) if template.types.is_empty() => {
                 if ctx == FieldTypeContext::Input {
-                    self.report(
-                        template.span,
-                        e::literal_type_in_input_position(),
-                        None,
-                        None,
-                    );
+                    self.report(template.span, e::literal_type_in_input_position());
                     return None;
                 }
             }
             TSType::TSTypeLiteral(literal) => {
-                self.report(literal.span, e::unsupported_type_literal(), None, None);
+                self.report(literal.span, e::unsupported_type_literal());
                 return None;
             }
             TSType::TSTypeOperatorType(operator)
@@ -3734,12 +3454,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     });
                 }
                 _ => {
-                    self.report(
-                        reference.span,
-                        e::wrapper_missing_type_arg(&type_name.name),
-                        None,
-                        None,
-                    );
+                    self.report(reference.span, e::wrapper_missing_type_arg(&type_name.name));
                     return None;
                 }
             }
@@ -3767,8 +3482,6 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     self.report(
                         node.span,
                         "`AsyncIterable` is not a valid as an input type.".to_string(),
-                        None,
-                        None,
                     );
                     return None;
                 }
@@ -3776,8 +3489,6 @@ impl<'f, 'a> Extractor<'f, 'a> {
                     self.report(
                         node.span,
                         "`Promise` is not a valid as an input type.".to_string(),
-                        None,
-                        None,
                     );
                     return None;
                 }
@@ -3787,7 +3498,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         match type_name {
             "Array" | "Iterator" | "ReadonlyArray" | "AsyncIterable" => {
                 let Some(type_arguments) = &node.type_arguments else {
-                    self.report(node.span, e::plural_type_missing_parameter(), None, None);
+                    self.report(node.span, e::plural_type_missing_parameter());
                     return None;
                 };
                 let element = self.collect_type(type_arguments.params.first()?, ctx)?;
@@ -3825,7 +3536,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         match node {
             Name::Identifier(span, text) => Some((span, text)),
             Name::Other(span) => {
-                self.report(span, e::expected_name_identifier(), None, None);
+                self.report(span, e::expected_name_identifier());
                 None
             }
         }
