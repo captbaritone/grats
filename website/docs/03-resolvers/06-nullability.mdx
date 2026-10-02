@@ -5,7 +5,7 @@ import NullabilityExample from "!!raw-loader!./snippets/06-nullability.out";
 
 By default, Grats makes all fields nullable in keeping with **[GraphQL best practices](https://graphql.org/learn/best-practices/#nullability)**. By modeling fields as nullable by default, any error encountered when evaluating a resolver function/method will be caught by the GraphQL executor and returned as a `null` value with error metadata attached to the response.
 
-This approach allows for maximally resilient network requests, since a single error will not take down the entire query, generally it will only affect the field that threw the error.
+This approach allows for maximally resilient network requests, since a single error will not take down the entire query; generally it will only affect the field that threw the error.
 
 If you find this pervasive nullability makes client application development frustrating, you may wish to enable [Semantic Nullability](../05-guides/04-strict-semantic-nullability.mdx).
 

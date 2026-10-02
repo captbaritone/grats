@@ -70,19 +70,17 @@ query ViewerFeedQuery {
   viewer {
     feed @stream {
       id
-      title
-      content
     }
   }
 }
 ```
 
-See the `Query.feed` field in our [Example Production App](../examples/production-app.md) for an end to end working example.
+See the `Viewer.feed` field in our [Example Production App](../examples/production-app.md) for an end-to-end working example.
 
 ## Enabling for your GraphQL Server
 
 > **TIP:**
-> You will likely need to enable support of `@stream` in your GraphQL server library. See below for an example of enabling `@stream` in Yoga.
+> You will likely need to enable support for `@stream` in your GraphQL server library. See below for an example of enabling `@stream` in Yoga.
 
 ```ts
 import { createServer } from "node:http";
@@ -102,4 +100,4 @@ server.listen(4000, () => {
 });
 ```
 
-See the `server.ts` in our [Example Production App](../examples/production-app.md) for an end to end working example.
+See `server.ts` in our [Example Production App](../examples/production-app.md) for an end-to-end working example.

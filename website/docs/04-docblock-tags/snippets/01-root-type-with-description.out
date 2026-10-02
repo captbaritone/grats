@@ -1,7 +1,7 @@
 /**
  * # Welcome to GenericCorp's GraphQL Schema!
  *
- * This is root type of our system. Everything you need can be access from here.
+ * This is the root type of our system. Everything you need can be accessed from here.
  * @gqlType
  */
 type Query = unknown;
@@ -15,7 +15,7 @@ export function greet(): string {
 """
 # Welcome to GenericCorp's GraphQL Schema!
 
-This is root type of our system. Everything you need can be access from here.
+This is the root type of our system. Everything you need can be accessed from here.
 """
 type Query {
   greet: String
@@ -26,7 +26,7 @@ import { greet as queryGreetResolver } from "./01-root-type-with-description.gra
 export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
-        description: "# Welcome to GenericCorp's GraphQL Schema!\n\nThis is root type of our system. Everything you need can be access from here.",
+        description: "# Welcome to GenericCorp's GraphQL Schema!\n\nThis is the root type of our system. Everything you need can be accessed from here.",
         fields() {
             return { greet: {
                 name: "greet",

@@ -67,6 +67,9 @@ input MyInput {
 
 ## Merged Interfaces
 
-TypeScript [merges interfaces](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces) if you to define multiple interfaces with the same name in the same scope. For example, `Node` is a built-in interface that describes DOM nodes. So, if you define a `Node` interface in your code, TypeScript will merge your interface with the built-in one.
+TypeScript [merges interfaces](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces) if you define multiple interfaces with the same name in the same scope. For example, `Node` is a built-in interface that describes DOM nodes. So, if you define a `Node` interface in a file without any imports or exports (whose declarations are global), TypeScript will merge your interface with the built-in one.
 
 To avoid ambiguity, Grats will error if you try to define a GraphQL input type using a merged TypeScript interface. To avoid this error you can define a new interface, with a unique name, and then [rename](../resolvers/renaming.md) it to the name you want to use in your schema.
+
+> **CAUTION:**
+> Grats can only detect merges between declarations in the files it reads. It does not read TypeScript's built-in declarations, like the DOM's `Node`, so it can't report when your interface merges with one of them.

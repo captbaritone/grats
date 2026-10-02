@@ -4,9 +4,9 @@ GraphQL types can be defined by placing a `@gqlType` docblock directly before a:
 
 -   Class declaration
 -   Interface declaration
--   Type alias of a literal type or `unknown`
+-   Type alias of an object literal type or `unknown`
 
-If model your GraphQL resolvers using classes, simply add a `@gqlType` docblock before the class containing that type's resolvers.
+If you model your GraphQL resolvers using classes, simply add a `@gqlType` docblock before the class containing that type's resolvers.
 
 ```tsx
 /** @gqlType */
@@ -64,13 +64,13 @@ In most cases you won't need to manually define the three operation types `Query
 -   `@gqlMutationField`
 -   `@gqlSubscriptionField`
 
-However, if you _do_ wish to explicitly define one of these types (for example to add a description) they _must_ be defined as a type alias of of `unknown`. E.g. `type Query = unknown;`. If you attempt to define them any other way, Grats will report an error. You can read more in this FAQ entry: [Why Prohibit Root Values](../faq/why-prohibit-root-values.md).
+However, if you _do_ wish to explicitly define one of these types (for example to add a description) they _must_ be defined as a type alias of `unknown`. E.g. `type Query = unknown;`. If you attempt to define them any other way, Grats will report an error. You can read more in this FAQ entry: [Why Prohibit Root Values](../faq/why-prohibit-root-values.md).
 
 ```tsx
 /**
  * # Welcome to GenericCorp's GraphQL Schema!
  *
- * This is root type of our system. Everything you need can be access from here.
+ * This is the root type of our system. Everything you need can be accessed from here.
  * @gqlType
  */
 type Query = unknown;
@@ -87,7 +87,7 @@ _Generated GraphQL schema:_
 """
 # Welcome to GenericCorp's GraphQL Schema!
 
-This is root type of our system. Everything you need can be access from here.
+This is the root type of our system. Everything you need can be accessed from here.
 """
 type Query {
   greet: String
@@ -97,7 +97,7 @@ type Query {
 ## Implementing Interfaces
 
 > **NOTE:**
-> Like GraphQL's schema definition language, each type which implements of an interface must manually define all the fields required by the interface with `/** @gqlField */` tags. Grats will not automatically inherit the fields of the interface. If you omit any fields, or fail to match types correctly, Grats will report an error.
+> Like GraphQL's schema definition language, each type which implements an interface must manually define all the fields required by the interface with `/** @gqlField */` tags. Grats will not automatically inherit the fields of the interface. If you omit any fields, or fail to match types correctly, Grats will report an error.
 
 ### Classes
 
@@ -131,7 +131,7 @@ type User implements Person {
 
 ### TypeScript Interface
 
-If you are using interfaces to model your GraphQL resolvers, you can define your types as implementing a GraphQL interface by declaring that your class `extends` an interface which has been annotated with [`@gqlInterface`](./interfaces.md).
+If you are using interfaces to model your GraphQL resolvers, you can define your types as implementing a GraphQL interface by declaring that your interface `extends` an interface which has been annotated with [`@gqlInterface`](./interfaces.md).
 
 ```tsx
 /** @gqlInterface */
@@ -160,7 +160,7 @@ type User implements Person {
 }
 ```
 
-#### Type Alias
+### Type Alias
 
 Types declared using a type alias _may not_ implement a GraphQL interface. Instead, we recommend using a TypeScript interface to model your GraphQL type.
 
@@ -170,4 +170,4 @@ Types declared using a type alias _may not_ implement a GraphQL interface. Inste
 > See [Interfaces](./interfaces.md) for more information about defining interfaces.
 
 > **NOTE:**
-> Grats must be able to determine the typename of any type which implements an interface. To achieve this Grats will validate that all implementors of an interface either define a `__typename: "MyType" as const` property or are exported classes. Grats can use either to determin the typename at runtime.
+> Grats must be able to determine the typename of any type which implements an interface. To achieve this Grats will validate that all implementors of an interface either define a `__typename` property typed as a string literal (e.g. `__typename: "MyType"`) or are exported classes. Grats can use either to determine the typename at runtime.

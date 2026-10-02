@@ -1,14 +1,14 @@
 # Generics
 
-_This page contains the formal documentation of how generics behave in Grats, for an explanation of how to think about generics and practical examples of how to use them, see our [Generics Guide](../guides/generics.md)._
+_This page contains the formal documentation of how generics behave in Grats. For an explanation of how to think about generics and practical examples of how to use them, see our [Generics Guide](../guides/generics.md)._
 
 * * *
 
-Generally in Grats, types used as field members and types must either be scalar types, or type references which resolve to declarations explicitly marked with an `@gql*` docblock tag. However, there are some cases where it is useful to use types in a more flexible, or "generic" way.
+Generally in Grats, the types used for fields and members of unions must either be scalar types, or type references which resolve to declarations explicitly marked with an `@gql*` docblock tag. However, there are some cases where it is useful to use types in a more flexible, or "generic" way.
 
 In Grats, the types used for fields and members of unions are also allowed to reference an additional type of declaration: the type parameters of the parent declaration itself.
 
-When a `@gql*` type declaration contains references to its type parameters in positions that will be interpreted as GraphQL types, the declaration becomes a _generic template_. In other words, the declaration will _not itself be added to the schema_, but will be used as a template. When this TypeScript type is referenced in a GraphQL position, it's GraphQL type parameters will then be interpolated into the generic template, and the resulting type will be added to the schema.
+When a `@gql*` type declaration contains references to its type parameters in positions that will be interpreted as GraphQL types, the declaration becomes a _generic template_. In other words, the declaration will _not itself be added to the schema_, but will be used as a template. When this TypeScript type is referenced in a GraphQL position, its GraphQL type arguments will then be interpolated into the generic template, and the resulting type will be added to the schema.
 
 ## Examples
 
@@ -42,13 +42,13 @@ type GqlError {
 
 ## Type Parameters
 
-A `@gql*` may freely make use to type parameters and by default they will simply be ignored by Grats. However, if one of those type parameters is used in a position that will be interpreted by Grats as a GraphQL type, the declaration will be treated as a generic template.
+A `@gql*` declaration may freely make use of type parameters and by default they will simply be ignored by Grats. However, if one of those type parameters is used in a position that will be interpreted by Grats as a GraphQL type (including being passed to another generic type which uses its own type parameter in such a position), the declaration will be treated as a generic template.
 
 When the generic type is then itself used in a position that will be interpreted as a GraphQL type, the type parameters that were referenced in GraphQL positions must be provided as type arguments, and must themselves be `@gql*` types (or type parameters of the containing declaration).
 
 ## Naming
 
-When a generic type is materialized, its name wll be constructed by concatenating the names of each of its GraphQL type parameters (in order), followed by the name of the generic template type.
+When a generic type is materialized, its name will be constructed by concatenating the names of each of its GraphQL type parameters (in order), followed by the name of the generic template type.
 
 For example:
 
@@ -56,7 +56,7 @@ For example:
 -   `Connection<User>` — `UserConnection`
 -   `Review<User, Product>` — `UserProductReview`
 
-Each name will only be added to the schema once, even if it is used in multiple places.
+Each name will only be added to the schema once, even if it is used in multiple places. If two different types would be given the same name, for example `Pair<AB, C>` and `Pair<A, BC>` (both `ABCPair`), Grats will report an error.
 
 > **NOTE:**
 > The description and `@deprecated` marking on the generic type will be inherited by each of the materialized types.
@@ -114,7 +114,7 @@ There are some limitations to how generics can be used in Grats:
 
 ### Only unadorned type names may be passed as GraphQL type parameters
 
-You may not pass scalars, arrays, or unions as type parameters. This helps ensure Grats can derive a sensible name for each materialized type.
+You may not pass scalars, arrays, or unions as type arguments. This helps ensure Grats can derive a sensible name for each materialized type.
 
 ### Parameterized types may not implement interfaces or be members of unions
 

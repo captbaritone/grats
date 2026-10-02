@@ -18,7 +18,7 @@ JSDoc docblocks are defined as block comments that begin with `/**`.
 
 &mdash; [JSDoc Documentation](https://jsdoc.app/about-getting-started)
 
-This means the following comments will _not_ be recognized by Grats, but Grats will report an error:
+This means the following comments will _not_ be recognized by Grats, though Grats will report an error if it finds them:
 
 ```
 // @gqlType
@@ -27,7 +27,7 @@ This means the following comments will _not_ be recognized by Grats, but Grats w
 
 :::info
 
-The reason Grats does not support non JSDoc comments, is that Grats relies on TypeScript to determine which declaration a comment applies to, and TypeScript only recognizes JSDoc comments. See [Attachment](#attachment) below for more information.
+The reason Grats does not support non-JSDoc comments is that Grats follows TypeScript's rules to determine which declaration a comment applies to, and those rules only apply to JSDoc comments. See [Attachment](#attachment) below for more information.
 
 :::
 
@@ -45,6 +45,6 @@ See [Descriptions](../03-resolvers/03-descriptions.mdx) for more information abo
 
 ## Attachment
 
-Grats leverage's the TypeScript compiler to determine "comment attachment" or, which declaration a comment refers to. Comment attachment is a surprisingly complex problem, with edge cases that don't always feel intuitive. But in general, the TypeScript compiler will attach a comment to the declaration that directly follows it.
+Grats follows the same rules as the TypeScript compiler to determine "comment attachment", or which declaration a comment refers to. Comment attachment is a surprisingly complex problem, with edge cases that don't always feel intuitive. But in general, a comment is attached to the declaration that directly follows it.
 
 If Grats encounters a `@gql` comment that does not seem to be attached to _any_ declaration, it will report an error. Similarly, if Grats encounters a `@gql` comment that is attached to a declaration that is incompatible with the tag used, it will report an error.

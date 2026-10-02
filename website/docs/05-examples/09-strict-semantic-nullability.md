@@ -6,5 +6,5 @@ This example demonstrates Grats' experimental support for [Strict Semantic Nulla
 
 ## Libraries used
 
-- `yoga-graphql`
-- `next`
+- `graphql-yoga`
+- `graphql-js`

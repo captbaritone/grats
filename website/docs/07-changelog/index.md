@@ -27,6 +27,7 @@ So, for the same code, Grats extracts the same schema and generates the same cod
 
 - **No type checking.** The `reportTypeScriptTypeErrors` option is removed, so run `tsc` to report type errors. Grats still reports syntax errors, but their wording differs from TypeScript's.
 - **Only included and imported files are read.** Grats reads the files your `tsconfig.json` includes and the files they import. Files TypeScript would pull in some other way, like through `/// <reference>` directives or automatically included `@types` packages, are no longer read.
+- **Merges with built-in interfaces aren't reported.** Grats doesn't read TypeScript's built-in declarations, so it can no longer report a `@gqlInterface` or `@gqlInput` interface which merges with a built-in one, like the DOM's `Node`.
 - **Imports are resolved like a bundler would.** Grats ignores `moduleResolution` and the options related to it.
 - **Inherited file lists are relative to your `tsconfig.json`.** `files`, `include` and `exclude` inherited through `extends` are relative to your config, rather than to the config which sets them.
 - **`include` and `exclude` patterns are matched a little differently.** They're case sensitive, support `[...]` and `{a,b}`, and wildcards never match `node_modules` or names starting with `.`.

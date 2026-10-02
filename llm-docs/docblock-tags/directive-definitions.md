@@ -1,6 +1,6 @@
 # Directive Definitions
 
-You can define GraphQL directives by placing a `@gqlDirective` before a:
+You can define GraphQL directives by placing a `@gqlDirective` docblock before a:
 
 -   Function declaration
 
@@ -20,7 +20,7 @@ To annotate part of your schema with a directive, see [`@gqlAnnotate`](./directi
 
 ## Locations
 
-The text after the `@gqlDirective` tag is parsed similarly to a a GraphQL directive definition:
+The text after the `@gqlDirective` tag is parsed similarly to a GraphQL directive definition:
 
 1.  An optional name for the directive (the function name will be used if no name is provided)
 2.  An optional `repeatable` keyword if the directive is repeatable
@@ -38,7 +38,7 @@ function applyCost(args: { credits: Int }) {
 
 ## Arguments
 
-The first argument of the directive function is an object containing the directive’s GraphQL arguments. This mirrors the [Object-style map fields](./arguments.md#object-map-style-fields) style supported by field resolvers.
+The first argument of the directive function is an object containing the directive’s GraphQL arguments. This mirrors the [object-map style](./arguments.md#object-map-style-fields) supported by field resolvers.
 
 _All other arguments to the directive function are ignored by Grats._ This allows the function to be used as part of the implementation of the directive’s behavior.
 

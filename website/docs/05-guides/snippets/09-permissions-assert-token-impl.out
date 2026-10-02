@@ -3,7 +3,7 @@
  * @gqlContext
  */
 type Ctx = {
-  isAdmin: true;
+  isAdmin: boolean;
 };
 
 // Use "branded types" to ensure nobody else can construct an AdminToken.

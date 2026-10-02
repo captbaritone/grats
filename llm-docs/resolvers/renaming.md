@@ -6,7 +6,7 @@ Grats enables this by allowing you to specify a name for your construct immediat
 
 ## Example
 
-In this example, the TypeScript class representing our user is called `UserModel`, but we want to use `User` in our GraphQL schema
+In this example, the TypeScript class representing our user is called `UserModel`, but we want to use `User` in our GraphQL schema.
 
 ```tsx
 /** @gqlType User */

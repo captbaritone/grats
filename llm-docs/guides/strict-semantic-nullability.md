@@ -1,6 +1,6 @@
 # Strict Semantic Nullability
 
-Strict Semantic Nullability is an an early-stage idea being explored by the GraphQL Working Group. In an attempt to help the community understand the idea and its implications, Grats includes experimental support.
+Strict Semantic Nullability is an early-stage idea being explored by the GraphQL Working Group. In an attempt to help the community understand the idea and its implications, Grats includes experimental support.
 
 > **CAUTION:**
 > Because Strict Semantic Nullability is still in flux, the implementation and behavior within Grats are subject to change as we learn more about the idea and its implications.
@@ -40,11 +40,11 @@ type User {
 }
 ```
 
-To see an full project example of Strict Semantic Nullability in action, check out the [example project](../examples/strict-semantic-nullability.md).
+To see a full project example of Strict Semantic Nullability in action, check out the [example project](../examples/strict-semantic-nullability.md).
 
 ## Enabling Strict Semantic Nullability
 
-Strict Semantic Nullability can be enabled in your Grats config within your `tsconfig.json` file. Note that you must also have `nullableByDefault` enabled.
+Strict Semantic Nullability can be enabled in your Grats config within your `tsconfig.json` file. Note that `nullableByDefault` must also be enabled (it is by default).
 
 tsconfig.json
 
@@ -69,7 +69,7 @@ Grats aims to let the community experiment with Strict Semantic Nullability, thi
 -   Grats does not support declaring items within a list as being semantically non-null.
 
 > **INFO:**
-> Grats does not support marking list items as semantically non-null because most resolvers are not written in such a way that indiviudal items in the list can error in a way that does not result in the list resolver itself throwing. Generally this can only happen if you return an `Iterable` and it throws when calling `next()`.
+> Grats does not support marking list items as semantically non-null because most resolvers are not written in such a way that individual items in the list can error in a way that does not result in the list resolver itself throwing. Generally this can only happen if you return an `Iterable` and it throws when calling `next()`.
 
 ## Runtime Validation
 

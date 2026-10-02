@@ -17,7 +17,7 @@ interface MyClass {
 
 ## Shared Field Implementation
 
-If you wish to define field which has a single implementation that is shared by all implementors, you can use the [function style of `@gqlField`](./fields.md#functional-style-fields) to define the field. This will automatically add the field to all implementors of the interface.
+If you wish to define a field which has a single implementation that is shared by all implementors, you can use the [function style of `@gqlField`](./fields.md#functional-style-fields) to define the field. This will automatically add the field to all implementors of the interface.
 
 ```tsx
 /** @gqlInterface */
@@ -106,20 +106,23 @@ interface User implements Person {
 * * *
 
 > **NOTE:**
-> Each implementor of an interface must declare define all the fields required by the interface with `/** @gqlField */`. This means that if you have an interface that implements another interface, you must define all the fields required by both interfaces.
+> Each implementor of an interface must define all the fields required by the interface with `/** @gqlField */`. This means that if you have an interface that implements another interface, you must define all the fields required by both interfaces.
 
 ## Merged Interfaces
 
-TypeScript [merges interfaces](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces) if you to define multiple interfaces with the same name in the same scope. For example, `Node` is a built-in interface that describes DOM nodes. So, if you define a `Node` interface in your code, TypeScript will merge your interface with the built-in one.
+TypeScript [merges interfaces](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces) if you define multiple interfaces with the same name in the same scope. For example, `Node` is a built-in interface that describes DOM nodes. So, if you define a `Node` interface in a file without any imports or exports (whose declarations are global), TypeScript will merge your interface with the built-in one.
 
 To avoid ambiguity, Grats will error if you try to define a GraphQL interface using a merged TypeScript interface. To avoid this error you can define a new interface, with a unique name, and then [rename](../resolvers/renaming.md) it to the name you want to use in your schema.
 
 ```tsx
 import { ID } from "grats";
 
-/** @gqlType Node */
+/** @gqlInterface Node */
 interface GqlNode {
   /** @gqlField */
   id: ID;
 }
 ```
+
+> **CAUTION:**
+> Grats can only detect merges between declarations in the files it reads. It does not read TypeScript's built-in declarations, like the DOM's `Node`, so it can't report when your interface merges with one of them.

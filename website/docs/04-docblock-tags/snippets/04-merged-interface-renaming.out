@@ -1,19 +1,19 @@
 import { ID } from "grats";
 
-/** @gqlType Node */
+/** @gqlInterface Node */
 interface GqlNode {
   /** @gqlField */
   id: ID;
 }
 
 === SNIP ===
-type Node {
+interface Node {
   id: ID
 }
 === SNIP ===
-import { GraphQLSchema, GraphQLObjectType, GraphQLID } from "graphql";
+import { GraphQLSchema, GraphQLInterfaceType, GraphQLID } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const NodeType: GraphQLObjectType = new GraphQLObjectType({
+    const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Node",
         fields() {
             return { id: {

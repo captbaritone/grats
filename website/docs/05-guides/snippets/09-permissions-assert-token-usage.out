@@ -4,7 +4,7 @@ type AssertAdminToken = AdminToken;
 
 /** @gqlContext */
 type Ctx = {
-  isAdmin: true;
+  isAdmin: boolean;
 };
 
 /** @gqlContext */

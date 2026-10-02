@@ -1,9 +1,9 @@
 # Docblock Tags
 
-In order for Grats to extract GraphQL schema from your code, simply mark which TypeScript structures should be included in the schema by marking them with special JSDoc tags such as `/** @gqlType */` or `/** @gqlField */`.
+In order for Grats to extract a GraphQL schema from your code, simply mark which TypeScript structures should be included in the schema with special JSDoc tags such as `/** @gqlType */` or `/** @gqlField */`.
 
 > **CAUTION:**
-> JSDocs must being with `/**` (two asterisk). However, they may be consolidated into a single line `/** Like this */`.
+> JSDocs must begin with `/**` (two asterisks). However, they may be consolidated into a single line `/** Like this */`.
 
 > **INFO:**
 > -   To learn about comment syntax, see [Comment Syntax](./getting-started/comment-syntax.md)
@@ -13,16 +13,18 @@ Each tag maps directly to a concept in the GraphQL [Schema Definition Language](
 
 -   [`@gqlType`](./docblock-tags/types.md)
 -   [`@gqlField`](./docblock-tags/fields.md)
-    -   [Root fields](./docblock-tags/root-fields.md)
+    -   [Root fields](./docblock-tags/root-fields.md) (`@gqlQueryField`, `@gqlMutationField`, `@gqlSubscriptionField`)
     -   [Arguments](./docblock-tags/arguments.md)
-    -   [Context](./docblock-tags/context.md)
+    -   [Context](./docblock-tags/context.md) (`@gqlContext`)
     -   [Info](./docblock-tags/info.md)
 -   [`@gqlInterface`](./docblock-tags/interfaces.md)
 -   [`@gqlUnion`](./docblock-tags/unions.md)
 -   [`@gqlEnum`](./docblock-tags/enums.md)
 -   [`@gqlScalar`](./docblock-tags/scalars.md)
 -   [`@gqlInput`](./docblock-tags/inputs.md)
-    -   [`@oneOf`](./docblock-tags/oneof-inputs.md)
+    -   [OneOf inputs](./docblock-tags/oneof-inputs.md)
+-   [`@gqlDirective`](./docblock-tags/directive-definitions.md)
+-   [`@gqlAnnotate`](./docblock-tags/directive-annotations.md)
 
 > **TIP:**
 > This documentation aims to be complete, but our hope is that you feel empowered to just slap one of these docblock tags on the relevant TypeScript class/type/method/etc in your code, and let Grats' helpful error messages guide you.

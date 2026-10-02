@@ -4,7 +4,7 @@ _This page is a guide explaining the principles of generic types and showing pra
 
 * * *
 
-Generic types allow you types which can be parameterized by other types. This is useful for creating reusable types. In GraphQL the list type can be thought of as a generic type, in that you can construct a list of type `T` for any `T` without needing to define a explicit new named type.
+Generic types allow you to define types which can be parameterized by other types. This is useful for creating reusable types. In GraphQL the list type can be thought of as a generic type, in that you can construct a list of type `T` for any `T` without needing to define an explicit new named type.
 
 Unfortunately, GraphQL does not currently have support for user-defined generic types.
 
@@ -12,7 +12,7 @@ However, since Grats derives your GraphQL schema, it is able to support generic 
 
 ## Example 1: Result Type
 
-Lets consider a common pain point: You have a field which you know will error sometimes, and you'd like to ensure your consumers consider this case by modeling it in your schema.
+Let's consider a common pain point: You have a field which you know will error sometimes, and you'd like to ensure your consumers consider this case by modeling it in your schema.
 
 A manual implementation might look like:
 
@@ -157,4 +157,4 @@ An example of how you might define a spec-compatible `Connection` type using gen
 
 To read more about Generics in TypeScript, see the section on [Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html) in the TypeScript Handbook.
 
-The excellent implementation-fist Python GraphQL library [Strawberry](https://strawberry.rocks/) supports [deriving schema from generics](https://strawberry.rocks/docs/types/generics) in Python. This provided significant inspiration for Grats' implementation.
+The excellent implementation-first Python GraphQL library [Strawberry](https://strawberry.rocks/) supports [deriving schema from generics](https://strawberry.rocks/docs/types/generics) in Python. This provided significant inspiration for Grats' implementation.

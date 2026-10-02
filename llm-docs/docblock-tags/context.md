@@ -1,6 +1,6 @@
 # Context
 
-In addition to the [arguments object](./arguments.md), each resolver method/function may also access a [context value](https://graphql.org/learn/execution/#root-fields--resolvers). Context is the standard way to implement dependency injection for GraphQL resolvers. Typically the context value will be an object including the current request, information about the requesting user, as well as a database connection and per-request caches, such as [DataLoaders](https://github.com/graphql/dataloader).
+In addition to [arguments](./arguments.md), each resolver method/function may also access a [context value](https://graphql.org/learn/execution/#root-fields--resolvers). Context is the standard way to implement dependency injection for GraphQL resolvers. Typically the context value will be an object including the current request, information about the requesting user, as well as a database connection and per-request caches, such as [DataLoaders](https://github.com/graphql/dataloader).
 
 To define the context object type, you must use the `@gqlContext` tag. This tag should be placed directly above the type definition for your context object.
 
@@ -49,7 +49,7 @@ export function me(ctx: GQLCtx): User {
 ```
 
 > **TIP:**
-> Unlike `graphql-js`, Grats does not require that the context object be passed as a specific positional argument to the resolver. You can place the context object anywhere in the argument list, as long as the type is annotated with the `@gqlContext` type.
+> Unlike `graphql-js`, Grats does not require that the context object be passed as a specific positional argument to the resolver. You can place the context object anywhere in the argument list, as long as it is typed using the `@gqlContext` type.
 
 ## Derived context values
 
@@ -81,7 +81,9 @@ export function me(db: DB): string {
 }
 ```
 
-Derived context functions will be called individually by each resolve that wants to access the derived context value. If you want the result to be reused across multiple resolvers, you should memoize the result:
+Derived context functions may also be `async`. If a derived context function returns a `Promise`, Grats will `await` it and pass the resolved value to your resolver.
+
+Derived context functions will be called individually by each resolver that wants to access the derived context value. If you want the result to be reused across multiple resolvers, you should memoize the result:
 
 ```tsx
 class DB {

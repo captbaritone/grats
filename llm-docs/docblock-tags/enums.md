@@ -33,7 +33,7 @@ enum MyEnum {
 
 Note that the values of the enum are used as the GraphQL enum values, and must be string literals.
 
-To mark a variants as deprecated, use the `@deprecated` JSDoc tag directly before it:
+To mark a variant as deprecated, use the `@deprecated` JSDoc tag directly before it:
 
 ```tsx
 /** @gqlEnum */
@@ -81,7 +81,7 @@ enum MyEnum {
 If you need runtime access to enum values without using TypeScript's `enum` syntax, Grats supports deriving enums from const arrays and const objects.
 
 > **INFO:**
-> The const declaration must be the immediately preceding statement before the `@gqlEnum` type alias. This ensures the actual list of enum values are colocated with the `@gqlEnum` annotation.
+> The const declaration must use `as const` and must be the statement immediately preceding the `@gqlEnum` type alias. This ensures the actual list of enum values is colocated with the `@gqlEnum` annotation.
 
 ### Const array
 

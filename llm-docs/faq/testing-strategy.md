@@ -10,31 +10,31 @@ Grats leans heavily into this approach but then takes it even further by using a
 
 ## Unit Tests
 
-Grats attempts to cover every feature, capability, edge case, regression, and error message with a unit test. Our unit tests take the form of fixture files. Each fixture is a singe `.ts` file consisting of the minimal code needed to exercises exactly one permutation of one features. While grouping many examples of a feature into a single file might be more convenient, we try to avoid it, since it makes it harder to understand what is being tested and what is expected. To group multiple assertions together, the fixtures directory is organized into subdirectories which group related fixtures together.
+Grats attempts to cover every feature, capability, edge case, regression, and error message with a unit test. Our unit tests take the form of fixture files. Each fixture is a single `.ts` file consisting of the minimal code needed to exercise exactly one permutation of one feature. While grouping many examples of a feature into a single file might be more convenient, we try to avoid it, since it makes it harder to understand what is being tested and what is expected. Instead, the fixtures directory is organized into subdirectories which group related fixtures together.
 
-During testing Grats is run on each fixture file to produce a sibling `.expected` file. This includes either the expected error message for that input or the expected compiler output. In the error case a full pretty-printed error is included so that the error message as well as the source locations being referenced are clearly visible. In the success case, the output file contains both the generated `.graphql` schema as well as the generated `.ts` module which exports the `GraphQLSchema` class.
+The test suite is written in Rust and runs with `cargo test`. During testing Grats is run on each fixture file to produce a sibling `.expected.md` file. This Markdown file includes the fixture's input followed by either the expected error message for that input or the expected compiler output. In the error case a full pretty-printed error is included so that the error message as well as the source locations being referenced are clearly visible. If any of the errors have automatic fixes, the file also shows each fix and the fixed code. In the success case, the output file contains both the generated `.graphql` schema as well as the generated `.ts` module which builds the `GraphQLSchema`. Fixtures which are expected to report errors include `.invalid` in their file name, and the test fails if a fixture's result doesn't match its name.
 
-Fixture files also include a special syntax where the file can start with a special comment which will allow the test to specify certain Grats config options. This allows fixture files to be just a single `.ts` file but still be able to test different configurations of Grats.
+Fixture files also support a special syntax where the file can start with a comment containing JSON, which allows the test to specify certain Grats config options. This allows fixture files to be just a single `.ts` file but still be able to test different configurations of Grats.
 
-If the output of running grats on the `.ts` file does not match the `.expected` file, the test fails with an option to regenerate the `.expected` file. This is how we ensure that Grats is behaving as expected while also allowing for evolution in the case that a change intentionally changes the output.
+If the output of running Grats on the `.ts` file does not match the `.expected.md` file, the test fails and shows a diff. Running the tests with `--write` regenerates the `.expected.md` files. This is how we ensure that Grats is behaving as expected while also allowing for evolution in the case that a change intentionally changes the output.
 
-_At the time of writing, Grats has 438 unit test fixtures._
+_At the time of writing, Grats has 515 unit test fixtures._
 
 ## Integration Tests
 
-Grats' second tier of tests are integration tests which validate the runtime behavior of the TypeScript code that Grats generates. Similar to our unit tests these are fixture tests each consisting of a single `.ts` file. However, here each file is expected to produce a valid schema and also export a property `query`, which is a GraphQL query string which will be executed.
+Grats' second tier of tests are integration tests which validate the runtime behavior of the TypeScript code that Grats generates. Similar to our unit tests these are fixture tests, each consisting of a directory containing a single `index.ts` file. However, here each file is expected to produce a valid schema and also export a property `query`, which is a GraphQL query string which will be executed.
 
-The sibling `.expected` file contains the result of executing that query against the scheme generated from the module's code.
+The Rust test suite generates the schema for each fixture, and the generated `schema.ts` and `schema.graphql` files are checked in alongside it. Then a JavaScript test runner executes the query against the generated schema using `graphql-js`. The sibling `index.ts.expected.md` file contains the result of executing that query.
 
-_At the time of writing, Grats has 25 integration test fixtures._
+_At the time of writing, Grats has 29 integration test fixtures._
 
 ## Docs Examples
 
-One perennial challenge with software libraries is ensuring the examples code in the library's docs are both well formed _and_ stay in sync with the library's behavior/API as it evolves.
+One perennial challenge with software libraries is ensuring the example code in the library's docs is both well formed _and_ stays in sync with the library's behavior/API as it evolves.
 
 Additionally, for a tool like Grats, it can be helpful to let users see the output produced for each example, or even to let them try editing the example themselves to see how it changes the output.
 
-Grats attempts to solve all of these problems by running Grats on each example snippet when we build the docs (and in our CI) and then checking in the resulting artifacts. This means:
+Grats attempts to solve all of these problems by running Grats on each example snippet as part of our test suite (which runs in our CI) and then checking in the resulting artifacts. This means:
 
 -   Changes which cause any example in the docs to fail to compile, or produce different output, will be noticed before the change is merged and can be addressed.
 -   Newly added docs are automatically validated that they produce the expected output.
@@ -72,11 +72,11 @@ type User {
 }
 ```
 
-_At the time of writing Grats has 45 example snippets in the docs._
+_At the time of writing Grats has 75 example snippets in the docs._
 
 ## Example Apps
 
-A key part of Grats' documentation is its collection of [example apps](../examples.md). These are minimal end to end implementations of GraphQL servers implemented using Grats. Each example app is a standalone TypeScript project which includes a `grats.config.ts` file which configures Grats to generate the schema for the app. We expect users to be able to reference these apps by either cloning of copy/pasting bits of the apps to get started with their own projects.
+A key part of Grats' documentation is its collection of [example apps](../examples.md). These are minimal end to end implementations of GraphQL servers implemented using Grats. Each example app is a standalone TypeScript project whose `tsconfig.json` configures Grats to generate the schema for the app. We expect users to be able to reference these apps by either cloning or copy/pasting bits of the apps to get started with their own projects.
 
 There are few things more frustrating than copying some code from an example, having it not work and then realizing it had a bug or was out of date. Additionally, example projects are generally not under any kind of production use so it can be easy to miss things that end up breaking the example projects.
 
@@ -89,8 +89,8 @@ Grats' CI runs a script which builds each example app, starts the server and the
 
 This not only ensures that all example apps are generally always working as expected, but also allows each example app to act as an additional integration test, ensuring Grats' compatibility with that app's specific configuration.
 
-_At the time of writing Grats has 9 example apps._
+_At the time of writing Grats has 7 example apps._
 
 ## All Together
 
-Taken together these four types of tests allow us to quickly and continentally evolve and improve Grats using a test-driven approach while also ensuring that the documentation and examples are always up to date and working as expected.
+Taken together these four types of tests allow us to quickly and confidently evolve and improve Grats using a test-driven approach while also ensuring that the documentation and examples are always up to date and working as expected.

@@ -14,7 +14,7 @@ This example includes a relatively fully featured app to demonstrate how real-wo
 -   Custom scalars - See `Date` defined in `graphql/CustomScalars.ts`
 -   [OneOf input types](../docblock-tags/oneof-inputs.md) for modeling Markdown content in `models/Post.ts`
 -   Look-ahead optimization for Connections to use count query for requests that only read count in `graphql/gqlUtils.ts`.
--   A custom `@cost` field directive which implements API rate limiting, were some fields cost "credits" to read.
+-   A custom `@cost` field directive which implements API rate limiting, where some fields cost "credits" to read.
 
 ## Implementation notes
 
@@ -29,3 +29,4 @@ The viewer context is passed all the way through the app to the data layer. This
 -   `dataloader`
 -   `@graphql-yoga/plugin-defer-stream`
 -   `graphql-relay`
+-   `@graphql-tools/utils`

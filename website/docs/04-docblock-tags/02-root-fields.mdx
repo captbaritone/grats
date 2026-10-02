@@ -29,11 +29,11 @@ If you want to group root fields that return or modify a specific type with that
 
 <GratsCode out={StaticMethodExtendQuery} mode="both" />
 
-For more information about field resolves, see [Resolver Signature](../03-resolvers/index.mdx).
+For more information about field resolvers, see [Resolvers](../03-resolvers/index.mdx).
 
 ## Functional style root fields
 
-If you prefer to avoid classes Grats also allows you to **define root fields using named, exported functions**. Function resolvers:
+If you prefer to avoid classes, Grats also allows you to **define root fields using named, exported functions**. Function resolvers:
 
 - Have a return type that matches the field type
 - Are exported named functions where the function name is the desired field name
@@ -56,4 +56,4 @@ Defining fields on these root types will cause the type to automatically be adde
 - [Field Arguments](./03-arguments.mdx) for how to define arguments
 - [Descriptions](../03-resolvers/03-descriptions.mdx) for how to add descriptions to your fields
 - [Nullability](../03-resolvers/06-nullability.mdx) for how to control the error handling and nullability of your field
-- [Deprecated](../03-resolvers/05-deprecated.mdx) for how to control the nullability of your field
+- [Deprecated](../03-resolvers/05-deprecated.mdx) for how to mark your field as deprecated

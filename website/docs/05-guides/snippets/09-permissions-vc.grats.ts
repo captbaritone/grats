@@ -19,7 +19,7 @@ const db = {
 
 // trim-end
 /**
- * This objet can be derived from the request/cookies/etc.
+ * This object can be derived from the request/cookies/etc.
  * @gqlContext */
 type VC = {
   role: Role;

@@ -6,11 +6,11 @@ Depending upon the capabilities of the target language, there are a number of wa
 
 Other tools, like [Strawberry](https://strawberry.rocks) for Python, use decorators to annotate types and fields. I think this is probably the ideal API for an implementation-first GraphQL server. It uses existing language syntax and, via introspection, can derive the GraphQL schema at runtime without requiring an additional build step.
 
-However, there ara a few reasons why it's not feasible in TypeScript. Firstly, because decorators are runtime constructs, they cannot be attached to types, which would prevent things like defining GraphQL input/output types with TypeScript `type`s.
+However, there are a few reasons why it's not feasible in TypeScript. Firstly, because decorators are runtime constructs, they cannot be attached to types, which would prevent things like defining GraphQL input/output types with TypeScript `type`s.
 
-Secondly, TypeScript types are stripped at runtime so it is fundamentally impossible to use introspection to "see" the types of fields/arguments etc. This means that introspection cannot be used to derive a GraphQL schema from TypeScript types at runtime. If we want to use type annotations to derive GraphQL types, we must use do so statically/at build time.
+Secondly, TypeScript types are stripped at runtime so it is fundamentally impossible to use introspection to "see" the types of fields/arguments etc. This means that introspection cannot be used to derive a GraphQL schema from TypeScript types at runtime. If we want to use type annotations to derive GraphQL types, we must do so statically/at build time.
 
-That said, introspection can be used to derived _pieces_ of a GraphQL schema. For example, names of type/class decorations and field names. [TypeGraphQL](https://typegraphql.com/) is a library that is similar to Grats in many ways, but uses decorators and introspection instead of comments. However, since types are not visible at runtime, it ends up needing to fall back to a builder-like API to express things like field return types, and argument types. This tradeoff has the advantage of avoiding a build step, but at the cost of a more complex API.
+That said, introspection can be used to derive _pieces_ of a GraphQL schema. For example, names of type/class decorations and field names. [TypeGraphQL](https://typegraphql.com/) is a library that is similar to Grats in many ways, but uses decorators and introspection instead of comments. However, since types are not visible at runtime, it ends up needing to fall back to a builder-like API to express things like field return types, and argument types. This tradeoff has the advantage of avoiding a build step, but at the cost of a more complex API.
 
 For Grats, we wanted to optimize for the simplest possible API.
 
@@ -22,7 +22,7 @@ TypeScript does not currently support macros, and seems [unlikely to add them](h
 
 Given the limitations faced when trying to support an implementation-first API in TypeScript, Grats falls back to a lowest common denominator: static analysis. Grats infers GraphQL types from TypeScript at build time by _analyzing_ the code rather than _running_ it.
 
-We chose doc-blocks because they accurately convey that the code within them does not impact the runtime, while still having a well defined structure that can be parsed. In particular, we're able to leverage the TypeScript compiler's JSDoc parsing, which aligns well with our design principle of ["A few dependencies well leveraged"](./design-principles.md#a-few-dependencies-well-leveraged).
+We chose doc-blocks because they accurately convey that the code within them does not impact the runtime, while still having a well defined structure that can be parsed. In particular, docblocks are JSDoc comments, and TypeScript already defines how JSDoc is parsed and which code each comment is attached to. Grats follows those same rules.
 
 ## Summary
 

@@ -1,6 +1,6 @@
 # Fields
 
-You can define GraphQL fields by placing a `@gqlField` directly before a:
+You can define GraphQL fields by placing a `@gqlField` docblock directly before a:
 
 -   Method declaration
 -   Method signature
@@ -34,7 +34,7 @@ class User {
 }
 ```
 
-Fields can also be defined using TypeScript's [parameter properties](https://www.typescriptlang.org/docs/handbook/2/classes.html#parameter-properties), which is a short-hand for defining a field value that is passed to the class constructor:
+Fields can also be defined using TypeScript's [parameter properties](https://www.typescriptlang.org/docs/handbook/2/classes.html#parameter-properties), which are a shorthand for defining a field value that is passed to the class constructor:
 
 ```tsx
 /** @gqlType */
@@ -46,7 +46,7 @@ class User {
 }
 ```
 
-For more information about field resolves, see [Resolver Signature](../resolvers.md).
+For more information about field resolvers, see [Resolvers](../resolvers.md).
 
 ## Functional style fields
 
@@ -58,19 +58,20 @@ If you prefer to avoid classes, types can be defined using type literals. Howeve
 
 ```typescript
 /** @gqlType */
-const User = {
+type User = {
   /** @gqlField */
-  firstName: string,
+  firstName: string;
   /** @gqlField */
-  lastName: string,
+  lastName: string;
 };
 
+/** @gqlField */
 export function fullName(user: User): string {
   return `${user.firstName} ${user.lastName}`;
 }
 ```
 
-Note that Grats will use the type of the first argument to determine which type is being extended. So, as seen in the previous examples, even if you don't need access to the instance you should still define a typed first argument.
+Note that Grats will use the type of the first argument to determine which type is being extended. So, even if you don't need access to the instance, you must still define a typed first argument. You can name it `_` to indicate that it is unused.
 
 ## More field documentation
 
@@ -79,4 +80,4 @@ Note that Grats will use the type of the first argument to determine which type 
 -   [Field Arguments](./arguments.md) for how to define arguments
 -   [Descriptions](../resolvers/descriptions.md) for how to add descriptions to your fields
 -   [Nullability](../resolvers/nullability.md) for how to control the error handling and nullability of your field
--   [Deprecated](../resolvers/deprecated.md) for how to control the nullability of your field
+-   [Deprecated](../resolvers/deprecated.md) for how to mark your field as deprecated

@@ -6,21 +6,23 @@ Working minimal code examples are often the best way to see how a library should
 
 -   [Apollo Server](./examples/apollo-server.md)\ - A very minimal example of using Grats with Apollo Server.
 -   [GraphQL HTTP](./examples/graphql-http.md)\ - Simple demo project integrating Grats, [Express](http://expressjs.com/) and [graphql-http](https://graphql-http.com/).
--   [Yoga](./examples/yoga.md)\ - Simple demo project integrating Grats and [Yoga](https://github.com/dotansimha/graphql-yoga) with Node's built-in HTTP server. This example also includes an working example of GraphQL subscriptions.
--   [NextJS](./examples/next-js.md)\ - Simple demo project integrating Grats and [Next.js](https://nextjs.org/) and [Yoga](https://github.com/dotansimha/graphql-yoga).
+-   [Yoga](./examples/yoga.md)\ - Simple demo project integrating Grats and [Yoga](https://github.com/dotansimha/graphql-yoga) with Node's built-in HTTP server. This example also includes a working example of GraphQL subscriptions.
+-   [Next.js](./examples/next-js.md)\ - Simple demo project integrating Grats, [Next.js](https://nextjs.org/) and [Yoga](https://github.com/dotansimha/graphql-yoga).
 
 ## Capabilities of Grats
 
--   [Strict Semantic Nullabilty](./examples/strict-semantic-nullability.md)
-    -   This example demonstrates Grats' experimental support for [Strict Semantic Nullability](https://grats.capt.dev/docs/guides/strict-semantic-nullability).
+-   [Strict Semantic Nullability](./examples/strict-semantic-nullability.md)
+    -   This example demonstrates Grats' experimental support for [Strict Semantic Nullability](./guides/strict-semantic-nullability.md).
 -   [Production App](./examples/production-app.md)
     -   Demonstrates many of the practical concerns of implementing GraphQL in production.
     -   Node/Connection (Relay schema)
     -   Dataloader pattern
     -   Subscriptions
-    -   @stream
+    -   `@stream`
     -   Custom scalars
     -   GraphQL context
+-   [Incremental Migration](./examples/incremental-migration.md)
+    -   A snapshot of a project in the middle of an incremental migration to Grats using [Schema Merging](./guides/incremental-migration/schema-merging.md).
 
 ## Standalone examples
 
@@ -28,7 +30,7 @@ Examples of Grats outside of the Grats repository:
 
 -   [Grats Relay Example](https://github.com/captbaritone/grats-relay-example)
     -   Shows configuring Grats and Relay together
-    -   Click to defintion from field use to resolver
+    -   Click to definition from field use to resolver
 -   [Winamp Skin Museum](https://github.com/captbaritone/webamp/tree/master/packages/skin-database)
     -   The [Winamp Skin Museum](https://skins.webamp.org/) uses Grats to power its GraphQL API
 

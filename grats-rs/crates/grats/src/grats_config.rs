@@ -60,23 +60,23 @@ pub struct GratsConfig {
     #[schemars(with = "Option<LongString>")]
     pub ts_schema_header: Option<String>,
     /// A string to prepend to the TypeScript enums file generated when the
-    /// `tsClientEnums` configuration options is set. Useful for copyright
+    /// `tsClientEnums` configuration option is set. Useful for copyright
     /// headers or instructions for how to regenerate the file. Set to `null`
     /// to omit the default header.
     #[serde(deserialize_with = "long_string")]
     #[schemars(with = "Option<LongString>")]
     pub ts_client_enums_header: Option<String>,
-    /// This option allows you configure an extension that will be appended to
-    /// the end of all import paths in the generated TypeScript schema file.
+    /// This option allows you to configure an extension that will be appended
+    /// to the end of all import paths in the generated TypeScript schema file.
     ///
     /// When building a package that uses ES modules, import paths must not
     /// omit the file extension. In TypeScript code this generally means import
-    /// paths must end with `.js`. If set to null, no ending will be appended.
+    /// paths must end with `.js`. By default, no ending is appended.
     pub import_module_specifier_ending: String,
     /// EXPERIMENTAL: THIS OPTION WILL BE RENAMED OR REMOVED IN A FUTURE RELEASE
     ///
-    /// Emit a JSON file alongside the generated schema file which contains the
-    /// metadata containing information about the resolvers.
+    /// Emit a JSON file alongside the generated schema file containing
+    /// metadata about the resolvers.
     #[serde(rename = "EXPERIMENTAL__emitMetadata")]
     #[schemars(extend("experimental" = true))]
     pub experimental_emit_metadata: bool,

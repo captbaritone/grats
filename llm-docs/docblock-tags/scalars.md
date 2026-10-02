@@ -19,6 +19,8 @@ _Generated GraphQL schema:_
 scalar MyCustomString
 ```
 
+The type alias must be exported, since Grats' generated schema module imports it to type your scalar's [serialization and parsing](#serialization-and-parsing-of-custom-scalars) functions.
+
 ## Built-In Scalars
 
 > **NOTE:**
@@ -28,18 +30,19 @@ scalar MyCustomString
 import { Float, Int, ID } from "grats";
 
 /** @gqlType */
-class Math {
+class Calculation {
+  /** @gqlField */
   id: ID;
   /** @gqlField */
-  round(args: { float: Float }): Int {
-    return Math.round(args.float);
+  round(float: Float): Int {
+    return Math.round(float);
   }
 }
 ```
 
 ## `@specifiedBy` Directive
 
-The GraphQL specification defines the [`@specifiedBy`](https://spec.graphql.org/draft/#sec--specifiedBy) directive which can be added to custom scalar definitions. The directive provides a "scalar specification URL for specifying the behavior of custom scalar types.". Grats' support for [annotating your schema with directives](./directive-annotations.md) lets you add this directive to your custom scalars:
+The GraphQL specification defines the [`@specifiedBy`](https://spec.graphql.org/draft/#sec--specifiedBy) directive which can be added to custom scalar definitions. The directive provides a "scalar specification URL for specifying the behavior of custom scalar types". Grats' support for [annotating your schema with directives](./directive-annotations.md) lets you add this directive to your custom scalars:
 
 ```tsx
 /**
@@ -68,7 +71,7 @@ scalars.ts
 export type GqlDate = Date;
 ```
 
-Grats' generated `getSchema` would require a config object where you could supply `serialize/parseValue/parseLiteral` transform for this type. If `Date` were serialized as a Unix timestamp, you could do the following:
+Grats' generated `getSchema` would require a config object where you could supply `serialize`/`parseValue`/`parseLiteral` transforms for this type. If `Date` were serialized as a Unix timestamp, you could do the following:
 
 server.ts
 

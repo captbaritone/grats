@@ -11,6 +11,6 @@ However, if you wish to explicitly define one of these types in order to add a d
 type Query = unknown;
 ```
 
-Grats forces this constraint because the semantics of the root value is not well defined across GraphQL server implementations. For example, Yoga does not allow you to define a root value, where as other server implementations use a single root value that is shared by all resolvers. Additionally, it's not specified if the root value should be shared by all requests or regenerated for each request.
+Grats forces this constraint because the semantics of the root value are not well defined across GraphQL server implementations. For example, Yoga does not allow you to define a root value, whereas other server implementations use a single root value that is shared by all resolvers. Additionally, it's not specified if the root value should be shared by all requests or regenerated for each request.
 
 There are some valid uses for a concrete root value, such as dependency injection, but in general dependency injection can be more easily achieved by using [context](../04-docblock-tags/04-context.mdx). If you believe you have a valid use case for a concrete root value, please [open an issue](https://github.com/captbaritone/grats/issues).

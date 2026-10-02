@@ -3,7 +3,7 @@
 GraphQL unions can be defined by placing a `@gqlUnion` docblock directly before a:
 
 -   Type alias of a union of object types
--   Type alias of reference to a single object type (for unions with one member)
+-   Type alias of a reference to a single object type (for unions with one member)
 
 ```tsx
 /**
@@ -47,7 +47,7 @@ type User {
 ```
 
 > **NOTE:**
-> All the types referenced in the TypeScript union but be explicitly annotated with `@gqlType`. Grats will remind you with a helpful error message if you forget.
+> All the types referenced in the TypeScript union must be explicitly annotated with `@gqlType`. Grats will remind you with a helpful error message if you forget.
 
 > **NOTE:**
-> Grats must be able to determine the typename of any type which members of a union. To achieve this Grats will validate that all member types either define a `__typename: "MyType" as const` property or are exported classes. Grats can use either to determin the typename at runtime.
+> Grats must be able to determine the typename of any type which is a member of a union. To achieve this Grats will validate that all member types either define a `__typename` property typed as a string literal (e.g. `__typename: "MyType"`) or are exported classes. Grats can use either to determine the typename at runtime.

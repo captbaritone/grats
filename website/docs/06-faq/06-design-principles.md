@@ -1,10 +1,10 @@
 # Design Principles
 
-This document describes the design principles of Grats. These are not hard and fast rules, but rather a set of principals I'm trying to consider when making design decisions and tradeoffs. For a concrete description of how Grats _actually_ works, see [How Grats Works](./03-how-grats-works.md).
+This document describes the design principles of Grats. These are not hard and fast rules, but rather a set of principles I'm trying to consider when making design decisions and tradeoffs. For a concrete description of how Grats _actually_ works, see [How Grats Works](./03-how-grats-works.md).
 
 ## Integrate into the user's existing code
 
-TypeScript aims to be a type system that can model existing JavaScript idioms, rather than expecting users to adapt their code style to fit the type system. Grats, should operate in the same way. Where possible, Grats should enable users to build a GraphQL schema by adding docblock tags to their existing code, rather than asking users to adapt their code style to fit an opinionated Grats' style.
+TypeScript aims to be a type system that can model existing JavaScript idioms, rather than expecting users to adapt their code style to fit the type system. Grats should operate in the same way. Where possible, Grats should enable users to build a GraphQL schema by adding docblock tags to their existing code, rather than asking users to adapt their code style to fit an opinionated Grats style.
 
 ## Progressive disclosure
 
@@ -14,7 +14,7 @@ Grats should have a small user-facing API that is intuitive to use. Users should
 
 Grats should be willing to take on additional internal complexity if it means being able to do the obviously right thing in more cases. Alternatively, features that add external complexity or API surface area should be avoided where possible.
 
-That said, internal complexity should taken on with caution. Grats should be willing to wait to add add features/improvements which require internal complexity until we see an architectural design that will make the complexity maintainable.
+That said, internal complexity should be taken on with caution. Grats should be willing to wait to add features/improvements which require internal complexity until we see an architectural design that will make the complexity maintainable.
 
 ## Incremental improvements
 
@@ -22,13 +22,13 @@ There are a potentially large number of types of syntax that Grats could learn t
 
 ## No new concepts
 
-Grats should try to avoid introducing new concepts to the GraphQL ecosystem. Docblocks tags should represent constructs that are well defined in the GraphQL spec, and should feel familiar to those who have used GraphQL in other contexts/languages. Ideally each docblock tag should correspond directly to the GraphQL schema construct it creates.
+Grats should try to avoid introducing new concepts to the GraphQL ecosystem. Docblock tags should represent constructs that are well defined in the GraphQL spec, and should feel familiar to those who have used GraphQL in other contexts/languages. Ideally each docblock tag should correspond directly to the GraphQL schema construct it creates.
 
 ## A few dependencies well leveraged
 
-Grats should have a small number of dependencies, and should leverage those dependencies to their fullest extent. For example, Grats uses [`graphql-js`](https://graphql.org/graphql-js/) for constructing, serializing, and validating GraphQL schemas, rather than implementing its own schema construction and validation logic. Similarly, Grats uses TypeScript's own AST parsing, type inference logic, and code serialization rather than implementing its own.
+Grats should have a small number of dependencies, and should leverage those dependencies to their fullest extent. For example, Grats uses [oxc](https://oxc.rs) to parse TypeScript, resolve names within a file, resolve import paths, and print the TypeScript code it generates, rather than implementing its own parser and code printer. Similarly, for constructing, serializing, and validating GraphQL schemas, Grats uses a faithful port of the parts of [`graphql-js`](https://graphql.org/graphql-js/) it needs, rather than inventing its own schema construction and validation logic. The code Grats generates builds your schema with `graphql-js` itself.
 
-In it's public APIs, Grats should expose the same types and concepts that are used by the underlying dependencies, rather than introducing new concepts that are redundant or confusing.
+In its public APIs, Grats should expose the same types and concepts that are used by the underlying dependencies, rather than introducing new concepts that are redundant or confusing.
 
 Where other utility tools are needed, Grats should consider maintaining/forking/vendoring its own implementation of exactly the functionality it needs, rather than taking on a dependency on a larger library that provides more functionality than is needed.
 
@@ -36,4 +36,4 @@ Where other utility tools are needed, Grats should consider maintaining/forking/
 
 All externally visible behavior of Grats should be captured by our fixture tests, including errors. Every added feature or capability, as well as every bug fix, should be accompanied by a new fixture test that demonstrates the changed behavior.
 
-Fixture tests should be narrow in focus, that consist of the minimal amount of code necessary to demonstrate the behavior being tested. It's perfectly fine to have many many fixture tests. For more on Grats' testing strategy, see [Testing Strategy](./07-testing-strategy.mdx).
+Fixture tests should be narrow in focus, consisting of the minimal amount of code necessary to demonstrate the behavior being tested. It's perfectly fine to have many many fixture tests. For more on Grats' testing strategy, see [Testing Strategy](./07-testing-strategy.mdx).

@@ -2,7 +2,7 @@
 
 OneOf input types are an experimental GraphQL feature, currently a [draft stage RFC](https://github.com/graphql/graphql-spec/pull/825), which lets you define an input type where exactly one of the fields must be provided. This can be useful for modeling structures similar to [unions](./unions.md) but for input types.
 
-OneOf inputs can be defined by placing both `@gqlInput` in a docblock directly before a:
+OneOf inputs can be defined by placing a `@gqlInput` docblock directly before a:
 
 -   Type alias of a union of object literal types
 
@@ -31,7 +31,7 @@ input UserBy @oneOf {
 
 ## OneOf input field descriptions
 
-TypeScript does not support docblocks "attach" to a member of a union. Therefore, if you want to provide a description for a field of a OneOf input, place it above the field, within the object literal:
+TypeScript does not support docblocks "attaching" to a member of a union. Therefore, if you want to provide a description for a field of a OneOf input, place it above the field, within the object literal:
 
 ```tsx
 /**

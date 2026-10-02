@@ -1,6 +1,6 @@
 # Descriptions
 
-GraphQL supports adding descriptions to types, fields, and arguments and more. These descriptions are used by tools like [Graphiql](https://github.com/graphql/graphiql) and [editor integrations](https://marketplace.visualstudio.com/items?itemName=meta.relay) to provide context to developers.
+GraphQL supports adding descriptions to types, fields, arguments and more. These descriptions are used by tools like [GraphiQL](https://github.com/graphql/graphiql) and [editor integrations](https://marketplace.visualstudio.com/items?itemName=meta.relay) to provide context to developers.
 
 Grats makes it easy to populate these descriptions and keep them in sync with the implementation by using the leading free text in your docblocks as that construct's description.
 
@@ -48,7 +48,7 @@ type User {
 ```
 
 > **TIP:**
-> A `@` symbol in a description's text, for example in a GitHub handle, starts a docblock tag, so the description is truncated there. To avoid this, you can wrap the tag in quotes or backticks.
+> A `@` symbol in a description's text, for example in a GitHub handle, starts a docblock tag, so the description is truncated there. To avoid this, you can wrap the handle in quotes or backticks.
 > 
 > ```text
 > /** This comment was added by `@captbaritone`. */
@@ -57,7 +57,7 @@ type User {
 ## Limitations
 
 > **CAUTION:**
-> In some cases, TypeScript does not support "attaching" docblock comments to certain constructs. In these cases, Grats is currently unable to extract descriptions.
+> Grats follows TypeScript's rules for "attaching" docblock comments to constructs, and those rules don't attach docblocks to certain constructs. In these cases, Grats is currently unable to extract descriptions.
 
 For example, Grats is **not** currently able to attach descriptions to enum values defined using a type union.
 

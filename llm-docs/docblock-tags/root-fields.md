@@ -46,11 +46,11 @@ type User {
 }
 ```
 
-For more information about field resolves, see [Resolver Signature](../resolvers.md).
+For more information about field resolvers, see [Resolvers](../resolvers.md).
 
 ## Functional style root fields
 
-If you prefer to avoid classes Grats also allows you to **define root fields using named, exported functions**. Function resolvers:
+If you prefer to avoid classes, Grats also allows you to **define root fields using named, exported functions**. Function resolvers:
 
 -   Have a return type that matches the field type
 -   Are exported named functions where the function name is the desired field name
@@ -98,4 +98,4 @@ export function deleteUser(id: string): boolean {
 -   [Field Arguments](./arguments.md) for how to define arguments
 -   [Descriptions](../resolvers/descriptions.md) for how to add descriptions to your fields
 -   [Nullability](../resolvers/nullability.md) for how to control the error handling and nullability of your field
--   [Deprecated](../resolvers/deprecated.md) for how to control the nullability of your field
+-   [Deprecated](../resolvers/deprecated.md) for how to mark your field as deprecated

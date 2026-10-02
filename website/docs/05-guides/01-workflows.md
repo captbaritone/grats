@@ -1,6 +1,6 @@
 # Workflows
 
-This document includes some advice on how to setup your project and processes to
+This document includes some advice on how to set up your project and processes to
 make the most of Grats.
 
 ## Make it easy to run Grats
@@ -38,11 +38,11 @@ your repository. This approach has several advantages:
 
 ## Managing autoformatting and generated files
 
-We recommend that you disable autoformatting for the generated files. For example by adding the generated file paths to your `.prettierignore` file. Note that these paths will be different if you've changed their location in your [Grats configuration](../01-getting-started/03-configuration.mdx).
+We recommend that you disable autoformatting for the generated files, for example by adding the generated file paths to your `.prettierignore` file. Note that these paths will be different if you've changed their location in your [Grats configuration](../01-getting-started/03-configuration.mdx).
 
 ```txt title="/.prettierignore"
-./schema.graphql
-./schema.ts
+/schema.graphql
+/schema.ts
 ```
 
 If you do wish to keep them formatted, we recommend that you apply that formatting as part of your `grats` npm script command:
@@ -80,3 +80,5 @@ if [ -n "$(git status --porcelain)" ]; then
     exit 1
 fi
 ```
+
+Grats does not type check your code, so your CI should also run `tsc` to catch type errors.

@@ -1,7 +1,7 @@
 # Schema Merging
 
 > **TIP:**
-> A concrete example of this migration strategy in action can be found in our [Incremental Migration](../../examples.md) example app.
+> A concrete example of this migration strategy in action can be found in our [Incremental Migration](../../examples/incremental-migration.md) example app.
 
 One incremental approach to migrating to Grats is Schema Merging. With this approach you allow your legacy solution and Grats to each create their own `GraphQLSchema` object. You then merge these two schemas together to create a new merged schema that includes both the existing schema and the Grats schema.
 
@@ -9,7 +9,7 @@ The Grats schema starts out empty, and you can incrementally add types and field
 
 Types in the two schemas with the same name will be merged together, with the type in the merged schema containing all fields from both schemas. By allowing both schemas to independently define the same type, it becomes possible to migrate at a field granularity. In other words, you can migrate a single field to the Grats schema while leaving all other fields on the legacy schema.
 
-One key advantage of this approach, is that it can be tested and deployed incrementally. There is no hard cut-over and each incremental step can can be validated locally and in production.
+One key advantage of this approach is that it can be tested and deployed incrementally. There is no hard cut-over and each incremental step can be validated locally and in production.
 
 ## Setup schema merging
 
@@ -25,7 +25,7 @@ npm install @graphql-tools/schema
 
 ```ts
 import legacySchema from "./legacySchema";
-import { getSchema } from "./schema.ts"; // Grats' generated schema file
+import { getSchema } from "./schema"; // Grats' generated schema file
 import { mergeSchemas } from "@graphql-tools/schema";
 import { printSchema, lexicographicSortSchema } from "graphql";
 import fs from "fs";
@@ -36,12 +36,9 @@ import path from "path";
  * runtime. It then sorts the schema and writes the file to disk in the
  * project's root directory.
  */
-
-const unsortedMergedSchema = mergeSchemas({
+export const schema = mergeSchemas({
   schemas: [legacySchema, getSchema()],
 });
-
-export const schema = unsortedMergedSchema;
 
 // Sort the schema to ensure stable output when written to disk
 const SDL = printSchema(lexicographicSortSchema(schema));

@@ -34,7 +34,7 @@ Optional arguments can be marked as `@deprecated` by using the `@deprecated` JSD
 
 ## Nullable arguments
 
-If you define your argument as nullable in your GraphQL schema, `graphql-js` may pass either an explicit `null` if the user passes an explicit null or simply not define the argument if the user omits the argument or passes it a nullable variable which ends up not being passed to the operation.
+If you define your argument as nullable in your GraphQL schema, `graphql-js` may either pass an explicit `null` (if the user passes an explicit `null`) or leave the argument undefined (if the user omits the argument, or passes it a variable which ends up not being provided to the operation).
 
 To account for this, Grats will require that any argument that is either nullable (`someArg: T | null`) or optional (`someArg?: T`) be defined as _both_ nullable and optional: `someArg?: T | null`.
 

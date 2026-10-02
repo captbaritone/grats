@@ -1,6 +1,6 @@
 # Configuration
 
-Grats has a few configuration options. They can be set under the `"grats"` key in your in your project's `tsconfig.json` file:
+Grats has a few configuration options. They can be set under the `"grats"` key in your project's `tsconfig.json` file:
 
 tsconfig.json
 
@@ -99,7 +99,7 @@ Default:
 
 ### "tsClientEnumsHeader": string | string[] | null
 
-A string to prepend to the TypeScript enums file generated when the `tsClientEnums` configuration options is set. Useful for copyright headers or instructions for how to regenerate the file. Set to `null` to omit the default header.
+A string to prepend to the TypeScript enums file generated when the `tsClientEnums` configuration option is set. Useful for copyright headers or instructions for how to regenerate the file. Set to `null` to omit the default header.
 
 Default:
 
@@ -112,9 +112,9 @@ Default:
 
 ### "importModuleSpecifierEnding": string
 
-This option allows you configure an extension that will be appended to the end of all import paths in the generated TypeScript schema file.
+This option allows you to configure an extension that will be appended to the end of all import paths in the generated TypeScript schema file.
 
-When building a package that uses ES modules, import paths must not omit the file extension. In TypeScript code this generally means import paths must end with `.js`. If set to null, no ending will be appended.
+When building a package that uses ES modules, import paths must not omit the file extension. In TypeScript code this generally means import paths must end with `.js`. By default, no ending is appended.
 
 Default: `""`
 
@@ -124,7 +124,7 @@ Default: `""`
 
 EXPERIMENTAL: THIS OPTION WILL BE RENAMED OR REMOVED IN A FUTURE RELEASE
 
-Emit a JSON file alongside the generated schema file which contains the metadata containing information about the resolvers.
+Emit a JSON file alongside the generated schema file containing metadata about the resolvers.
 
 Default: `false`
 

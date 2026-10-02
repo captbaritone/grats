@@ -1,6 +1,6 @@
 import { ID } from "grats";
 
-/** @gqlType Node */
+/** @gqlInterface Node */
 interface GqlNode {
   /** @gqlField */
   id: ID;

@@ -82,5 +82,5 @@ To tell Grats which parts of your code to expose in the schema, simply annotate 
 > For example, in some cases Grats may prompt you to use more explicit type annotations to ensure that it can "see" all the relevant type information.
 
 -   To try Grats in your own project, check out our [Quick Start](./getting-started/quick-start.md)
--   To quickly try out Grat's syntax in action, try the
+-   To quickly see Grats' syntax in action, try the
 -   For a deep dive on Grats' _implementation_, check out [How Grats Works](./faq/how-grats-works.md) in our FAQ

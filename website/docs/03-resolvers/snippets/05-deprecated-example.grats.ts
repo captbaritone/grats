@@ -2,7 +2,7 @@
 class User {
   /**
    * @gqlField
-   * @deprecated Please use myNewField instead.
+   * @deprecated Please use newField instead.
    */
   oldField: string;
 

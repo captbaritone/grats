@@ -2,14 +2,14 @@
 
 The [Connection Spec](https://relay.dev/graphql/connections.htm) is an opinionated formal specification for a convention of how to expose a paginated list of items in a GraphQL schema. Smart clients like [Relay](https://relay.dev) are able to use this specification to automatically handle pagination for you.
 
-While Connections are sometimes refered to as "Relay Connections", they are not specific to Relay and can be considered a best practice for any GraphQL API.
+While Connections are sometimes referred to as "Relay Connections", they are not specific to Relay and can be considered a best practice for any GraphQL API.
 
-Given that most application that we build are heavily oriented around lists of data, having a consistent way to interact with paginated lists allows clients to build helpful, optimized, abstractions for things like infinite scrolling, pagination, prelaoding, and more.
+Given that most applications that we build are heavily oriented around lists of data, having a consistent way to interact with paginated lists allows clients to build helpful, optimized abstractions for things like infinite scrolling, pagination, preloading, and more.
 
 > **TIP:**
 > **When possible, prefer modeling list fields using connections**, even if your server does not implement pagination yet. This will make it easier to add pagination in the future without breaking clients.
 > 
-> The npm library `graphql-relay` provides a number of helpful utility functions which make it easy to implement simple connection fields even from simple arrays.
+> The npm library `graphql-relay` provides a number of helpful utility functions which make it easy to implement connection fields, even from simple arrays.
 
 ## Example Connection using Grats
 
