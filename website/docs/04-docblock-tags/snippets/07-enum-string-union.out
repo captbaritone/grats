@@ -12,15 +12,9 @@ export function getSchema(): GraphQLSchema {
     const MyEnumType: GraphQLEnumType = new GraphQLEnumType({
         name: "MyEnum",
         values: {
-            ERROR: {
-                value: "ERROR"
-            },
-            OK: {
-                value: "OK"
-            }
+            ERROR: { value: "ERROR" },
+            OK: { value: "OK" }
         }
     });
-    return new GraphQLSchema({
-        types: [MyEnumType]
-    });
+    return new GraphQLSchema({ types: [MyEnumType] });
 }

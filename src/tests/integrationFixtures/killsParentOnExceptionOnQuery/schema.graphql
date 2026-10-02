@@ -1,0 +1,4 @@
+type Query {
+  alwaysThrowsKillsParentOnException: String!
+  hello: String
+}

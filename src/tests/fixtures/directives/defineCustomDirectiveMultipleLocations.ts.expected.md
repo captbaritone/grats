@@ -26,10 +26,10 @@ import { GraphQLSchema, GraphQLDirective, DirectiveLocation, specifiedDirectives
 export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "customDirective",
-                locations: [DirectiveLocation.FIELD_DEFINITION, DirectiveLocation.ARGUMENT_DEFINITION],
-                description: "This is my custom directive."
-            })],
+            name: "customDirective",
+            locations: [DirectiveLocation.FIELD_DEFINITION, DirectiveLocation.ARGUMENT_DEFINITION],
+            description: "This is my custom directive."
+        })],
         types: []
     });
 }

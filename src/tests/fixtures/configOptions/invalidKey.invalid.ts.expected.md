@@ -16,5 +16,5 @@ export default class SomeType {
 ### Error Report
 
 ```text
-error: Unknown Grats config option `invalidKey`.
+error: Invalid Grats config: invalidKey: unknown field `invalidKey`, expected one of `graphqlSchema`, `tsSchema`, `tsClientEnums`, `nullableByDefault`, `strictSemanticNullability`, `schemaHeader`, `tsSchemaHeader`, `tsClientEnumsHeader`, `importModuleSpecifierEnding`, `EXPERIMENTAL__emitMetadata`, `EXPERIMENTAL__emitResolverMap`
 ```

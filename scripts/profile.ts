@@ -94,21 +94,13 @@ export function queryField${fileIndex}(): string {
   // Change directory to the temp directory.
   // process.chdir(tmpDir);
 
-  // Run Grats in the temp directory and take a performance profile
+  // Run Grats in the temp directory and time it
   console.log("Running Grats...");
   console.time("Grats completed in");
-  execSync(
-    `node --cpu-prof --cpu-prof-name=performance.cpuprofile ./dist/src/cli.js --tsconfig ${tsConfigPath}`,
-    {
-      stdio: "inherit",
-    },
-  );
+  execSync(`node ./bin/grats.js --tsconfig ${tsConfigPath}`, {
+    stdio: "inherit",
+  });
   console.timeEnd("Grats completed in");
-
-  console.log(
-    `Profile written to ${path.join(process.cwd(), "performance.cpuprofile")}`,
-  );
-  console.log("Drag into the performance tab of Chrome DevTools to view.");
 
   console.log("Cleaning up...");
   // Clean up the temp directory.

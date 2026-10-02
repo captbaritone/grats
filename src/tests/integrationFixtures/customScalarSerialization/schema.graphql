@@ -1,0 +1,5 @@
+scalar CustomScalar
+
+type Query {
+  hello(custom: CustomScalar!): CustomScalar
+}

@@ -22,7 +22,5 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
         name: "MyCustomString",
         ...config.scalars.MyCustomString
     });
-    return new GraphQLSchema({
-        types: [MyCustomStringType]
-    });
+    return new GraphQLSchema({ types: [MyCustomStringType] });
 }

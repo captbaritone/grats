@@ -1,6 +1,7 @@
 import monaco, { IDisposable, Emitter } from "monaco-editor";
 import type { GratsWorker } from "../../workers/grats.worker";
 import type { SerializableState } from "./State";
+import type { GratsConfig } from "../configSchema";
 import { serializeState } from "./urlState";
 import { getDefaultPlaygroundConfig } from "./State";
 import lzstring from "lz-string";
@@ -32,7 +33,6 @@ export const DEFAULT_STATE: SerializableState = {
   doc: CONTENT,
   config: {
     nullableByDefault: true,
-    reportTypeScriptTypeErrors: true,
   },
   view: {
     outputOption: "sdl",
@@ -114,15 +114,9 @@ export default class Sandbox {
     this._onDidChange.fire();
   }
 
-  async setGratsConfig(
-    config: Partial<import("grats").GratsConfig>,
-  ): Promise<void> {
+  async setGratsConfig(config: Partial<GratsConfig>): Promise<void> {
     if (config.nullableByDefault !== undefined) {
       this._serializedState.config.nullableByDefault = config.nullableByDefault;
-    }
-    if (config.reportTypeScriptTypeErrors !== undefined) {
-      this._serializedState.config.reportTypeScriptTypeErrors =
-        config.reportTypeScriptTypeErrors;
     }
     // TODO: Update serialized state
     const worker = await this.getWorker();

@@ -92,24 +92,22 @@ export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                getUser: {
-                    name: "getUser",
-                    type: UserType,
-                    args: {
-                        by: {
-                            type: new GraphQLNonNull(UserByType)
-                        }
-                    },
-                    resolve(_source, args) {
-                        return queryGetUserResolver(args.by);
-                    }
+            return { getUser: {
+                name: "getUser",
+                type: UserType,
+                args: { by: { type: new GraphQLNonNull(UserByType) } },
+                resolve(_source, args) {
+                    return queryGetUserResolver(args.by);
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({
         query: QueryType,
-        types: [UserByType, QueryType, UserType]
+        types: [
+            UserByType,
+            QueryType,
+            UserType
+        ]
     });
 }

@@ -50,58 +50,52 @@ export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString,
-                    resolve() {
-                        return queryGreetingResolver();
-                    }
+            return { greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                resolve() {
+                    return queryGreetingResolver();
                 }
-            };
+            } };
         }
     });
     const MutationType: GraphQLObjectType = new GraphQLObjectType({
         name: "Mutation",
         fields() {
-            return {
-                deleteSomething: {
-                    name: "deleteSomething",
-                    type: GraphQLString,
-                    resolve() {
-                        return mutationDeleteSomethingResolver();
-                    }
+            return { deleteSomething: {
+                name: "deleteSomething",
+                type: GraphQLString,
+                resolve() {
+                    return mutationDeleteSomethingResolver();
                 }
-            };
+            } };
         }
     });
     const SubscriptionType: GraphQLObjectType = new GraphQLObjectType({
         name: "Subscription",
         fields() {
-            return {
-                range: {
-                    name: "range",
-                    type: GraphQLInt,
-                    args: {
-                        from: {
-                            type: new GraphQLNonNull(GraphQLInt)
-                        }
-                    },
-                    subscribe(_source, args) {
-                        return subscriptionRangeResolver(args.from);
-                    },
-                    resolve(payload) {
-                        return payload;
-                    }
+            return { range: {
+                name: "range",
+                type: GraphQLInt,
+                args: { from: { type: new GraphQLNonNull(GraphQLInt) } },
+                subscribe(_source, args) {
+                    return subscriptionRangeResolver(args.from);
+                },
+                resolve(payload) {
+                    return payload;
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({
         query: QueryType,
         mutation: MutationType,
         subscription: SubscriptionType,
-        types: [MutationType, QueryType, SubscriptionType]
+        types: [
+            MutationType,
+            QueryType,
+            SubscriptionType
+        ]
     });
 }
 ```

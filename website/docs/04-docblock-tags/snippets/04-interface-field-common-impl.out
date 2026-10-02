@@ -103,7 +103,9 @@ export function getSchema(): GraphQLSchema {
             return [GreetableType];
         }
     });
-    return new GraphQLSchema({
-        types: [GreetableType, PetType, UserType]
-    });
+    return new GraphQLSchema({ types: [
+        GreetableType,
+        PetType,
+        UserType
+    ] });
 }

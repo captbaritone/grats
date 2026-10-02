@@ -28,16 +28,12 @@ export function getSchema(): GraphQLSchema {
     const ICarlyType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "ICarly",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [ICarlyType]
-    });
+    return new GraphQLSchema({ types: [ICarlyType] });
 }
 ```

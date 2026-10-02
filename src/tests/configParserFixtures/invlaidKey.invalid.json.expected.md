@@ -13,5 +13,5 @@
 ### Error Report
 
 ```text
-error: Unknown Grats config option `lol`.
+error: Invalid Grats config: lol: unknown field `lol`, expected one of `graphqlSchema`, `tsSchema`, `tsClientEnums`, `nullableByDefault`, `strictSemanticNullability`, `schemaHeader`, `tsSchemaHeader`, `tsClientEnumsHeader`, `importModuleSpecifierEnding`, `EXPERIMENTAL__emitMetadata`, `EXPERIMENTAL__emitResolverMap`
 ```

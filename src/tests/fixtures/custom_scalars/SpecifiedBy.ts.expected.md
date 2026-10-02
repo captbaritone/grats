@@ -35,8 +35,6 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
         name: "UUID",
         ...config.scalars.UUID
     });
-    return new GraphQLSchema({
-        types: [UUIDType]
-    });
+    return new GraphQLSchema({ types: [UUIDType] });
 }
 ```

@@ -36,19 +36,15 @@ export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString,
-                    resolve(source, _args, context) {
-                        return userGreetingResolver(source, context);
-                    }
+            return { greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                resolve(source, _args, context) {
+                    return userGreetingResolver(source, context);
                 }
-            };
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [UserType]
-    });
+    return new GraphQLSchema({ types: [UserType] });
 }
 ```

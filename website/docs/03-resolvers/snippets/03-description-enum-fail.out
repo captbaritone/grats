@@ -20,15 +20,9 @@ export function getSchema(): GraphQLSchema {
     const GreetingStyleType: GraphQLEnumType = new GraphQLEnumType({
         name: "GreetingStyle",
         values: {
-            casual: {
-                value: "casual"
-            },
-            formal: {
-                value: "formal"
-            }
+            casual: { value: "casual" },
+            formal: { value: "formal" }
         }
     });
-    return new GraphQLSchema({
-        types: [GreetingStyleType]
-    });
+    return new GraphQLSchema({ types: [GreetingStyleType] });
 }

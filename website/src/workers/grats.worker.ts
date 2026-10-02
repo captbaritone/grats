@@ -1,10 +1,4 @@
 import type * as ts from "typescript";
-import {
-  printExecutableSchema,
-  printEnumsModule,
-} from "../../../src/printSchema";
-import { resolverMapCodegen } from "../../../src/codegen/resolverMapCodegen";
-import { TagName, TAGS } from "../../../src/Extractor";
 // See https://github.com/microsoft/monaco-editor/pull/3488
 import {
   // @ts-ignore
@@ -13,25 +7,39 @@ import {
   TypeScriptWorker,
   // @ts-ignore
 } from "./ts.worker.mjs";
-import {
-  extractSchemaAndDoc,
-  GratsConfig,
-  printSDLWithoutMetadata,
-} from "grats";
 import prettier from "prettier/standalone";
 import parserTypeScript from "prettier/parser-typescript";
-import { ReportableDiagnostics } from "../../../src/utils/DiagnosticError";
 import type { monaco } from "react-monaco-editor";
+import type { GratsConfig } from "../components/configSchema";
+import type { CompileResult, Diagnostic, FileLocation } from "../wasm/grats";
+import { loadGrats, PACKAGE_FILES } from "../wasm/loadGrats";
 
-// @ts-ignore
-global.process = {
-  // Grats depends upon calling path.resolver and path.relative
-  // which depend upon process.cwd() being set.
-  // Here we supply a fake cwd() function that returns the root
-  cwd() {
-    return "/";
-  },
-};
+// The docblock tags offered as completions. See `documentationForTag`.
+const TAGS = [
+  "gqlType",
+  "gqlField",
+  "gqlScalar",
+  "gqlInterface",
+  "gqlEnum",
+  "gqlUnion",
+  "gqlInput",
+  "gqlDirective",
+  "gqlAnnotate",
+  "gqlQueryField",
+  "gqlMutationField",
+  "gqlSubscriptionField",
+  "killsParentOnException",
+  "oneOf",
+] as const;
+
+type TagName = (typeof TAGS)[number];
+
+// The path Grats is given the editor's text at.
+const MAIN_FILE = "/index.ts";
+
+// TypeScript requires diagnostics to have a code. Grats' have none, so we use
+// a made up one, unlikely to collide with TypeScript's.
+const GRATS_ERROR_CODE = 349389149282;
 
 // https://github.com/microsoft/monaco-editor/blob/main/src/language/typescript/tsWorker.ts
 // https://github.com/microsoft/TypeScript-Website/blob/c2b25d220465dac34dd2da41a2a44cb30c6f42e4/packages/playground-worker/index.ts
@@ -40,23 +48,18 @@ export class GratsWorker extends TypeScriptWorker {
   constructor(ctx, createData) {
     super(ctx, createData);
     this._gratsConfig = {
-      schemaHeader: "",
-      tsSchemaHeader: "",
-      tsClientEnumsHeader: "",
+      schemaHeader: null,
+      tsSchemaHeader: null,
+      tsClientEnumsHeader: null,
       graphqlSchema: "schema.graphql",
       tsSchema: "schema.ts",
       tsClientEnums: null,
       nullableByDefault: true,
       strictSemanticNullability: false,
-      reportTypeScriptTypeErrors: false,
       importModuleSpecifierEnding: "",
       EXPERIMENTAL__emitMetadata: false,
       EXPERIMENTAL__emitResolverMap: false,
     };
-  }
-  getLanguageService(): import("typescript").LanguageService {
-    // @ts-ignore
-    return this._languageService;
   }
 
   getGratsConfig(): GratsConfig {
@@ -81,6 +84,11 @@ export class GratsWorker extends TypeScriptWorker {
     return this._ctx.getMirrorModels()[0];
   }
 
+  // The name TypeScript knows the editor's text by.
+  getMainFileName(): string {
+    return this.getMainModel().uri.toString();
+  }
+
   async format(text: string): Promise<string> {
     return await prettier.format(text, {
       parser: "typescript",
@@ -88,24 +96,33 @@ export class GratsWorker extends TypeScriptWorker {
     });
   }
 
-  _gratsResult(configOverrides?: Partial<GratsConfig>) {
-    const program = this.getLanguageService().getProgram();
-    const config = configOverrides
-      ? { ...this._gratsConfig, ...configOverrides }
-      : this._gratsConfig;
-    return extractSchemaAndDoc({ raw: { grats: config } }, program);
+  async _gratsResult(
+    configOverrides?: Partial<GratsConfig>,
+  ): Promise<CompileResult> {
+    const grats = await loadGrats();
+    return grats.compile({
+      files: { ...PACKAGE_FILES, [MAIN_FILE]: this.getMainText() },
+      rootNames: [MAIN_FILE],
+      config: { ...this._gratsConfig, ...configOverrides },
+    });
+  }
+
+  // Grats' diagnostics in the editor's text.
+  async _mainFileDiagnostics(fileName: string): Promise<Diagnostic[]> {
+    if (fileName !== this.getMainFileName()) {
+      return [];
+    }
+    const result = await this._gratsResult();
+    if (result.kind === "OK") {
+      return [];
+    }
+    return result.err.filter((err) => err.location?.fileName === MAIN_FILE);
   }
 
   async getSemanticDiagnostics(fileName: string) {
     const diagnostics = await super.getSemanticDiagnostics(fileName);
-    const result = this._gratsResult();
-    if (result.kind === "ERROR") {
-      const gratsDiagnostics = result.err
-        .filter((err) => err.file?.fileName === fileName)
-        .map((err) => mapDiagnostic(err));
-      return [...diagnostics, ...gratsDiagnostics];
-    }
-    return diagnostics;
+    const gratsDiagnostics = await this._mainFileDiagnostics(fileName);
+    return [...diagnostics, ...gratsDiagnostics.map((err) => this._toTs(err))];
   }
 
   async getCodeFixesAtPosition(
@@ -122,94 +139,103 @@ export class GratsWorker extends TypeScriptWorker {
       errorCodes,
       formatOptions,
     );
-    const result = this._gratsResult();
-    if (result.kind === "ERROR") {
-      const gratsFixes = result.err
-        .filter((err) => {
-          return (
-            // @ts-ignore
-            err.file.fileName === fileName &&
-            // @ts-ignore
-            err.fix != null &&
-            // There is any overlap between the error and the requested range
-            err.start != null &&
-            err.length != null &&
-            err.start < end &&
-            err.start + err.length > start
-          );
-        })
-        // @ts-ignore
-        .map((err) => err.fix!);
-
-      return [...fixes, ...gratsFixes];
-    }
-    return fixes;
+    const gratsFixes = (await this._mainFileDiagnostics(fileName)).flatMap(
+      ({ location, fix }) => {
+        // There is any overlap between the error and the requested range
+        if (
+          fix == null ||
+          location == null ||
+          location.start >= end ||
+          location.start + location.length <= start
+        ) {
+          return [];
+        }
+        const changes = fix.changes.map((change) => ({
+          ...change,
+          fileName: this._toTsFileName(change.fileName),
+        }));
+        return [{ ...fix, changes }];
+      },
+    );
+    return [...fixes, ...gratsFixes];
   }
 
-  formatErrors(errors: ts.Diagnostic[], commentPrefix: string): string {
-    const host: ts.FormatDiagnosticsHost = {
-      getCurrentDirectory: () => "/",
-      getNewLine: () => "\n",
-      getCanonicalFileName: function (fileName: string): string {
-        return fileName;
-      },
+  _toTsFileName(fileName: string): string {
+    return fileName === MAIN_FILE ? this.getMainFileName() : fileName;
+  }
+
+  // Like a `ts.Diagnostic`, as Monaco's TypeScript worker sends them.
+  _toTs(err: Diagnostic) {
+    const location = (location: FileLocation) => ({
+      file: { fileName: this._toTsFileName(location.fileName) },
+      start: location.start,
+      length: location.length,
+    });
+    return {
+      ...location(err.location!),
+      messageText: err.message,
+      code: GRATS_ERROR_CODE,
+      category: 1, // ts.DiagnosticCategory.Error
+      relatedInformation: err.relatedInformation.map((related) => ({
+        ...location(related.location),
+        messageText: related.message,
+        code: GRATS_ERROR_CODE,
+        category: 3, // ts.DiagnosticCategory.Message
+      })),
     };
-    const reportable = new ReportableDiagnostics(host, errors);
+  }
+
+  formatErrors(errors: Diagnostic[], commentPrefix: string): string {
     return commentLines(
-      reportable.formatDiagnosticsWithContext(),
+      errors.map((err) => err.formatted).join("\n"),
       commentPrefix,
     );
   }
 
   async getGraphQLSchema(): Promise<string> {
-    const result = this._gratsResult();
+    const result = await this._gratsResult();
     if (result.kind === "ERROR") {
       return this.formatErrors(result.err, "# ");
     }
-    return printSDLWithoutMetadata(result.value.doc);
+    return result.value.outputs.graphqlSchema.trim();
   }
 
   async getResolverSignatures(): Promise<string> {
-    const result = this._gratsResult();
+    const result = await this._gratsResult({
+      EXPERIMENTAL__emitMetadata: true,
+    });
     if (result.kind === "ERROR") {
       return this.formatErrors(result.err, "// ");
     }
-    const { resolvers } = result.value;
-    return JSON.stringify(resolvers, null, 2);
+    return result.value.outputs.metadata!;
   }
 
   async getTsSchema(): Promise<string> {
-    const result = this._gratsResult();
+    const result = await this._gratsResult();
     if (result.kind === "ERROR") {
       return this.formatErrors(result.err, "// ");
     }
-    const { schema, resolvers } = result.value;
-    const gratsConfig = this._gratsConfig;
-    const dest = "schema.ts";
-    return printExecutableSchema(schema, resolvers, gratsConfig, dest).trim();
+    return result.value.outputs.tsSchema.trim();
   }
 
   async getTsClientEnums(): Promise<string> {
-    const dest = "enums.ts";
     // Only enable tsClientEnums when generating the enums file
-    const result = this._gratsResult({ tsClientEnums: dest });
+    const result = await this._gratsResult({ tsClientEnums: "enums.ts" });
     if (result.kind === "ERROR") {
       return this.formatErrors(result.err, "// ");
     }
-    const { schema } = result.value;
-    const gratsConfig = { ...this._gratsConfig, tsClientEnums: dest };
-    return printEnumsModule(schema, gratsConfig, dest).trim();
+    return result.value.outputs.tsClientEnums!.trim();
   }
 
   async getResolverMap(): Promise<string> {
-    const result = this._gratsResult();
+    const result = await this._gratsResult({
+      EXPERIMENTAL__emitResolverMap: true,
+      tsSchema: "resolvers.ts",
+    });
     if (result.kind === "ERROR") {
       return this.formatErrors(result.err, "// ");
     }
-    const { schema, resolvers } = result.value;
-    const gratsConfig = this._gratsConfig;
-    const dest = "resolvers.ts";
-    return resolverMapCodegen(schema, resolvers, gratsConfig, dest).trim();
+    return result.value.outputs.tsSchema.trim();
   }
 
   async getTagsAtPosition(
@@ -233,14 +259,6 @@ export class GratsWorker extends TypeScriptWorker {
     });
     return { suggestions };
   }
-}
-
-function mapDiagnostic(diagnostic) {
-  return {
-    ...diagnostic,
-    file: { fileName: diagnostic.file?.fileName },
-    relatedInformation: diagnostic.relatedInformation?.map(mapDiagnostic),
-  };
 }
 
 self.onmessage = () => {

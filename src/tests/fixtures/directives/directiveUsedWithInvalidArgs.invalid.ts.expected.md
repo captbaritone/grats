@@ -23,8 +23,8 @@ export function myQueryField(): string {
 ### Error Report
 
 ```text
-GraphQL request:1:23 - error: String cannot represent a non string value: 10
+src/tests/fixtures/directives/directiveUsedWithInvalidArgs.invalid.ts:9:38 - error: String cannot represent a non string value: 10
 
-1 @customDirective(foo: 10)
-                        ~~
+9  * @gqlAnnotate customDirective(foo: 10)
+                                       ~~
 ```

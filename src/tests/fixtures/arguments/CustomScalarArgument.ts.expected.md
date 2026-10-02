@@ -46,21 +46,13 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
-            return {
-                hello: {
-                    name: "hello",
-                    type: GraphQLString,
-                    args: {
-                        greeting: {
-                            type: new GraphQLNonNull(MyStringType)
-                        }
-                    }
-                }
-            };
+            return { hello: {
+                name: "hello",
+                type: GraphQLString,
+                args: { greeting: { type: new GraphQLNonNull(MyStringType) } }
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [MyStringType, SomeTypeType]
-    });
+    return new GraphQLSchema({ types: [MyStringType, SomeTypeType] });
 }
 ```

@@ -41,35 +41,23 @@ export function getSchema(): GraphQLSchema {
     const MyInterfaceType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "MyInterface",
         fields() {
-            return {
-                myField: {
-                    name: "myField",
-                    type: GraphQLString
-                }
-            };
+            return { myField: {
+                name: "myField",
+                type: GraphQLString
+            } };
         },
-        extensions: {
-            grats: {
-                directives: [{
-                        name: "max",
-                        args: {
-                            foo: 10
-                        }
-                    }]
-            }
-        }
+        extensions: { grats: { directives: [{
+            name: "max",
+            args: { foo: 10 }
+        }] } }
     });
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "max",
-                locations: [DirectiveLocation.INTERFACE],
-                description: "This is my custom directive.",
-                args: {
-                    foo: {
-                        type: new GraphQLNonNull(GraphQLInt)
-                    }
-                }
-            })],
+            name: "max",
+            locations: [DirectiveLocation.INTERFACE],
+            description: "This is my custom directive.",
+            args: { foo: { type: new GraphQLNonNull(GraphQLInt) } }
+        })],
         types: [MyInterfaceType]
     });
 }

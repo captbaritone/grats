@@ -116,8 +116,10 @@ export function getSchema(): GraphQLSchema {
             return [IPersonType];
         }
     });
-    return new GraphQLSchema({
-        types: [IPersonType, AdminType, UserType]
-    });
+    return new GraphQLSchema({ types: [
+        IPersonType,
+        AdminType,
+        UserType
+    ] });
 }
 ```

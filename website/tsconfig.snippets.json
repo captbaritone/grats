@@ -1,0 +1,10 @@
+// The config with which the `.grats.ts` snippets are built, by
+// `cargo test --test fixtures` in grats-rs/. `grats` is resolved to its
+// source, so it needn't be built.
+{
+  "compilerOptions": {
+    "paths": {
+      "grats": ["../src/index.ts"]
+    }
+  }
+}

@@ -30,12 +30,10 @@ export function getSchema(): GraphQLSchema {
     const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Person",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
         }
     });
     const UserType: GraphQLInterfaceType = new GraphQLInterfaceType({
@@ -56,7 +54,5 @@ export function getSchema(): GraphQLSchema {
             return [PersonType];
         }
     });
-    return new GraphQLSchema({
-        types: [PersonType, UserType]
-    });
+    return new GraphQLSchema({ types: [PersonType, UserType] });
 }

@@ -50,53 +50,43 @@ export function getSchema(): GraphQLSchema {
     const GreetingOptionsType: GraphQLEnumType = new GraphQLEnumType({
         name: "GreetingOptions",
         values: {
-            Greetings: {
-                value: "Greetings"
-            },
-            Hello: {
-                value: "Hello"
-            },
-            Sup: {
-                value: "Sup"
-            }
+            Greetings: { value: "Greetings" },
+            Hello: { value: "Hello" },
+            Sup: { value: "Sup" }
         }
     });
     const GreetingInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
         name: "GreetingInput",
         fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: new GraphQLNonNull(GreetingOptionsType)
-                }
-            };
+            return { greeting: {
+                name: "greeting",
+                type: new GraphQLNonNull(GreetingOptionsType)
+            } };
         }
     });
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                hello: {
-                    name: "hello",
-                    type: GraphQLString,
-                    args: {
-                        input: {
-                            type: new GraphQLNonNull(GreetingInputType),
-                            defaultValue: {
-                                greeting: "Greetings"
-                            }
-                        }
-                    },
-                    resolve(_source, args) {
-                        return queryHelloResolver(args.input);
-                    }
+            return { hello: {
+                name: "hello",
+                type: GraphQLString,
+                args: { input: {
+                    type: new GraphQLNonNull(GreetingInputType),
+                    defaultValue: { greeting: "Greetings" }
+                } },
+                resolve(_source, args) {
+                    return queryHelloResolver(args.input);
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({
         query: QueryType,
-        types: [GreetingOptionsType, GreetingInputType, QueryType]
+        types: [
+            GreetingOptionsType,
+            GreetingInputType,
+            QueryType
+        ]
     });
 }
 ```

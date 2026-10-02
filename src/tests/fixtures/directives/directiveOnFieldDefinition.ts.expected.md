@@ -43,44 +43,28 @@ export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                likes: {
-                    description: "All likes in the system. Note that there is no guarantee of order.",
-                    name: "likes",
-                    type: GraphQLString,
-                    args: {
-                        first: {
-                            type: GraphQLInt
-                        }
-                    },
-                    extensions: {
-                        grats: {
-                            directives: [{
-                                    name: "max",
-                                    args: {
-                                        foo: 10
-                                    }
-                                }]
-                        }
-                    },
-                    resolve(_source, args) {
-                        return queryLikesResolver(args);
-                    }
+            return { likes: {
+                description: "All likes in the system. Note that there is no guarantee of order.",
+                name: "likes",
+                type: GraphQLString,
+                args: { first: { type: GraphQLInt } },
+                extensions: { grats: { directives: [{
+                    name: "max",
+                    args: { foo: 10 }
+                }] } },
+                resolve(_source, args) {
+                    return queryLikesResolver(args);
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "max",
-                locations: [DirectiveLocation.FIELD_DEFINITION],
-                description: "This is my custom directive.",
-                args: {
-                    foo: {
-                        type: new GraphQLNonNull(GraphQLInt)
-                    }
-                }
-            })],
+            name: "max",
+            locations: [DirectiveLocation.FIELD_DEFINITION],
+            description: "This is my custom directive.",
+            args: { foo: { type: new GraphQLNonNull(GraphQLInt) } }
+        })],
         query: QueryType,
         types: [QueryType]
     });

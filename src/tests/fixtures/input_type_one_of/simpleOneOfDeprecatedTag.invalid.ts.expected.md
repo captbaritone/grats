@@ -26,15 +26,14 @@ src/tests/fixtures/input_type_one_of/simpleOneOfDeprecatedTag.invalid.ts:3:4 - e
 #### Code Action: "Remove @oneOf tag" (remove-oneOf-tag)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -2,4 +2,3 @@
-   * @gqlInput
--  * @oneOf
--  */
-+  * */
-  export type Greeting = { firstName: string } | { lastName: string };
+  * @gqlInput
+- * @oneOf
+- */
++ * */
+ export type Greeting = { firstName: string } | { lastName: string };
 ```
 
 #### Applied Fixes

@@ -29,20 +29,14 @@ export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                user: {
-                    name: "user",
-                    type: UserType,
-                    args: {
-                        id: {
-                            type: new GraphQLNonNull(GraphQLID)
-                        }
-                    },
-                    resolve(_source, args) {
-                        return queryUserResolver(args.id);
-                    }
+            return { user: {
+                name: "user",
+                type: UserType,
+                args: { id: { type: new GraphQLNonNull(GraphQLID) } },
+                resolve(_source, args) {
+                    return queryUserResolver(args.id);
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({

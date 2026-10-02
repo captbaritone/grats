@@ -21,21 +21,15 @@ export function getSchema(): GraphQLSchema {
     const MyClassType: GraphQLObjectType = new GraphQLObjectType({
         name: "MyClass",
         fields() {
-            return {
-                myField: {
-                    name: "myField",
-                    type: GraphQLString,
-                    args: {
-                        greeting: {
-                            deprecationReason: "Unused!",
-                            type: GraphQLString
-                        }
-                    }
-                }
-            };
+            return { myField: {
+                name: "myField",
+                type: GraphQLString,
+                args: { greeting: {
+                    deprecationReason: "Unused!",
+                    type: GraphQLString
+                } }
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [MyClassType]
-    });
+    return new GraphQLSchema({ types: [MyClassType] });
 }

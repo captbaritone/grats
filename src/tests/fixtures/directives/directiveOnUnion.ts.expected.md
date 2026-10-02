@@ -62,23 +62,19 @@ export function getSchema(): GraphQLSchema {
     const AType: GraphQLObjectType = new GraphQLObjectType({
         name: "A",
         fields() {
-            return {
-                myField: {
-                    name: "myField",
-                    type: GraphQLString
-                }
-            };
+            return { myField: {
+                name: "myField",
+                type: GraphQLString
+            } };
         }
     });
     const BType: GraphQLObjectType = new GraphQLObjectType({
         name: "B",
         fields() {
-            return {
-                myField: {
-                    name: "myField",
-                    type: GraphQLString
-                }
-            };
+            return { myField: {
+                name: "myField",
+                type: GraphQLString
+            } };
         }
     });
     const MyUnionType: GraphQLUnionType = new GraphQLUnionType({
@@ -86,29 +82,23 @@ export function getSchema(): GraphQLSchema {
         types() {
             return [AType, BType];
         },
-        extensions: {
-            grats: {
-                directives: [{
-                        name: "max",
-                        args: {
-                            foo: 10
-                        }
-                    }]
-            }
-        }
+        extensions: { grats: { directives: [{
+            name: "max",
+            args: { foo: 10 }
+        }] } }
     });
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "max",
-                locations: [DirectiveLocation.UNION],
-                description: "This is my custom directive.",
-                args: {
-                    foo: {
-                        type: new GraphQLNonNull(GraphQLInt)
-                    }
-                }
-            })],
-        types: [MyUnionType, AType, BType]
+            name: "max",
+            locations: [DirectiveLocation.UNION],
+            description: "This is my custom directive.",
+            args: { foo: { type: new GraphQLNonNull(GraphQLInt) } }
+        })],
+        types: [
+            MyUnionType,
+            AType,
+            BType
+        ]
     });
 }
 ```

@@ -25,4 +25,4 @@ to = "https://grats.capt.dev/:splat"
 status = 301
 
 [build.environment]
-NODE_VERSION = "20.10.0"
+NODE_VERSION = "22" # Keep this in sync with .nvmrc

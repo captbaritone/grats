@@ -1,0 +1,5 @@
+directive @CustomDirective on FIELD
+
+type Query {
+  greeting: String
+}

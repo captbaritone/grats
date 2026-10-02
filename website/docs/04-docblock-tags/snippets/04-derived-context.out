@@ -39,16 +39,14 @@ export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                me: {
-                    description: "A field which reads a derived context. Grats will invoke the above `getDb`\nfunction and pass it to this resolver function.",
-                    name: "me",
-                    type: GraphQLString,
-                    resolve(_source, _args, context) {
-                        return queryMeResolver(getDb(context));
-                    }
+            return { me: {
+                description: "A field which reads a derived context. Grats will invoke the above `getDb`\nfunction and pass it to this resolver function.",
+                name: "me",
+                type: GraphQLString,
+                resolve(_source, _args, context) {
+                    return queryMeResolver(getDb(context));
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({

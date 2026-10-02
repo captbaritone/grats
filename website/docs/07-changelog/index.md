@@ -4,12 +4,45 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
+### Grats is now written in Rust
+
+Grats has been rewritten in Rust. The `grats` CLI is now a native binary, which parses your code with [oxc](https://oxc.rs) rather than running the TypeScript compiler, and it's much faster:
+
+| Project                                                                                                         | CPU time                  | Peak memory                   |
+| --------------------------------------------------------------------------------------------------------------- | ------------------------- | ----------------------------- |
+| [`examples/production-app`](https://github.com/captbaritone/grats/tree/main/examples/production-app) (18 files) | 2.1 s → 0.05 s (40× less) | 350 MB → 23 MB (15× less)     |
+| 10,000 generated files                                                                                          | 16.7 s → 4.1 s (4× less)  | 1.75 GB → 0.92 GB (1.9× less) |
+
+_CPU time (user and system) and peak memory of 0.0.36's CLI on Node 24 compared with the Rust binary, on an M1 Pro MacBook Pro. The generated project is the one `pnpm run profile` creates._
+
+For the same code, Grats extracts the same schema and generates the same code, though the generated TypeScript is formatted a little differently (for example, small objects are printed on one line). For most projects, upgrading is just a matter of regenerating, and committing a formatting-only diff. But no longer being a JavaScript program built on TypeScript does change how Grats is distributed and which files it reads, so check the breaking changes below.
+
+### Breaking changes
+
+**Grats is a native binary.** The npm package includes prebuilt binaries for macOS, Linux and Windows. Grats' JavaScript APIs are all gone, along with the experimental TypeScript language service plugin: the package now only exports the types Grats projects import, like `Int` and `Float`.
+
+**Grats no longer runs TypeScript.** Grats reads your code itself, so it no longer does what TypeScript would:
+
+- **No type checking.** The `reportTypeScriptTypeErrors` option is removed, so run `tsc` to report type errors. Grats still reports syntax errors, but their wording differs from TypeScript's.
+- **Only included and imported files are read.** Grats reads the files your `tsconfig.json` includes and the files they import. Files TypeScript would pull in some other way, like through `/// <reference>` directives or automatically included `@types` packages, are no longer read.
+- **Imports are resolved like a bundler would.** Grats ignores `moduleResolution` and the options related to it.
+- **Inherited file lists are relative to your `tsconfig.json`.** `files`, `include` and `exclude` inherited through `extends` are relative to your config, rather than to the config which sets them.
+- **`include` and `exclude` patterns are matched a little differently.** They're case sensitive, support `[...]` and `{a,b}`, and wildcards never match `node_modules` or names starting with `.`.
+
+If any of these changes cause problems for your project, please [file an issue](https://github.com/captbaritone/grats/issues) so we can look into it.
+
+### Other changes
+
 - **Features**
   - Added support for deriving `@gqlEnum` from const arrays (`(typeof X)[number]`) and const objects (`(typeof X)[keyof typeof X]`). This allows defining enums with runtime-accessible values without using TypeScript's `enum` syntax. The const declaration must immediately precede the type alias. See [enum docs](../04-docblock-tags/07-enums.mdx#runtime-accessible-enums) for details.
 - **Improvements**
-  - `typescript` is now a peer dependency (`>=5.5`) instead of a direct dependency, allowing you to use your own TypeScript version. ([PR](https://github.com/captbaritone/grats/pull/228))
-  - Added support for TypeScript 6.0. ([PR](https://github.com/captbaritone/grats/pull/228))
-  - CI now tests against TypeScript 5.5, 5.7, 5.9, and 6.0.
+  - `typescript` is now a peer dependency (`>=5.5`) rather than a dependency, so Grats no longer installs its own copy of TypeScript. ([PR](https://github.com/captbaritone/grats/pull/228))
+  - Grats' types support TypeScript 6.0. ([PR](https://github.com/captbaritone/grats/pull/228))
+  - Output files which can't be written are now reported as errors, rather than crashing the CLI.
+  - Errors in the arguments of `@gqlAnnotate` directives now point to the argument in your docblock, rather than to a `GraphQL request` copy of the directive. Syntax errors in `@gqlAnnotate` and `@gqlDirective` tags now point to the invalid text rather than to the whole tag.
+  - With `strictSemanticNullability` enabled, defining your own `@semanticNonNull` directive is now reported at your definition, rather than at a `GraphQL request` copy of Grats' definition.
+  - Errors about the name given in a tag, like `@gqlType Name`, now point to the text after the tag rather than to the whole tag.
+  - The fix which replaces `@specifiedBy` with `@gqlAnnotate` now escapes quotes and backslashes in the URL, and no longer joins the closing `*/` onto the tag's line.
 
 ## 0.0.36
 

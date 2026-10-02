@@ -1,43 +1,13 @@
 import * as path from "path";
 import { fileURLToPath } from "url";
-import TestRunner, { Transformer, TransformerResult } from "./TestRunner.js";
-import {
-  buildSchemaAndDocResult,
-  buildSchemaAndDocResultWithHost,
-} from "../lib.js";
-import * as ts from "typescript";
-import {
-  buildASTSchema,
-  graphql,
-  GraphQLSchema,
-  print,
-  printSchema,
-  specifiedScalarTypes,
-} from "graphql";
+import TestRunner, { Transformer } from "./TestRunner.js";
+import { buildSchema, graphql, GraphQLSchema, printSchema } from "graphql";
 import { Command } from "commander";
-import { locate } from "../Locate.js";
-import { gqlErr, ReportableDiagnostics } from "../utils/DiagnosticError.js";
-import { readFileSync, writeFileSync } from "fs";
-import { codegen } from "../codegen/schemaCodegen.js";
-import { printEnumsModule } from "../printSchema.js";
+import { readFileSync } from "fs";
 import { diff } from "jest-diff";
-import * as semver from "semver";
-import {
-  GratsConfig,
-  ParsedCommandLineGrats,
-  validateGratsOptions,
-} from "../gratsConfig.js";
 import { SEMANTIC_NON_NULL_DIRECTIVE } from "../publicDirectives.js";
-import { applySDLHeader, applyTypeScriptHeader } from "../printSchema.js";
-import { extend } from "../utils/helpers.js";
-import { Result, ok, err } from "../utils/Result.js";
-import { applyFixes } from "../fixFixable.js";
-import { writeTypeScriptTypeToDisk } from "../../scripts/buildConfigTypes.js";
+import { Result, ok } from "../utils/Result.js";
 import { Markdown } from "./Markdown.js";
-
-writeTypeScriptTypeToDisk();
-
-const TS_VERSION = ts.version;
 
 const program = new Command();
 
@@ -80,9 +50,6 @@ program
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const gratsDir = path.join(__dirname, "../..");
-const fixturesDir = path.join(__dirname, "fixtures");
-const configFixturesDir = path.join(__dirname, "configParserFixtures");
 const integrationFixturesDir = path.join(__dirname, "integrationFixtures");
 
 type TestDir = {
@@ -94,266 +61,17 @@ type TestDir = {
 
 const testDirs: TestDir[] = [
   {
-    fixturesDir: configFixturesDir,
-    testFilePattern: /\.json$/,
-    ignoreFilePattern: null,
-    transformer: (
-      code: string,
-      _fileName: string,
-    ): Result<Markdown, Markdown> => {
-      const config = JSON.parse(code);
-      let parsed: ParsedCommandLineGrats;
-      const warnings: string[] = [];
-      const consoleWarn = console.warn;
-      console.warn = (msg: string) => {
-        warnings.push(msg);
-      };
-      try {
-        const parsedResult = validateGratsOptions({
-          options: {},
-          raw: {
-            grats: config,
-          },
-          errors: [],
-          fileNames: [],
-        });
-        if (parsedResult.kind === "ERROR") {
-          return err(
-            formatDiagnosticsWithContext(
-              code,
-              ReportableDiagnostics.fromDiagnostics(parsedResult.err),
-            ),
-          );
-        }
-        parsed = parsedResult.value;
-      } catch (e: any) {
-        return err(e.message);
-      }
-      console.warn = consoleWarn;
-
-      const markdown = new Markdown();
-
-      markdown.addHeader(3, "Parsed Config");
-      markdown.addCodeBlock(JSON.stringify(parsed.raw.grats, null, 2), "json");
-      if (warnings.length > 0) {
-        markdown.addHeader(3, "Warnings");
-        markdown.addCodeBlock(warnings.join("\n"), "text");
-      }
-      return ok(markdown);
-    },
-  },
-  {
-    fixturesDir,
-    testFilePattern: /\.ts$/,
-    ignoreFilePattern: null,
-    transformer: (code: string, fileName: string): TransformerResult => {
-      const firstLine = code.split("\n")[0];
-      let config: Partial<GratsConfig> = {
-        nullableByDefault: true,
-        schemaHeader: null,
-        tsSchemaHeader: null,
-      };
-      if (firstLine.startsWith("// {")) {
-        const json = firstLine.slice(3);
-        const { tsVersion, ...testOptions } = JSON.parse(json);
-        if (tsVersion != null && !semver.satisfies(TS_VERSION, tsVersion)) {
-          console.log(
-            "Skipping test because TS version doesn't match",
-            tsVersion,
-            "does not match",
-            TS_VERSION,
-          );
-          return false;
-        }
-        config = { ...config, ...testOptions };
-      }
-
-      const files = [
-        `${fixturesDir}/${fileName}`,
-        path.join(__dirname, `../Types.ts`),
-      ];
-      let parsedOptions: ParsedCommandLineGrats;
-      try {
-        const parsedOptionsResult = validateGratsOptions({
-          options: {},
-          raw: {
-            grats: config,
-          },
-          errors: [],
-          fileNames: files,
-        });
-        if (parsedOptionsResult.kind === "ERROR") {
-          return err(
-            formatDiagnosticsWithContext(
-              code,
-              ReportableDiagnostics.fromDiagnostics(parsedOptionsResult.err),
-            ),
-          );
-        }
-        parsedOptions = parsedOptionsResult.value;
-      } catch (e: any) {
-        return err(e.message);
-      }
-
-      // https://stackoverflow.com/a/66604532/1263117
-      const compilerHost = ts.createCompilerHost(
-        parsedOptions.options,
-        /* setParentNodes this is needed for finding jsDocs */
-        true,
-      );
-
-      const schemaResult = buildSchemaAndDocResultWithHost(
-        parsedOptions,
-        compilerHost,
-      );
-      if (schemaResult.kind === "ERROR") {
-        return err(
-          formatDiagnosticsWithContext(
-            code,
-            ReportableDiagnostics.fromDiagnostics(schemaResult.err),
-          ),
-        );
-      }
-
-      const { schema, doc, resolvers } = schemaResult.value;
-
-      // We run codegen here just ensure that it doesn't throw.
-      const executableSchema = applyTypeScriptHeader(
-        parsedOptions.raw.grats,
-        codegen(
-          schema,
-          resolvers,
-          parsedOptions.raw.grats,
-          `${fixturesDir}/${fileName}`,
-        ),
-      );
-
-      const LOCATION_REGEX = /^\/\/ Locate: (.*)/;
-      const locationMatch = code.match(LOCATION_REGEX);
-      if (locationMatch != null) {
-        const locResult = locate(schema, locationMatch[1].trim());
-        if (locResult.kind === "ERROR") {
-          const markdown = new Markdown();
-          markdown.addHeader(3, "Error Locating Type");
-          markdown.addCodeBlock(locResult.err, "text");
-          return err(markdown);
-        }
-
-        return err(
-          formatDiagnosticsWithContext(
-            code,
-            new ReportableDiagnostics(compilerHost, [
-              gqlErr({ loc: locResult.value }, "Located here"),
-            ]),
-          ),
-        );
-      } else {
-        const docSansDirectives = {
-          ...doc,
-          definitions: doc.definitions.filter((def) => {
-            if (def.kind === "ScalarTypeDefinition") {
-              return !specifiedScalarTypes.some(
-                (scalar) => scalar.name === def.name.value,
-              );
-            }
-            return true;
-          }),
-        };
-        const sdl = applySDLHeader(
-          parsedOptions.raw.grats,
-          print(docSansDirectives),
-        );
-
-        const markdown = new Markdown();
-        markdown.addHeader(3, "SDL");
-        markdown.addCodeBlock(sdl, "graphql");
-        markdown.addHeader(3, "TypeScript");
-        markdown.addCodeBlock(executableSchema, "ts");
-
-        return ok(markdown);
-      }
-    },
-  },
-  {
     fixturesDir: integrationFixturesDir,
     testFilePattern: /index.ts$/,
-    ignoreFilePattern: /(schema)|(enums).ts$/,
+    ignoreFilePattern: /\/(schema\.(ts|graphql)|enums\.ts)$/,
     transformer: async (
-      code: string,
+      _code: string,
       fileName: string,
     ): Promise<Result<Markdown, Markdown> | false> => {
-      const firstLine = code.split("\n")[0];
-      let config: Partial<GratsConfig> = {
-        nullableByDefault: true,
-        importModuleSpecifierEnding: ".js",
-      };
-      if (firstLine.startsWith("// {")) {
-        const json = firstLine.slice(3);
-        const testOptions = JSON.parse(json);
-        config = { ...config, ...testOptions };
-      }
+      // The schema files are generated by `cargo test --test fixtures`.
       const filePath = `${integrationFixturesDir}/${fileName}`;
       const schemaPath = path.join(path.dirname(filePath), "schema.ts");
-
-      const files = [filePath, path.join(__dirname, `../Types.ts`)];
-      const parsedOptionsResult = validateGratsOptions({
-        options: {
-          // Required to enable ts-node to locate function exports
-          rootDir: gratsDir,
-          outDir: "dist",
-          configFilePath: "tsconfig.json",
-        },
-        raw: {
-          grats: config,
-        },
-        errors: [],
-        fileNames: files,
-      });
-      if (parsedOptionsResult.kind === "ERROR") {
-        // We don't expect integration tests to error during config parsing
-        // so we throw here instead of returning a Markdown result.
-        throw new Error(
-          ReportableDiagnostics.fromDiagnostics(
-            parsedOptionsResult.err,
-          ).formatDiagnosticsWithContext(),
-        );
-      }
-      const parsedOptions = parsedOptionsResult.value;
-      const schemaResult = buildSchemaAndDocResult(parsedOptions);
-      if (schemaResult.kind === "ERROR") {
-        // We don't expect integration tests to error GraphQL schema building
-        // so we throw here instead of returning a Markdown result.
-        throw new Error(
-          ReportableDiagnostics.fromDiagnostics(
-            schemaResult.err,
-          ).formatDiagnosticsWithContext(),
-        );
-      }
-
-      const { schema, doc, resolvers } = schemaResult.value;
-
-      const tsSchema = codegen(
-        schema,
-        resolvers,
-        parsedOptions.raw.grats,
-        schemaPath,
-      );
-
-      writeFileSync(schemaPath, tsSchema);
-
-      // Generate enums file if tsClientEnums is configured
-      if (parsedOptions.raw.grats.tsClientEnums) {
-        const enumsPath = path.join(
-          path.dirname(filePath),
-          parsedOptions.raw.grats.tsClientEnums,
-        );
-        const enumsCode = printEnumsModule(
-          schema,
-          parsedOptions.raw.grats,
-          enumsPath,
-        );
-        writeFileSync(enumsPath, enumsCode);
-      }
+      const sdlPath = path.join(path.dirname(filePath), "schema.graphql");
 
       const server = await import(filePath);
 
@@ -367,7 +85,10 @@ const testDirs: TestDir[] = [
 
       const actualSchema = schemaModule.getSchema(server.schemaConfig);
 
-      const schemaDiff = compareSchemas(actualSchema, buildASTSchema(doc));
+      const schemaDiff = compareSchemas(
+        actualSchema,
+        buildSchema(readFileSync(sdlPath, "utf8")),
+      );
 
       if (schemaDiff) {
         console.log(schemaDiff);
@@ -414,102 +135,6 @@ function printSDLFromSchemaWithoutDirectives(schema: GraphQLSchema): string {
       }),
     }),
   );
-}
-
-function formatDiagnosticsWithContext(
-  code: string,
-  diagnostics: ReportableDiagnostics,
-): Markdown {
-  const formatted = diagnostics.formatDiagnosticsWithContext();
-
-  const actions: {
-    fixName: string;
-    description: string;
-    diff: string;
-  }[] = [];
-
-  for (const diagnostic of diagnostics._diagnostics) {
-    if (diagnostic.fix == null) {
-      continue;
-    }
-    const textChanges: ts.TextChange[] = [];
-    for (const change of diagnostic.fix.changes) {
-      extend(textChanges, change.textChanges);
-    }
-    let newCode = code;
-    // Process edits in reverse to avoid changing the span of subsequent edits
-    const reversed = textChanges.slice();
-    reversed.sort((a, b) => b.span.start - a.span.start);
-    for (const textChange of reversed) {
-      const head = newCode.slice(0, textChange.span.start);
-      const tail = newCode.slice(
-        textChange.span.start + textChange.span.length,
-      );
-      newCode = `${head}${textChange.newText}${tail}`;
-    }
-    const noColor = (str: string) => str;
-
-    const diffOptions = {
-      aAnnotation: "Original",
-      bAnnotation: "Fixed",
-      aColor: noColor,
-      bColor: noColor,
-      changeColor: noColor,
-      commonColor: noColor,
-      patchColor: noColor,
-      contextLines: 1,
-      expand: false,
-    };
-
-    const diffText = diff(code, newCode, diffOptions) ?? "No diff";
-    actions.push({
-      fixName: diagnostic.fix.fixName,
-      description: diagnostic.fix.description,
-      diff: diffText,
-    });
-  }
-
-  const markdown = new Markdown();
-  markdown.addHeader(3, "Error Report");
-  markdown.addCodeBlock(formatted, "text");
-
-  if (actions.length === 0) {
-    return markdown;
-  }
-
-  const fixable = diagnostics._diagnostics.filter((d) => d.fix != null);
-  const logEvents: string[] = [];
-  function log(event: string) {
-    logEvents.push(event);
-  }
-
-  for (const action of actions) {
-    markdown.addHeader(
-      4,
-      `Code Action: "${action.description}" (${action.fixName})`,
-    );
-    markdown.addCodeBlock(action.diff, "diff");
-  }
-
-  if (fixable.length > 0) {
-    const fileName = fixable[0].file?.fileName;
-    if (fileName == null) {
-      throw new Error("Cannot apply fixes to diagnostic with no file");
-    }
-
-    const current = readFileSync(fileName, "utf8");
-    applyFixes(diagnostics._diagnostics, { fix: true, log });
-    const newText = readFileSync(fileName, "utf8");
-
-    writeFileSync(fileName, current, "utf8");
-
-    markdown.addHeader(4, "Applied Fixes");
-    markdown.addCodeBlock(logEvents.join("\n"), "text");
-    markdown.addHeader(4, "Fixed Text");
-    markdown.addCodeBlock(newText, "typescript");
-  }
-
-  return markdown;
 }
 
 program.parse();

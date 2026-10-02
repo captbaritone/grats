@@ -45,8 +45,6 @@ export function getSchema(): GraphQLSchema {
         },
         isOneOf: true
     });
-    return new GraphQLSchema({
-        types: [GreetingType]
-    });
+    return new GraphQLSchema({ types: [GreetingType] });
 }
 ```

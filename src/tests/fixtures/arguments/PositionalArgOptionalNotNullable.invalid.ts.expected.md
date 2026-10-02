@@ -32,14 +32,13 @@ src/tests/fixtures/arguments/PositionalArgOptionalNotNullable.invalid.ts:10:17 -
 #### Code Action: "Add '| null' to the parameter type" (add-null-to-optional-parameter-type)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -9,3 +9,3 @@
-    /** @gqlField */
--   hello(greeting?: string): string {
-+   hello(greeting?: string | null): string {
-      return `${greeting ?? "Hello"} World`;
+   /** @gqlField */
+-  hello(greeting?: string): string {
++  hello(greeting?: string | null): string {
+     return `${greeting ?? "Hello"} World`;
 ```
 
 #### Applied Fixes

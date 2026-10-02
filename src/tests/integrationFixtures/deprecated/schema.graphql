@@ -1,0 +1,4 @@
+type Query {
+  goodBye: String @deprecated
+  hello: String @deprecated(reason: "For reasons")
+}

@@ -1,0 +1,7 @@
+type Query {
+  me: User
+}
+
+type User {
+  alwaysThrowsKillsParentOnException: String!
+}

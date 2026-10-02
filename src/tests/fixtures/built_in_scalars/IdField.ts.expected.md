@@ -32,16 +32,12 @@ export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
-            return {
-                id: {
-                    name: "id",
-                    type: GraphQLID
-                }
-            };
+            return { id: {
+                name: "id",
+                type: GraphQLID
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [SomeTypeType]
-    });
+    return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

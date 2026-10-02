@@ -42,28 +42,22 @@ export function getSchema(): GraphQLSchema {
                 someField1: {
                     name: "someField1",
                     type: GraphQLString,
-                    args: {
-                        greet: {
-                            type: GraphQLBoolean,
-                            defaultValue: false
-                        }
-                    }
+                    args: { greet: {
+                        type: GraphQLBoolean,
+                        defaultValue: false
+                    } }
                 },
                 someField2: {
                     name: "someField2",
                     type: GraphQLString,
-                    args: {
-                        greet: {
-                            type: GraphQLBoolean,
-                            defaultValue: true
-                        }
-                    }
+                    args: { greet: {
+                        type: GraphQLBoolean,
+                        defaultValue: true
+                    } }
                 }
             };
         }
     });
-    return new GraphQLSchema({
-        types: [SomeTypeType]
-    });
+    return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

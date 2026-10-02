@@ -25,37 +25,25 @@ export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                greet: {
-                    name: "greet",
-                    type: GraphQLString,
-                    extensions: {
-                        grats: {
-                            directives: [{
-                                    name: "myDirective",
-                                    args: {
-                                        someArg: "Some String"
-                                    }
-                                }]
-                        }
-                    },
-                    resolve() {
-                        return queryGreetResolver();
-                    }
+            return { greet: {
+                name: "greet",
+                type: GraphQLString,
+                extensions: { grats: { directives: [{
+                    name: "myDirective",
+                    args: { someArg: "Some String" }
+                }] } },
+                resolve() {
+                    return queryGreetResolver();
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "myDirective",
-                locations: [DirectiveLocation.FIELD_DEFINITION],
-                args: {
-                    someArg: {
-                        type: new GraphQLNonNull(GraphQLString)
-                    }
-                }
-            })],
+            name: "myDirective",
+            locations: [DirectiveLocation.FIELD_DEFINITION],
+            args: { someArg: { type: new GraphQLNonNull(GraphQLString) } }
+        })],
         query: QueryType,
         types: [QueryType]
     });

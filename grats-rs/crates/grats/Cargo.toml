@@ -1,0 +1,27 @@
+[package]
+name = "grats"
+version = "0.0.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+clap = { version = "4.6.7", default-features = false, features = ["std", "help", "usage", "error-context", "suggestions", "string", "derive"] }
+fast-glob = "1"
+graphql_js.workspace = true
+indexmap.workspace = true
+json-strip-comments = "3"
+oxc_allocator.workspace = true
+oxc_ast.workspace = true
+oxc_ast_visit.workspace = true
+oxc_codegen.workspace = true
+oxc_parser.workspace = true
+oxc_resolver.workspace = true
+oxc_semantic.workspace = true
+oxc_span.workspace = true
+oxc_str.workspace = true
+oxc_syntax.workspace = true
+schemars = "1.2.2"
+serde.workspace = true
+serde_json.workspace = true
+serde_path_to_error = "0.1.20"

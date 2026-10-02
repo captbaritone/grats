@@ -1,0 +1,7 @@
+type Query {
+  someType: SomeType
+}
+
+type SomeType {
+  someName(greeting: String!): String
+}

@@ -54,12 +54,10 @@ export function getSchema(): GraphQLSchema {
     const PageType: GraphQLObjectType = new GraphQLObjectType({
         name: "Page",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
         }
     });
     const PageEdgeType: GraphQLObjectType = new GraphQLObjectType({
@@ -80,20 +78,22 @@ export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                createEdge: {
-                    name: "createEdge",
-                    type: PageEdgeType,
-                    resolve(source) {
-                        return queryCreateEdgeResolver(source);
-                    }
+            return { createEdge: {
+                name: "createEdge",
+                type: PageEdgeType,
+                resolve(source) {
+                    return queryCreateEdgeResolver(source);
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({
         query: QueryType,
-        types: [PageType, PageEdgeType, QueryType]
+        types: [
+            PageType,
+            PageEdgeType,
+            QueryType
+        ]
     });
 }
 ```

@@ -31,14 +31,13 @@ Learn more: https://grats.capt.dev/docs/docblock-tags/fields#class-based-fields
 #### Code Action: "Make parameter property public" (make-parameter-property-public)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -7,3 +7,3 @@
-       */
--     private readonly hello: string,
-+     public readonly hello: string,
-    ) {}
+      */
+-    private readonly hello: string,
++    public readonly hello: string,
+   ) {}
 ```
 
 #### Applied Fixes

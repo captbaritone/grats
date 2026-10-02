@@ -32,18 +32,16 @@ import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, Gra
 export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "defer",
-                locations: [DirectiveLocation.FRAGMENT_SPREAD, DirectiveLocation.INLINE_FRAGMENT],
-                args: {
-                    label: {
-                        type: new GraphQLNonNull(GraphQLString)
-                    },
-                    if: {
-                        type: GraphQLBoolean,
-                        defaultValue: true
-                    }
+            name: "defer",
+            locations: [DirectiveLocation.FRAGMENT_SPREAD, DirectiveLocation.INLINE_FRAGMENT],
+            args: {
+                label: { type: new GraphQLNonNull(GraphQLString) },
+                if: {
+                    type: GraphQLBoolean,
+                    defaultValue: true
                 }
-            })],
+            }
+        })],
         types: []
     });
 }

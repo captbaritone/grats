@@ -58,23 +58,19 @@ export function getSchema(): GraphQLSchema {
     const ErrType: GraphQLObjectType = new GraphQLObjectType({
         name: "Err",
         fields() {
-            return {
-                message: {
-                    name: "message",
-                    type: GraphQLString
-                }
-            };
+            return { message: {
+                name: "message",
+                type: GraphQLString
+            } };
         }
     });
     const PageType: GraphQLObjectType = new GraphQLObjectType({
         name: "Page",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
         }
     });
     const PageResultType: GraphQLUnionType = new GraphQLUnionType({
@@ -98,8 +94,11 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
-    return new GraphQLSchema({
-        types: [PageResultType, ErrType, PageType, SomeTypeType]
-    });
+    return new GraphQLSchema({ types: [
+        PageResultType,
+        ErrType,
+        PageType,
+        SomeTypeType
+    ] });
 }
 ```

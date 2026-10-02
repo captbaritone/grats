@@ -27,7 +27,5 @@ export function getSchema(): GraphQLSchema {
         },
         isOneOf: true
     });
-    return new GraphQLSchema({
-        types: [UserByType]
-    });
+    return new GraphQLSchema({ types: [UserByType] });
 }

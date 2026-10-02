@@ -42,16 +42,14 @@ export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                someField: {
-                    description: "This field will throw for any user that is not an admin. This is enabled\nsimply by adding an argument typed as `AssertAdminToken`, even if it's\nunused.",
-                    name: "someField",
-                    type: GraphQLString,
-                    resolve(_source, _args, context) {
-                        return querySomeFieldResolver(adminCheck(context));
-                    }
+            return { someField: {
+                description: "This field will throw for any user that is not an admin. This is enabled\nsimply by adding an argument typed as `AssertAdminToken`, even if it's\nunused.",
+                name: "someField",
+                type: GraphQLString,
+                resolve(_source, _args, context) {
+                    return querySomeFieldResolver(adminCheck(context));
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({

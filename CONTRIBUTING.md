@@ -2,13 +2,29 @@
 
 Below is some guidance on how to work on this project. If you have any questions, please feel free to open an issue.
 
+## Building
+
+Grats is implemented in Rust (see `grats-rs/`), and its CLI is a native
+binary. To build, you need [rustup](https://rustup.rs), which installs the
+toolchain pinned in `grats-rs/rust-toolchain.toml`.
+
+`pnpm build` builds the binary for your platform, and the types which Grats
+projects import from `grats`.
+
+The Rust code has its own tests:
+
+```
+cd grats-rs
+cargo test
+```
+
 ## Automated Tests
 
 Our tests are written as a collection of fixture files located in
-`src/tests/fixtures` and `src/tests/integrationFixtures`. Each `.ts` file nested
-within this directory is a test case. The test runner will execute each test
-case and compare the output to corresponding `.expected.ts` file. If the
-output does not match the expected output, the test runner will fail.
+`src/tests/fixtures`, `src/tests/configParserFixtures` and
+`src/tests/integrationFixtures`. Each test case's output is compared to its
+corresponding `.expected.md` file. If the output does not match the expected
+output, the test runner will fail.
 
 The tests in `src/tests/fixtures` are unit tests that test the behavior of the
 extraction and code generation. They extract GraphQL SDL, generated `schema.ts` or any associated errors and code actions from the file and write that as output.
@@ -17,13 +33,36 @@ If the test includes a line like `// Locate: User.name` of `// Locate: SomeType`
 then the test runner will instead locate the given entity and write the location
 as output.
 
-The tests in `src/tests/integrationFixtures` are integration tests that test the _runtime_ behavior of the generated code. Each directory contains an `index.ts` file with `@gql` docblock tags which exports a root query class as the named export `Query` and a GraphQL query text under the named export `query`. The test runner will execute the query against the root query class and emit the returned response JSON as the test output.
+The tests in `src/tests/configParserFixtures` test the parsing of the Grats
+config in each `.json` file.
+
+These two directories are tested by Rust, which also generates the
+`schema.ts` and `schema.graphql` files for `src/tests/integrationFixtures`
+(see below), and the `.out` file shown with each `.grats.ts` snippet in the
+website, so changes to the docs' output show up as fixture changes:
 
 ```
+cd grats-rs
+cargo test --test fixtures
+```
 
+To run specific test cases, provide a substring match for the test fixtures'
+paths, and to update fixture files, use the `--write` flag:
+
+```
+cargo test --test fixtures -- import
+cargo test --test fixtures -- --write
+```
+
+The tests in `src/tests/integrationFixtures` are integration tests that test the _runtime_ behavior of the generated code. Each directory contains an `index.ts` file with `@gql` docblock tags which exports a root query class as the named export `Query` and a GraphQL query text under the named export `query`. Its schema is generated next to it by `cargo test --test fixtures`, and then
+
+```
 pnpm run test
-
 ```
+
+checks that the generated `schema.ts` matches the generated `schema.graphql`,
+executes the query against it and emits the returned response JSON as the test
+output.
 
 To run a specific test case, you can use the `--filter` flag and provide a
 substring match for the test fixture's path.

@@ -41,28 +41,22 @@ export function getSchema(): GraphQLSchema {
                 floatField: {
                     name: "floatField",
                     type: GraphQLString,
-                    args: {
-                        scale: {
-                            type: new GraphQLNonNull(GraphQLFloat),
-                            defaultValue: 10
-                        }
-                    }
+                    args: { scale: {
+                        type: new GraphQLNonNull(GraphQLFloat),
+                        defaultValue: 10
+                    } }
                 },
                 intField: {
                     name: "intField",
                     type: GraphQLString,
-                    args: {
-                        count: {
-                            type: new GraphQLNonNull(GraphQLInt),
-                            defaultValue: 10
-                        }
-                    }
+                    args: { count: {
+                        type: new GraphQLNonNull(GraphQLInt),
+                        defaultValue: 10
+                    } }
                 }
             };
         }
     });
-    return new GraphQLSchema({
-        types: [SomeTypeType]
-    });
+    return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

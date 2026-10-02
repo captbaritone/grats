@@ -7,8 +7,7 @@ set -e
 cd "$(dirname "$0")/.."
 
 pnpm i
-pnpm run build
 pnpm version patch # or minor or major
-pnpm publish
+# CI publishes the tagged version, with the binary for every platform.
 git push --tags
 git push origin

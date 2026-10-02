@@ -29,13 +29,12 @@ src/tests/fixtures/comments/invalidTagInLinecomment.invalid.ts:1:4 - error: Unex
 #### Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -1,2 +1,2 @@
-- // @gqlTyp
-+ /** @gqlTyp */
-  export default class Composer {
+-// @gqlTyp
++/** @gqlTyp */
+ export default class Composer {
 ```
 
 #### Applied Fixes

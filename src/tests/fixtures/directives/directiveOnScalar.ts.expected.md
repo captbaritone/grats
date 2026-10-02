@@ -42,29 +42,19 @@ export type SchemaConfig = {
 export function getSchema(config: SchemaConfig): GraphQLSchema {
     const MyScalarType: GraphQLScalarType = new GraphQLScalarType({
         name: "MyScalar",
-        extensions: {
-            grats: {
-                directives: [{
-                        name: "max",
-                        args: {
-                            foo: 10
-                        }
-                    }]
-            }
-        },
+        extensions: { grats: { directives: [{
+            name: "max",
+            args: { foo: 10 }
+        }] } },
         ...config.scalars.MyScalar
     });
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "max",
-                locations: [DirectiveLocation.SCALAR],
-                description: "This is my custom directive.",
-                args: {
-                    foo: {
-                        type: new GraphQLNonNull(GraphQLInt)
-                    }
-                }
-            })],
+            name: "max",
+            locations: [DirectiveLocation.SCALAR],
+            description: "This is my custom directive.",
+            args: { foo: { type: new GraphQLNonNull(GraphQLInt) } }
+        })],
         types: [MyScalarType]
     });
 }

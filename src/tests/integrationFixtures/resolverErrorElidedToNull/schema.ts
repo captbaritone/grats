@@ -4,15 +4,13 @@ export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                alwaysThrows: {
-                    name: "alwaysThrows",
-                    type: GraphQLString,
-                    resolve() {
-                        return queryAlwaysThrowsResolver();
-                    }
+            return { alwaysThrows: {
+                name: "alwaysThrows",
+                type: GraphQLString,
+                resolve() {
+                    return queryAlwaysThrowsResolver();
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({

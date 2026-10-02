@@ -15,10 +15,8 @@ export function customDirective() {}
 ### Error Report
 
 ```text
-src/tests/fixtures/directives/defineCustomDirectiveLocationInvalid.invalid.ts:3:4 - error: Syntax Error: Unexpected Name "WHOOPS".
+src/tests/fixtures/directives/defineCustomDirectiveLocationInvalid.invalid.ts:3:21 - error: Syntax Error: Unexpected Name "WHOOPS".
 
 3  * @gqlDirective on WHOOPS
-     ~~~~~~~~~~~~~~~~~~~~~~~
-4  */
-  ~
+                      ~~~~~~
 ```

@@ -37,20 +37,16 @@ export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
-            return {
-                greeting: {
-                    description: "Best field ever!",
-                    name: "greeting",
-                    type: GraphQLString,
-                    resolve(source) {
-                        return someTypeGreetingResolver(source);
-                    }
+            return { greeting: {
+                description: "Best field ever!",
+                name: "greeting",
+                type: GraphQLString,
+                resolve(source) {
+                    return someTypeGreetingResolver(source);
                 }
-            };
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [SomeTypeType]
-    });
+    return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

@@ -241,6 +241,31 @@ function createTurndownService() {
     },
   });
 
+  // Rule: tables, which turndown doesn't support by default. Each cell is
+  // converted separately, and printed in a GFM table.
+  turndown.addRule("table", {
+    filter: "table",
+    replacement: (_content, node) => {
+      const rows = Array.from(node.querySelectorAll("tr")).map((tr) =>
+        Array.from(tr.children).map((cell) =>
+          turndown
+            .turndown(cell.innerHTML)
+            .replace(/\s*\n\s*/g, " ")
+            .replace(/\|/g, "\\|"),
+        ),
+      );
+      if (rows.length === 0) return "";
+      const [header, ...body] = rows;
+      const row = (cells) => `| ${cells.join(" | ")} |`;
+      const lines = [
+        row(header),
+        row(header.map(() => "---")),
+        ...body.map(row),
+      ];
+      return `\n\n${lines.join("\n")}\n\n`;
+    },
+  });
+
   // Strip SVG elements entirely
   turndown.addRule("svg", {
     filter: "svg",

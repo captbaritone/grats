@@ -41,26 +41,22 @@ export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
         }
     });
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                getUser: {
-                    name: "getUser",
-                    type: UserType,
-                    resolve(source) {
-                        return queryGetUserResolver.getUser(source);
-                    }
+            return { getUser: {
+                name: "getUser",
+                type: UserType,
+                resolve(source) {
+                    return queryGetUserResolver.getUser(source);
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({

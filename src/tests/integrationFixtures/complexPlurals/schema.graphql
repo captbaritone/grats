@@ -1,0 +1,5 @@
+type Query {
+  arrayOfArrayOfPromises: [[String!]!]
+  arrayOfPromises: [String!]
+  asyncIterableOfArrayOfPromises: [[String!]!]
+}

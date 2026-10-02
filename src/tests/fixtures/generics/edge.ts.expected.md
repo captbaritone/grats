@@ -73,12 +73,10 @@ export function getSchema(): GraphQLSchema {
     const PageType: GraphQLObjectType = new GraphQLObjectType({
         name: "Page",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
         }
     });
     const PageEdgeType: GraphQLObjectType = new GraphQLObjectType({
@@ -134,8 +132,11 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
-    return new GraphQLSchema({
-        types: [PageType, PageConnectionType, PageEdgeType, PageInfoType]
-    });
+    return new GraphQLSchema({ types: [
+        PageType,
+        PageConnectionType,
+        PageEdgeType,
+        PageInfoType
+    ] });
 }
 ```

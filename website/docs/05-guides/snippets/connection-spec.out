@@ -93,12 +93,10 @@ export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
         }
     });
     const UserEdgeType: GraphQLObjectType = new GraphQLObjectType({
@@ -157,33 +155,29 @@ export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                users: {
-                    name: "users",
-                    type: UserConnectionType,
-                    args: {
-                        after: {
-                            type: GraphQLString
-                        },
-                        before: {
-                            type: GraphQLString
-                        },
-                        first: {
-                            type: GraphQLInt
-                        },
-                        last: {
-                            type: GraphQLInt
-                        }
-                    },
-                    resolve(_source, args) {
-                        return queryUsersResolver(args);
-                    }
+            return { users: {
+                name: "users",
+                type: UserConnectionType,
+                args: {
+                    after: { type: GraphQLString },
+                    before: { type: GraphQLString },
+                    first: { type: GraphQLInt },
+                    last: { type: GraphQLInt }
+                },
+                resolve(_source, args) {
+                    return queryUsersResolver(args);
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({
         query: QueryType,
-        types: [PageInfoType, QueryType, UserType, UserConnectionType, UserEdgeType]
+        types: [
+            PageInfoType,
+            QueryType,
+            UserType,
+            UserConnectionType,
+            UserEdgeType
+        ]
     });
 }

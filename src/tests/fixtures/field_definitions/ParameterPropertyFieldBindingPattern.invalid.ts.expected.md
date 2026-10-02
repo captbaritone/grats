@@ -17,8 +17,8 @@ export default class SomeType {
 ### Error Report
 
 ```text
-src/tests/fixtures/field_definitions/ParameterPropertyFieldBindingPattern.invalid.ts:5:12 - error: Expected a name identifier. Grats expected to find a name here which it could use to derive the GraphQL name.
+src/tests/fixtures/field_definitions/ParameterPropertyFieldBindingPattern.invalid.ts:5:5 - error: A parameter property may not be declared using a binding pattern.
 
 5     public [foo]: string,
-             ~~~~~
+      ~~~~~~~~~~~~~~~~~~~~
 ```

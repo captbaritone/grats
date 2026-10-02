@@ -60,12 +60,10 @@ export function getSchema(): GraphQLSchema {
     const MammalType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Mammal",
         fields() {
-            return {
-                legs: {
-                    name: "legs",
-                    type: GraphQLInt
-                }
-            };
+            return { legs: {
+                name: "legs",
+                type: GraphQLInt
+            } };
         }
     });
     const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
@@ -104,8 +102,10 @@ export function getSchema(): GraphQLSchema {
             return [MammalType, PersonType];
         }
     });
-    return new GraphQLSchema({
-        types: [MammalType, PersonType, UserType]
-    });
+    return new GraphQLSchema({ types: [
+        MammalType,
+        PersonType,
+        UserType
+    ] });
 }
 ```

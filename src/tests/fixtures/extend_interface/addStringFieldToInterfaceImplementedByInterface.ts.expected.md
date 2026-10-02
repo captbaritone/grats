@@ -68,23 +68,19 @@ export function getSchema(): GraphQLSchema {
     const IThingType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IThing",
         fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString
-                }
-            };
+            return { greeting: {
+                name: "greeting",
+                type: GraphQLString
+            } };
         }
     });
     const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IPerson",
         fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString
-                }
-            };
+            return { greeting: {
+                name: "greeting",
+                type: GraphQLString
+            } };
         },
         interfaces() {
             return [IThingType];
@@ -93,15 +89,13 @@ export function getSchema(): GraphQLSchema {
     const AdminType: GraphQLObjectType = new GraphQLObjectType({
         name: "Admin",
         fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString,
-                    resolve(source) {
-                        return adminGreetingResolver(source);
-                    }
+            return { greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                resolve(source) {
+                    return adminGreetingResolver(source);
                 }
-            };
+            } };
         },
         interfaces() {
             return [IPersonType, IThingType];
@@ -110,22 +104,23 @@ export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString,
-                    resolve(source) {
-                        return userGreetingResolver(source);
-                    }
+            return { greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                resolve(source) {
+                    return userGreetingResolver(source);
                 }
-            };
+            } };
         },
         interfaces() {
             return [IPersonType, IThingType];
         }
     });
-    return new GraphQLSchema({
-        types: [IPersonType, IThingType, AdminType, UserType]
-    });
+    return new GraphQLSchema({ types: [
+        IPersonType,
+        IThingType,
+        AdminType,
+        UserType
+    ] });
 }
 ```

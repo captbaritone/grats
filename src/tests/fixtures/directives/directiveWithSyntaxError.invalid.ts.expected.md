@@ -20,10 +20,8 @@ export function myQueryField(): string {
 ### Error Report
 
 ```text
-src/tests/fixtures/directives/directiveWithSyntaxError.invalid.ts:6:4 - error: Syntax Error: Invalid number, expected digit but got: "-".
+src/tests/fixtures/directives/directiveWithSyntaxError.invalid.ts:6:39 - error: Syntax Error: Invalid number, expected digit but got: "-".
 
 6  * @gqlAnnotate myDirective(someArg: --oops)
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-7  */
-  ~
+                                        ~
 ```

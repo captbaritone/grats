@@ -28,15 +28,13 @@ export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString,
-                    resolve() {
-                        return queryGreetingResolver();
-                    }
+            return { greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                resolve() {
+                    return queryGreetingResolver();
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({

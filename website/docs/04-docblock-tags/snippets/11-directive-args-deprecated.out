@@ -15,15 +15,13 @@ import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLString, spec
 export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "myDirective",
-                locations: [DirectiveLocation.FIELD_DEFINITION],
-                args: {
-                    someArg: {
-                        deprecationReason: "Unused!",
-                        type: GraphQLString
-                    }
-                }
-            })],
+            name: "myDirective",
+            locations: [DirectiveLocation.FIELD_DEFINITION],
+            args: { someArg: {
+                deprecationReason: "Unused!",
+                type: GraphQLString
+            } }
+        })],
         types: []
     });
 }

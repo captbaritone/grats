@@ -32,8 +32,6 @@ export function getSchema(config: SchemaConfig): GraphQLSchema {
         name: "MyScalar",
         ...config.scalars.MyScalar
     });
-    return new GraphQLSchema({
-        types: [MyScalarType]
-    });
+    return new GraphQLSchema({ types: [MyScalarType] });
 }
 ```

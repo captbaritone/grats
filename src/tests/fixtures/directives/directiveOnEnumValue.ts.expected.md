@@ -44,33 +44,21 @@ export function getSchema(): GraphQLSchema {
         values: {
             A: {
                 value: "A",
-                extensions: {
-                    grats: {
-                        directives: [{
-                                name: "max",
-                                args: {
-                                    foo: 10
-                                }
-                            }]
-                    }
-                }
+                extensions: { grats: { directives: [{
+                    name: "max",
+                    args: { foo: 10 }
+                }] } }
             },
-            B: {
-                value: "B"
-            }
+            B: { value: "B" }
         }
     });
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "max",
-                locations: [DirectiveLocation.ENUM_VALUE],
-                description: "This is my custom directive.",
-                args: {
-                    foo: {
-                        type: new GraphQLNonNull(GraphQLInt)
-                    }
-                }
-            })],
+            name: "max",
+            locations: [DirectiveLocation.ENUM_VALUE],
+            description: "This is my custom directive.",
+            args: { foo: { type: new GraphQLNonNull(GraphQLInt) } }
+        })],
         types: [MyEnumType]
     });
 }

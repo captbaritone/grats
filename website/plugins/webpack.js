@@ -5,17 +5,6 @@ module.exports = function (_context, _options) {
     name: "custom-docusaurus-plugin",
     configureWebpack(_config, _isServer, _utils) {
       return {
-        resolve: {
-          fallback: {
-            path: require.resolve("path-browserify"),
-            url: false,
-            fs: false,
-          },
-          // Map .js extensions to .ts for ESM-style imports in TypeScript source
-          extensionAlias: {
-            ".js": [".ts", ".tsx", ".js"],
-          },
-        },
         node: {
           __dirname: "mock",
         },

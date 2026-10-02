@@ -26,16 +26,14 @@ import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, Gra
 export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "customDirective",
-                locations: [DirectiveLocation.FIELD_DEFINITION],
-                description: "This is my custom directive.",
-                args: {
-                    someArg: {
-                        type: new GraphQLNonNull(GraphQLString),
-                        defaultValue: "Hello"
-                    }
-                }
-            })],
+            name: "customDirective",
+            locations: [DirectiveLocation.FIELD_DEFINITION],
+            description: "This is my custom directive.",
+            args: { someArg: {
+                type: new GraphQLNonNull(GraphQLString),
+                defaultValue: "Hello"
+            } }
+        })],
         types: []
     });
 }

@@ -45,15 +45,13 @@ export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString,
-                    resolve(source, _args, context) {
-                        return queryGreetingResolver(source, createDerivedContext(context));
-                    }
+            return { greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                resolve(source, _args, context) {
+                    return queryGreetingResolver(source, createDerivedContext(context));
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({

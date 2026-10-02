@@ -39,24 +39,22 @@ export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                greet: {
-                    name: "greet",
-                    type: GraphQLString,
-                    args: {
-                        greeting: {
-                            type: new GraphQLNonNull(GreetingType)
-                        }
-                    },
-                    resolve(_source, args) {
-                        return queryGreetResolver(args);
-                    }
+            return { greet: {
+                name: "greet",
+                type: GraphQLString,
+                args: { greeting: { type: new GraphQLNonNull(GreetingType) } },
+                resolve(_source, args) {
+                    return queryGreetResolver(args);
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({
         query: QueryType,
-        types: [GreetingType, UserPayloadType, QueryType]
+        types: [
+            GreetingType,
+            UserPayloadType,
+            QueryType
+        ]
     });
 }

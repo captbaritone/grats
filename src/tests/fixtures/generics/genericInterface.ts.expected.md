@@ -70,12 +70,10 @@ export function getSchema(): GraphQLSchema {
     const DogFriendlyType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "DogFriendly",
         fields() {
-            return {
-                to: {
-                    name: "to",
-                    type: DogType
-                }
-            };
+            return { to: {
+                name: "to",
+                type: DogType
+            } };
         }
     });
     const UserType: GraphQLObjectType = new GraphQLObjectType({
@@ -96,8 +94,10 @@ export function getSchema(): GraphQLSchema {
             return [DogFriendlyType];
         }
     });
-    return new GraphQLSchema({
-        types: [DogFriendlyType, DogType, UserType]
-    });
+    return new GraphQLSchema({ types: [
+        DogFriendlyType,
+        DogType,
+        UserType
+    ] });
 }
 ```

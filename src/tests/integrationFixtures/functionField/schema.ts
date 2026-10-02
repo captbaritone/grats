@@ -4,15 +4,13 @@ export function getSchema(): GraphQLSchema {
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                hello: {
-                    name: "hello",
-                    type: GraphQLString,
-                    resolve() {
-                        return queryHelloResolver();
-                    }
+            return { hello: {
+                name: "hello",
+                type: GraphQLString,
+                resolve() {
+                    return queryHelloResolver();
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({

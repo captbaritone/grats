@@ -2,10 +2,14 @@ name: Node.js CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, grats-rs-port]
     tags: ["v*"]
   pull_request:
     branches: [main]
+
+env:
+  # npm dist-tag for prerelease builds published from branches.
+  NPM_TAG: ${{ github.ref == 'refs/heads/grats-rs-port' && 'rust' || 'main' }}
 
 jobs:
   build:
@@ -19,14 +23,15 @@ jobs:
           - 24.x # LTS
     steps:
       - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 9.3.0
+      - uses: pnpm/action-setup@v4 # The version in package.json's packageManager
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
+      - name: Install Rust # Builds Grats (grats-rs/) natively, and for the website
+        working-directory: ./grats-rs
+        run: rustup toolchain install
       - name: Install dependencies
         run: pnpm install
       - name: Build
@@ -63,9 +68,7 @@ jobs:
           - "6.0.2"
     steps:
       - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 9.3.0
+      - uses: pnpm/action-setup@v4 # The version in package.json's packageManager
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
@@ -76,7 +79,7 @@ jobs:
       - name: Install TypeScript ${{ matrix.typescript-version }}
         run: pnpm add -wD typescript@${{ matrix.typescript-version }}
       - name: Build # Integration tests depend upon having .js versions created by tsc
-        run: pnpm run build
+        run: pnpm run build:js
       - name: Unit Tests
         run: pnpm run test
   lint:
@@ -87,9 +90,7 @@ jobs:
         node-version: *node-versions
     steps:
       - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 9.3.0
+      - uses: pnpm/action-setup@v4 # The version in package.json's packageManager
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
@@ -99,19 +100,151 @@ jobs:
         run: pnpm install
       - name: Lint
         run: pnpm run lint
+      - name: Type-check the website
+        run: pnpm --filter website run typecheck
+  rust:
+    name: "Rust"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./grats-rs
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust
+        run: rustup toolchain install
+      - name: Format
+        run: cargo fmt --check
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Test
+        run: cargo test
+      - name: Clippy (WebAssembly) # For the website's playground
+        run: cargo clippy --package grats_wasm --target wasm32-unknown-unknown -- -D warnings
+  wasm:
+    name: "WebAssembly"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v4 # The version in package.json's packageManager
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: "pnpm"
+      - name: Install Rust
+        working-directory: ./grats-rs
+        run: rustup toolchain install
+      - name: Install dependencies
+        run: pnpm install
+      - name: Test # Builds Grats for the website's playground, and tests it
+        run: pnpm run test:wasm
+  build-binary:
+    name: "Native binary (${{ matrix.target }})"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            platform: linux-x64
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-24.04-arm
+            platform: linux-arm64
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            platform: macos-x64
+            # Cross-compiled, so it's neither tested nor run.
+            cross: true
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            platform: macos-arm64
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            platform: win-x64
+            exe: .exe
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./grats-rs
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust
+        run: |
+          rustup toolchain install
+          rustup target add ${{ matrix.target }}
+      - name: Install musl
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - name: Set dev version (branch)
+        # Must match the version the publish job gives the package.
+        if: github.ref_type == 'branch'
+        run: echo "GRATS_VERSION=0.0.0-${NPM_TAG}-${GITHUB_SHA:0:8}" >> "$GITHUB_ENV"
+      - name: Test
+        if: ${{ !matrix.cross }}
+        run: cargo test
+      - name: Build
+        run: cargo build --release --package grats_cli --target ${{ matrix.target }}
+      - name: Smoke test
+        if: ${{ !matrix.cross }}
+        run: |
+          grats="$PWD/target/${{ matrix.target }}/release/grats"
+          project="$RUNNER_TEMP/smoke"
+          mkdir -p "$project/src"
+          cd "$project"
+          echo '{ "include": ["src"] }' > tsconfig.json
+          printf '/** @gqlQueryField */\nexport function hello(): string {\n  return "Hello";\n}\n' > src/index.ts
+          # A type defined in another module, found through module resolution.
+          printf '/** @gqlType */\nexport class Greeting {\n  /** @gqlField */\n  text: string = "Hi";\n}\n' > src/greeting.ts
+          printf 'import { Greeting } from "./greeting";\n\n/** @gqlQueryField */\nexport function greeting(): Greeting {\n  return new Greeting();\n}\n' > src/queries.ts
+          "$grats" || { echo "grats exited with $?"; exit 1; }
+          cat schema.graphql
+          grep -q "hello: String" schema.graphql
+          grep -q "greeting: Greeting" schema.graphql
+          "$grats" locate Query.hello > locate.txt || { echo "grats locate exited with $?"; cat locate.txt; exit 1; }
+          cat locate.txt
+          grep -q "index.ts:2:17" locate.txt
+      - name: Smoke test watch mode
+        if: ${{ !matrix.cross }}
+        run: |
+          grats="$PWD/target/${{ matrix.target }}/release/grats"
+          cd "$RUNNER_TEMP/smoke"
+          "$grats" --watch > watch.log 2>&1 &
+          pid=$!
+          wait_for() {
+            for _ in $(seq 100); do
+              grep -q "$2" "$1" && return 0
+              sleep 0.1
+            done
+            echo "Timed out waiting for \"$2\" in $1"
+            cat watch.log
+            kill $pid
+            exit 1
+          }
+          wait_for watch.log "Wrote schema"
+          sleep 1
+          printf '/** @gqlQueryField */\nexport function goodbye(): string {\n  return "Goodbye";\n}\n' > src/other.ts
+          wait_for schema.graphql "goodbye: String"
+          printf '/** @gqlQueryField */\nexport function hi(): string {\n  return "Hi";\n}\n' > src/index.ts
+          wait_for schema.graphql "hi: String"
+          kill $pid
+      - name: Upload the binary
+        uses: actions/upload-artifact@v4
+        with:
+          # The publish job puts it in `bin/<platform>/` (see `bin/binaryPath.js`).
+          name: ${{ matrix.platform }}
+          path: grats-rs/target/${{ matrix.target }}/release/grats${{ matrix.exe }}
+          if-no-files-found: error
   publish:
     name: Publish to NPM
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && github.repository == 'captbaritone/grats'
-    needs: [build, test, lint]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/grats-rs-port' || startsWith(github.ref, 'refs/tags/v')) && github.repository == 'captbaritone/grats'
+    needs: [build, test, lint, rust, wasm, build-binary]
     permissions:
       contents: read
       id-token: write
     steps:
       - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 9.3.0
+      - uses: pnpm/action-setup@v4 # The version in package.json's packageManager
       - name: Use Node.js 20.x
         uses: actions/setup-node@v4
         with:
@@ -122,16 +255,45 @@ jobs:
         run: npm install -g npm@11.7.0
       - name: Install dependencies
         run: pnpm install
-      - name: Build
-        run: pnpm run build
-      - name: Set dev version (main branch)
-        if: github.ref == 'refs/heads/main'
-        run: pnpm version --no-git-tag-version 0.0.0-main-${RELEASE_COMMIT_SHA:0:8}
+      - name: Build # The types. The binaries were built by `build-binary`.
+        run: pnpm run build:js
+      - name: Download the binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: bin
+      - name: Restore the binaries' executable bit
+        run: chmod +x bin/*/grats
+      - name: Set dev version (branch)
+        if: github.ref_type == 'branch'
+        run: pnpm version --no-git-tag-version 0.0.0-${NPM_TAG}-${RELEASE_COMMIT_SHA:0:8}
         env:
           RELEASE_COMMIT_SHA: ${{ github.sha }}
-      - name: Publish dev version (main branch)
-        if: github.ref == 'refs/heads/main'
-        run: pnpm publish --tag main --access=public --no-git-checks
+      - name: Check the binaries' version
+        run: |
+          expected="grats $(node -p 'require("./package.json").version')"
+          actual="$(bin/linux-x64/grats --version)"
+          if [ "$actual" != "$expected" ]; then
+            echo "Expected \"$expected\", but the binary reports \"$actual\""
+            exit 1
+          fi
+      - name: Pack
+        # With npm, which keeps the binaries' executable bit, unlike pnpm.
+        run: npm pack --pack-destination "$RUNNER_TEMP"
+      - name: Smoke test the package
+        run: |
+          project="$RUNNER_TEMP/consumer"
+          mkdir -p "$project/src"
+          cd "$project"
+          echo '{ "type": "module" }' > package.json
+          npm install "$RUNNER_TEMP"/grats-*.tgz
+          echo '{ "include": ["src"] }' > tsconfig.json
+          printf 'import { Int } from "grats";\n\n/** @gqlQueryField */\nexport function count(): Int {\n  return 1;\n}\n' > src/index.ts
+          npx grats
+          grep -q "count: Int" schema.graphql
+          node --input-type=module -e 'import "grats";'
+      - name: Publish dev version (branch)
+        if: github.ref_type == 'branch'
+        run: npm publish "$RUNNER_TEMP"/grats-*.tgz --tag ${NPM_TAG} --access=public
       - name: Publish release (tag)
         if: startsWith(github.ref, 'refs/tags/v')
-        run: pnpm publish --access=public --no-git-checks
+        run: npm publish "$RUNNER_TEMP"/grats-*.tgz --access=public

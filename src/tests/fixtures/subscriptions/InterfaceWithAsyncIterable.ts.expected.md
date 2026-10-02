@@ -28,16 +28,12 @@ export function getSchema(): GraphQLSchema {
     const NotSubscriptionType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "NotSubscription",
         fields() {
-            return {
-                greetings: {
-                    name: "greetings",
-                    type: new GraphQLList(new GraphQLNonNull(GraphQLString))
-                }
-            };
+            return { greetings: {
+                name: "greetings",
+                type: new GraphQLList(new GraphQLNonNull(GraphQLString))
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [NotSubscriptionType]
-    });
+    return new GraphQLSchema({ types: [NotSubscriptionType] });
 }
 ```

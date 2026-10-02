@@ -10,15 +10,13 @@ import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, Gra
 export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "myDirective",
-                locations: [DirectiveLocation.FIELD_DEFINITION],
-                args: {
-                    greeting: {
-                        type: new GraphQLNonNull(GraphQLString),
-                        defaultValue: "Hello"
-                    }
-                }
-            })],
+            name: "myDirective",
+            locations: [DirectiveLocation.FIELD_DEFINITION],
+            args: { greeting: {
+                type: new GraphQLNonNull(GraphQLString),
+                defaultValue: "Hello"
+            } }
+        })],
         types: []
     });
 }

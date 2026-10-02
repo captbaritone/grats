@@ -51,23 +51,19 @@ export function getSchema(): GraphQLSchema {
     const NodeType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Node",
         fields() {
-            return {
-                id: {
-                    name: "id",
-                    type: GraphQLString
-                }
-            };
+            return { id: {
+                name: "id",
+                type: GraphQLString
+            } };
         }
     });
     const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Person",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
         }
     });
     const ActorType: GraphQLInterfaceType = new GraphQLInterfaceType({
@@ -88,8 +84,10 @@ export function getSchema(): GraphQLSchema {
             return [NodeType, PersonType];
         }
     });
-    return new GraphQLSchema({
-        types: [ActorType, NodeType, PersonType]
-    });
+    return new GraphQLSchema({ types: [
+        ActorType,
+        NodeType,
+        PersonType
+    ] });
 }
 ```

@@ -4,29 +4,17 @@ export function getSchema(): GraphQLSchema {
     const ColorType: GraphQLEnumType = new GraphQLEnumType({
         name: "Color",
         values: {
-            blue: {
-                value: "blue"
-            },
-            green: {
-                value: "green"
-            },
-            red: {
-                value: "red"
-            }
+            blue: { value: "blue" },
+            green: { value: "green" },
+            red: { value: "red" }
         }
     });
     const PriorityType: GraphQLEnumType = new GraphQLEnumType({
         name: "Priority",
         values: {
-            high: {
-                value: "high"
-            },
-            low: {
-                value: "low"
-            },
-            medium: {
-                value: "medium"
-            }
+            high: { value: "high" },
+            low: { value: "low" },
+            medium: { value: "medium" }
         }
     });
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
@@ -36,11 +24,7 @@ export function getSchema(): GraphQLSchema {
                 colorName: {
                     name: "colorName",
                     type: GraphQLString,
-                    args: {
-                        color: {
-                            type: new GraphQLNonNull(ColorType)
-                        }
-                    },
+                    args: { color: { type: new GraphQLNonNull(ColorType) } },
                     resolve(_source, args) {
                         return queryColorNameResolver(args.color);
                     }
@@ -64,6 +48,10 @@ export function getSchema(): GraphQLSchema {
     });
     return new GraphQLSchema({
         query: QueryType,
-        types: [ColorType, PriorityType, QueryType]
+        types: [
+            ColorType,
+            PriorityType,
+            QueryType
+        ]
     });
 }

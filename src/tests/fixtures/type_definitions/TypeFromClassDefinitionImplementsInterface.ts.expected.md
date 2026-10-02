@@ -39,30 +39,24 @@ export function getSchema(): GraphQLSchema {
     const PersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Person",
         fields() {
-            return {
-                hello: {
-                    name: "hello",
-                    type: GraphQLString
-                }
-            };
+            return { hello: {
+                name: "hello",
+                type: GraphQLString
+            } };
         }
     });
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
-            return {
-                hello: {
-                    name: "hello",
-                    type: GraphQLString
-                }
-            };
+            return { hello: {
+                name: "hello",
+                type: GraphQLString
+            } };
         },
         interfaces() {
             return [PersonType];
         }
     });
-    return new GraphQLSchema({
-        types: [PersonType, UserType]
-    });
+    return new GraphQLSchema({ types: [PersonType, UserType] });
 }
 ```

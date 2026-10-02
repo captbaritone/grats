@@ -42,14 +42,13 @@ src/tests/fixtures/enums/EnumNotExportedWithEmitEnumsConfig.invalid.ts:4:1 - err
 #### Code Action: "Add export keyword to enum with @gqlEnum" (add-export-keyword-to-enum)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -3,3 +3,3 @@
-  /** @gqlEnum */
-- enum Color {
-+ export enum Color {
-    RED = "red",
+ /** @gqlEnum */
+-enum Color {
++export enum Color {
+   RED = "red",
 ```
 
 #### Applied Fixes

@@ -48,7 +48,7 @@ type User {
 ```
 
 > **TIP:**
-> Depending upon your version of TypeScript, descriptions with a `@` symbol in their text, for example a GitHub handle, may get truncated. To avoid this, you can wrap the tag in quotes or backticks.
+> A `@` symbol in a description's text, for example in a GitHub handle, starts a docblock tag, so the description is truncated there. To avoid this, you can wrap the tag in quotes or backticks.
 > 
 > ```text
 > /** This comment was added by `@captbaritone`. */

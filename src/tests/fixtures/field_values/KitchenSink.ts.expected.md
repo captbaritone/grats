@@ -132,38 +132,22 @@ export function getSchema(): GraphQLSchema {
                 greetings: {
                     name: "greetings",
                     type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
-                    args: {
-                        greeting: {
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    }
+                    args: { greeting: { type: new GraphQLNonNull(GraphQLString) } }
                 },
                 greetings1: {
                     name: "greetings1",
                     type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
-                    args: {
-                        greeting: {
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    }
+                    args: { greeting: { type: new GraphQLNonNull(GraphQLString) } }
                 },
                 greetings2: {
                     name: "greetings2",
                     type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
-                    args: {
-                        greeting: {
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    }
+                    args: { greeting: { type: new GraphQLNonNull(GraphQLString) } }
                 },
                 hello: {
                     name: "hello",
                     type: GraphQLString,
-                    args: {
-                        greeting: {
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    }
+                    args: { greeting: { type: new GraphQLNonNull(GraphQLString) } }
                 },
                 me: {
                     name: "me",
@@ -172,8 +156,10 @@ export function getSchema(): GraphQLSchema {
             };
         }
     });
-    return new GraphQLSchema({
-        types: [GroupType, SomeTypeType, UserType]
-    });
+    return new GraphQLSchema({ types: [
+        GroupType,
+        SomeTypeType,
+        UserType
+    ] });
 }
 ```

@@ -72,19 +72,15 @@ export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
-            return {
-                me: {
-                    name: "me",
-                    type: UserType,
-                    resolve(source) {
-                        return someTypeMeResolver(source);
-                    }
+            return { me: {
+                name: "me",
+                type: UserType,
+                resolve(source) {
+                    return someTypeMeResolver(source);
                 }
-            };
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [SomeTypeType, UserType]
-    });
+    return new GraphQLSchema({ types: [SomeTypeType, UserType] });
 }
 ```

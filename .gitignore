@@ -4,6 +4,9 @@ dist/
 .vercel
 .claude
 performance.cpuprofile
+grats-rs/target/
+# Native binaries, built by `pnpm build` or in CI.
+bin/*/
 
 # Local Netlify folder
 .netlify

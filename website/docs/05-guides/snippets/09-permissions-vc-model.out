@@ -34,26 +34,20 @@ export function getSchema(): GraphQLSchema {
     const PostType: GraphQLObjectType = new GraphQLObjectType({
         name: "Post",
         fields() {
-            return {
-                title: {
-                    name: "title",
-                    type: GraphQLString
-                }
-            };
+            return { title: {
+                name: "title",
+                type: GraphQLString
+            } };
         }
     });
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
-            return {
-                post: {
-                    name: "post",
-                    type: PostType
-                }
-            };
+            return { post: {
+                name: "post",
+                type: PostType
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [PostType, UserType]
-    });
+    return new GraphQLSchema({ types: [PostType, UserType] });
 }

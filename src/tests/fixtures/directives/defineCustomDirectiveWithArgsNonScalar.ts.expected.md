@@ -36,25 +36,19 @@ export function getSchema(): GraphQLSchema {
     const SomeInputType: GraphQLInputObjectType = new GraphQLInputObjectType({
         name: "SomeInput",
         fields() {
-            return {
-                someField: {
-                    name: "someField",
-                    type: new GraphQLNonNull(GraphQLString)
-                }
-            };
+            return { someField: {
+                name: "someField",
+                type: new GraphQLNonNull(GraphQLString)
+            } };
         }
     });
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "customDirective",
-                locations: [DirectiveLocation.FIELD_DEFINITION],
-                description: "This is my custom directive.",
-                args: {
-                    someArg: {
-                        type: new GraphQLNonNull(SomeInputType)
-                    }
-                }
-            })],
+            name: "customDirective",
+            locations: [DirectiveLocation.FIELD_DEFINITION],
+            description: "This is my custom directive.",
+            args: { someArg: { type: new GraphQLNonNull(SomeInputType) } }
+        })],
         types: [SomeInputType]
     });
 }

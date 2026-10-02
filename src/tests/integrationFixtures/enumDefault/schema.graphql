@@ -1,0 +1,9 @@
+enum GreetingOptions {
+  Greetings
+  Hello
+  Sup
+}
+
+type Query {
+  hello(greeting: GreetingOptions = Greetings): String
+}

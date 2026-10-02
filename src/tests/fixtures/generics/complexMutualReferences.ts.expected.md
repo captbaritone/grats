@@ -66,27 +66,25 @@ export function getSchema(): GraphQLSchema {
     const BazBarType: GraphQLObjectType = new GraphQLObjectType({
         name: "BazBar",
         fields() {
-            return {
-                anotherField: {
-                    name: "anotherField",
-                    type: BazFooType
-                }
-            };
+            return { anotherField: {
+                name: "anotherField",
+                type: BazFooType
+            } };
         }
     });
     const BazType: GraphQLObjectType = new GraphQLObjectType({
         name: "Baz",
         fields() {
-            return {
-                bazField: {
-                    name: "bazField",
-                    type: BazBarType
-                }
-            };
+            return { bazField: {
+                name: "bazField",
+                type: BazBarType
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [BazType, BazBarType, BazFooType]
-    });
+    return new GraphQLSchema({ types: [
+        BazType,
+        BazBarType,
+        BazFooType
+    ] });
 }
 ```

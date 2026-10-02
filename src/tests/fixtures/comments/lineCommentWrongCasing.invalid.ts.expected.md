@@ -39,26 +39,24 @@ src/tests/fixtures/comments/lineCommentWrongCasing.invalid.ts:3:6 - error: Unexp
 #### Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -1,2 +1,2 @@
-- // @GQLtYPE
-+ /** @GQLtYPE */
-  export default class Composer {
+-// @GQLtYPE
++/** @GQLtYPE */
+ export default class Composer {
 ```
 
 #### Code Action: "Convert to a docblock comment" (convert-line-comment-to-docblock-comment)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -2,3 +2,3 @@
-  export default class Composer {
--   // @gqlfield
-+   /** @gqlfield */
-    url(): string {
+ export default class Composer {
+-  // @gqlfield
++  /** @gqlfield */
+   url(): string {
 ```
 
 #### Applied Fixes

@@ -32,15 +32,11 @@ export function getSchema(): GraphQLSchema {
     const PageInfoType: GraphQLObjectType = new GraphQLObjectType({
         name: "PageInfo",
         fields() {
-            return {
-                hasNextPage: {
-                    name: "hasNextPage",
-                    type: GraphQLBoolean
-                }
-            };
+            return { hasNextPage: {
+                name: "hasNextPage",
+                type: GraphQLBoolean
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [PageInfoType]
-    });
+    return new GraphQLSchema({ types: [PageInfoType] });
 }

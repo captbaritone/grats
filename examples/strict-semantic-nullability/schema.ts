@@ -11,8 +11,7 @@ import { person as queryPersonResolver } from "./interfaces/IPerson.js";
 import { countdown as subscriptionCountdownResolver, nullItems as subscriptionNullItemsResolver, nullIterable as subscriptionNullIterableResolver } from "./Subscription.js";
 async function assertNonNull<T>(value: T | Promise<T>): Promise<T> {
     const awaited = await value;
-    if (awaited == null)
-        throw new Error("Cannot return null for semantically non-nullable field.");
+    if (awaited == null) throw new Error("Cannot return null for semantically non-nullable field.");
     return awaited;
 }
 export function getSchema(): GraphQLSchema {
@@ -47,12 +46,10 @@ export function getSchema(): GraphQLSchema {
     const IPersonType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "IPerson",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
         },
         resolveType
     });
@@ -115,11 +112,7 @@ export function getSchema(): GraphQLSchema {
                 countdown: {
                     name: "countdown",
                     type: GraphQLInt,
-                    args: {
-                        from: {
-                            type: new GraphQLNonNull(GraphQLInt)
-                        }
-                    },
+                    args: { from: { type: new GraphQLNonNull(GraphQLInt) } },
                     subscribe(_source, args) {
                         return subscriptionCountdownResolver(args);
                     },
@@ -152,19 +145,23 @@ export function getSchema(): GraphQLSchema {
     });
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "semanticNonNull",
-                locations: [DirectiveLocation.FIELD_DEFINITION],
-                description: "Indicates that a position is semantically non null: it is only null if there is a matching error in the `errors` array.\nIn all other cases, the position is non-null.\n\nTools doing code generation may use this information to generate the position as non-null if field errors are handled out of band:\n\n```graphql\ntype User {\n    # email is semantically non-null and can be generated as non-null by error-handling clients.\n    email: String @semanticNonNull\n}\n```\n\nThe `levels` argument indicates what levels are semantically non null in case of lists:\n\n```graphql\ntype User {\n    # friends is semantically non null\n    friends: [User] @semanticNonNull # same as @semanticNonNull(levels: [0])\n\n    # every friends[k] is semantically non null\n    friends: [User] @semanticNonNull(levels: [1])\n\n    # friends as well as every friends[k] is semantically non null\n    friends: [User] @semanticNonNull(levels: [0, 1])\n}\n```\n\n`levels` are zero indexed.\nPassing a negative level or a level greater than the list dimension is an error.",
-                args: {
-                    levels: {
-                        type: new GraphQLList(GraphQLInt),
-                        defaultValue: [0]
-                    }
-                }
-            })],
+            name: "semanticNonNull",
+            locations: [DirectiveLocation.FIELD_DEFINITION],
+            description: "Indicates that a position is semantically non null: it is only null if there is a matching error in the `errors` array.\nIn all other cases, the position is non-null.\n\nTools doing code generation may use this information to generate the position as non-null if field errors are handled out of band:\n\n```graphql\ntype User {\n    # email is semantically non-null and can be generated as non-null by error-handling clients.\n    email: String @semanticNonNull\n}\n```\n\nThe `levels` argument indicates what levels are semantically non null in case of lists:\n\n```graphql\ntype User {\n    # friends is semantically non null\n    friends: [User] @semanticNonNull # same as @semanticNonNull(levels: [0])\n\n    # every friends[k] is semantically non null\n    friends: [User] @semanticNonNull(levels: [1])\n\n    # friends as well as every friends[k] is semantically non null\n    friends: [User] @semanticNonNull(levels: [0, 1])\n}\n```\n\n`levels` are zero indexed.\nPassing a negative level or a level greater than the list dimension is an error.",
+            args: { levels: {
+                type: new GraphQLList(GraphQLInt),
+                defaultValue: [0]
+            } }
+        })],
         query: QueryType,
         subscription: SubscriptionType,
-        types: [IPersonType, GroupType, QueryType, SubscriptionType, UserType]
+        types: [
+            IPersonType,
+            GroupType,
+            QueryType,
+            SubscriptionType,
+            UserType
+        ]
     });
 }
 const typeNameMap = new Map();

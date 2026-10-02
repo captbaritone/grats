@@ -22,23 +22,15 @@ export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
-            return {
-                bestFriend: {
-                    name: "bestFriend",
-                    type: UserType,
-                    args: {
-                        order: {
-                            type: new GraphQLNonNull(GraphQLString)
-                        }
-                    },
-                    resolve(source, args, context) {
-                        return source.bestFriend(args.order, context);
-                    }
+            return { bestFriend: {
+                name: "bestFriend",
+                type: UserType,
+                args: { order: { type: new GraphQLNonNull(GraphQLString) } },
+                resolve(source, args, context) {
+                    return source.bestFriend(args.order, context);
                 }
-            };
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [UserType]
-    });
+    return new GraphQLSchema({ types: [UserType] });
 }

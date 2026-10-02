@@ -34,16 +34,12 @@ export function getSchema(): GraphQLSchema {
         name: "SomeType",
         description: "The root of all evil.",
         fields() {
-            return {
-                hello: {
-                    name: "hello",
-                    type: GraphQLString
-                }
-            };
+            return { hello: {
+                name: "hello",
+                type: GraphQLString
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [SomeTypeType]
-    });
+    return new GraphQLSchema({ types: [SomeTypeType] });
 }
 ```

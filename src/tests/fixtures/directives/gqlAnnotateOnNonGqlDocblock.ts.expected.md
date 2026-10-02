@@ -25,8 +25,6 @@ export function foo() {}
 ```ts
 import { GraphQLSchema } from "graphql";
 export function getSchema(): GraphQLSchema {
-    return new GraphQLSchema({
-        types: []
-    });
+    return new GraphQLSchema({ types: [] });
 }
 ```

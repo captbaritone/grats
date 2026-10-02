@@ -38,15 +38,13 @@ export function getSchema(): GraphQLSchema {
         name: "Query",
         description: "I might want to explicitly define a type here to provide a description.",
         fields() {
-            return {
-                greeting: {
-                    name: "greeting",
-                    type: GraphQLString,
-                    resolve() {
-                        return queryGreetingResolver();
-                    }
+            return { greeting: {
+                name: "greeting",
+                type: GraphQLString,
+                resolve() {
+                    return queryGreetingResolver();
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({

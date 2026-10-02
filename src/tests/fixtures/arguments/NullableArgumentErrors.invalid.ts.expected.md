@@ -49,40 +49,37 @@ src/tests/fixtures/arguments/NullableArgumentErrors.invalid.ts:12:26 - error: Ex
 #### Code Action: "Make argument optional" (add-question-token-to-arg)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -3,3 +3,3 @@
-    /** @gqlField */
--   hello1({ greeting }: { greeting: string | null }): string {
-+   hello1({ greeting }: { greeting?: string | null }): string {
-      return "Hello world!";
+   /** @gqlField */
+-  hello1({ greeting }: { greeting: string | null }): string {
++  hello1({ greeting }: { greeting?: string | null }): string {
+     return "Hello world!";
 ```
 
 #### Code Action: "Make argument optional" (add-question-token-to-arg)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -7,3 +7,3 @@
-    /** @gqlField */
--   hello2({ greeting }: { greeting: string | void }): string {
-+   hello2({ greeting }: { greeting?: string | void }): string {
-      return "Hello world!";
+   /** @gqlField */
+-  hello2({ greeting }: { greeting: string | void }): string {
++  hello2({ greeting }: { greeting?: string | void }): string {
+     return "Hello world!";
 ```
 
 #### Code Action: "Make argument optional" (add-question-token-to-arg)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -11,3 +11,3 @@
-    /** @gqlField */
--   hello3({ greeting }: { greeting: string | undefined }): string {
-+   hello3({ greeting }: { greeting?: string | undefined }): string {
-      return "Hello world!";
+   /** @gqlField */
+-  hello3({ greeting }: { greeting: string | undefined }): string {
++  hello3({ greeting }: { greeting?: string | undefined }): string {
+     return "Hello world!";
 ```
 
 #### Applied Fixes

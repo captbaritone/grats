@@ -26,6 +26,6 @@
     "docs",
     "examples",
     "website",
-    "grats-ts-plugin"
+    "grats-rs"
   ]
 }

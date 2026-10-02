@@ -24,14 +24,13 @@ src/tests/fixtures/input_types/inputFieldWithGqlField.invalid.ts:3:7 - error: Th
 #### Code Action: "Remove @gqlField tag" (remove-gql-field-from-input)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -2,3 +2,3 @@
-  type Foo = {
--   /** @gqlField */
-+   
-    name: string;
+ type Foo = {
+-  /** @gqlField */
++  
+   name: string;
 ```
 
 #### Applied Fixes

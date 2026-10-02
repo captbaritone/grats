@@ -62,25 +62,19 @@ export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
-            return {
-                someField1: {
-                    name: "someField1",
-                    type: GraphQLString,
-                    args: {
-                        input: {
-                            type: ConnectionInputType,
-                            defaultValue: {
-                                first: 10,
-                                offset: 100
-                            }
-                        }
+            return { someField1: {
+                name: "someField1",
+                type: GraphQLString,
+                args: { input: {
+                    type: ConnectionInputType,
+                    defaultValue: {
+                        first: 10,
+                        offset: 100
                     }
-                }
-            };
+                } }
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [ConnectionInputType, SomeTypeType]
-    });
+    return new GraphQLSchema({ types: [ConnectionInputType, SomeTypeType] });
 }
 ```

@@ -57,23 +57,19 @@ export function getSchema(): GraphQLSchema {
     const EntityType: GraphQLObjectType = new GraphQLObjectType({
         name: "Entity",
         fields() {
-            return {
-                description: {
-                    name: "description",
-                    type: GraphQLString
-                }
-            };
+            return { description: {
+                name: "description",
+                type: GraphQLString
+            } };
         }
     });
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
         }
     });
     const ActorType: GraphQLUnionType = new GraphQLUnionType({
@@ -85,16 +81,17 @@ export function getSchema(): GraphQLSchema {
     const SomeTypeType: GraphQLObjectType = new GraphQLObjectType({
         name: "SomeType",
         fields() {
-            return {
-                me: {
-                    name: "me",
-                    type: ActorType
-                }
-            };
+            return { me: {
+                name: "me",
+                type: ActorType
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [ActorType, EntityType, SomeTypeType, UserType]
-    });
+    return new GraphQLSchema({ types: [
+        ActorType,
+        EntityType,
+        SomeTypeType,
+        UserType
+    ] });
 }
 ```

@@ -33,16 +33,12 @@ export function getSchema(): GraphQLSchema {
     const FooType: GraphQLInterfaceType = new GraphQLInterfaceType({
         name: "Foo",
         fields() {
-            return {
-                id: {
-                    name: "id",
-                    type: GraphQLString
-                }
-            };
+            return { id: {
+                name: "id",
+                type: GraphQLString
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [FooType]
-    });
+    return new GraphQLSchema({ types: [FooType] });
 }
 ```

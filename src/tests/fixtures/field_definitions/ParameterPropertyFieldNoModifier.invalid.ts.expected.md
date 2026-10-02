@@ -30,14 +30,13 @@ Learn more: https://grats.capt.dev/docs/docblock-tags/fields#class-based-fields
 #### Code Action: "Add 'public' modifier" (add-public-modifier)
 
 ```diff
-- Original
-+ Fixed
-
+--- Original
++++ Fixed
 @@ -4,3 +4,3 @@
-      /** @gqlField */
--     hello: string,
-+     public hello: string,
-    ) {
+     /** @gqlField */
+-    hello: string,
++    public hello: string,
+   ) {
 ```
 
 #### Applied Fixes

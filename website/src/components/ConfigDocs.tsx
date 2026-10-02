@@ -1,53 +1,47 @@
-import type { ConfigSpec } from "grats/src/gratsConfigBeta";
 import React from "react";
+import { CONFIG_OPTIONS, ConfigOption } from "./configSchema";
 
-export default function ConfigDocs({ configSpec }: { configSpec: ConfigSpec }) {
+export default function ConfigDocs() {
   return (
     <div>
-      {Object.entries(configSpec.properties).map(([key, value]) => (
-        <React.Fragment key={key}>
+      {CONFIG_OPTIONS.map((option) => (
+        <React.Fragment key={option.name}>
           <hr />
-          <div style={{ marginBottom: "3em" }} key={key}>
+          <div style={{ marginBottom: "3em" }} key={option.name}>
             <h3
               className="config-title"
-              id={key}
+              id={option.name}
               style={{ textDecoration: "none", color: "inherit" }}
             >
-              "{key}"
+              "{option.name}"
               <span>
                 {": "}
                 {(() => {
-                  switch (value.type.kind) {
+                  switch (option.kind) {
                     case "string":
                       return "string";
                     case "longString":
                       return "string | string[]";
                     case "boolean":
                       return "boolean";
-                    default: {
-                      const _foo: never = value.type;
-                      throw new Error(
-                        `Unhandled type kind ${(value.type as any).kind}`,
-                      );
-                    }
                   }
                 })()}
-                {value.nullable === false ? "" : " | null"}
+                {option.nullable ? " | null" : ""}
               </span>
               <a
                 className="hash-link"
-                href={`#${key}`}
+                href={`#${option.name}`}
                 style={{
                   color: "lightgrey",
                 }}
               ></a>
             </h3>
 
-            {value.description.split("\n").map((line, i) => (
-              <p key={i}>{line}</p>
+            {option.paragraphs.map((paragraph, i) => (
+              <p key={i}>{paragraph}</p>
             ))}
             <div style={{ color: "gray" }}>
-              Default: <DefaultValue value={value} />
+              Default: <DefaultValue option={option} />
             </div>
           </div>
         </React.Fragment>
@@ -56,17 +50,13 @@ export default function ConfigDocs({ configSpec }: { configSpec: ConfigSpec }) {
   );
 }
 
-function DefaultValue({ value }: { value: any }) {
-  switch (value.type.kind) {
+function DefaultValue({ option }: { option: ConfigOption }) {
+  switch (option.kind) {
     case "string":
-      return <code>"{value.default}"</code>;
+      return <code>"{option.default}"</code>;
     case "longString":
-      return <pre>{value.default}</pre>;
+      return <pre>{option.default}</pre>;
     case "boolean":
-      return <code>{JSON.stringify(value.default)}</code>;
-    default: {
-      const _foo: never = value.type;
-      throw new Error(`Unhandled type kind ${(value.type as any).kind}`);
-    }
+      return <code>{JSON.stringify(option.default)}</code>;
   }
 }

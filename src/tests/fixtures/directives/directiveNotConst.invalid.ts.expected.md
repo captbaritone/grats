@@ -20,10 +20,8 @@ export function myQueryField(): string {
 ### Error Report
 
 ```text
-src/tests/fixtures/directives/directiveNotConst.invalid.ts:6:4 - error: Syntax Error: Unexpected variable "$foo" in constant value.
+src/tests/fixtures/directives/directiveNotConst.invalid.ts:6:38 - error: Syntax Error: Unexpected variable "$foo" in constant value.
 
 6  * @gqlAnnotate myDirective(someArg: $foo)
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-7  */
-  ~
+                                       ~~~~
 ```

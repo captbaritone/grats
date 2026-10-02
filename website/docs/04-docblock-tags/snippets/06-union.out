@@ -41,12 +41,10 @@ export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
         }
     });
     const PostType: GraphQLObjectType = new GraphQLObjectType({
@@ -71,7 +69,9 @@ export function getSchema(): GraphQLSchema {
             return [PostType, UserType];
         }
     });
-    return new GraphQLSchema({
-        types: [MyUnionType, PostType, UserType]
-    });
+    return new GraphQLSchema({ types: [
+        MyUnionType,
+        PostType,
+        UserType
+    ] });
 }

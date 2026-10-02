@@ -60,63 +60,47 @@ export function getSchema(): GraphQLSchema {
     const RoleType: GraphQLEnumType = new GraphQLEnumType({
         name: "Role",
         values: {
-            ADMIN: {
-                value: "ADMIN"
-            },
-            GUEST: {
-                value: "GUEST"
-            },
-            USER: {
-                value: "USER"
-            }
+            ADMIN: { value: "ADMIN" },
+            GUEST: { value: "GUEST" },
+            USER: { value: "USER" }
         }
     });
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
-            return {
-                name: {
-                    name: "name",
-                    type: GraphQLString
-                }
-            };
+            return { name: {
+                name: "name",
+                type: GraphQLString
+            } };
         }
     });
     const QueryType: GraphQLObjectType = new GraphQLObjectType({
         name: "Query",
         fields() {
-            return {
-                getAllUsers: {
-                    name: "getAllUsers",
-                    type: new GraphQLList(new GraphQLNonNull(UserType)),
-                    extensions: {
-                        grats: {
-                            directives: [{
-                                    name: "assert",
-                                    args: {
-                                        is: "ADMIN"
-                                    }
-                                }]
-                        }
-                    },
-                    resolve() {
-                        return queryGetAllUsersResolver();
-                    }
+            return { getAllUsers: {
+                name: "getAllUsers",
+                type: new GraphQLList(new GraphQLNonNull(UserType)),
+                extensions: { grats: { directives: [{
+                    name: "assert",
+                    args: { is: "ADMIN" }
+                }] } },
+                resolve() {
+                    return queryGetAllUsersResolver();
                 }
-            };
+            } };
         }
     });
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "assert",
-                locations: [DirectiveLocation.FIELD_DEFINITION],
-                args: {
-                    is: {
-                        type: new GraphQLNonNull(RoleType)
-                    }
-                }
-            })],
+            name: "assert",
+            locations: [DirectiveLocation.FIELD_DEFINITION],
+            args: { is: { type: new GraphQLNonNull(RoleType) } }
+        })],
         query: QueryType,
-        types: [RoleType, QueryType, UserType]
+        types: [
+            RoleType,
+            QueryType,
+            UserType
+        ]
     });
 }

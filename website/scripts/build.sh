@@ -6,18 +6,12 @@ set -e
 # Ensure we are in the website directory
 cd "$(dirname "$0")/.."
 
-# Build grats in the parent directory, using pnpm 
-cd ..
-pnpm run build
-cd website
-
-# Rebuild/validate the grats code used in the website
-pnpm run grats
-# Error if any of these changes have not been committed
-git diff --exit-code || (echo "Uncommitted changes detected." && exit 1)
-
 # Delete llm-docs/ before build so removed pages are detected
 rm -rf ../llm-docs
+
+# The website's playground needs Grats' WebAssembly build. Install the Rust
+# toolchain it's built with, for deploys whose environment doesn't have it.
+(cd ../grats-rs && rustup toolchain install)
 
 # Build the website (also regenerates llm-docs/ via docs-export plugin)
 pnpm run build

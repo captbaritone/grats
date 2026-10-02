@@ -41,27 +41,19 @@ export function getSchema(): GraphQLSchema {
     const ShowStatusType: GraphQLEnumType = new GraphQLEnumType({
         name: "ShowStatus",
         values: {
-            DRAFT: {
-                value: "DRAFT"
-            },
-            PUBLISHED: {
-                value: "PUBLISHED"
-            }
+            DRAFT: { value: "DRAFT" },
+            PUBLISHED: { value: "PUBLISHED" }
         }
     });
     const ShowType: GraphQLObjectType = new GraphQLObjectType({
         name: "Show",
         fields() {
-            return {
-                status: {
-                    name: "status",
-                    type: ShowStatusType
-                }
-            };
+            return { status: {
+                name: "status",
+                type: ShowStatusType
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [ShowStatusType, ShowType]
-    });
+    return new GraphQLSchema({ types: [ShowStatusType, ShowType] });
 }
 ```

@@ -15,18 +15,10 @@ export function getSchema(): GraphQLSchema {
     const StatusType: GraphQLEnumType = new GraphQLEnumType({
         name: "Status",
         values: {
-            ARCHIVED: {
-                value: "ARCHIVED"
-            },
-            DRAFT: {
-                value: "DRAFT"
-            },
-            PUBLISHED: {
-                value: "PUBLISHED"
-            }
+            ARCHIVED: { value: "ARCHIVED" },
+            DRAFT: { value: "DRAFT" },
+            PUBLISHED: { value: "PUBLISHED" }
         }
     });
-    return new GraphQLSchema({
-        types: [StatusType]
-    });
+    return new GraphQLSchema({ types: [StatusType] });
 }

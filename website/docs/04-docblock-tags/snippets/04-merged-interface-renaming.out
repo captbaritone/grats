@@ -16,15 +16,11 @@ export function getSchema(): GraphQLSchema {
     const NodeType: GraphQLObjectType = new GraphQLObjectType({
         name: "Node",
         fields() {
-            return {
-                id: {
-                    name: "id",
-                    type: GraphQLID
-                }
-            };
+            return { id: {
+                name: "id",
+                type: GraphQLID
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [NodeType]
-    });
+    return new GraphQLSchema({ types: [NodeType] });
 }

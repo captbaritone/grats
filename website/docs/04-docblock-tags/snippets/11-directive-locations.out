@@ -15,15 +15,11 @@ import { GraphQLSchema, GraphQLDirective, DirectiveLocation, GraphQLNonNull, Gra
 export function getSchema(): GraphQLSchema {
     return new GraphQLSchema({
         directives: [...specifiedDirectives, new GraphQLDirective({
-                name: "cost",
-                locations: [DirectiveLocation.FIELD_DEFINITION, DirectiveLocation.OBJECT],
-                args: {
-                    credits: {
-                        type: new GraphQLNonNull(GraphQLInt)
-                    }
-                },
-                isRepeatable: true
-            })],
+            name: "cost",
+            locations: [DirectiveLocation.FIELD_DEFINITION, DirectiveLocation.OBJECT],
+            args: { credits: { type: new GraphQLNonNull(GraphQLInt) } },
+            isRepeatable: true
+        })],
         types: []
     });
 }

@@ -33,20 +33,16 @@ export function getSchema(): GraphQLSchema {
     const UserType: GraphQLObjectType = new GraphQLObjectType({
         name: "User",
         fields() {
-            return {
-                name: {
-                    deprecationReason: "No longer supported",
-                    name: "name",
-                    type: GraphQLString,
-                    resolve(source) {
-                        return source.graphQLName();
-                    }
+            return { name: {
+                deprecationReason: "No longer supported",
+                name: "name",
+                type: GraphQLString,
+                resolve(source) {
+                    return source.graphQLName();
                 }
-            };
+            } };
         }
     });
-    return new GraphQLSchema({
-        types: [UserType]
-    });
+    return new GraphQLSchema({ types: [UserType] });
 }
 ```
