@@ -3,6 +3,8 @@
 ## Input
 
 ```ts title="generics/complexMutualReferences.ts"
+// `Foo` and `Bar` pass their type parameter to each other, but neither uses it
+// in a GraphQL position, so they're not generic.
 /** @gqlType */
 type Foo<T> = {
   /** @gqlField */
@@ -29,17 +31,17 @@ type Baz = {
 ### SDL
 
 ```graphql
+type Bar {
+  anotherField: Foo
+}
+
 type Baz {
-  bazField: BazBar
+  bazField: Bar
 }
 
-type BazBar {
-  anotherField: BazFoo
-}
-
-type BazFoo {
+type Foo {
   baz: Baz
-  someField: BazBar
+  someField: Bar
 }
 ```
 
@@ -48,8 +50,17 @@ type BazFoo {
 ```ts
 import { GraphQLSchema, GraphQLObjectType } from "graphql";
 export function getSchema(): GraphQLSchema {
-    const BazFooType: GraphQLObjectType = new GraphQLObjectType({
-        name: "BazFoo",
+    const BazType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Baz",
+        fields() {
+            return { bazField: {
+                name: "bazField",
+                type: BarType
+            } };
+        }
+    });
+    const FooType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Foo",
         fields() {
             return {
                 baz: {
@@ -58,33 +69,24 @@ export function getSchema(): GraphQLSchema {
                 },
                 someField: {
                     name: "someField",
-                    type: BazBarType
+                    type: BarType
                 }
             };
         }
     });
-    const BazBarType: GraphQLObjectType = new GraphQLObjectType({
-        name: "BazBar",
+    const BarType: GraphQLObjectType = new GraphQLObjectType({
+        name: "Bar",
         fields() {
             return { anotherField: {
                 name: "anotherField",
-                type: BazFooType
-            } };
-        }
-    });
-    const BazType: GraphQLObjectType = new GraphQLObjectType({
-        name: "Baz",
-        fields() {
-            return { bazField: {
-                name: "bazField",
-                type: BazBarType
+                type: FooType
             } };
         }
     });
     return new GraphQLSchema({ types: [
+        BarType,
         BazType,
-        BazBarType,
-        BazFooType
+        FooType
     ] });
 }
 ```

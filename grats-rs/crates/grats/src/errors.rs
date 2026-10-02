@@ -632,6 +632,10 @@ pub fn conflicting_generic_type_name(derived_name: &str) -> String {
     )
 }
 
+pub fn infinitely_nested_generic_type() -> String {
+    "Infinitely nested generic type. Grats defines a GraphQL type for each combination of type arguments a generic type is used with. Here, each type Grats defines would use the generic type with more deeply nested type arguments, so Grats would need to define infinitely many types.".to_string()
+}
+
 pub fn generic_type_used_as_union_member() -> String {
     "Unexpected generic type used as union member. Generic type may not currently be used as members of a union. Grats requires that all union members define a `__typename` field typed as a string literal matching the type's name. Since generic types are synthesized into multiple types with different names, Grats cannot ensure they have a correct `__typename` property and thus cannot be used as members of a union.".to_string()
 }

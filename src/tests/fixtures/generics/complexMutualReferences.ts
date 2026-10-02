@@ -1,3 +1,5 @@
+// `Foo` and `Bar` pass their type parameter to each other, but neither uses it
+// in a GraphQL position, so they're not generic.
 /** @gqlType */
 type Foo<T> = {
   /** @gqlField */

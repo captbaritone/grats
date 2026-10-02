@@ -40,8 +40,4 @@ src/tests/fixtures/generics/typeParamAfterUnresolvedTypeArg.invalid.ts:20:14 - e
 
 20   pair: Pair<Undefined, T>;
                 ~~~~~~~~~
-src/tests/fixtures/generics/typeParamAfterUnresolvedTypeArg.invalid.ts:20:14 - error: Unable to resolve type reference. In order to generate a GraphQL schema, Grats needs to determine which GraphQL type is being referenced. This requires being able to resolve type references to their `@gql` annotated declaration. However this reference could not be resolved. Is it possible that this type is not defined in this file?
-
-20   pair: Pair<Undefined, T>;
-                ~~~~~~~~~
 ```

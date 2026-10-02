@@ -1,5 +1,5 @@
-// TODO: This should not be an error. `Bar` doesn't use its type parameter in a
-// GraphQL position, so `Foo`'s type parameter need not be a GraphQL type.
+// `Bar` doesn't use its type parameter in a GraphQL position, so neither does
+// `Foo`, and `Foo`'s type argument need not be a GraphQL type.
 /** @gqlType */
 type Bar<U> = {
   /** @gqlField */

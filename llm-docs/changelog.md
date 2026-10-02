@@ -48,6 +48,9 @@ If any of these changes cause problems for your project, please [file an issue](
     -   Projects without any GraphQL types now get an error explaining how to define one, rather than an empty schema. Grats always meant to report this, but the check never fired.
     -   Two different generic type instantiations which Grats would give the same name, like `Pair<AB, C>` and `Pair<A, BC>` (both `ABCPair`), are now reported as an error. Previously, one silently used the other's type.
     -   Generic types which pass their type parameter to another generic type after a concrete type argument, like `pair: Pair<User, T>`, are now supported. Previously, they were reported as an invalid type parameter.
+    -   Generic types which reference themselves with more deeply nested type arguments, like `children: Tree<Tree<T>>`, are now reported as an error. Previously, Grats crashed.
+    -   Errors in generic types are now reported once, rather than once for each combination of type arguments the type is used with.
+    -   Type parameters are now only considered used in a GraphQL position if the generic types they're passed to use theirs in one. So, passing a type parameter to a generic type which ignores it no longer requires a GraphQL type argument, and types whose type parameters are only passed between each other, like `type Foo<T> = { bar: Bar<T> }` and `type Bar<T> = { foo: Foo<T> }`, are no longer generic. Previously, Grats named such types after their type arguments, like `BazFoo`.
 
 ## 0.0.36
 

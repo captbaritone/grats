@@ -1,694 +1,685 @@
-//! Port of `src/transforms/resolveTypes.ts`.
+//! Resolves the TypeScript type references in GraphQL definitions to the
+//! GraphQL types they name, materializing generic types along the way.
 
 use std::collections::HashMap;
-use std::collections::HashSet;
-use std::collections::hash_map::Entry;
-use std::rc::Rc;
 
 use graphql_js::language::ast::{
-    ConstDirectiveNode, ConstValueNode, DefinitionNode, FieldDefinitionNode,
-    InputValueDefinitionNode, Location, NameNode, NamedTypeNode, NullableTypeNode, TypeNode,
+    DefinitionNode, FieldDefinitionNode, InputValueDefinitionNode, Location, NameNode,
+    NamedTypeNode, NullableTypeNode, TypeNode,
 };
-use indexmap::IndexMap;
 
 use crate::errors as E;
-use crate::name_resolver::ResolvedDeclarationKind;
+use crate::name_resolver::{ResolvedDeclaration, ResolvedDeclarationKind};
 use crate::snapshot_refs::{DeclLoc, EntityNameRef, TypeArgumentRef, TypeParameterRef};
 use crate::type_context::TypeContext;
 use crate::utils::diagnostic_error::{
-    Diagnostic, DiagnosticRelatedInformation, DiagnosticResult, DiagnosticsResult, gql_err,
-    gql_related,
+    Diagnostic, DiagnosticResult, DiagnosticsResult, gql_err, gql_related,
 };
-use crate::utils::helpers::null_throws;
 
-struct Template {
-    decl_loc: DeclLoc,
-    /// PORT: A `TypeDefinitionNode`. Only definitions for which
-    /// `mayReferenceGenerics` holds become templates.
-    declaration_template: DefinitionNode,
-    type_parameters: Vec<TypeParameterRef>,
-    // References to the template's type parameters in GraphQL positions, keyed
-    // by `locKey`.
-    generic_nodes: IndexMap<LocKey, GenericReference>,
-}
+const CHECKED: &str = "References are checked before types are materialized";
 
-/// A generic type with the names of the type arguments it was materialized
-/// with, which are `None` for type parameters not used in a GraphQL position.
-struct Instantiation {
-    template: DeclLoc,
-    type_arguments: Vec<Option<String>>,
-    reference: Location,
-}
-
-struct GenericReference {
-    name: Location,
-    // Index of the referenced type parameter
-    index: usize,
-}
-
-/// During extraction we are operating purely syntactically, so we don't actually know
-/// which types are being referred to. This function resolves those references.
+/// During extraction we are operating purely syntactically, so we don't
+/// actually know which types are being referred to. This function resolves
+/// those references.
 ///
-/// It also materializes any generic type references into concrete types.
+/// It also materializes generic types. A definition whose type parameters are
+/// used in GraphQL positions is a template, and each combination of type
+/// arguments it's referenced with becomes a concrete type, named by prefixing
+/// the template's name with the names of its type arguments. For example,
+/// `Edge<User>` becomes `UserEdge`.
+///
+/// This happens in three phases:
+///
+/// 1. Find the templates, and which of their type parameters are used in
+///    GraphQL positions.
+/// 2. Check every reference, so each error is reported once, rather than once
+///    for each type materialized from a template.
+/// 3. Replace each reference with the name of the type it resolves to,
+///    materializing templates as they're referenced.
 pub fn resolve_types(
     ctx: &TypeContext,
-    definitions: Vec<DefinitionNode>,
+    mut definitions: Vec<DefinitionNode>,
 ) -> DiagnosticsResult<Vec<DefinitionNode>> {
-    let mut template_extractor = TemplateExtractor::new(ctx);
-    template_extractor.materialize_generic_type_references(definitions)
+    let references: Vec<Vec<&EntityNameRef>> = definitions
+        .iter_mut()
+        .map(|definition| {
+            let mut references = Vec::new();
+            for_each_type_name(definition, &mut |name| {
+                references.extend(ctx.get_entity_name(name));
+            });
+            references
+        })
+        .collect();
+
+    let generics = Generics::new(ctx, &definitions, &references);
+
+    let checker = Checker {
+        ctx,
+        generics: &generics,
+    };
+    let mut errors = Vec::new();
+    for ((definition, references), candidate) in definitions
+        .iter()
+        .zip(&references)
+        .zip(&generics.definitions)
+    {
+        checker.check_definition(definition, *candidate, references, &mut errors);
+    }
+    errors.extend(generics.infinite_expansions());
+    if !errors.is_empty() {
+        return Err(errors);
+    }
+
+    let mut templates = HashMap::new();
+    let mut concrete = Vec::new();
+    for (definition, candidate) in definitions.into_iter().zip(&generics.definitions) {
+        match candidate {
+            Some(candidate) if generics.is_template(*candidate) => {
+                templates.insert(*candidate, definition);
+            }
+            _ => concrete.push(definition),
+        }
+    }
+
+    let mut materializer = Materializer {
+        ctx,
+        generics: &generics,
+        templates: &templates,
+        instantiations: HashMap::new(),
+        definitions: Vec::new(),
+        errors: Vec::new(),
+    };
+    for mut definition in concrete {
+        for_each_type_name(&mut definition, &mut |name| {
+            if let Some(reference) = ctx.get_entity_name(name) {
+                name.value = materializer.resolve(reference, &HashMap::new());
+            }
+        });
+        materializer.definitions.push(definition);
+    }
+    if !materializer.errors.is_empty() {
+        return Err(materializer.errors);
+    }
+    Ok(materializer.definitions)
 }
 
-/// Template extraction happens in two phases and resolves named type references
-/// as a side effect.
-///
-/// 1. We walk all declarations checking if they contain type references in
-///    GraphQL positions which point back to the declaration's type parameters. If
-///    so, they are considered templates and are removed from the list of "real"
-///    declarations.
-/// 2. We walk the remaining "real" declarations and resolve any type references,
-///    if a reference refers to a template we first validate and resolve its type
-///    arguments and then use those as inputs to materialize a new type to match
-///    those type arguments.
-///
-/// ## Two Types of Recursion
-///
-/// 1. Type arguments may themselves be parameterized, and so we must
-///    process generic type references recursively in a depth-first manner.
-///
-/// 2. When materializing templates we may encounter more parameterized
-///    references to other templates. In this way, template materialization can be
-///    recursive, and we must take care to avoid infinite loops. We must also take
-///    care to correctly track our scope such that type references in templates
-///    which refer to generic types resolve to the correct type.
-struct TemplateExtractor<'a> {
-    // PORT: Templates are shared, since materializing one may materialize others.
-    templates: HashMap<DeclLoc, Rc<Template>>,
-    definitions: Vec<DefinitionNode>,
-    /// The instantiation each materialized type's name was derived for.
-    instantiations: HashMap<String, Instantiation>,
-    errors: Vec<Diagnostic>,
-    ctx: &'a TypeContext<'a>,
+/// The definitions which may be generic: those which may reference generics,
+/// and whose TypeScript declarations have type parameters.
+struct Generics {
+    candidates: Vec<Candidate>,
+    by_decl_loc: HashMap<DeclLoc, usize>,
+    /// For each definition, the index of its candidate, if it is one.
+    definitions: Vec<Option<usize>>,
+    /// For each candidate, for each type parameter, the last reference to it in
+    /// a GraphQL position, if there is one. Candidates with any are templates.
+    uses: Vec<Vec<Option<Location>>>,
 }
 
-impl<'a> TemplateExtractor<'a> {
-    fn new(ctx: &'a TypeContext<'a>) -> Self {
-        TemplateExtractor {
-            templates: HashMap::new(),
+struct Candidate {
+    /// The definition's name.
+    name: String,
+    type_parameters: Vec<TypeParameterRef>,
+    /// The references to the candidate's type parameters within its
+    /// definition, in the order they appear.
+    occurrences: Vec<Occurrence>,
+}
+
+impl Candidate {
+    fn param_index(&self, declaration: &ResolvedDeclaration) -> Option<usize> {
+        if declaration.kind != ResolvedDeclarationKind::TypeParameter {
+            return None;
+        }
+        self.type_parameters
+            .iter()
+            .position(|param| param.decl_loc == declaration.decl_loc)
+    }
+}
+
+/// A type parameter: indexes of its candidate and of the type parameter.
+type Param = (usize, usize);
+
+/// A reference to one of a candidate's type parameters within its definition.
+struct Occurrence {
+    param: usize,
+    /// The reference to the type parameter.
+    loc: Location,
+    /// The type parameters it's passed to as a type argument, from the
+    /// outermost reference inwards, along with each reference it's passed to.
+    /// For example, in `Connection<Edge<T>>`, `T` is passed to `Edge`'s type
+    /// parameter, and `Edge<T>` to `Connection`'s.
+    ///
+    /// The reference is in a GraphQL position if each of those type
+    /// parameters is used in one, since Grats ignores type arguments for type
+    /// parameters which aren't.
+    path: Vec<(Param, Location)>,
+}
+
+impl Occurrence {
+    fn is_used(&self, uses: &[Vec<Option<Location>>]) -> bool {
+        self.path
+            .iter()
+            .all(|((candidate, param), _)| uses[*candidate][*param].is_some())
+    }
+}
+
+impl Generics {
+    fn new(
+        ctx: &TypeContext,
+        definitions: &[DefinitionNode],
+        references: &[Vec<&EntityNameRef>],
+    ) -> Self {
+        let mut generics = Generics {
+            candidates: Vec::new(),
+            by_decl_loc: HashMap::new(),
             definitions: Vec::new(),
-            instantiations: HashMap::new(),
-            errors: Vec::new(),
-            ctx,
-        }
-    }
-
-    fn materialize_generic_type_references(
-        &mut self,
-        definitions: Vec<DefinitionNode>,
-    ) -> DiagnosticsResult<Vec<DefinitionNode>> {
-        // We filter out all template declarations and index them as a first pass.
-        let filtered: Vec<DefinitionNode> = definitions
-            .into_iter()
-            .filter_map(|definition| self.maybe_extract_as_template(definition))
-            .collect();
-
-        // Now we can visit the remaining "real" definitions and materialize any
-        // generic type references.
-        for definition in filtered {
-            let definition = self.materialize_templates_for_node(definition);
-            self.definitions.push(definition);
-        }
-
-        if !self.errors.is_empty() {
-            return Err(std::mem::take(&mut self.errors));
-        }
-        Ok(std::mem::take(&mut self.definitions))
-    }
-
-    /// Given a concrete (non-Generic) GraphQL type, walks GraphQL ASTs and expands
-    /// generic types into their concrete types adding their materialized
-    /// definitions to the `_definitions` array as we go.
-    ///
-    /// **Note:** Here we also detect generics being used as members of a union and
-    /// report that as an error.
-    ///
-    /// PORT: TypeScript uses graphql-js's `visit` to replace names with resolved
-    /// copies. The Rust visitor can't edit the AST, so this edits names in place.
-    fn materialize_templates_for_node(&mut self, mut node: DefinitionNode) -> DefinitionNode {
-        visit_names(&mut node, &mut |node, _| {
-            let Some(reference_node) = self.get_reference_node(node) else {
-                return;
-            };
-            let Some(name) = self.resolve_type_reference_or_report(reference_node, None) else {
-                return;
-            };
-            node.value = name;
-        });
-        node
-    }
-
-    fn resolve_type_reference_or_report(
-        &mut self,
-        node: &EntityNameRef,
-        generics: Option<&HashMap<DeclLoc, String>>,
-    ) -> Option<String> {
-        let declaration = self.as_nullable(self.ctx.resolve_entity_name(node.name))?;
-
-        if let Some(generics) = generics {
-            // Maybe this node references a generic!
-            if let Some(generic_name) = generics.get(&declaration.decl_loc) {
-                return Some(generic_name.clone());
-            }
-        }
-
-        if let Some(template) = self.templates.get(&declaration.decl_loc).cloned() {
-            let template_name = definition_name(&template.declaration_template)
-                .value
-                .clone();
-            let type_arguments: &[TypeArgumentRef] = node.type_arguments.as_deref().unwrap_or(&[]);
-
-            let mut generic_indexes: HashMap<usize, Location> = HashMap::new();
-            for GenericReference { name, index } in template.generic_nodes.values() {
-                generic_indexes.insert(*index, *name);
-            }
-
-            let mut names: Vec<Option<String>> = Vec::new();
-            for i in 0..template.type_parameters.len() {
-                let Some(example_generic_node) = generic_indexes.get(&i) else {
-                    // This type param in the template is not used in a GraphQL position.
-                    // We won't include it in the derived name.
-                    names.push(None);
-                    continue;
-                };
-                let param = &template.type_parameters[i];
-                let param_name = &param.name;
-                let related = || {
-                    vec![
-                        gql_related(
-                            Some(param.loc),
-                            &format!("Type parameter `{param_name}` is defined here"),
-                        ),
-                        gql_related(
-                            Some(*example_generic_node),
-                            "and expects a GraphQL type because it was used in a GraphQL position here.",
-                        ),
-                    ]
-                };
-                let Some(arg) = type_arguments.get(i) else {
-                    return self.report(
-                        node.loc,
-                        E::missing_generic_type(&template_name, param_name),
-                        Some(related()),
-                    );
-                };
-                let arg = match arg {
-                    TypeArgumentRef::EntityName(arg) => arg,
-                    TypeArgumentRef::OtherType { loc } => {
-                        return self.report(
-                            *loc,
-                            E::non_graphql_generic_type(&template_name, param_name),
-                            Some(related()),
-                        );
-                    }
-                };
-                // resolveTypeReference will report an error if the definition is not found.
-                let name = self.resolve_type_reference_or_report(arg, generics)?;
-                names.push(Some(name));
-            }
-
-            return Some(self.materialize_template(node.loc, names, &template));
-        }
-        let name_result = self.ctx.gql_name_for_ts_name(node.name);
-
-        self.as_nullable(name_result)
-    }
-
-    fn template_name(&self, type_params: &[Option<String>], template: &Template) -> String {
-        let given_name = &definition_name(&template.declaration_template).value;
-
-        // TODO: If we want to support templated names, e.g. `<T><K>Foo` we would do
-        // that here.
-
-        let params_prefix: String = type_params.iter().flatten().map(String::as_str).collect();
-        params_prefix + given_name
-    }
-
-    fn materialize_template(
-        &mut self,
-        reference_loc: Location,
-        type_params: Vec<Option<String>>,
-        template: &Template,
-    ) -> String {
-        let derived_name = self.template_name(&type_params, template);
-        match self.instantiations.entry(derived_name.clone()) {
-            Entry::Occupied(entry) => {
-                let existing = entry.get();
-                // Different generic types, or type arguments, may derive the same name.
-                if existing.template != template.decl_loc || existing.type_arguments != type_params
-                {
-                    let related = gql_related(
-                        Some(existing.reference),
-                        &format!("The other type named `{derived_name}` is referenced here."),
-                    );
-                    self.errors.push(gql_err(
-                        Some(reference_loc),
-                        E::conflicting_generic_type_name(&derived_name),
-                        Some(vec![related]),
-                    ));
+            uses: Vec::new(),
+        };
+        for definition in definitions {
+            let candidate = generic_definition_name(definition).and_then(|name| {
+                let declaration = ctx.declaration_for_gql_definition(name);
+                if declaration.type_parameters.is_empty() {
+                    return None;
                 }
-                // Otherwise, we've either already materialized this instantiation or
-                // we're in the middle of doing so.
-                return derived_name;
-            }
-            Entry::Vacant(entry) => {
-                entry.insert(Instantiation {
-                    template: template.decl_loc.clone(),
-                    type_arguments: type_params.clone(),
-                    reference: reference_loc,
+                let index = generics.candidates.len();
+                generics
+                    .by_decl_loc
+                    .insert(declaration.decl_loc.clone(), index);
+                generics.candidates.push(Candidate {
+                    name: name.value.clone(),
+                    type_parameters: declaration.type_parameters.clone(),
+                    occurrences: Vec::new(),
                 });
-            }
+                generics
+                    .uses
+                    .push(vec![None; declaration.type_parameters.len()]);
+                Some(index)
+            });
+            generics.definitions.push(candidate);
         }
 
-        // Mapping from the template's type param declaration to the GraphQL name
-        // passed in for this particular use.
-        let mut generics_context: HashMap<DeclLoc, String> = HashMap::new();
-        let generic_indexes: Vec<usize> = template
-            .generic_nodes
-            .values()
-            .map(|generic| generic.index)
-            .collect();
-        let mut seen = HashSet::new();
-        for i in generic_indexes {
-            // PORT: `new Set(genericIndexes)`.
-            if !seen.insert(i) {
-                continue;
-            }
-            let name = type_params
-                .get(i)
-                .expect("typeParams[i] should not be undefined");
-            let Some(name) = name else {
-                // If this type was not used in a GraphQL position, we won't have a
-                // corresponding type argument.
+        for (references, candidate) in references.iter().zip(generics.definitions.clone()) {
+            let Some(candidate) = candidate else {
                 continue;
             };
-            let param = null_throws(template.type_parameters.get(i));
-            generics_context.insert(param.decl_loc.clone(), name.clone());
+            let mut occurrences = Vec::new();
+            for reference in references {
+                generics.find_occurrences(
+                    ctx,
+                    candidate,
+                    reference,
+                    &mut Vec::new(),
+                    &mut occurrences,
+                );
+            }
+            generics.candidates[candidate].occurrences = occurrences;
         }
 
-        let original = &template.declaration_template;
-        let mut definition = rename_definition(original.clone(), &derived_name, reference_loc);
-
-        visit_names(&mut definition, &mut |node, in_named_type| {
-            // PORT: The TypeScript visitor only visits `NamedType` nodes.
-            if !in_named_type {
-                return;
+        // A type parameter passed to another type parameter is used in a
+        // GraphQL position if that type parameter is, so repeat until no more
+        // are found.
+        let mut found = true;
+        while found {
+            found = false;
+            for (index, candidate) in generics.candidates.iter().enumerate() {
+                for occurrence in &candidate.occurrences {
+                    if generics.uses[index][occurrence.param].is_none()
+                        && occurrence.is_used(&generics.uses)
+                    {
+                        generics.uses[index][occurrence.param] = Some(occurrence.loc);
+                        found = true;
+                    }
+                }
             }
-            let Some(reference_node) = self.get_reference_node(node) else {
-                return;
-            };
-
-            let Some(name) =
-                self.resolve_type_reference_or_report(reference_node, Some(&generics_context))
-            else {
-                return;
-            };
-
-            node.value = name;
-        });
-
-        self.definitions.push(definition);
-        derived_name
+        }
+        for (index, candidate) in generics.candidates.iter().enumerate() {
+            for occurrence in &candidate.occurrences {
+                if occurrence.is_used(&generics.uses) {
+                    generics.uses[index][occurrence.param] = Some(occurrence.loc);
+                }
+            }
+        }
+        generics
     }
 
-    /// PORT: Returns the definition if it isn't extracted as a template, rather
-    /// than whether it was.
-    fn maybe_extract_as_template(
-        &mut self,
-        mut definition: DefinitionNode,
-    ) -> Option<DefinitionNode> {
-        if !may_reference_generics(&definition) {
-            return Some(definition);
+    /// Finds the references to `candidate`'s type parameters within
+    /// `reference`, which is passed to the type parameters in `path`.
+    fn find_occurrences(
+        &self,
+        ctx: &TypeContext,
+        candidate: usize,
+        reference: &EntityNameRef,
+        path: &mut Vec<(Param, Location)>,
+        occurrences: &mut Vec<Occurrence>,
+    ) {
+        let Ok(declaration) = ctx.resolve_entity_name(reference.name) else {
+            return;
+        };
+        if let Some(param) = self.candidates[candidate].param_index(&declaration) {
+            occurrences.push(Occurrence {
+                param,
+                loc: reference.name,
+                path: path.clone(),
+            });
+            return;
         }
-        let ctx = self.ctx;
-        let declaration = ctx.declaration_for_gql_definition(definition_name(&definition));
-        let type_params = &declaration.type_parameters;
-
-        if type_params.is_empty() {
-            return Some(definition);
-        }
-
-        let mut generic_nodes: IndexMap<LocKey, GenericReference> = IndexMap::new();
-
-        visit_names(&mut definition, &mut |node, in_named_type| {
-            // PORT: The TypeScript visitor only visits `NamedType` nodes.
-            if !in_named_type {
-                return;
+        // Type arguments are only passed on to candidates.
+        let Some(&referenced) = self.by_decl_loc.get(&declaration.decl_loc) else {
+            return;
+        };
+        let param_count = self.candidates[referenced].type_parameters.len();
+        let type_arguments = reference.type_arguments.iter().flatten();
+        for (index, argument) in type_arguments.enumerate().take(param_count) {
+            if let TypeArgumentRef::EntityName(argument) = argument {
+                path.push(((referenced, index), reference.loc));
+                self.find_occurrences(ctx, candidate, argument, path, occurrences);
+                path.pop();
             }
-            let Some(reference_node) = self.get_reference_node(node) else {
-                return;
-            };
-            let references = find_all_references(reference_node);
-            for reference in references {
-                let declaration = match self.ctx.resolve_entity_name(reference.name) {
-                    Err(error) => {
-                        self.errors.push(error);
-                        continue;
-                    }
-                    Ok(declaration) => declaration,
-                };
+        }
+    }
 
-                // If the type points to a type param...
-                if declaration.kind != ResolvedDeclarationKind::TypeParameter {
+    fn is_template(&self, candidate: usize) -> bool {
+        self.uses[candidate].iter().any(Option::is_some)
+    }
+
+    fn template(&self, declaration: &ResolvedDeclaration) -> Option<usize> {
+        let candidate = *self.by_decl_loc.get(&declaration.decl_loc)?;
+        self.is_template(candidate).then_some(candidate)
+    }
+
+    /// Templates are materialized by passing type arguments on to the type
+    /// parameters they reference, so they expand infinitely if a type
+    /// parameter is passed back to itself wrapped in another type, as in
+    /// `children: Tree<Tree<T>>`.
+    ///
+    /// So, we look for cycles among the type parameters used in GraphQL
+    /// positions, where each reference passing one type parameter to another
+    /// is an edge, and report the references in them which pass a wrapped type
+    /// parameter.
+    fn infinite_expansions(&self) -> Vec<Diagnostic> {
+        struct Edge {
+            from: Param,
+            to: Param,
+            wraps: bool,
+            reference: Location,
+        }
+        let mut edges = Vec::new();
+        for (index, candidate) in self.candidates.iter().enumerate() {
+            for occurrence in &candidate.occurrences {
+                if !occurrence.is_used(&self.uses) {
                     continue;
                 }
-                // And it's one of our parent type's type params...
-                let generic_index = type_params
-                    .iter()
-                    .position(|param| param.decl_loc == declaration.decl_loc);
-                if let Some(generic_index) = generic_index {
-                    generic_nodes.insert(
-                        loc_key(reference.name),
-                        GenericReference {
-                            name: reference.name,
-                            index: generic_index,
-                        },
-                    );
+                let innermost = occurrence.path.len().saturating_sub(1);
+                for (depth, &(to, reference)) in occurrence.path.iter().enumerate() {
+                    edges.push(Edge {
+                        from: (index, occurrence.param),
+                        to,
+                        wraps: depth < innermost,
+                        reference,
+                    });
                 }
             }
-        });
-        if generic_nodes.is_empty() {
-            return Some(definition);
         }
-        if let DefinitionNode::ObjectTypeDefinition(definition) = &definition
-            && let Some(interfaces) = &definition.interfaces
-            && let Some(first) = interfaces.first()
+
+        let mut successors: HashMap<Param, Vec<Param>> = HashMap::new();
+        for edge in &edges {
+            successors.entry(edge.from).or_default().push(edge.to);
+        }
+        let reaches = |start: Param, target: Param| {
+            let mut stack = vec![start];
+            let mut visited = vec![start];
+            while let Some(param) = stack.pop() {
+                if param == target {
+                    return true;
+                }
+                for &next in successors.get(&param).into_iter().flatten() {
+                    if !visited.contains(&next) {
+                        visited.push(next);
+                        stack.push(next);
+                    }
+                }
+            }
+            false
+        };
+
+        let mut reported = Vec::new();
+        for edge in &edges {
+            if edge.wraps && !reported.contains(&edge.reference) && reaches(edge.to, edge.from) {
+                reported.push(edge.reference);
+            }
+        }
+        reported
+            .into_iter()
+            .map(|reference| gql_err(Some(reference), E::infinitely_nested_generic_type(), None))
+            .collect()
+    }
+}
+
+struct Checker<'a> {
+    ctx: &'a TypeContext<'a>,
+    generics: &'a Generics,
+}
+
+impl Checker<'_> {
+    fn check_definition(
+        &self,
+        definition: &DefinitionNode,
+        candidate: Option<usize>,
+        references: &[&EntityNameRef],
+        errors: &mut Vec<Diagnostic>,
+    ) {
+        for reference in references {
+            if let Err(error) = self.check(reference, candidate) {
+                errors.push(error);
+            }
+        }
+        if let Some(candidate) = candidate
+            && self.generics.is_template(candidate)
+            && let DefinitionNode::ObjectTypeDefinition(definition) = definition
+            && let Some(interface) = definition.interfaces.iter().flatten().next()
         {
-            let item = &first.name;
-            self.errors.push(gql_err(
-                item.loc,
+            errors.push(gql_err(
+                interface.name.loc,
                 E::generic_type_implements_interface(),
                 None,
             ));
         }
-        self.templates.insert(
-            declaration.decl_loc.clone(),
-            Rc::new(Template {
-                decl_loc: declaration.decl_loc.clone(),
-                declaration_template: definition,
-                generic_nodes,
-                type_parameters: type_params.clone(),
-            }),
-        );
-        None
     }
 
-    // --- Helpers ---
-
-    /// Given a name within a non-Generic GraphQL definition, finds the corresponding
-    /// TypeScript node representing the type reference.
-    ///
-    /// For example, in:
-    ///
-    /// ```ts
-    /// // gqlType
-    /// type User {
-    ///   // gqlField
-    ///   friend: Person
-    /// }
-    /// ```
-    ///
-    /// Given the `Person` NameNode, this will return the reference to the
-    /// `Person` TypeScript type recorded during extraction.
-    fn get_reference_node(&self, name: &NameNode) -> Option<&'a EntityNameRef> {
-        self.ctx.get_entity_name(name)
-    }
-
-    fn as_nullable<T>(&mut self, result: DiagnosticResult<T>) -> Option<T> {
-        match result {
-            Err(error) => {
-                self.errors.push(error);
-                None
-            }
-            Ok(value) => Some(value),
+    /// Checks a reference within the definition of `candidate`, if it is one.
+    fn check(&self, reference: &EntityNameRef, candidate: Option<usize>) -> DiagnosticResult<()> {
+        let declaration = self.ctx.resolve_entity_name(reference.name)?;
+        if let Some(candidate) = candidate
+            && self.generics.candidates[candidate]
+                .param_index(&declaration)
+                .is_some()
+        {
+            return Ok(());
         }
+        let Some(template) = self.generics.template(&declaration) else {
+            return self.ctx.gql_name_for_ts_name(reference.name).map(drop);
+        };
+        let Candidate {
+            name,
+            type_parameters,
+            ..
+        } = &self.generics.candidates[template];
+        for (index, param) in type_parameters.iter().enumerate() {
+            let Some(example_use) = self.generics.uses[template][index] else {
+                // Only type parameters used in GraphQL positions need GraphQL
+                // types as type arguments.
+                continue;
+            };
+            let related = || {
+                vec![
+                    gql_related(
+                        Some(param.loc),
+                        &format!("Type parameter `{}` is defined here", param.name),
+                    ),
+                    gql_related(
+                        Some(example_use),
+                        "and expects a GraphQL type because it was used in a GraphQL position here.",
+                    ),
+                ]
+            };
+            match reference.type_arguments.iter().flatten().nth(index) {
+                None => {
+                    return Err(gql_err(
+                        Some(reference.loc),
+                        E::missing_generic_type(name, &param.name),
+                        Some(related()),
+                    ));
+                }
+                Some(TypeArgumentRef::OtherType { loc }) => {
+                    return Err(gql_err(
+                        Some(*loc),
+                        E::non_graphql_generic_type(name, &param.name),
+                        Some(related()),
+                    ));
+                }
+                Some(TypeArgumentRef::EntityName(argument)) => self.check(argument, candidate)?,
+            }
+        }
+        Ok(())
     }
+}
 
-    fn report(
+/// A template with the names of the type arguments it was materialized with,
+/// which are `None` for type parameters not used in a GraphQL position.
+struct Instantiation {
+    template: usize,
+    type_arguments: Vec<Option<String>>,
+    reference: Location,
+}
+
+struct Materializer<'a> {
+    ctx: &'a TypeContext<'a>,
+    generics: &'a Generics,
+    templates: &'a HashMap<usize, DefinitionNode>,
+    /// The instantiation each materialized type's name was derived for.
+    instantiations: HashMap<String, Instantiation>,
+    definitions: Vec<DefinitionNode>,
+    errors: Vec<Diagnostic>,
+}
+
+impl Materializer<'_> {
+    /// Resolves a reference to the name of the type it refers to, where
+    /// `type_arguments` maps the type parameters in scope to the names of
+    /// their type arguments.
+    fn resolve(
         &mut self,
-        loc: Location,
-        message: String,
-        related_information: Option<Vec<DiagnosticRelatedInformation>>,
-    ) -> Option<String> {
-        self.errors
-            .push(gql_err(Some(loc), message, related_information));
-        None
-    }
-}
-
-fn may_reference_generics(definition: &DefinitionNode) -> bool {
-    matches!(
-        definition,
-        DefinitionNode::ObjectTypeDefinition(_)
-            | DefinitionNode::UnionTypeDefinition(_)
-            | DefinitionNode::InterfaceTypeDefinition(_)
-            | DefinitionNode::InputObjectTypeDefinition(_)
-    )
-}
-
-/// PORT: `definition.name`, for the definitions `mayReferenceGenerics` holds for.
-fn definition_name(definition: &DefinitionNode) -> &NameNode {
-    match definition {
-        DefinitionNode::ObjectTypeDefinition(definition) => &definition.name,
-        DefinitionNode::UnionTypeDefinition(definition) => &definition.name,
-        DefinitionNode::InterfaceTypeDefinition(definition) => &definition.name,
-        DefinitionNode::InputObjectTypeDefinition(definition) => &definition.name,
-        _ => panic!("Expected a definition which may reference generics."),
-    }
-}
-
-/// PORT: `locKey` is a string of the source's name and the start offset.
-/// Sources are encoded as indexes into the `SourceTable`, which gives each
-/// file one index.
-type LocKey = (u32, u32);
-
-// Identifies a location by its file and start offset. Unlike `Location`
-// objects, which may be created more than once for the same node, keys for the
-// same node are equal.
-fn loc_key(loc: Location) -> LocKey {
-    (loc.source, loc.start)
-}
-
-// Given a type reference, recursively walk its type arguments and return all
-// type references in the current scope.
-fn find_all_references(node: &EntityNameRef) -> Vec<&EntityNameRef> {
-    let mut references: Vec<&EntityNameRef> = Vec::new();
-    if let Some(type_arguments) = &node.type_arguments {
-        for arg in type_arguments {
-            if let TypeArgumentRef::EntityName(arg) = arg {
-                references.extend(find_all_references(arg));
-            }
+        reference: &EntityNameRef,
+        type_arguments: &HashMap<DeclLoc, String>,
+    ) -> String {
+        let declaration = self.ctx.resolve_entity_name(reference.name).expect(CHECKED);
+        if let Some(name) = type_arguments.get(&declaration.decl_loc) {
+            return name.clone();
         }
+        let Some(template) = self.generics.template(&declaration) else {
+            return self
+                .ctx
+                .gql_name_for_ts_name(reference.name)
+                .expect(CHECKED);
+        };
+        let uses = &self.generics.uses[template];
+        let mut names = Vec::with_capacity(uses.len());
+        for (index, example_use) in uses.iter().enumerate() {
+            let name =
+                example_use.map(
+                    |_| match reference.type_arguments.iter().flatten().nth(index) {
+                        Some(TypeArgumentRef::EntityName(argument)) => {
+                            self.resolve(argument, type_arguments)
+                        }
+                        _ => panic!("{CHECKED}"),
+                    },
+                );
+            names.push(name);
+        }
+        self.materialize(template, names, reference.loc)
     }
-    references.push(node);
-    references
+
+    fn materialize(
+        &mut self,
+        template: usize,
+        type_arguments: Vec<Option<String>>,
+        reference: Location,
+    ) -> String {
+        let candidate = &self.generics.candidates[template];
+        // TODO: If we want to support templated names, e.g. `<T><K>Foo` we would
+        // do that here.
+        let derived_name: String = type_arguments
+            .iter()
+            .flatten()
+            .map(String::as_str)
+            .chain([candidate.name.as_str()])
+            .collect();
+
+        if let Some(existing) = self.instantiations.get(&derived_name) {
+            // Different templates, or type arguments, may derive the same name.
+            if existing.template != template || existing.type_arguments != type_arguments {
+                let related = gql_related(
+                    Some(existing.reference),
+                    &format!("The other type named `{derived_name}` is referenced here."),
+                );
+                self.errors.push(gql_err(
+                    Some(reference),
+                    E::conflicting_generic_type_name(&derived_name),
+                    Some(vec![related]),
+                ));
+            }
+            // Otherwise, we've either already materialized this instantiation or
+            // we're in the middle of doing so.
+            return derived_name;
+        }
+
+        let scope: HashMap<DeclLoc, String> = candidate
+            .type_parameters
+            .iter()
+            .zip(&type_arguments)
+            .filter_map(|(param, name)| Some((param.decl_loc.clone(), name.clone()?)))
+            .collect();
+        self.instantiations.insert(
+            derived_name.clone(),
+            Instantiation {
+                template,
+                type_arguments,
+                reference,
+            },
+        );
+
+        let mut definition = self.templates[&template].clone();
+        rename_definition(&mut definition, &derived_name, reference);
+        let ctx = self.ctx;
+        for_each_type_name(&mut definition, &mut |name| {
+            if let Some(reference) = ctx.get_entity_name(name) {
+                name.value = self.resolve(reference, &scope);
+            }
+        });
+        self.definitions.push(definition);
+        derived_name
+    }
 }
 
-/// PORT: TypeScript also sets `wasSynthesized` on union and interface
-/// definitions, but nothing reads it there, so it's only modeled on object
-/// types.
-fn rename_definition(
-    mut original: DefinitionNode,
-    new_name: &str,
-    loc: Location,
-) -> DefinitionNode {
-    fn rename(name: &mut NameNode, new_name: &str, loc: Location) {
-        name.value = new_name.to_string();
-        name.loc = Some(loc);
+/// The name of a definition which may reference generics.
+fn generic_definition_name(definition: &DefinitionNode) -> Option<&NameNode> {
+    match definition {
+        DefinitionNode::ObjectTypeDefinition(definition) => Some(&definition.name),
+        DefinitionNode::UnionTypeDefinition(definition) => Some(&definition.name),
+        DefinitionNode::InterfaceTypeDefinition(definition) => Some(&definition.name),
+        DefinitionNode::InputObjectTypeDefinition(definition) => Some(&definition.name),
+        _ => None,
     }
-    match &mut original {
+}
+
+fn rename_definition(definition: &mut DefinitionNode, new_name: &str, loc: Location) {
+    let (definition_loc, name) = match definition {
         DefinitionNode::ObjectTypeDefinition(definition) => {
-            definition.loc = Some(loc);
-            rename(&mut definition.name, new_name, loc);
             definition.was_synthesized = true;
+            (&mut definition.loc, &mut definition.name)
         }
         DefinitionNode::UnionTypeDefinition(definition) => {
-            definition.loc = Some(loc);
-            rename(&mut definition.name, new_name, loc);
+            (&mut definition.loc, &mut definition.name)
         }
         DefinitionNode::InterfaceTypeDefinition(definition) => {
-            definition.loc = Some(loc);
-            rename(&mut definition.name, new_name, loc);
+            (&mut definition.loc, &mut definition.name)
         }
         DefinitionNode::InputObjectTypeDefinition(definition) => {
-            definition.loc = Some(loc);
-            rename(&mut definition.name, new_name, loc);
+            (&mut definition.loc, &mut definition.name)
         }
-        _ => panic!("Expected a definition which may reference generics."),
-    }
-    original
+        _ => unreachable!("Only definitions which may reference generics are templates"),
+    };
+    *definition_loc = Some(loc);
+    name.value = new_name.to_string();
+    name.loc = Some(loc);
 }
 
-/// PORT: graphql-js's `visit` with a visitor for `Name` nodes, which may edit
-/// them. Calls `f` with each name in a definition, in the order `visit` would,
-/// and whether the name is that of a `NamedType` node.
-fn visit_names(definition: &mut DefinitionNode, f: &mut dyn FnMut(&mut NameNode, bool)) {
-    fn named_type(node: &mut NamedTypeNode, f: &mut dyn FnMut(&mut NameNode, bool)) {
-        f(&mut node.name, true);
-    }
-    fn named_types(nodes: &mut Option<Vec<NamedTypeNode>>, f: &mut dyn FnMut(&mut NameNode, bool)) {
+/// Calls `f` with each name in a definition which may be a type reference: the
+/// names of the types it references, and its own name, which is a reference in
+/// the extensions Grats creates for functional fields.
+fn for_each_type_name(definition: &mut DefinitionNode, f: &mut dyn FnMut(&mut NameNode)) {
+    fn named_types(nodes: &mut Option<Vec<NamedTypeNode>>, f: &mut dyn FnMut(&mut NameNode)) {
         for node in nodes.iter_mut().flatten() {
-            named_type(node, f);
+            f(&mut node.name);
         }
     }
-    fn r#type(node: &mut TypeNode, f: &mut dyn FnMut(&mut NameNode, bool)) {
+    fn r#type(node: &mut TypeNode, f: &mut dyn FnMut(&mut NameNode)) {
         match node {
-            TypeNode::NamedType(node) => named_type(node, f),
+            TypeNode::NamedType(node) => f(&mut node.name),
             TypeNode::ListType(node) => r#type(&mut node.r#type, f),
             TypeNode::NonNullType(node) => match node.r#type.as_mut() {
-                NullableTypeNode::NamedType(node) => named_type(node, f),
+                NullableTypeNode::NamedType(node) => f(&mut node.name),
                 NullableTypeNode::ListType(node) => r#type(&mut node.r#type, f),
             },
         }
     }
-    fn value(node: &mut ConstValueNode, f: &mut dyn FnMut(&mut NameNode, bool)) {
-        match node {
-            ConstValueNode::ListValue(node) => {
-                for node in &mut node.values {
-                    value(node, f);
-                }
-            }
-            ConstValueNode::ObjectValue(node) => {
-                for field in &mut node.fields {
-                    f(&mut field.name, false);
-                    value(&mut field.value, f);
-                }
-            }
-            _ => {}
-        }
-    }
-    fn directives(
-        nodes: &mut Option<Vec<ConstDirectiveNode>>,
-        f: &mut dyn FnMut(&mut NameNode, bool),
-    ) {
-        for node in nodes.iter_mut().flatten() {
-            f(&mut node.name, false);
-            for argument in node.arguments.iter_mut().flatten() {
-                f(&mut argument.name, false);
-                value(&mut argument.value, f);
-            }
-        }
-    }
     fn input_values(
         nodes: &mut Option<Vec<InputValueDefinitionNode>>,
-        f: &mut dyn FnMut(&mut NameNode, bool),
+        f: &mut dyn FnMut(&mut NameNode),
     ) {
         for node in nodes.iter_mut().flatten() {
-            f(&mut node.name, false);
             r#type(&mut node.r#type, f);
-            if let Some(default_value) = &mut node.default_value {
-                value(default_value, f);
-            }
-            directives(&mut node.directives, f);
         }
     }
-    fn fields(
-        nodes: &mut Option<Vec<FieldDefinitionNode>>,
-        f: &mut dyn FnMut(&mut NameNode, bool),
-    ) {
+    fn fields(nodes: &mut Option<Vec<FieldDefinitionNode>>, f: &mut dyn FnMut(&mut NameNode)) {
         for node in nodes.iter_mut().flatten() {
-            f(&mut node.name, false);
             input_values(&mut node.arguments, f);
             r#type(&mut node.r#type, f);
-            directives(&mut node.directives, f);
         }
     }
 
     match definition {
         DefinitionNode::SchemaDefinition(node) => {
-            directives(&mut node.directives, f);
             for operation_type in &mut node.operation_types {
-                named_type(&mut operation_type.r#type, f);
+                f(&mut operation_type.r#type.name);
             }
         }
         DefinitionNode::SchemaExtension(node) => {
-            directives(&mut node.directives, f);
             for operation_type in node.operation_types.iter_mut().flatten() {
-                named_type(&mut operation_type.r#type, f);
+                f(&mut operation_type.r#type.name);
             }
         }
-        DefinitionNode::ScalarTypeDefinition(node) => {
-            f(&mut node.name, false);
-            directives(&mut node.directives, f);
-        }
-        DefinitionNode::ScalarTypeExtension(node) => {
-            f(&mut node.name, false);
-            directives(&mut node.directives, f);
-        }
+        DefinitionNode::ScalarTypeDefinition(node) => f(&mut node.name),
+        DefinitionNode::ScalarTypeExtension(node) => f(&mut node.name),
         DefinitionNode::ObjectTypeDefinition(node) => {
-            f(&mut node.name, false);
+            f(&mut node.name);
             named_types(&mut node.interfaces, f);
-            directives(&mut node.directives, f);
             fields(&mut node.fields, f);
         }
         DefinitionNode::ObjectTypeExtension(node) => {
-            f(&mut node.name, false);
+            f(&mut node.name);
             named_types(&mut node.interfaces, f);
-            directives(&mut node.directives, f);
             fields(&mut node.fields, f);
         }
         DefinitionNode::InterfaceTypeDefinition(node) => {
-            f(&mut node.name, false);
+            f(&mut node.name);
             named_types(&mut node.interfaces, f);
-            directives(&mut node.directives, f);
             fields(&mut node.fields, f);
         }
         DefinitionNode::InterfaceTypeExtension(node) => {
-            f(&mut node.name, false);
+            f(&mut node.name);
             named_types(&mut node.interfaces, f);
-            directives(&mut node.directives, f);
             fields(&mut node.fields, f);
         }
         DefinitionNode::UnionTypeDefinition(node) => {
-            f(&mut node.name, false);
-            directives(&mut node.directives, f);
+            f(&mut node.name);
             named_types(&mut node.types, f);
         }
         DefinitionNode::UnionTypeExtension(node) => {
-            f(&mut node.name, false);
-            directives(&mut node.directives, f);
+            f(&mut node.name);
             named_types(&mut node.types, f);
         }
-        DefinitionNode::EnumTypeDefinition(node) => {
-            f(&mut node.name, false);
-            directives(&mut node.directives, f);
-            for value in node.values.iter_mut().flatten() {
-                f(&mut value.name, false);
-                directives(&mut value.directives, f);
-            }
-        }
-        DefinitionNode::EnumTypeExtension(node) => {
-            f(&mut node.name, false);
-            directives(&mut node.directives, f);
-            for value in node.values.iter_mut().flatten() {
-                f(&mut value.name, false);
-                directives(&mut value.directives, f);
-            }
-        }
+        DefinitionNode::EnumTypeDefinition(node) => f(&mut node.name),
+        DefinitionNode::EnumTypeExtension(node) => f(&mut node.name),
         DefinitionNode::InputObjectTypeDefinition(node) => {
-            f(&mut node.name, false);
-            directives(&mut node.directives, f);
+            f(&mut node.name);
             input_values(&mut node.fields, f);
         }
         DefinitionNode::InputObjectTypeExtension(node) => {
-            f(&mut node.name, false);
-            directives(&mut node.directives, f);
+            f(&mut node.name);
             input_values(&mut node.fields, f);
         }
         DefinitionNode::DirectiveDefinition(node) => {
-            f(&mut node.name, false);
+            f(&mut node.name);
             input_values(&mut node.arguments, f);
-            for location in &mut node.locations {
-                f(location, false);
-            }
         }
     }
 }

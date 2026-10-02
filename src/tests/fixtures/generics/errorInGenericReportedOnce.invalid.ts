@@ -1,5 +1,5 @@
-// TODO: The error should be reported once, rather than once for the generic
-// type and once more for each of its instantiations.
+// An error in a generic type is reported once, rather than once for each type
+// materialized from it.
 /** @gqlType */
 type User = {
   /** @gqlField */
