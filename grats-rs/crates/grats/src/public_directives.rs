@@ -12,7 +12,7 @@ use graphql_js::language::ast::{
 use graphql_js::language::parser::{Parser, parse_only};
 use graphql_js::language::source::Source;
 
-use crate::utils::helpers::UNTRACKED_ID;
+use graphql_js::language::ast::UNTRACKED_ID;
 
 pub const SEMANTIC_NON_NULL_DIRECTIVE: &str = "semanticNonNull";
 

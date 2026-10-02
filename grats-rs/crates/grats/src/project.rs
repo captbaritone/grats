@@ -32,7 +32,7 @@ use crate::errors::ts_config_not_found;
 use crate::grats_config::{GratsConfig, validate_grats_options};
 use crate::host::{FileKind, Host};
 use crate::program::{HostFileSystem, ProgramOptions};
-use crate::utils::diagnostic_error::{DiagnosticsWithoutLocationResult, locationless_err};
+use crate::utils::diagnostic_error::{DiagnosticsResult, locationless_err};
 use crate::utils::path;
 
 /// A project, as its `tsconfig.json` describes it.
@@ -65,7 +65,7 @@ pub fn load_project(
     config_path: Option<&str>,
     use_case_sensitive_file_names: bool,
     host: Arc<dyn Host>,
-) -> DiagnosticsWithoutLocationResult<Project> {
+) -> DiagnosticsResult<Project> {
     let config_path = match config_path {
         Some(config_path) => config_path.to_string(),
         None => find_config_file(&*host).ok_or_else(|| {

@@ -3,13 +3,12 @@
 use std::collections::HashSet;
 
 use graphql_js::language::ast::{
-    DefinitionNode, DocumentNode, Location, NameNode, ObjectTypeDefinitionNode,
+    DefinitionNode, DocumentNode, Location, NameNode, ObjectTypeDefinitionNode, UNTRACKED_ID,
 };
 use indexmap::IndexMap;
 
 use crate::extractor::OPERATION_TYPES;
-use crate::utils::helpers::{UNTRACKED_ID, null_throws};
-use crate::utils::visitor::visit_definitions;
+use crate::utils::helpers::null_throws;
 
 /// Ensure any root types which have been extended with `@gqlQueryField` and
 /// friends are defined in the schema.
@@ -20,19 +19,21 @@ pub fn add_implicit_root_types(mut doc: DocumentNode) -> DocumentNode {
     // PORT: An `IndexMap`, since a JavaScript `Map` iterates in insertion order.
     let mut extended_root_types: IndexMap<String, Location> = IndexMap::new();
     let mut defined_root_types: HashSet<String> = HashSet::new();
-    visit_definitions(&doc, |def| match def {
-        DefinitionNode::ObjectTypeExtension(ext)
-            if OPERATION_TYPES.contains(&ext.name.value.as_str()) =>
-        {
-            extended_root_types.insert(ext.name.value.clone(), null_throws(ext.name.loc));
+    for def in &doc.definitions {
+        match def {
+            DefinitionNode::ObjectTypeExtension(ext)
+                if OPERATION_TYPES.contains(&ext.name.value.as_str()) =>
+            {
+                extended_root_types.insert(ext.name.value.clone(), null_throws(ext.name.loc));
+            }
+            DefinitionNode::ObjectTypeDefinition(t)
+                if OPERATION_TYPES.contains(&t.name.value.as_str()) =>
+            {
+                defined_root_types.insert(t.name.value.clone());
+            }
+            _ => {}
         }
-        DefinitionNode::ObjectTypeDefinition(t)
-            if OPERATION_TYPES.contains(&t.name.value.as_str()) =>
-        {
-            defined_root_types.insert(t.name.value.clone());
-        }
-        _ => {}
-    });
+    }
 
     let mut root_types: Vec<DefinitionNode> = Vec::new();
 

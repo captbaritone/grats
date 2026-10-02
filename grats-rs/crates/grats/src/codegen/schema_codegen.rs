@@ -22,7 +22,7 @@ use crate::codegen::ts_ast_builder::{ImportSpecifier, TsAstBuilder};
 use crate::grats_config::GratsConfig;
 use crate::metadata::Metadata;
 use crate::utils::helpers::null_throws;
-use crate::utils::natural_compare::natural_compare;
+use graphql_js::jsutils::natural_compare::natural_compare;
 
 // These directives will be added to the schema by default, so we don't need to
 // include them in the generated schema.

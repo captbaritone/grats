@@ -8,7 +8,7 @@ use indexmap::IndexMap;
 
 use crate::grats_root::relative_path;
 use crate::host::Host;
-use crate::utils::diagnostic_error::{CodeFixAction, DiagnosticsWithoutLocationResult, TextChange};
+use crate::utils::diagnostic_error::{CodeFixAction, DiagnosticsResult, TextChange};
 use crate::utils::path;
 
 pub struct FixOptions<'o> {
@@ -20,11 +20,11 @@ pub struct FixOptions<'o> {
 /// Returns ok if all errors were fixed, err if some unfixable errors remain.
 /// If options.fix is false, just runs the function once without any fixing.
 pub fn with_fixes_fixed<T>(
-    result_fn: impl Fn() -> DiagnosticsWithoutLocationResult<T>,
+    result_fn: impl Fn() -> DiagnosticsResult<T>,
     options: &FixOptions,
     host: &dyn Host,
     grats_root: &str,
-) -> DiagnosticsWithoutLocationResult<T> {
+) -> DiagnosticsResult<T> {
     if !options.fix {
         return result_fn();
     }

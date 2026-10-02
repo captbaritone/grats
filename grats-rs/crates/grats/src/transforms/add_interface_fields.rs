@@ -1,7 +1,7 @@
 //! Port of `src/transforms/addInterfaceFields.ts`.
 
 use graphql_js::language::ast::{
-    DefinitionNode, InterfaceTypeExtensionNode, NameNode, ObjectTypeExtensionNode,
+    DefinitionNode, InterfaceTypeExtensionNode, NameNode, ObjectTypeExtensionNode, UNTRACKED_ID,
 };
 
 use crate::errors as E;
@@ -11,7 +11,7 @@ use crate::type_context::{DeclarationDefinitionKind, TypeContext};
 use crate::utils::diagnostic_error::{
     Diagnostic, DiagnosticResult, DiagnosticsResult, gql_err, gql_related,
 };
-use crate::utils::helpers::{UNTRACKED_ID, null_throws};
+use crate::utils::helpers::null_throws;
 
 /// Grats allows you to define GraphQL fields on TypeScript interfaces using
 /// function syntax. This allows you to define a shared implementation for

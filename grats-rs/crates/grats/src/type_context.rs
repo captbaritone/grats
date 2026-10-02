@@ -12,7 +12,7 @@ use crate::snapshot_refs::{DeclLoc, DeclRef, EntityNameRef};
 use crate::utils::diagnostic_error::{
     Diagnostic, DiagnosticResult, DiagnosticsResult, gql_err, gql_related,
 };
-use crate::utils::helpers::TsIdentifier;
+use graphql_js::language::ast::TsIdentifier;
 
 pub const UNRESOLVED_REFERENCE_NAME: &str = "__UNRESOLVED_REFERENCE__";
 

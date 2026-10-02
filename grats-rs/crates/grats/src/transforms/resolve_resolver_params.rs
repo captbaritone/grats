@@ -14,7 +14,7 @@ use crate::type_context::{
     DeclarationDefinition, DeclarationDefinitionKind, TypeContext, UNRESOLVED_REFERENCE_NAME,
 };
 use crate::utils::diagnostic_error::{Diagnostic, DiagnosticsResult, gql_err, gql_related};
-use crate::utils::helpers::{invariant, null_throws};
+use crate::utils::helpers::null_throws;
 
 /// PORT: TypeScript uses graphql-js's `visit` to replace field definitions with
 /// transformed copies. The Rust visitor can't edit the AST, so this transforms
@@ -314,7 +314,7 @@ impl<'a> ResolverParamsResolver<'a> {
                 let is_first = i == 0;
                 let is_last = i == locs.len() - 1;
 
-                invariant(!(is_first && is_last), "Should not be both first and last");
+                assert!(!(is_first && is_last), "Should not be both first and last");
 
                 if is_first {
                     return gql_related(*def, "This derived context depends on");

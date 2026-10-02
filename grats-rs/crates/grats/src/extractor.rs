@@ -11,7 +11,7 @@ use graphql_js::language::ast::{
     ConstObjectValueNode, ConstValueNode, DefinitionNode, DiagnosticHandle, DiagnosticHandleResult,
     EnumValueDefinitionNode, ExportDefinition, FieldDefinitionNode, InputValueDefinitionNode,
     InputValueDefinitionNodeOrResolverArg, NameNode, NamedTypeNode, ResolverArgument,
-    ResolverSignature, StringValueNode, TypeNode,
+    ResolverSignature, StringValueNode, TsIdentifier, TypeNode,
 };
 use graphql_js::language::parser::{ParseResult, Parser, parse_only};
 use graphql_js::language::print_string::print_string;
@@ -57,7 +57,7 @@ use crate::utils::diagnostic_error::{
     CodeFixAction, Diagnostic, DiagnosticRelatedInformation, DiagnosticsResult, TsLocatableNode,
     gql_err, ts_err, ts_related,
 };
-use crate::utils::helpers::{TsIdentifier, best_match, levenshtein_distance, unique_id};
+use crate::utils::helpers::{levenshtein_distance, unique_id};
 
 pub const LIBRARY_IMPORT_NAME: &str = "grats";
 pub const LIBRARY_NAME: &str = "Grats";
@@ -419,9 +419,10 @@ impl<'f, 'a> Extractor<'f, 'a> {
                             }
                         }
                         if !reported {
-                            let suggested = best_match(&ALL_GQL_TAGS, |t| {
-                                -(levenshtein_distance(t, tag_name) as i64)
-                            });
+                            let suggested = ALL_GQL_TAGS
+                                .into_iter()
+                                .min_by_key(|t| levenshtein_distance(t, tag_name))
+                                .expect("ALL_GQL_TAGS is not empty");
 
                             self.report(
                                 self.tag_name_span(tag),

@@ -17,7 +17,7 @@ use crate::utils::diagnostic_error::{
     Diagnostic, DiagnosticRelatedInformation, DiagnosticResult, DiagnosticsResult, gql_err,
     gql_related,
 };
-use crate::utils::helpers::{invariant, null_throws};
+use crate::utils::helpers::null_throws;
 
 struct Template {
     /// PORT: A `TypeDefinitionNode`. Only definitions for which
@@ -248,9 +248,10 @@ impl<'a> TemplateExtractor<'a> {
             if !seen.insert(i) {
                 continue;
             }
-            let name = type_params.get(i);
-            invariant(name.is_some(), "typeParams[i] should not be undefined");
-            let Some(Some(name)) = name else {
+            let name = type_params
+                .get(i)
+                .expect("typeParams[i] should not be undefined");
+            let Some(name) = name else {
                 // If this type was not used in a GraphQL position, we won't have a
                 // corresponding type argument.
                 continue;

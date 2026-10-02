@@ -7,7 +7,7 @@ use graphql_js::language::ast::{
     FieldDefinitionNode, InputValueDefinitionNode, NameNode, NamedTypeNode,
 };
 
-use crate::utils::natural_compare::natural_compare;
+use graphql_js::jsutils::natural_compare::natural_compare;
 
 /*
  * Similar to lexicographicSortSchema from graphql-js but applied against an AST

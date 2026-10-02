@@ -17,9 +17,7 @@ use crate::pipeline;
 use crate::print_schema::{OutputRequest, print_outputs};
 use crate::project::{self, Project};
 use crate::source_table::SourceTable;
-use crate::utils::diagnostic_error::{
-    Diagnostic, DiagnosticsWithoutLocationResult, locationless_err,
-};
+use crate::utils::diagnostic_error::{Diagnostic, DiagnosticsResult, locationless_err};
 use crate::utils::format_diagnostics::{
     format_diagnostic_with_color_and_context, format_location_without_color,
     format_message_with_color,
@@ -293,7 +291,7 @@ impl Cli {
     }
 
     /// PORT: `loadProject`, which printed the warnings about the config.
-    fn load_project(&self, tsconfig: Option<&str>) -> DiagnosticsWithoutLocationResult<Project> {
+    fn load_project(&self, tsconfig: Option<&str>) -> DiagnosticsResult<Project> {
         let tsconfig =
             tsconfig.map(|tsconfig| path::from_native(&self.host.current_directory(), tsconfig));
         let project = project::load_project(
@@ -308,10 +306,7 @@ impl Cli {
     }
 
     /// PORT: `buildSchemaAndDocResult`.
-    fn build_schema_and_doc(
-        &self,
-        project: &Project,
-    ) -> DiagnosticsWithoutLocationResult<DocumentNode> {
+    fn build_schema_and_doc(&self, project: &Project) -> DiagnosticsResult<DocumentNode> {
         pipeline::run(
             &project.config,
             &self.grats_root,
@@ -322,10 +317,7 @@ impl Cli {
     }
 
     /// Utility function to report diagnostics to the console.
-    fn handle_diagnostics<T>(
-        &self,
-        result: DiagnosticsWithoutLocationResult<T>,
-    ) -> Result<T, Exit> {
+    fn handle_diagnostics<T>(&self, result: DiagnosticsResult<T>) -> Result<T, Exit> {
         result.map_err(|diagnostics| {
             let current_directory = self.host.current_directory();
             let formatted: String = diagnostics
@@ -354,7 +346,7 @@ fn write_schema_files_and_report(
     config_path: &str,
     grats_root: &str,
     host: &dyn Host,
-) -> DiagnosticsWithoutLocationResult<()> {
+) -> DiagnosticsResult<()> {
     let config_dir = path::dirname(config_path);
     let write_file = |path: &str, contents: Option<String>| {
         let contents = contents.expect("Expected the requested output to be printed");

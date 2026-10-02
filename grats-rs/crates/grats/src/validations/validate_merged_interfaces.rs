@@ -3,16 +3,14 @@
 use crate::errors as E;
 use crate::name_resolver::{MergedDeclarationKind, NameResolver};
 use crate::snapshot_refs::DeclRef;
-use crate::utils::diagnostic_error::{
-    Diagnostic, DiagnosticsWithoutLocationResult, gql_err, gql_related,
-};
+use crate::utils::diagnostic_error::{Diagnostic, DiagnosticsResult, gql_err, gql_related};
 
 /// Prevent using merged interfaces as GraphQL interfaces.
 /// https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces
 pub fn validate_merged_interfaces(
     resolver: &dyn NameResolver,
     interfaces: &[DeclRef],
-) -> DiagnosticsWithoutLocationResult<()> {
+) -> DiagnosticsResult<()> {
     let mut errors: Vec<Diagnostic> = Vec::new();
 
     for declaration in interfaces {

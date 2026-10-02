@@ -30,8 +30,7 @@ use crate::transforms::resolve_types::resolve_types;
 use crate::transforms::sort_schema_ast::sort_schema_ast;
 use crate::type_context::TypeContext;
 use crate::utils::diagnostic_error::{
-    Diagnostic, DiagnosticsResult, DiagnosticsWithoutLocationResult, TsLocatableNode,
-    graphql_error_to_diagnostic, ts_err,
+    Diagnostic, DiagnosticsResult, TsLocatableNode, graphql_error_to_diagnostic, ts_err,
 };
 use crate::utils::result::collect_results;
 use crate::validations::custom_spec_validations::custom_spec_validations;
@@ -51,7 +50,7 @@ pub fn run(
     program_options: &ProgramOptions,
     host: Arc<dyn Host>,
     sources: &SourceTable,
-) -> DiagnosticsWithoutLocationResult<DocumentNode> {
+) -> DiagnosticsResult<DocumentNode> {
     let allocator = Allocator::default();
     let files = Files::new(
         &allocator,
