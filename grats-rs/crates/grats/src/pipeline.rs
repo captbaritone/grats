@@ -69,16 +69,23 @@ pub fn run(
     sources: &SourceTable,
     output_paths: &OutputPaths,
 ) -> DiagnosticsResult<Compiled> {
-    let allocator = Allocator::default();
-    let case_sensitive = program_options.use_case_sensitive_file_names;
-    let files = Files::new(&allocator, &*host, sources, case_sensitive);
-    let program = Program::new(&files, Arc::clone(&host), program_options);
-    let resolver = OxcNameResolver::new(&files, &program);
+    // The program's files, and everything read out of them, are scoped so that
+    // they are dropped before the outputs are printed. The document is all
+    // printing needs, and the parsed files behind it are far larger: printing
+    // while they were still alive cost ~130MB of peak heap on a 10,000 file
+    // project.
+    let (doc, types_with_typename) = {
+        let allocator = Allocator::default();
+        let case_sensitive = program_options.use_case_sensitive_file_names;
+        let files = Files::new(&allocator, &*host, sources, case_sensitive);
+        let program = Program::new(&files, Arc::clone(&host), program_options);
+        let resolver = OxcNameResolver::new(&files, &program);
 
-    let mut snapshot = extract(&program, config, grats_root)?;
-    let types_with_typename = mem::take(&mut snapshot.types_with_typename);
-    let definitions = resolve(&resolver, snapshot)?;
-    let doc = transform(definitions, config)?;
+        let mut snapshot = extract(&program, config, grats_root)?;
+        let types_with_typename = mem::take(&mut snapshot.types_with_typename);
+        let definitions = resolve(&resolver, snapshot)?;
+        (transform(definitions, config)?, types_with_typename)
+    };
     let schema = validate(&doc, &types_with_typename, config)?;
     let outputs = print(&doc, &schema, config, grats_root, output_paths);
     Ok(Compiled { doc, outputs })
