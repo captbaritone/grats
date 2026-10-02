@@ -1,10 +1,11 @@
-//! PORT: TypeScript's `formatDiagnosticsWithColorAndContext`, which
-//! `ReportableDiagnostics` in `src/utils/DiagnosticError.ts` called. It
-//! printed a TypeScript error code after the category, which Grats removed.
+//! Formats diagnostics like TypeScript's `formatDiagnosticsWithColorAndContext`,
+//! without its error codes.
 //!
 //! Offsets are UTF-16, like TypeScript's, and so are the columns and
 //! underlines. New lines are always `\n`, where TypeScript used the
 //! platform's.
+
+use std::fmt::Display;
 
 use graphql_js::language::ast::Location;
 use serde::Serialize;
@@ -24,6 +25,8 @@ const RESET: &str = "\x1b[0m";
 const ELLIPSIS: &str = "...";
 const HALF_INDENT: &str = "  ";
 const INDENT: &str = "    ";
+const TAB: u16 = b'\t' as u16;
+const SPACE: u16 = b' ' as u16;
 
 /// A diagnostic as JavaScript reports it: formatted, with its fix if it has
 /// one.
@@ -66,19 +69,20 @@ pub fn format_diagnostic_with_color_and_context(
     sources: &SourceTable,
     current_directory: &str,
 ) -> String {
+    let located = diagnostic
+        .loc
+        .map(|loc| (loc, SourceFile::new(&sources.get(loc.source))));
     let mut output = String::new();
-    if let Some(loc) = &diagnostic.loc {
-        let file = SourceFile::new(&sources.get(loc.source));
-        output += &format_location(&file, loc.start, current_directory);
+    if let Some((loc, file)) = &located {
+        output += &format_location(file, loc.start, current_directory);
         output += " - ";
     }
-    output += &format_color_and_reset("error", RED);
-    output += &format_color_and_reset(": ", GREY);
+    output += &colored("error", RED);
+    output += &colored(": ", GREY);
     output += &diagnostic.message_text;
-    if let Some(loc) = &diagnostic.loc {
-        let file = SourceFile::new(&sources.get(loc.source));
+    if let Some((loc, file)) = &located {
         output += "\n";
-        output += &format_code_span(&file, loc, "", RED);
+        output += &format_code_span(file, loc, "", RED);
     }
     if let Some(related_information) = &diagnostic.related_information {
         output += "\n";
@@ -98,8 +102,7 @@ pub fn format_diagnostic_with_color_and_context(
 }
 
 /// Like `format_diagnostic_with_color_and_context`, without the color, for
-/// the playground. Port of `ReportableDiagnostics.formatDiagnosticsWithContext`
-/// in `src/utils/DiagnosticError.ts`.
+/// the playground.
 pub fn format_diagnostic_with_context(
     diagnostic: &Diagnostic,
     sources: &SourceTable,
@@ -130,12 +133,11 @@ fn strip_color(text: &str) -> String {
 
 /// Formats a message without a location, like those of watch mode.
 pub fn format_message_with_color(message_text: &str) -> String {
-    let mut output = String::new();
-    output += &format_color_and_reset("message", BLUE);
-    output += &format_color_and_reset(": ", GREY);
-    output += message_text;
-    output += "\n";
-    output
+    format!(
+        "{}{}{message_text}\n",
+        colored("message", BLUE),
+        colored(": ", GREY)
+    )
 }
 
 /// A location as `path:line:column`, with an absolute path.
@@ -150,8 +152,8 @@ pub fn format_location_without_color(sources: &SourceTable, loc: &Location) -> S
     )
 }
 
-fn format_color_and_reset(text: &str, format_style: &str) -> String {
-    format!("{format_style}{text}{RESET}")
+fn colored(text: impl Display, style: &str) -> String {
+    format!("{style}{text}{RESET}")
 }
 
 /// A source's text as UTF-16, and where its lines start.
@@ -175,11 +177,20 @@ impl SourceFile {
     /// Like `getLineAndCharacterOfPosition`.
     fn line_and_character(&self, position: u32) -> (usize, usize) {
         let position = position as usize;
-        let line = match self.line_starts.binary_search(&position) {
-            Ok(line) => line,
-            Err(next) => next - 1,
-        };
+        // The first line starts at 0, so there's always a line at or before
+        // `position`.
+        let line = self.line_starts.partition_point(|&start| start <= position) - 1;
         (line, position - self.line_starts[line])
+    }
+
+    /// The text of line `line`, including its line terminator.
+    fn line(&self, line: usize) -> &[u16] {
+        let end = self
+            .line_starts
+            .get(line + 1)
+            .copied()
+            .unwrap_or(self.text.len());
+        &self.text[self.line_starts[line]..end]
     }
 }
 
@@ -208,14 +219,13 @@ fn compute_line_starts(text: &[u16]) -> Vec<usize> {
 }
 
 fn format_location(file: &SourceFile, start: u32, current_directory: &str) -> String {
-    let (first_line, first_line_char) = file.line_and_character(start);
-    let mut output = String::new();
-    output += &format_color_and_reset(&relative_file_name(&file.name, current_directory), CYAN);
-    output += ":";
-    output += &format_color_and_reset(&(first_line + 1).to_string(), YELLOW);
-    output += ":";
-    output += &format_color_and_reset(&(first_line_char + 1).to_string(), YELLOW);
-    output
+    let (line, character) = file.line_and_character(start);
+    format!(
+        "{}:{}:{}",
+        colored(relative_file_name(&file.name, current_directory), CYAN),
+        colored(line + 1, YELLOW),
+        colored(character + 1, YELLOW)
+    )
 }
 
 /// Like `convertToRelativePath`: sources which aren't files, like GraphQL
@@ -236,7 +246,6 @@ fn format_code_span(
 ) -> String {
     let (first_line, first_line_char) = file.line_and_character(loc.start);
     let (last_line, last_line_char) = file.line_and_character(loc.end);
-    let last_line_in_file = file.line_and_character(file.text.len() as u32).0;
 
     let has_more_than_five_lines = last_line - first_line >= 4;
     let mut gutter_width = (last_line + 1).to_string().len();
@@ -245,90 +254,64 @@ fn format_code_span(
     }
 
     let mut context = String::new();
-    let mut i = first_line;
-    while i <= last_line {
-        context += "\n";
-        // If the error spans over 5 lines, we'll only show the first 2 and last 2 lines,
-        // so we'll skip ahead to the second-to-last line.
+    for i in first_line..=last_line {
+        // If the error spans over 5 lines, we'll only show the first 2 and
+        // last 2 lines, with an ellipsis in between.
         if has_more_than_five_lines && first_line + 1 < i && i < last_line - 1 {
-            context += indent;
-            context += &format_color_and_reset(&format!("{ELLIPSIS:>gutter_width$}"), GUTTER_STYLE);
-            context += GUTTER_SEPARATOR;
-            context += "\n";
-            i = last_line - 1;
+            if i == first_line + 2 {
+                context += "\n";
+                context += indent;
+                context += &colored(format_args!("{ELLIPSIS:>gutter_width$}"), GUTTER_STYLE);
+                context += GUTTER_SEPARATOR;
+            }
+            continue;
         }
 
-        let line_start = file.line_starts[i];
-        let line_end = if i < last_line_in_file {
-            file.line_starts[i + 1]
-        } else {
-            file.text.len()
-        };
-        let mut line_content = &file.text[line_start..line_end];
-        while let Some((&last, rest)) = line_content.split_last() {
-            if !is_js_whitespace(last) {
-                break;
-            }
-            line_content = rest;
-        }
-        // Tabs are replaced by spaces, keeping the columns the same.
-        let line_content: Vec<u16> = line_content
+        // Trailing whitespace is removed, and tabs are replaced by spaces,
+        // keeping the columns the same.
+        let line = file.line(i);
+        let end = line
             .iter()
-            .map(|&unit| {
-                if unit == u16::from(b'\t') {
-                    u16::from(b' ')
-                } else {
-                    unit
-                }
-            })
+            .rposition(|&unit| !is_js_whitespace(unit))
+            .map_or(0, |last| last + 1);
+        let line_content: Vec<u16> = line[..end]
+            .iter()
+            .map(|&unit| if unit == TAB { SPACE } else { unit })
             .collect();
 
         // Output the gutter and the actual contents of the line.
+        context += "\n";
         context += indent;
-        context += &format_color_and_reset(&format!("{:>gutter_width$}", i + 1), GUTTER_STYLE);
+        context += &colored(format_args!("{:>gutter_width$}", i + 1), GUTTER_STYLE);
         context += GUTTER_SEPARATOR;
         context += &String::from_utf16_lossy(&line_content);
         context += "\n";
 
         // Output the gutter and the error span for the line using tildes.
         context += indent;
-        context += &format_color_and_reset(&" ".repeat(gutter_width), GUTTER_STYLE);
+        context += &colored(" ".repeat(gutter_width), GUTTER_STYLE);
         context += GUTTER_SEPARATOR;
         context += squiggle_color;
-        let slice = |start: usize, end: usize| {
-            let end = end.min(line_content.len());
-            &line_content[start.min(end)..end]
-        };
-        if i == first_line {
-            // If we're on the last line, then limit it to the last character of the last line.
-            // Otherwise, we'll just squiggle the rest of the line, giving 'slice' no end position.
-            let last_char_for_line = if i == last_line {
-                last_line_char
-            } else {
-                line_content.len()
-            };
-            // Whitespace before the error is kept, so that tabs and the like
-            // line up.
-            let before: Vec<u16> = slice(0, first_line_char)
-                .iter()
-                .map(|&unit| {
-                    if is_js_whitespace(unit) {
-                        unit
-                    } else {
-                        u16::from(b' ')
-                    }
-                })
-                .collect();
-            context += &String::from_utf16_lossy(&before);
-            context += &"~".repeat(slice(first_line_char, last_char_for_line).len());
-        } else if i == last_line {
-            context += &"~".repeat(slice(0, last_line_char).len());
+        // The error's first line is squiggled from where it starts, and its
+        // last line up to where it ends.
+        let squiggle_start = if i == first_line { first_line_char } else { 0 };
+        let squiggle_end = if i == last_line {
+            last_line_char
         } else {
-            // Squiggle the entire line.
-            context += &"~".repeat(line_content.len());
-        }
+            line_content.len()
+        };
+        // Whitespace before the error is kept, so that tabs and the like line
+        // up.
+        let before: Vec<u16> = line_content[..squiggle_start.min(line_content.len())]
+            .iter()
+            .map(|&unit| if is_js_whitespace(unit) { unit } else { SPACE })
+            .collect();
+        context += &String::from_utf16_lossy(&before);
+        let squiggle_len = squiggle_end
+            .min(line_content.len())
+            .saturating_sub(squiggle_start);
+        context += &"~".repeat(squiggle_len);
         context += RESET;
-        i += 1;
     }
     context
 }
@@ -355,6 +338,50 @@ fn is_js_whitespace(unit: u16) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::utils::diagnostic_error::DiagnosticRelatedInformation;
+
+    #[test]
+    fn formats_with_color() {
+        let sources = SourceTable::default();
+        let source = sources.add("/project/src/a.ts", "let a =\tb;\nfoo\n");
+        let diagnostic = Diagnostic {
+            message_text: "Bad.".to_string(),
+            loc: Some(Location {
+                source,
+                start: 8,
+                end: 9,
+            }),
+            related_information: Some(vec![DiagnosticRelatedInformation {
+                message_text: "Here.".to_string(),
+                loc: Location {
+                    source,
+                    start: 11,
+                    end: 14,
+                },
+            }]),
+            fix: None,
+        };
+        let formatted = format_diagnostic_with_color_and_context(&diagnostic, &sources, "/project");
+        assert_eq!(
+            formatted,
+            "\x1b[96msrc/a.ts\x1b[0m:\x1b[93m1\x1b[0m:\x1b[93m9\x1b[0m - \x1b[91merror\x1b[0m\x1b[90m: \x1b[0mBad.\n\
+             \n\
+             \x1b[7m1\x1b[0m let a = b;\n\
+             \x1b[7m \x1b[0m \x1b[91m        ~\x1b[0m\n\
+             \n  \x1b[96msrc/a.ts\x1b[0m:\x1b[93m2\x1b[0m:\x1b[93m1\x1b[0m\n\
+             \x20   \x1b[7m2\x1b[0m foo\n\
+             \x20   \x1b[7m \x1b[0m \x1b[96m~~~\x1b[0m\n\
+             \x20   Here.\n"
+        );
+        assert_eq!(
+            format_message_with_color("Hi."),
+            "\x1b[94mmessage\x1b[0m\x1b[90m: \x1b[0mHi.\n"
+        );
+        assert_eq!(
+            format_location_without_color(&sources, &diagnostic.loc.unwrap()),
+            "/project/src/a.ts:1:9"
+        );
+    }
 
     #[test]
     fn line_starts_match_typescript() {

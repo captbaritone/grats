@@ -1,5 +1,3 @@
-//! Port of `src/NameResolver.ts`.
-
 use graphql_js::language::ast::Location;
 
 use crate::snapshot_refs::{DeclLoc, DeclRef};
@@ -10,8 +8,8 @@ use crate::snapshot_refs::{DeclLoc, DeclRef};
 /// information is required.
 pub trait NameResolver {
     /// Returns the declarations of the symbol referenced by the entity name at
-    /// `name`, after following any aliases such as imports. Returns an empty
-    /// array if the name cannot be resolved.
+    /// `name`, after following any aliases such as imports. Returns none if
+    /// the name cannot be resolved.
     fn resolve_entity_name(&self, name: Location) -> Vec<ResolvedDeclaration>;
 
     /// Returns every declaration merged with `declaration` (including

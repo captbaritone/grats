@@ -1,8 +1,6 @@
-//! PORT: No TypeScript counterpart. The sources which locations refer to by
-//! id: the files of the program, and the GraphQL parsed from docblocks (each
-//! `@gqlAnnotate` tag's arguments get their own "GraphQL request" source).
-//! The TypeScript implementation's locations referenced their graphql-js
-//! `Source` instead.
+//! The sources which locations refer to by id: the files of the program, and
+//! the GraphQL parsed from docblocks (each `@gqlAnnotate` tag's arguments get
+//! their own "GraphQL request" source).
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -37,7 +35,11 @@ impl SourceTable {
             ids_by_name,
         } = &mut *inner;
         let ids = ids_by_name.entry(name.to_string()).or_default();
-        if let Some(&id) = ids.iter().find(|&&id| sources[id as usize].body == body) {
+        if let Some(id) = ids
+            .iter()
+            .copied()
+            .find(|&id| sources[id as usize].body == body)
+        {
             return id;
         }
         let id = u32::try_from(sources.len()).expect("Source ids should fit in a u32");
