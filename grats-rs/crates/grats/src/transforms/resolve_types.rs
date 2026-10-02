@@ -1,6 +1,8 @@
 //! Port of `src/transforms/resolveTypes.ts`.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
+use std::collections::HashSet;
+use std::collections::hash_map::Entry;
 use std::rc::Rc;
 
 use graphql_js::language::ast::{
@@ -20,6 +22,7 @@ use crate::utils::diagnostic_error::{
 use crate::utils::helpers::null_throws;
 
 struct Template {
+    decl_loc: DeclLoc,
     /// PORT: A `TypeDefinitionNode`. Only definitions for which
     /// `mayReferenceGenerics` holds become templates.
     declaration_template: DefinitionNode,
@@ -27,6 +30,14 @@ struct Template {
     // References to the template's type parameters in GraphQL positions, keyed
     // by `locKey`.
     generic_nodes: IndexMap<LocKey, GenericReference>,
+}
+
+/// A generic type with the names of the type arguments it was materialized
+/// with, which are `None` for type parameters not used in a GraphQL position.
+struct Instantiation {
+    template: DeclLoc,
+    type_arguments: Vec<Option<String>>,
+    reference: Location,
 }
 
 struct GenericReference {
@@ -73,7 +84,8 @@ struct TemplateExtractor<'a> {
     // PORT: Templates are shared, since materializing one may materialize others.
     templates: HashMap<DeclLoc, Rc<Template>>,
     definitions: Vec<DefinitionNode>,
-    defined_templates: HashSet<String>,
+    /// The instantiation each materialized type's name was derived for.
+    instantiations: HashMap<String, Instantiation>,
     errors: Vec<Diagnostic>,
     ctx: &'a TypeContext<'a>,
 }
@@ -83,7 +95,7 @@ impl<'a> TemplateExtractor<'a> {
         TemplateExtractor {
             templates: HashMap::new(),
             definitions: Vec::new(),
-            defined_templates: HashSet::new(),
+            instantiations: HashMap::new(),
             errors: Vec::new(),
             ctx,
         }
@@ -227,12 +239,34 @@ impl<'a> TemplateExtractor<'a> {
         template: &Template,
     ) -> String {
         let derived_name = self.template_name(&type_params, template);
-        if self.defined_templates.contains(&derived_name) {
-            // We've either already materialized this permutation or we're in the middle
-            // of doing so.
-            return derived_name;
+        match self.instantiations.entry(derived_name.clone()) {
+            Entry::Occupied(entry) => {
+                let existing = entry.get();
+                // Different generic types, or type arguments, may derive the same name.
+                if existing.template != template.decl_loc || existing.type_arguments != type_params
+                {
+                    let related = gql_related(
+                        Some(existing.reference),
+                        &format!("The other type named `{derived_name}` is referenced here."),
+                    );
+                    self.errors.push(gql_err(
+                        Some(reference_loc),
+                        E::conflicting_generic_type_name(&derived_name),
+                        Some(vec![related]),
+                    ));
+                }
+                // Otherwise, we've either already materialized this instantiation or
+                // we're in the middle of doing so.
+                return derived_name;
+            }
+            Entry::Vacant(entry) => {
+                entry.insert(Instantiation {
+                    template: template.decl_loc.clone(),
+                    type_arguments: type_params.clone(),
+                    reference: reference_loc,
+                });
+            }
         }
-        self.defined_templates.insert(derived_name.clone());
 
         // Mapping from the template's type param declaration to the GraphQL name
         // passed in for this particular use.
@@ -358,6 +392,7 @@ impl<'a> TemplateExtractor<'a> {
         self.templates.insert(
             declaration.decl_loc.clone(),
             Rc::new(Template {
+                decl_loc: declaration.decl_loc.clone(),
                 declaration_template: definition,
                 generic_nodes,
                 type_parameters: type_params.clone(),

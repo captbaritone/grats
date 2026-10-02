@@ -626,6 +626,12 @@ pub fn non_graphql_generic_type(template_name: &str, param_name: &str) -> String
     )
 }
 
+pub fn conflicting_generic_type_name(derived_name: &str) -> String {
+    format!(
+        "Conflicting name for generic type. Grats names a generic type by prefixing its name with the names of its type arguments, which names this type `{derived_name}`. However, a different type is also named `{derived_name}`. Rename one of the types involved to avoid the conflict."
+    )
+}
+
 pub fn generic_type_used_as_union_member() -> String {
     "Unexpected generic type used as union member. Generic type may not currently be used as members of a union. Grats requires that all union members define a `__typename` field typed as a string literal matching the type's name. Since generic types are synthesized into multiple types with different names, Grats cannot ensure they have a correct `__typename` property and thus cannot be used as members of a union.".to_string()
 }
