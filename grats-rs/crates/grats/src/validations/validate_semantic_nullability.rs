@@ -59,10 +59,10 @@ pub fn validate_semantic_nullability(
                         interface_semantic_non_null.loc,
                         format!(
                             "Interface field `{}.{}` expects a non-nullable type but `{}.{}` is nullable.",
-                            implementor.name(),
-                            implementor_field.name,
                             interface_type.name,
-                            interface_field.name
+                            interface_field.name,
+                            implementor.name(),
+                            implementor_field.name
                         ),
                         Some(vec![gql_related(
                             field_ast(implementor_field).r#type.loc(),

@@ -30,7 +30,7 @@ export class User implements IPerson {
 ### Error Report
 
 ```text
-src/tests/fixtures/semantic_nullability/semanticNonNullDoesNotMatchInterface.invalid.ts:6:11 - error: Interface field `User.name` expects a non-nullable type but `IPerson.name` is nullable.
+src/tests/fixtures/semantic_nullability/semanticNonNullDoesNotMatchInterface.invalid.ts:6:11 - error: Interface field `IPerson.name` expects a non-nullable type but `User.name` is nullable.
 
 6   name(): string;
             ~~~~~~

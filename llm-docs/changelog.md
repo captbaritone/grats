@@ -51,6 +51,7 @@ If any of these changes cause problems for your project, please [file an issue](
     -   Generic types which reference themselves with more deeply nested type arguments, like `children: Tree<Tree<T>>`, are now reported as an error. Previously, Grats crashed.
     -   Errors in generic types are now reported once, rather than once for each combination of type arguments the type is used with.
     -   Type parameters are now only considered used in a GraphQL position if the generic types they're passed to use theirs in one. So, passing a type parameter to a generic type which ignores it no longer requires a GraphQL type argument, and types whose type parameters are only passed between each other, like `type Foo<T> = { bar: Bar<T> }` and `type Bar<T> = { foo: Foo<T> }`, are no longer generic. Previously, Grats named such types after their type arguments, like `BazFoo`.
+    -   The error for an interface field which is semantically non-null on the interface but nullable on an implementor now names the interface field as the one expecting a non-nullable type. Previously, the two field names were swapped.
 
 ## 0.0.36
 
