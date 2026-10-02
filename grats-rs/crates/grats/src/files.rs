@@ -4,7 +4,6 @@
 //! resolver. Semantic analysis only runs on the files that need it.
 
 use std::cell::{OnceCell, RefCell};
-use std::collections::HashMap;
 use std::rc::Rc;
 
 use oxc_allocator::Allocator;
@@ -14,6 +13,7 @@ use oxc_parser::config::TokensParserConfig;
 use oxc_parser::{Kind, Parser, Token};
 use oxc_semantic::{NodeId, Semantic, SemanticBuilder};
 use oxc_span::{GetSpan, SourceType, Span};
+use rustc_hash::FxHashMap;
 
 use crate::host::Host;
 use crate::jsdoc::JSDocIndex;
@@ -27,9 +27,9 @@ pub struct Files<'a> {
     use_case_sensitive_file_names: bool,
     /// The files loaded so far, by their key (see `key`), or `None` if a
     /// path couldn't be read.
-    files: RefCell<HashMap<String, Option<Rc<ParsedFile<'a>>>>>,
+    files: RefCell<FxHashMap<String, Option<Rc<ParsedFile<'a>>>>>,
     /// The paths of the sources of the files loaded so far.
-    source_paths: RefCell<HashMap<u32, String>>,
+    source_paths: RefCell<FxHashMap<u32, String>>,
 }
 
 pub struct ParsedFile<'a> {
@@ -49,7 +49,7 @@ pub struct ParsedFile<'a> {
     semantic: OnceCell<Semantic<'a>>,
     /// The names which a location may refer to, by their span. Used by the
     /// name resolver. Built the first time it's needed.
-    names: OnceCell<HashMap<(u32, u32), NodeId>>,
+    names: OnceCell<FxHashMap<(u32, u32), NodeId>>,
     /// The file's JSDoc, by the node it's attached to. Built the first time
     /// it's needed.
     jsdoc: OnceCell<JSDocIndex>,
@@ -72,8 +72,8 @@ impl<'a> Files<'a> {
             host,
             sources,
             use_case_sensitive_file_names,
-            files: RefCell::new(HashMap::new()),
-            source_paths: RefCell::new(HashMap::new()),
+            files: RefCell::new(FxHashMap::default()),
+            source_paths: RefCell::new(FxHashMap::default()),
         }
     }
 
@@ -221,7 +221,7 @@ impl<'a> ParsedFile<'a> {
     }
 
     /// The names which a location may refer to, by their span.
-    pub fn names(&self) -> &HashMap<(u32, u32), NodeId> {
+    pub fn names(&self) -> &FxHashMap<(u32, u32), NodeId> {
         self.names.get_or_init(|| {
             self.semantic()
                 .nodes()

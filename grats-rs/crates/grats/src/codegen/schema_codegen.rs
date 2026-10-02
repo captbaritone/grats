@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use graphql_js::js_value::Value;
 use graphql_js::language::ast::ConstDirectiveNode;
 use graphql_js::r#type::definition::{
@@ -15,6 +13,7 @@ use indexmap::map::Entry;
 use oxc_allocator::{Allocator, ArenaBox, ArenaVec};
 use oxc_ast::ast::*;
 use oxc_span::SPAN;
+use rustc_hash::FxHashSet;
 
 use crate::codegen::resolver_codegen::ResolverCodegen;
 use crate::codegen::ts_ast_builder::{ImportSpecifier, TsAstBuilder};
@@ -59,7 +58,7 @@ struct Codegen<'s, 'd, 'a> {
     ts: TsAstBuilder<'a>,
     resolvers: ResolverCodegen<'s>,
     type_name_mappings: IndexMap<&'d str, String>,
-    type_definitions: HashSet<String>,
+    type_definitions: FxHashSet<String>,
     schema: &'s GraphQLSchema<'d>,
 }
 
@@ -87,7 +86,7 @@ impl<'s, 'd, 'a> Codegen<'s, 'd, 'a> {
             ),
             resolvers: ResolverCodegen::new(resolvers),
             type_name_mappings: IndexMap::new(),
-            type_definitions: HashSet::new(),
+            type_definitions: FxHashSet::default(),
             schema,
         }
     }

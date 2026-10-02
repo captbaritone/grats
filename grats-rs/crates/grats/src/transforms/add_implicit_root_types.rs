@@ -1,9 +1,8 @@
-use std::collections::HashSet;
-
 use graphql_js::language::ast::{
     DefinitionNode, DocumentNode, Location, NameNode, ObjectTypeDefinitionNode, UNTRACKED_ID,
 };
 use indexmap::IndexMap;
+use rustc_hash::FxHashSet;
 
 use crate::extractor::OPERATION_TYPES;
 
@@ -16,7 +15,7 @@ pub fn add_implicit_root_types(mut doc: DocumentNode) -> DocumentNode {
     // Each extended root type, in the order it's first extended, with the
     // location of its last extension.
     let mut extended_root_types: IndexMap<String, Location> = IndexMap::new();
-    let mut defined_root_types: HashSet<String> = HashSet::new();
+    let mut defined_root_types: FxHashSet<String> = FxHashSet::default();
     for def in &doc.definitions {
         match def {
             DefinitionNode::ObjectTypeExtension(ext)

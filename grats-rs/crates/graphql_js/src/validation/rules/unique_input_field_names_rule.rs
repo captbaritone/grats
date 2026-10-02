@@ -1,6 +1,6 @@
 //! Port of graphql-js `validation/rules/UniqueInputFieldNamesRule.ts`.
 
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 use crate::error::graphql_error::GraphQLError;
 use crate::language::ast::{ConstValueNode, NameNode};
@@ -19,14 +19,14 @@ pub fn unique_input_field_names_rule<'c, 'n>(
     Box::new(UniqueInputFieldNamesRule {
         context,
         known_name_stack: Vec::new(),
-        known_names: HashMap::new(),
+        known_names: FxHashMap::default(),
     })
 }
 
 struct UniqueInputFieldNamesRule<'c, 'n> {
     context: &'c SDLValidationContext<'n>,
-    known_name_stack: Vec<HashMap<&'n str, &'n NameNode>>,
-    known_names: HashMap<&'n str, &'n NameNode>,
+    known_name_stack: Vec<FxHashMap<&'n str, &'n NameNode>>,
+    known_names: FxHashMap<&'n str, &'n NameNode>,
 }
 
 impl<'n> ASTVisitor<'n> for UniqueInputFieldNamesRule<'_, 'n> {

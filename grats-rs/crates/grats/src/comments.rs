@@ -2,7 +2,7 @@
 //!
 //! Offsets are UTF-8, and are converted when diagnostics are made.
 
-use std::collections::HashSet;
+use rustc_hash::FxHashSet;
 
 use crate::code_actions as act;
 use crate::errors as e;
@@ -41,7 +41,7 @@ fn match_tag_line(line: &str) -> Option<(usize, usize)> {
 // such as non JSDoc block comments or line comments.
 pub fn detect_invalid_comments(
     source_file: &ParsedFile,
-    valid_comment_positions: &HashSet<u32>,
+    valid_comment_positions: &FxHashSet<u32>,
 ) -> Vec<Diagnostic> {
     let mut errors = Vec::new();
     // oxc collects the file's comments, in order, while parsing.

@@ -12,8 +12,8 @@
 //! writing the schema doesn't cause a rebuild. Neither does changing a file
 //! the build didn't read, or saving a file without changing it.
 
+use std::collections::BTreeSet;
 use std::collections::hash_map::DefaultHasher;
-use std::collections::{BTreeSet, HashMap, HashSet};
 use std::hash::{Hash, Hasher};
 use std::path::Path;
 use std::process::ExitCode;
@@ -25,6 +25,7 @@ use grats::cli::{WatchMode, WatchRequest};
 use grats::host::{DirEntries, FileKind, Host};
 use grats::utils::path;
 use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use grats_cli::native_host::{NativeHost, from_grats_path, to_grats_path};
 
@@ -116,7 +117,7 @@ struct RecordingHost {
 
 #[derive(Default)]
 struct State {
-    answers: HashMap<Question, u64>,
+    answers: FxHashMap<Question, u64>,
     /// Whether a write has changed a file.
     wrote_changes: bool,
 }
@@ -160,7 +161,7 @@ impl RecordingHost {
     /// is watched through the closest one above it which does.
     fn directories(&self) -> BTreeSet<String> {
         let state = self.state();
-        let mut directories = HashSet::new();
+        let mut directories = FxHashSet::default();
         for question in state.answers.keys() {
             let path = question.path();
             directories.insert(path::dirname(path));
@@ -248,15 +249,15 @@ enum Changes {
     Everything,
     /// The entries at these paths were created, changed or removed.
     Paths {
-        paths: HashSet<String>,
+        paths: FxHashSet<String>,
         /// The directories of `paths`, whose entries may have changed.
-        parents: HashSet<String>,
+        parents: FxHashSet<String>,
     },
 }
 
 impl Changes {
     fn of(paths: impl IntoIterator<Item = String>) -> Self {
-        let paths: HashSet<String> = paths.into_iter().collect();
+        let paths: FxHashSet<String> = paths.into_iter().collect();
         let parents = paths
             .iter()
             .map(|path| path::dirname(path).to_string())
@@ -296,7 +297,7 @@ struct Watched {
     directories: BTreeSet<String>,
     /// The watched directories by their real paths, which events may name
     /// instead.
-    by_real_path: HashMap<String, Vec<String>>,
+    by_real_path: FxHashMap<String, Vec<String>>,
 }
 
 impl Watched {

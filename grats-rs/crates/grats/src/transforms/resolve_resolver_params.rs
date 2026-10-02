@@ -1,11 +1,10 @@
-use std::collections::HashMap;
-
 use graphql_js::language::ast::{
     DefinitionNode, DiagnosticHandle, DiagnosticHandleResult, FieldDefinitionNode,
     InputValueDefinitionNode, InputValueDefinitionNodeOrResolverArg, Location, NullableTypeNode,
     ResolverArgument, ResolverSignature,
 };
 use indexmap::IndexMap;
+use rustc_hash::FxHashMap;
 
 use crate::errors as E;
 use crate::graphql_constructor::nullable_type;
@@ -21,7 +20,7 @@ use crate::utils::result::ok_unless_errors;
 /// `DiagnosticHandle`s refer to (see `ExtractionSnapshot::diagnostics_by_handle`).
 pub fn resolve_resolver_params(
     ctx: &TypeContext,
-    diagnostics_by_handle: &HashMap<DiagnosticHandle, Diagnostic>,
+    diagnostics_by_handle: &FxHashMap<DiagnosticHandle, Diagnostic>,
     definitions: Vec<DefinitionNode>,
 ) -> DiagnosticsResult<Vec<DefinitionNode>> {
     let resolver = ResolverParamsResolver {
@@ -39,7 +38,7 @@ type SeenDerivedContexts = IndexMap<(String, Option<String>), Option<Location>>;
 
 struct ResolverParamsResolver<'a> {
     ctx: &'a TypeContext<'a>,
-    diagnostics_by_handle: &'a HashMap<DiagnosticHandle, Diagnostic>,
+    diagnostics_by_handle: &'a FxHashMap<DiagnosticHandle, Diagnostic>,
     errors: Vec<Diagnostic>,
 }
 

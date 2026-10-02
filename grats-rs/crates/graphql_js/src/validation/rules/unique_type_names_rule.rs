@@ -1,6 +1,6 @@
 //! Port of graphql-js `validation/rules/UniqueTypeNamesRule.ts`.
 
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 use crate::error::graphql_error::GraphQLError;
 use crate::language::ast::NameNode;
@@ -18,13 +18,13 @@ pub fn unique_type_names_rule<'c, 'n>(
 ) -> Box<dyn ASTVisitor<'n> + 'c> {
     Box::new(UniqueTypeNamesRule {
         context,
-        known_type_names: HashMap::new(),
+        known_type_names: FxHashMap::default(),
     })
 }
 
 struct UniqueTypeNamesRule<'c, 'n> {
     context: &'c SDLValidationContext<'n>,
-    known_type_names: HashMap<&'n str, &'n NameNode>,
+    known_type_names: FxHashMap<&'n str, &'n NameNode>,
 }
 
 impl<'n> ASTVisitor<'n> for UniqueTypeNamesRule<'_, 'n> {

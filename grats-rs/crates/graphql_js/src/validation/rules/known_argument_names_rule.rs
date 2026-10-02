@@ -3,7 +3,7 @@
 //! PORT: Only `KnownArgumentNamesOnDirectivesRule` is ported, since fields
 //! with arguments only exist in executable documents.
 
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 use crate::error::graphql_error::GraphQLError;
 use crate::jsutils::did_you_mean::did_you_mean;
@@ -18,7 +18,7 @@ use crate::validation::validation_context::SDLValidationContext;
 pub fn known_argument_names_on_directives_rule<'c, 'n>(
     context: &'c SDLValidationContext<'n>,
 ) -> Box<dyn ASTVisitor<'n> + 'c> {
-    let mut directive_args: HashMap<&'n str, Vec<&'n str>> = HashMap::new();
+    let mut directive_args: FxHashMap<&'n str, Vec<&'n str>> = FxHashMap::default();
 
     let defined_directives = specified_directives();
     for directive in defined_directives {
@@ -52,7 +52,7 @@ pub fn known_argument_names_on_directives_rule<'c, 'n>(
 
 struct KnownArgumentNamesOnDirectivesRule<'c, 'n> {
     context: &'c SDLValidationContext<'n>,
-    directive_args: HashMap<&'n str, Vec<&'n str>>,
+    directive_args: FxHashMap<&'n str, Vec<&'n str>>,
 }
 
 impl<'n> ASTVisitor<'n> for KnownArgumentNamesOnDirectivesRule<'_, 'n> {

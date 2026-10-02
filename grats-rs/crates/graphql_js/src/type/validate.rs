@@ -2,10 +2,10 @@
 //!
 //! PORT: Only `validateSchema` is ported.
 
-use std::collections::{HashMap, HashSet};
 use std::iter::once;
 
 use indexmap::IndexMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::error::graphql_error::GraphQLError;
 use crate::language::ast::{
@@ -350,7 +350,7 @@ fn validate_fields(context: &mut SchemaValidationContext, type_id: TypeId) {
 fn validate_interfaces(context: &mut SchemaValidationContext, type_id: TypeId) {
     let schema = context.schema;
     let r#type = &schema[type_id];
-    let mut iface_type_names = HashSet::new();
+    let mut iface_type_names = FxHashSet::default();
 
     for &iface_id in get_interfaces(r#type) {
         let iface = &schema[iface_id];
@@ -560,7 +560,7 @@ fn validate_union_members(context: &mut SchemaValidationContext, union: &GraphQL
         );
     }
 
-    let mut included_type_names = HashSet::new();
+    let mut included_type_names = FxHashSet::default();
     for &member_type in member_types {
         let member_type = &schema[member_type];
         if included_type_names.contains(member_type.name()) {
@@ -703,21 +703,21 @@ fn validate_one_of_input_object_field(
 struct InputObjectCircularRefsValidator<'s, 'a> {
     // Tracks already visited types to maintain O(N) and to ensure that cycles
     // are not redundantly reported.
-    visited_types: HashSet<&'a str>,
+    visited_types: FxHashSet<&'a str>,
 
     // Array of types nodes used to produce meaningful errors
     field_path: Vec<&'s GraphQLInputField<'a>>,
 
     // Position in the type path
-    field_path_index_by_type_name: HashMap<&'a str, usize>,
+    field_path_index_by_type_name: FxHashMap<&'a str, usize>,
 }
 
 impl<'s, 'a> InputObjectCircularRefsValidator<'s, 'a> {
     fn new() -> Self {
         InputObjectCircularRefsValidator {
-            visited_types: HashSet::new(),
+            visited_types: FxHashSet::default(),
             field_path: Vec::new(),
-            field_path_index_by_type_name: HashMap::new(),
+            field_path_index_by_type_name: FxHashMap::default(),
         }
     }
 

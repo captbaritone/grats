@@ -2,8 +2,9 @@
 //! the GraphQL parsed from docblocks (each `@gqlAnnotate` tag's arguments get
 //! their own "GraphQL request" source).
 
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+
+use rustc_hash::FxHashMap;
 
 /// Sources are identified by name and text rather than by name alone, since
 /// GraphQL parsed from docblocks shares a name.
@@ -15,7 +16,7 @@ pub struct SourceTable {
 #[derive(Debug, Default)]
 struct Inner {
     sources: Vec<Arc<Source>>,
-    ids_by_name: HashMap<String, Vec<u32>>,
+    ids_by_name: FxHashMap<String, Vec<u32>>,
 }
 
 #[derive(Debug)]

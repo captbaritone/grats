@@ -1,9 +1,9 @@
 //! Port of graphql-js `type/schema.ts`.
 
-use std::collections::HashMap;
 use std::ops::Index;
 
 use indexmap::IndexMap;
+use rustc_hash::FxHashMap;
 
 use crate::language::ast::{OperationTypeNode, SchemaDefinitionNode, SchemaExtensionNode};
 use crate::r#type::definition::{GraphQLField, GraphQLNamedType, TypeArena, TypeId};
@@ -30,7 +30,7 @@ pub struct GraphQLSchema<'a> {
     subscription_type: Option<TypeId>,
     directives: Vec<GraphQLDirective<'a>>,
     type_map: IndexMap<&'a str, TypeId>,
-    implementations_map: HashMap<&'a str, InterfaceImplementations>,
+    implementations_map: FxHashMap<&'a str, InterfaceImplementations>,
 }
 
 #[derive(Debug, Default)]
@@ -102,7 +102,8 @@ impl<'a> GraphQLSchema<'a> {
         // Storing the resulting map for reference by the schema.
         let mut type_map: IndexMap<&'a str, TypeId> = IndexMap::new();
         // Keep track of all implementations by interface name.
-        let mut implementations_map: HashMap<&'a str, InterfaceImplementations> = HashMap::new();
+        let mut implementations_map: FxHashMap<&'a str, InterfaceImplementations> =
+            FxHashMap::default();
 
         for named_type in all_referenced_types.iter() {
             let type_name = arena[named_type].name();
@@ -241,14 +242,14 @@ impl<'a> Index<TypeId> for GraphQLSchema<'a> {
 /// from an `IndexSet` in the middle is linear, so this leaves a tombstone.
 struct TypeSet {
     entries: Vec<Option<TypeId>>,
-    positions: HashMap<TypeId, usize>,
+    positions: FxHashMap<TypeId, usize>,
 }
 
 impl TypeSet {
     fn new(types: &[TypeId]) -> Self {
         let mut set = TypeSet {
             entries: Vec::new(),
-            positions: HashMap::new(),
+            positions: FxHashMap::default(),
         };
         for &r#type in types {
             set.add(r#type);

@@ -19,9 +19,8 @@
 //! The results are the same. Only which error is reported first can differ, for
 //! documents that `assumeValidSDL` assumes are valid.
 
-use std::collections::HashMap;
-
 use indexmap::IndexMap;
+use rustc_hash::FxHashMap;
 
 use crate::execution::values::get_directive_values;
 use crate::js_value::Value;
@@ -58,7 +57,7 @@ pub fn extend_schema_impl<'a>(
 
     // Collect the type definitions and extensions found in the document.
     let mut type_defs: Vec<&'a DefinitionNode> = Vec::new();
-    let mut type_extensions_map: HashMap<&'a str, Vec<&'a DefinitionNode>> = HashMap::new();
+    let mut type_extensions_map: FxHashMap<&'a str, Vec<&'a DefinitionNode>> = FxHashMap::default();
 
     // New directives and types are separate because a directives and types can
     // have the same name. For example, a type named "skip".
@@ -196,10 +195,10 @@ fn type_system_definition_name(def: &DefinitionNode) -> &str {
 struct Builder<'a> {
     arena: TypeArena<'a>,
     type_map: IndexMap<&'a str, TypeId>,
-    type_extensions_map: HashMap<&'a str, Vec<&'a DefinitionNode>>,
+    type_extensions_map: FxHashMap<&'a str, Vec<&'a DefinitionNode>>,
     /// PORT: graphql-js defines this at module level, from the global specified
     /// scalar and introspection type objects.
-    std_type_map: HashMap<&'a str, TypeId>,
+    std_type_map: FxHashMap<&'a str, TypeId>,
 }
 
 /// The progress of building an input object type's default values.
@@ -211,7 +210,7 @@ enum DefaultValuesState {
 impl<'a> Builder<'a> {
     fn new(
         arena: TypeArena<'a>,
-        type_extensions_map: HashMap<&'a str, Vec<&'a DefinitionNode>>,
+        type_extensions_map: FxHashMap<&'a str, Vec<&'a DefinitionNode>>,
     ) -> Self {
         let std_type_map = SPECIFIED_SCALAR_TYPES
             .into_iter()
@@ -596,7 +595,7 @@ impl<'a> Builder<'a> {
     /// Builds the default values of input fields, then of field arguments.
     fn build_default_values(&mut self) {
         let ids: Vec<TypeId> = self.type_map.values().copied().collect();
-        let mut states = HashMap::new();
+        let mut states = FxHashMap::default();
         for &id in &ids {
             if let GraphQLNamedType::InputObject(_) = &self.arena[id] {
                 self.build_input_field_default_values(id, &mut states);
@@ -639,7 +638,7 @@ impl<'a> Builder<'a> {
     fn build_input_field_default_values(
         &mut self,
         id: TypeId,
-        states: &mut HashMap<TypeId, DefaultValuesState>,
+        states: &mut FxHashMap<TypeId, DefaultValuesState>,
     ) {
         match states.get(&id) {
             Some(DefaultValuesState::Done) => return,

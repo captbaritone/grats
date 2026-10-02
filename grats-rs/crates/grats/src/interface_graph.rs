@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-
 use graphql_js::language::ast::DefinitionNode;
+use rustc_hash::FxHashMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InterfaceImplementorKind {
@@ -18,7 +17,7 @@ pub struct InterfaceImplementor {
 /// declares an interface twice is listed twice.
 #[derive(Default)]
 pub struct InterfaceMap {
-    map: HashMap<String, Vec<InterfaceImplementor>>,
+    map: FxHashMap<String, Vec<InterfaceImplementor>>,
 }
 
 impl InterfaceMap {

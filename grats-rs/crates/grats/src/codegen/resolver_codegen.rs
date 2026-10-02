@@ -1,9 +1,8 @@
-use std::collections::HashMap;
-
 use graphql_js::language::ast::ConstDirectiveNode;
 use graphql_js::r#type::definition::GraphQLField;
 use oxc_ast::ast::*;
 use oxc_span::SPAN;
+use rustc_hash::FxHashMap;
 
 use crate::codegen::ts_ast_builder::{ImportSpecifier, TsAstBuilder};
 use crate::codegen_helpers::{ASSERT_NON_NULL_HELPER, create_assert_non_null_helper};
@@ -18,7 +17,7 @@ const RESOLVER_ARGS: [&str; 4] = ["source", "args", "context", "info"];
 /// the `TsAstBuilder` of the codegen using it.
 pub struct ResolverCodegen<'m> {
     added_assert_non_null_helper: bool,
-    derived_context_names: HashMap<String, String>,
+    derived_context_names: FxHashMap<String, String>,
     resolvers: &'m Metadata,
 }
 
@@ -26,7 +25,7 @@ impl<'m> ResolverCodegen<'m> {
     pub fn new(resolvers: &'m Metadata) -> Self {
         ResolverCodegen {
             added_assert_non_null_helper: false,
-            derived_context_names: HashMap::new(),
+            derived_context_names: FxHashMap::default(),
             resolvers,
         }
     }

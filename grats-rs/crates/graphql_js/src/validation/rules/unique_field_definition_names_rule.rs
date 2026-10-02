@@ -1,6 +1,6 @@
 //! Port of graphql-js `validation/rules/UniqueFieldDefinitionNamesRule.ts`.
 
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 use crate::error::graphql_error::GraphQLError;
 use crate::language::ast::NameNode;
@@ -18,13 +18,13 @@ pub fn unique_field_definition_names_rule<'c, 'n>(
 ) -> Box<dyn ASTVisitor<'n> + 'c> {
     Box::new(UniqueFieldDefinitionNamesRule {
         context,
-        known_field_names: HashMap::new(),
+        known_field_names: FxHashMap::default(),
     })
 }
 
 struct UniqueFieldDefinitionNamesRule<'c, 'n> {
     context: &'c SDLValidationContext<'n>,
-    known_field_names: HashMap<&'n str, HashMap<&'n str, &'n NameNode>>,
+    known_field_names: FxHashMap<&'n str, FxHashMap<&'n str, &'n NameNode>>,
 }
 
 impl<'n> ASTVisitor<'n> for UniqueFieldDefinitionNamesRule<'_, 'n> {

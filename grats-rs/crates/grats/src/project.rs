@@ -19,10 +19,10 @@
 //!   as are `node_modules`, `bower_components` and `jspm_packages`, even
 //!   where a pattern names them.
 
-use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 use oxc_resolver::{ResolveError, ResolveOptions, ResolverGeneric, TsConfig};
+use rustc_hash::{FxHashMap, FxHashSet};
 use serde_json::Value;
 
 use crate::errors::ts_config_not_found;
@@ -161,7 +161,7 @@ fn root_names(tsconfig: &TsConfig, allow_js: bool, host: &dyn Host) -> Vec<Strin
         allow_js,
         includes: &includes,
         excludes: &excludes,
-        visited: HashSet::new(),
+        visited: FxHashSet::default(),
         matched: Vec::new(),
     };
     let mut bases: Vec<&str> = includes.iter().map(|include| base_path(include)).collect();
@@ -176,14 +176,14 @@ fn root_names(tsconfig: &TsConfig, allow_js: bool, host: &dyn Host) -> Vec<Strin
     // Like `hasFileWithHigherPriorityExtension`: leave out matched files
     // when the same file with an extension of higher priority is named by
     // `files` or matched.
-    let mut priorities: HashMap<(&str, usize), usize> = HashMap::new();
+    let mut priorities: FxHashMap<(&str, usize), usize> = FxHashMap::default();
     for file in files.iter().chain(&matcher.matched) {
         if let Some((stem, group, priority)) = split_extension(file) {
             let best = priorities.entry((stem, group)).or_insert(priority);
             *best = (*best).min(priority);
         }
     }
-    let literal: HashSet<&str> = files.iter().map(String::as_str).collect();
+    let literal: FxHashSet<&str> = files.iter().map(String::as_str).collect();
     let wildcard = matcher.matched.iter().filter(|file| {
         !literal.contains(file.as_str())
             && split_extension(file)
@@ -217,7 +217,7 @@ struct Matcher<'m> {
     includes: &'m [String],
     excludes: &'m [String],
     /// The real paths of the directories walked so far.
-    visited: HashSet<String>,
+    visited: FxHashSet<String>,
     matched: Vec<String>,
 }
 

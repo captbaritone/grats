@@ -1,13 +1,12 @@
-use std::collections::HashMap;
-
 use graphql_js::language::ast::{DefinitionNode, DocumentNode, FieldDefinitionNode};
+use rustc_hash::FxHashMap;
 
 use crate::utils::visitor::map_definitions;
 
 /// Takes every example of `extend type Foo` and `extend interface Foo` and
 /// merges them into the original type/interface definition.
 pub fn merge_extensions(doc: DocumentNode) -> DocumentNode {
-    let mut fields: HashMap<String, Vec<FieldDefinitionNode>> = HashMap::new();
+    let mut fields: FxHashMap<String, Vec<FieldDefinitionNode>> = FxHashMap::default();
 
     // Collect all the fields from the extensions and trim them from the AST.
     let sans_extensions = map_definitions(doc, |def| {

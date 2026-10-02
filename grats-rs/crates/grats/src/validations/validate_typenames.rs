@@ -1,7 +1,6 @@
-use std::collections::HashSet;
-
 use graphql_js::r#type::definition::GraphQLNamedType;
 use graphql_js::r#type::schema::GraphQLSchema;
+use rustc_hash::FxHashSet;
 
 use crate::errors as E;
 use crate::utils::diagnostic_error::{DiagnosticsResult, gql_err, gql_related};
@@ -11,7 +10,7 @@ use crate::utils::result::ok_unless_errors;
 /// union has a __typename field.
 pub fn validate_typenames(
     schema: &GraphQLSchema<'_>,
-    has_typename: &HashSet<String>,
+    has_typename: &FxHashSet<String>,
 ) -> DiagnosticsResult<()> {
     let mut errors = Vec::new();
     let abstract_types = schema

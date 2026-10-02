@@ -1,6 +1,6 @@
 //! Port of graphql-js `validation/rules/KnownDirectivesRule.ts`.
 
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 use crate::error::graphql_error::GraphQLError;
 use crate::language::ast::{ConstDirectiveNode, DefinitionNode};
@@ -21,7 +21,7 @@ use crate::validation::validation_context::SDLValidationContext;
 pub fn known_directives_rule<'c, 'n>(
     context: &'c SDLValidationContext<'n>,
 ) -> Box<dyn ASTVisitor<'n> + 'c> {
-    let mut locations_map: HashMap<&'n str, Vec<&'n str>> = HashMap::new();
+    let mut locations_map: FxHashMap<&'n str, Vec<&'n str>> = FxHashMap::default();
 
     let defined_directives = specified_directives();
     for directive in defined_directives {
@@ -50,7 +50,7 @@ pub fn known_directives_rule<'c, 'n>(
 
 struct KnownDirectivesRule<'c, 'n> {
     context: &'c SDLValidationContext<'n>,
-    locations_map: HashMap<&'n str, Vec<&'n str>>,
+    locations_map: FxHashMap<&'n str, Vec<&'n str>>,
     /// PORT: graphql-js visitors are passed the ancestors of the node being
     /// visited. Here the rule tracks them itself. graphql-js ancestors also
     /// include the arrays which hold nodes, which aren't tracked.

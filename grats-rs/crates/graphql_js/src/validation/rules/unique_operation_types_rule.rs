@@ -1,6 +1,6 @@
 //! Port of graphql-js `validation/rules/UniqueOperationTypesRule.ts`.
 
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 use crate::error::graphql_error::GraphQLError;
 use crate::language::ast::OperationTypeDefinitionNode;
@@ -18,13 +18,13 @@ pub fn unique_operation_types_rule<'c, 'n>(
 ) -> Box<dyn ASTVisitor<'n> + 'c> {
     Box::new(UniqueOperationTypesRule {
         context,
-        defined_operation_types: HashMap::new(),
+        defined_operation_types: FxHashMap::default(),
     })
 }
 
 struct UniqueOperationTypesRule<'c, 'n> {
     context: &'c SDLValidationContext<'n>,
-    defined_operation_types: HashMap<&'static str, &'n OperationTypeDefinitionNode>,
+    defined_operation_types: FxHashMap<&'static str, &'n OperationTypeDefinitionNode>,
 }
 
 impl<'n> ASTVisitor<'n> for UniqueOperationTypesRule<'_, 'n> {

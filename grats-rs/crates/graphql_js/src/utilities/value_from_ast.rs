@@ -2,9 +2,8 @@
 //!
 //! PORT: Only constant values are ported, since Grats never handles variables.
 
-use std::collections::HashMap;
-
 use indexmap::IndexMap;
+use rustc_hash::FxHashMap;
 
 use crate::js_value::Value;
 use crate::language::ast::{ConstObjectFieldNode, ConstValueNode};
@@ -76,7 +75,7 @@ pub fn value_from_ast(
 
             let mut coerced_obj = IndexMap::new();
             // keyMap
-            let field_nodes: HashMap<&str, &ConstObjectFieldNode> = value_node
+            let field_nodes: FxHashMap<&str, &ConstObjectFieldNode> = value_node
                 .fields
                 .iter()
                 .map(|field| (field.name.value.as_str(), field))

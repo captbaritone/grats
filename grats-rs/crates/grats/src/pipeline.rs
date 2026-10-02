@@ -10,7 +10,6 @@
 //! Each step reports every error it finds, and the first step that finds any
 //! stops the pipeline.
 
-use std::collections::HashSet;
 use std::mem;
 use std::rc::Rc;
 use std::sync::Arc;
@@ -22,6 +21,7 @@ use graphql_js::r#type::validate::validate_schema;
 use graphql_js::utilities::build_ast_schema::build_ast_schema;
 use graphql_js::validation::validate::validate_sdl;
 use oxc_allocator::Allocator;
+use rustc_hash::FxHashSet;
 
 use crate::extractor::{self, ExtractionSnapshot};
 use crate::files::{Files, ParsedFile};
@@ -180,7 +180,7 @@ fn transform(
 /// Grats' own rules.
 fn validate<'d>(
     doc: &'d DocumentNode,
-    types_with_typename: &HashSet<String>,
+    types_with_typename: &FxHashSet<String>,
     config: &GratsConfig,
 ) -> DiagnosticsResult<GraphQLSchema<'d>> {
     // TODO: This misses definitions which shadow built-in scalars (`String`,

@@ -1,6 +1,6 @@
 //! Port of graphql-js `validation/rules/UniqueDirectiveNamesRule.ts`.
 
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 use crate::error::graphql_error::GraphQLError;
 use crate::language::ast::NameNode;
@@ -18,13 +18,13 @@ pub fn unique_directive_names_rule<'c, 'n>(
 ) -> Box<dyn ASTVisitor<'n> + 'c> {
     Box::new(UniqueDirectiveNamesRule {
         context,
-        known_directive_names: HashMap::new(),
+        known_directive_names: FxHashMap::default(),
     })
 }
 
 struct UniqueDirectiveNamesRule<'c, 'n> {
     context: &'c SDLValidationContext<'n>,
-    known_directive_names: HashMap<&'n str, &'n NameNode>,
+    known_directive_names: FxHashMap<&'n str, &'n NameNode>,
 }
 
 impl<'n> ASTVisitor<'n> for UniqueDirectiveNamesRule<'_, 'n> {

@@ -3,8 +3,6 @@
 //! The extractor reads the file's JSDoc (`jsdoc`), which follows TypeScript's
 //! rules, and oxc's AST. Offsets are UTF-8 until locations are made.
 
-use std::collections::{HashMap, HashSet};
-
 use graphql_js::language::ast::{
     ConstDirectiveNode, ConstListValueNode, ConstObjectFieldNode, ConstObjectValueNode,
     ConstValueNode, DefinitionNode, DiagnosticHandle, DiagnosticHandleResult,
@@ -34,6 +32,7 @@ use oxc_parser::{Kind, Token};
 use oxc_span::{GetSpan, Span};
 use oxc_syntax::node::NodeId;
 use oxc_syntax::number::ToJsString;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::code_actions as act;
 use crate::comments::detect_invalid_comments;
@@ -147,7 +146,7 @@ pub struct ExtractionSnapshot {
     /// This is used to ensure all types which are members of an abstract type
     /// (union or interface) define a `__typename` field which is required to
     /// determine their GraphQL type at runtime.
-    pub types_with_typename: HashSet<String>,
+    pub types_with_typename: FxHashSet<String>,
 
     /// TypeScript interfaces which have been used to define GraphQL types. This is
     /// used in a later validation pass to ensure we never use merged interfaces,
@@ -155,7 +154,7 @@ pub struct ExtractionSnapshot {
     pub interface_declarations: Vec<DeclRef>,
 
     /// The diagnostics which `DiagnosticHandle`s in `definitions` refer to.
-    pub diagnostics_by_handle: HashMap<DiagnosticHandle, Diagnostic>,
+    pub diagnostics_by_handle: FxHashMap<DiagnosticHandle, Diagnostic>,
 }
 
 /// Merges the snapshots of several files. No two files' snapshots share a key.
@@ -215,7 +214,7 @@ struct Extractor<'f, 'a> {
     unresolved_names: IndexMap<TsIdentifier, EntityNameRef>,
     name_definitions: IndexMap<DeclLoc, NameDefinitionEntry>,
     implicit_name_definitions: Vec<(DeclarationDefinition, EntityNameRef)>,
-    types_with_typename: HashSet<String>,
+    types_with_typename: FxHashSet<String>,
     interface_declarations: Vec<DeclRef>,
 
     errors: Vec<Diagnostic>,
@@ -225,7 +224,7 @@ struct Extractor<'f, 'a> {
     /// The JSDoc of `file`.
     jsdoc: &'f JSDocIndex,
     grats_root: &'f str,
-    diagnostics_by_handle: HashMap<DiagnosticHandle, Diagnostic>,
+    diagnostics_by_handle: FxHashMap<DiagnosticHandle, Diagnostic>,
 }
 
 impl<'f, 'a> Extractor<'f, 'a> {
@@ -235,14 +234,14 @@ impl<'f, 'a> Extractor<'f, 'a> {
             unresolved_names: IndexMap::new(),
             name_definitions: IndexMap::new(),
             implicit_name_definitions: Vec::new(),
-            types_with_typename: HashSet::new(),
+            types_with_typename: FxHashSet::default(),
             interface_declarations: Vec::new(),
             errors: Vec::new(),
             config,
             file,
             jsdoc: file.jsdoc(),
             grats_root,
-            diagnostics_by_handle: HashMap::new(),
+            diagnostics_by_handle: FxHashMap::default(),
         }
     }
 
@@ -276,7 +275,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
     // reporting an error if it is attached to a node where that tag is not
     // supported.
     fn extract(mut self) -> DiagnosticsResult<ExtractionSnapshot> {
-        let mut seen_comment_positions: HashSet<u32> = HashSet::new();
+        let mut seen_comment_positions: FxHashSet<u32> = FxHashSet::default();
         let jsdoc = self.jsdoc;
         jsdoc.traverse_js_doc_tags(|node, tag| {
             seen_comment_positions.insert(jsdoc.js_doc(tag.js_doc).pos);
@@ -3585,7 +3584,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
     }
 }
 
-type ArgDefaults<'a> = HashMap<&'a str, &'a Expression<'a>>;
+type ArgDefaults<'a> = FxHashMap<&'a str, &'a Expression<'a>>;
 
 #[derive(Clone, Copy, PartialEq)]
 enum FieldTypeContext {

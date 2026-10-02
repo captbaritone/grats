@@ -21,7 +21,6 @@
 //! type information, such as members of a variable exported with `export =`.
 
 use std::cell::RefCell;
-use std::collections::HashSet;
 use std::rc::Rc;
 
 use graphql_js::language::ast::Location;
@@ -36,6 +35,7 @@ use oxc_span::{GetSpan, Span};
 use oxc_str::Ident;
 use oxc_syntax::scope::ScopeId;
 use oxc_syntax::symbol::{SymbolFlags, SymbolId};
+use rustc_hash::FxHashSet;
 
 use crate::files::{Files, ParsedFile};
 use crate::name_resolver::{
@@ -50,7 +50,7 @@ pub struct OxcNameResolver<'a> {
     program: &'a FileProgram<'a>,
     /// The exports being looked up, which guards against cycles of
     /// re-exports.
-    resolving_exports: RefCell<HashSet<(String, String)>>,
+    resolving_exports: RefCell<FxHashSet<(String, String)>>,
 }
 
 /// What a name resolves to.
@@ -88,7 +88,7 @@ impl<'a> OxcNameResolver<'a> {
         OxcNameResolver {
             files,
             program,
-            resolving_exports: RefCell::new(HashSet::new()),
+            resolving_exports: RefCell::new(FxHashSet::default()),
         }
     }
 

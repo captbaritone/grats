@@ -1,6 +1,6 @@
 //! Port of graphql-js `validation/rules/UniqueDirectivesPerLocationRule.ts`.
 
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 use crate::error::graphql_error::GraphQLError;
 use crate::language::ast::{ConstDirectiveNode, DefinitionNode};
@@ -21,7 +21,7 @@ use crate::validation::validation_context::SDLValidationContext;
 pub fn unique_directives_per_location_rule<'c, 'n>(
     context: &'c SDLValidationContext<'n>,
 ) -> Box<dyn ASTVisitor<'n> + 'c> {
-    let mut unique_directive_map: HashMap<&'n str, bool> = HashMap::new();
+    let mut unique_directive_map: FxHashMap<&'n str, bool> = FxHashMap::default();
 
     let defined_directives = specified_directives();
     for directive in defined_directives {
@@ -38,18 +38,18 @@ pub fn unique_directives_per_location_rule<'c, 'n>(
     Box::new(UniqueDirectivesPerLocationRule {
         context,
         unique_directive_map,
-        schema_directives: HashMap::new(),
-        type_directives_map: HashMap::new(),
+        schema_directives: FxHashMap::default(),
+        type_directives_map: FxHashMap::default(),
     })
 }
 
-type SeenDirectives<'n> = HashMap<&'n str, &'n ConstDirectiveNode>;
+type SeenDirectives<'n> = FxHashMap<&'n str, &'n ConstDirectiveNode>;
 
 struct UniqueDirectivesPerLocationRule<'c, 'n> {
     context: &'c SDLValidationContext<'n>,
-    unique_directive_map: HashMap<&'n str, bool>,
+    unique_directive_map: FxHashMap<&'n str, bool>,
     schema_directives: SeenDirectives<'n>,
-    type_directives_map: HashMap<&'n str, SeenDirectives<'n>>,
+    type_directives_map: FxHashMap<&'n str, SeenDirectives<'n>>,
 }
 
 impl<'n> ASTVisitor<'n> for UniqueDirectivesPerLocationRule<'_, 'n> {
@@ -61,7 +61,7 @@ impl<'n> ASTVisitor<'n> for UniqueDirectivesPerLocationRule<'_, 'n> {
             return VisitAction::Continue;
         };
 
-        let mut new_seen_directives = HashMap::new();
+        let mut new_seen_directives = FxHashMap::default();
         let seen_directives = if matches!(
             node,
             ASTNode::SchemaDefinition(_) | ASTNode::SchemaExtension(_)

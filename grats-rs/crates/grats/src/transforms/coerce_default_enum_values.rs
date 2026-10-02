@@ -1,10 +1,9 @@
-use std::collections::HashMap;
-
 use graphql_js::language::ast::{
     ConstListValueNode, ConstObjectFieldNode, ConstObjectValueNode, ConstValueNode, DefinitionNode,
     EnumTypeDefinitionNode, EnumValueNode, FieldDefinitionNode, InputObjectTypeDefinitionNode,
     InputValueDefinitionNode, ListTypeNode, NamedTypeNode, NullableTypeNode, TypeNode,
 };
+use rustc_hash::FxHashMap;
 
 /// This transform visits argument default values checking for values used in
 /// enum positions.
@@ -84,7 +83,7 @@ enum CoercerType {
 }
 
 struct Coercer {
-    types: HashMap<String, CoercerType>,
+    types: FxHashMap<String, CoercerType>,
 }
 
 impl Coercer {

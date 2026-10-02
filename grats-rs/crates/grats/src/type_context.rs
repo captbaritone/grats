@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-
 use graphql_js::language::ast::{Location, NameNode, ResolverArgument, TsIdentifier};
+use rustc_hash::FxHashMap;
 
 use crate::errors::{self as E, ContextOrInfo};
 use crate::extractor::NameDefinitionEntry;
@@ -58,9 +57,9 @@ pub struct DerivedResolverDefinition {
 pub struct TypeContext<'r> {
     resolver: &'r dyn NameResolver,
 
-    declaration_to_definition: HashMap<DeclLoc, DeclarationDefinition>,
-    unresolved_nodes: HashMap<TsIdentifier, EntityNameRef>,
-    id_to_declaration: HashMap<TsIdentifier, DeclRef>,
+    declaration_to_definition: FxHashMap<DeclLoc, DeclarationDefinition>,
+    unresolved_nodes: FxHashMap<TsIdentifier, EntityNameRef>,
+    id_to_declaration: FxHashMap<TsIdentifier, DeclRef>,
 }
 
 impl<'r> TypeContext<'r> {
@@ -74,9 +73,9 @@ impl<'r> TypeContext<'r> {
         let mut errors: Vec<Diagnostic> = Vec::new();
         let mut type_context = TypeContext {
             resolver,
-            declaration_to_definition: HashMap::new(),
+            declaration_to_definition: FxHashMap::default(),
             unresolved_nodes: unresolved_names.into_iter().collect(),
-            id_to_declaration: HashMap::new(),
+            id_to_declaration: FxHashMap::default(),
         };
         for (
             _,

@@ -13,6 +13,7 @@ path = "src/main.rs"
 grats.workspace = true
 mimalloc = { version = "0.1", default-features = false }
 notify = "8.2.0"
+rustc-hash.workspace = true
 
 [build-dependencies]
 serde_json.workspace = true

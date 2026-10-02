@@ -1,12 +1,11 @@
 //! Resolves the TypeScript type references in GraphQL definitions to the
 //! GraphQL types they name, materializing generic types along the way.
 
-use std::collections::HashMap;
-
 use graphql_js::language::ast::{
     DefinitionNode, FieldDefinitionNode, InputValueDefinitionNode, Location, NameNode,
     NamedTypeNode, NullableTypeNode, TypeNode,
 };
+use rustc_hash::FxHashMap;
 
 use crate::errors as E;
 use crate::name_resolver::{ResolvedDeclaration, ResolvedDeclarationKind};
@@ -70,7 +69,7 @@ pub fn resolve_types(
         return Err(errors);
     }
 
-    let mut templates = HashMap::new();
+    let mut templates = FxHashMap::default();
     let mut concrete = Vec::new();
     for (definition, candidate) in definitions.into_iter().zip(&generics.definitions) {
         match candidate {
@@ -85,14 +84,14 @@ pub fn resolve_types(
         ctx,
         generics: &generics,
         templates: &templates,
-        instantiations: HashMap::new(),
+        instantiations: FxHashMap::default(),
         definitions: Vec::new(),
         errors: Vec::new(),
     };
     for mut definition in concrete {
         for_each_type_name(&mut definition, &mut |name| {
             if let Some(reference) = ctx.get_entity_name(name) {
-                name.value = materializer.resolve(reference, &HashMap::new());
+                name.value = materializer.resolve(reference, &FxHashMap::default());
             }
         });
         materializer.definitions.push(definition);
@@ -107,7 +106,7 @@ pub fn resolve_types(
 /// and whose TypeScript declarations have type parameters.
 struct Generics {
     candidates: Vec<Candidate>,
-    by_decl_loc: HashMap<DeclLoc, usize>,
+    by_decl_loc: FxHashMap<DeclLoc, usize>,
     /// For each definition, the index of its candidate, if it is one.
     definitions: Vec<Option<usize>>,
     /// For each candidate, for each type parameter, the last reference to it in
@@ -170,7 +169,7 @@ impl Generics {
     ) -> Self {
         let mut generics = Generics {
             candidates: Vec::new(),
-            by_decl_loc: HashMap::new(),
+            by_decl_loc: FxHashMap::default(),
             definitions: Vec::new(),
             uses: Vec::new(),
         };
@@ -320,7 +319,7 @@ impl Generics {
             }
         }
 
-        let mut successors: HashMap<Param, Vec<Param>> = HashMap::new();
+        let mut successors: FxHashMap<Param, Vec<Param>> = FxHashMap::default();
         for edge in &edges {
             successors.entry(edge.from).or_default().push(edge.to);
         }
@@ -454,9 +453,9 @@ struct Instantiation {
 struct Materializer<'a> {
     ctx: &'a TypeContext<'a>,
     generics: &'a Generics,
-    templates: &'a HashMap<usize, DefinitionNode>,
+    templates: &'a FxHashMap<usize, DefinitionNode>,
     /// The instantiation each materialized type's name was derived for.
-    instantiations: HashMap<String, Instantiation>,
+    instantiations: FxHashMap<String, Instantiation>,
     definitions: Vec<DefinitionNode>,
     errors: Vec<Diagnostic>,
 }
@@ -468,7 +467,7 @@ impl Materializer<'_> {
     fn resolve(
         &mut self,
         reference: &EntityNameRef,
-        type_arguments: &HashMap<DeclLoc, String>,
+        type_arguments: &FxHashMap<DeclLoc, String>,
     ) -> String {
         let declaration = self.ctx.resolve_entity_name(reference.name).expect(CHECKED);
         if let Some(name) = type_arguments.get(&declaration.decl_loc) {
@@ -531,7 +530,7 @@ impl Materializer<'_> {
             return derived_name;
         }
 
-        let scope: HashMap<DeclLoc, String> = candidate
+        let scope: FxHashMap<DeclLoc, String> = candidate
             .type_parameters
             .iter()
             .zip(&type_arguments)

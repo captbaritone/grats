@@ -3,9 +3,8 @@
 //! PORT: Only `ProvidedRequiredArgumentsOnDirectivesRule` is ported, since
 //! fields with arguments only exist in executable documents.
 
-use std::collections::{HashMap, HashSet};
-
 use indexmap::IndexMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::error::graphql_error::GraphQLError;
 use crate::jsutils::key_map::key_map;
@@ -28,7 +27,8 @@ enum ArgDef<'n> {
 pub fn provided_required_arguments_on_directives_rule<'c, 'n>(
     context: &'c SDLValidationContext<'n>,
 ) -> Box<dyn ASTVisitor<'n> + 'c> {
-    let mut required_args_map: HashMap<&'n str, IndexMap<&'n str, ArgDef<'n>>> = HashMap::new();
+    let mut required_args_map: FxHashMap<&'n str, IndexMap<&'n str, ArgDef<'n>>> =
+        FxHashMap::default();
 
     let defined_directives = specified_directives();
     for directive in defined_directives {
@@ -76,7 +76,7 @@ pub fn provided_required_arguments_on_directives_rule<'c, 'n>(
 
 struct ProvidedRequiredArgumentsOnDirectivesRule<'c, 'n> {
     context: &'c SDLValidationContext<'n>,
-    required_args_map: HashMap<&'n str, IndexMap<&'n str, ArgDef<'n>>>,
+    required_args_map: FxHashMap<&'n str, IndexMap<&'n str, ArgDef<'n>>>,
 }
 
 impl<'n> ASTVisitor<'n> for ProvidedRequiredArgumentsOnDirectivesRule<'_, 'n> {
@@ -90,7 +90,7 @@ impl<'n> ASTVisitor<'n> for ProvidedRequiredArgumentsOnDirectivesRule<'_, 'n> {
         if let Some(required_args) = required_args {
             // FIXME: https://github.com/graphql/graphql-js/issues/2203
             let arg_nodes = directive_node.arguments.as_deref().unwrap_or_default();
-            let arg_node_map: HashSet<&str> = arg_nodes
+            let arg_node_map: FxHashSet<&str> = arg_nodes
                 .iter()
                 .map(|arg| arg.name.value.as_str())
                 .collect();

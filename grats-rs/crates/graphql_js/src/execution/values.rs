@@ -5,9 +5,8 @@
 //! executable documents. Where graphql-js throws a `GraphQLError`, this panics
 //! with its message.
 
-use std::collections::HashMap;
-
 use indexmap::IndexMap;
+use rustc_hash::FxHashMap;
 
 use crate::js_value::Value;
 use crate::language::ast::{ConstArgumentNode, ConstDirectiveNode, ConstValueNode};
@@ -29,7 +28,7 @@ pub fn get_argument_values<'d>(
 
     let argument_nodes = node.arguments.as_deref().unwrap_or_default();
     // keyMap
-    let arg_node_map: HashMap<&str, &ConstArgumentNode> = argument_nodes
+    let arg_node_map: FxHashMap<&str, &ConstArgumentNode> = argument_nodes
         .iter()
         .map(|arg| (arg.name.value.as_str(), arg))
         .collect();

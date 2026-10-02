@@ -2,7 +2,7 @@
 //! TypeScript's `getJSDocCommentsAndTags`, so that tags apply to the same
 //! nodes they did when Grats used TypeScript's parser.
 
-use std::collections::HashSet;
+use rustc_hash::FxHashSet;
 
 use super::nodes::{JSDocId, JSDocIndex, SyntaxKind, TagId, TsNodeId};
 use super::parser::{JSDocComment, JSDocCommentPart, JSDocLinkKind};
@@ -282,7 +282,7 @@ impl JSDocIndex {
         // their children and only call the callback the first time we
         // encounter a tag. This should ensure we only ever call the callback
         // once per tag, and that we call it with the tag's "true" parent node.
-        let mut seen_tags: HashSet<TagId> = HashSet::new();
+        let mut seen_tags: FxHashSet<TagId> = FxHashSet::default();
         for node in self.nodes() {
             for tag in self.get_js_doc_tags(node) {
                 if !seen_tags.insert(tag) {

@@ -319,6 +319,7 @@ name = "graphql_js"
 version = "0.0.0"
 dependencies = [
  "indexmap",
+ "rustc-hash",
  "serde",
  "serde_json",
 ]
@@ -342,6 +343,7 @@ dependencies = [
  "oxc_span",
  "oxc_str",
  "oxc_syntax",
+ "rustc-hash",
  "schemars",
  "serde",
  "serde_json",
@@ -356,6 +358,7 @@ dependencies = [
  "libtest-mimic",
  "mimalloc",
  "notify",
+ "rustc-hash",
  "serde_json",
  "similar",
 ]

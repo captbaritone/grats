@@ -1,6 +1,6 @@
 //! Port of graphql-js `validation/rules/UniqueEnumValueNamesRule.ts`.
 
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 use crate::error::graphql_error::GraphQLError;
 use crate::language::ast::{EnumValueDefinitionNode, NameNode};
@@ -18,13 +18,13 @@ pub fn unique_enum_value_names_rule<'c, 'n>(
 ) -> Box<dyn ASTVisitor<'n> + 'c> {
     Box::new(UniqueEnumValueNamesRule {
         context,
-        known_value_names: HashMap::new(),
+        known_value_names: FxHashMap::default(),
     })
 }
 
 struct UniqueEnumValueNamesRule<'c, 'n> {
     context: &'c SDLValidationContext<'n>,
-    known_value_names: HashMap<&'n str, HashMap<&'n str, &'n NameNode>>,
+    known_value_names: FxHashMap<&'n str, FxHashMap<&'n str, &'n NameNode>>,
 }
 
 impl<'n> ASTVisitor<'n> for UniqueEnumValueNamesRule<'_, 'n> {

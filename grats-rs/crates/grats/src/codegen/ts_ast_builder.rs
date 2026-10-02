@@ -6,7 +6,6 @@
 //! Where the TypeScript printer's choices do survive formatting, such as how
 //! string literals are escaped, this reproduces them.
 
-use std::collections::HashMap;
 use std::fmt::Write;
 
 use graphql_js::js_value::Value;
@@ -17,6 +16,7 @@ use oxc_ast::builder::{AstBuilder, GetAstBuilder};
 use oxc_codegen::{Codegen, CodegenOptions, IndentChar};
 use oxc_span::{SPAN, SourceType};
 use oxc_syntax::number::ToJsString;
+use rustc_hash::FxHashMap;
 
 use crate::utils::path;
 
@@ -32,7 +32,7 @@ pub struct ImportSpecifier {
 /// methods.
 pub struct TsAstBuilder<'a> {
     builder: AstBuilder<'a>,
-    global_names: HashMap<String, usize>,
+    global_names: FxHashMap<String, usize>,
     import_statements: Vec<Statement<'a>>,
     imports: IndexMap<String, Vec<ImportSpecifier>>,
     helpers: Vec<Statement<'a>>,
@@ -66,7 +66,7 @@ impl<'a> TsAstBuilder<'a> {
     ) -> Self {
         TsAstBuilder {
             builder: AstBuilder::new(allocator),
-            global_names: HashMap::new(),
+            global_names: FxHashMap::default(),
             import_statements: Vec::new(),
             imports: IndexMap::new(),
             helpers: Vec::new(),

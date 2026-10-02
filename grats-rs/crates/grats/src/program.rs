@@ -34,7 +34,6 @@
 //!   aren't redirected to one copy.
 
 use std::cell::OnceCell;
-use std::collections::{HashMap, HashSet};
 use std::io;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
@@ -48,6 +47,7 @@ use oxc_resolver::{
     TsconfigOptions, TsconfigReferences,
 };
 use oxc_span::SourceType;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::files::{Files, ParsedFile};
 use crate::host::{FileKind, Host};
@@ -78,10 +78,10 @@ pub struct Program<'a> {
     source_files: Vec<Rc<ParsedFile<'a>>>,
     /// The path each module specifier resolved to, by the key of the file
     /// which imports it.
-    resolutions: HashMap<String, HashMap<String, Option<String>>>,
+    resolutions: FxHashMap<String, FxHashMap<String, Option<String>>>,
     /// The files which may declare each name in the global scope. Built the
     /// first time it's needed.
-    global_index: OnceCell<HashMap<String, Vec<Rc<ParsedFile<'a>>>>>,
+    global_index: OnceCell<FxHashMap<String, Vec<Rc<ParsedFile<'a>>>>>,
 }
 
 impl<'a> Program<'a> {
@@ -142,9 +142,9 @@ impl<'a> Program<'a> {
             .map_or(&[], Vec::as_slice)
     }
 
-    fn index_global_files(&self) -> HashMap<String, Vec<Rc<ParsedFile<'a>>>> {
-        let mut index: HashMap<String, Vec<Rc<ParsedFile<'a>>>> = HashMap::new();
-        let mut add = |file: &Rc<ParsedFile<'a>>, names: HashSet<&str>| {
+    fn index_global_files(&self) -> FxHashMap<String, Vec<Rc<ParsedFile<'a>>>> {
+        let mut index: FxHashMap<String, Vec<Rc<ParsedFile<'a>>>> = FxHashMap::default();
+        let mut add = |file: &Rc<ParsedFile<'a>>, names: FxHashSet<&str>| {
             for name in names {
                 index
                     .entry(name.to_string())
@@ -175,8 +175,8 @@ impl<'a> Program<'a> {
 }
 
 /// The names which `statements` declare in their scope.
-fn declared_names<'s>(statements: &'s [Statement]) -> HashSet<&'s str> {
-    let mut names = HashSet::new();
+fn declared_names<'s>(statements: &'s [Statement]) -> FxHashSet<&'s str> {
+    let mut names = FxHashSet::default();
     for statement in statements {
         let declaration = match statement {
             Statement::ExportDeclaration(export) => &export.declaration,
@@ -236,11 +236,11 @@ struct Builder<'p, 'a> {
     options: &'p ProgramOptions,
     resolvers: Resolvers,
     /// The keys of the files the walk has come across.
-    visited: HashSet<String>,
+    visited: FxHashSet<String>,
     source_files: Vec<Rc<ParsedFile<'a>>>,
-    resolutions: HashMap<String, HashMap<String, Option<String>>>,
+    resolutions: FxHashMap<String, FxHashMap<String, Option<String>>>,
     /// By the containing directory, specifier and mode.
-    module_resolutions: HashMap<(String, String, Mode), Option<String>>,
+    module_resolutions: FxHashMap<(String, String, Mode), Option<String>>,
 }
 
 impl<'p, 'a> Builder<'p, 'a> {
@@ -249,10 +249,10 @@ impl<'p, 'a> Builder<'p, 'a> {
             files,
             resolvers: Resolvers::new(host, options),
             options,
-            visited: HashSet::new(),
+            visited: FxHashSet::default(),
             source_files: Vec::new(),
-            resolutions: HashMap::new(),
-            module_resolutions: HashMap::new(),
+            resolutions: FxHashMap::default(),
+            module_resolutions: FxHashMap::default(),
         }
     }
 
