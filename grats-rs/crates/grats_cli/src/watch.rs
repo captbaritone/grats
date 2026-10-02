@@ -190,6 +190,15 @@ impl Host for RecordingHost {
         self.record(Question::ReadFile(path.to_string()), answer)
     }
 
+    fn read_files(&self, paths: &[String]) -> Vec<Option<String>> {
+        let answers = self.inner.read_files(paths);
+        paths
+            .iter()
+            .zip(answers)
+            .map(|(path, answer)| self.record(Question::ReadFile(path.clone()), answer))
+            .collect()
+    }
+
     fn stat(&self, path: &str, follow_links: bool) -> Option<FileKind> {
         let answer = self.inner.stat(path, follow_links);
         self.record(Question::Stat(path.to_string(), follow_links), answer)

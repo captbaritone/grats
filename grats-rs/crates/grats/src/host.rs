@@ -9,6 +9,12 @@ pub trait Host: Send + Sync {
     /// The text of the file at `path`, or `None` if it can't be read.
     fn read_file(&self, path: &str) -> Option<String>;
 
+    /// The texts of the files at `paths`, in order, like `read_file`. Hosts
+    /// may read them in parallel.
+    fn read_files(&self, paths: &[String]) -> Vec<Option<String>> {
+        paths.iter().map(|path| self.read_file(path)).collect()
+    }
+
     /// What kind of entry is at `path`, if any. Symbolic links are followed
     /// if `follow_links`.
     fn stat(&self, path: &str, follow_links: bool) -> Option<FileKind>;

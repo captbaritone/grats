@@ -4,7 +4,7 @@
 //! resolver. Semantic analysis only runs on the files that need it.
 
 use std::cell::{OnceCell, RefCell};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
 use oxc_allocator::Allocator;
@@ -30,6 +30,9 @@ pub struct Files<'a> {
     files: RefCell<HashMap<String, Option<Rc<ParsedFile<'a>>>>>,
     /// The paths of the sources of the files loaded so far.
     source_paths: RefCell<HashMap<u32, String>>,
+    /// The texts of files read ahead of being loaded (see `read_ahead`), by
+    /// their key.
+    read_ahead: RefCell<HashMap<String, Option<String>>>,
 }
 
 pub struct ParsedFile<'a> {
@@ -74,6 +77,7 @@ impl<'a> Files<'a> {
             use_case_sensitive_file_names,
             files: RefCell::new(HashMap::new()),
             source_paths: RefCell::new(HashMap::new()),
+            read_ahead: RefCell::new(HashMap::new()),
         }
     }
 
@@ -105,6 +109,29 @@ impl<'a> Files<'a> {
         self.files.borrow().contains_key(&self.key(path))
     }
 
+    /// Reads the files at `paths` all at once, which the host may do in
+    /// parallel, so that loading them later doesn't wait on the file system.
+    pub fn read_ahead(&self, paths: &[String]) {
+        let paths: Vec<String> = {
+            let files = self.files.borrow();
+            let read_ahead = self.read_ahead.borrow();
+            let mut keys = HashSet::new();
+            paths
+                .iter()
+                .filter(|path| {
+                    let key = self.key(path);
+                    !files.contains_key(&key) && !read_ahead.contains_key(&key) && keys.insert(key)
+                })
+                .cloned()
+                .collect()
+        };
+        let texts = self.host.read_files(&paths);
+        let mut read_ahead = self.read_ahead.borrow_mut();
+        for (path, text) in paths.iter().zip(texts) {
+            read_ahead.insert(self.key(path), text);
+        }
+    }
+
     /// Reads and parses the file at `path`, unless it has already been
     /// loaded. `is_module` decides whether the file is a module from its
     /// syntax.
@@ -117,7 +144,9 @@ impl<'a> Files<'a> {
         if let Some(file) = self.files.borrow().get(&key) {
             return file.clone();
         }
-        let file = self.host.read_file(path).map(|text| {
+        let read_ahead = self.read_ahead.borrow_mut().remove(&key);
+        let text = read_ahead.unwrap_or_else(|| self.host.read_file(path));
+        let file = text.map(|text| {
             let source = self.sources.add(path, &text);
             self.source_paths
                 .borrow_mut()
