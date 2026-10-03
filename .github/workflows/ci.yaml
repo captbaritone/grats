@@ -52,6 +52,8 @@ jobs:
         run: pnpm run --filter="!website" -r build
       - name: Test Example Projects
         run: pnpm run test-example-projects
+      - name: Test tsconfig compatibility # Runs `tsc` over each combination
+        run: pnpm run test-tsconfig-compat
       - name: Build Docs Website
         working-directory: ./website
         run: ./scripts/build.sh

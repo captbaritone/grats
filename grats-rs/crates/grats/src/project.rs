@@ -28,7 +28,10 @@ use serde_json::Value;
 use crate::errors::ts_config_not_found;
 use crate::grats_config::{GratsConfig, validate_grats_options};
 use crate::host::{FileKind, Host};
+use crate::json_spans;
 use crate::program::{HostFileSystem, ProgramOptions};
+use crate::source_table::SourceTable;
+use crate::tsconfig_compat::{self, TsConfigSource};
 use crate::utils::diagnostic_error::{DiagnosticsResult, locationless_err};
 use crate::utils::path;
 
@@ -61,6 +64,7 @@ pub fn load_project(
     config_path: Option<&str>,
     use_case_sensitive_file_names: bool,
     host: Arc<dyn Host>,
+    sources: &SourceTable,
 ) -> DiagnosticsResult<Project> {
     let config_path = match config_path {
         Some(config_path) => config_path.to_string(),
@@ -101,6 +105,23 @@ pub fn load_project(
     });
     let validated = validate_grats_options(raw.as_ref().and_then(|raw| raw.get("grats")))
         .map_err(|message| vec![locationless_err(message)])?;
+
+    // Reject a Grats config which TypeScript won't accept, before every build
+    // writes a schema module which doesn't type check.
+    if let Some(text) = host.read_file(&tsconfig_path) {
+        let spans = json_spans::scan(&text);
+        let ts_source = TsConfigSource {
+            path: &tsconfig_path,
+            text: &text,
+            source: sources.add(&tsconfig_path, &text),
+            spans: &spans,
+        };
+        let module = tsconfig.compiler_options.module.as_deref();
+        let diagnostics = tsconfig_compat::check(&validated.config, &ts_source, &*host, module);
+        if !diagnostics.is_empty() {
+            return Err(diagnostics);
+        }
+    }
 
     // Like `getAllowJSCompilerOption`.
     let options = &tsconfig.compiler_options;
