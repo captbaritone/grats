@@ -242,6 +242,25 @@ fn test_fixture(
 
     let transform_result = transformer(&fixture_content, &fixture_path);
     let actual_has_error = transform_result.is_err();
+
+    // What Grats generates must not depend on how the file's lines happen to
+    // end, or a project shared between Windows and Unix regenerates a
+    // different schema on each machine. Only successful runs are compared:
+    // a diagnostic quotes the source, so its output carries whatever line
+    // endings the source had.
+    if let Ok(expected) = &transform_result {
+        let crlf_content = fixture_content.replace('\n', "\r\n");
+        if crlf_content != fixture_content
+            && let Ok(from_crlf) = transformer(&crlf_content, &fixture_path)
+        {
+            assert_eq!(
+                from_crlf.to_string(),
+                expected.to_string(),
+                "{fixture} generates different output from CRLF input than from LF input"
+            );
+        }
+    }
+
     let actual_output = transform_result.unwrap_or_else(|err| err);
 
     let file_type = fixture.rsplit('.').next().unwrap_or("");
@@ -496,7 +515,7 @@ fn transform_schema(code: &str, fixture_path: &str) -> TransformerResult {
         .config;
 
     let grats_root = grats_root();
-    let host = Arc::new(FixtureHost::new());
+    let host = Arc::new(FixtureHost::with_file(fixture_path, code));
     let sources = SourceTable::default();
     let program = program_options(fixture_path);
     let output_paths = OutputPaths {
@@ -682,6 +701,19 @@ impl FixtureHost {
             current_directory: repo_root(),
             written: Mutex::new(HashMap::new()),
         }
+    }
+
+    /// A host which serves `path` from `content` rather than from disk, so a
+    /// transformer reads the text it was handed. Without this a fixture's
+    /// content is read back off disk, and a transformer given modified text
+    /// would silently extract from the file instead.
+    fn with_file(path: &str, content: &str) -> Self {
+        let host = FixtureHost::new();
+        host.written
+            .lock()
+            .expect("Expected the lock")
+            .insert(path.to_string(), content.to_string());
+        host
     }
 }
 
