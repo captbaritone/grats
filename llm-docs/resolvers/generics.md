@@ -108,6 +108,53 @@ type User = {
 };
 ```
 
+## Functional fields
+
+A [functional field](../docblock-tags/fields.md#functional-style-fields) on a generic type may be generic too. Its type parameters stand for the type arguments it passes to the type it extends: in `first<T>(page: Page<T>)`, `T` is whatever `Page` was given. The field is added to each type materialized from `Page`, just as if it were a method declared on `Page` itself. The same goes for a static method used as a field.
+
+```tsx
+/** @gqlType */
+type Page<T> = {
+  /** @gqlField */
+  items: T[];
+};
+
+/** @gqlField */
+export function first<T>(page: Page<T>): T | null {
+  return page.items[0] ?? null;
+}
+
+/** @gqlType */
+type User = {
+  /** @gqlField */
+  name: string;
+};
+
+/** @gqlQueryField */
+export function users(): Page<User> {
+  return { items: [] };
+}
+```
+
+_Generated GraphQL schema:_
+
+```graphql
+type Query {
+  users: UserPage
+}
+
+type User {
+  name: String
+}
+
+type UserPage {
+  first: User
+  items: [User!]
+}
+```
+
+A type parameter of a functional field must be passed to one of the extended type's GraphQL type parameters; otherwise nothing says what it stands for, and Grats reports an error where it's used.
+
 ## Limitations
 
 There are some limitations to how generics can be used in Grats:
