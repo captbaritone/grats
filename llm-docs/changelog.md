@@ -51,6 +51,7 @@ If any of these changes cause problems for your project, please [file an issue](
     -   The fix which replaces `@specifiedBy` with `@gqlAnnotate` now escapes quotes and backslashes in the URL, and no longer joins the closing `*/` onto the tag's line.
     -   Projects without any GraphQL types now get an error explaining how to define one, rather than an empty schema. Grats always meant to report this, but the check never fired.
     -   Two different generic type instantiations which Grats would give the same name, like `Pair<AB, C>` and `Pair<A, BC>` (both `ABCPair`), are now reported as an error. Previously, one silently used the other's type.
+    -   Functional fields and static methods used as fields may now be generic, as in `function first<T>(page: Page<T>): T`. Each is added to every type materialized from the generic type it extends, like a method declared on that type. Previously, their type parameters were reported as invalid. ([#135](https://github.com/captbaritone/grats/issues/135))
     -   Generic types which pass their type parameter to another generic type after a concrete type argument, like `pair: Pair<User, T>`, are now supported. Previously, they were reported as an invalid type parameter.
     -   Generic types which reference themselves with more deeply nested type arguments, like `children: Tree<Tree<T>>`, are now reported as an error. Previously, Grats crashed.
     -   Errors in generic types are now reported once, rather than once for each combination of type arguments the type is used with.
