@@ -71,6 +71,19 @@ importers:
         specifier: ^5.5.4
         version: 5.5.4
 
+  examples/deno:
+    dependencies:
+      graphql:
+        specifier: ^16.11.0
+        version: 16.11.0
+      graphql-http:
+        specifier: ^1.22.1
+        version: 1.23.1(graphql@16.11.0)
+    devDependencies:
+      grats:
+        specifier: workspace:*
+        version: link:../..
+
   examples/express-graphql-http:
     dependencies:
       '@types/express':
@@ -4733,6 +4746,12 @@ packages:
     engines: {node: '>=12'}
     peerDependencies:
       graphql: '>=0.11 <=16'
+
+  graphql-http@1.23.1:
+    resolution: {integrity: sha512-h6AcykL7+xp22QvOnK0fu1eHk9AZG1ngF71rk0ZGuGupnjm1yqXRFrZ/eMv4Q1FTCWILJ5o6hVAxzt3S8/wPHQ==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      graphql: '>=0.11 <=17'
 
   graphql-relay@0.10.0:
     resolution: {integrity: sha512-44yBuw2/DLNEiMypbNZBt1yMDbBmyVPVesPywnteGGALiBmdyy1JP8jSg8ClLePg8ZZxk0O4BLhd1a6U/1jDOQ==}
@@ -13316,6 +13335,10 @@ snapshots:
   graphql-http@1.22.0(graphql@16.8.1):
     dependencies:
       graphql: 16.8.1
+
+  graphql-http@1.23.1(graphql@16.11.0):
+    dependencies:
+      graphql: 16.11.0
 
   graphql-relay@0.10.0(graphql@16.11.0):
     dependencies:

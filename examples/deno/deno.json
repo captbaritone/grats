@@ -1,0 +1,7 @@
+{
+  "lock": false,
+  "tasks": {
+    "grats": "deno run -A npm:grats",
+    "start": "deno run -A server.ts"
+  }
+}

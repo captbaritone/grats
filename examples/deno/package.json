@@ -1,0 +1,33 @@
+{
+  "name": "grats-example-deno",
+  "version": "0.0.0",
+  "description": "Example server showcasing Grats used with Deno",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "deno run -A server.ts",
+    "grats": "grats"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/captbaritone/grats.git"
+  },
+  "keywords": [
+    "graphql",
+    "grats",
+    "deno",
+    "typescript"
+  ],
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/captbaritone/grats/issues"
+  },
+  "homepage": "https://github.com/captbaritone/grats#readme",
+  "dependencies": {
+    "graphql": "^16.11.0",
+    "graphql-http": "^1.22.1"
+  },
+  "devDependencies": {
+    "grats": "workspace:*"
+  }
+}

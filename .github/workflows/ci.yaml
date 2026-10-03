@@ -28,6 +28,10 @@ jobs:
       - name: Install Rust # Builds Grats (grats-rs/) natively, and for the website
         working-directory: ./grats-rs
         run: rustup toolchain install
+      - name: Install Deno # Runs the Deno example in `test-example-projects`
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
       - name: Install dependencies
         run: pnpm install
       - name: Build

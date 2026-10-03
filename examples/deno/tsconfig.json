@@ -1,0 +1,15 @@
+{
+  "grats": {
+    "nullableByDefault": false,
+    "importModuleSpecifierEnding": ".ts"
+  },
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "esnext",
+    "lib": ["esnext"],
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["models", "server.ts"]
+}
