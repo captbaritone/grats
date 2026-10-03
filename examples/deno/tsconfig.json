@@ -9,7 +9,11 @@
     "target": "esnext",
     "lib": ["esnext"],
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    // Deno loads the TypeScript directly, so imports name `.ts` files and
+    // nothing is emitted.
+    "allowImportingTsExtensions": true,
+    "noEmit": true
   },
   "include": ["models", "server.ts"]
 }
