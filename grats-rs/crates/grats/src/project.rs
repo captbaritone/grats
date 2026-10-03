@@ -99,7 +99,8 @@ pub fn load_project(
             let mut path = vec!["grats"];
             path.extend(error.path.iter().map(String::as_str));
             vec![located_err(
-                file.as_ref().and_then(|file| file.locate(&path, error.part)),
+                file.as_ref()
+                    .and_then(|file| file.locate(&path, error.part)),
                 error.message,
             )]
         })?;

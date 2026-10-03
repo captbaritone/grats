@@ -17,6 +17,7 @@
   "scripts": {
     "test": "tsx src/tests/test.ts",
     "test-example-projects": "node src/tests/testExampleProjects.mjs",
+    "test-tsconfig-compat": "node src/tests/testTsConfigCompat.mjs",
     "build": "pnpm run build:binary && pnpm run build:js",
     "build:binary": "tsx scripts/buildBinary.ts",
     "build:js": "rm -rf dist/ && tsc --build",
