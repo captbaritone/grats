@@ -287,6 +287,7 @@ impl Cli {
             tsconfig.as_deref(),
             self.use_case_sensitive_file_names,
             Arc::clone(&self.host),
+            &self.sources,
         )?;
         for warning in &project.warnings {
             self.host.log_error(warning);
