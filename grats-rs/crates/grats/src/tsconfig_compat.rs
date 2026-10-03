@@ -68,7 +68,14 @@ pub fn check(
     {
         diagnostics.push(missing_extension(ts, mode));
     }
-    if ending == ".ts" && flag(host, ts.path, "allowImportingTsExtensions") == Flag::Off {
+    // Either option lets TypeScript accept a `.ts` specifier:
+    // `allowImportingTsExtensions` permits it outright, and
+    // `rewriteRelativeImportExtensions` permits it and rewrites it to `.js`
+    // on emit. An option whose value can't be determined is left alone.
+    if ending == ".ts"
+        && flag(host, ts.path, "allowImportingTsExtensions") == Flag::Off
+        && flag(host, ts.path, "rewriteRelativeImportExtensions") == Flag::Off
+    {
         diagnostics.push(ts_extension_not_allowed(ts, host));
     }
     diagnostics
@@ -205,28 +212,29 @@ fn missing_extension(ts: &TsConfigSource, mode: &str) -> Diagnostic {
 /// TS5097.
 fn ts_extension_not_allowed(ts: &TsConfigSource, host: &dyn Host) -> Diagnostic {
     // `allowImportingTsExtensions` is itself only allowed when the project
-    // doesn't emit (TS5096), so offering to set it would trade one error for
-    // another unless the project already satisfies that.
-    let emit_is_off = [
-        "noEmit",
-        "emitDeclarationOnly",
-        "rewriteRelativeImportExtensions",
-    ]
-    .iter()
-    .any(|key| flag(host, ts.path, key) == Flag::On);
-    let message = if emit_is_off {
-        "Grats will write imports ending in `.ts`, which TypeScript only accepts when `allowImportingTsExtensions` is enabled.".to_string()
+    // doesn't emit (TS5096), so for a project which does emit the option to
+    // reach for is `rewriteRelativeImportExtensions`, which carries no such
+    // requirement and rewrites the `.ts` to `.js` on the way out.
+    let emits = !["noEmit", "emitDeclarationOnly"]
+        .iter()
+        .any(|key| flag(host, ts.path, key) == Flag::On);
+    let option = if emits {
+        "rewriteRelativeImportExtensions"
     } else {
-        "Grats will write imports ending in `.ts`, which TypeScript only accepts when `allowImportingTsExtensions` is enabled. That option in turn requires either `noEmit`, `emitDeclarationOnly`, or `rewriteRelativeImportExtensions`. Enable `rewriteRelativeImportExtensions` to keep writing `.ts` and have TypeScript rewrite it to `.js` on emit, or set the Grats config option `importModuleSpecifierEnding` to `\".js\"`.".to_string()
+        "allowImportingTsExtensions"
+    };
+    let detail = if emits {
+        " Enabling `rewriteRelativeImportExtensions` keeps the `.ts` in your source and has TypeScript rewrite it to `.js` on emit. `allowImportingTsExtensions` would also do, but only for a project which doesn't emit."
+    } else {
+        ""
     };
     Diagnostic {
-        message_text: message,
+        message_text: format!(
+            "Grats will write imports ending in `.ts`, which TypeScript only accepts when `allowImportingTsExtensions` or `rewriteRelativeImportExtensions` is enabled.{detail}"
+        ),
         loc: grats_option_loc(ts, "importModuleSpecifierEnding"),
         related_information: related(ts, &["compilerOptions"], "TypeScript is configured here"),
-        fix: emit_is_off
-            .then(|| set_compiler_option(ts, "allowImportingTsExtensions", "true"))
-            .flatten()
-            .map(Box::new),
+        fix: set_compiler_option(ts, option, "true").map(Box::new),
     }
 }
 
@@ -288,7 +296,7 @@ fn set_compiler_option(ts: &TsConfigSource, key: &str, value: &str) -> Option<Co
         .spans
         .set_member(ts.text, &["compilerOptions"], key, value)?;
     Some(CodeFixAction {
-        fix_name: "allowImportingTsExtensions".to_string(),
+        fix_name: format!("set {key}"),
         description: format!("Set the TypeScript compiler option `{key}` to `{value}`"),
         changes: vec![FileTextChanges {
             file_name: ts.path.to_string(),
