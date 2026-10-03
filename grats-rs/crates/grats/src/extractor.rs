@@ -55,7 +55,7 @@ use crate::utils::diagnostic_error::{
     CodeFixAction, Diagnostic, DiagnosticRelatedInformation, DiagnosticsResult, TsLocatableNode,
     gql_err, ts_err, ts_related,
 };
-use crate::utils::helpers::{levenshtein_distance, unique_id};
+use crate::utils::helpers::{levenshtein_distance, normalize_newlines, unique_id};
 use crate::utils::path;
 use crate::utils::result::ok_unless_errors;
 
@@ -351,7 +351,8 @@ impl<'f, 'a> Extractor<'f, 'a> {
                 }
                 "specifiedBy" => {
                     let tag_data = jsdoc.tag(tag);
-                    let url = template_string(tag_data.comment.as_ref());
+                    let url = normalize_newlines(&template_string(tag_data.comment.as_ref()))
+                        .into_owned();
                     // The tag through its comment, leaving the whitespace (or
                     // `*/`) after it.
                     let end = tag_data
@@ -1210,7 +1211,9 @@ impl<'f, 'a> Extractor<'f, 'a> {
         if let Some(tag) = self.find_tag(node, DEPRECATED_TAG) {
             let tag_data = self.jsdoc.tag(tag);
             let reason = tag_data.comment_span.and_then(|comment_span| {
-                let reason = get_text_of_js_doc_comment(tag_data.comment.as_ref())?;
+                let reason =
+                    normalize_newlines(&get_text_of_js_doc_comment(tag_data.comment.as_ref())?)
+                        .into_owned();
                 let tag_node = self.locatable(self.tag_span(tag));
                 Some(gql::const_argument(
                     tag_node,
@@ -2881,6 +2884,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         let tag_data = jsdoc.tag(tag);
         if let Some(loc_node) = tag_data.comment_span
             && let Some(comment_name) = get_text_of_js_doc_comment(tag_data.comment.as_ref())
+                .map(|text| normalize_newlines(&text).into_owned())
         {
             let has_leading_newlines = self
                 .text(Span::new(tag_data.tag_name.end, loc_node.start))
@@ -3164,6 +3168,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
             })
             .collect();
 
+        let comment = normalize_newlines(&comment);
         (!comment.is_empty()).then(|| {
             gql::string(
                 self.locatable(self.node_span(node)),
