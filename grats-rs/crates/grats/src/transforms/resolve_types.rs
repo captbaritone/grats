@@ -35,6 +35,14 @@ const CHECKED: &str = "References are checked before types are materialized";
 ///    for each type materialized from a template.
 /// 3. Replace each reference with the name of the type it resolves to,
 ///    materializing templates as they're referenced.
+///
+/// A functional field may be generic too, as in
+/// `function first<T>(page: Page<T>): T`. Grats represents it as an extension
+/// of `Page<T>`, whose type arguments say what each of the function's type
+/// parameters stands for: here, its `T` is whatever `Page` was given. So such
+/// an extension isn't resolved on its own, but alongside each type
+/// materialized from the template it extends, exactly like a method declared
+/// on the template itself.
 pub fn resolve_types(
     ctx: &TypeContext,
     mut definitions: Vec<DefinitionNode>,
@@ -51,18 +59,27 @@ pub fn resolve_types(
         .collect();
 
     let generics = Generics::new(ctx, &definitions, &references);
+    let generic_extensions: Vec<Option<GenericExtension>> = definitions
+        .iter()
+        .map(|definition| generic_extension(ctx, &generics, definition))
+        .collect();
 
     let checker = Checker {
         ctx,
         generics: &generics,
     };
     let mut errors = Vec::new();
-    for ((definition, references), candidate) in definitions
+    for (((definition, references), candidate), extension) in definitions
         .iter()
         .zip(&references)
         .zip(&generics.definitions)
+        .zip(&generic_extensions)
     {
-        checker.check_definition(definition, *candidate, references, &mut errors);
+        let bound: Vec<DeclLoc> = extension
+            .iter()
+            .flat_map(|extension| extension.bindings.iter().map(|(param, _)| param.clone()))
+            .collect();
+        checker.check_definition(definition, *candidate, references, &bound, &mut errors);
     }
     errors.extend(generics.infinite_expansions());
     if !errors.is_empty() {
@@ -70,12 +87,22 @@ pub fn resolve_types(
     }
 
     let mut templates = FxHashMap::default();
+    let mut extensions: FxHashMap<usize, Vec<(DefinitionNode, GenericExtension)>> =
+        FxHashMap::default();
     let mut concrete = Vec::new();
-    for (definition, candidate) in definitions.into_iter().zip(&generics.definitions) {
-        match candidate {
-            Some(candidate) if generics.is_template(*candidate) => {
+    for ((definition, candidate), extension) in definitions
+        .into_iter()
+        .zip(&generics.definitions)
+        .zip(generic_extensions)
+    {
+        match (candidate, extension) {
+            (Some(candidate), _) if generics.is_template(*candidate) => {
                 templates.insert(*candidate, definition);
             }
+            (_, Some(extension)) => extensions
+                .entry(extension.template)
+                .or_default()
+                .push((definition, extension)),
             _ => concrete.push(definition),
         }
     }
@@ -84,6 +111,7 @@ pub fn resolve_types(
         ctx,
         generics: &generics,
         templates: &templates,
+        extensions: &extensions,
         instantiations: FxHashMap::default(),
         definitions: Vec::new(),
         errors: Vec::new(),
@@ -100,6 +128,55 @@ pub fn resolve_types(
         return Err(materializer.errors);
     }
     Ok(materializer.definitions)
+}
+
+/// An extension of a template which binds type parameters of its own, as a
+/// generic functional field's does: `function first<T>(page: Page<T>): T`
+/// extends `Page<T>`, binding the function's `T` to `Page`'s first type
+/// argument.
+struct GenericExtension {
+    /// The template it extends.
+    template: usize,
+    /// Each type parameter it binds, and the index of the template's type
+    /// parameter it's bound to.
+    bindings: Vec<(DeclLoc, usize)>,
+}
+
+/// The extension's bindings, if it extends a template by passing type
+/// parameters of its own as type arguments.
+///
+/// Only type arguments the template uses in a GraphQL position are bound,
+/// since a template is materialized for those alone. A type parameter passed
+/// to any other is left unbound, and reported where it's used, as before.
+fn generic_extension(
+    ctx: &TypeContext,
+    generics: &Generics,
+    definition: &DefinitionNode,
+) -> Option<GenericExtension> {
+    let name = match definition {
+        DefinitionNode::ObjectTypeExtension(definition) => &definition.name,
+        DefinitionNode::InterfaceTypeExtension(definition) => &definition.name,
+        _ => return None,
+    };
+    let reference = ctx.get_entity_name(name)?;
+    let declaration = ctx.resolve_entity_name(reference.name).ok()?;
+    let template = generics.template(&declaration)?;
+    let bindings: Vec<(DeclLoc, usize)> = reference
+        .type_arguments
+        .iter()
+        .flatten()
+        .enumerate()
+        .filter(|(index, _)| generics.uses[template][*index].is_some())
+        .filter_map(|(index, argument)| {
+            let TypeArgumentRef::EntityName(argument) = argument else {
+                return None;
+            };
+            let declaration = ctx.resolve_entity_name(argument.name).ok()?;
+            (declaration.kind == ResolvedDeclarationKind::TypeParameter)
+                .then_some((declaration.decl_loc, index))
+        })
+        .collect();
+    (!bindings.is_empty()).then_some(GenericExtension { template, bindings })
 }
 
 /// The definitions which may be generic: those which may reference generics,
@@ -364,10 +441,11 @@ impl Checker<'_> {
         definition: &DefinitionNode,
         candidate: Option<usize>,
         references: &[&EntityNameRef],
+        bound: &[DeclLoc],
         errors: &mut Vec<Diagnostic>,
     ) {
         for reference in references {
-            if let Err(error) = self.check(reference, candidate) {
+            if let Err(error) = self.check(reference, candidate, bound) {
                 errors.push(error);
             }
         }
@@ -384,9 +462,20 @@ impl Checker<'_> {
         }
     }
 
-    /// Checks a reference within the definition of `candidate`, if it is one.
-    fn check(&self, reference: &EntityNameRef, candidate: Option<usize>) -> DiagnosticResult<()> {
+    /// Checks a reference within the definition of `candidate`, if it is one,
+    /// where the type parameters in `bound` are bound by a generic extension.
+    fn check(
+        &self,
+        reference: &EntityNameRef,
+        candidate: Option<usize>,
+        bound: &[DeclLoc],
+    ) -> DiagnosticResult<()> {
         let declaration = self.ctx.resolve_entity_name(reference.name)?;
+        if declaration.kind == ResolvedDeclarationKind::TypeParameter
+            && bound.contains(&declaration.decl_loc)
+        {
+            return Ok(());
+        }
         if let Some(candidate) = candidate
             && self.generics.candidates[candidate]
                 .param_index(&declaration)
@@ -435,7 +524,9 @@ impl Checker<'_> {
                         Some(related()),
                     ));
                 }
-                Some(TypeArgumentRef::EntityName(argument)) => self.check(argument, candidate)?,
+                Some(TypeArgumentRef::EntityName(argument)) => {
+                    self.check(argument, candidate, bound)?
+                }
             }
         }
         Ok(())
@@ -454,6 +545,8 @@ struct Materializer<'a> {
     ctx: &'a TypeContext<'a>,
     generics: &'a Generics,
     templates: &'a FxHashMap<usize, DefinitionNode>,
+    /// The generic extensions of each template, materialized with it.
+    extensions: &'a FxHashMap<usize, Vec<(DefinitionNode, GenericExtension)>>,
     /// The instantiation each materialized type's name was derived for.
     instantiations: FxHashMap<String, Instantiation>,
     definitions: Vec<DefinitionNode>,
@@ -554,6 +647,27 @@ impl Materializer<'_> {
             }
         });
         self.definitions.push(definition);
+
+        // Its generic extensions, with their own type parameters standing for
+        // the type arguments they were bound to. Each one's name resolves to
+        // this instantiation, which is already recorded, so it extends the
+        // type just materialized.
+        let type_arguments = &self.instantiations[&derived_name].type_arguments.clone();
+        let extensions = self.extensions;
+        for (extension, generic) in extensions.get(&template).into_iter().flatten() {
+            let scope: FxHashMap<DeclLoc, String> = generic
+                .bindings
+                .iter()
+                .filter_map(|(param, index)| Some((param.clone(), type_arguments[*index].clone()?)))
+                .collect();
+            let mut extension = extension.clone();
+            for_each_type_name(&mut extension, &mut |name| {
+                if let Some(reference) = ctx.get_entity_name(name) {
+                    name.value = self.resolve(reference, &scope);
+                }
+            });
+            self.definitions.push(extension);
+        }
         derived_name
     }
 }
