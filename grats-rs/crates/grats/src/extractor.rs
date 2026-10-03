@@ -3375,7 +3375,7 @@ impl<'f, 'a> Extractor<'f, 'a> {
         if ctx == FieldTypeContext::Input && matches!(type_name, "AsyncIterable" | "Promise") {
             self.report(
                 node.span,
-                format!("`{type_name}` is not a valid as an input type."),
+                format!("`{type_name}` is not valid as an input type."),
             );
             return None;
         }

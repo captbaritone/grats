@@ -17,7 +17,7 @@ export function greeting<T>(_: Query): T {
 ### Error Report
 
 ```text
-src/tests/fixtures/generics/referencingMethodGeneric.invalid.ts:5:40 - error: Type parameter not valid
+src/tests/fixtures/generics/referencingMethodGeneric.invalid.ts:5:40 - error: Unexpected type parameter in a GraphQL position. Grats needs a concrete GraphQL type here, and a type parameter is only known at each use site.
 
 5 export function greeting<T>(_: Query): T {
                                          ~

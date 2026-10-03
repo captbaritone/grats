@@ -22,7 +22,7 @@ export interface IPerson {
 ### Error Report
 
 ```text
-src/tests/fixtures/typename/PropertySignatureTypenameNonLiteralType.invalid.ts:3:15 - error: Expected `__typename` property signature to specify the typename as a string literal string type. For example `__typename: "User";`. This is needed to ensure Grats can determine the type of this object during GraphQL execution.
+src/tests/fixtures/typename/PropertySignatureTypenameNonLiteralType.invalid.ts:3:15 - error: Expected `__typename` property signature to specify the typename as a string literal type. For example `__typename: "User";`. This is needed to ensure Grats can determine the type of this object during GraphQL execution.
 
 3   __typename: string;
                 ~~~~~~

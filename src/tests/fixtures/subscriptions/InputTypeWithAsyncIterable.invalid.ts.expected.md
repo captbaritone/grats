@@ -14,7 +14,7 @@ export type NotSubscription = {
 ### Error Report
 
 ```text
-src/tests/fixtures/subscriptions/InputTypeWithAsyncIterable.invalid.ts:3:14 - error: `AsyncIterable` is not a valid as an input type.
+src/tests/fixtures/subscriptions/InputTypeWithAsyncIterable.invalid.ts:3:14 - error: `AsyncIterable` is not valid as an input type.
 
 3   greetings: AsyncIterable<string>;
                ~~~~~~~~~~~~~~~~~~~~~

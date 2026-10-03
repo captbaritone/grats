@@ -112,19 +112,19 @@ pub fn invalid_return_type_for_function_field() -> String {
 
 pub fn function_field_not_top_level() -> String {
     format!(
-        "Expected `@{FIELD_TAG}` function to be a top-level declaration. Grats needs to import resolver functions into its generated schema module, so the resolver function must be an exported."
+        "Expected `@{FIELD_TAG}` function to be a top-level declaration. Grats needs to import resolver functions into its generated schema module, so the resolver function must be exported."
     )
 }
 
 pub fn static_method_class_not_top_level() -> String {
     format!(
-        "Expected class with a static `@{FIELD_TAG}` method to be a top-level declaration. Grats needs to import resolver methods into its generated schema module, so the resolver's class must be an exported."
+        "Expected class with a static `@{FIELD_TAG}` method to be a top-level declaration. Grats needs to import resolver methods into its generated schema module, so the resolver's class must be exported."
     )
 }
 
 pub fn static_method_field_class_not_exported() -> String {
     format!(
-        "Expected `@{FIELD_TAG}` static method's class to be exported. Grats needs to import resolvers into its generated schema module, so the resolver class must be an exported."
+        "Expected `@{FIELD_TAG}` static method's class to be exported. Grats needs to import resolvers into its generated schema module, so the resolver class must be exported."
     )
 }
 
@@ -204,7 +204,7 @@ fn type_name_property_example(expected_name: &str) -> String {
 
 pub fn type_name_missing_initializer() -> String {
     format!(
-        "Expected `__typename` property to have an initializer or a string literal type.  {TYPENAME_CONTEXT}"
+        "Expected `__typename` property to have an initializer or a string literal type. {TYPENAME_CONTEXT}"
     )
 }
 
@@ -251,13 +251,13 @@ pub fn type_name_initializer_wrong(expected: &str, actual: &str) -> String {
 
 pub fn type_name_missing_type_annotation(expected: &str) -> String {
     format!(
-        "Expected `__typename` property signature to specify the typename as a string literal string type. For example `__typename: \"{expected}\";`. {TYPENAME_CONTEXT}"
+        "Expected `__typename` property signature to specify the typename as a string literal type. For example `__typename: \"{expected}\";`. {TYPENAME_CONTEXT}"
     )
 }
 
 pub fn type_name_type_not_string_literal(expected: &str) -> String {
     format!(
-        "Expected `__typename` property signature to specify the typename as a string literal string type. For example `__typename: \"{expected}\";`. {TYPENAME_CONTEXT}"
+        "Expected `__typename` property signature to specify the typename as a string literal type. For example `__typename: \"{expected}\";`. {TYPENAME_CONTEXT}"
     )
 }
 
@@ -383,7 +383,7 @@ pub fn default_value_is_not_literal() -> String {
 }
 
 pub fn default_arg_element_is_not_assignment() -> String {
-    "Expected property to be a default assignment. For example: `{ first = 10}`. Grats needs to extract a literal GraphQL value here, and that requires Grats being able to see the literal value in the source code.".to_string()
+    "Expected property to be a default assignment. For example: `{ first = 10 }`. Grats needs to extract a literal GraphQL value here, and that requires Grats being able to see the literal value in the source code.".to_string()
 }
 
 pub fn default_arg_property_missing_name() -> String {
@@ -478,7 +478,7 @@ pub fn parameter_without_modifiers() -> String {
 
 pub fn parameter_property_not_public() -> String {
     format!(
-        "Expected `@{FIELD_TAG}` parameter property to be public. Valid modifiers for `@{FIELD_TAG}` parameter properties are  `public` and `readonly`.\n\nLearn more: {}",
+        "Expected `@{FIELD_TAG}` parameter property to be public. Valid modifiers for `@{FIELD_TAG}` parameter properties are `public` and `readonly`.\n\nLearn more: {}",
         doc_urls::PARAMETER_PROPERTIES
     )
 }
@@ -540,7 +540,7 @@ pub fn multiple_context_types() -> String {
 }
 
 pub fn graphql_name_has_leading_newlines(name: &str, tag_name: &str) -> String {
-    format!("Expected the GraphQL name `{name}` to be on the same line as it's `@{tag_name}` tag.")
+    format!("Expected the GraphQL name `{name}` to be on the same line as its `@{tag_name}` tag.")
 }
 
 pub fn graphql_tag_name_has_whitespace(tag_name: &str) -> String {
@@ -695,7 +695,7 @@ pub fn context_tag_on_non_declaration() -> String {
 
 pub fn duplicate_context_tag() -> String {
     format!(
-        "Unexpected duplicate `@{CONTEXT_TAG}` tag. Only one type in a project may be annotated with the `@{CONTEXT_TAG}`."
+        "Unexpected duplicate `@{CONTEXT_TAG}` tag. Only one type in a project may be annotated with `@{CONTEXT_TAG}`."
     )
 }
 

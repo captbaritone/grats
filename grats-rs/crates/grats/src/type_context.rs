@@ -109,7 +109,7 @@ impl<'r> TypeContext<'r> {
             {
                 errors.push(gql_err(
                     Some(declaration.loc),
-                    "Multiple derived contexts defined for given type".to_string(),
+                    "Multiple derived contexts defined for a given type. Only one derived context function may produce a given type.".to_string(),
                     Some(vec![
                         gql_related(definition.name.loc, "One was defined here"),
                         gql_related(existing.name.loc, "Another here"),
@@ -165,7 +165,7 @@ impl<'r> TypeContext<'r> {
         if declaration.kind == ResolvedDeclarationKind::TypeParameter {
             return Err(gql_err(
                 Some(name),
-                "Type parameter not valid".to_string(),
+                "Unexpected type parameter in a GraphQL position. Grats needs a concrete GraphQL type here, and a type parameter is only known at each use site.".to_string(),
                 Some(vec![gql_related(Some(declaration.loc), "Defined here")]),
             ));
         }

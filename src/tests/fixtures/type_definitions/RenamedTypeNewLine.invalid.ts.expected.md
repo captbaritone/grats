@@ -21,7 +21,7 @@ class MyClass {
 ### Error Report
 
 ```text
-src/tests/fixtures/type_definitions/RenamedTypeNewLine.invalid.ts:4:4 - error: Expected the GraphQL name `SomeType` to be on the same line as it's `@gqlType` tag.
+src/tests/fixtures/type_definitions/RenamedTypeNewLine.invalid.ts:4:4 - error: Expected the GraphQL name `SomeType` to be on the same line as its `@gqlType` tag.
 
 4  * SomeType
      ~~~~~~~~

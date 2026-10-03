@@ -36,7 +36,7 @@ export function greeting(_: Query, ctx: DerivedContext): string {
 ### Error Report
 
 ```text
-src/tests/fixtures/derived_context/multipleDerivedContextsSameType.invalid.ts:6:1 - error: Multiple derived contexts defined for given type
+src/tests/fixtures/derived_context/multipleDerivedContextsSameType.invalid.ts:6:1 - error: Multiple derived contexts defined for a given type. Only one derived context function may produce a given type.
 
 6 type DerivedContext = {
   ~~~~~~~~~~~~~~~~~~~~~~~

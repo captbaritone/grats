@@ -21,7 +21,7 @@ export function users<T>(): Page<T> {
 ### Error Report
 
 ```text
-src/tests/fixtures/generics/functionTypeParamPassedToGeneric.invalid.ts:9:34 - error: Type parameter not valid
+src/tests/fixtures/generics/functionTypeParamPassedToGeneric.invalid.ts:9:34 - error: Unexpected type parameter in a GraphQL position. Grats needs a concrete GraphQL type here, and a type parameter is only known at each use site.
 
 9 export function users<T>(): Page<T> {
                                    ~

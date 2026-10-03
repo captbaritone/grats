@@ -25,7 +25,7 @@ type Query = unknown;
 ### Error Report
 
 ```text
-src/tests/fixtures/field_definitions/FieldAsStaticClassMethodInNestedScopeButExported.invalid.ts:3:16 - error: Expected class with a static `@gqlField` method to be a top-level declaration. Grats needs to import resolver methods into its generated schema module, so the resolver's class must be an exported.
+src/tests/fixtures/field_definitions/FieldAsStaticClassMethodInNestedScopeButExported.invalid.ts:3:16 - error: Expected class with a static `@gqlField` method to be a top-level declaration. Grats needs to import resolver methods into its generated schema module, so the resolver's class must be exported.
 
 3   export class User {
                  ~~~~

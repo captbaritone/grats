@@ -20,7 +20,7 @@ export default class SomeType {
 ### Error Report
 
 ```text
-src/tests/fixtures/field_definitions/ParameterPropertyFieldReadOnlyPrivate.invalid.ts:8:5 - error: Expected `@gqlField` parameter property to be public. Valid modifiers for `@gqlField` parameter properties are  `public` and `readonly`.
+src/tests/fixtures/field_definitions/ParameterPropertyFieldReadOnlyPrivate.invalid.ts:8:5 - error: Expected `@gqlField` parameter property to be public. Valid modifiers for `@gqlField` parameter properties are `public` and `readonly`.
 
 Learn more: https://grats.capt.dev/docs/docblock-tags/fields#class-based-fields
 
