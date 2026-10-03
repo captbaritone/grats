@@ -61,9 +61,9 @@ Options:
 
 ## Locate
 
-The `locate` command reports the location (file, line, column) at which a given type or field is defined in your code. `grats locate` can also be invoked by other tools. For example the click-to-definition feature of a GraphQL editor integration could invoke this command to find the location of a type or field.
+The `locate` command reports the location (file, line, column) at which a given type or field is defined in your code. `grats locate` is also meant to be invoked by other tools: a GraphQL client, a code generator or an editor extension can use it to map a schema member back to the code which defines it, without knowing anything about how Grats works.
 
-For example, Relay's VSCode Extension is [exploring](https://github.com/facebook/relay/pull/4434) adding the ability to leverage such a tool.
+Grats itself does not ship an editor integration.
 
 ```bash
 # Locate a field
