@@ -114,7 +114,11 @@ Default:
 
 This option allows you to configure an extension that will be appended to the end of all import paths in the generated TypeScript schema file.
 
-When building a package that uses ES modules, import paths must not omit the file extension. In TypeScript code this generally means import paths must end with `.js`. By default, no ending is appended.
+The ending Grats gives the relative imports it writes into the schema module. By default none is appended.
+
+Which ending is right depends on how the project is configured, and Grats reports an error if the two disagree:
+
+\- `".js"` for a project compiled by `tsc`, and required under `node16` or `nodenext` module resolution, which rejects an import with no extension. TypeScript expects the emitted `.js` name in source, even though the file is `.ts`. - `".ts"` for a runtime which loads TypeScript directly, like Deno or Node's type stripping, both of which resolve the literal specifier. TypeScript only accepts it with `allowImportingTsExtensions`, which in turn needs `noEmit`, `emitDeclarationOnly`, or `rewriteRelativeImportExtensions`. - No ending for a bundler, or `node10` resolution.
 
 Default: `""`
 
