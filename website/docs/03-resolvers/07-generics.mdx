@@ -1,6 +1,7 @@
 import GratsCode from "@site/src/components/GratsCode";
 import GenericsBasic from "!!raw-loader!./snippets/07-generics-basic.out";
 import GenericsNesting from "!!raw-loader!./snippets/07-generics-nesting.out";
+import GenericsFunctionalField from "!!raw-loader!./snippets/07-generics-functional-field.out";
 
 # Generics
 
@@ -56,6 +57,14 @@ type User = {
   reviews: Result<Connection<Review>>;
 };
 ```
+
+## Functional fields
+
+A [functional field](../04-docblock-tags/02-fields.mdx#functional-style-fields) on a generic type may be generic too. Its type parameters stand for the type arguments it passes to the type it extends: in `first<T>(page: Page<T>)`, `T` is whatever `Page` was given. The field is added to each type materialized from `Page`, just as if it were a method declared on `Page` itself. The same goes for a static method used as a field.
+
+<GratsCode out={GenericsFunctionalField} mode="both" />
+
+A type parameter of a functional field must be passed to one of the extended type's GraphQL type parameters; otherwise nothing says what it stands for, and Grats reports an error where it's used.
 
 ## Limitations
 
