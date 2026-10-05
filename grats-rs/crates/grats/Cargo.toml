@@ -11,6 +11,7 @@ fast-glob = "1"
 graphql_js.workspace = true
 indexmap.workspace = true
 json-strip-comments = "3"
+jsonc-parser = "0.34.0"
 oxc_allocator.workspace = true
 oxc_ast.workspace = true
 oxc_ast_visit.workspace = true

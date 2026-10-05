@@ -333,6 +333,7 @@ dependencies = [
  "graphql_js",
  "indexmap",
  "json-strip-comments",
+ "jsonc-parser",
  "oxc_allocator",
  "oxc_ast",
  "oxc_ast_visit",
@@ -571,6 +572,12 @@ checksum = "01ed659c5f428031b9c1fb7de6729af2eb491654d4bcd416a5b5b704986b9658"
 dependencies = [
  "memchr",
 ]
+
+[[package]]
+name = "jsonc-parser"
+version = "0.34.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ecded084f9b9a718d39668a42657c32253663d1f6afb3fbb9134f0305f73f48"
 
 [[package]]
 name = "kqueue"

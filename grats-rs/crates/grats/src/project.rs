@@ -25,11 +25,13 @@ use oxc_resolver::{ResolveError, ResolveOptions, ResolverGeneric, TsConfig};
 use rustc_hash::{FxHashMap, FxHashSet};
 use serde_json::Value;
 
+use crate::config_file::ConfigFile;
 use crate::errors::ts_config_not_found;
 use crate::grats_config::{GratsConfig, validate_grats_options};
 use crate::host::{FileKind, Host};
 use crate::program::{HostFileSystem, ProgramOptions};
-use crate::utils::diagnostic_error::{DiagnosticsResult, locationless_err};
+use crate::source_table::SourceTable;
+use crate::utils::diagnostic_error::{Diagnostic, DiagnosticsResult, locationless_err};
 use crate::utils::path;
 
 /// A project, as its `tsconfig.json` describes it.
@@ -61,6 +63,7 @@ pub fn load_project(
     config_path: Option<&str>,
     use_case_sensitive_file_names: bool,
     host: Arc<dyn Host>,
+    sources: &SourceTable,
 ) -> DiagnosticsResult<Project> {
     let config_path = match config_path {
         Some(config_path) => config_path.to_string(),
@@ -78,20 +81,7 @@ pub fn load_project(
     );
     let tsconfig = resolver
         .resolve_tsconfig(path::to_std(config_path))
-        .map_err(|error| {
-            // serde_json's message for invalid JSON, rather than `JSONError`'s
-            // `Debug` output.
-            let message = match &error {
-                ResolveError::TsconfigLoadFailed { source, .. } => match &**source {
-                    ResolveError::Json(json) => json.message.clone(),
-                    _ => error.to_string(),
-                },
-                _ => error.to_string(),
-            };
-            vec![locationless_err(format!(
-                "Grats: Could not read `{config_path}`: {message}"
-            ))]
-        })?;
+        .map_err(|error| vec![read_error(&*host, sources, config_path, &error)])?;
     let tsconfig_path = path::from_std(tsconfig.path());
 
     // The `grats` key of the config itself, which isn't inherited.
@@ -99,8 +89,15 @@ pub fn load_project(
         json_strip_comments::strip(&mut text).ok()?;
         serde_json::from_str::<Value>(&text).ok()
     });
-    let validated = validate_grats_options(raw.as_ref().and_then(|raw| raw.get("grats")))
-        .map_err(|message| vec![locationless_err(message)])?;
+    let validated =
+        validate_grats_options(raw.as_ref().and_then(|raw| raw.get("grats"))).map_err(|error| {
+            let mut path = vec!["grats"];
+            path.extend(error.path.iter().map(String::as_str));
+            vec![match ConfigFile::read(&*host, sources, &tsconfig_path) {
+                Some(file) => file.error(&path, error.message),
+                None => locationless_err(error.message),
+            }]
+        })?;
 
     // Like `getAllowJSCompilerOption`.
     let options = &tsconfig.compiler_options;
@@ -116,6 +113,56 @@ pub fn load_project(
             use_case_sensitive_file_names,
         },
     })
+}
+
+/// A config which couldn't be read, located where it went wrong: at the
+/// syntax error in whichever file in the `extends` chain has one, or at the
+/// `extends` naming a config which couldn't be found.
+fn read_error(
+    host: &dyn Host,
+    sources: &SourceTable,
+    config_path: &str,
+    error: &ResolveError,
+) -> Diagnostic {
+    if let ResolveError::TsconfigLoadFailed { source, .. } = error
+        && let ResolveError::Json(json) = &**source
+    {
+        // serde_json's message, rather than `JSONError`'s `Debug` output, and
+        // without the position it ends with, which the location gives. Name
+        // the file which failed to parse, which may be one this config
+        // extends.
+        let path = path::from_std(&json.path);
+        let reason = json
+            .message
+            .rsplit_once(" at line ")
+            .map_or(json.message.as_str(), |(reason, _)| reason);
+        let message = format!(
+            "Grats: Could not parse `{}`: {reason}",
+            path::to_native(&path)
+        );
+        return match ConfigFile::read(host, sources, &path) {
+            Some(file) => Diagnostic {
+                loc: file.at_line_column(json.line, json.column),
+                ..locationless_err(message)
+            },
+            None => locationless_err(message),
+        };
+    }
+    let message = format!("Grats: Could not read `{config_path}`: {error}");
+    match error {
+        // The config exists, so what's missing is a config it extends.
+        ResolveError::TsconfigNotFound(_)
+        | ResolveError::TsconfigSelfReference(_)
+        | ResolveError::TsconfigCircularExtend(_)
+            if host.stat(config_path, true) == Some(FileKind::File) =>
+        {
+            match ConfigFile::read(host, sources, config_path) {
+                Some(file) => file.error(&["extends"], message),
+                None => locationless_err(message),
+            }
+        }
+        _ => locationless_err(message),
+    }
 }
 
 /// Like `ts.findConfigFile`: the first `tsconfig.json` in the current

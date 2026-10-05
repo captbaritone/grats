@@ -8,6 +8,7 @@ use std::sync::Arc;
 
 use clap::{CommandFactory, FromArgMatches, Parser, Subcommand};
 
+use crate::config_file::ConfigFile;
 use crate::fix_fixable::{FixOptions, apply_fixes, with_fixes_fixed};
 use crate::host::Host;
 use crate::locate::locate_in_document;
@@ -216,6 +217,7 @@ impl WatchMode {
             &compiled.outputs,
             &project,
             &*self.host,
+            &cli.sources,
         ));
         false
     }
@@ -276,6 +278,7 @@ impl Cli {
             &compiled.outputs,
             &project,
             &*self.host,
+            &self.sources,
         ))
     }
 
@@ -287,6 +290,7 @@ impl Cli {
             tsconfig.as_deref(),
             self.use_case_sensitive_file_names,
             Arc::clone(&self.host),
+            &self.sources,
         )?;
         for warning in &project.warnings {
             self.host.log_error(warning);
@@ -344,33 +348,55 @@ fn write_schema_files_and_report(
     outputs: &Outputs,
     project: &Project,
     host: &dyn Host,
+    sources: &SourceTable,
 ) -> DiagnosticsResult<()> {
     let config = &project.config;
     let config_dir = path::dirname(&project.config_path);
-    let write_file = |path: &str, contents: &str, description: &str| {
+    // `option` is the Grats option which chose the path, which the error
+    // points at, or at the `grats` object if the path is a default.
+    let write_file = |path: &str, contents: &str, description: &str, option: &str| {
         let native_path = path::to_native(path);
         host.write_file(path, contents).map_err(|error| {
-            vec![locationless_err(format!(
-                "Grats: Could not write `{native_path}`: {error}"
-            ))]
+            let message = format!("Grats: Could not write `{native_path}`: {error}");
+            vec![
+                match ConfigFile::read(host, sources, &project.config_path) {
+                    Some(file) => file.error(&["grats", option], message),
+                    None => locationless_err(message),
+                },
+            ]
         })?;
         host.log_error(&format!("Grats: Wrote {description} to `{native_path}`."));
         DiagnosticsResult::Ok(())
     };
     let paths = output_paths(project);
 
-    write_file(&paths.ts_schema, &outputs.ts_schema, "TypeScript schema")?;
+    write_file(
+        &paths.ts_schema,
+        &outputs.ts_schema,
+        "TypeScript schema",
+        "tsSchema",
+    )?;
 
     let abs_output = path::resolve(config_dir, &config.graphql_schema);
-    write_file(&abs_output, &outputs.graphql_schema, "schema")?;
+    write_file(
+        &abs_output,
+        &outputs.graphql_schema,
+        "schema",
+        "graphqlSchema",
+    )?;
 
     if let Some(metadata) = &outputs.metadata {
         let abs_output = path::resolve(config_dir, &metadata_path(&config.graphql_schema));
-        write_file(&abs_output, metadata, "resolver signatures")?;
+        write_file(
+            &abs_output,
+            metadata,
+            "resolver signatures",
+            "graphqlSchema",
+        )?;
     }
 
     if let (Some(enums_dest), Some(enums)) = (&paths.ts_client_enums, &outputs.ts_client_enums) {
-        write_file(enums_dest, enums, "enums module")?;
+        write_file(enums_dest, enums, "enums module", "tsClientEnums")?;
     }
     Ok(())
 }

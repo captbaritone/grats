@@ -15,7 +15,7 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 use graphql_js::error::graphql_error::GraphQLError;
-use graphql_js::language::ast::{DefinitionNode, DocumentNode};
+use graphql_js::language::ast::{DefinitionNode, DocumentNode, Location};
 use graphql_js::r#type::schema::GraphQLSchema;
 use graphql_js::r#type::validate::validate_schema;
 use graphql_js::utilities::build_ast_schema::build_ast_schema;
@@ -23,6 +23,7 @@ use graphql_js::validation::validate::validate_sdl;
 use oxc_allocator::Allocator;
 use rustc_hash::FxHashSet;
 
+use crate::config_file::ConfigFile;
 use crate::extractor::{self, ExtractionSnapshot};
 use crate::files::{Files, ParsedFile};
 use crate::grats_config::GratsConfig;
@@ -86,9 +87,24 @@ pub fn run(
         let definitions = resolve(&resolver, snapshot)?;
         (transform(definitions, config)?, types_with_typename)
     };
-    let schema = validate(&doc, &types_with_typename, config)?;
+    let file_selection = file_selection_loc(&*host, sources, program_options);
+    let schema = validate(&doc, &types_with_typename, config, file_selection)?;
     let outputs = print(&doc, &schema, config, grats_root, output_paths);
     Ok(Compiled { doc, outputs })
+}
+
+/// Where the project's `tsconfig.json` chooses which files Grats reads: its
+/// `include`, its `files`, or, if it leaves both to their defaults, the
+/// start of the file.
+fn file_selection_loc(
+    host: &dyn Host,
+    sources: &SourceTable,
+    program_options: &ProgramOptions,
+) -> Option<Location> {
+    let file = ConfigFile::read(host, sources, program_options.tsconfig.as_deref()?)?;
+    file.locate(&["include"])
+        .or_else(|| file.locate(&["files"]))
+        .or_else(|| Some(file.loc(&(0..file.text.len().min(1)))))
 }
 
 /// Extracts the GraphQL definitions in the program's files, and the
@@ -182,6 +198,7 @@ fn validate<'d>(
     doc: &'d DocumentNode,
     types_with_typename: &FxHashSet<String>,
     config: &GratsConfig,
+    file_selection: Option<Location>,
 ) -> DiagnosticsResult<GraphQLSchema<'d>> {
     // TODO: This misses definitions which shadow built-in scalars (`String`,
     // `Int`, etc), which validating as an extension of a schema would catch.
@@ -190,7 +207,7 @@ fn validate<'d>(
     // The spec's "Type Validation" rules.
     as_diagnostics(validate_schema(&schema))?;
     // A helpful getting started error if no types are defined.
-    validate_some_types_are_defined(doc)?;
+    validate_some_types_are_defined(doc, file_selection)?;
     // The spec validation misses type errors in directive arguments.
     validate_directive_arguments(&schema, doc)?;
     // Ensure each member of a union or interface has a `__typename` field.

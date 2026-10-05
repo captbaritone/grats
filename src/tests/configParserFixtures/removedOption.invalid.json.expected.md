@@ -13,5 +13,8 @@
 ### Error Report
 
 ```text
-error: The Grats config option `reportTypeScriptTypeErrors` has been removed. Grats no longer type checks your code. Run `tsc` to report TypeScript type errors.
+config.json:2:3 - error: The Grats config option `reportTypeScriptTypeErrors` has been removed. Grats no longer type checks your code. Run `tsc` to report TypeScript type errors.
+
+2   "reportTypeScriptTypeErrors": true
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```

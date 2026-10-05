@@ -13,5 +13,8 @@
 ### Error Report
 
 ```text
-error: Invalid Grats config: importModuleSpecifierEnding: invalid type: null, expected a string
+config.json:2:3 - error: Invalid Grats config: importModuleSpecifierEnding: invalid type: null, expected a string
+
+2   "importModuleSpecifierEnding": null
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```

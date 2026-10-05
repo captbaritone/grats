@@ -24,8 +24,9 @@ use std::fs;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
+use grats::config_file::ConfigFile;
 use grats::fix_fixable::{FixOptions, apply_fixes};
-use grats::grats_config::{self, GratsConfig, validate_grats_options};
+use grats::grats_config::{self, ConfigError, GratsConfig, validate_grats_options};
 use grats::host::{DirEntries, FileKind, Host};
 use grats::locate::locate_in_document;
 use grats::pipeline::Compiled;
@@ -333,7 +334,7 @@ fn test_snippet(snippets_dir: &str, snippet: &str, write: bool) -> Result<(), Fa
         "schemaHeader": null,
         "tsSchemaHeader": null,
     })))
-    .map_err(|message| format!("Invalid config: {message}"))?
+    .map_err(|error| format!("Invalid config: {}", error.message))?
     .config;
 
     let host = Arc::new(FixtureHost::new());
@@ -399,7 +400,7 @@ fn test_integration_fixture(fixtures_dir: &str, fixture: &str, write: bool) -> R
     let fixture_path = format!("{fixtures_dir}/{fixture}");
     let code = read(&fixture_path);
     let config = validate_grats_options(Some(&integration_config(&code)))
-        .map_err(|message| format!("Invalid config: {message}"))?
+        .map_err(|error| format!("Invalid config: {}", error.message))?
         .config;
 
     let host = Arc::new(FixtureHost::new());
@@ -482,7 +483,7 @@ fn check_other_files(
 fn transform_config(code: &str) -> TransformerResult {
     let config: Value = serde_json::from_str(code).expect("Expected the fixture to be JSON");
     let validated = validate_grats_options(Some(&config))
-        .map_err(|message| config_error_report(code, message))?;
+        .map_err(|error| config_error_report(code, error, true))?;
 
     let mut markdown = Markdown::default();
     markdown.add_header(3, "Parsed Config");
@@ -494,14 +495,20 @@ fn transform_config(code: &str) -> TransformerResult {
     Ok(markdown)
 }
 
-fn config_error_report(code: &str, message: String) -> Markdown {
+/// A config error, located in `code` when it's the config itself. A config
+/// fixture's JSON is the `grats` object, so the error's path is relative to
+/// its root.
+fn config_error_report(code: &str, error: ConfigError, located: bool) -> Markdown {
     let host = FixtureHost::new();
-    format_diagnostics_with_context(
-        code,
-        vec![locationless_err(message)],
-        &SourceTable::default(),
-        &host,
-    )
+    let sources = SourceTable::default();
+    let diagnostic = if located {
+        let file = ConfigFile::new(&sources, "config.json", code.to_string());
+        let path: Vec<&str> = error.path.iter().map(String::as_str).collect();
+        file.error(&path, error.message)
+    } else {
+        locationless_err(error.message)
+    };
+    format_diagnostics_with_context(code, vec![diagnostic], &sources, &host)
 }
 
 fn transform_schema(code: &str, fixture_path: &str) -> TransformerResult {
@@ -511,7 +518,7 @@ fn transform_schema(code: &str, fixture_path: &str) -> TransformerResult {
         "tsSchemaHeader": null,
     });
     let config = validate_grats_options(Some(&with_test_options(defaults, code)))
-        .map_err(|message| config_error_report(code, message))?
+        .map_err(|error| config_error_report(code, error, false))?
         .config;
 
     let grats_root = grats_root();

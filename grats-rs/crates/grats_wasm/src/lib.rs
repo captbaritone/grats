@@ -163,7 +163,13 @@ pub unsafe extern "C" fn compile(ptr: *mut u8, len: usize) {
 /// Like running the CLI on the project, keeping what it would write.
 fn compile_project(request: CompileRequest) -> Result<Compiled, Vec<ReportedDiagnostic>> {
     let ValidatedConfig { config, warnings } = validate_grats_options(Some(&request.config))
-        .map_err(|message| report(vec![locationless_err(message)], &SourceTable::default()))?;
+        // The playground's config isn't a file, so there's nowhere to point.
+        .map_err(|error| {
+            report(
+                vec![locationless_err(error.message)],
+                &SourceTable::default(),
+            )
+        })?;
     let program = ProgramOptions {
         root_names: request.root_names,
         allow_js: false,

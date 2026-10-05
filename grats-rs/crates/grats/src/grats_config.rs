@@ -155,6 +155,15 @@ pub struct ValidatedConfig {
     pub warnings: Vec<String>,
 }
 
+/// Why the `grats` key of `tsconfig.json` is invalid, and where.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ConfigError {
+    /// The keys leading from the `grats` object to the offending value, so a
+    /// diagnostic can point at it. Empty for the `grats` value itself.
+    pub path: Vec<String>,
+    pub message: String,
+}
+
 /// Options which Grats no longer supports, and how to migrate away from each.
 const REMOVED_OPTIONS: [(&str, &str); 1] = [(
     "reportTypeScriptTypeErrors",
@@ -163,19 +172,25 @@ const REMOVED_OPTIONS: [(&str, &str); 1] = [(
 
 /// Validates the `grats` key of `tsconfig.json`, filling in the defaults of
 /// options it doesn't set.
-pub fn validate_grats_options(options: Option<&Value>) -> Result<ValidatedConfig, String> {
+pub fn validate_grats_options(options: Option<&Value>) -> Result<ValidatedConfig, ConfigError> {
     let options = match options {
         None | Some(Value::Null) => serde_json::Map::new(),
         Some(Value::Object(options)) => options.clone(),
-        Some(_) => return Err("Expected the Grats config to be an object.".to_string()),
+        Some(_) => {
+            return Err(ConfigError {
+                path: Vec::new(),
+                message: "Expected the Grats config to be an object.".to_string(),
+            });
+        }
     };
     if let Some((key, removed)) = REMOVED_OPTIONS
         .iter()
         .find(|(key, _)| options.contains_key(*key))
     {
-        return Err(format!(
-            "The Grats config option `{key}` has been removed. {removed}"
-        ));
+        return Err(ConfigError {
+            path: vec![key.to_string()],
+            message: format!("The Grats config option `{key}` has been removed. {removed}"),
+        });
     }
     let schema = json_schema();
     let warnings = options
@@ -187,7 +202,22 @@ pub fn validate_grats_options(options: Option<&Value>) -> Result<ValidatedConfig
             "Grats: The `{key}` option is experimental and will be renamed or removed in a future release."
         ))
         .collect();
-    let config = serde_path_to_error::deserialize(Value::Object(options))
-        .map_err(|error| format!("Invalid Grats config: {error}"))?;
+    let config = serde_path_to_error::deserialize(Value::Object(options)).map_err(|error| {
+        let path = error
+            .path()
+            .iter()
+            .filter_map(|segment| match segment {
+                serde_path_to_error::Segment::Map { key } => Some(key.clone()),
+                serde_path_to_error::Segment::Seq { index } => Some(index.to_string()),
+                _ => None,
+            })
+            .collect();
+        ConfigError {
+            path,
+            // `{error}` leads with the path, as in `tsSchema: invalid type`, so
+            // the message names the option even where it has no location.
+            message: format!("Invalid Grats config: {error}"),
+        }
+    })?;
     Ok(ValidatedConfig { config, warnings })
 }
