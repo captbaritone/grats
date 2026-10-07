@@ -37,7 +37,7 @@ If your project has a `package.json`, as this example does, Deno creates
 {
   "nodeModulesDir": "auto",
   "imports": {
-    "grats": "npm:grats@^0.0.36",
+    "grats": "npm:grats@^0.0.37",
     "graphql": "npm:graphql@^16.11.0"
   }
 }

@@ -4,6 +4,8 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
+## 0.0.37
+
 ### Grats is now written in Rust
 
 Grats has been rewritten in Rust. The `grats` CLI is now a native binary, which parses your code with [oxc](https://oxc.rs) rather than running the TypeScript compiler, and it's much faster:
@@ -13,7 +15,7 @@ Grats has been rewritten in Rust. The `grats` CLI is now a native binary, which 
 | [`examples/production-app`](https://github.com/captbaritone/grats/tree/main/examples/production-app) (18 files) | 0.82 s → 0.06 s (14× less) | 380 MB → 44 MB (8.6× less) |
 | 10,000 generated files | 6.1 s → 0.9 s (6.6× less) | 1.79 GB → 0.82 GB (2.2× less) |
 
-_Wall time and peak memory of 0.0.36's CLI compared with the current one, both run as you'd run them — the `grats` command, Node wrapper and all — on Node 24 on an M1 Pro MacBook Pro. Medians of repeated runs against a warm file cache. The generated project is the one `pnpm run profile` creates._
+_Wall time and peak memory of 0.0.36's CLI compared with 0.0.37's, both run as you'd run them — the `grats` command, Node wrapper and all — on Node 24 on an M1 Pro MacBook Pro. Medians of repeated runs against a warm file cache. The generated project is the one `pnpm run profile` creates._
 
 _Most of what's left on `production-app` is the wrapper starting Node: the binary itself finishes in 0.02 s. Small projects are dominated by startup, so the larger the project, the more of the schema extraction itself you're measuring._
 
@@ -60,6 +62,7 @@ If any of these changes cause problems for your project, please [file an issue](
     -   When a comment Grats cannot use contains multiple Grats tags on separate lines, each error now points to its own tag. Previously, errors for tags after the first pointed to the first tag.
     -   With `EXPERIMENTAL__emitMetadata`, if `graphqlSchema` doesn't end in `.graphql`, the metadata is now written to its path with `.json` appended. Previously, it overwrote the GraphQL schema.
     -   The fix which adds `public` to a `@gqlField` constructor parameter marked `override` now puts `public` before `override`. Previously, it produced `override public`, which TypeScript rejects.
+    -   Descriptions and `@deprecated` reasons read from files with CRLF line endings no longer contain `\r`. Previously, the same code generated a different schema depending on its line endings.
 
 ## 0.0.36
 

@@ -1,6 +1,6 @@
 {
   "name": "grats",
-  "version": "0.0.36",
+  "version": "0.0.37",
   "type": "module",
   "main": "dist/src/index.js",
   "bin": "bin/grats.js",
