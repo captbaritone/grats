@@ -40,6 +40,16 @@ The `--fix` flag can also be combined with `--watch` mode:
 npx grats --watch --fix
 ```
 
+### Validating generated files
+
+If you check your generated files into version control, you can use the `--validate` flag to check that they are up to date without writing anything to disk:
+
+```bash
+npx grats --validate
+```
+
+Grats exits with a non-zero code if any generated file is missing or needs to be updated. This is useful in CI, to ensure the checked-in schema always matches the implementation. See [Workflows](../guides/workflows.md) for a recommended CI setup.
+
 ### Options
 
 ```text
@@ -54,6 +64,7 @@ Commands:
 Options:
       --tsconfig <TSCONFIG>  Path to tsconfig.json. Defaults to auto-detecting based on the current working directory
       --watch                Watch for changes and rebuild schema files as needed
+      --validate             Check that the generated files are up to date, without writing anything to disk. Exits with a non-zero code if any file needs to be updated
       --fix                  Automatically fix fixable diagnostics
   -h, --help                 Print help
   -V, --version              Print version

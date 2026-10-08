@@ -57,25 +57,12 @@ If you do wish to keep them formatted, we recommend that you apply that formatti
 
 ## Continuous integration
 
-To ensure that your code base does not get into a state where Grats cannot extract types due to errors, and that your schema file always matches your implementation, we recommend that you add a CI step that runs Grats and ensures that the schema matches the checked-in version.
-
-Here's what an example script might look like:
+To ensure that your code base does not get into a state where Grats cannot extract types due to errors, and that your schema file always matches your implementation, we recommend that you add a CI step that runs Grats with the `--validate` flag:
 
 ```bash
-#!/bin/bash
-
-# Exit if any command fails
-set -e
-
-# Run Grats
-npm run grats
-
-# Check that it didn't change anything
-if [ -n "$(git status --porcelain)" ]; then
-    echo "Schema file is out of date. Please run 'npm run grats' and commit the changes."
-    git diff
-    exit 1
-fi
+npx grats --validate
 ```
+
+This checks that the generated files are up to date without writing anything to disk, and exits with a non-zero code if any file needs to be updated — so the step fails when the checked-in schema doesn't match the implementation.
 
 Grats does not type check your code, so your CI should also run `tsc` to catch type errors.
