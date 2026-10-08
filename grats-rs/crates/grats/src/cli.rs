@@ -59,7 +59,7 @@ struct Args {
     /// Check that the generated files are up to date, without writing
     /// anything to disk. Exits with a non-zero code if any file needs to be
     /// updated.
-    #[arg(long, conflicts_with = "watch")]
+    #[arg(long)]
     validate: bool,
     /// Automatically fix fixable diagnostics
     #[arg(long)]
@@ -432,23 +432,54 @@ fn validate_schema_files(
         Ok(())
     } else {
         let mut message = String::from("Grats: Generated files are out of date:");
-        for stale_path in &stale {
-            message.push_str("\n  ");
-            message.push_str(stale_path);
+        for (title, paths) in [
+            ("Out of date", &stale.outdated),
+            ("Missing", &stale.missing),
+        ] {
+            if !paths.is_empty() {
+                message.push('\n');
+                message.push_str(title);
+                message.push(':');
+                for stale_path in paths {
+                    message.push_str("\n  `");
+                    message.push_str(stale_path);
+                    message.push('`');
+                }
+            }
         }
         message.push_str("\nRun `grats` to update them.");
         Err(vec![locationless_err(message)])
     }
 }
 
-/// The native paths of the generated files whose contents on disk are missing
-/// or differ from what Grats would generate.
-fn stale_generated_files(files: &[GeneratedFile], host: &dyn Host) -> Vec<String> {
-    files
-        .iter()
-        .filter(|file| host.read_file(&file.path).as_deref() != Some(file.contents))
-        .map(|file| path::to_native(&file.path).to_string())
-        .collect()
+/// The generated files whose contents on disk are missing or differ from
+/// what Grats would generate, grouped the way Relay's `--validate` reports
+/// them.
+#[derive(Default)]
+struct StaleFiles {
+    /// Exist on disk, but differ from what Grats would generate.
+    outdated: Vec<String>,
+    /// Don't exist on disk.
+    missing: Vec<String>,
+}
+
+impl StaleFiles {
+    fn is_empty(&self) -> bool {
+        self.outdated.is_empty() && self.missing.is_empty()
+    }
+}
+
+fn stale_generated_files(files: &[GeneratedFile], host: &dyn Host) -> StaleFiles {
+    let mut stale = StaleFiles::default();
+    for file in files {
+        let stale_path = || path::to_native(&file.path).to_string();
+        match host.read_file(&file.path) {
+            None => stale.missing.push(stale_path()),
+            Some(current) if current != file.contents => stale.outdated.push(stale_path()),
+            _ => {}
+        }
+    }
+    stale
 }
 
 /// The path of the metadata JSON: the GraphQL schema's path, with `.json` in
@@ -533,7 +564,7 @@ mod tests {
     }
 
     #[test]
-    fn stale_generated_files_reports_missing_and_changed_files() {
+    fn stale_generated_files_separates_missing_and_changed_files() {
         let host = TestHost::default()
             .with_file("/test/schema.graphql", "up to date")
             .with_file("/test/schema.ts", "stale contents");
@@ -542,13 +573,10 @@ mod tests {
             generated_file("/test/schema.ts", "fresh contents"),
             generated_file("/test/missing.ts", "fresh contents"),
         ];
-        assert_eq!(
-            stale_generated_files(&files, &host),
-            vec![
-                "/test/schema.ts".to_string(),
-                "/test/missing.ts".to_string(),
-            ]
-        );
+        let stale = stale_generated_files(&files, &host);
+        assert_eq!(stale.outdated, vec!["/test/schema.ts".to_string()]);
+        assert_eq!(stale.missing, vec!["/test/missing.ts".to_string()]);
+        assert!(!stale.is_empty());
     }
 
     #[test]
