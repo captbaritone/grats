@@ -56,6 +56,11 @@ struct Args {
     /// Watch for changes and rebuild schema files as needed
     #[arg(long)]
     watch: bool,
+    /// Check that the generated files are up to date, without writing
+    /// anything to disk. Exits with a non-zero code if any file needs to be
+    /// updated.
+    #[arg(long, conflicts_with = "watch")]
+    validate: bool,
     /// Automatically fix fixable diagnostics
     #[arg(long)]
     fix: bool,
@@ -119,7 +124,7 @@ pub fn run(request: CliRequest, host: Arc<dyn Host>) -> CliOutcome {
                 fix: args.fix,
             };
         }
-        None => cli.run_build(args.tsconfig.as_deref(), args.fix),
+        None => cli.run_build(args.tsconfig.as_deref(), args.fix, args.validate),
     };
     CliOutcome::Exit {
         code: if result.is_ok() { 0 } else { 1 },
@@ -257,7 +262,7 @@ impl Cli {
     }
 
     /// Run the compiler performing a single build.
-    fn run_build(&self, tsconfig: Option<&str>, fix: bool) -> Result<(), Exit> {
+    fn run_build(&self, tsconfig: Option<&str>, fix: bool, validate: bool) -> Result<(), Exit> {
         let log = |message: &str| self.host.log_error(message);
         let options = FixOptions { fix, log: &log };
         let project = self.handle_diagnostics(with_fixes_fixed(
@@ -272,11 +277,19 @@ impl Cli {
             &*self.host,
             &self.grats_root,
         ))?;
-        self.handle_diagnostics(write_schema_files_and_report(
-            &compiled.outputs,
-            &project,
-            &*self.host,
-        ))
+        if validate {
+            self.handle_diagnostics(validate_schema_files(
+                &compiled.outputs,
+                &project,
+                &*self.host,
+            ))
+        } else {
+            self.handle_diagnostics(write_schema_files_and_report(
+                &compiled.outputs,
+                &project,
+                &*self.host,
+            ))
+        }
     }
 
     /// Loads the project, printing any warnings about the config.
@@ -338,6 +351,50 @@ fn output_paths(project: &Project) -> OutputPaths {
     }
 }
 
+/// A file Grats generates: its absolute path, its contents, and a description
+/// of it for messages.
+struct GeneratedFile<'a> {
+    path: String,
+    contents: &'a str,
+    description: &'static str,
+}
+
+/// The files Grats generates for a project, in the order they're written.
+/// Both the build and `--validate` go through this, so they always agree on
+/// which files Grats owns.
+fn generated_files<'a>(outputs: &'a Outputs, project: &Project) -> Vec<GeneratedFile<'a>> {
+    let config = &project.config;
+    let config_dir = path::dirname(&project.config_path);
+    let paths = output_paths(project);
+    let mut files = vec![
+        GeneratedFile {
+            path: paths.ts_schema,
+            contents: &outputs.ts_schema,
+            description: "TypeScript schema",
+        },
+        GeneratedFile {
+            path: path::resolve(config_dir, &config.graphql_schema),
+            contents: &outputs.graphql_schema,
+            description: "schema",
+        },
+    ];
+    if let Some(metadata) = &outputs.metadata {
+        files.push(GeneratedFile {
+            path: path::resolve(config_dir, &metadata_path(&config.graphql_schema)),
+            contents: metadata,
+            description: "resolver signatures",
+        });
+    }
+    if let (Some(enums_dest), Some(enums)) = (&paths.ts_client_enums, &outputs.ts_client_enums) {
+        files.push(GeneratedFile {
+            path: enums_dest.clone(),
+            contents: enums,
+            description: "enums module",
+        });
+    }
+    files
+}
+
 /// Writes the outputs to disk and reports to the console, or reports a file
 /// which can't be written.
 fn write_schema_files_and_report(
@@ -345,34 +402,53 @@ fn write_schema_files_and_report(
     project: &Project,
     host: &dyn Host,
 ) -> DiagnosticsResult<()> {
-    let config = &project.config;
-    let config_dir = path::dirname(&project.config_path);
-    let write_file = |path: &str, contents: &str, description: &str| {
-        let native_path = path::to_native(path);
-        host.write_file(path, contents).map_err(|error| {
-            vec![locationless_err(format!(
-                "Grats: Could not write `{native_path}`: {error}"
-            ))]
-        })?;
-        host.log_error(&format!("Grats: Wrote {description} to `{native_path}`."));
-        DiagnosticsResult::Ok(())
-    };
-    let paths = output_paths(project);
-
-    write_file(&paths.ts_schema, &outputs.ts_schema, "TypeScript schema")?;
-
-    let abs_output = path::resolve(config_dir, &config.graphql_schema);
-    write_file(&abs_output, &outputs.graphql_schema, "schema")?;
-
-    if let Some(metadata) = &outputs.metadata {
-        let abs_output = path::resolve(config_dir, &metadata_path(&config.graphql_schema));
-        write_file(&abs_output, metadata, "resolver signatures")?;
-    }
-
-    if let (Some(enums_dest), Some(enums)) = (&paths.ts_client_enums, &outputs.ts_client_enums) {
-        write_file(enums_dest, enums, "enums module")?;
+    for file in generated_files(outputs, project) {
+        let native_path = path::to_native(&file.path);
+        host.write_file(&file.path, file.contents)
+            .map_err(|error| {
+                vec![locationless_err(format!(
+                    "Grats: Could not write `{native_path}`: {error}"
+                ))]
+            })?;
+        host.log_error(&format!(
+            "Grats: Wrote {} to `{native_path}`.",
+            file.description
+        ));
     }
     Ok(())
+}
+
+/// Checks that each generated file matches what's on disk, without writing
+/// anything. Used by `--validate`: reports every out-of-date file, and fails
+/// if any file is missing or differs.
+fn validate_schema_files(
+    outputs: &Outputs,
+    project: &Project,
+    host: &dyn Host,
+) -> DiagnosticsResult<()> {
+    let stale = stale_generated_files(&generated_files(outputs, project), host);
+    if stale.is_empty() {
+        host.log_error("Grats: All generated files are up to date.");
+        Ok(())
+    } else {
+        let mut message = String::from("Grats: Generated files are out of date:");
+        for stale_path in &stale {
+            message.push_str("\n  ");
+            message.push_str(stale_path);
+        }
+        message.push_str("\nRun `grats` to update them.");
+        Err(vec![locationless_err(message)])
+    }
+}
+
+/// The native paths of the generated files whose contents on disk are missing
+/// or differ from what Grats would generate.
+fn stale_generated_files(files: &[GeneratedFile], host: &dyn Host) -> Vec<String> {
+    files
+        .iter()
+        .filter(|file| host.read_file(&file.path).as_deref() != Some(file.contents))
+        .map(|file| path::to_native(&file.path).to_string())
+        .collect()
 }
 
 /// The path of the metadata JSON: the GraphQL schema's path, with `.json` in
@@ -387,11 +463,98 @@ fn metadata_path(graphql_schema: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::host::{DirEntries, FileKind};
+    use std::collections::HashMap;
+    use std::sync::Mutex;
 
     #[test]
     fn metadata_path_differs_from_schema_path() {
         assert_eq!(metadata_path("./schema.graphql"), "./schema.json");
         assert_eq!(metadata_path("./schema.gql"), "./schema.gql.json");
         assert_eq!(metadata_path("./schema"), "./schema.json");
+    }
+
+    /// An in-memory `Host` for testing, with a controllable file system.
+    #[derive(Default)]
+    struct TestHost {
+        files: Mutex<HashMap<String, String>>,
+    }
+
+    impl TestHost {
+        fn with_file(self, path: &str, contents: &str) -> Self {
+            self.files
+                .lock()
+                .unwrap()
+                .insert(path.to_string(), contents.to_string());
+            self
+        }
+    }
+
+    impl Host for TestHost {
+        fn read_file(&self, path: &str) -> Option<String> {
+            self.files.lock().unwrap().get(path).cloned()
+        }
+        fn stat(&self, path: &str, _follow_links: bool) -> Option<FileKind> {
+            self.files
+                .lock()
+                .unwrap()
+                .contains_key(path)
+                .then_some(FileKind::File)
+        }
+        fn read_link(&self, _path: &str) -> Option<String> {
+            None
+        }
+        fn realpath(&self, path: &str) -> Option<String> {
+            Some(path.to_string())
+        }
+        fn read_dir(&self, _path: &str) -> Option<DirEntries> {
+            None
+        }
+        fn current_directory(&self) -> String {
+            "/test".to_string()
+        }
+        fn write_file(&self, path: &str, contents: &str) -> Result<(), String> {
+            self.files
+                .lock()
+                .unwrap()
+                .insert(path.to_string(), contents.to_string());
+            Ok(())
+        }
+        fn log(&self, _message: &str) {}
+        fn log_error(&self, _message: &str) {}
+    }
+
+    fn generated_file<'a>(path: &str, contents: &'a str) -> GeneratedFile<'a> {
+        GeneratedFile {
+            path: path.to_string(),
+            contents,
+            description: "test file",
+        }
+    }
+
+    #[test]
+    fn stale_generated_files_reports_missing_and_changed_files() {
+        let host = TestHost::default()
+            .with_file("/test/schema.graphql", "up to date")
+            .with_file("/test/schema.ts", "stale contents");
+        let files = vec![
+            generated_file("/test/schema.graphql", "up to date"),
+            generated_file("/test/schema.ts", "fresh contents"),
+            generated_file("/test/missing.ts", "fresh contents"),
+        ];
+        assert_eq!(
+            stale_generated_files(&files, &host),
+            vec![
+                "/test/schema.ts".to_string(),
+                "/test/missing.ts".to_string(),
+            ]
+        );
+    }
+
+    #[test]
+    fn stale_generated_files_is_empty_when_everything_matches() {
+        let host = TestHost::default().with_file("/test/schema.graphql", "up to date");
+        let files = vec![generated_file("/test/schema.graphql", "up to date")];
+        assert!(stale_generated_files(&files, &host).is_empty());
     }
 }

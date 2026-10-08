@@ -4,6 +4,10 @@
 
 Changes in this section are not yet released. If you need access to these changes before we cut a release, check out our `@main` NPM releases. Each commit on the main branch is [published to NPM](https://www.npmjs.com/package/grats?activeTab=versions) under the `main` tag.
 
+### `--validate` flag
+
+Added a [`--validate`](../01-getting-started/02-cli.md#validating-generated-files) flag to the Grats CLI, which checks that the generated files are up to date without writing anything to disk. It exits with a non-zero code if any file is missing or needs to be updated, which makes it useful in CI: instead of running Grats and asserting that nothing changed on disk, run `grats --validate`.
+
 ## 0.0.37
 
 ### Grats is now written in Rust
