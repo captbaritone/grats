@@ -1,0 +1,419 @@
+.playground {
+  --pg-border: rgba(0, 0, 0, 0.08);
+  --pg-hover: rgba(0, 0, 0, 0.045);
+  --pg-track: rgba(0, 0, 0, 0.05);
+  --pg-surface: #ffffff;
+  --pg-stage: #eef0f3;
+  --pg-edge-light: #d9dde3;
+  --pg-edge-dark: #b9bfc8;
+  --pg-float-shadow:
+    0 10px 30px -10px rgba(0, 0, 0, 0.25), 0 0 0 0.5px rgba(0, 0, 0, 0.1);
+  --pg-text: var(--ifm-color-emphasis-900);
+  --pg-muted: var(--ifm-color-emphasis-600);
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-size: 13px;
+}
+
+[data-theme="dark"] .playground {
+  --pg-border: rgba(255, 255, 255, 0.08);
+  --pg-hover: rgba(255, 255, 255, 0.06);
+  --pg-track: rgba(255, 255, 255, 0.06);
+  --pg-surface: #1b1b1d;
+  --pg-stage: #0e0e10;
+  --pg-edge-light: #34343a;
+  --pg-edge-dark: #1f1f23;
+  --pg-float-shadow:
+    0 10px 30px -10px rgba(0, 0, 0, 0.7), 0 0 0 0.5px rgba(255, 255, 255, 0.14);
+}
+
+/* The button which switches sides, floating in the corner above both */
+
+.switchSide {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 10;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--ifm-color-primary);
+  box-shadow: var(--pg-float-shadow);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    filter 120ms ease,
+    transform 120ms ease;
+}
+
+.switchSide:hover {
+  filter: brightness(1.08);
+}
+
+.switchSide:active {
+  transform: scale(0.97);
+}
+
+.switchSide:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+/* Icon buttons, in a tab bar */
+
+.button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--pg-muted);
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    background-color 120ms ease;
+}
+
+.button:hover {
+  color: var(--pg-text);
+  background: var(--pg-hover);
+}
+
+.button:focus-visible,
+.tab:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 1px;
+}
+
+.version {
+  padding: 0 6px;
+  color: var(--pg-muted);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.version a {
+  font-family: var(--ifm-font-family-monospace);
+}
+
+/* The two sides, and flipping between them */
+
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: var(--pg-stage);
+  overflow: hidden;
+}
+
+.card {
+  position: absolute;
+  inset: 0;
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  /* Opaque: the editors' backgrounds are transparent, and so is the site's in
+     light mode, which would show the stage through them. */
+  background: var(--pg-surface);
+}
+
+.faceHidden {
+  visibility: hidden;
+}
+
+/*
+ * Transforms, and perspective, only apply while flipping. Left in place, they
+ * would break Monaco's `position: fixed` widgets and its mouse selection.
+ */
+.flipping {
+  --pg-thickness: 24px;
+
+  transform-style: preserve-3d;
+  /*
+   * Each half of the turn eases into the edge-on moment, rather than rushing
+   * through it, so the card's thickness shows, and it tilts back as it turns,
+   * to show its top edge too. The easing is symmetric, so flipping back is
+   * the same turn, reversed.
+   */
+  animation: flip 1000ms cubic-bezier(0.4, 0.15, 0.6, 0.85) both;
+}
+
+.flipToServer {
+  animation-direction: reverse;
+}
+
+@keyframes flip {
+  0% {
+    transform: perspective(2400px) rotateX(0deg) rotateY(0deg) scale(1);
+  }
+  50% {
+    transform: perspective(2400px) rotateX(8deg) rotateY(90deg) scale(0.88);
+  }
+  100% {
+    transform: perspective(2400px) rotateX(0deg) rotateY(180deg) scale(1);
+  }
+}
+
+.flipping .face {
+  backface-visibility: hidden;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* The card is a slab: its faces sit apart, joined by edges seen mid-flip. */
+.flipping .faceServer {
+  transform: translateZ(calc(var(--pg-thickness) / 2));
+}
+
+.flipping .faceClient {
+  transform: rotateY(180deg) translateZ(calc(var(--pg-thickness) / 2));
+}
+
+.cardEdge {
+  display: none;
+}
+
+.flipping .cardEdge {
+  position: absolute;
+  display: block;
+  --pg-edge: linear-gradient(
+    var(--pg-edge-direction),
+    var(--pg-edge-dark),
+    var(--pg-edge-light) 45%,
+    var(--pg-edge-light) 55%,
+    var(--pg-edge-dark)
+  );
+}
+
+.flipping .cardEdgeLeft,
+.flipping .cardEdgeRight {
+  --pg-edge-direction: to right;
+
+  top: 0;
+  bottom: 0;
+  width: var(--pg-thickness);
+  background: var(--pg-edge);
+}
+
+.flipping .cardEdgeTop,
+.flipping .cardEdgeBottom {
+  --pg-edge-direction: to bottom;
+
+  right: 0;
+  left: 0;
+  height: var(--pg-thickness);
+  background: var(--pg-edge);
+}
+
+.flipping .cardEdgeLeft {
+  left: 0;
+  transform-origin: left center;
+  transform: translateZ(calc(var(--pg-thickness) / 2)) rotateY(90deg);
+}
+
+.flipping .cardEdgeRight {
+  right: 0;
+  transform-origin: right center;
+  transform: translateZ(calc(var(--pg-thickness) / 2)) rotateY(-90deg);
+}
+
+.flipping .cardEdgeTop {
+  top: 0;
+  transform-origin: center top;
+  transform: translateZ(calc(var(--pg-thickness) / 2)) rotateX(-90deg);
+}
+
+.flipping .cardEdgeBottom {
+  bottom: 0;
+  transform-origin: center bottom;
+  transform: translateZ(calc(var(--pg-thickness) / 2)) rotateX(90deg);
+}
+
+/* Server side: panes of files, each with a tab bar */
+
+.panels {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tabBar {
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+  height: 38px;
+  padding-right: 6px;
+  border-bottom: 1px solid var(--pg-border);
+}
+
+.tabs {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tab {
+  appearance: none;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  padding: 0 14px;
+  border: 0;
+  background: transparent;
+  color: var(--pg-muted);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.tab:hover,
+.tabActive {
+  color: var(--pg-text);
+}
+
+.tab > svg {
+  opacity: 0.6;
+  transition: opacity 120ms ease;
+}
+
+.tab:hover > svg,
+.tabActive > svg {
+  opacity: 1;
+}
+
+.tabActive::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  bottom: 0;
+  left: 10px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--ifm-color-primary);
+}
+
+.experimental {
+  display: inline-flex;
+  margin-left: -2px;
+  color: var(--pg-muted);
+}
+
+.tabActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.separator {
+  width: 1px;
+  height: 16px;
+  margin: 0 4px;
+  background: var(--pg-border);
+}
+
+.paneBody {
+  flex: 1;
+  min-height: 0;
+}
+
+.file {
+  height: 100%;
+}
+
+.divider {
+  position: relative;
+  flex-shrink: 0;
+  width: 1px;
+  background: var(--pg-border);
+  cursor: col-resize;
+  z-index: 1;
+  transition: background-color 150ms ease;
+}
+
+/* A wider, invisible, hit area. */
+.divider::after {
+  content: "";
+  position: absolute;
+  inset: 0 -5px;
+}
+
+.divider:hover,
+.dividerActive {
+  background: var(--ifm-color-primary);
+}
+
+/* Client side */
+
+.graphiql {
+  flex: 1;
+  min-height: 0;
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 720px;
+  min-height: 0;
+  margin: 0 auto;
+  padding: 56px 24px;
+  overflow-y: auto;
+}
+
+.messageTitle {
+  color: var(--pg-text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.messageText {
+  color: var(--pg-muted);
+}
+
+.messageBody {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--pg-border);
+  border-radius: 8px;
+  background: var(--pg-track);
+  color: var(--pg-text);
+  font-size: 12.5px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}

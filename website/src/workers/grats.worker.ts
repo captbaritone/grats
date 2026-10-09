@@ -12,7 +12,6 @@ import {
 import prettier from "prettier/standalone";
 import parserTypeScript from "prettier/parser-typescript";
 import type { monaco } from "react-monaco-editor";
-import type { GratsConfig } from "../components/configSchema";
 import type { CompileResult, Diagnostic, FileLocation } from "../wasm/grats";
 import type { ExecutableModulesResult } from "../components/MonacoPlayground/executionProtocol";
 import { loadGrats, PACKAGE_FILES } from "../wasm/loadGrats";
@@ -44,36 +43,42 @@ const MAIN_FILE = "/index.ts";
 // a made up one, unlikely to collide with TypeScript's.
 const GRATS_ERROR_CODE = 349389149282;
 
+// What the playground's config defaults to, over Grats' own defaults: no
+// headers, which would only clutter its outputs.
+const DEFAULT_CONFIG = {
+  schemaHeader: null,
+  tsSchemaHeader: null,
+  tsClientEnumsHeader: null,
+};
+
+// Monaco's wrapper exposes the full TypeScript API as `typescript`.
+const typescript = typescriptServices.typescript as typeof ts;
+
 // https://github.com/microsoft/monaco-editor/blob/main/src/language/typescript/tsWorker.ts
 // https://github.com/microsoft/TypeScript-Website/blob/c2b25d220465dac34dd2da41a2a44cb30c6f42e4/packages/playground-worker/index.ts
 export class GratsWorker extends TypeScriptWorker {
-  _gratsConfig: GratsConfig;
-  constructor(ctx, createData) {
-    super(ctx, createData);
-    this._gratsConfig = {
-      schemaHeader: null,
-      tsSchemaHeader: null,
-      tsClientEnumsHeader: null,
-      graphqlSchema: "schema.graphql",
-      tsSchema: "schema.ts",
-      tsClientEnums: null,
-      nullableByDefault: true,
-      strictSemanticNullability: false,
-      importModuleSpecifierEnding: "",
-      EXPERIMENTAL__emitMetadata: false,
-      EXPERIMENTAL__emitResolverMap: false,
-    };
-  }
+  // The `grats` key of the playground's tsconfig.json, over its defaults.
+  _gratsConfig: Record<string, unknown> = DEFAULT_CONFIG;
 
-  getGratsConfig(): GratsConfig {
-    return this._gratsConfig;
-  }
-
-  setGratsConfig(config: Partial<GratsConfig>) {
-    this._gratsConfig = {
-      ...this._gratsConfig,
-      ...config,
-    };
+  /**
+   * Reads the `grats` key of the playground's tsconfig.json, as TypeScript
+   * reads tsconfig.json, and returns it, or null if the text can't be read.
+   * Grats validates the options themselves.
+   */
+  setTsconfigText(text: string): Record<string, unknown> | null {
+    const { config, error } = typescript.parseConfigFileTextToJson(
+      "/tsconfig.json",
+      text,
+    );
+    if (error != null || !isObject(config)) {
+      return null;
+    }
+    const gratsConfig = config.grats ?? {};
+    if (!isObject(gratsConfig)) {
+      return null;
+    }
+    this._gratsConfig = { ...DEFAULT_CONFIG, ...gratsConfig };
+    return gratsConfig;
   }
 
   // We need a way to get access to the main text of the monaco editor, which is currently only
@@ -100,7 +105,7 @@ export class GratsWorker extends TypeScriptWorker {
   }
 
   async _gratsResult(
-    configOverrides?: Partial<GratsConfig>,
+    configOverrides?: Record<string, unknown>,
   ): Promise<CompileResult> {
     const grats = await loadGrats();
     return grats.compile({
@@ -256,14 +261,12 @@ export class GratsWorker extends TypeScriptWorker {
         message: result.err.map((err) => err.formatted).join("\n"),
       };
     }
-    // Monaco's wrapper exposes the full TypeScript API as `typescript`.
-    const ts = typescriptServices.typescript as typeof import("typescript");
     const transpile = (text: string, fileName: string) =>
-      ts.transpileModule(text, {
+      typescript.transpileModule(text, {
         fileName,
         compilerOptions: {
-          module: ts.ModuleKind.CommonJS,
-          target: ts.ScriptTarget.ES2022,
+          module: typescript.ModuleKind.CommonJS,
+          target: typescript.ScriptTarget.ES2022,
           esModuleInterop: true,
         },
       }).outputText;
@@ -307,6 +310,10 @@ self.onmessage = () => {
     return new GratsWorker(ctx, createData);
   });
 };
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value != null && !Array.isArray(value);
+}
 
 function commentLines(text: string, prefix: string): string {
   return text

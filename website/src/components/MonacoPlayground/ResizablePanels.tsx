@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
+import clsx from "clsx";
+import styles from "./playground.module.css";
 
 interface ResizablePanelsProps {
   leftPanel: React.ReactNode;
@@ -59,43 +61,15 @@ export function ResizablePanels({
   }, [isDragging, minLeftWidth, maxLeftWidth]);
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        display: "flex",
-        flexDirection: "row",
-        height: "100%",
-        width: "100%",
-        overflow: "hidden",
-      }}
-    >
-      <div
-        style={{
-          width: `${leftWidth}%`,
-          overflow: "hidden",
-          paddingTop: 10,
-        }}
-      >
+    <div ref={containerRef} className={styles.panels}>
+      <div className={styles.panel} style={{ width: `${leftWidth}%` }}>
         {leftPanel}
       </div>
       <div
         onMouseDown={handleMouseDown}
-        style={{
-          width: 4,
-          backgroundColor: "var(--ifm-color-emphasis-300)",
-          flexShrink: 0,
-          cursor: "col-resize",
-          zIndex: 1,
-          position: "relative",
-        }}
+        className={clsx(styles.divider, isDragging && styles.dividerActive)}
       />
-      <div
-        style={{
-          width: `${100 - leftWidth}%`,
-          overflow: "hidden",
-          paddingTop: 10,
-        }}
-      >
+      <div className={styles.panel} style={{ width: `${100 - leftWidth}%` }}>
         {rightPanel}
       </div>
     </div>

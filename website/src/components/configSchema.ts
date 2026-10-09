@@ -7,6 +7,9 @@ import ConfigSchema from "../../../grats-rs/crates/grats/grats-config-schema.jso
  * kind of option fails the build until it's supported here.
  */
 
+/** The JSON Schema itself, e.g. to validate the playground's tsconfig.json. */
+export const GRATS_CONFIG_SCHEMA = ConfigSchema;
+
 export type ConfigValue = string | boolean | null;
 
 export type GratsConfig = Record<
@@ -54,6 +57,8 @@ function optionType(
     }
   }
   throw new Error(
-    `Unhandled type of the config option "${name}": ${JSON.stringify(property)}`,
+    `Unhandled type of the config option "${name}": ${JSON.stringify(
+      property,
+    )}`,
   );
 }

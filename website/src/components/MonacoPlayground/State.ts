@@ -7,8 +7,11 @@ export type OutputOption =
   | "tsClientEnums"
   | "resolverMap";
 
-/** Whether the playground shows the code, or executes queries against it. */
-export type PlaygroundMode = "code" | "execute";
+/**
+ * The side of the playground shown: the server, where the code defines the
+ * schema, or the client, where GraphiQL queries it.
+ */
+export type Side = "server" | "client";
 
 export type State = {
   doc: string;
@@ -24,21 +27,16 @@ export type State = {
 
 export type SerializableState = {
   doc: string;
-  // Only serialize non-default config values to keep URLs minimal
-  config: Partial<GratsConfig>;
+  // The `grats` key of the playground's tsconfig.json.
+  config: { [option: string]: unknown };
   view: {
-    outputOption:
-      | "sdl"
-      | "typescript"
-      | "resolverSignatures"
-      | "tsClientEnums"
-      | "resolverMap";
+    outputOption: OutputOption;
   };
   VERSION: number;
 };
 
-// Get default config values for all GratsConfig options: Grats' defaults (see
-// grats-rs/crates/grats/grats-config-schema.json), but without headers
+// Every option, as older playground URLs hold them: Grats' defaults (see
+// grats-rs/crates/grats/grats-config-schema.json), but without headers.
 export function getDefaultPlaygroundConfig(): GratsConfig {
   return {
     graphqlSchema: "./schema.graphql",
@@ -52,25 +50,5 @@ export function getDefaultPlaygroundConfig(): GratsConfig {
     importModuleSpecifierEnding: "",
     EXPERIMENTAL__emitMetadata: false,
     EXPERIMENTAL__emitResolverMap: false,
-  };
-}
-
-// Serialize state, only including non-default config values
-export function getSerializabelState(state: State): SerializableState {
-  const defaults = getDefaultPlaygroundConfig();
-  const config: Partial<GratsConfig> = {};
-
-  // Only include config values that differ from defaults
-  for (const key in state.config) {
-    if (state.config[key] !== defaults[key]) {
-      config[key] = state.config[key];
-    }
-  }
-
-  return {
-    doc: state.doc,
-    config,
-    view: state.view,
-    VERSION: state.VERSION,
   };
 }

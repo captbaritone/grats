@@ -1,9 +1,9 @@
 import monaco, { IDisposable, Emitter } from "monaco-editor";
 import type { GratsWorker } from "../../workers/grats.worker";
 import type { SerializableState } from "./State";
-import type { GratsConfig } from "../configSchema";
 import { serializeState } from "./urlState";
 import { getDefaultPlaygroundConfig } from "./State";
+import { GRATS_CONFIG_SCHEMA } from "../configSchema";
 import lzstring from "lz-string";
 import GRATS_TYPE_DECLARATIONS from "!!raw-loader!grats/src/Types.ts";
 const GRATS_PATH = "/node_modules/grats/src/index.ts";
@@ -49,15 +49,12 @@ export function stateFromUrl(): SerializableState {
       lzstring.decompressFromEncodedURIComponent(hash.slice(1)),
     );
     if (state.VERSION === 1) {
-      // Merge config defensively: start with current defaults,
-      // then apply any serialized values that exist
-      const config = { ...getDefaultPlaygroundConfig() };
-      if (state.config) {
-        // Only apply known config keys to avoid issues with renamed/removed options
-        for (const key in state.config) {
-          if (key in config) {
-            config[key] = state.config[key];
-          }
+      // Older URLs hold every option, so drop those left at their defaults.
+      const defaults = getDefaultPlaygroundConfig();
+      const config: SerializableState["config"] = {};
+      for (const [key, value] of Object.entries(state.config ?? {})) {
+        if (value !== defaults[key]) {
+          config[key] = value;
         }
       }
 
@@ -81,12 +78,10 @@ export default class Sandbox {
   _tsEditor: monaco.editor.IStandaloneCodeEditor | null = null;
   _resolveWorker: (worker: GratsWorker) => void = () => {};
   _workerPromise: Promise<GratsWorker>;
-  _worker: GratsWorker | null = null;
   _onDidChange = new Emitter<void>();
   _serializedState: SerializableState;
   constructor() {
     this._serializedState = stateFromUrl();
-    console.log("INITIAL STATE", this._serializedState);
     this._workerPromise = new Promise((resolve) => {
       this._resolveWorker = resolve;
     });
@@ -108,27 +103,50 @@ export default class Sandbox {
       this._onDidChange.fire();
     });
     const getWorker = await monaco.languages.typescript.getTypeScriptWorker();
-    const worker = await getWorker();
-    this._worker = worker as unknown as GratsWorker;
-    this._resolveWorker(this._worker);
+    const worker = (await getWorker()) as unknown as GratsWorker;
+    await worker.setTsconfigText(this.getTsconfigText());
+    this._resolveWorker(worker);
     this._onDidChange.fire();
   }
 
-  async setGratsConfig(config: Partial<GratsConfig>): Promise<void> {
-    if (config.nullableByDefault !== undefined) {
-      this._serializedState.config.nullableByDefault = config.nullableByDefault;
-    }
-    // TODO: Update serialized state
+  /** The playground's tsconfig.json, of which Grats reads the `grats` key. */
+  getTsconfigText(): string {
+    const config = JSON.stringify(this._serializedState.config, null, 2);
+    return [
+      "{",
+      "  // Grats' options. Inside `grats`, type a quote or press Ctrl+Space to",
+      "  // autocomplete them, and hover one to read what it does.",
+      `  "grats": ${config.replace(/\n/g, "\n  ")}`,
+      "}",
+    ].join("\n");
+  }
+
+  async setTsconfigText(text: string): Promise<void> {
     const worker = await this.getWorker();
-    await worker.setGratsConfig(config);
+    const config = await worker.setTsconfigText(text);
+    // If the text can't be read, Monaco shows why, and the last config holds.
+    // Edits which don't change the config, like formatting, change nothing.
+    if (
+      config == null ||
+      JSON.stringify(config) === JSON.stringify(this._serializedState.config)
+    ) {
+      return;
+    }
+    this._serializedState.config = config;
     this._onDidChange.fire();
+  }
+
+  /** The `grats` key of the playground's tsconfig.json. */
+  getConfig(): SerializableState["config"] {
+    return this._serializedState.config;
   }
 
   setOutputOption(
     outputOption: SerializableState["view"]["outputOption"],
   ): void {
     this._serializedState.view.outputOption = outputOption;
-    this._onDidChange.fire();
+    // Only the URL depends on it, so not a change to the code.
+    window.history.replaceState(null, "", this.getUrlHash());
   }
 
   getOutputOption(): SerializableState["view"]["outputOption"] {
@@ -144,9 +162,7 @@ export default class Sandbox {
 
   getUrlHash(): string {
     const state = this.getSerializableState();
-    const hash = "#" + serializeState(state);
-    return hash;
-    window.history.replaceState(null, "", hash);
+    return "#" + serializeState(state);
   }
 
   onTSDidChange(cb: () => void): IDisposable {
@@ -255,6 +271,51 @@ monaco.languages.registerCompletionItemProvider(
   "typescript",
   new CompletionAdapter(),
 );
+
+/** The URI of the playground's tsconfig.json model. */
+export const TSCONFIG_URI = "file:///tsconfig.json";
+
+// Grats' options, under the `grats` key of a tsconfig.json. Their schema's
+// references are to its root, so its definitions move to the new root.
+const { $schema: _, $defs, ...gratsConfigSchema } = GRATS_CONFIG_SCHEMA;
+const TSCONFIG_SCHEMA = {
+  uri: "https://grats.capt.dev/playground/tsconfig.schema.json",
+  fileMatch: [TSCONFIG_URI],
+  schema: {
+    type: "object",
+    $defs,
+    properties: { grats: gratsConfigSchema },
+    // Like TypeScript, which reads tsconfig.json as JSON with comments.
+    allowComments: true,
+    allowTrailingCommas: true,
+  },
+};
+
+/**
+ * Validates, and offers completions in, the playground's tsconfig.json.
+ * GraphiQL replaces Monaco's JSON options as it loads, before it creates its
+ * editors, so this is reapplied whenever an editor is created.
+ */
+function applyTsconfigSchema(): void {
+  const { jsonDefaults } = monaco.languages.json;
+  const options = jsonDefaults.diagnosticsOptions;
+  // Setting the options restarts Monaco's JSON worker, so only when needed.
+  if (options.schemas?.includes(TSCONFIG_SCHEMA)) return;
+  jsonDefaults.setDiagnosticsOptions({
+    ...options,
+    validate: true,
+    allowComments: true,
+    schemas: [
+      ...(options.schemas ?? []).filter(
+        (schema) => schema.uri !== TSCONFIG_SCHEMA.uri,
+      ),
+      TSCONFIG_SCHEMA,
+    ],
+  });
+}
+
+applyTsconfigSchema();
+monaco.editor.onDidCreateEditor(applyTsconfigSchema);
 
 export const SANDBOX = new Sandbox();
 

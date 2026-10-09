@@ -1,24 +1,24 @@
 import React from "react";
-import { SANDBOX } from "./Sandbox";
+import monaco from "monaco-editor";
+import { FormatIcon } from "./icons";
+import styles from "./playground.module.css";
 
-export default function FormatButton() {
+/** Formats the file open in the editor. */
+export default function FormatButton({
+  getEditor,
+}: {
+  getEditor: () => monaco.editor.IStandaloneCodeEditor | undefined;
+}) {
   return (
     <button
-      onClick={async () => {
-        const editor = SANDBOX._tsEditor;
-        if (!editor) {
-          console.warn("No editor");
-          return;
-        }
-        const formatAction = editor.getAction("editor.action.formatDocument");
-        if (!formatAction) {
-          console.warn("No format action");
-          return;
-        }
-        formatAction.run();
+      className={styles.button}
+      title="Format"
+      aria-label="Format"
+      onClick={() => {
+        getEditor()?.getAction("editor.action.formatDocument")?.run();
       }}
     >
-      Format
+      <FormatIcon />
     </button>
   );
 }
