@@ -1,21 +1,8 @@
 /*
- * GraphiQL, themed to match the site. Global, since GraphiQL's dialogs and
- * tooltips render outside the playground, but GraphiQL only appears there.
+ * GraphiQL, as it comes, but in the site's fonts and, in dark mode, on its
+ * background. Global, since GraphiQL's dialogs and tooltips render outside
+ * the playground, but GraphiQL only appears there.
  */
-
-html[data-theme="light"]
-  body
-  :is(
-    .graphiql-container,
-    .graphiql-dialog,
-    .graphiql-dialog-overlay,
-    .graphiql-tooltip,
-    [data-radix-popper-content-wrapper]
-  ) {
-  --color-primary: 212, 60%, 48%;
-  --color-neutral: 220, 9%, 26%;
-  --color-base: 0, 0%, 100%;
-}
 
 html[data-theme="dark"]
   body
@@ -26,8 +13,6 @@ html[data-theme="dark"]
     .graphiql-tooltip,
     [data-radix-popper-content-wrapper]
   ) {
-  --color-primary: 323, 84%, 63%;
-  --color-neutral: 220, 9%, 80%;
   --color-base: 240, 3%, 11%;
 }
 

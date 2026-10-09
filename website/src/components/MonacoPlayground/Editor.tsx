@@ -3,30 +3,85 @@ import MonacoEditor from "react-monaco-editor";
 import monaco from "monaco-editor";
 import { useColorMode } from "@docusaurus/theme-common";
 
+// The colors GraphiQL's own Monaco themes give its widgets (autocomplete,
+// hovers, menus), since it uses these themes too.
+function widgetColors({
+  accent,
+  accentTint,
+  surface,
+  inputTint,
+  focusForeground,
+}: Record<string, string>): monaco.editor.IColors {
+  return {
+    "scrollbar.shadow": "#00000000",
+    "textLink.foreground": accent,
+    "textLink.activeForeground": accent,
+    "editorLink.activeForeground": accent,
+    "editorHoverWidget.background": surface,
+    "list.hoverBackground": accentTint,
+    "list.highlightForeground": accent,
+    "list.focusHighlightForeground": accent,
+    "menu.background": surface,
+    "menu.selectionBackground": accentTint,
+    "menu.selectionForeground": accent,
+    "editorSuggestWidget.background": surface,
+    "editorSuggestWidget.selectedBackground": accentTint,
+    "editorSuggestWidget.selectedForeground": accent,
+    "quickInput.background": surface,
+    "quickInput.widget": accent,
+    "quickInputList.focusBackground": accentTint,
+    "quickInputList.focusForeground": focusForeground,
+    "highlighted.label": accent,
+    highlight: accent,
+    "editorWidget.background": surface,
+    "editorWidget.resizeBorder": accent,
+    "input.background": inputTint,
+    focusBorder: accent,
+    "toolbar.hoverBackground": accentTint,
+    "inputOption.hoverBackground": accentTint,
+    "pickerGroup.foreground": accent,
+  };
+}
+
 // Monaco's themes, for the playground's editors and GraphiQL's, with
 // transparent backgrounds so they sit flush with what's behind them.
 monaco.editor.defineTheme("grats-light", {
   base: "vs",
   inherit: true,
-  rules: [],
+  // Like GraphiQL's, which colors arguments distinctly.
+  rules: [{ token: "argument.identifier.gql", foreground: "#6c69ce" }],
   colors: {
     "editor.background": "#00000000",
     "editor.lineHighlightBackground": "#f5f6f8",
     "editor.lineHighlightBorder": "#00000000",
     "editorLineNumber.foreground": "#b9bdc4",
     "editorLineNumber.activeForeground": "#606770",
+    ...widgetColors({
+      accent: "#d60590",
+      accentTint: "#d6059019",
+      surface: "#ffffff",
+      inputTint: "#3b4b6811",
+      focusForeground: "#444444",
+    }),
   },
 });
 monaco.editor.defineTheme("grats-dark", {
   base: "vs-dark",
   inherit: true,
-  rules: [],
+  rules: [{ token: "argument.identifier.gql", foreground: "#908aff" }],
   colors: {
     "editor.background": "#00000000",
     "editor.lineHighlightBackground": "#ffffff08",
     "editor.lineHighlightBorder": "#00000000",
     "editorLineNumber.foreground": "#55585f",
     "editorLineNumber.activeForeground": "#a8abb3",
+    ...widgetColors({
+      accent: "#ff5794",
+      accentTint: "#ff579419",
+      surface: "#242427",
+      inputTint: "#b7c2d711",
+      focusForeground: "#ffffff",
+    }),
   },
 });
 
