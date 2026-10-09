@@ -176,6 +176,13 @@ window.MonacoEnvironment = {
         );
       }
 
+      // Used by GraphiQL, in the playground's execute mode.
+      case "graphql": {
+        return new Worker(
+          new URL("monaco-graphql/esm/graphql.worker.js", import.meta.url),
+        );
+      }
+
       case "javascript":
       case "typescript": {
         return new Worker(

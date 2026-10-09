@@ -1,48 +1,45 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import monaco from "monaco-editor";
+import React, { useEffect, useState } from "react";
+import { GraphiQL } from "graphiql";
+import "graphiql/style.css";
 import { useColorMode } from "@docusaurus/theme-common";
 import { SANDBOX } from "./Sandbox";
-import { Editor } from "./Editor";
-import { ResizablePanels } from "./ResizablePanels";
 import { LoadingFallback } from "./LoadingFallback";
 import { execute, setModules } from "./executor";
 
+type Fetcher = React.ComponentProps<typeof GraphiQL>["fetcher"];
+
 type SchemaState =
   | { kind: "LOADING" }
-  | { kind: "READY" }
+  | { kind: "READY"; fetcher: Fetcher }
   | { kind: "ERROR"; message: string };
 
-type Props = {
-  query: string;
-  onQueryChange: (query: string) => void;
-};
+// Matches the default code in `Sandbox.ts`.
+const DEFAULT_QUERY = `query {
+  me {
+    name
+    greeting(salutation: "Hello")
+  }
+}
+`;
+
+// GraphiQL persists its tabs and history. Keep them in memory, so they survive
+// switching back to the code, but not reloading the page, which may be a
+// different playground.
+const STORAGE = createMemoryStorage();
 
 /**
- * Executes queries against the schema defined by the code in the editor. Each
- * time it's shown, or the config changes, the code and the executable schema
- * Grats generates for it are loaded into the playground's service worker.
+ * GraphiQL, executing against the schema defined by the code in the editor.
+ * Each time it's shown, or the config changes, the code and the executable
+ * schema Grats generates for it are loaded into the playground's service
+ * worker.
  */
-export function ExecutePanel({ query, onQueryChange }: Props) {
+export function ExecutePanel() {
   const { colorMode } = useColorMode();
-  const theme = colorMode === "dark" ? "vs-dark" : "vs-light";
   const [schema, setSchema] = useState<SchemaState>({ kind: "LOADING" });
-  const [result, setResult] = useState<string | null>(null);
-  const queryRef = useRef(query);
-  queryRef.current = query;
-
-  const run = useCallback(async () => {
-    try {
-      const response = await execute({ query: queryRef.current });
-      setResult(JSON.stringify(response, null, 2));
-    } catch (e) {
-      setResult(`// ${errorMessage(e)}`);
-    }
-  }, []);
 
   useEffect(() => {
     let unmounted = false;
     async function load() {
-      setSchema({ kind: "LOADING" });
       try {
         const worker = await SANDBOX.getWorker();
         const modules = await worker.getExecutableModules();
@@ -53,8 +50,10 @@ export function ExecutePanel({ query, onQueryChange }: Props) {
         }
         await setModules(modules.modules);
         if (unmounted) return;
-        setSchema({ kind: "READY" });
-        run();
+        // A new fetcher makes GraphiQL introspect the new schema.
+        const fetcher: Fetcher = (params) =>
+          execute(params) as ReturnType<Fetcher>;
+        setSchema({ kind: "READY", fetcher });
       } catch (e) {
         if (unmounted) return;
         setSchema({ kind: "ERROR", message: errorMessage(e) });
@@ -66,78 +65,56 @@ export function ExecutePanel({ query, onQueryChange }: Props) {
       unmounted = true;
       disposable.dispose();
     };
-  }, [run]);
+  }, []);
 
-  // Monaco keeps the first command it's given, so use a ref to run the latest.
-  const runRef = useRef(run);
-  runRef.current = run;
-  const ready = schema.kind === "READY";
-  const readyRef = useRef(ready);
-  readyRef.current = ready;
-
-  return (
-    <ResizablePanels
-      leftPanel={
-        <div
-          style={{ display: "flex", flexDirection: "column", height: "100%" }}
+  switch (schema.kind) {
+    case "LOADING":
+      return <LoadingFallback />;
+    case "ERROR":
+      return (
+        <pre
+          style={{
+            height: "100%",
+            margin: 0,
+            borderRadius: 0,
+            color: "var(--ifm-color-danger)",
+            whiteSpace: "pre-wrap",
+          }}
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5em",
-              padding: "0 1rem 10px",
-              fontSize: "0.8rem",
-            }}
-          >
-            <button onClick={run} disabled={!ready}>
-              ▶ Run
-            </button>
-            <span style={{ color: "#666" }}>
-              {schema.kind === "LOADING"
-                ? "Loading schema…"
-                : "⌘/Ctrl + Enter to run"}
-            </span>
-          </div>
-          <div style={{ flexGrow: 1, minHeight: 0 }}>
-            <Editor
-              value={query}
-              onChange={onQueryChange}
-              language="graphql"
-              theme={theme}
-              onEditorDidMount={(editor) => {
-                editor.addCommand(
-                  monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
-                  () => {
-                    if (readyRef.current) runRef.current();
-                  },
-                );
-              }}
-            />
-          </div>
+          {schema.message}
+        </pre>
+      );
+    case "READY":
+      return (
+        <div style={{ height: "100%" }}>
+          <GraphiQL
+            fetcher={schema.fetcher}
+            defaultQuery={DEFAULT_QUERY}
+            storage={STORAGE}
+            forcedTheme={colorMode}
+          />
         </div>
-      }
-      rightPanel={
-        schema.kind === "ERROR" ? (
-          <pre
-            style={{
-              height: "100%",
-              margin: 0,
-              borderRadius: 0,
-              color: "var(--ifm-color-danger)",
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            {schema.message}
-          </pre>
-        ) : result == null ? (
-          <LoadingFallback />
-        ) : (
-          <Editor value={result} language="json" theme={theme} readOnly />
-        )
-      }
-    />
-  );
+      );
+  }
+}
+
+function createMemoryStorage(): React.ComponentProps<
+  typeof GraphiQL
+>["storage"] & {} {
+  const items = new Map<string, string>();
+  return {
+    getItem: (key) => items.get(key) ?? null,
+    setItem: (key, value) => {
+      items.set(key, value);
+    },
+    removeItem: (key) => {
+      items.delete(key);
+    },
+    clear: () => items.clear(),
+    get length() {
+      return items.size;
+    },
+  };
 }
 
 function errorMessage(e: unknown): string {

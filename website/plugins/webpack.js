@@ -33,6 +33,13 @@ module.exports = function (_context, _options) {
         node: {
           __dirname: "mock",
         },
+        resolve: {
+          alias: {
+            // An optional dependency of GraphiQL's `createGraphiQLFetcher`,
+            // for subscriptions, which the playground doesn't use.
+            "graphql-ws": false,
+          },
+        },
         // Can't figure out how to get this to work correctly to import the
         // codicon font. Instead, for now we just load it via CDN in
         // website/src/css/custom.css

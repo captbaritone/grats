@@ -1,5 +1,6 @@
 // Based on https://github.com/facebook/hermes/pull/173/files
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import monaco from "monaco-editor";
 import { useColorMode } from "@docusaurus/theme-common";
 import FillRemainingHeight from "@site/src/components/FillRemainingHeight";
 import ConfigBar from "./ConfigBar";
@@ -10,15 +11,6 @@ import { ResizablePanels } from "./ResizablePanels";
 import { Editor, EditorRef } from "./Editor";
 import { ExecutePanel } from "./ExecutePanel";
 
-// Matches the default code in `Sandbox.ts`.
-const DEFAULT_QUERY = `query {
-  me {
-    name
-    greeting(salutation: "Hello")
-  }
-}
-`;
-
 function MonacoEditorComponent() {
   const { colorMode } = useColorMode();
   const theme = colorMode === "dark" ? "vs-dark" : "vs-light";
@@ -27,7 +19,13 @@ function MonacoEditorComponent() {
   const rightEditorRef = useRef<RightRef>(null);
 
   const [mode, setMode] = useState<PlaygroundMode>("code");
-  const [query, setQuery] = useState(DEFAULT_QUERY);
+  // Monaco's theme is global, and GraphiQL sets its own.
+  useEffect(() => {
+    if (mode === "code") {
+      monaco.editor.setTheme(theme);
+    }
+  }, [mode, theme]);
+
   const [viewMode, setViewMode] = useState<OutputOption>(
     SANDBOX.getOutputOption(),
   );
@@ -63,9 +61,7 @@ function MonacoEditorComponent() {
           config={config}
           onConfigChange={handleConfigChange}
         />
-        {mode === "execute" && (
-          <ExecutePanel query={query} onQueryChange={setQuery} />
-        )}
+        {mode === "execute" && <ExecutePanel />}
         {/* Kept mounted, since `SANDBOX` holds on to the editor. */}
         <div
           style={{
