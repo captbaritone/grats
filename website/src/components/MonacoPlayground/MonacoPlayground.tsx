@@ -3,16 +3,21 @@ import React, { useRef, useState } from "react";
 import { useColorMode } from "@docusaurus/theme-common";
 import FillRemainingHeight from "@site/src/components/FillRemainingHeight";
 import ConfigBar from "./ConfigBar";
-import { OutputOption } from "./State";
+import { OutputOption, PlaygroundMode } from "./State";
 import { Right, RightRef } from "./Right";
 import { SANDBOX } from "./Sandbox";
 import { ResizablePanels } from "./ResizablePanels";
 import { Editor, EditorRef } from "./Editor";
+import { ExecutePanel } from "./ExecutePanel";
 
-/**
- * # TODO
- * - [ ] Executable schema
- */
+// Matches the default code in `Sandbox.ts`.
+const DEFAULT_QUERY = `query {
+  me {
+    name
+    greeting(salutation: "Hello")
+  }
+}
+`;
 
 function MonacoEditorComponent() {
   const { colorMode } = useColorMode();
@@ -21,6 +26,8 @@ function MonacoEditorComponent() {
   const leftEditorRef = useRef<EditorRef>(null);
   const rightEditorRef = useRef<RightRef>(null);
 
+  const [mode, setMode] = useState<PlaygroundMode>("code");
+  const [query, setQuery] = useState(DEFAULT_QUERY);
   const [viewMode, setViewMode] = useState<OutputOption>(
     SANDBOX.getOutputOption(),
   );
@@ -46,6 +53,8 @@ function MonacoEditorComponent() {
         }}
       >
         <ConfigBar
+          mode={mode}
+          setMode={setMode}
           viewMode={viewMode}
           setViewMode={(newViewMode) => {
             setViewMode(newViewMode);
@@ -54,9 +63,13 @@ function MonacoEditorComponent() {
           config={config}
           onConfigChange={handleConfigChange}
         />
+        {mode === "execute" && (
+          <ExecutePanel query={query} onQueryChange={setQuery} />
+        )}
+        {/* Kept mounted, since `SANDBOX` holds on to the editor. */}
         <div
           style={{
-            display: "flex",
+            display: mode === "code" ? "flex" : "none",
             flexDirection: "column",
             height: "100%",
           }}

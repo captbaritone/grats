@@ -2,10 +2,12 @@ import React, { useState, useRef } from "react";
 import FormatButton from "./FormatButton";
 import ShareButton from "./ShareButton";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
-import { OutputOption } from "./State";
+import { OutputOption, PlaygroundMode } from "./State";
 import ConfigDropdown from "./ConfigModal";
 
 type Props = {
+  mode: PlaygroundMode;
+  setMode: (mode: PlaygroundMode) => void;
   viewMode: OutputOption;
   setViewMode: (mode: OutputOption) => void;
   config: Record<string, any>;
@@ -13,6 +15,8 @@ type Props = {
 };
 
 export default function ConfigBar({
+  mode,
+  setMode,
   viewMode,
   setViewMode,
   config,
@@ -74,6 +78,9 @@ export default function ConfigBar({
           </div>
         </ConfigBlock>
         <div style={{ display: "flex", gap: "1em" }}>
+          <button onClick={() => setMode(mode === "code" ? "execute" : "code")}>
+            {mode === "code" ? "▶ Execute" : "← Back to Code"}
+          </button>
           <FormatButton />
           <ShareButton />
         </div>
@@ -83,6 +90,7 @@ export default function ConfigBar({
           <ConfigBarHeading>Output:</ConfigBarHeading>
           <Label>
             <select
+              disabled={mode !== "code"}
               value={viewMode}
               onChange={(e) => {
                 setViewMode(e.target.value as OutputOption);

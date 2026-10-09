@@ -6,12 +6,15 @@ import {
   // @ts-ignore
   TypeScriptWorker,
   // @ts-ignore
+  ts as typescriptServices,
+  // @ts-ignore
 } from "./ts.worker.mjs";
 import prettier from "prettier/standalone";
 import parserTypeScript from "prettier/parser-typescript";
 import type { monaco } from "react-monaco-editor";
 import type { GratsConfig } from "../components/configSchema";
 import type { CompileResult, Diagnostic, FileLocation } from "../wasm/grats";
+import type { ExecutableModulesResult } from "../components/MonacoPlayground/executionProtocol";
 import { loadGrats, PACKAGE_FILES } from "../wasm/loadGrats";
 
 // The docblock tags offered as completions. See `documentationForTag`.
@@ -236,6 +239,41 @@ export class GratsWorker extends TypeScriptWorker {
       return this.formatErrors(result.err, "// ");
     }
     return result.value.outputs.tsSchema.trim();
+  }
+
+  // The editor's code and the executable schema Grats generates for it,
+  // compiled to CommonJS for the playground's service worker to run.
+  async getExecutableModules(): Promise<ExecutableModulesResult> {
+    // Pin the options which affect how the schema imports the editor's code.
+    const result = await this._gratsResult({
+      tsSchema: "schema.ts",
+      importModuleSpecifierEnding: "",
+      EXPERIMENTAL__emitResolverMap: false,
+    });
+    if (result.kind === "ERROR") {
+      return {
+        kind: "ERROR",
+        message: result.err.map((err) => err.formatted).join("\n"),
+      };
+    }
+    // Monaco's wrapper exposes the full TypeScript API as `typescript`.
+    const ts = typescriptServices.typescript as typeof import("typescript");
+    const transpile = (text: string, fileName: string) =>
+      ts.transpileModule(text, {
+        fileName,
+        compilerOptions: {
+          module: ts.ModuleKind.CommonJS,
+          target: ts.ScriptTarget.ES2022,
+          esModuleInterop: true,
+        },
+      }).outputText;
+    return {
+      kind: "OK",
+      modules: {
+        index: transpile(this.getMainText(), "index.ts"),
+        schema: transpile(result.value.outputs.tsSchema, "schema.ts"),
+      },
+    };
   }
 
   async getTagsAtPosition(

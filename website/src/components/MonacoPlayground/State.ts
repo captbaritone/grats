@@ -7,6 +7,9 @@ export type OutputOption =
   | "tsClientEnums"
   | "resolverMap";
 
+/** Whether the playground shows the code, or executes queries against it. */
+export type PlaygroundMode = "code" | "execute";
+
 export type State = {
   doc: string;
   config: GratsConfig;

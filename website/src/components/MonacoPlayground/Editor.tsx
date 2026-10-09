@@ -11,11 +11,15 @@ interface EditorProps {
   language: "typescript" | "graphql" | "json";
   theme: string;
   readOnly?: boolean;
+  onChange?: (value: string) => void;
   onEditorDidMount?: (editor: monaco.editor.IStandaloneCodeEditor) => void;
 }
 
 export const Editor = forwardRef<EditorRef, EditorProps>(
-  ({ value, language, theme, readOnly = false, onEditorDidMount }, _ref) => {
+  (
+    { value, language, theme, readOnly = false, onChange, onEditorDidMount },
+    _ref,
+  ) => {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
     const handleEditorDidMount = (
@@ -28,6 +32,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
     return (
       <MonacoEditor
         editorDidMount={handleEditorDidMount}
+        onChange={onChange}
         value={value}
         language={language}
         theme={theme}
