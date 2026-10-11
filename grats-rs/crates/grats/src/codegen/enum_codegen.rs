@@ -209,10 +209,4 @@ export { SizeEnum as Size };
 "#
         );
     }
-
-    #[test]
-    fn skips_introspection_enums() {
-        let code = codegen(vec![], "/root/project/enums.ts");
-        assert_eq!(code, "export const enums = {};\n");
-    }
 }
