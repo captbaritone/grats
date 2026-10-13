@@ -17,9 +17,11 @@ use jsonc_parser::{CollectOptions, ParseOptions, ParseResult, parse_to_ast};
 use crate::files::Utf16Offsets;
 use crate::host::Host;
 use crate::source_table::SourceTable;
-use crate::utils::diagnostic_error::{Diagnostic, located_err};
+use crate::utils::diagnostic_error::{Diagnostic, TextChange, TextSpan, located_err};
 
 pub struct ConfigFile {
+    /// The file's path, which a fix's changes name.
+    path: String,
     /// The file's text, which spans are offsets into.
     text: String,
     /// The file's id in the `SourceTable`, which locations refer to.
@@ -36,10 +38,19 @@ impl ConfigFile {
 
     pub fn new(sources: &SourceTable, path: &str, text: String) -> Self {
         ConfigFile {
+            path: path.to_string(),
             source: sources.add(path, &text),
             offsets: Utf16Offsets::new(&text),
             text,
         }
+    }
+
+    pub fn path(&self) -> &str {
+        &self.path
+    }
+
+    pub fn text(&self) -> &str {
+        &self.text
     }
 
     /// The location of a byte range in the file.
@@ -65,20 +76,61 @@ impl ConfigFile {
         )
     }
 
-    /// The location of `part` of the member at `path`. If that member isn't
-    /// written down, as for an option left at its default, the whole of the
-    /// nearest ancestor which is.
+    /// The location of `part` of the member at `path`, or `None` if the
+    /// config doesn't write that member down. A caller which wants to point
+    /// somewhere regardless says where itself, since what to fall back to
+    /// depends on what the error is about.
     pub fn locate(&self, path: &[&str], part: Part) -> Option<Location> {
         let parsed = self.parse().ok()?;
-        let (prop, exact) = nearest_member(parsed.value.as_ref()?.as_object()?, path)?;
-        // Narrowing an ancestor would point at a key or a value the member
-        // asked about doesn't have.
+        let prop = member(parsed.value.as_ref()?.as_object()?, path)?;
         let range = match part {
-            Part::Key if exact => prop.name.range(),
-            Part::Value if exact => prop.value.range(),
-            _ => prop.range,
+            Part::Entry => prop.range,
+            Part::Key => prop.name.range(),
+            Part::Value => prop.value.range(),
         };
         Some(self.loc(&(range.start..range.end)))
+    }
+
+    /// A change which gives the member `key` of the object at `path` the value
+    /// `value`, replacing what it's set to or inserting the member. `None` if
+    /// the config has no object at `path`, since then there's nowhere to put
+    /// it.
+    ///
+    /// Editing only the member leaves the rest of the file, comments and
+    /// formatting included, exactly as it was written.
+    pub fn set_member(&self, path: &[&str], key: &str, value: &str) -> Option<TextChange> {
+        let parsed = self.parse().ok()?;
+        let root = parsed.value.as_ref()?.as_object()?;
+        let object = match path {
+            [] => root,
+            _ => member(root, path)?.value.as_object()?,
+        };
+        let (span, text) = match object.get(key) {
+            Some(prop) => {
+                let range = prop.value.range();
+                (range.start..range.end, value.to_string())
+            }
+            None => {
+                // Indent the new member like the first one, or one level in
+                // from the line the object opens on.
+                let first = object.properties.first().map(|prop| prop.range.start);
+                let indent = line_indent(&self.text, first.unwrap_or(object.range.start));
+                let (indent, trailing) = match first {
+                    Some(_) => (indent, ","),
+                    None => (format!("{indent}  "), ""),
+                };
+                let at = object.range.start + 1;
+                (at..at, format!("\n{indent}\"{key}\": {value}{trailing}"))
+            }
+        };
+        let start = self.offsets.to_utf16(span.start as u32);
+        Some(TextChange {
+            span: TextSpan {
+                start,
+                length: self.offsets.to_utf16(span.end as u32) - start,
+            },
+            new_text: text,
+        })
     }
 
     /// Why the file doesn't parse, and where, or `None` if it parses. The
@@ -108,26 +160,24 @@ pub enum Part {
     Value,
 }
 
-/// The member at `path`, or the nearest ancestor of it which is written down,
-/// and whether it's the member itself. A key inside an array isn't
-/// addressable, so a path never reaches one.
-fn nearest_member<'a, 'p>(
-    root: &'p Object<'a>,
-    path: &[&str],
-) -> Option<(&'p ObjectProp<'a>, bool)> {
+/// The member at `path`. A key inside an array isn't addressable, so a path
+/// only ever walks objects.
+fn member<'a, 'p>(root: &'p Object<'a>, path: &[&str]) -> Option<&'p ObjectProp<'a>> {
+    let (key, ancestors) = path.split_last()?;
     let mut object = root;
-    let mut found = None;
-    let mut depth = 0;
-    for key in path {
-        let Some(prop) = object.get(key) else { break };
-        found = Some(prop);
-        depth += 1;
-        match prop.value.as_object() {
-            Some(next) => object = next,
-            None => break,
-        }
+    for ancestor in ancestors {
+        object = object.get(ancestor)?.value.as_object()?;
     }
-    Some((found?, depth == path.len()))
+    object.get(key)
+}
+
+/// The indentation of the line `offset` falls on.
+fn line_indent(text: &str, offset: usize) -> String {
+    let line_start = text[..offset].rfind('\n').map_or(0, |index| index + 1);
+    text[line_start..offset]
+        .chars()
+        .take_while(|ch| *ch == ' ' || *ch == '\t')
+        .collect()
 }
 
 /// An error about `part` of the member at `path` of the config at

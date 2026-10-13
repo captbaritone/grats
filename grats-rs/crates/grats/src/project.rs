@@ -32,6 +32,7 @@ use crate::grats_config::{GratsConfig, validate_grats_options};
 use crate::host::{FileKind, Host};
 use crate::program::{HostFileSystem, ProgramOptions};
 use crate::source_table::SourceTable;
+use crate::tsconfig_compat;
 use crate::utils::diagnostic_error::{
     Diagnostic, DiagnosticsResult, located_err, locationless_err,
 };
@@ -89,22 +90,30 @@ pub fn load_project(
 
     // The `grats` key of the config itself, which isn't inherited. Resolving
     // the config above already reported a file which doesn't parse.
-    let raw = host
-        .read_file(&tsconfig_path)
-        .and_then(|text| parse_to_serde_value::<Value>(&text, &ParseOptions::default()).ok());
+    let file = ConfigFile::read(&*host, sources, &tsconfig_path);
+    let raw = file
+        .as_ref()
+        .and_then(|file| parse_to_serde_value::<Value>(file.text(), &ParseOptions::default()).ok());
     let validated =
         validate_grats_options(raw.as_ref().and_then(|raw| raw.get("grats"))).map_err(|error| {
             let mut path = vec!["grats"];
             path.extend(error.path.iter().map(String::as_str));
-            vec![config_error(
-                &*host,
-                sources,
-                &tsconfig_path,
-                &path,
-                error.part,
+            vec![located_err(
+                file.as_ref()
+                    .and_then(|file| file.locate(&path, error.part)),
                 error.message,
             )]
         })?;
+
+    // Reject a Grats config which TypeScript won't accept, before every build
+    // writes a schema module which doesn't type check.
+    if let Some(file) = &file {
+        let module = tsconfig.compiler_options.module.as_deref();
+        let diagnostics = tsconfig_compat::check(&validated.config, file, &*host, module);
+        if !diagnostics.is_empty() {
+            return Err(diagnostics);
+        }
+    }
 
     // Like `getAllowJSCompilerOption`.
     let options = &tsconfig.compiler_options;
