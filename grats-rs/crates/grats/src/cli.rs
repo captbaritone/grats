@@ -8,6 +8,7 @@ use std::sync::Arc;
 
 use clap::{CommandFactory, FromArgMatches, Parser, Subcommand};
 
+use crate::config_file::{Part, config_error};
 use crate::fix_fixable::{FixOptions, apply_fixes, with_fixes_fixed};
 use crate::host::Host;
 use crate::locate::locate_in_document;
@@ -217,11 +218,8 @@ impl WatchMode {
             Ok(compiled) => compiled,
             Err(diagnostics) => return fix_or_report(diagnostics),
         };
-        let _ = cli.handle_diagnostics(write_schema_files_and_report(
-            &compiled.outputs,
-            &project,
-            &*self.host,
-        ));
+        let _ =
+            cli.handle_diagnostics(cli.write_schema_files_and_report(&compiled.outputs, &project));
         false
     }
 
@@ -284,12 +282,38 @@ impl Cli {
                 &*self.host,
             ))
         } else {
-            self.handle_diagnostics(write_schema_files_and_report(
-                &compiled.outputs,
-                &project,
-                &*self.host,
-            ))
+            self.handle_diagnostics(self.write_schema_files_and_report(&compiled.outputs, &project))
         }
+    }
+
+    /// Writes the outputs to disk and reports to the console, or reports a
+    /// file which can't be written.
+    fn write_schema_files_and_report(
+        &self,
+        outputs: &Outputs,
+        project: &Project,
+    ) -> DiagnosticsResult<()> {
+        for file in generated_files(outputs, project) {
+            let native_path = path::to_native(&file.path);
+            self.host
+                .write_file(&file.path, file.contents)
+                .map_err(|error| {
+                    vec![config_error(
+                        &*self.host,
+                        &self.sources,
+                        &project.config_path,
+                        &["grats", file.option],
+                        // The path is what the user would change.
+                        Part::Value,
+                        format!("Grats: Could not write `{native_path}`: {error}"),
+                    )]
+                })?;
+            self.host.log_error(&format!(
+                "Grats: Wrote {} to `{native_path}`.",
+                file.description
+            ));
+        }
+        Ok(())
     }
 
     /// Loads the project, printing any warnings about the config.
@@ -300,6 +324,7 @@ impl Cli {
             tsconfig.as_deref(),
             self.use_case_sensitive_file_names,
             Arc::clone(&self.host),
+            &self.sources,
         )?;
         for warning in &project.warnings {
             self.host.log_error(warning);
@@ -357,6 +382,9 @@ struct GeneratedFile<'a> {
     path: String,
     contents: &'a str,
     description: &'static str,
+    /// The Grats option which chose the path, which an error about writing it
+    /// points at, or the `grats` object if the path is a default.
+    option: &'static str,
 }
 
 /// The files Grats generates for a project, in the order they're written.
@@ -371,11 +399,13 @@ fn generated_files<'a>(outputs: &'a Outputs, project: &Project) -> Vec<Generated
             path: paths.ts_schema,
             contents: &outputs.ts_schema,
             description: "TypeScript schema",
+            option: "tsSchema",
         },
         GeneratedFile {
             path: path::resolve(config_dir, &config.graphql_schema),
             contents: &outputs.graphql_schema,
             description: "schema",
+            option: "graphqlSchema",
         },
     ];
     if let Some(metadata) = &outputs.metadata {
@@ -383,6 +413,7 @@ fn generated_files<'a>(outputs: &'a Outputs, project: &Project) -> Vec<Generated
             path: path::resolve(config_dir, &metadata_path(&config.graphql_schema)),
             contents: metadata,
             description: "resolver signatures",
+            option: "graphqlSchema",
         });
     }
     if let (Some(enums_dest), Some(enums)) = (&paths.ts_client_enums, &outputs.ts_client_enums) {
@@ -390,32 +421,10 @@ fn generated_files<'a>(outputs: &'a Outputs, project: &Project) -> Vec<Generated
             path: enums_dest.clone(),
             contents: enums,
             description: "enums module",
+            option: "tsClientEnums",
         });
     }
     files
-}
-
-/// Writes the outputs to disk and reports to the console, or reports a file
-/// which can't be written.
-fn write_schema_files_and_report(
-    outputs: &Outputs,
-    project: &Project,
-    host: &dyn Host,
-) -> DiagnosticsResult<()> {
-    for file in generated_files(outputs, project) {
-        let native_path = path::to_native(&file.path);
-        host.write_file(&file.path, file.contents)
-            .map_err(|error| {
-                vec![locationless_err(format!(
-                    "Grats: Could not write `{native_path}`: {error}"
-                ))]
-            })?;
-        host.log_error(&format!(
-            "Grats: Wrote {} to `{native_path}`.",
-            file.description
-        ));
-    }
-    Ok(())
 }
 
 /// Checks that each generated file matches what's on disk, without writing
@@ -560,6 +569,7 @@ mod tests {
             path: path.to_string(),
             contents,
             description: "test file",
+            option: "graphqlSchema",
         }
     }
 

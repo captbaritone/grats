@@ -8,6 +8,12 @@ Changes in this section are not yet released. If you need access to these change
 
 Added a [`--validate`](../01-getting-started/02-cli.md#validating-generated-files) flag to the Grats CLI, which checks that the generated files are up to date without writing anything to disk. It exits with a non-zero code if any file is missing or needs to be updated, which makes it useful in CI: instead of running Grats and asserting that nothing changed on disk, run `grats --validate`.
 
+### Config errors point into your `tsconfig.json`
+
+Errors about your configuration are now reported at the place in `tsconfig.json` that caused them, with the offending text underlined, rather than as a bare message. As in `tsc`, an error names only what's wrong: an option Grats doesn't have, or no longer supports, points at the key, while an option set to something invalid points at the value.
+
+This also covers the config as a whole: a config which can't be parsed is reported at the syntax error in whichever file in the `extends` chain has one, an `extends` naming a config which can't be found is reported at that name, and a project without any GraphQL types is reported at the `include` or `files` which chooses the files Grats reads.
+
 ## 0.0.37
 
 ### Grats is now written in Rust

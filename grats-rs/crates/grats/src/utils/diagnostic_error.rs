@@ -84,6 +84,17 @@ pub fn locationless_err(message: String) -> Diagnostic {
     }
 }
 
+/// An error at a location which may not be known, as for a config Grats can't
+/// point into. The message names what went wrong either way.
+pub fn located_err(loc: Option<Location>, message: String) -> Diagnostic {
+    Diagnostic {
+        message_text: message,
+        loc,
+        related_information: None,
+        fix: None,
+    }
+}
+
 /// An error at a GraphQL AST node's location, which must be set.
 pub fn gql_err(
     loc: Option<Location>,

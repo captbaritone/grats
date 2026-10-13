@@ -6,6 +6,7 @@ pub mod code_actions;
 pub mod codegen;
 pub mod codegen_helpers;
 pub mod comments;
+pub mod config_file;
 pub mod errors;
 pub mod extractor;
 pub mod files;

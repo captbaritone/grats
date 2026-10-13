@@ -9,6 +9,8 @@ use schemars::{JsonSchema, Schema};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
+use crate::config_file::Part;
+
 /// Grats' options, set under the `grats` key of `tsconfig.json`. Each
 /// description is a series of paragraphs, separated by blank lines.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -155,6 +157,18 @@ pub struct ValidatedConfig {
     pub warnings: Vec<String>,
 }
 
+/// Why the `grats` key of `tsconfig.json` is invalid, and where.
+#[derive(Debug, Clone)]
+pub struct ConfigError {
+    /// The keys leading from the `grats` object to the offending member, so a
+    /// diagnostic can point at it. Empty for the `grats` value itself.
+    pub path: Vec<String>,
+    /// Which part of that member is wrong: the key, where the option
+    /// shouldn't be there at all, or the value it's set to.
+    pub part: Part,
+    pub message: String,
+}
+
 /// Options which Grats no longer supports, and how to migrate away from each.
 const REMOVED_OPTIONS: [(&str, &str); 1] = [(
     "reportTypeScriptTypeErrors",
@@ -163,19 +177,27 @@ const REMOVED_OPTIONS: [(&str, &str); 1] = [(
 
 /// Validates the `grats` key of `tsconfig.json`, filling in the defaults of
 /// options it doesn't set.
-pub fn validate_grats_options(options: Option<&Value>) -> Result<ValidatedConfig, String> {
+pub fn validate_grats_options(options: Option<&Value>) -> Result<ValidatedConfig, ConfigError> {
     let options = match options {
         None | Some(Value::Null) => serde_json::Map::new(),
         Some(Value::Object(options)) => options.clone(),
-        Some(_) => return Err("Expected the Grats config to be an object.".to_string()),
+        Some(_) => {
+            return Err(ConfigError {
+                path: Vec::new(),
+                part: Part::Value,
+                message: "Expected the Grats config to be an object.".to_string(),
+            });
+        }
     };
     if let Some((key, removed)) = REMOVED_OPTIONS
         .iter()
         .find(|(key, _)| options.contains_key(*key))
     {
-        return Err(format!(
-            "The Grats config option `{key}` has been removed. {removed}"
-        ));
+        return Err(ConfigError {
+            path: vec![key.to_string()],
+            part: Part::Key,
+            message: format!("The Grats config option `{key}` has been removed. {removed}"),
+        });
     }
     let schema = json_schema();
     let warnings = options
@@ -187,7 +209,31 @@ pub fn validate_grats_options(options: Option<&Value>) -> Result<ValidatedConfig
             "Grats: The `{key}` option is experimental and will be renamed or removed in a future release."
         ))
         .collect();
-    let config = serde_path_to_error::deserialize(Value::Object(options))
-        .map_err(|error| format!("Invalid Grats config: {error}"))?;
+    let config = serde_path_to_error::deserialize(Value::Object(options)).map_err(|error| {
+        let path: Vec<String> = error
+            .path()
+            .iter()
+            // Only object keys, since that's all a location can point at,
+            // and only up to the first segment which isn't one, so the path
+            // never names a member it didn't reach.
+            .map_while(|segment| match segment {
+                serde_path_to_error::Segment::Map { key } => Some(key.clone()),
+                _ => None,
+            })
+            .collect();
+        ConfigError {
+            // An option the schema doesn't have is a mistake in the key,
+            // which `deny_unknown_fields` is what rejected. Every other
+            // error is about the value an option is set to.
+            part: match path.first() {
+                Some(key) if schema.as_value()["properties"][key].is_null() => Part::Key,
+                _ => Part::Value,
+            },
+            path,
+            // `{error}` leads with the path, as in `tsSchema: invalid type`, so
+            // the message names the option even where it has no location.
+            message: format!("Invalid Grats config: {error}"),
+        }
+    })?;
     Ok(ValidatedConfig { config, warnings })
 }
