@@ -43,7 +43,7 @@ const RELOAD_DELAY_MS = 400;
  * GraphiQL, executing against the schema defined by the code in the editor.
  * When it mounts, and once the code or config stops changing, the code and the
  * executable schema Grats generates for it are loaded into the playground's
- * service worker.
+ * executor worker.
  */
 export function ExecutePanel() {
   const { colorMode } = useColorMode();

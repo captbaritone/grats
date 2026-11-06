@@ -247,7 +247,7 @@ export class GratsWorker extends TypeScriptWorker {
   }
 
   // The editor's code and the executable schema Grats generates for it,
-  // compiled to CommonJS for the playground's service worker to run.
+  // compiled to CommonJS for the playground's executor worker to run.
   async getExecutableModules(): Promise<ExecutableModulesResult> {
     // Pin the options which affect how the schema imports the editor's code.
     const result = await this._gratsResult({

@@ -1,11 +1,5 @@
 // Shared between the playground page, the Grats worker and the playground's
-// service worker (`src/workers/playground.sw.ts`).
-
-/** The path the service worker answers GraphQL requests at. */
-export const GRAPHQL_PATH = "/playground/graphql";
-
-/** The scope the service worker is registered with. Covers `GRAPHQL_PATH`. */
-export const SERVICE_WORKER_SCOPE = "/playground";
+// executor worker (`src/workers/executor.worker.ts`).
 
 /**
  * The editor's code and the executable schema Grats generated for it, each
@@ -20,11 +14,19 @@ export type ExecutableModulesResult =
   | { kind: "OK"; modules: ExecutableModules }
   | { kind: "ERROR"; message: string };
 
-/** Messages the page sends the service worker, over a `MessageChannel`. */
-export type ServiceWorkerRequest =
-  // Load the schema for requests from the sending page.
-  | { type: "setModules"; modules: ExecutableModules }
-  // Take control of the sending page, if the service worker doesn't already.
-  | { type: "claim" };
+export type GraphQLParams = {
+  query: string;
+  variables?: Record<string, unknown> | null;
+  operationName?: string | null;
+};
 
-export type ServiceWorkerResponse = { ok: true } | { ok: false; error: string };
+/** Messages the page sends the executor worker, over a `MessageChannel`. */
+export type ExecutorRequest =
+  // Load the schema subsequent requests are executed against.
+  | { type: "setModules"; modules: ExecutableModules }
+  // Execute a GraphQL request. Responds with its result, as JSON would have it.
+  | { type: "execute"; params: GraphQLParams };
+
+export type ExecutorResponse =
+  | { ok: true; result?: unknown }
+  | { ok: false; error: string };
