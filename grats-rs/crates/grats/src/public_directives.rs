@@ -10,11 +10,12 @@ use graphql_js::language::source::Source;
 
 pub const SEMANTIC_NON_NULL_DIRECTIVE: &str = "semanticNonNull";
 
-// Copied from https://github.com/apollographql/specs/blob/2a22ccf054994392a1b14d8810787cb27baee040/nullability/v0.2/nullability-v0.2.graphql#L1C1-L33C68
+// Matches https://gaps.graphql.org/GAP-49/draft/
 const SEMANTIC_NON_NULL_SDL: &str = r#"
 """
-Indicates that a position is semantically non null: it is only null if there is a matching error in the `errors` array.
-In all other cases, the position is non-null.
+Indicates that a field's result is semantically non null at the indicated levels:
+it is only null if there is a matching error in the `errors` array of the response.
+In all other cases, the position contains a value.
 
 Tools doing code generation may use this information to generate the position as non-null if field errors are handled out of band:
 
@@ -25,7 +26,7 @@ type User {
 }
 ```
 
-The `levels` argument indicates what levels are semantically non null in case of lists:
+The `levels` argument selects which levels of a (possibly nested) list type are semantically non null:
 
 ```graphql
 type User {
@@ -40,10 +41,11 @@ type User {
 }
 ```
 
-`levels` are zero indexed.
-Passing a negative level or a level greater than the list dimension is an error.
+`levels` are zero indexed, where level 0 is the field's own value.
+A level that is negative, or that exceeds the list dimensionality of the annotated field, is an error.
+Applying `@semanticNonNull` to a level that is already Non-Null is an error.
 """
-directive @semanticNonNull(levels: [Int] = [0]) on FIELD_DEFINITION
+directive @semanticNonNull(levels: [Int!]! = [0]) on FIELD_DEFINITION
 "#;
 
 /// The definition of `@semanticNonNull`. It's parsed without locations, so

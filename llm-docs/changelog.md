@@ -14,6 +14,10 @@ Errors about your configuration are now reported at the place in `tsconfig.json`
 
 This also covers the config as a whole: a config which can't be parsed is reported at the syntax error in whichever file in the `extends` chain has one, an `extends` naming a config which can't be found is reported at that name, and a project without any GraphQL types is reported at the `include` or `files` which chooses the files Grats reads.
 
+### `@semanticNonNull` follows GAP-49
+
+With [`strictSemanticNullability`](./guides/strict-semantic-nullability.md) enabled, the `@semanticNonNull` directive Grats defines now matches [GAP-49](https://gaps.graphql.org/GAP-49/draft/): its `levels` argument is typed `[Int!]!` rather than `[Int]`.
+
 ## 0.0.37
 
 ### Grats is now written in Rust
