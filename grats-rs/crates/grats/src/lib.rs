@@ -28,6 +28,7 @@ pub mod public_directives;
 pub mod snapshot_refs;
 pub mod source_table;
 pub mod transforms;
+pub mod tsconfig_compat;
 pub mod type_context;
 pub mod utils;
 pub mod validations;
